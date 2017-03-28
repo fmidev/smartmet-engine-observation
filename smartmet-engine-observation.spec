@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 17.3.23
+Version: 17.3.28
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -11,7 +11,6 @@ URL: https://github.com/fmidev/smartmet-engine-observation
 Source0: %{name}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: libconfig-devel
-BuildRequires: oracle-instantclient11.2-devel
 BuildRequires: boost-devel
 Requires: libconfig
 BuildRequires: smartmet-library-spine-devel >= 17.1.24
@@ -29,8 +28,6 @@ Requires: smartmet-engine-geonames >= 17.1.24
 Requires: smartmet-library-spine >= 17.1.24
 Requires: smartmet-library-locus >= 16.12.20
 Requires: smartmet-library-macgyver >= 17.1.18
-Requires: smartmet-library-delfoi >= 17.3.23
-Requires: oracle-instantclient11.2-basic
 Requires: libatomic
 Requires: unixODBC
 Requires: mysql++
@@ -46,8 +43,6 @@ Requires: boost-system
 Requires: boost-thread
 Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
-# Disable automatic requirements because Oracle does not package so-files as executables
-AutoReq: no
 
 %if 0%{rhel} >= 7
 BuildRequires: mariadb-devel
@@ -80,8 +75,6 @@ make %{_smp_mflags}
 %makeinstall
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d
 mkdir -p $RPM_BUILD_ROOT%{_var}/smartmet/observation
-install -m 644 cnf/tnsnames.ora $RPM_BUILD_ROOT%{_sysconfdir}/tnsnames.ora
-install -m 644 cnf/oracle-x86_64.conf $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d/oracle-x86_64.conf
 install -m 664 cnf/stations.xml $RPM_BUILD_ROOT/var/smartmet/observation/stations.xml
 install -m 664 cnf/stations.sqlite.2 $RPM_BUILD_ROOT/var/smartmet/observation/stations.sqlite.2
 
@@ -95,8 +88,6 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(0775,root,root,0775)
 %{_datadir}/smartmet/engines/%{DIRNAME}.so
 %defattr(0664,root,root,0775)
-%config(noreplace) %{_sysconfdir}/tnsnames.ora
-%{_sysconfdir}/ld.so.conf.d/oracle-x86_64.conf
 %config(noreplace) %{_var}/smartmet/observation/stations.xml
 %config(noreplace) %{_var}/smartmet/observation/stations.sqlite.2
 
@@ -105,5 +96,13 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Mar 28 2017 Anssi Reponen <anssi.reponen@fmi.fi> - 17.3.28-1.fmi
+- references to oracle removed from Makefile and spec-file
+- 'dbDriverFile' configuration parameter added: 
+contains library file name of database driver, if missing or empty DummyDatabaseDriver is created
+- Database driver module is loaded dynamically
+- MastQuery and VerifiableMessageQuery files moved here from delfoi library
+- missing cnf-directory added
+
 * Thu Mar 23 2017 Anssi Reponen <anssi.reponen@fmi.fi> - 17.3.23-1.fmi
-- Oracle dependednt code moved to delfoi-library
+- Oracle dependent code moved to delfoi-library

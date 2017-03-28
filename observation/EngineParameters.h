@@ -84,7 +84,7 @@ struct EngineParameters {
   ParameterMap parameterMap;
 
   std::string observationCacheId;
-  std::string dbDriverId;
+  std::string dbDriverFile;
 
   jss::atomic_shared_ptr<StationInfo> stationInfo;
   Fmi::Cache::Cache<std::string, std::vector<Spine::Station> > locationCache;

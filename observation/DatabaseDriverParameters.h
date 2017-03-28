@@ -21,7 +21,7 @@ struct DatabaseDriverParameters {
   std::string password;
   std::string service;
   std::string nlsLang;
-  std::string driverId;
+  std::string driverFile;
   int connectionPoolSize;
   size_t connectionTimeoutSeconds;
   Geonames::Engine *geonames;

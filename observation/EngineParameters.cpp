@@ -91,8 +91,8 @@ EngineParameters::EngineParameters(const std::string configfile) {
     dbRegistryFolderPath =
         cfg.get_mandatory_config_param<std::string>("dbRegistryFolderPath");
 
-    dbDriverId =
-        cfg.get_optional_config_param<std::string>("dbDriverId", "oracle");
+    dbDriverFile = cfg.get_optional_config_param<std::string>(
+        "dbDriverFile", ""); // when empty, create dummy drver
     observationCacheId = cfg.get_optional_config_param<std::string>(
         "observationCacheId", "spatialite");
 
@@ -126,7 +126,7 @@ EngineParameters::EngineParameters(const std::string configfile) {
     observationCacheParameters->stationtypeConfig = &stationtypeConfig;
     observationCacheParameters->stationInfo = &stationInfo;
 
-    databaseDriverParameters->driverId = dbDriverId;
+    databaseDriverParameters->driverFile = dbDriverFile;
     databaseDriverParameters->service = service;
     databaseDriverParameters->username = username;
     databaseDriverParameters->password = password;

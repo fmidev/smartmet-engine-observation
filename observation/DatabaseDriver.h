@@ -54,6 +54,11 @@ protected:
       : itsDriverParameters(p) {}
 
   boost::shared_ptr<DatabaseDriverParameters> itsDriverParameters;
+
+private:
+  // Pointer to dymanically loaded database driver
+  void *itsHandle = nullptr;
+  friend class DatabaseDriverFactory;
 };
 
 } // namespace Observation

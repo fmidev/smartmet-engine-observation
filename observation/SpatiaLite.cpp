@@ -134,6 +134,7 @@ void SpatiaLite::createTables() {
     createObservationDataTable();
     createWeatherDataQCTable();
     createFlashDataTable();
+    createObservablePropertyTable();
   }
   catch (...) {
     throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
@@ -3052,7 +3053,6 @@ void SpatiaLite::createObservablePropertyTable() {
   try {
     // No locking needed during initialization phase
 
-    // TODO primary key??
     soci::transaction tr(itsSession);
     itsSession << "CREATE TABLE IF NOT EXISTS observable_property ("
                   "measurandId INTEGER,"

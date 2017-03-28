@@ -47,7 +47,6 @@ ifeq ($(CXX), clang++)
 	-isystem $(includedir) \
 	-isystem $(includedir)/smartmet \
 	-isystem $(includedir)/mysql \
-	-isystem $(includedir)/oracle/11.2/client64 \
 	-isystem $(includedir)/soci 
 
 else
@@ -70,7 +69,6 @@ else
 	-I$(includedir) \
 	-I$(includedir)/smartmet \
 	-I$(includedir)/mysql \
-	-I$(includedir)/oracle/11.2/client64 \
 	-I$(includedir)/soci
 
 endif
@@ -92,7 +90,6 @@ LIBS = -L$(libdir) \
         -lsmartmet-spine \
         -lsmartmet-macgyver \
         -lsmartmet-locus \
-        -lsmartmet-delfoi \
         -lboost_thread \
         -lboost_iostreams \
         -lboost_date_time \
@@ -104,11 +101,7 @@ LIBS = -L$(libdir) \
 	-lsoci_sqlite3 \
 	`pkg-config --libs spatialite` \
         -lbz2 -lz \
-	-latomic -lpthread \
-	-L/usr/lib/oracle/11.2/client64/lib/ \
-	-Wl,-rpath,/usr/lib/oracle/11.2/client64/lib/ \
-        -lnnz11 \
-        -lclntsh
+	-latomic -lpthread
 
 # What to install
 
