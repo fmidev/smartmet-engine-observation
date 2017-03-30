@@ -1,6 +1,8 @@
 #include "SpatiaLiteCache.h"
 #include "ObservableProperty.h"
 #include <macgyver/StringConversion.h>
+#include <boost/make_shared.hpp>
+#include <atomic>
 
 namespace ts = SmartMet::Spine::TimeSeries;
 
@@ -64,11 +66,12 @@ void SpatiaLiteCache::initializeConnectionPool() {
     boost::posix_time::ptime last_time(
         spatialitedb->getLatestObservationTime());
     boost::posix_time::ptime timetokeep =
-        last_time - boost::posix_time::hours(itsParameters->cacheDuration);
+        last_time - boost::posix_time::hours(itsParameters->finCacheDuration);
 
     // Resets the period atomically
-    *(itsParameters->cachePeriod) =
-        jss::make_shared<boost::posix_time::time_period>(timetokeep, last_time);
+    *(itsParameters->finCachePeriod) =
+        boost::make_shared<boost::posix_time::time_period>(timetokeep,
+                                                           last_time);
 
     // Check first if we already have stations in SpatiaLite db so that we know
     // if we can use it
@@ -205,7 +208,7 @@ Spine::Stations SpatiaLiteCache::getStationsFromSpatiaLite(
       return stations;
     }
 
-    auto info = itsParameters->stationInfo->load();
+    auto info = boost::atomic_load(itsParameters->stationInfo);
 
     if (settings.allplaces) {
       Spine::Stations allStationsFromGroups =
@@ -310,7 +313,7 @@ bool SpatiaLiteCache::timeIntervalIsCached(
     const boost::posix_time::ptime &endtime) const {
   try {
     // copies both begin & end, makes resetting the period thread safe
-    auto period = itsParameters->cachePeriod->load();
+    auto period = boost::atomic_load(itsParameters->finCachePeriod);
 
     // the first write sets the available period, must return false until that
     // is done
@@ -330,7 +333,7 @@ bool SpatiaLiteCache::flashIntervalIsCached(
     const boost::posix_time::ptime &endtime) const {
   try {
     // Atomic copy in case we need begin and end
-    auto period = itsParameters->flashPeriod->load();
+    auto period = boost::atomic_load(itsParameters->flashCachePeriod);
 
     // the first write sets the available period, must return false until that
     // is done
@@ -349,7 +352,7 @@ bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
     const boost::posix_time::ptime &endtime) const {
   try {
     // Atomic copy in case we need begin and end
-    auto period = itsParameters->qcDataPeriod->load();
+    auto period = boost::atomic_load(itsParameters->extCachePeriod);
 
     // the first write sets the available period, must return false until that
     // is done
@@ -388,7 +391,7 @@ Spine::Stations SpatiaLiteCache::getStationsByTaggedLocations(
           stations.push_back(cachedStation);
         }
       } else {
-        auto info = itsParameters->stationInfo->load();
+        auto info = boost::atomic_load(itsParameters->stationInfo);
 
         auto newStations = findNearestStations(
             *info, tloc.loc, maxdistance, numberofstations, stationgroup_codes,
@@ -425,7 +428,7 @@ void SpatiaLiteCache::getStationsByBoundingBox(Spine::Stations &stations,
       return;
     }
 
-    auto info = itsParameters->stationInfo->load();
+    auto info = boost::atomic_load(itsParameters->stationInfo);
 
     try {
 #if 1
@@ -493,29 +496,33 @@ void SpatiaLiteCache::updateStationsAndGroups(const StationInfo &info) const {
   spatialitedb->updateStationsAndGroups(info);
 }
 
-void
-SpatiaLiteCache::updateCachePeriod(const boost::posix_time::ptime &timetokeep,
-                                   boost::posix_time::ptime last_time) {
-  *(itsParameters->cachePeriod) =
-      jss::make_shared<boost::posix_time::time_period>(timetokeep, last_time);
+void SpatiaLiteCache::updateFinCachePeriod(
+    const boost::posix_time::ptime &timetokeep,
+    boost::posix_time::ptime last_time) {
+  *(itsParameters->finCachePeriod) =
+      boost::make_shared<boost::posix_time::time_period>(timetokeep, last_time);
 }
 
-void
-SpatiaLiteCache::updateQCDataPeriod(const boost::posix_time::ptime &timetokeep,
-                                    boost::posix_time::ptime last_time) {
-  *(itsParameters->qcDataPeriod) =
-      jss::make_shared<boost::posix_time::time_period>(timetokeep, last_time);
+void SpatiaLiteCache::updateExtCachePeriod(
+    const boost::posix_time::ptime &timetokeep,
+    boost::posix_time::ptime last_time) {
+  *(itsParameters->extCachePeriod) =
+      boost::make_shared<boost::posix_time::time_period>(timetokeep, last_time);
 }
 
-void
-SpatiaLiteCache::updateFlashPeriod(const boost::posix_time::ptime &timetokeep,
-                                   boost::posix_time::ptime last_time) {
-  *(itsParameters->flashPeriod) =
-      jss::make_shared<boost::posix_time::time_period>(timetokeep, last_time);
+void SpatiaLiteCache::updateFlashCachePeriod(
+    const boost::posix_time::ptime &timetokeep,
+    boost::posix_time::ptime last_time) {
+  *(itsParameters->flashCachePeriod) =
+      boost::make_shared<boost::posix_time::time_period>(timetokeep, last_time);
 }
 
-int SpatiaLiteCache::getCacheDuration() const {
-  return itsParameters->cacheDuration;
+int SpatiaLiteCache::getFinCacheDuration() const {
+  return itsParameters->finCacheDuration;
+}
+
+int SpatiaLiteCache::getExtCacheDuration() const {
+  return itsParameters->extCacheDuration;
 }
 
 int SpatiaLiteCache::getFlashCacheDuration() const {

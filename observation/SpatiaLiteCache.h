@@ -5,8 +5,6 @@
 #include "Settings.h"
 #include "ObservationCache.h"
 
-#include <jssatomic/atomic_shared_ptr.hpp>
-
 #include <macgyver/Cache.h>
 
 #include <string>
@@ -33,12 +31,12 @@ public:
       const int maxdistance, const std::set<std::string> &stationgroup_codes,
       const boost::posix_time::ptime &starttime,
       const boost::posix_time::ptime &endtime);
-  void updateCachePeriod(const boost::posix_time::ptime &timetokeep,
-                         boost::posix_time::ptime last_time);
-  void updateQCDataPeriod(const boost::posix_time::ptime &timetokeep,
-                          boost::posix_time::ptime last_time);
-  void updateFlashPeriod(const boost::posix_time::ptime &timetokeep,
-                         boost::posix_time::ptime last_time);
+  void updateFinCachePeriod(const boost::posix_time::ptime &timetokeep,
+                            boost::posix_time::ptime last_time);
+  void updateExtCachePeriod(const boost::posix_time::ptime &timetokeep,
+                            boost::posix_time::ptime last_time);
+  void updateFlashCachePeriod(const boost::posix_time::ptime &timetokeep,
+                              boost::posix_time::ptime last_time);
 
   bool dataAvailableInCache(const Settings &settings) const;
   bool flashIntervalIsCached(const boost::posix_time::ptime &starttime,
@@ -47,7 +45,8 @@ public:
                                 const Settings &settings) const;
   void updateStationsAndGroups(const StationInfo &info) const;
 
-  int getCacheDuration() const;
+  int getFinCacheDuration() const;
+  int getExtCacheDuration() const;
   int getFlashCacheDuration() const;
 
   Spine::Stations

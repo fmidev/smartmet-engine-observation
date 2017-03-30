@@ -6,8 +6,6 @@
 #include <spine/TimeSeries.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
 
-#include <jssatomic/atomic_shared_ptr.hpp>
-
 namespace SmartMet {
 namespace Engine {
 namespace Observation {
@@ -26,7 +24,7 @@ struct DatabaseDriverParameters {
   size_t connectionTimeoutSeconds;
   Geonames::Engine *geonames;
   std::map<std::string, std::map<std::string, std::string> > *parameterMap;
-  jss::atomic_shared_ptr<StationInfo> *stationInfo;
+  boost::shared_ptr<StationInfo> *stationInfo;
   Fmi::Cache::Cache<std::string, std::vector<Spine::Station> > *locationCache;
   Fmi::Cache::Cache<std::string, std::shared_ptr<QueryResultBase> > *
   queryResultBaseCache;

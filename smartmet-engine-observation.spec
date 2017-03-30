@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 17.3.28
+Version: 17.3.30
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -22,7 +22,6 @@ BuildRequires: soci-devel >= 3.2.3
 BuildRequires: soci-sqlite3-devel >= 3.2.3
 BuildRequires: smartmet-library-locus-devel >= 16.12.20
 BuildRequires: smartmet-library-macgyver-devel >= 17.1.18
-BuildRequires: jssatomic
 Requires: smartmet-server >= 17.1.25
 Requires: smartmet-engine-geonames >= 17.1.24
 Requires: smartmet-library-spine >= 17.1.24
@@ -96,6 +95,19 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Mar 30 2017 Anssi Reponen <anssi.reponen@fmi.fi> - 17.3.30-1.fmi
+- Configuration parameters for cache added and old renamed (all cache parameters are now inside cache group in configuration file):
+ ¤ finCacheUpdateInterval (update interval of FMI data, optional, default value is 0 [no updates])
+ ¤ extCacheUpdateInterval  (update interval of non-FMI data, optional, default value is 0 [no updates])
+ ¤ flashCacheUpdateInterval (update interval of flash data, optional, default value is 0 [no updates])
+ ¤ finCacheDuration (max lifetime of FMI data, mandatory)
+ ¤ extCacheDuration (max lifetime of non-FMI data, mandatory)
+ ¤ flashCacheDuration (max lifetime of flash data, mandatory)
+ ¤ disableAllCacheUpdates (disables all cache updates, default values is false)
+ ¤ locationCacheSize (max number of stations in location cache, mandatory)
+- jss dependencies removed
+- ObservationCacheParameters-struct moved into separate header file
+
 * Thu Mar 28 2017 Anssi Reponen <anssi.reponen@fmi.fi> - 17.3.28-1.fmi
 - references to oracle removed from Makefile and spec-file
 - 'dbDriverFile' configuration parameter added: 

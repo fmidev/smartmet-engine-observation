@@ -41,23 +41,24 @@ struct EngineParameters {
   // Cache size settings
   int locationCacheSize;
   // Cache updates
-  bool disableUpdates = false;
-  std::size_t finUpdateInterval;
-  std::size_t extUpdateInterval;
-  std::size_t flashUpdateInterval;
+  bool disableAllCacheUpdates = false;
+  std::size_t finCacheUpdateInterval;
+  std::size_t extCacheUpdateInterval;
+  std::size_t flashCacheUpdateInterval;
+  // How many hours to keep observations in Cache database
+  int finCacheDuration;
+  int extCacheDuration;
+  int flashCacheDuration;
 
-  // How many hours to keep observations in SpatiaLite database
-  int spatialiteCacheDuration;
   // The time interval which is cached in the observation_data table (Finnish
   // observations)
-  jss::atomic_shared_ptr<boost::posix_time::time_period> spatialitePeriod;
+  boost::shared_ptr<boost::posix_time::time_period> finCachePeriod;
   // The time interval which is cached in the weather_data_qc table (Foreign &
   // road observations)
-  jss::atomic_shared_ptr<boost::posix_time::time_period> qcDataPeriod;
-  // How many hours to keep flash data in SpatiaLite
-  int spatialiteFlashCacheDuration;
-  // The time interval for flash observations which is cached in the SpatiaLite
-  jss::atomic_shared_ptr<boost::posix_time::time_period> flashPeriod;
+  boost::shared_ptr<boost::posix_time::time_period> extCachePeriod;
+  // The time interval for flash observations which is cached
+  boost::shared_ptr<boost::posix_time::time_period> flashCachePeriod;
+
   // Max inserts in one commit
   std::size_t maxInsertSize;
 
@@ -72,11 +73,8 @@ struct EngineParameters {
   bool preloaded = false;
   bool forceReload = false;
 
-  //  bool spatiaLiteHasStations = false;
-
   std::map<std::string, std::string> stationTypeMap;
   StationtypeConfig stationtypeConfig;
-  //  volatile int activeThreadCount = 0;
   volatile bool shutdownRequested = false;
 
   using ParameterMap =
@@ -86,7 +84,7 @@ struct EngineParameters {
   std::string observationCacheId;
   std::string dbDriverFile;
 
-  jss::atomic_shared_ptr<StationInfo> stationInfo;
+  boost::shared_ptr<StationInfo> stationInfo;
   Fmi::Cache::Cache<std::string, std::vector<Spine::Station> > locationCache;
   Fmi::Cache::Cache<std::string, std::shared_ptr<QueryResultBase> >
   queryResultBaseCache;

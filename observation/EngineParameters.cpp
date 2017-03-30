@@ -57,22 +57,24 @@ EngineParameters::EngineParameters(const std::string configfile) {
         "sqlite.journal_mode", "WAL");
     mmapSize = cfg.get_optional_config_param<long>("sqlite.mmap_size", 0);
 
-    disableUpdates =
-        cfg.get_optional_config_param<bool>("cache.disableUpdates", false);
-    finUpdateInterval =
-        cfg.get_optional_config_param<std::size_t>("finUpdateInterval", 60);
-    extUpdateInterval =
-        cfg.get_optional_config_param<std::size_t>("extUpdateInterval", 60);
-    flashUpdateInterval =
-        cfg.get_optional_config_param<std::size_t>("flashUpdateInterval", 60);
+    disableAllCacheUpdates = cfg.get_optional_config_param<bool>(
+        "cache.disableAllCacheUpdates", false);
+    finCacheUpdateInterval = cfg.get_optional_config_param<std::size_t>(
+        "cache.finCacheUpdateInterval", 0);
+    extCacheUpdateInterval = cfg.get_optional_config_param<std::size_t>(
+        "cache.extCacheUpdateInterval", 0);
+    flashCacheUpdateInterval = cfg.get_optional_config_param<std::size_t>(
+        "cache.flashCacheUpdateInterval", 0);
+
+    finCacheDuration =
+        cfg.get_mandatory_config_param<int>("cache.finCacheDuration");
+    extCacheDuration =
+        cfg.get_mandatory_config_param<int>("cache.extCacheDuration");
+    flashCacheDuration =
+        cfg.get_mandatory_config_param<int>("cache.extCacheDuration");
 
     locationCacheSize =
         cfg.get_mandatory_config_param<int>("cache.locationCacheSize");
-
-    spatialiteCacheDuration =
-        cfg.get_mandatory_config_param<int>("cache.spatialiteCacheDuration");
-    spatialiteFlashCacheDuration = cfg.get_mandatory_config_param<int>(
-        "cache.spatialiteFlashCacheDuration");
 
     queryResultBaseCacheSize = cfg.get_optional_config_param<size_t>(
         "cache.queryResultBaseCacheSize", 1000);
@@ -113,15 +115,16 @@ EngineParameters::EngineParameters(const std::string configfile) {
     observationCacheParameters->memstatus = memstatus;
     observationCacheParameters->sharedCache = sharedCache;
     observationCacheParameters->cacheTimeout = cacheTimeout;
-    observationCacheParameters->cacheDuration = spatialiteCacheDuration;
-    observationCacheParameters->flashCacheDuration =
-        spatialiteFlashCacheDuration;
+    observationCacheParameters->finCacheDuration = finCacheDuration;
+    observationCacheParameters->extCacheDuration = extCacheDuration;
+    observationCacheParameters->flashCacheDuration = flashCacheDuration;
     observationCacheParameters->quiet = quiet;
     observationCacheParameters->cacheHasStations =
         false; // this is set later by cache
-    observationCacheParameters->cachePeriod = &spatialitePeriod;
-    observationCacheParameters->qcDataPeriod = &qcDataPeriod;
-    observationCacheParameters->flashPeriod = &flashPeriod;
+    observationCacheParameters->finCachePeriod = &finCachePeriod;
+    observationCacheParameters->extCachePeriod = &extCachePeriod;
+    observationCacheParameters->flashCachePeriod = &flashCachePeriod;
+
     observationCacheParameters->parameterMap = &parameterMap;
     observationCacheParameters->stationtypeConfig = &stationtypeConfig;
     observationCacheParameters->stationInfo = &stationInfo;

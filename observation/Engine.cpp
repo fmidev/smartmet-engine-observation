@@ -6,6 +6,8 @@
 
 #include <spine/Convenience.h>
 #include <macgyver/Geometry.h>
+#include <boost/make_shared.hpp>
+#include <atomic>
 
 // #define MYDEBUG 1
 
@@ -80,8 +82,8 @@ void Engine::unserializeStations() {
     boost::filesystem::path path =
         boost::filesystem::path(itsEngineParameters->serializedStationsFile);
     if (boost::filesystem::exists(path) && !boost::filesystem::is_empty(path)) {
-      jss::shared_ptr<StationInfo> stationinfo =
-          jss::make_shared<StationInfo>();
+      boost::shared_ptr<StationInfo> stationinfo =
+          boost::make_shared<StationInfo>();
       stationinfo->unserialize(itsEngineParameters->serializedStationsFile);
 
       //  This is atomic
@@ -125,17 +127,20 @@ void Engine::cacheFromDatabase() {
 
     // Updates are disabled for example in regression tests and sometimes when
     // profiling
-    if (itsEngineParameters->disableUpdates)
+    if (itsEngineParameters->disableAllCacheUpdates)
       return;
 
     itsDatabaseDriver->locationsFromDatabase();
 
-    itsUpdateCacheLoopThread.reset(new boost::thread(
-        boost::bind(&Observation::Engine::updateCacheLoop, this)));
-    itsUpdateWeatherDataQCCacheLoopThread.reset(new boost::thread(
-        boost::bind(&Observation::Engine::updateWeatherDataQCCacheLoop, this)));
-    itsUpdateFlashCacheLoopThread.reset(new boost::thread(
-        boost::bind(&Observation::Engine::updateFlashCacheLoop, this)));
+    if (itsEngineParameters->finCacheUpdateInterval > 0)
+      itsUpdateCacheLoopThread.reset(new boost::thread(
+          boost::bind(&Observation::Engine::updateCacheLoop, this)));
+    if (itsEngineParameters->extCacheUpdateInterval > 0)
+      itsUpdateWeatherDataQCCacheLoopThread.reset(new boost::thread(boost::bind(
+          &Observation::Engine::updateWeatherDataQCCacheLoop, this)));
+    if (itsEngineParameters->flashCacheUpdateInterval > 0)
+      itsUpdateFlashCacheLoopThread.reset(new boost::thread(
+          boost::bind(&Observation::Engine::updateFlashCacheLoop, this)));
     itsPreloadStationThread.reset(new boost::thread(
         boost::bind(&Observation::Engine::preloadStations, this)));
   }
@@ -164,7 +169,7 @@ void Engine::updateCacheLoop() {
       }
 
       // Total time to sleep in milliseconds
-      int remaining = itsEngineParameters->finUpdateInterval * 1000;
+      int remaining = itsEngineParameters->finCacheUpdateInterval * 1000;
       while (remaining > 0 && !itsEngineParameters->shutdownRequested) {
         int sleeptime = std::min(500, remaining);
         boost::this_thread::sleep(boost::posix_time::milliseconds(sleeptime));
@@ -199,7 +204,7 @@ void Engine::updateFlashCacheLoop() {
       }
 
       // Total time to sleep in milliseconds
-      int remaining = itsEngineParameters->flashUpdateInterval * 1000;
+      int remaining = itsEngineParameters->flashCacheUpdateInterval * 1000;
       while (remaining > 0 && !itsEngineParameters->shutdownRequested) {
         int sleeptime = std::min(500, remaining);
         boost::this_thread::sleep(boost::posix_time::milliseconds(sleeptime));
@@ -233,7 +238,7 @@ void Engine::updateWeatherDataQCCacheLoop() {
       }
 
       // Total time to sleep in milliseconds
-      int remaining = itsEngineParameters->extUpdateInterval * 1000;
+      int remaining = itsEngineParameters->extCacheUpdateInterval * 1000;
       while (remaining > 0 && !itsEngineParameters->shutdownRequested) {
         int sleeptime = std::min(500, remaining);
         boost::this_thread::sleep(boost::posix_time::milliseconds(sleeptime));
@@ -353,7 +358,7 @@ Spine::Stations Engine::getStationsByArea(const Settings &settings,
       return stations;
 
     try {
-      auto info = itsEngineParameters->stationInfo.load();
+      auto info = boost::atomic_load(&itsEngineParameters->stationInfo);
       return itsObservationCache->findStationsInsideArea(tempSettings, areaWkt,
                                                          *info);
     }
@@ -380,7 +385,7 @@ void Engine::getStationsByRadius(Spine::Stations &stations,
                                  double latitude) {
   try {
     // Copy original data atomically so that a reload may simultaneously swap
-    auto info = itsEngineParameters->stationInfo.load();
+    auto info = boost::atomic_load(&itsEngineParameters->stationInfo);
 
     // std::cout << "NOT USING FAST SEARCH!" << std::endl;
 
@@ -460,18 +465,13 @@ void Engine::setGeonames(Geonames::Engine *geonames_) {
   try {
     boost::mutex::scoped_lock lock(itsSetGeonamesMutex);
 
-    //   if (itsEngineParameters->geonames == NULL)
     if (itsEngineParameters->databaseDriverParameters->geonames == NULL) {
-      //      itsEngineParameters->geonames = geonames_;
       itsEngineParameters->databaseDriverParameters->geonames = geonames_;
 
       // Connection pool can be initialized only afer geonames is set
       initializePool(itsEngineParameters->poolSize);
 
-      // boost::thread
-      // initializeThread(boost::bind(&Engine::Observation::Engine::preloadStations,
-      // this));
-      if (not itsEngineParameters->disableUpdates) {
+      if (not itsEngineParameters->disableAllCacheUpdates) {
         itsActiveThreadCount++;
         cacheFromDatabase();
         itsActiveThreadCount--;

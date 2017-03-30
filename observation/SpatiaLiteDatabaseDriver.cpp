@@ -6,6 +6,7 @@
 #include "QueryResultBase.h"
 #include "DatabaseDriverParameters.h"
 
+#include <atomic>
 #include <chrono>
 #include <spine/Convenience.h>
 
@@ -349,7 +350,7 @@ void SpatiaLiteDatabaseDriver::getStations(Spine::Stations &stations,
     // continue with other means
     // to find stations.
 
-    auto info = itsDriverParameters->stationInfo->load();
+    auto info = boost::atomic_load(itsDriverParameters->stationInfo);
 
     if (settings.allplaces) {
       Spine::Stations allStationsFromGroups =

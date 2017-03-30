@@ -6,11 +6,10 @@
 #include "FlashDataItem.h"
 #include "WeatherDataQCItem.h"
 #include "LocationItem.h"
+#include "ObservationCacheParameters.h"
 #include <spine/TimeSeries.h>
 #include <spine/Station.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
-
-#include <jssatomic/atomic_shared_ptr.hpp>
 
 #include <macgyver/Cache.h>
 
@@ -20,33 +19,9 @@ namespace SmartMet {
 namespace Engine {
 namespace Observation {
 
-class StationInfo;
-class StationtypeConfig;
+// class StationInfo;
+// class StationtypeConfig;
 class ObservableProperty;
-
-struct ObservationCacheParameters {
-  std::string cacheId;
-  int connectionPoolSize;
-  std::string cacheFile;
-  std::size_t maxInsertSize;
-  std::string synchronous;
-  std::string journalMode;
-  std::size_t mmapSize;
-  std::string threadingMode;
-  bool memstatus;
-  bool sharedCache;
-  int cacheTimeout;
-  int cacheDuration;
-  int flashCacheDuration;
-  bool quiet;
-  bool cacheHasStations;
-  jss::atomic_shared_ptr<boost::posix_time::time_period> *cachePeriod;
-  jss::atomic_shared_ptr<boost::posix_time::time_period> *qcDataPeriod;
-  jss::atomic_shared_ptr<boost::posix_time::time_period> *flashPeriod;
-  jss::atomic_shared_ptr<StationInfo> *stationInfo;
-  std::map<std::string, std::map<std::string, std::string> > *parameterMap;
-  StationtypeConfig *stationtypeConfig;
-};
 
 class ObservationCache {
 public:
@@ -65,12 +40,13 @@ public:
       const int maxdistance, const std::set<std::string> &stationgroup_codes,
       const boost::posix_time::ptime &starttime,
       const boost::posix_time::ptime &endtime) = 0;
-  virtual void updateCachePeriod(const boost::posix_time::ptime &timetokeep,
-                                 boost::posix_time::ptime last_time) = 0;
-  virtual void updateQCDataPeriod(const boost::posix_time::ptime &timetokeep,
-                                  boost::posix_time::ptime last_time) = 0;
-  virtual void updateFlashPeriod(const boost::posix_time::ptime &timetokeep,
-                                 boost::posix_time::ptime last_time) = 0;
+  virtual void updateFinCachePeriod(const boost::posix_time::ptime &timetokeep,
+                                    boost::posix_time::ptime last_time) = 0;
+  virtual void updateExtCachePeriod(const boost::posix_time::ptime &timetokeep,
+                                    boost::posix_time::ptime last_time) = 0;
+  virtual void
+  updateFlashCachePeriod(const boost::posix_time::ptime &timetokeep,
+                         boost::posix_time::ptime last_time) = 0;
 
   virtual bool dataAvailableInCache(const Settings &settings) const = 0;
   virtual bool
@@ -80,7 +56,8 @@ public:
                                         const Settings &settings) const = 0;
   virtual void updateStationsAndGroups(const StationInfo &info) const = 0;
 
-  virtual int getCacheDuration() const = 0;
+  virtual int getFinCacheDuration() const = 0;
+  virtual int getExtCacheDuration() const = 0;
   virtual int getFlashCacheDuration() const = 0;
 
   virtual Spine::Stations
