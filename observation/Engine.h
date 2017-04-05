@@ -1,55 +1,58 @@
 #pragma once
 
 #include "EngineParameters.h"
+#include "DatabaseDriver.h"
 #include "ObservationCache.h"
 
-namespace SmartMet {
-namespace Engine {
-namespace Observation {
-class DatabaseDriver;
+namespace SmartMet
+{
+namespace Engine
+{
+namespace Observation
+{
 class DBRegistry;
+class QueryBase;
 
-class Engine : public SmartMet::Spine::SmartMetEngine {
-public:
+class Engine : public SmartMet::Spine::SmartMetEngine
+{
+ public:
   Engine(const std::string &configfile);
 
   Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings);
-  Spine::TimeSeries::TimeSeriesVectorPtr
-  values(Settings &settings,
-         const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
+  Spine::TimeSeries::TimeSeriesVectorPtr values(
+      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
 
-  boost::shared_ptr<Spine::Table>
-  makeQuery(Settings &settings,
-            boost::shared_ptr<Spine::ValueFormatter> &valueFormatter);
+  boost::shared_ptr<Spine::Table> makeQuery(
+      Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter);
 
   void makeQuery(QueryBase *qb);
 
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
                             const Spine::TaggedLocationList &locations);
-  boost::shared_ptr<std::vector<ObservableProperty> >
-  observablePropertyQuery(std::vector<std::string> &parameters,
-                          const std::string language);
+  boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
+      std::vector<std::string> &parameters, const std::string language);
 
   Spine::Parameter makeParameter(const std::string &name) const;
 
   bool ready() const;
 
-  void setGeonames(SmartMet::Engine::Geonames::Engine *geonames);
+  void setGeonames(Geonames::Engine *geonames);
 
-  const std::shared_ptr<DBRegistry> dbRegistry() const {
+  const std::shared_ptr<DBRegistry> dbRegistry() const
+  {
     return itsDatabaseRegistry;
   }
   void getStations(Spine::Stations &stations, Settings &settings);
 
-  Spine::Stations getStationsByArea(const Settings &settings,
-                                    const std::string &areaWkt);
+  Spine::Stations getStationsByArea(const Settings &settings, const std::string &areaWkt);
 
-  void getStationsByBoundingBox(Spine::Stations &stations,
-                                const Settings &settings);
+  void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings);
 
-  void getStationsByRadius(Spine::Stations &stations, const Settings &settings,
-                           double longitude, double latitude);
+  void getStationsByRadius(Spine::Stations &stations,
+                           const Settings &settings,
+                           double longitude,
+                           double latitude);
 
   /* \brief Test if the given alias name is configured and it has a field for
 * the stationType.
@@ -61,8 +64,7 @@ public:
 * the alias configuration block.
    */
 
-  bool isParameter(const std::string &alias,
-                   const std::string &stationType = "unknown") const;
+  bool isParameter(const std::string &alias, const std::string &stationType = "unknown") const;
 
   /* \brief Test if the given alias name is configured
    * \param[in] name Alias name of a meteorologal parameter.
@@ -85,42 +87,19 @@ public:
 
   std::set<std::string> getValidStationTypes() const;
 
-protected:
+ protected:
   void init();
   void shutdown();
 
-private:
+ private:
   Engine();
 
-  ~Engine() {}
-
-  void updateObservationCache();
-  void updateFlashCache();
-  void cacheFromDatabase();
-  void updateCacheLoop();
-  void updateWeatherDataQCCache();
-  void updateWeatherDataQCCacheLoop();
-  void updateFlashCacheLoop();
+  ~Engine()
+  {
+  }
 
   void initializeCache();
-
-  void initializePool(int poolSize);
-
-  void preloadStations();
-  void reloadStations();
-
-  std::string getBoundingBoxCacheKey(const Settings &settings);
-
-  bool stationExistsInTimeRange(const Spine::Station &station,
-                                const boost::posix_time::ptime &starttime,
-                                const boost::posix_time::ptime &endtime);
-
-  bool stationHasRightType(const Spine::Station &station,
-                           const Settings &settings);
-
-  bool stationIsInBoundingBox(const Spine::Station &station,
-                              const std::map<std::string, double> boundingBox);
-
+  bool stationHasRightType(const Spine::Station &station, const Settings &settings);
   void unserializeStations();
 
   std::string itsConfigFile;
@@ -130,17 +109,10 @@ private:
 
   std::shared_ptr<DBRegistry> itsDatabaseRegistry;
 
-  volatile int itsActiveThreadCount = 0;
-  std::unique_ptr<boost::thread> itsUpdateCacheLoopThread;
-  std::unique_ptr<boost::thread> itsUpdateWeatherDataQCCacheLoopThread;
-  std::unique_ptr<boost::thread> itsUpdateFlashCacheLoopThread;
-  std::unique_ptr<boost::thread> itsPreloadStationThread;
-
-  std::shared_ptr<ObservationCache> itsObservationCache;
   std::unique_ptr<DatabaseDriver> itsDatabaseDriver;
-  std::shared_ptr<EngineParameters> itsEngineParameters;
+  boost::shared_ptr<EngineParameters> itsEngineParameters;
 };
 
-} // namespace Observation
-} // namespace Engine
-} // namespace SmartMet
+}  // namespace Observation
+}  // namespace Engine
+}  // namespace SmartMet

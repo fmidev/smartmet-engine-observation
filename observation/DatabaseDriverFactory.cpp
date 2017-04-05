@@ -1,27 +1,35 @@
 #include "DatabaseDriverFactory.h"
 #include "DummyDatabaseDriver.h"
 #include "SpatiaLiteDatabaseDriver.h"
-#include "DatabaseDriverParameters.h"
 extern "C" {
 #include <dlfcn.h>
 }
 
-namespace SmartMet {
-namespace Engine {
-namespace Observation {
+namespace SmartMet
+{
+namespace Engine
+{
+namespace Observation
+{
 
-DatabaseDriver *
-DatabaseDriverFactory::create(boost::shared_ptr<DatabaseDriverParameters> p) {
-  try {
-    if (p->driverFile.empty()) // if no filename given create dummy driver
-      return (new DummyDatabaseDriver(p));
+DatabaseDriver *DatabaseDriverFactory::create(boost::shared_ptr<EngineParameters> p,
+                                              Spine::ConfigBase &cfg)
+{
+  try
+  {
+    if (p->dbDriverFile.empty() ||
+        p->dbDriverFile == "dummy")  // if no filename given create dummy driver
+      return (new DummyDatabaseDriver());
+    else if (p->dbDriverFile == "spatialite")
+      return (new SpatiaLiteDatabaseDriver(p, cfg));
 
-    void *handle = dlopen(p->driverFile.c_str(), RTLD_NOW);
+    void *handle = dlopen(p->dbDriverFile.c_str(), RTLD_NOW);
 
-    if (handle == 0) {
+    if (handle == 0)
+    {
       // Error occurred while opening the dynamic library
-      throw SmartMet::Spine::Exception(BCP, "Unable to load database driver: " +
-                                                std::string(dlerror()));
+      throw SmartMet::Spine::Exception(BCP,
+                                       "Unable to load database driver: " + std::string(dlerror()));
     }
 
     // Load the symbols (pointers to functions in dynamic library)
@@ -30,30 +38,32 @@ DatabaseDriverFactory::create(boost::shared_ptr<DatabaseDriverParameters> p) {
         reinterpret_cast<driver_create_t *>(dlsym(handle, "create"));
 
     // Check that pointer to create function is loaded succesfully
-    if (driver_create_func == 0) {
-      throw SmartMet::Spine::Exception(BCP, "Cannot load symbols: " +
-                                                std::string(dlerror()));
+    if (driver_create_func == 0)
+    {
+      throw SmartMet::Spine::Exception(BCP, "Cannot load symbols: " + std::string(dlerror()));
     }
 
     // Create an instance of the class using the pointer to "create" function
 
-    DatabaseDriver *driver = driver_create_func(p);
+    DatabaseDriver *driver = driver_create_func(p, cfg);
 
-    if (driver == 0) {
-      throw SmartMet::Spine::Exception(
-          BCP, "Unable to create a new instance of database driver class");
+    if (driver == 0)
+    {
+      throw SmartMet::Spine::Exception(BCP,
+                                       "Unable to create a new instance of database driver class");
     }
 
     driver->itsHandle = handle;
     return driver;
   }
-  catch (...) {
+  catch (...)
+  {
     throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
   }
 
   return nullptr;
 }
 
-} // namespace Observation
-} // namespace Engine
-} // namespace SmartMet
+}  // namespace Observation
+}  // namespace Engine
+}  // namespace SmartMet

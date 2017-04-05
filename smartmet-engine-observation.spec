@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 17.3.30
+Version: 17.4.5
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -95,6 +95,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Apr 5 2017 Anssi Reponen <anssi.reponen@fmi.fi> - 17.4.5-1.fmi
+- Thread handling moved to delfoi-library
+- Reading of database-specific parameters from configuration file moved to delfoi-library
+- Observation cache -specific parameters read in SpatiaLiteCache.cpp
+
 * Wed Mar 30 2017 Anssi Reponen <anssi.reponen@fmi.fi> - 17.3.30-1.fmi
 - Configuration parameters for cache added and old renamed (all cache parameters are now inside cache group in configuration file):
  ¤ finCacheUpdateInterval (update interval of FMI data, optional, default value is 0 [no updates])

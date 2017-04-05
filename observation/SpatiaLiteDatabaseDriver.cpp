@@ -4,85 +4,119 @@
 #include "StationtypeConfig.h"
 #include "QueryResult.h"
 #include "QueryResultBase.h"
-#include "DatabaseDriverParameters.h"
+#include "SpatiaLiteDriverParameters.h"
 
 #include <atomic>
 #include <chrono>
 #include <spine/Convenience.h>
 
-#include "boost/date_time/posix_time/posix_time.hpp" //include all types plus i/o
+#include "boost/date_time/posix_time/posix_time.hpp"  //include all types plus i/o
 
 namespace ts = SmartMet::Spine::TimeSeries;
 
-namespace SmartMet {
-namespace Engine {
-namespace Observation {
-namespace {
+namespace SmartMet
+{
+namespace Engine
+{
+namespace Observation
+{
+namespace
+{
 /*!
  * \brief Find stations close to the given coordinate with filtering
  */
 
-Spine::Stations
-findNearestStations(const StationInfo &info, double longitude, double latitude,
-                    double maxdistance, int numberofstations,
-                    const std::set<std::string> &stationgroup_codes,
-                    const boost::posix_time::ptime &starttime,
-                    const boost::posix_time::ptime &endtime) {
-  return info.findNearestStations(longitude, latitude, maxdistance,
-                                  numberofstations, stationgroup_codes,
-                                  starttime, endtime);
+Spine::Stations findNearestStations(const StationInfo &info,
+                                    double longitude,
+                                    double latitude,
+                                    double maxdistance,
+                                    int numberofstations,
+                                    const std::set<std::string> &stationgroup_codes,
+                                    const boost::posix_time::ptime &starttime,
+                                    const boost::posix_time::ptime &endtime)
+{
+  return info.findNearestStations(
+      longitude, latitude, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
 }
 /*!
  * \brief Find stations close to the given location with filtering
  */
 
-Spine::Stations
-findNearestStations(const StationInfo &info, const Spine::LocationPtr &location,
-                    double maxdistance, int numberofstations,
-                    const std::set<std::string> &stationgroup_codes,
-                    const boost::posix_time::ptime &starttime,
-                    const boost::posix_time::ptime &endtime) {
-  return findNearestStations(info, location->longitude, location->latitude,
-                             maxdistance, numberofstations, stationgroup_codes,
-                             starttime, endtime);
+Spine::Stations findNearestStations(const StationInfo &info,
+                                    const Spine::LocationPtr &location,
+                                    double maxdistance,
+                                    int numberofstations,
+                                    const std::set<std::string> &stationgroup_codes,
+                                    const boost::posix_time::ptime &starttime,
+                                    const boost::posix_time::ptime &endtime)
+{
+  return findNearestStations(info,
+                             location->longitude,
+                             location->latitude,
+                             maxdistance,
+                             numberofstations,
+                             stationgroup_codes,
+                             starttime,
+                             endtime);
 }
 
-}; // anonymous namespace
-SpatiaLiteDatabaseDriver::SpatiaLiteDatabaseDriver(
-    boost::shared_ptr<DatabaseDriverParameters> p)
-    : DatabaseDriver(p) {}
-
-void SpatiaLiteDatabaseDriver::initializeConnectionPool() {
-  *(itsDriverParameters->connectionsOK) = true;
+};  // anonymous namespace
+SpatiaLiteDatabaseDriver::SpatiaLiteDatabaseDriver(boost::shared_ptr<EngineParameters> p,
+                                                   Spine::ConfigBase &cfg)
+    : itsParameters(p)
+{
 }
 
-void SpatiaLiteDatabaseDriver::shutdown() {
-  try {
-    // Shutting down cache connections
-    itsDriverParameters->observationCache->shutdown();
+void SpatiaLiteDatabaseDriver::init(Geonames::Engine *geonames)
+{
+  try
+  {
+    logMessage(" [SpatiaLiteDatabaseDriver] initializing connection pool...", itsParameters.quiet);
+
+    itsParameters.geonames = geonames;
+    itsParameters.observationCache->initializeConnectionPool();
+
+    logMessage(" [SpatiaLiteDatabaseDriver] Connection pool ready.", itsParameters.quiet);
   }
-  catch (...) {
+  catch (...)
+  {
+    throw Spine::Exception(BCP, "Operation failed!", NULL);
+  }
+}
+
+void SpatiaLiteDatabaseDriver::shutdown()
+{
+  try
+  {
+    // Shutting down cache connections
+    itsParameters.observationCache->shutdown();
+  }
+  catch (...)
+  {
     throw Spine::Exception(BCP, "Operation failed!", NULL);
   }
 }
 
 boost::shared_ptr<Spine::Table> SpatiaLiteDatabaseDriver::makeQuery(
-    Settings &settings,
-    boost::shared_ptr<Spine::ValueFormatter> &valueFormatter) {
+    Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter)
+{
 
   boost::shared_ptr<Spine::Table> data;
   return data;
 }
 
-void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb) {
-  try {
-    if (*(itsDriverParameters->shutdownRequested))
+void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb)
+{
+  try
+  {
+    if (*(itsParameters.shutdownRequested))
       return;
 
-    if (qb == NULL) {
+    if (qb == NULL)
+    {
       std::ostringstream msg;
-      msg << "SpatiaLiteDatabaseDriver::makeQuery : Implementation of '"
-          << typeid(qb).name() << "' class is missing.\n";
+      msg << "SpatiaLiteDatabaseDriver::makeQuery : Implementation of '" << typeid(qb).name()
+          << "' class is missing.\n";
 
       Spine::Exception exception(BCP, "Invalid parameter value!");
 
@@ -92,10 +126,11 @@ void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb) {
 
     const std::string sqlStatement = qb->getSQLStatement();
 
-    if (sqlStatement.empty()) {
+    if (sqlStatement.empty())
+    {
       std::ostringstream msg;
-      msg << "SpatiaLiteDatabaseDriver::makeQuery : SQL statement of '"
-          << typeid(*qb).name() << "' class is empty.\n";
+      msg << "SpatiaLiteDatabaseDriver::makeQuery : SQL statement of '" << typeid(*qb).name()
+          << "' class is empty.\n";
 
       Spine::Exception exception(BCP, "Invalid parameter value!");
       exception.addDetail(msg.str());
@@ -106,79 +141,83 @@ void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb) {
 
     // Try cache first
     boost::optional<std::shared_ptr<QueryResultBase> > cacheResult =
-        itsDriverParameters->queryResultBaseCache->find(sqlStatement);
-    if (cacheResult) {
+        itsParameters.queryResultBaseCache.find(sqlStatement);
+    if (cacheResult)
+    {
       if (result->set(cacheResult.get()))
         return;
     }
 
-    if (result == NULL) {
+    if (result == NULL)
+    {
       std::ostringstream msg;
-      msg << "SpatiaLiteDatabaseDriver::makeQuery : Result container of '"
-          << typeid(*qb).name() << "' class not found.\n";
+      msg << "SpatiaLiteDatabaseDriver::makeQuery : Result container of '" << typeid(*qb).name()
+          << "' class not found.\n";
 
       Spine::Exception exception(BCP, "Invalid parameter value!");
       exception.addDetail(msg.str());
       throw exception;
     }
   }
-  catch (...) {
+  catch (...)
+  {
     Spine::Exception exception(BCP, "Operation failed!");
     throw exception;
   }
 }
 
-ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings) {
+ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
+{
   ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-  try {
-    if (*(itsDriverParameters->shutdownRequested))
+  try
+  {
+    if (*(itsParameters.shutdownRequested))
       return NULL;
 
     // Do sanity check for the parameters
-    for (const Spine::Parameter &p : settings.parameters) {
-      if (not_special(p)) {
+    for (const Spine::Parameter &p : settings.parameters)
+    {
+      if (not_special(p))
+      {
         std::string name = parseParameterName(p.name());
-        if (!isParameter(name, settings.stationtype) &&
-            !isParameterVariant(name)) {
-          throw Spine::Exception(BCP,
-                                 "No parameter name " + name + " configured.");
+        if (!isParameter(name, settings.stationtype) && !isParameterVariant(name))
+        {
+          throw Spine::Exception(BCP, "No parameter name " + name + " configured.");
         }
       }
     }
 
-    if (itsDriverParameters->stationtypeConfig->getUseCommonQueryMethod(
-                                                    settings.stationtype)
-        and settings.producer_ids.empty())
+    if (itsParameters.stationtypeConfig.getUseCommonQueryMethod(
+                                            settings.stationtype) and settings.producer_ids.empty())
       settings.producer_ids =
-          *itsDriverParameters->stationtypeConfig
-               ->getProducerIdSetByStationtype(settings.stationtype);
+          *itsParameters.stationtypeConfig.getProducerIdSetByStationtype(settings.stationtype);
 
     auto stationgroupCodeSet =
-        itsDriverParameters->stationtypeConfig->getGroupCodeSetByStationtype(
-            settings.stationtype);
-    settings.stationgroup_codes.insert(stationgroupCodeSet->begin(),
-                                       stationgroupCodeSet->end());
+        itsParameters.stationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
+    settings.stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
 
     // Try first from cache and on failure (Spine::Exception::) get from
     // database.
-    try {
+    try
+    {
       // Get all data from Cache database if all requirements below apply:
       // 1) stationtype is cached
       // 2) we have the requested time interval in cache
       // 3) stations are available in Cache
-      if (settings.useDataCache &&
-          itsDriverParameters->observationCache->dataAvailableInCache(
-              settings) &&
-          itsDriverParameters->observationCache->cacheHasStations()) {
-        return itsDriverParameters->observationCache->valuesFromCache(settings);
+      if (settings.useDataCache && itsParameters.observationCache->dataAvailableInCache(settings) &&
+          itsParameters.observationCache->cacheHasStations())
+      {
+        return itsParameters.observationCache->valuesFromCache(settings);
       }
     }
-    catch (...) {
+    catch (...)
+    {
       throw Spine::Exception(BCP, "Operation failed!", NULL);
     }
   }
-  catch (...) {
+  catch (...)
+  {
     throw Spine::Exception(BCP, "Operation failed!", NULL);
   }
 
@@ -190,70 +229,69 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings) {
  */
 
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
-    Settings &settings,
-    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) {
+    Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
+{
 
   ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-  try {
+  try
+  {
     // Do sanity check for the parameters
-    for (const Spine::Parameter &p : settings.parameters) {
-      if (not_special(p)) {
+    for (const Spine::Parameter &p : settings.parameters)
+    {
+      if (not_special(p))
+      {
         std::string name = parseParameterName(p.name());
-        if (!isParameter(name, settings.stationtype) &&
-            !isParameterVariant(name)) {
-          throw Spine::Exception(BCP,
-                                 "No parameter name " + name + " configured.");
+        if (!isParameter(name, settings.stationtype) && !isParameterVariant(name))
+        {
+          throw Spine::Exception(BCP, "No parameter name " + name + " configured.");
         }
       }
     }
 
-    if (itsDriverParameters->stationtypeConfig->getUseCommonQueryMethod(
-                                                    settings.stationtype)
-        and settings.producer_ids.empty())
+    if (itsParameters.stationtypeConfig.getUseCommonQueryMethod(
+                                            settings.stationtype) and settings.producer_ids.empty())
       settings.producer_ids =
-          *itsDriverParameters->stationtypeConfig
-               ->getProducerIdSetByStationtype(settings.stationtype);
+          *itsParameters.stationtypeConfig.getProducerIdSetByStationtype(settings.stationtype);
     auto stationgroupCodeSet =
-        itsDriverParameters->stationtypeConfig->getGroupCodeSetByStationtype(
-            settings.stationtype);
-    settings.stationgroup_codes.insert(stationgroupCodeSet->begin(),
-                                       stationgroupCodeSet->end());
+        itsParameters.stationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
+    settings.stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
 
-    try {
+    try
+    {
       // Get all data from Cache database if all requirements below apply:
       // 1) stationtype is cached
       // 2) we have the requested time interval in cache
       // 3) stations are available in cache
-      if (settings.useDataCache &&
-          itsDriverParameters->observationCache->dataAvailableInCache(
-              settings) &&
-          itsDriverParameters->observationCache->cacheHasStations())
-        return itsDriverParameters->observationCache->valuesFromCache(
-            settings, timeSeriesOptions);
+      if (settings.useDataCache && itsParameters.observationCache->dataAvailableInCache(settings) &&
+          itsParameters.observationCache->cacheHasStations())
+        return itsParameters.observationCache->valuesFromCache(settings, timeSeriesOptions);
     }
-    catch (...) {
+    catch (...)
+    {
       throw Spine::Exception(BCP, "Operation failed!", NULL);
     }
   }
-  catch (...) {
+  catch (...)
+  {
     throw Spine::Exception(BCP, "Operation failed!", NULL);
   }
   return ret;
 }
 
-bool
-SpatiaLiteDatabaseDriver::isParameter(const std::string &alias,
-                                      const std::string &stationType) const {
-  try {
+bool SpatiaLiteDatabaseDriver::isParameter(const std::string &alias,
+                                           const std::string &stationType) const
+{
+  try
+  {
     std::string parameterAliasName = Fmi::ascii_tolower_copy(alias);
     Engine::Observation::removePrefix(parameterAliasName, "qc_");
 
     // Is the alias configured.
-    std::map<std::string, std::map<std::string, std::string> >::const_iterator
-    namePtr = itsDriverParameters->parameterMap->find(parameterAliasName);
+    std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
+        itsParameters.parameterMap.find(parameterAliasName);
 
-    if (namePtr == itsDriverParameters->parameterMap->end())
+    if (namePtr == itsParameters.parameterMap.end())
       return false;
 
     // Is the stationType configured inside configuration block of the alias.
@@ -266,74 +304,81 @@ SpatiaLiteDatabaseDriver::isParameter(const std::string &alias,
 
     return true;
   }
-  catch (...) {
+  catch (...)
+  {
     throw Spine::Exception(BCP, "Operation failed!", NULL);
   }
 }
 
-bool
-SpatiaLiteDatabaseDriver::isParameterVariant(const std::string &name) const {
-  try {
+bool SpatiaLiteDatabaseDriver::isParameterVariant(const std::string &name) const
+{
+  try
+  {
     std::string parameterLowerCase = Fmi::ascii_tolower_copy(name);
     Engine::Observation::removePrefix(parameterLowerCase, "qc_");
     // Is the alias configured.
-    std::map<std::string, std::map<std::string, std::string> >::const_iterator
-    namePtr = itsDriverParameters->parameterMap->find(parameterLowerCase);
+    std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
+        itsParameters.parameterMap.find(parameterLowerCase);
 
-    if (namePtr == itsDriverParameters->parameterMap->end())
+    if (namePtr == itsParameters.parameterMap.end())
       return false;
 
     return true;
   }
-  catch (...) {
+  catch (...)
+  {
     throw Spine::Exception(BCP, "Operation failed!", NULL);
   }
 }
 
-FlashCounts SpatiaLiteDatabaseDriver::getFlashCount(
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime,
-    const Spine::TaggedLocationList &locations) {
-  try {
+FlashCounts SpatiaLiteDatabaseDriver::getFlashCount(const boost::posix_time::ptime &starttime,
+                                                    const boost::posix_time::ptime &endtime,
+                                                    const Spine::TaggedLocationList &locations)
+{
+  try
+  {
     Settings settings;
     settings.stationtype = "flash";
 
-    if (itsDriverParameters->observationCache->flashIntervalIsCached(starttime,
-                                                                     endtime)) {
-      return itsDriverParameters->observationCache->getFlashCount(
-          starttime, endtime, locations);
-    } else {
+    if (itsParameters.observationCache->flashIntervalIsCached(starttime, endtime))
+    {
+      return itsParameters.observationCache->getFlashCount(starttime, endtime, locations);
+    }
+    else
+    {
 
       return FlashCounts();
     }
   }
-  catch (...) {
+  catch (...)
+  {
     throw Spine::Exception(BCP, "Operation failed!", NULL);
   }
 }
 
 boost::shared_ptr<std::vector<ObservableProperty> >
-SpatiaLiteDatabaseDriver::observablePropertyQuery(
-    std::vector<std::string> &parameters, const std::string language) {
+    SpatiaLiteDatabaseDriver::observablePropertyQuery(std::vector<std::string> &parameters,
+                                                      const std::string language)
+{
 
-  return itsDriverParameters->observationCache->observablePropertyQuery(
-      parameters, language);
+  return itsParameters.observationCache->observablePropertyQuery(parameters, language);
 }
 
-void SpatiaLiteDatabaseDriver::getStations(Spine::Stations &stations,
-                                           Settings &settings) {
-  try {
-    try {
+void SpatiaLiteDatabaseDriver::getStations(Spine::Stations &stations, Settings &settings)
+{
+  try
+  {
+    try
+    {
       // Convert the stationtype in the setting to station group codes. Cache
       // station search is
       // using the codes.
       auto stationgroupCodeSet =
-          itsDriverParameters->stationtypeConfig->getGroupCodeSetByStationtype(
-              settings.stationtype);
-      settings.stationgroup_codes.insert(stationgroupCodeSet->begin(),
-                                         stationgroupCodeSet->end());
+          itsParameters.stationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
+      settings.stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
     }
-    catch (...) {
+    catch (...)
+    {
       return;
     }
     auto stationstarttime = day_start(settings.starttime);
@@ -350,65 +395,87 @@ void SpatiaLiteDatabaseDriver::getStations(Spine::Stations &stations,
     // continue with other means
     // to find stations.
 
-    auto info = boost::atomic_load(itsDriverParameters->stationInfo);
+    auto info = boost::atomic_load(&itsParameters.stationInfo);
 
-    if (settings.allplaces) {
+    if (settings.allplaces)
+    {
       Spine::Stations allStationsFromGroups =
-          itsDriverParameters->observationCache->findAllStationsFromGroups(
-              settings.stationgroup_codes, *info, stationstarttime,
-              stationendtime);
+          itsParameters.observationCache->findAllStationsFromGroups(
+              settings.stationgroup_codes, *info, stationstarttime, stationendtime);
 
       stations = allStationsFromGroups;
       return;
-    } else {
+    }
+    else
+    {
       auto taggedStations =
-          itsDriverParameters->observationCache->getStationsByTaggedLocations(
-              settings.taggedLocations, settings.numberofstations,
-              settings.stationtype, settings.maxdistance,
-              settings.stationgroup_codes, settings.starttime,
-              settings.endtime);
+          itsParameters.observationCache->getStationsByTaggedLocations(settings.taggedLocations,
+                                                                       settings.numberofstations,
+                                                                       settings.stationtype,
+                                                                       settings.maxdistance,
+                                                                       settings.stationgroup_codes,
+                                                                       settings.starttime,
+                                                                       settings.endtime);
       for (const auto &s : taggedStations)
         stations.push_back(s);
 
       // TODO: Remove this legacy support for Locations when obsplugin is
       // deprecated
-      if (!settings.locations.empty()) {
-        for (const auto &loc : settings.locations) {
+      if (!settings.locations.empty())
+      {
+        for (const auto &loc : settings.locations)
+        {
           // BUG? Why is maxdistance int?
-          std::string locationCacheKey = getLocationCacheKey(
-              loc->geoid, settings.numberofstations, settings.stationtype,
-              boost::numeric_cast<int>(settings.maxdistance), stationstarttime,
-              stationendtime);
-          auto cachedStations =
-              itsDriverParameters->locationCache->find(locationCacheKey);
+          std::string locationCacheKey =
+              getLocationCacheKey(loc->geoid,
+                                  settings.numberofstations,
+                                  settings.stationtype,
+                                  boost::numeric_cast<int>(settings.maxdistance),
+                                  stationstarttime,
+                                  stationendtime);
+          auto cachedStations = itsParameters.locationCache.find(locationCacheKey);
 
-          if (cachedStations) {
-            for (Spine::Station &cachedStation : *cachedStations) {
+          if (cachedStations)
+          {
+            for (Spine::Station &cachedStation : *cachedStations)
+            {
               cachedStation.tag = settings.missingtext;
               stations.push_back(cachedStation);
             }
-          } else {
-            auto newStations = findNearestStations(
-                *info, loc, settings.maxdistance, settings.numberofstations,
-                settings.stationgroup_codes, stationstarttime, stationendtime);
+          }
+          else
+          {
+            auto newStations = findNearestStations(*info,
+                                                   loc,
+                                                   settings.maxdistance,
+                                                   settings.numberofstations,
+                                                   settings.stationgroup_codes,
+                                                   stationstarttime,
+                                                   stationendtime);
 
-            if (!newStations.empty()) {
-              for (Spine::Station &newStation : newStations) {
+            if (!newStations.empty())
+            {
+              for (Spine::Station &newStation : newStations)
+              {
                 newStation.tag = settings.missingtext;
                 stations.push_back(newStation);
               }
-              itsDriverParameters->locationCache->insert(locationCacheKey,
-                                                         newStations);
+              itsParameters.locationCache.insert(locationCacheKey, newStations);
             }
           }
         }
       }
 
-      for (const auto &coordinate : settings.coordinates) {
-        auto newStations = findNearestStations(
-            *info, coordinate.at("lon"), coordinate.at("lat"),
-            settings.maxdistance, settings.numberofstations,
-            settings.stationgroup_codes, stationstarttime, stationendtime);
+      for (const auto &coordinate : settings.coordinates)
+      {
+        auto newStations = findNearestStations(*info,
+                                               coordinate.at("lon"),
+                                               coordinate.at("lat"),
+                                               settings.maxdistance,
+                                               settings.numberofstations,
+                                               settings.stationgroup_codes,
+                                               stationstarttime,
+                                               stationendtime);
 
         for (const Spine::Station &newStation : newStations)
           stations.push_back(newStation);
@@ -440,21 +507,23 @@ if (!settings.lpnns.empty()) {
     */
 
     // 4) Get stations by FMISID number
-    for (int fmisid : settings.fmisids) {
+    for (int fmisid : settings.fmisids)
+    {
       Spine::Station s;
-      if (itsDriverParameters->observationCache->getStationById(
-              s, fmisid, settings.stationgroup_codes)) { // Chenking that some
-                                                         // station group match.
+      if (itsParameters.observationCache->getStationById(s, fmisid, settings.stationgroup_codes))
+      {  // Chenking that some
+         // station group match.
         fmisid_collection.push_back(s.station_id);
       }
     }
 
     // Find station data by using fmisid
     std::vector<Spine::Station> station_collection;
-    for (int fmisid : fmisid_collection) {
+    for (int fmisid : fmisid_collection)
+    {
       Spine::Station s;
 
-      if (not itsDriverParameters->observationCache->getStationById(
+      if (not itsParameters.observationCache->getStationById(
               s, fmisid, settings.stationgroup_codes))
         continue;
 
@@ -464,12 +533,18 @@ if (!settings.lpnns.empty()) {
 
     // Find the nearest stations of the requested station(s) if wanted.
     // Default value for settings.numberofstations is 1.
-    if (settings.numberofstations > 1) {
-      for (const Spine::Station &s : station_collection) {
-        auto newStations = findNearestStations(
-            *info, s.longitude_out, s.latitude_out, settings.maxdistance,
-            settings.numberofstations, settings.stationgroup_codes,
-            stationstarttime, stationendtime);
+    if (settings.numberofstations > 1)
+    {
+      for (const Spine::Station &s : station_collection)
+      {
+        auto newStations = findNearestStations(*info,
+                                               s.longitude_out,
+                                               s.latitude_out,
+                                               settings.maxdistance,
+                                               settings.numberofstations,
+                                               settings.stationgroup_codes,
+                                               stationstarttime,
+                                               stationendtime);
 
         for (const Spine::Station &nstation : newStations)
           stations.push_back(nstation);
@@ -478,25 +553,35 @@ if (!settings.lpnns.empty()) {
 
     // 5) Get stations by geoid
 
-    if (!settings.geoids.empty()) {
+    if (!settings.geoids.empty())
+    {
       // Cache
-      for (int geoid : settings.geoids) {
+      for (int geoid : settings.geoids)
+      {
         Locus::QueryOptions opts;
         opts.SetLanguage(settings.language);
         opts.SetResultLimit(1);
         opts.SetCountries("");
         opts.SetFullCountrySearch(true);
 
-        auto places = itsDriverParameters->geonames->idSearch(opts, geoid);
-        if (!places.empty()) {
-          for (const auto &place : places) {
-            auto newStations = findNearestStations(
-                *info, place, settings.maxdistance, settings.numberofstations,
-                settings.stationgroup_codes, stationstarttime, stationendtime);
+        auto places = itsParameters.geonames->idSearch(opts, geoid);
+        if (!places.empty())
+        {
+          for (const auto &place : places)
+          {
+            auto newStations = findNearestStations(*info,
+                                                   place,
+                                                   settings.maxdistance,
+                                                   settings.numberofstations,
+                                                   settings.stationgroup_codes,
+                                                   stationstarttime,
+                                                   stationendtime);
 
-            if (!newStations.empty()) {
+            if (!newStations.empty())
+            {
               newStations.front().geoid = geoid;
-              for (Spine::Station &s : newStations) {
+              for (Spine::Station &s : newStations)
+              {
                 // Set tag to be the requested geoid
                 s.tag = Fmi::to_string(geoid);
                 stations.push_back(s);
@@ -508,9 +593,9 @@ if (!settings.lpnns.empty()) {
     }
 
     // 6) Get stations if bounding box is given
-    if (!settings.boundingBox.empty()) {
-      itsDriverParameters->observationCache->getStationsByBoundingBox(stations,
-                                                                      settings);
+    if (!settings.boundingBox.empty())
+    {
+      itsParameters.observationCache->getStationsByBoundingBox(stations, settings);
     }
 
 // 7) For output purposes, translate the station id to WMO only if needed.
@@ -547,24 +632,37 @@ if (!settings.lpnns.empty()) {
     cout << "observation query start" << endl;
 #endif
   }
-  catch (...) {
+  catch (...)
+  {
     throw Spine::Exception(BCP, "Operation failed!", NULL);
   }
 }
 
-void SpatiaLiteDatabaseDriver::updateFlashCache() {}
+void SpatiaLiteDatabaseDriver::updateFlashCache()
+{
+}
 
-void SpatiaLiteDatabaseDriver::updateObservationCache() {}
+void SpatiaLiteDatabaseDriver::updateObservationCache()
+{
+}
 
-void SpatiaLiteDatabaseDriver::updateWeatherDataQCCache() {}
+void SpatiaLiteDatabaseDriver::updateWeatherDataQCCache()
+{
+}
 
-void SpatiaLiteDatabaseDriver::locationsFromDatabase() {}
+void SpatiaLiteDatabaseDriver::locationsFromDatabase()
+{
+}
 
-void SpatiaLiteDatabaseDriver::preloadStations(
-    const std::string &serializedStationsFile) {}
+void SpatiaLiteDatabaseDriver::preloadStations(const std::string &serializedStationsFile)
+{
+}
 
-std::string SpatiaLiteDatabaseDriver::id() const { return "spatialite"; }
+std::string SpatiaLiteDatabaseDriver::id() const
+{
+  return "spatialite";
+}
 
-} // namespace Observation
-} // namespace Engine
-} // namespace SmartMet
+}  // namespace Observation
+}  // namespace Engine
+}  // namespace SmartMet

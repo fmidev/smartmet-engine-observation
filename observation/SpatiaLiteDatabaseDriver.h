@@ -1,28 +1,31 @@
 #pragma once
 
 #include "DatabaseDriver.h"
+#include "SpatiaLiteDriverParameters.h"
 
 #include <string>
 
-namespace SmartMet {
-namespace Engine {
-namespace Observation {
+namespace SmartMet
+{
+namespace Engine
+{
+namespace Observation
+{
 
-class SpatiaLiteDatabaseDriver : public DatabaseDriver {
-public:
-  SpatiaLiteDatabaseDriver(boost::shared_ptr<DatabaseDriverParameters> p);
+class SpatiaLiteDatabaseDriver : public DatabaseDriver
+{
+ public:
+  SpatiaLiteDatabaseDriver(boost::shared_ptr<EngineParameters> p, Spine::ConfigBase &cfg);
 
-  virtual void initializeConnectionPool();
+  void init(Geonames::Engine *geonames);
 
   Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings);
 
-  Spine::TimeSeries::TimeSeriesVectorPtr
-  values(Settings &settings,
-         const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
+  Spine::TimeSeries::TimeSeriesVectorPtr values(
+      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
 
-  boost::shared_ptr<Spine::Table>
-  makeQuery(Settings &settings,
-            boost::shared_ptr<Spine::ValueFormatter> &valueFormatter);
+  boost::shared_ptr<Spine::Table> makeQuery(
+      Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter);
 
   void makeQuery(QueryBase *qb);
 
@@ -30,9 +33,8 @@ public:
                             const boost::posix_time::ptime &endtime,
                             const Spine::TaggedLocationList &locations);
 
-  boost::shared_ptr<std::vector<ObservableProperty> >
-  observablePropertyQuery(std::vector<std::string> &parameters,
-                          const std::string language);
+  boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
+      std::vector<std::string> &parameters, const std::string language);
 
   void getStations(Spine::Stations &stations, Settings &settings);
 
@@ -44,17 +46,19 @@ public:
   void shutdown();
   std::string id() const;
 
-  ~SpatiaLiteDatabaseDriver() {}
+  ~SpatiaLiteDatabaseDriver()
+  {
+  }
 
-protected:
-private:
-  bool isParameter(const std::string &alias,
-                   const std::string &stationType) const;
+ protected:
+ private:
+  bool isParameter(const std::string &alias, const std::string &stationType) const;
   bool isParameterVariant(const std::string &name) const;
 
   Fmi::TimeZones itsTimeZones;
+  SpatiaLiteDriverParameters itsParameters;
 };
 
-} // namespace Observation
-} // namespace Engine
-} // namespace SmartMet
+}  // namespace Observation
+}  // namespace Engine
+}  // namespace SmartMet

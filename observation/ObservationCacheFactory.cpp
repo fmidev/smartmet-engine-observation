@@ -1,18 +1,22 @@
 #include "ObservationCacheFactory.h"
 #include "SpatiaLiteCache.h"
 
-namespace SmartMet {
-namespace Engine {
-namespace Observation {
+namespace SmartMet
+{
+namespace Engine
+{
+namespace Observation
+{
 
-ObservationCache *ObservationCacheFactory::create(
-    boost::shared_ptr<ObservationCacheParameters> p) {
-  if (p->cacheId == "spatialite")
-    return (new SpatiaLiteCache(p));
+ObservationCache* ObservationCacheFactory::create(boost::shared_ptr<EngineParameters> p,
+                                                  Spine::ConfigBase& cfg)
+{
+  if (p->observationCacheId == "spatialite")
+    return (new SpatiaLiteCache(p, cfg));
 
   return nullptr;
 }
 
-} // namespace Observation
-} // namespace Engine
-} // namespace SmartMet
+}  // namespace Observation
+}  // namespace Engine
+}  // namespace SmartMet

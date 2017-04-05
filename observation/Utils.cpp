@@ -238,68 +238,6 @@ int parseSensorNumber(const std::string& parameter)
   }
 }
 
-ParameterMap createParameterMapping(const std::string& configfile)
-{
-  try
-  {
-    ParameterMap pm;
-    namespace ba = boost::algorithm;
-
-    SmartMet::Spine::ConfigBase cfg(configfile);
-
-    try
-    {
-      // Use parameter mapping container like this: parameterMap["parameter"]["station_type"]
-      // Example: parameterMap["t2m"]["road"]
-
-      // Phase 1: Establish producer setting
-      std::vector<std::string> param_names =
-          cfg.get_mandatory_config_array<std::string>("parameters");
-
-      // Phase 2: Parse parameter conversions
-
-      for (const std::string& paramname : param_names)
-      {
-        if (Fmi::ascii_tolower_copy(paramname).compare(0, 3, "qc_") == 0)
-          throw SmartMet::Spine::Exception(
-              BCP,
-              "Observation error: Parameter aliases with 'qc_' prefix are not allowed. Fix the '" +
-                  paramname + "' parameter.");
-
-        auto& param = cfg.get_mandatory_config_param<libconfig::Setting&>(paramname);
-        cfg.assert_is_group(param);
-
-        std::map<std::string, std::string> p;
-        for (int j = 0; j < param.getLength(); ++j)
-        {
-          std::string name = param[j].getName();
-          p.insert(std::make_pair(name, static_cast<const char*>(param[j])));
-        }
-
-        const std::string lower_parame_name = Fmi::ascii_tolower_copy(paramname);
-
-        if (pm.find(lower_parame_name) != pm.end())
-          throw SmartMet::Spine::Exception(
-              BCP, "Observation error: Duplicate parameter alias '" + paramname + "' found.");
-
-        // All internal comparisons between parameter names are done with lower case names
-        // to prevent confusion and typos
-        pm.insert(make_pair(lower_parame_name, p));
-      }
-    }
-    catch (libconfig::ConfigException&)
-    {
-      cfg.handle_libconfig_exceptions("createParameterMapping");
-    }
-
-    return pm;
-  }
-  catch (...)
-  {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
-  }
-}
-
 SmartMet::Spine::Stations removeDuplicateStations(SmartMet::Spine::Stations& stations)
 {
   try

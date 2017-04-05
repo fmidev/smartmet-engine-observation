@@ -57,7 +57,6 @@ std::string windCompass32(double direction);
 std::string parseParameterName(const std::string& parameter);
 int parseSensorNumber(const std::string& parameter);
 
-ParameterMap createParameterMapping(const std::string& configfile);
 SmartMet::Spine::Stations removeDuplicateStations(SmartMet::Spine::Stations& stations);
 
 // ----------------------------------------------------------------------

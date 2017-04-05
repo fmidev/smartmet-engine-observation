@@ -14,15 +14,27 @@
 
 #include <string>
 
-namespace SmartMet {
-namespace Engine {
-namespace Observation {
+namespace SmartMet
+{
+namespace Engine
+{
+namespace Observation
+{
 
 class StationInfo;
 class StationtypeConfig;
 
-struct ObservationCacheParameters {
-  std::string cacheId;
+struct SpatiaLiteCacheParameters
+{
+  SpatiaLiteCacheParameters(boost::shared_ptr<Engine::Observation::EngineParameters> p)
+      : quiet(p->quiet),
+        stationInfo(p->stationInfo),
+        parameterMap(p->parameterMap),
+        stationtypeConfig(p->stationtypeConfig)
+
+  {
+  }
+
   int connectionPoolSize;
   std::string cacheFile;
   std::size_t maxInsertSize;
@@ -38,14 +50,12 @@ struct ObservationCacheParameters {
   int flashCacheDuration;
   bool quiet;
   bool cacheHasStations;
-  boost::shared_ptr<boost::posix_time::time_period> *finCachePeriod;
-  boost::shared_ptr<boost::posix_time::time_period> *extCachePeriod;
-  boost::shared_ptr<boost::posix_time::time_period> *flashCachePeriod;
-  boost::shared_ptr<StationInfo> *stationInfo;
-  std::map<std::string, std::map<std::string, std::string> > *parameterMap;
-  StationtypeConfig *stationtypeConfig;
+  boost::shared_ptr<boost::posix_time::time_period> flashCachePeriod;
+  boost::shared_ptr<StationInfo> stationInfo;
+  std::map<std::string, std::map<std::string, std::string> >& parameterMap;
+  StationtypeConfig& stationtypeConfig;
 };
 
-} // namespace Observation
-} // namespace Engine
-} // namespace SmartMet
+}  // namespace Observation
+}  // namespace Engine
+}  // namespace SmartMet
