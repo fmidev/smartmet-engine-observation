@@ -1,13 +1,13 @@
 #ifndef MAST_QUERY_PARAMS_H
 #define MAST_QUERY_PARAMS_H
 
-#include <string>
-#include <vector>
-#include <tuple>
-#include "QueryParamsBase.h"
 #include "DBRegistryConfig.h"
 #include "MinimumStandardFilter.h"
+#include "QueryParamsBase.h"
 #include "StandardFilter.h"
+#include <string>
+#include <tuple>
+#include <vector>
 
 namespace SmartMet
 {

@@ -3,12 +3,12 @@
 
 #include "QueryResultBase.h"
 
-#include <spine/Exception.h>
-#include <boost/lexical_cast.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <vector>
-#include <memory>
+#include <boost/lexical_cast.hpp>
+#include <spine/Exception.h>
 #include <algorithm>
+#include <memory>
+#include <vector>
 
 namespace SmartMet
 {

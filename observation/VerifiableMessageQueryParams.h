@@ -1,18 +1,21 @@
 #ifndef VERIFIABLE_MESSAGE_QUERY_PARAMS_H
 #define VERIFIABLE_MESSAGE_QUERY_PARAMS_H
 
-#include <string>
-#include <vector>
-#include <list>
-#include <unordered_map>
-#include <map>
-#include <boost/assign.hpp>
-#include "QueryParamsBase.h"
 #include "DBRegistryConfig.h"
+#include "QueryParamsBase.h"
+#include <boost/assign.hpp>
+#include <list>
+#include <map>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
-namespace SmartMet {
-namespace Engine {
-namespace Observation {
+namespace SmartMet
+{
+namespace Engine
+{
+namespace Observation
+{
 /**
  * @brief The class implements special parameter
  *        capabilities to fetch IWXXM data.
@@ -21,13 +24,15 @@ namespace Observation {
  * some additional guidance to VerifiableMessageQuery
  * class where those are used in SQL statement contruction.
  */
-class VerifiableMessageQueryParams : public QueryParamsBase {
-public:
+class VerifiableMessageQueryParams : public QueryParamsBase
+{
+ public:
   /**
    * @brief The enum defines keywords that restricts
    *        (or widens) the way of use of parameters.
    */
-  enum Restriction : int {
+  enum Restriction : int
+  {
     RETURN_ONLY_LATEST
   };
 
@@ -38,8 +43,7 @@ public:
   typedef std::list<SelectNameType> SelectNameListType;
   typedef DBRegistryConfig::NameType TableNameType;
 
-  explicit VerifiableMessageQueryParams(
-      const std::shared_ptr<DBRegistryConfig> dbrConfig);
+  explicit VerifiableMessageQueryParams(const std::shared_ptr<DBRegistryConfig> dbrConfig);
 
   ~VerifiableMessageQueryParams();
 
@@ -92,12 +96,11 @@ public:
 
   /**
 	 * @brief Set the restriction on.
-	 */ // FIXME!! replace the method with setRestriction(int id)
+	 */  // FIXME!! replace the method with setRestriction(int id)
   void setReturnOnlyLatest();
 
-private:
-  VerifiableMessageQueryParams &
-  operator=(const VerifiableMessageQueryParams &other);
+ private:
+  VerifiableMessageQueryParams &operator=(const VerifiableMessageQueryParams &other);
   VerifiableMessageQueryParams(const VerifiableMessageQueryParams &other);
 
   std::shared_ptr<DBRegistryConfig> m_dbrConfig;
@@ -108,8 +111,8 @@ private:
   std::unordered_map<int, bool> m_restrictionMap;
 };
 
-} // namespace Observation
-} // namespace Engine
-} // namespace SmartMet
+}  // namespace Observation
+}  // namespace Engine
+}  // namespace SmartMet
 
-#endif // VERIFIABLE_MESSAGE_QUERY_PARAMS_H
+#endif  // VERIFIABLE_MESSAGE_QUERY_PARAMS_H

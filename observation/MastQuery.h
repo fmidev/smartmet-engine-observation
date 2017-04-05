@@ -9,15 +9,19 @@
 #include <string>
 #include <vector>
 
-namespace SmartMet {
-namespace Engine {
-namespace Observation {
+namespace SmartMet
+{
+namespace Engine
+{
+namespace Observation
+{
 /**
  * @brief The class implements interface to fetch Mast data.
  *
  */
-class MastQuery : public QueryBase {
-public:
+class MastQuery : public QueryBase
+{
+ public:
   explicit MastQuery();
 
   ~MastQuery();
@@ -49,7 +53,7 @@ public:
    */
   void setQueryParams(const MastQueryParams *qParams);
 
-private:
+ private:
   MastQuery &operator=(const MastQuery &other);
   MastQuery(const MastQuery &other);
 
@@ -65,8 +69,8 @@ private:
   std::shared_ptr<QueryResult> m_queryResult;
 };
 
-} // namespace Observation
-} // namespace Engine
-} // namespace SmartMet
+}  // namespace Observation
+}  // namespace Engine
+}  // namespace SmartMet
 
-#endif // ENVIRONMENTAL_MONITORING_FACILITY_QUERY_H
+#endif  // ENVIRONMENTAL_MONITORING_FACILITY_QUERY_H

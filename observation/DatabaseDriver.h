@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Settings.h"
-#include "Utils.h"
 #include "QueryBase.h"
 #include "QueryResultBase.h"
+#include "Settings.h"
+#include "Utils.h"
 #include <engines/geonames/Engine.h>
 #include <spine/Station.h>
 #include <spine/TimeSeries.h>
@@ -49,9 +49,7 @@ class DatabaseDriver
   virtual void shutdown() = 0;
 
  protected:
-  DatabaseDriver()
-  {
-  }
+  DatabaseDriver() {}
 
  private:
   // Pointer to dymanically loaded database driver

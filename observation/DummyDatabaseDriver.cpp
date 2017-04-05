@@ -1,6 +1,6 @@
 #include "DummyDatabaseDriver.h"
-#include "Utils.h"
 #include "ObservableProperty.h"
+#include "Utils.h"
 
 #include <spine/Table.h>
 
@@ -12,7 +12,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 DummyDatabaseDriver::DummyDatabaseDriver()
 {
 }

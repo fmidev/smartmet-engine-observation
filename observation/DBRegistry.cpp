@@ -1,12 +1,12 @@
-#include <iostream>
-#include <sstream>
-#include <exception>
-#include <boost/filesystem.hpp>
-#include <boost/algorithm/string.hpp>
 #include "DBRegistry.h"
+#include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 #include <spine/ConfigBase.h>
 #include <spine/Convenience.h>
 #include <spine/Exception.h>
+#include <exception>
+#include <iostream>
+#include <sstream>
 
 namespace SmartMet
 {

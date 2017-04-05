@@ -1,10 +1,10 @@
 #pragma once
 
-#include <string>
-#include <set>
-#include <vector>
 #include <map>
 #include <memory>
+#include <set>
+#include <string>
+#include <vector>
 
 namespace SmartMet
 {
@@ -111,13 +111,19 @@ class StationtypeConfig
    * @brief Get database table name map
    * @return Database table name map
    */
-  const STDatabaseTableNameMapType& getDatabaseTableNameMap() const { return m_stDatabaseTableNameMap; }
+  const STDatabaseTableNameMapType& getDatabaseTableNameMap() const
+  {
+    return m_stDatabaseTableNameMap;
+  }
 
   /**
    * @brief Get common query method map
    * @return Common query method map
    */
-  const STUseCommonQueryMethodMapType& getUseCommonQueryMethodMap() const { return m_stUseCommonQueryMethodMap; }
+  const STUseCommonQueryMethodMapType& getUseCommonQueryMethodMap() const
+  {
+    return m_stUseCommonQueryMethodMap;
+  }
 
   /**
    * @brief Get producer id set map

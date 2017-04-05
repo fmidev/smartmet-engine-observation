@@ -1,14 +1,14 @@
 #pragma once
 
-#include "Settings.h"
-#include "Utils.h"
 #include "DataItem.h"
 #include "FlashDataItem.h"
-#include "WeatherDataQCItem.h"
 #include "LocationItem.h"
+#include "Settings.h"
 #include "StationInfo.h"
-#include <spine/TimeSeries.h>
+#include "Utils.h"
+#include "WeatherDataQCItem.h"
 #include <spine/Station.h>
+#include <spine/TimeSeries.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
 
 #include <macgyver/Cache.h>
@@ -21,7 +21,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 class ObservableProperty;
 
 class ObservationCache
@@ -60,11 +59,11 @@ class ObservationCache
   virtual int getExtCacheDuration() const = 0;
   virtual int getFlashCacheDuration() const = 0;
 
-  virtual Spine::Stations findAllStationsFromGroups(const std::set<std::string> stationgroup_codes,
-                                                    const StationInfo &info,
-                                                    const boost::posix_time::ptime &starttime,
-                                                    const boost::posix_time::ptime &endtime)
-      const = 0;
+  virtual Spine::Stations findAllStationsFromGroups(
+      const std::set<std::string> stationgroup_codes,
+      const StationInfo &info,
+      const boost::posix_time::ptime &starttime,
+      const boost::posix_time::ptime &endtime) const = 0;
   virtual bool getStationById(Spine::Station &station,
                               int station_id,
                               const std::set<std::string> &stationgroup_codes) const = 0;

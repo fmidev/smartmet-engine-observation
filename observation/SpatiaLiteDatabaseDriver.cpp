@@ -1,14 +1,14 @@
 #include "SpatiaLiteDatabaseDriver.h"
 #include "ObservationCache.h"
-#include "StationInfo.h"
-#include "StationtypeConfig.h"
 #include "QueryResult.h"
 #include "QueryResultBase.h"
 #include "SpatiaLiteDriverParameters.h"
+#include "StationInfo.h"
+#include "StationtypeConfig.h"
 
+#include <spine/Convenience.h>
 #include <atomic>
 #include <chrono>
-#include <spine/Convenience.h>
 
 #include "boost/date_time/posix_time/posix_time.hpp"  //include all types plus i/o
 
@@ -100,7 +100,6 @@ void SpatiaLiteDatabaseDriver::shutdown()
 boost::shared_ptr<Spine::Table> SpatiaLiteDatabaseDriver::makeQuery(
     Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter)
 {
-
   boost::shared_ptr<Spine::Table> data;
   return data;
 }
@@ -188,8 +187,8 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
       }
     }
 
-    if (itsParameters.stationtypeConfig.getUseCommonQueryMethod(
-                                            settings.stationtype) and settings.producer_ids.empty())
+    if (itsParameters.stationtypeConfig.getUseCommonQueryMethod(settings.stationtype) and
+        settings.producer_ids.empty())
       settings.producer_ids =
           *itsParameters.stationtypeConfig.getProducerIdSetByStationtype(settings.stationtype);
 
@@ -231,7 +230,6 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
     Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
-
   ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
   try
@@ -249,8 +247,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
       }
     }
 
-    if (itsParameters.stationtypeConfig.getUseCommonQueryMethod(
-                                            settings.stationtype) and settings.producer_ids.empty())
+    if (itsParameters.stationtypeConfig.getUseCommonQueryMethod(settings.stationtype) and
+        settings.producer_ids.empty())
       settings.producer_ids =
           *itsParameters.stationtypeConfig.getProducerIdSetByStationtype(settings.stationtype);
     auto stationgroupCodeSet =
@@ -346,7 +344,6 @@ FlashCounts SpatiaLiteDatabaseDriver::getFlashCount(const boost::posix_time::pti
     }
     else
     {
-
       return FlashCounts();
     }
   }
@@ -357,10 +354,9 @@ FlashCounts SpatiaLiteDatabaseDriver::getFlashCount(const boost::posix_time::pti
 }
 
 boost::shared_ptr<std::vector<ObservableProperty> >
-    SpatiaLiteDatabaseDriver::observablePropertyQuery(std::vector<std::string> &parameters,
-                                                      const std::string language)
+SpatiaLiteDatabaseDriver::observablePropertyQuery(std::vector<std::string> &parameters,
+                                                  const std::string language)
 {
-
   return itsParameters.observationCache->observablePropertyQuery(parameters, language);
 }
 

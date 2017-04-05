@@ -1,11 +1,11 @@
 #include "Engine.h"
-#include "ObservationCacheFactory.h"
-#include "DatabaseDriverFactory.h"
 #include "DBRegistry.h"
+#include "DatabaseDriverFactory.h"
+#include "ObservationCacheFactory.h"
 
-#include <spine/Convenience.h>
-#include <macgyver/Geometry.h>
 #include <boost/make_shared.hpp>
+#include <macgyver/Geometry.h>
+#include <spine/Convenience.h>
 #include <atomic>
 
 // #define MYDEBUG 1
@@ -18,7 +18,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 Engine::Engine(const std::string &configfile)
     : itsConfigFile(configfile), itsDatabaseRegistry(new DBRegistry())
 {

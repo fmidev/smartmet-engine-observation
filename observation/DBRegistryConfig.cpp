@@ -1,7 +1,7 @@
 #include "DBRegistryConfig.h"
 
-#include <spine/Exception.h>
 #include <macgyver/StringConversion.h>
+#include <spine/Exception.h>
 
 #include <iostream>
 #include <locale>

@@ -1,11 +1,11 @@
 #ifndef PROPERTY_H
 #define PROPERTY_H
 
-#include <string>
-#include <vector>
 #include <boost/any.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/posix_time/time_formatters.hpp>
+#include <string>
+#include <vector>
 
 namespace SmartMet
 {

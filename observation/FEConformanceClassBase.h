@@ -1,16 +1,16 @@
 #ifndef FE_CONFORMANCE_CLASS_BASE_H
 #define FE_CONFORMANCE_CLASS_BASE_H
 
-#include <string>
-#include <vector>
 #include <boost/any.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
+#include <string>
+#include <vector>
 
 #include "Property.h"
-#include <spine/Exception.h>
-#include <spine/ConfigBase.h>
 #include <macgyver/StringConversion.h>
+#include <spine/ConfigBase.h>
+#include <spine/Exception.h>
 #include <memory>
 
 namespace SmartMet
@@ -27,9 +27,9 @@ class OperationMap
  public:
   typedef std::string NameType;
   typedef int IdType;
-  typedef boost::function2<std::shared_ptr<const Property::Base>,
-                           const NameType&,
-                           const boost::any&> OperationMapValueType;
+  typedef boost::
+      function2<std::shared_ptr<const Property::Base>, const NameType&, const boost::any&>
+          OperationMapValueType;
   typedef std::map<NameType, OperationMapValueType> OperationMapType;
 
   /**

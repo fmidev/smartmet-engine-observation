@@ -1,7 +1,7 @@
 #pragma once
 
-#include "EngineParameters.h"
 #include "DatabaseDriver.h"
+#include "EngineParameters.h"
 #include "ObservationCache.h"
 
 namespace SmartMet
@@ -39,10 +39,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
 
   void setGeonames(Geonames::Engine *geonames);
 
-  const std::shared_ptr<DBRegistry> dbRegistry() const
-  {
-    return itsDatabaseRegistry;
-  }
+  const std::shared_ptr<DBRegistry> dbRegistry() const { return itsDatabaseRegistry; }
   void getStations(Spine::Stations &stations, Settings &settings);
 
   Spine::Stations getStationsByArea(const Settings &settings, const std::string &areaWkt);
@@ -94,9 +91,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
  private:
   Engine();
 
-  ~Engine()
-  {
-  }
+  ~Engine() {}
 
   void initializeCache();
   bool stationHasRightType(const Spine::Station &station, const Settings &settings);

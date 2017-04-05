@@ -1,14 +1,14 @@
 #ifndef OBSENGINE_SETTINGS_H
 #define OBSENGINE_SETTINGS_H
 
-#include <spine/Parameter.h>
 #include <spine/Location.h>
+#include <spine/Parameter.h>
 #include <spine/ValueFormatter.h>
 
 #include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/local_time/local_time.hpp>
 #include <boost/date_time/local_time_adjustor.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <locale>
 #include <set>
 

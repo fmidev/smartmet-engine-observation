@@ -1,8 +1,8 @@
 #include "StationtypeConfig.h"
 
-#include <spine/Exception.h>
-#include <macgyver/StringConversion.h>
 #include <boost/algorithm/string.hpp>
+#include <macgyver/StringConversion.h>
+#include <spine/Exception.h>
 #include <iostream>
 #include <sstream>
 
@@ -67,7 +67,7 @@ void StationtypeConfig::addStationtype(const StationtypeType& stationtype,
 }
 
 std::shared_ptr<const StationtypeConfig::DatabaseTableNameType>
-    StationtypeConfig::getDatabaseTableNameByStationtype(const StationtypeType& stationtype) const
+StationtypeConfig::getDatabaseTableNameByStationtype(const StationtypeType& stationtype) const
 {
   try
   {
@@ -93,7 +93,7 @@ std::shared_ptr<const StationtypeConfig::DatabaseTableNameType>
 }
 
 std::shared_ptr<const StationtypeConfig::GroupCodeSetType>
-    StationtypeConfig::getGroupCodeSetByStationtype(const StationtypeType& stationtype) const
+StationtypeConfig::getGroupCodeSetByStationtype(const StationtypeType& stationtype) const
 {
   try
   {
@@ -121,7 +121,7 @@ std::shared_ptr<const StationtypeConfig::GroupCodeSetType>
 }
 
 std::shared_ptr<const StationtypeConfig::ProducerIdSetType>
-    StationtypeConfig::getProducerIdSetByStationtype(const StationtypeType& stationtype) const
+StationtypeConfig::getProducerIdSetByStationtype(const StationtypeType& stationtype) const
 {
   try
   {

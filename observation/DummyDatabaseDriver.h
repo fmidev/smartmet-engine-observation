@@ -16,9 +16,7 @@ class DummyDatabaseDriver : public DatabaseDriver
 
   boost::shared_ptr<Spine::Table> makeQuery(
       Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter);
-  void makeQuery(QueryBase *qb)
-  {
-  }
+  void makeQuery(QueryBase *qb) {}
   Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings);
   Spine::TimeSeries::TimeSeriesVectorPtr values(
       Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
@@ -27,35 +25,16 @@ class DummyDatabaseDriver : public DatabaseDriver
                             const Spine::TaggedLocationList &locations);
   boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language);
-  void getStations(Spine::Stations &stations, Settings &settings)
-  {
-  }
-  void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings)
-  {
-  }
+  void getStations(Spine::Stations &stations, Settings &settings) {}
+  void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) {}
 
-  void updateFlashCache()
-  {
-  }
-  void updateObservationCache()
-  {
-  }
-  void updateWeatherDataQCCache()
-  {
-  }
-  void locationsFromDatabase()
-  {
-  }
-  void preloadStations(const std::string &serializedStationsFile)
-  {
-  }
-  void shutdown()
-  {
-  }
-  std::string id() const
-  {
-    return "dummy";
-  }
+  void updateFlashCache() {}
+  void updateObservationCache() {}
+  void updateWeatherDataQCCache() {}
+  void locationsFromDatabase() {}
+  void preloadStations(const std::string &serializedStationsFile) {}
+  void shutdown() {}
+  std::string id() const { return "dummy"; }
 };
 
 }  // namespace Observation

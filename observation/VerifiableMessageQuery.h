@@ -9,18 +9,21 @@
 #include <string>
 #include <vector>
 
-namespace SmartMet {
-namespace Engine {
-namespace Observation {
-
+namespace SmartMet
+{
+namespace Engine
+{
+namespace Observation
+{
 /**
  * @brief The class implements interface to fetch IWXXM messages.
  *
  * All the options needed in database query should be set
  * by using VerifiableMessageQueryParams class object.
  */
-class VerifiableMessageQuery : public QueryBase {
-public:
+class VerifiableMessageQuery : public QueryBase
+{
+ public:
   explicit VerifiableMessageQuery();
 
   ~VerifiableMessageQuery();
@@ -52,7 +55,7 @@ public:
    */
   void setQueryParams(const VerifiableMessageQueryParams *qParams);
 
-private:
+ private:
   VerifiableMessageQuery &operator=(const VerifiableMessageQuery &other);
   VerifiableMessageQuery(const VerifiableMessageQuery &other);
 
@@ -75,8 +78,8 @@ private:
   bool m_returnOnlyLatest;
 };
 
-} // namespace Observation
-} // namespace Engine
-} // namespace SmartMet
+}  // namespace Observation
+}  // namespace Engine
+}  // namespace SmartMet
 
-#endif // VERIFIABLE_MESSAGE_QUERY_H
+#endif  // VERIFIABLE_MESSAGE_QUERY_H

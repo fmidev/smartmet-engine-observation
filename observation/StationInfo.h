@@ -1,8 +1,8 @@
 #pragma once
 
-#include <spine/Station.h>
 #include <macgyver/NearTree.h>
 #include <macgyver/NearTreeLatLon.h>
+#include <spine/Station.h>
 
 #include <map>
 #include <set>

@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Settings.h"
-#include "Utils.h"
 #include "DataItem.h"
 #include "FlashDataItem.h"
-#include "WeatherDataQCItem.h"
 #include "LocationItem.h"
-#include <spine/TimeSeries.h>
+#include "Settings.h"
+#include "Utils.h"
+#include "WeatherDataQCItem.h"
 #include <spine/Station.h>
+#include <spine/TimeSeries.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
 
 #include <macgyver/Cache.h>
@@ -20,7 +20,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 class StationInfo;
 class StationtypeConfig;
 

@@ -1,14 +1,14 @@
 #include "Utils.h"
-#include <spine/Exception.h>
-#include <spine/Convenience.h>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/date_time/posix_time/time_serialize.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/serialization/vector.hpp>
-#include <fstream>
 #include <macgyver/TypeName.h>
+#include <spine/Convenience.h>
+#include <spine/Exception.h>
+#include <fstream>
 
 namespace SmartMet
 {
@@ -147,8 +147,22 @@ std::string windCompass8(double direction)
 
 std::string windCompass16(double direction)
 {
-  static const std::string names[] = {"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-                                      "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"};
+  static const std::string names[] = {"N",
+                                      "NNE",
+                                      "NE",
+                                      "ENE",
+                                      "E",
+                                      "ESE",
+                                      "SE",
+                                      "SSE",
+                                      "S",
+                                      "SSW",
+                                      "SW",
+                                      "WSW",
+                                      "W",
+                                      "WNW",
+                                      "NW",
+                                      "NNW"};
 
   int i = static_cast<int>((direction + 11.25) / 22.5) % 16;
   return names[i];

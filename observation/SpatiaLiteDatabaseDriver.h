@@ -11,7 +11,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 class SpatiaLiteDatabaseDriver : public DatabaseDriver
 {
  public:
@@ -46,9 +45,7 @@ class SpatiaLiteDatabaseDriver : public DatabaseDriver
   void shutdown();
   std::string id() const;
 
-  ~SpatiaLiteDatabaseDriver()
-  {
-  }
+  ~SpatiaLiteDatabaseDriver() {}
 
  protected:
  private:

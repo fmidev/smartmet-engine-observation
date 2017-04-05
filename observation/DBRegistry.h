@@ -1,10 +1,10 @@
 #ifndef DB_REGISTRY_H
 #define DB_REGISTRY_H
 
+#include "DBRegistryConfig.h"
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
-#include "DBRegistryConfig.h"
 
 namespace SmartMet
 {

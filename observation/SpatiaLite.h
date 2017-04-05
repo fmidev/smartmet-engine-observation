@@ -1,9 +1,12 @@
 #include <string>
 
-namespace sqlite_api {
+// clang-format off
+namespace sqlite_api
+{
 #include <sqlite3.h>
 #include <spatialite.h>
 }
+// clang-format on
 
 #define DATABASE_VERSION "2"
 
@@ -17,9 +20,9 @@ namespace sqlite_api {
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
 
+#include <soci/boost-optional.h>
 #include <soci/soci.h>
 #include <soci/sqlite3/soci-sqlite3.h>
-#include <soci/boost-optional.h>
 
 #include <macgyver/TimeFormatter.h>
 #include <macgyver/TimeZones.h>
@@ -32,17 +35,19 @@ namespace sqlite_api {
 #include <spine/TimeSeriesGeneratorOptions.h>
 #include <spine/Value.h>
 
-namespace SmartMet {
-namespace Engine {
-namespace Observation {
-
+namespace SmartMet
+{
+namespace Engine
+{
+namespace Observation
+{
 class ObservableProperty;
 
-class SpatiaLite : private boost::noncopyable {
-  typedef std::map<std::string, std::map<std::string, std::string> >
-  ParameterMap;
+class SpatiaLite : private boost::noncopyable
+{
+  typedef std::map<std::string, std::map<std::string, std::string> > ParameterMap;
 
-private:
+ private:
   // Private members
   soci::session itsSession;
   std::string srid;
@@ -59,19 +64,20 @@ private:
   void addSpecialParameterToTimeSeries(
       const std::string &paramname,
       SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-      const SmartMet::Spine::Station &station, const int pos,
+      const SmartMet::Spine::Station &station,
+      const int pos,
       const std::string stationtype,
       const boost::local_time::local_date_time &obstime);
 
   void addParameterToTimeSeries(
       SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-      const std::pair<
-          boost::local_time::local_date_time,
-          std::map<std::string, SmartMet::Spine::TimeSeries::Value> > &dataItem,
+      const std::pair<boost::local_time::local_date_time,
+                      std::map<std::string, SmartMet::Spine::TimeSeries::Value> > &dataItem,
       const std::map<std::string, int> &specialPositions,
       const std::map<std::string, std::string> &parameterNameMap,
       const std::map<std::string, int> &timeseriesPositions,
-      const ParameterMap &parameterMap, const std::string &stationtype,
+      const ParameterMap &parameterMap,
+      const std::string &stationtype,
       const SmartMet::Spine::Station &station);
 
   void addEmptyValuesToTimeSeries(
@@ -80,13 +86,13 @@ private:
       const std::map<std::string, int> &specialPositions,
       const std::map<std::string, std::string> &parameterNameMap,
       const std::map<std::string, int> &timeseriesPositions,
-      const std::string &stationtype, const SmartMet::Spine::Station &station);
+      const std::string &stationtype,
+      const SmartMet::Spine::Station &station);
 
   void updateStations(const SmartMet::Spine::Stations &stations);
   void updateStationGroups(const StationInfo &info);
 
-  boost::posix_time::ptime getLatestTimeFromTable(std::string tablename,
-                                                  std::string time_field);
+  boost::posix_time::ptime getLatestTimeFromTable(std::string tablename, std::string time_field);
 
   void initSpatialMetaData();
   void createStationTable();
@@ -98,10 +104,14 @@ private:
   void createFlashDataTable();
   void createObservablePropertyTable();
 
-public:
-  SpatiaLite(const std::string &spatialiteFile, std::size_t max_insert_size,
-             const std::string &synchronous, const std::string &journal_mode,
-             std::size_t mmap_size, bool shared_cache, int timeout);
+ public:
+  SpatiaLite(const std::string &spatialiteFile,
+             std::size_t max_insert_size,
+             const std::string &synchronous,
+             const std::string &journal_mode,
+             std::size_t mmap_size,
+             bool shared_cache,
+             int timeout);
 
   ~SpatiaLite();
 
@@ -133,18 +143,20 @@ public:
 
   void updateStationsAndGroups(const StationInfo &info);
 
-  SmartMet::Spine::Stations
-  findAllStationsFromGroups(const std::set<std::string> stationgroup_codes,
-                            const StationInfo &info,
-                            const boost::posix_time::ptime &starttime,
-                            const boost::posix_time::ptime &endtime);
+  SmartMet::Spine::Stations findAllStationsFromGroups(
+      const std::set<std::string> stationgroup_codes,
+      const StationInfo &info,
+      const boost::posix_time::ptime &starttime,
+      const boost::posix_time::ptime &endtime);
 
   // Deprecated methods. These are way too slow, use the respective methods in
   // Engine instead.
   SmartMet::Spine::Stations findNearestStations(
-      double latitude, double longitude,
+      double latitude,
+      double longitude,
       const std::map<int, SmartMet::Spine::Station> &stationIndex,
-      int maxdistance, int numberofstations,
+      int maxdistance,
+      int numberofstations,
       const std::set<std::string> &stationgroup_codes,
       const boost::posix_time::ptime &starttime,
       const boost::posix_time::ptime &endtime);
@@ -152,7 +164,8 @@ public:
   SmartMet::Spine::Stations findNearestStations(
       const SmartMet::Spine::LocationPtr &location,
       const std::map<int, SmartMet::Spine::Station> &stationIndex,
-      const int maxdistance, const int numberofstations,
+      const int maxdistance,
+      const int numberofstations,
       const std::set<std::string> &stationgroup_codes,
       const boost::posix_time::ptime &starttime,
       const boost::posix_time::ptime &endtime);
@@ -214,8 +227,10 @@ public:
   void cleanWeatherDataQCCache(const boost::posix_time::ptime &last_time);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedWeatherDataQCData(
-      const SmartMet::Spine::Stations &stations, const Settings &settings,
-      const ParameterMap &parameterMap, const Fmi::TimeZones &timezones);
+      const SmartMet::Spine::Stations &stations,
+      const Settings &settings,
+      const ParameterMap &parameterMap,
+      const Fmi::TimeZones &timezones);
 
   /**
    * @brief Delete old flash observation data from flash_data table
@@ -224,23 +239,25 @@ public:
    */
   void cleanFlashDataCache(const boost::posix_time::ptime &timetokeep);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr
-  getCachedData(const SmartMet::Spine::Stations &stations,
-                const Settings &settings, const ParameterMap &parameterMap,
-                const Fmi::TimeZones &timezones);
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedData(
+      const SmartMet::Spine::Stations &stations,
+      const Settings &settings,
+      const ParameterMap &parameterMap,
+      const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr
-  getCachedFlashData(const Settings &settings, const ParameterMap &parameterMap,
-                     const Fmi::TimeZones &timezones);
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedFlashData(
+      const Settings &settings, const ParameterMap &parameterMap, const Fmi::TimeZones &timezones);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedWeatherDataQCData(
-      const SmartMet::Spine::Stations &stations, const Settings &settings,
+      const SmartMet::Spine::Stations &stations,
+      const Settings &settings,
       const ParameterMap &parameterMap,
       const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedData(
-      SmartMet::Spine::Stations &stations, Settings &settings,
+      SmartMet::Spine::Stations &stations,
+      Settings &settings,
       ParameterMap &parameterMap,
       const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
@@ -252,10 +269,8 @@ public:
   SmartMet::Spine::Stations findStationsInsideBox(const Settings &settings,
                                                   const StationInfo &info);
 
-  SmartMet::Spine::Stations findStationsByWMO(const Settings &settings,
-                                              const StationInfo &info);
-  SmartMet::Spine::Stations findStationsByLPNN(const Settings &settings,
-                                               const StationInfo &info);
+  SmartMet::Spine::Stations findStationsByWMO(const Settings &settings, const StationInfo &info);
+  SmartMet::Spine::Stations findStationsByLPNN(const Settings &settings, const StationInfo &info);
 
   /**
    * @brief Fill station_id, fmisid, wmo, geoid, lpnn, longitude_out and
@@ -271,8 +286,7 @@ public:
    * @retval true If the data is filled successfully.
    * @retval false If the data is not filled at all.
    */
-  bool fillMissing(SmartMet::Spine::Station &s,
-                   const std::set<std::string> &stationgroup_codes);
+  bool fillMissing(SmartMet::Spine::Station &s, const std::set<std::string> &stationgroup_codes);
 
   /**
    * @brief Get the station odered by \c station_id.
@@ -285,7 +299,8 @@ public:
    * @retval true If the station is found and data stored into the given object.
    * @retval false If the station is no found.
    */
-  bool getStationById(SmartMet::Spine::Station &station, int station_id,
+  bool getStationById(SmartMet::Spine::Station &station,
+                      int station_id,
                       const std::set<std::string> &stationgroup_codes);
 
   void shutdown();
@@ -297,10 +312,9 @@ public:
  * @param boundingBox The bounding box. Must have crs EPSG:4326.
  * @retval FlashCounts The number of flashes in the interval
  */
-  FlashCounts
-  getFlashCount(const boost::posix_time::ptime &starttime,
-                const boost::posix_time::ptime &endtime,
-                const SmartMet::Spine::TaggedLocationList &locations);
+  FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
+                            const boost::posix_time::ptime &endtime,
+                            const SmartMet::Spine::TaggedLocationList &locations);
 
   /**
  * @brief Get observable properties
@@ -311,12 +325,12 @@ public:
  * @retval Shared pointer to vector of observable properties
  */
   boost::shared_ptr<std::vector<ObservableProperty> > getObservableProperties(
-      std::vector<std::string> &parameters, const std::string language,
-      const std::map<std::string, std::map<std::string, std::string> > &
-          parameterMap,
+      std::vector<std::string> &parameters,
+      const std::string language,
+      const std::map<std::string, std::map<std::string, std::string> > &parameterMap,
       const std::string &stationType);
 };
 
-} // namespace Observation
-} // namespace Engine
-} // namespace SmartMet
+}  // namespace Observation
+}  // namespace Engine
+}  // namespace SmartMet

@@ -7,7 +7,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 ObservationCache* ObservationCacheFactory::create(boost::shared_ptr<EngineParameters> p,
                                                   Spine::ConfigBase& cfg)
 {

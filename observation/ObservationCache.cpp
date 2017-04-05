@@ -6,7 +6,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 ObservationCache::ObservationCache()
 {
 }

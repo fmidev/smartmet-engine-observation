@@ -144,7 +144,8 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
           std::ostringstream msg;
           msg << "At least one producer id must be defined into producerIds "
                  "array for the "
-                 "stationtype '" << type << "' if the useCommonQueryMethod value is true.";
+                 "stationtype '"
+              << type << "' if the useCommonQueryMethod value is true.";
 
           Spine::Exception exception(BCP, "Invalid parameter value!");
           // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
@@ -164,7 +165,8 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
       {
         std::ostringstream msg;
         msg << "databaseTableName parameter definition is required for the "
-               "stationtype '" << type << "' if the useCommonQueryMethod value is true.";
+               "stationtype '"
+            << type << "' if the useCommonQueryMethod value is true.";
 
         Spine::Exception exception(BCP, "Invalid parameter value!");
         // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);

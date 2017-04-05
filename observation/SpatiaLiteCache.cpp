@@ -1,7 +1,7 @@
 #include "SpatiaLiteCache.h"
 #include "ObservableProperty.h"
-#include <macgyver/StringConversion.h>
 #include <boost/make_shared.hpp>
+#include <macgyver/StringConversion.h>
 #include <atomic>
 
 namespace ts = SmartMet::Spine::TimeSeries;
@@ -12,7 +12,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 namespace
 {
 /*!
@@ -701,7 +700,6 @@ SpatiaLiteCache::SpatiaLiteCache(boost::shared_ptr<EngineParameters> p, Spine::C
 {
   try
   {
-
     readConfig(cfg);
 
     // Verify multithreading is possible
@@ -722,8 +720,8 @@ SpatiaLiteCache::SpatiaLiteCache(boost::shared_ptr<EngineParameters> p, Spine::C
     if (err != 0)
       throw Spine::Exception(BCP,
                              "Failed to set sqlite3 multithread mode to " +
-                                 itsParameters.threadingMode + ", exit code = " +
-                                 Fmi::to_string(err));
+                                 itsParameters.threadingMode +
+                                 ", exit code = " + Fmi::to_string(err));
 
     // Enable or disable memory statistics
 

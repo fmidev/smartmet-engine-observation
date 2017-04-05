@@ -2,9 +2,9 @@
 
 #include <engines/geonames/Engine.h>
 
+#include "ObservationCache.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
-#include "ObservationCache.h"
 #include <macgyver/Cache.h>
 
 namespace SmartMet

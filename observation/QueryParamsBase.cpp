@@ -1,6 +1,6 @@
 #include "QueryParamsBase.h"
-#include <sstream>
 #include <spine/Exception.h>
+#include <sstream>
 
 namespace SmartMet
 {

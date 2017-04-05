@@ -1,7 +1,7 @@
 #include "QueryResult.h"
-#include <spine/Exception.h>
-#include <macgyver/StringConversion.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <macgyver/StringConversion.h>
+#include <spine/Exception.h>
 #include <limits>
 #include <utility>
 

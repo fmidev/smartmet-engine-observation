@@ -2,16 +2,16 @@
 
 #define PI 3.14159265358979323846
 
+#include <spine/ConfigBase.h>
 #include <spine/Parameter.h>
 #include <spine/Station.h>
-#include <spine/ConfigBase.h>
 
-#include <boost/utility.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/utility.hpp>
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 namespace SmartMet
 {

@@ -2,9 +2,9 @@
 #define QUERY_RESULT_BASE_H
 
 #include <boost/any.hpp>
-#include <vector>
-#include <stdexcept>
 #include <memory>
+#include <stdexcept>
+#include <vector>
 
 namespace SmartMet
 {
@@ -93,6 +93,7 @@ class QueryResultBase
 
  protected:
   QueryResultBase() {}
+
  private:
   QueryResultBase& operator=(const QueryResultBase& other);
 };

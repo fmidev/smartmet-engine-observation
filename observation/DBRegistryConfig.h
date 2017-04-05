@@ -1,13 +1,12 @@
 #ifndef DB_REGISTRY_CONFIG_H
 #define DB_REGISTRY_CONFIG_H
 
-#include <map>
-#include <list>
-#include <memory>
-#include <boost/shared_ptr.hpp>
 #include <boost/algorithm/string.hpp>
-#include <spine/ConfigBase.h>
+#include <boost/shared_ptr.hpp>
 #include <macgyver/StringConversion.h>
+#include <spine/ConfigBase.h>
+#include <list>
+#include <map>
 #include <memory>
 
 namespace SmartMet
@@ -101,6 +100,7 @@ class NamesAllowed
   bool addName(const std::string& inName);
 
   const NameListType* getNameList() const { return &m_nameList; }
+
  private:
   NamesAllowed& operator=(const NamesAllowed& names);
   NamesAllowed(const NamesAllowed& names);
