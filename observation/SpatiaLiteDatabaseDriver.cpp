@@ -65,6 +65,7 @@ SpatiaLiteDatabaseDriver::SpatiaLiteDatabaseDriver(boost::shared_ptr<EngineParam
                                                    Spine::ConfigBase &cfg)
     : itsParameters(p)
 {
+  readConfig(cfg);
 }
 
 void SpatiaLiteDatabaseDriver::init(Geonames::Engine *geonames)
@@ -74,7 +75,7 @@ void SpatiaLiteDatabaseDriver::init(Geonames::Engine *geonames)
     logMessage(" [SpatiaLiteDatabaseDriver] initializing connection pool...", itsParameters.quiet);
 
     itsParameters.geonames = geonames;
-    itsParameters.observationCache->initializeConnectionPool();
+    itsParameters.observationCache->initializeConnectionPool(itsParameters.finCacheDuration);
 
     logMessage(" [SpatiaLiteDatabaseDriver] Connection pool ready.", itsParameters.quiet);
   }
@@ -652,6 +653,12 @@ void SpatiaLiteDatabaseDriver::locationsFromDatabase()
 
 void SpatiaLiteDatabaseDriver::preloadStations(const std::string &serializedStationsFile)
 {
+}
+
+void SpatiaLiteDatabaseDriver::readConfig(Spine::ConfigBase &cfg)
+{
+  itsParameters.finCacheDuration =
+      cfg.get_mandatory_config_param<int>("database_driver.finCacheDuration");
 }
 
 std::string SpatiaLiteDatabaseDriver::id() const

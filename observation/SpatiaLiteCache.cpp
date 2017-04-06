@@ -55,7 +55,7 @@ Spine::Stations findNearestStations(const StationInfo &info,
 
 }  // anonaymous namespace
 
-void SpatiaLiteCache::initializeConnectionPool()
+void SpatiaLiteCache::initializeConnectionPool(int finCacheDuration)
 {
   try
   {
@@ -81,8 +81,7 @@ void SpatiaLiteCache::initializeConnectionPool()
     spatialitedb->createTables();
 
     boost::posix_time::ptime last_time(spatialitedb->getLatestObservationTime());
-    boost::posix_time::ptime timetokeep =
-        last_time - boost::posix_time::hours(itsParameters.finCacheDuration);
+    boost::posix_time::ptime timetokeep = last_time - boost::posix_time::hours(finCacheDuration);
 
     // Resets the period atomically
     itsFinCachePeriod = boost::make_shared<boost::posix_time::time_period>(timetokeep, last_time);
@@ -591,21 +590,6 @@ void SpatiaLiteCache::updateFlashCachePeriod(const boost::posix_time::ptime &tim
   itsFlashCachePeriod = boost::make_shared<boost::posix_time::time_period>(timetokeep, last_time);
 }
 
-int SpatiaLiteCache::getFinCacheDuration() const
-{
-  return itsParameters.finCacheDuration;
-}
-
-int SpatiaLiteCache::getExtCacheDuration() const
-{
-  return itsParameters.extCacheDuration;
-}
-
-int SpatiaLiteCache::getFlashCacheDuration() const
-{
-  return itsParameters.flashCacheDuration;
-}
-
 Spine::Stations SpatiaLiteCache::findAllStationsFromGroups(
     const std::set<std::string> stationgroup_codes,
     const StationInfo &info,
@@ -784,9 +768,6 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
   itsParameters.journalMode =
       cfg.get_optional_config_param<std::string>("sqlite.journal_mode", "WAL");
   itsParameters.mmapSize = cfg.get_optional_config_param<long>("sqlite.mmap_size", 0);
-  itsParameters.finCacheDuration = cfg.get_mandatory_config_param<int>("cache.finCacheDuration");
-  itsParameters.extCacheDuration = cfg.get_mandatory_config_param<int>("cache.extCacheDuration");
-  itsParameters.flashCacheDuration = cfg.get_mandatory_config_param<int>("cache.extCacheDuration");
 }
 
 bool SpatiaLiteCache::cacheHasStations() const

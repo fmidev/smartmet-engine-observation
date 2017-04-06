@@ -44,9 +44,6 @@ struct SpatiaLiteCacheParameters
   bool memstatus;
   bool sharedCache;
   int cacheTimeout;
-  int finCacheDuration;
-  int extCacheDuration;
-  int flashCacheDuration;
   bool quiet;
   bool cacheHasStations;
   boost::shared_ptr<boost::posix_time::time_period> flashCachePeriod;

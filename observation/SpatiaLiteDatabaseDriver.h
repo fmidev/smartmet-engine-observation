@@ -51,6 +51,7 @@ class SpatiaLiteDatabaseDriver : public DatabaseDriver
  private:
   bool isParameter(const std::string &alias, const std::string &stationType) const;
   bool isParameterVariant(const std::string &name) const;
+  void readConfig(Spine::ConfigBase &cfg);
 
   Fmi::TimeZones itsTimeZones;
   SpatiaLiteDriverParameters itsParameters;

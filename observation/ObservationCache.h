@@ -28,7 +28,7 @@ class ObservationCache
  public:
   virtual ~ObservationCache();
 
-  virtual void initializeConnectionPool() = 0;
+  virtual void initializeConnectionPool(int finCacheDuration) = 0;
 
   virtual Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(Settings &settings) = 0;
   virtual Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(
@@ -54,10 +54,6 @@ class ObservationCache
   virtual void getStationsByBoundingBox(Spine::Stations &stations,
                                         const Settings &settings) const = 0;
   virtual void updateStationsAndGroups(const StationInfo &info) const = 0;
-
-  virtual int getFinCacheDuration() const = 0;
-  virtual int getExtCacheDuration() const = 0;
-  virtual int getFlashCacheDuration() const = 0;
 
   virtual Spine::Stations findAllStationsFromGroups(
       const std::set<std::string> stationgroup_codes,

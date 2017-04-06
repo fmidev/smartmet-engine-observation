@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 17.4.5
+Version: 17.4.6
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Apr 6 2017 Anssi Reponen <anssi.reponen@fmi.fi> - 17.4.6-1.fmi
+- Reading cache duration parameters from confgig file moved to database driver
+
 * Wed Apr 5 2017 Anssi Reponen <anssi.reponen@fmi.fi> - 17.4.5-1.fmi
 - Thread handling moved to delfoi-library
 - Reading of database-specific parameters from configuration file moved to delfoi-library

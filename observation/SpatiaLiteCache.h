@@ -25,7 +25,7 @@ class SpatiaLiteCache : public ObservationCache
   SpatiaLiteCache(boost::shared_ptr<EngineParameters> p, Spine::ConfigBase &cfg);
   ~SpatiaLiteCache();
 
-  void initializeConnectionPool();
+  void initializeConnectionPool(int finCacheDuration);
 
   Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(Settings &settings);
   Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(
@@ -43,16 +43,11 @@ class SpatiaLiteCache : public ObservationCache
                             boost::posix_time::ptime last_time);
   void updateFlashCachePeriod(const boost::posix_time::ptime &timetokeep,
                               boost::posix_time::ptime last_time);
-
   bool dataAvailableInCache(const Settings &settings) const;
   bool flashIntervalIsCached(const boost::posix_time::ptime &starttime,
                              const boost::posix_time::ptime &endtime) const;
   void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const;
   void updateStationsAndGroups(const StationInfo &info) const;
-
-  int getFinCacheDuration() const;
-  int getExtCacheDuration() const;
-  int getFlashCacheDuration() const;
 
   Spine::Stations findAllStationsFromGroups(const std::set<std::string> stationgroup_codes,
                                             const StationInfo &info,
