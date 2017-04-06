@@ -13,20 +13,20 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
 Requires: libconfig
-BuildRequires: smartmet-library-spine-devel >= 17.1.24
-BuildRequires: smartmet-engine-geonames-devel >= 17.1.24
+BuildRequires: smartmet-library-spine-devel >= 17.3.16
+BuildRequires: smartmet-engine-geonames-devel >= 17.3.15
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.1.1
 BuildRequires: sqlite-devel >= 3.11.0
 BuildRequires: soci-devel >= 3.2.3
 BuildRequires: soci-sqlite3-devel >= 3.2.3
-BuildRequires: smartmet-library-locus-devel >= 16.12.20
-BuildRequires: smartmet-library-macgyver-devel >= 17.1.18
-Requires: smartmet-server >= 17.1.25
-Requires: smartmet-engine-geonames >= 17.1.24
-Requires: smartmet-library-spine >= 17.1.24
-Requires: smartmet-library-locus >= 16.12.20
-Requires: smartmet-library-macgyver >= 17.1.18
+BuildRequires: smartmet-library-locus-devel >= 17.3.23
+BuildRequires: smartmet-library-macgyver-devel >= 17.3.16
+Requires: smartmet-server >= 17.3.15
+Requires: smartmet-engine-geonames >= 17.3.15
+Requires: smartmet-library-spine >= 17.3.16
+Requires: smartmet-library-locus >= 17.3.23
+Requires: smartmet-library-macgyver >= 17.3.16
 Requires: libatomic
 Requires: unixODBC
 Requires: mysql++
