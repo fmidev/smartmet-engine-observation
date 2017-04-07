@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 17.4.6
+Version: 17.4.7
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -83,7 +83,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(0775,root,root,0775)
 %{_datadir}/smartmet/engines/%{DIRNAME}.so
 %defattr(0664,root,root,0775)
-%config(noreplace) %{_var}/smartmet/observation/stations.xml
+%config(noreplace) %{_var}/smartmet/observation/stations.txt
 %config(noreplace) %{_var}/smartmet/observation/stations.sqlite.2
 
 %files -n %{SPECNAME}-devel
@@ -91,6 +91,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Apr  7 2017 Mika Heiskanen <mika.heiskanen@fmi.fi> - 17.4.7-1.fmi
+- Fixed to include stations.txt instead of stations.xml
+
 * Thu Apr 6 2017 Anssi Reponen <anssi.reponen@fmi.fi> - 17.4.6-1.fmi
 - Reading cache duration parameters from confgig file moved to database driver
 

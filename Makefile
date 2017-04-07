@@ -161,7 +161,7 @@ install:
 	@mkdir -p $(enginedir)
 	$(INSTALL_PROG) $(LIBFILE) $(enginedir)/$(LIBFILE)
 	@mkdir -p $(localstatedir)/smartmet/observation/
-	$(INSTALL_DATA) cnf/stations.xml $(localstatedir)/smartmet/observation/
+	$(INSTALL_DATA) cnf/stations.txt $(localstatedir)/smartmet/observation/
 	$(INSTALL_DATA) cnf/stations.sqlite.2 $(localstatedir)/smartmet/observation/
 
 test:
