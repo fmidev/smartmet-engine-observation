@@ -99,7 +99,7 @@ rm -rf $RPM_BUILD_ROOT
 - Reading of database-specific parameters from configuration file moved to delfoi-library
 - Observation cache -specific parameters read in SpatiaLiteCache.cpp
 
-* Fri Mar 30 2017 Anssi Reponen <anssi.reponen@fmi.fi> - 17.3.30-1.fmi
+* Thu Mar 30 2017 Anssi Reponen <anssi.reponen@fmi.fi> - 17.3.30-1.fmi
 - Configuration parameters for cache added and old renamed (all cache parameters are now inside cache group in configuration file):
  ¤ finCacheUpdateInterval (update interval of FMI data, optional, default value is 0 [no updates])
  ¤ extCacheUpdateInterval  (update interval of non-FMI data, optional, default value is 0 [no updates])
@@ -112,7 +112,7 @@ rm -rf $RPM_BUILD_ROOT
 - jss dependencies removed
 - ObservationCacheParameters-struct moved into separate header file
 
-* Wed Mar 28 2017 Anssi Reponen <anssi.reponen@fmi.fi> - 17.3.28-1.fmi
+* Tue Mar 28 2017 Anssi Reponen <anssi.reponen@fmi.fi> - 17.3.28-1.fmi
 - references to oracle removed from Makefile and spec-file
 - 'dbDriverFile' configuration parameter added: 
 contains library file name of database driver, if missing or empty DummyDatabaseDriver is created
