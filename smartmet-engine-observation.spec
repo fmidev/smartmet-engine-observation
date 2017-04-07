@@ -72,10 +72,6 @@ make %{_smp_mflags}
 
 %install
 %makeinstall
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d
-mkdir -p $RPM_BUILD_ROOT%{_var}/smartmet/observation
-install -m 664 cnf/stations.xml $RPM_BUILD_ROOT/var/smartmet/observation/stations.xml
-install -m 664 cnf/stations.sqlite.2 $RPM_BUILD_ROOT/var/smartmet/observation/stations.sqlite.2
 
 %post
 /sbin/ldconfig

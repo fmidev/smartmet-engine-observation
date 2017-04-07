@@ -12,6 +12,12 @@ else
   PREFIX = $(PREFIX)
 endif
 
+ifeq ($(origin LOCALSTATEDIR), undefined)
+  localstatedir = /var
+else
+  localstatedir = $(LOCALSTATEDIR)
+endif
+
 ifeq ($(processor), x86_64)
   libdir = $(PREFIX)/lib64
 else
@@ -154,6 +160,9 @@ install:
 	done
 	@mkdir -p $(enginedir)
 	$(INSTALL_PROG) $(LIBFILE) $(enginedir)/$(LIBFILE)
+	@mkdir -p $(localstatedir)/smartmet/observation/
+	$(INSTALL_DATA) cnf/stations.xml $(localstatedir)/smartmet/observation/
+	$(INSTALL_DATA) cnf/stations.sqlite.2 $(localstatedir)/smartmet/observation/
 
 test:
 	cd test && make test
