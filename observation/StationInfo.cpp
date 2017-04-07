@@ -35,17 +35,21 @@ namespace Observation
 
 void createSerializedStationsDirectory(const std::string& filename)
 {
+  boost::filesystem::path path = boost::filesystem::path(filename);
+  boost::filesystem::path directory = path.parent_path();
+
   try
   {
-    boost::filesystem::path path = boost::filesystem::path(filename);
-    boost::filesystem::path directory = path.parent_path();
     if (!boost::filesystem::is_directory(directory))
       boost::filesystem::create_directories(directory);
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(
+    SmartMet::Spine::Exception ex(
         BCP, "Failed to create directory for serialized station information", NULL);
+    ex.addParameter("stationfile", filename);
+    ex.addParameter("directory", directory.string());
+    throw ex;
   }
 }
 
