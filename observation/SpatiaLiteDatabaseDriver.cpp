@@ -72,12 +72,12 @@ void SpatiaLiteDatabaseDriver::init(Geonames::Engine *geonames)
 {
   try
   {
-    logMessage(" [SpatiaLiteDatabaseDriver] initializing connection pool...", itsParameters.quiet);
+    logMessage("[SpatiaLiteDatabaseDriver] initializing connection pool...", itsParameters.quiet);
 
     itsParameters.geonames = geonames;
     itsParameters.observationCache->initializeConnectionPool(itsParameters.finCacheDuration);
 
-    logMessage(" [SpatiaLiteDatabaseDriver] Connection pool ready.", itsParameters.quiet);
+    logMessage("[SpatiaLiteDatabaseDriver] Connection pool ready.", itsParameters.quiet);
   }
   catch (...)
   {

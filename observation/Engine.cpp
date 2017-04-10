@@ -42,7 +42,7 @@ void Engine::init()
     itsDatabaseDriver.reset(DatabaseDriverFactory::create(itsEngineParameters, cfg));
     if (itsDatabaseDriver)
     {
-      logMessage(" [Observation Engine] database driver '" + itsDatabaseDriver->id() + "' created",
+      logMessage("[Observation Engine] database driver '" + itsDatabaseDriver->id() + "' created",
                  itsEngineParameters->quiet);
     }
 
@@ -80,12 +80,12 @@ void Engine::unserializeStations()
 
       //  This is atomic
       itsEngineParameters->stationInfo = stationinfo;
-      logMessage(" [Observation Engine] Unserialized stations successfully from " + path.string(),
+      logMessage("[Observation Engine] Unserialized stations successfully from " + path.string(),
                  itsEngineParameters->quiet);
     }
     else
     {
-      logMessage(" [Observation Engine] No serialized station file found from " + path.string(),
+      logMessage("[Observation Engine] No serialized station file found from " + path.string(),
                  itsEngineParameters->quiet);
     }
   }

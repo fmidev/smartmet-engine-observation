@@ -59,10 +59,8 @@ void SpatiaLiteCache::initializeConnectionPool(int finCacheDuration)
 {
   try
   {
-    logMessage(
-        " [Observation Engine] Initializing SpatiaLite cache connection "
-        "pool...",
-        itsParameters.quiet);
+    logMessage("[Observation Engine] Initializing SpatiaLite cache connection pool...",
+               itsParameters.quiet);
 
     itsConnectionPool = new SpatiaLiteConnectionPool(itsParameters.connectionPoolSize,
                                                      itsParameters.cacheFile,
@@ -101,7 +99,7 @@ void SpatiaLiteCache::initializeConnectionPool(int finCacheDuration)
       boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     }
 
-    logMessage(" [Observation Engine] SpatiaLite connection pool ready.", itsParameters.quiet);
+    logMessage("[Observation Engine] SpatiaLite connection pool ready.", itsParameters.quiet);
   }
   catch (...)
   {

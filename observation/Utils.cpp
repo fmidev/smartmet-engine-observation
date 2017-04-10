@@ -329,7 +329,7 @@ void logMessage(const std::string& message, bool quiet)
   try
   {
     if (!quiet)
-      std::cout << SmartMet::Spine::log_time_str() << message << std::endl;
+      std::cout << SmartMet::Spine::log_time_str() << ' ' << message << std::endl;
   }
   catch (...)
   {
