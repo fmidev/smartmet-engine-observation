@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 17.4.7
-Release: 2%{?dist}.fmi
+Version: 17.4.10
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -13,7 +13,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
 Requires: libconfig
-BuildRequires: smartmet-library-spine-devel >= 17.3.16
+BuildRequires: smartmet-library-spine-devel >= 17.4.8
 BuildRequires: smartmet-engine-geonames-devel >= 17.3.15
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.1.1
@@ -22,9 +22,9 @@ BuildRequires: soci-devel >= 3.2.3
 BuildRequires: soci-sqlite3-devel >= 3.2.3
 BuildRequires: smartmet-library-locus-devel >= 17.3.23
 BuildRequires: smartmet-library-macgyver-devel >= 17.3.16
-Requires: smartmet-server >= 17.3.15
+Requires: smartmet-server >= 17.4.7
 Requires: smartmet-engine-geonames >= 17.3.15
-Requires: smartmet-library-spine >= 17.3.16
+Requires: smartmet-library-spine >= 17.4.8
 Requires: smartmet-library-locus >= 17.3.23
 Requires: smartmet-library-macgyver >= 17.3.16
 Requires: libatomic
@@ -91,6 +91,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Apr 10 2017 Mika Heiskanen <mika.heiskanen@fmi.fi> - 17.4.10-1.fmi
+- Configuration paths can now be relative
+
+* Sat Apr  8 2017 Mika Heiskanen <mika.heiskanen@fmi.fi> - 17.4.8-1.fmi
+- Fixed logMessage to always print a space after the timestamp
+
 * Fri Apr  7 2017 Mika Heiskanen <mika.heiskanen@fmi.fi> - 17.4.7-2.fmi
 - Improved error reporting on serialization failures
 

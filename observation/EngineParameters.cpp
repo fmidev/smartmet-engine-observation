@@ -84,8 +84,8 @@ EngineParameters::EngineParameters(Spine::ConfigBase &cfg)
     queryResultBaseCacheSize =
         cfg.get_optional_config_param<size_t>("cache.queryResultBaseCacheSize", 1000);
 
-    serializedStationsFile = cfg.get_mandatory_config_param<std::string>("serializedStationsFile");
-    dbRegistryFolderPath = cfg.get_mandatory_config_param<std::string>("dbRegistryFolderPath");
+    serializedStationsFile = cfg.get_mandatory_path("serializedStationsFile");
+    dbRegistryFolderPath = cfg.get_mandatory_path("dbRegistryFolderPath");
 
     dbDriverFile = cfg.get_optional_config_param<std::string>(
         "dbDriverFile", "");  // when empty or 'dummy'-> create dummy drver, when 'spatialite' ->
