@@ -753,7 +753,7 @@ boost::shared_ptr<std::vector<ObservableProperty> > SpatiaLiteCache::observableP
 void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
 {
   itsParameters.connectionPoolSize = cfg.get_mandatory_config_param<int>("cache.poolSize");
-  itsParameters.cacheFile = cfg.get_mandatory_config_param<std::string>("spatialiteFile");
+  itsParameters.cacheFile = cfg.get_mandatory_path("spatialiteFile");
   itsParameters.maxInsertSize = cfg.get_optional_config_param<std::size_t>(
       "cache.maxInsertSize", 9999999999);  // default = all at once
   itsParameters.threadingMode =
