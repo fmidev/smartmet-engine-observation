@@ -43,6 +43,7 @@ class SpatiaLiteDatabaseDriver : public DatabaseDriver
   void locationsFromDatabase();
   void preloadStations(const std::string &serializedStationsFile);
   void shutdown();
+  MetaData metaData(const std::string &producer);
   std::string id() const;
 
   ~SpatiaLiteDatabaseDriver() {}
@@ -55,6 +56,7 @@ class SpatiaLiteDatabaseDriver : public DatabaseDriver
 
   Fmi::TimeZones itsTimeZones;
   SpatiaLiteDriverParameters itsParameters;
+  std::map<std::string, MetaData> itsMetaData;
 };
 
 }  // namespace Observation

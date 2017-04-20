@@ -659,6 +659,65 @@ void SpatiaLiteDatabaseDriver::readConfig(Spine::ConfigBase &cfg)
 {
   itsParameters.finCacheDuration =
       cfg.get_mandatory_config_param<int>("database_driver.finCacheDuration");
+
+  // iterate stationtypes and find out metaparameters
+  // metaparameter are defined in 'meta_data.bbox'group like 'meta_data.bbox.<producer>= value'
+  // for example meta_data.bbox.flash="18.0,59.0,33.0,70.0,EPSG:4326"
+  std::vector<std::string> stationtypes =
+      cfg.get_mandatory_config_array<std::string>("stationtypes");
+  libconfig::Setting &stationtypelistGroup =
+      cfg.get_mandatory_config_param<libconfig::Setting &>("oracle_stationtypelist");
+  cfg.assert_is_group(stationtypelistGroup);
+
+  for (const std::string &type : stationtypes)
+  {
+    if (type.empty())
+      continue;
+
+    // bbox
+    std::string bbox = cfg.get_optional_config_param<std::string>("meta_data.bbox." + type, "");
+    if (bbox.empty())
+      bbox = cfg.get_optional_config_param<std::string>(
+          "meta_data.bbox.default",
+          "-180.0,-90.0,180.0,90.0,EPSG:4326");  // default value: whole world
+
+    // first observation
+    std::string first_observation_time =
+        cfg.get_optional_config_param<std::string>("meta_data.first_observation." + type, "");
+    if (first_observation_time.empty())
+      first_observation_time = cfg.get_optional_config_param<std::string>(
+          "meta_data.first_observation.default",
+          "190001010000");  // default value: 1900.01.01 00:00
+
+    // timestep
+    int timestep = cfg.get_optional_config_param<int>("meta_data.timestep." + type, -1);
+    if (timestep == -1)
+      timestep = cfg.get_optional_config_param<int>("meta_data.timestep.default" + type,
+                                                    1);  // default value 1 min
+
+    Spine::BoundingBox bounding_box(bbox);
+    boost::posix_time::time_period time_period(Fmi::TimeParser::parse(first_observation_time),
+                                               boost::posix_time::second_clock::local_time());
+    itsMetaData.insert(make_pair(type, MetaData(bounding_box, time_period, timestep)));
+  }
+}
+
+MetaData SpatiaLiteDatabaseDriver::metaData(const std::string &producer)
+{
+  MetaData ret;
+
+  if (itsMetaData.find(producer) != itsMetaData.end())
+  {
+    ret = itsMetaData[producer];
+    // update period end time
+    boost::posix_time::ptime currentTime = boost::posix_time::second_clock::local_time();
+    // subtract seconds so we have even minutes
+    long sec = currentTime.time_of_day().seconds();
+    currentTime = currentTime - boost::posix_time::seconds(sec);
+    ret.period = boost::posix_time::time_period(ret.period.begin(), currentTime);
+  }
+
+  return ret;
 }
 
 std::string SpatiaLiteDatabaseDriver::id() const

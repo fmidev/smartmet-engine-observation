@@ -1,9 +1,11 @@
 #pragma once
 
+#include "MetaData.h"
 #include "QueryBase.h"
 #include "QueryResultBase.h"
 #include "Settings.h"
 #include "Utils.h"
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <engines/geonames/Engine.h>
 #include <spine/Station.h>
 #include <spine/TimeSeries.h>
@@ -47,6 +49,7 @@ class DatabaseDriver
   virtual void locationsFromDatabase() = 0;
   virtual void preloadStations(const std::string &serializedStationsFile) = 0;
   virtual void shutdown() = 0;
+  virtual MetaData metaData(const std::string &producer) = 0;
 
  protected:
   DatabaseDriver() {}
