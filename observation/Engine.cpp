@@ -28,7 +28,9 @@ void Engine::init()
   try
   {
     Spine::ConfigBase cfg(itsConfigFile);
+
     itsEngineParameters.reset(new EngineParameters(cfg));
+
     itsDatabaseRegistry->loadConfigurations(itsEngineParameters->dbRegistryFolderPath);
 
     // Initialize the caches
@@ -370,6 +372,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr Engine::values(
     Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
   return itsDatabaseDriver->values(settings, timeSeriesOptions);
+}
+
+MetaData Engine::metaData(const std::string &producer) const
+{
+  return itsDatabaseDriver->metaData(producer);
 }
 
 }  // namespace Observation

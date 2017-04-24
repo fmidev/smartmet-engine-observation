@@ -3,6 +3,7 @@
 #include "DatabaseDriver.h"
 #include "EngineParameters.h"
 #include "ObservationCache.h"
+#include <spine/Value.h>
 
 namespace SmartMet
 {
@@ -83,6 +84,8 @@ class Engine : public SmartMet::Spine::SmartMetEngine
                           const std::string &stationType = "unknown") const;
 
   std::set<std::string> getValidStationTypes() const;
+
+  MetaData metaData(const std::string &producer) const;
 
  protected:
   void init();

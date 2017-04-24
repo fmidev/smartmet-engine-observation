@@ -34,6 +34,7 @@ class DummyDatabaseDriver : public DatabaseDriver
   void locationsFromDatabase() {}
   void preloadStations(const std::string &serializedStationsFile) {}
   void shutdown() {}
+  MetaData metaData(const std::string &producer) { return MetaData(); }
   std::string id() const { return "dummy"; }
 };
 
