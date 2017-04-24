@@ -94,6 +94,9 @@ rm -rf $RPM_BUILD_ROOT
 * Thu Apr 20 2017 Anssi Reponen <anssi.reponen@fmi.fi> - 17.4.20-1.fmi
 - Observation metadata feature added
 
+* Wed Apr 19 2017 Mika Heiskanen <mika.heiskanen@fmi.fi> - 17.4.19-1.fmi
+- Fixed spatialiteFile path to be relative to the configuration file
+
 * Mon Apr 10 2017 Mika Heiskanen <mika.heiskanen@fmi.fi> - 17.4.10-1.fmi
 - Configuration paths can now be relative
 
