@@ -8,8 +8,6 @@
 #include <spine/Convenience.h>
 #include <atomic>
 
-// #define MYDEBUG 1
-
 namespace ts = SmartMet::Spine::TimeSeries;
 
 namespace SmartMet

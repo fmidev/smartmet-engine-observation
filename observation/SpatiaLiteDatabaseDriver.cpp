@@ -12,6 +12,8 @@
 
 #include "boost/date_time/posix_time/posix_time.hpp"  //include all types plus i/o
 
+#define MYDEBUG 1
+
 namespace ts = SmartMet::Spine::TimeSeries;
 
 namespace SmartMet
@@ -382,7 +384,7 @@ void SpatiaLiteDatabaseDriver::getStations(Spine::Stations &stations, Settings &
     auto stationendtime = day_end(settings.endtime);
 
 #ifdef MYDEBUG
-    cout << "station search start" << endl;
+    std::cout << "station search start" << std::endl;
 #endif
     // Get all stations by different methods
 
@@ -624,9 +626,9 @@ if (!settings.lpnns.empty()) {
 */
 
 #ifdef MYDEBUG
-    cout << "total number of stations: " << stations.size() << endl;
-    cout << "station search end" << endl;
-    cout << "observation query start" << endl;
+    std::cout << "total number of stations: " << stations.size() << std::endl;
+    std::cout << "station search end" << std::endl;
+    std::cout << "observation query start" << std::endl;
 #endif
   }
   catch (...)
