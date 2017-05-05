@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 17.4.20
+Version: 17.5.5
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -91,6 +91,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri May  5 2017 Mika Heiskanen <mika.heiskanen@fmi.fi> - 17.5.5-1.fmi
+- Fixed producer endtime metadata to be in UTC time instead of local time
+
 * Thu Apr 20 2017 Anssi Reponen <anssi.reponen@fmi.fi> - 17.4.20-1.fmi
 - Observation metadata feature added
 

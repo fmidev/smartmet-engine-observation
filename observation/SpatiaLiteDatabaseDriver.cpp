@@ -699,7 +699,7 @@ void SpatiaLiteDatabaseDriver::readConfig(Spine::ConfigBase &cfg)
 
     Spine::BoundingBox bounding_box(bbox);
     boost::posix_time::time_period time_period(Fmi::TimeParser::parse(first_observation_time),
-                                               boost::posix_time::second_clock::local_time());
+                                               boost::posix_time::second_clock::universal_time());
     itsMetaData.insert(make_pair(type, MetaData(bounding_box, time_period, timestep)));
   }
 }
@@ -712,7 +712,7 @@ MetaData SpatiaLiteDatabaseDriver::metaData(const std::string &producer)
   {
     ret = itsMetaData[producer];
     // update period end time
-    boost::posix_time::ptime currentTime = boost::posix_time::second_clock::local_time();
+    boost::posix_time::ptime currentTime = boost::posix_time::second_clock::universal_time();
     // subtract seconds so we have even minutes
     long sec = currentTime.time_of_day().seconds();
     currentTime = currentTime - boost::posix_time::seconds(sec);
