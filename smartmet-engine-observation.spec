@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 17.5.5
+Version: 17.5.29
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -13,20 +13,20 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
 Requires: libconfig
-BuildRequires: smartmet-library-spine-devel >= 17.4.8
-BuildRequires: smartmet-engine-geonames-devel >= 17.3.15
+BuildRequires: smartmet-library-spine-devel >= 17.5.5
+BuildRequires: smartmet-engine-geonames-devel >= 17.5.24
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.1.1
 BuildRequires: sqlite-devel >= 3.11.0
 BuildRequires: soci-devel >= 3.2.3
 BuildRequires: soci-sqlite3-devel >= 3.2.3
-BuildRequires: smartmet-library-locus-devel >= 17.3.23
-BuildRequires: smartmet-library-macgyver-devel >= 17.3.16
-Requires: smartmet-server >= 17.4.7
-Requires: smartmet-engine-geonames >= 17.3.15
-Requires: smartmet-library-spine >= 17.4.8
-Requires: smartmet-library-locus >= 17.3.23
-Requires: smartmet-library-macgyver >= 17.3.16
+BuildRequires: smartmet-library-locus-devel >= 17.5.18
+BuildRequires: smartmet-library-macgyver-devel >= 17.4.19
+Requires: smartmet-server >= 17.4.8
+Requires: smartmet-engine-geonames >= 17.5.24
+Requires: smartmet-library-spine >= 17.5.5
+Requires: smartmet-library-locus >= 17.5.18
+Requires: smartmet-library-macgyver >= 17.4.19
 Requires: libatomic
 Requires: unixODBC
 Requires: mysql++
@@ -91,6 +91,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon May 29 2017 Mika Heiskanen <mika.heiskanen@fmi.fi> - 17.5.29-1.fmi
+- Repackaged due to Delfoi changes
+
 * Fri May  5 2017 Mika Heiskanen <mika.heiskanen@fmi.fi> - 17.5.5-1.fmi
 - Fixed producer endtime metadata to be in UTC time instead of local time
 
