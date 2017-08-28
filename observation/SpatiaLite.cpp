@@ -1766,9 +1766,9 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
                 }
                 else
                 {
-                  float temp = boost::get<float>(data[s.fmisid][t][temppos]);
-                  float rh = boost::get<float>(data[s.fmisid][t][rhpos]);
-                  float wind = boost::get<float>(data[s.fmisid][t][windpos]);
+                  float temp = boost::get<double>(data[s.fmisid][t][temppos]);
+                  float rh = boost::get<double>(data[s.fmisid][t][rhpos]);
+                  float wind = boost::get<double>(data[s.fmisid][t][windpos]);
 
                   ts::Value feelslike =
                       ts::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
@@ -3278,9 +3278,9 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
                 }
                 else
                 {
-                  float temp = boost::get<float>(data[s.fmisid][t][temppos]);
-                  float rh = boost::get<float>(data[s.fmisid][t][rhpos]);
-                  float wind = boost::get<float>(data[s.fmisid][t][windpos]);
+                  float temp = boost::get<double>(data[s.fmisid][t][temppos]);
+                  float rh = boost::get<double>(data[s.fmisid][t][rhpos]);
+                  float wind = boost::get<double>(data[s.fmisid][t][windpos]);
 
                   ts::Value feelslike =
                       ts::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
