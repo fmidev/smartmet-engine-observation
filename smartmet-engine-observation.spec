@@ -24,6 +24,8 @@ BuildRequires: soci-devel >= 3.2.3
 BuildRequires: soci-sqlite3-devel >= 3.2.3
 BuildRequires: smartmet-library-locus-devel >= 17.8.28
 BuildRequires: smartmet-library-macgyver-devel >= 17.8.28
+BuildRequires: libatomic
+BuildRequires: bzip2-devel
 Requires: smartmet-server >= 17.8.28
 Requires: smartmet-engine-geonames >= 17.8.28
 Requires: smartmet-library-spine >= 17.8.28
@@ -60,6 +62,7 @@ SmartMet engine for fetching observations from the climate database (cldb).
 Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
+Requires: smartmet-library-spine-devel
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
