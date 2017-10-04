@@ -11,6 +11,7 @@
 
 #include <boost-tuple.h>
 
+#include <chrono>
 #include <iostream>
 
 namespace BO = SmartMet::Engine::Observation;
@@ -454,12 +455,9 @@ boost::posix_time::ptime SpatiaLite::getLatestObservationTime()
       return boost::posix_time::ptime_from_tm(time.get());
     else
     {
-      // If there is no cached observations in the database, use default value
-      // of 24 hours
-      boost::posix_time::ptime time =
-          boost::posix_time::second_clock::universal_time() - boost::posix_time::hours(24);
-      return time;
-    }
+      // If there is no cached observations in the database, return a bad time
+      return boost::posix_time::not_a_date_time;
+    };
   }
   catch (...)
   {
@@ -481,11 +479,8 @@ boost::posix_time::ptime SpatiaLite::getLatestWeatherDataQCTime()
       return boost::posix_time::ptime_from_tm(time.get());
     else
     {
-      // If there is no cached observations in the database, use default value
-      // of 24 hours
-      boost::posix_time::ptime time =
-          boost::posix_time::second_clock::universal_time() - boost::posix_time::hours(24);
-      return time;
+      // If there is no cached observations in the database, return a bad time
+      return boost::posix_time::not_a_date_time;
     }
   }
   catch (...)
@@ -675,16 +670,24 @@ void SpatiaLite::fillDataCache(const vector<DataItem> &cacheData)
 
       std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, cacheData.size());
 
-      soci::transaction tr(itsSession);
-      for (std::size_t i = pos1; i < pos2; ++i)
       {
-        const auto &item = cacheData[i];
-        itsSession << sqltemplate, soci::use(item.fmisid), soci::use(item.measurand_id),
-            soci::use(item.producer_id), soci::use(item.measurand_no),
-            soci::use(to_tm(item.data_time)), soci::use(item.data_value),
-            soci::use(item.data_quality);
+        // auto begin = std::chrono::high_resolution_clock::now();
+
+        soci::transaction tr(itsSession);
+        for (std::size_t i = pos1; i < pos2; ++i)
+        {
+          const auto &item = cacheData[i];
+          itsSession << sqltemplate, soci::use(item.fmisid), soci::use(item.measurand_id),
+              soci::use(item.producer_id), soci::use(item.measurand_no),
+              soci::use(to_tm(item.data_time)), soci::use(item.data_value),
+              soci::use(item.data_quality);
+        }
+        tr.commit();
+        // auto end = std::chrono::high_resolution_clock::now();
+        // std::cout << "Cached " << (pos2 - pos1 + 1) << " observations in "
+        // << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
+        // << " ms" << std::endl;
       }
-      tr.commit();
 
       pos1 += itsMaxInsertSize;
     }

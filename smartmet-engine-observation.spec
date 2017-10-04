@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 17.8.28
+Version: 17.10.4
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,8 +15,8 @@ BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
 Requires: libconfig
-BuildRequires: smartmet-library-spine-devel >= 17.8.28
-BuildRequires: smartmet-engine-geonames-devel >= 17.8.28
+BuildRequires: smartmet-library-spine-devel >= 17.9.13
+BuildRequires: smartmet-engine-geonames-devel >= 17.8.29
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.1.1
 BuildRequires: sqlite-devel >= 3.11.0
@@ -27,8 +27,8 @@ BuildRequires: smartmet-library-macgyver-devel >= 17.8.28
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 Requires: smartmet-server >= 17.8.28
-Requires: smartmet-engine-geonames >= 17.8.28
-Requires: smartmet-library-spine >= 17.8.28
+Requires: smartmet-engine-geonames >= 17.8.29
+Requires: smartmet-library-spine >= 17.9.13
 Requires: smartmet-library-locus >= 17.8.28
 Requires: smartmet-library-macgyver >= 17.8.28
 Requires: libatomic
@@ -96,6 +96,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Oct  4 2017 Mika Heiskanen <mika.heiskanen@fmi.fi> - 17.10.4-1.fmi
+- Changed the getLatestObservationTime type methods to return not_a_date_time if the respective table is empty
+
 * Mon Aug 28 2017 Mika Heiskanen <mika.heiskanen@fmi.fi> - 17.8.28-1.fmi
 - Upgrade to boost 1.65
 
