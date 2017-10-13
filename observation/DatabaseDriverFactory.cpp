@@ -27,8 +27,7 @@ DatabaseDriver *DatabaseDriverFactory::create(boost::shared_ptr<EngineParameters
     if (handle == 0)
     {
       // Error occurred while opening the dynamic library
-      throw SmartMet::Spine::Exception(BCP,
-                                       "Unable to load database driver: " + std::string(dlerror()));
+      throw Spine::Exception(BCP, "Unable to load database driver: " + std::string(dlerror()));
     }
 
     // Load the symbols (pointers to functions in dynamic library)
@@ -39,7 +38,7 @@ DatabaseDriver *DatabaseDriverFactory::create(boost::shared_ptr<EngineParameters
     // Check that pointer to create function is loaded succesfully
     if (driver_create_func == 0)
     {
-      throw SmartMet::Spine::Exception(BCP, "Cannot load symbols: " + std::string(dlerror()));
+      throw Spine::Exception(BCP, "Cannot load symbols: " + std::string(dlerror()));
     }
 
     // Create an instance of the class using the pointer to "create" function
@@ -48,8 +47,7 @@ DatabaseDriver *DatabaseDriverFactory::create(boost::shared_ptr<EngineParameters
 
     if (driver == 0)
     {
-      throw SmartMet::Spine::Exception(BCP,
-                                       "Unable to create a new instance of database driver class");
+      throw Spine::Exception(BCP, "Unable to create a new instance of database driver class");
     }
 
     driver->itsHandle = handle;
@@ -57,7 +55,7 @@ DatabaseDriver *DatabaseDriverFactory::create(boost::shared_ptr<EngineParameters
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Failed to create database driver!");
   }
 
   return nullptr;

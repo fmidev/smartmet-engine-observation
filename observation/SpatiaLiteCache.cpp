@@ -79,10 +79,6 @@ void SpatiaLiteCache::initializeConnectionPool(int finCacheDuration)
     spatialitedb->createTables();
 
     boost::posix_time::ptime last_time(spatialitedb->getLatestObservationTime());
-    boost::posix_time::ptime timetokeep = last_time - boost::posix_time::hours(finCacheDuration);
-
-    // Resets the period atomically
-    itsFinCachePeriod = boost::make_shared<boost::posix_time::time_period>(timetokeep, last_time);
 
     // Check first if we already have stations in SpatiaLite db so that we know
     // if we can use it
@@ -353,16 +349,14 @@ bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &start
 {
   try
   {
-    // copies both begin & end, makes resetting the period thread safe
-    auto period = boost::atomic_load(&itsFinCachePeriod);
+    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
+    auto oldest_time = spatialitedb->getOldestObservationTime();
 
-    // the first write sets the available period, must return false until that
-    // is done
-    if (!period)
+    if (oldest_time.is_not_a_date_time())
       return false;
 
     // we need only the beginning though
-    return (starttime >= period->begin());
+    return (starttime >= oldest_time);
   }
   catch (...)
   {
@@ -375,15 +369,14 @@ bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &star
 {
   try
   {
-    // Atomic copy in case we need begin and end
-    auto period = boost::atomic_load(&itsFlashCachePeriod);
+    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
+    auto oldest_time = spatialitedb->getOldestFlashTime();
 
-    // the first write sets the available period, must return false until that
-    // is done
-    if (!period)
+    if (oldest_time.is_not_a_date_time())
       return false;
 
-    return (starttime >= period->begin());
+    // we need only the beginning though
+    return (starttime >= oldest_time);
   }
   catch (...)
   {
@@ -396,15 +389,14 @@ bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
 {
   try
   {
-    // Atomic copy in case we need begin and end
-    auto period = boost::atomic_load(&itsExtCachePeriod);
+    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
+    auto oldest_time = spatialitedb->getOldestWeatherDataQCTime();
 
-    // the first write sets the available period, must return false until that
-    // is done
-    if (!period)
+    if (oldest_time.is_not_a_date_time())
       return false;
 
-    return (starttime >= period->begin());
+    // we need only the beginning though
+    return (starttime >= oldest_time);
   }
   catch (...)
   {
@@ -509,7 +501,7 @@ void SpatiaLiteCache::getStationsByBoundingBox(Spine::Stations &stations,
                                                      tempSettings.starttime,
                                                      tempSettings.endtime);
 #else
-      boost::shared_ptr<SpatiaLite> spatialitedb = itsSpatiaLitePool->getConnection();
+      boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
       auto stationList = spatialitedb->findStationsInsideBox(tempSettings, *info);
 #endif
       for (const auto &station : stationList)
@@ -568,24 +560,6 @@ void SpatiaLiteCache::updateStationsAndGroups(const StationInfo &info) const
   logMessage("Updating stations to SpatiaLite databases...", itsParameters.quiet);
   boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
   spatialitedb->updateStationsAndGroups(info);
-}
-
-void SpatiaLiteCache::updateFinCachePeriod(const boost::posix_time::ptime &timetokeep,
-                                           boost::posix_time::ptime last_time)
-{
-  itsFinCachePeriod = boost::make_shared<boost::posix_time::time_period>(timetokeep, last_time);
-}
-
-void SpatiaLiteCache::updateExtCachePeriod(const boost::posix_time::ptime &timetokeep,
-                                           boost::posix_time::ptime last_time)
-{
-  itsExtCachePeriod = boost::make_shared<boost::posix_time::time_period>(timetokeep, last_time);
-}
-
-void SpatiaLiteCache::updateFlashCachePeriod(const boost::posix_time::ptime &timetokeep,
-                                             boost::posix_time::ptime last_time)
-{
-  itsFlashCachePeriod = boost::make_shared<boost::posix_time::time_period>(timetokeep, last_time);
 }
 
 Spine::Stations SpatiaLiteCache::findAllStationsFromGroups(

@@ -264,6 +264,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
       // 1) stationtype is cached
       // 2) we have the requested time interval in cache
       // 3) stations are available in cache
+
       if (settings.useDataCache && itsParameters.observationCache->dataAvailableInCache(settings) &&
           itsParameters.observationCache->cacheHasStations())
         return itsParameters.observationCache->valuesFromCache(settings, timeSeriesOptions);
@@ -660,7 +661,7 @@ void SpatiaLiteDatabaseDriver::preloadStations(const std::string &serializedStat
 void SpatiaLiteDatabaseDriver::readConfig(Spine::ConfigBase &cfg)
 {
   itsParameters.finCacheDuration =
-      cfg.get_mandatory_config_param<int>("database_driver.finCacheDuration");
+      cfg.get_optional_config_param<int>("database_driver.finCacheDuration", 0);
 
   // iterate stationtypes and find out metaparameters
   // metaparameter are defined in 'meta_data.bbox'group like 'meta_data.bbox.<producer>= value'

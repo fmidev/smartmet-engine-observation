@@ -41,12 +41,6 @@ class ObservationCache
       const std::set<std::string> &stationgroup_codes,
       const boost::posix_time::ptime &starttime,
       const boost::posix_time::ptime &endtime) = 0;
-  virtual void updateFinCachePeriod(const boost::posix_time::ptime &timetokeep,
-                                    boost::posix_time::ptime last_time) = 0;
-  virtual void updateExtCachePeriod(const boost::posix_time::ptime &timetokeep,
-                                    boost::posix_time::ptime last_time) = 0;
-  virtual void updateFlashCachePeriod(const boost::posix_time::ptime &timetokeep,
-                                      boost::posix_time::ptime last_time) = 0;
 
   virtual bool dataAvailableInCache(const Settings &settings) const = 0;
   virtual bool flashIntervalIsCached(const boost::posix_time::ptime &starttime,

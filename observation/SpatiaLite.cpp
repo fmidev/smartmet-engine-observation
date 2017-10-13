@@ -447,9 +447,31 @@ boost::posix_time::ptime SpatiaLite::getLatestObservationTime()
   {
     boost::optional<std::tm> time;
 
-    // Add 3 hours more observation for safety reasons
     const char *latestTime = "SELECT MAX(data_time) FROM observation_data";
     itsSession << latestTime, soci::into(time);
+
+    if (time.is_initialized())
+      return boost::posix_time::ptime_from_tm(time.get());
+    else
+    {
+      // If there is no cached observations in the database, return a bad time
+      return boost::posix_time::not_a_date_time;
+    };
+  }
+  catch (...)
+  {
+    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+  }
+}
+
+boost::posix_time::ptime SpatiaLite::getOldestObservationTime()
+{
+  try
+  {
+    boost::optional<std::tm> time;
+
+    const char *oldestTime = "SELECT MIN(data_time) FROM observation_data";
+    itsSession << oldestTime, soci::into(time);
 
     if (time.is_initialized())
       return boost::posix_time::ptime_from_tm(time.get());
@@ -489,6 +511,29 @@ boost::posix_time::ptime SpatiaLite::getLatestWeatherDataQCTime()
   }
 }
 
+boost::posix_time::ptime SpatiaLite::getOldestWeatherDataQCTime()
+{
+  try
+  {
+    boost::optional<std::tm> time;
+
+    const char *oldestTime = "SELECT MIN(obstime) FROM weather_data_qc";
+    itsSession << oldestTime, soci::into(time);
+
+    if (time.is_initialized())
+      return boost::posix_time::ptime_from_tm(time.get());
+    else
+    {
+      // If there is no cached observations in the database, return a bad time
+      return boost::posix_time::not_a_date_time;
+    }
+  }
+  catch (...)
+  {
+    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+  }
+}
+
 boost::posix_time::ptime SpatiaLite::getLatestFlashTime()
 {
   try
@@ -503,17 +548,61 @@ boost::posix_time::ptime SpatiaLite::getLatestFlashTime()
   }
 }
 
+boost::posix_time::ptime SpatiaLite::getOldestFlashTime()
+{
+  try
+  {
+    string tablename = "flash_data";
+    string time_field = "stroke_time";
+    return getOldestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+  }
+}
+
 boost::posix_time::ptime SpatiaLite::getLatestTimeFromTable(const std::string tablename,
                                                             const std::string time_field)
 {
   try
   {
     boost::optional<std::tm> time;
-    // Add 1 hour more observation for safety reasons
+
     std::string latestTime = "SELECT DATETIME(MAX(" + time_field + ")) FROM " + tablename;
     try
     {
       itsSession << latestTime, soci::into(time);
+    }
+    catch (...)
+    {
+    }
+    if (time.is_initialized())
+      return boost::posix_time::ptime_from_tm(time.get());
+    else
+    {
+      // If there is no cached observations in the database, return
+      // not_a_date_time
+      return boost::posix_time::not_a_date_time;
+    }
+  }
+  catch (...)
+  {
+    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+  }
+}
+
+boost::posix_time::ptime SpatiaLite::getOldestTimeFromTable(const std::string tablename,
+                                                            const std::string time_field)
+{
+  try
+  {
+    boost::optional<std::tm> time;
+
+    std::string oldestTime = "SELECT DATETIME(MIN(" + time_field + ")) FROM " + tablename;
+    try
+    {
+      itsSession << oldestTime, soci::into(time);
     }
     catch (...)
     {

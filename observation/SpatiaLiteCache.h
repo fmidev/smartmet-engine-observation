@@ -37,12 +37,7 @@ class SpatiaLiteCache : public ObservationCache
                                                const std::set<std::string> &stationgroup_codes,
                                                const boost::posix_time::ptime &starttime,
                                                const boost::posix_time::ptime &endtime);
-  void updateFinCachePeriod(const boost::posix_time::ptime &timetokeep,
-                            boost::posix_time::ptime last_time);
-  void updateExtCachePeriod(const boost::posix_time::ptime &timetokeep,
-                            boost::posix_time::ptime last_time);
-  void updateFlashCachePeriod(const boost::posix_time::ptime &timetokeep,
-                              boost::posix_time::ptime last_time);
+
   bool dataAvailableInCache(const Settings &settings) const;
   bool flashIntervalIsCached(const boost::posix_time::ptime &starttime,
                              const boost::posix_time::ptime &endtime) const;
@@ -92,14 +87,6 @@ class SpatiaLiteCache : public ObservationCache
   SpatiaLiteConnectionPool *itsConnectionPool = nullptr;
   Fmi::Cache::Cache<std::string, std::vector<Spine::Station> > itsLocationCache;
   Fmi::TimeZones itsTimeZones;
-  // The time interval which is cached in the observation_data table (Finnish
-  // observations)
-  boost::shared_ptr<boost::posix_time::time_period> itsFinCachePeriod;
-  // The time interval which is cached in the weather_data_qc table (Foreign &
-  // road observations)
-  boost::shared_ptr<boost::posix_time::time_period> itsExtCachePeriod;
-  // The time interval for flash observations which is cached
-  boost::shared_ptr<boost::posix_time::time_period> itsFlashCachePeriod;
 
   SpatiaLiteCacheParameters itsParameters;
 };

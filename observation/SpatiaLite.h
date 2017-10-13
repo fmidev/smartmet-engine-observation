@@ -93,6 +93,7 @@ class SpatiaLite : private boost::noncopyable
   void updateStationGroups(const StationInfo &info);
 
   boost::posix_time::ptime getLatestTimeFromTable(std::string tablename, std::string time_field);
+  boost::posix_time::ptime getOldestTimeFromTable(std::string tablename, std::string time_field);
 
   void initSpatialMetaData();
   void createStationTable();
@@ -128,6 +129,20 @@ class SpatiaLite : private boost::noncopyable
    * @retval boost::posix_time::ptime The time of the newest observation
    */
   boost::posix_time::ptime getLatestWeatherDataQCTime();
+
+  /**
+   * @brief Get the time of the oldest observation in observation_data table
+   * @retval boost::posix_time::ptime The time of the oldest observation
+   */
+
+  boost::posix_time::ptime getOldestObservationTime();
+  boost::posix_time::ptime getOldestFlashTime();
+
+  /**
+   * @brief Get the time of the oldest observation in weather_data_qc table
+   * @retval boost::posix_time::ptime The time of the oldest observation
+   */
+  boost::posix_time::ptime getOldestWeatherDataQCTime();
 
   /**
    * @brief Create the SpatiaLite tables from scratch

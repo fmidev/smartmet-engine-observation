@@ -40,7 +40,7 @@ struct SpatiaLiteDriverParameters
   StationtypeConfig& stationtypeConfig;
   volatile bool* shutdownRequested;
   bool quiet;
-  int finCacheDuration;
+  int finCacheDuration = 0;
 };
 
 }  // namespace Observation
