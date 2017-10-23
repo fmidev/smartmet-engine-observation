@@ -509,9 +509,7 @@ void SpatiaLiteCache::getStationsByBoundingBox(Spine::Stations &stations,
     }
     catch (...)
     {
-      Spine::Exception exception(BCP, "Operation failed!", NULL);
-      errorLog(exception.what());
-      throw exception;
+      throw Spine::Exception::Trace(BCP, "Operation failed!");
     }
   }
   catch (...)

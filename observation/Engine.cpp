@@ -180,9 +180,7 @@ Spine::Stations Engine::getStationsByArea(const Settings &settings, const std::s
     }
     catch (...)
     {
-      Spine::Exception exception(BCP, "Operation failed!", NULL);
-      errorLog(exception.what());
-      throw exception;
+      throw Spine::Exception::Trace(BCP, "Operation failed!");
     }
 
     return stations;

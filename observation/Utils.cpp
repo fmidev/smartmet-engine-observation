@@ -337,18 +337,6 @@ void logMessage(const std::string& message, bool quiet)
   }
 }
 
-void errorLog(const std::string& message)
-{
-  try
-  {
-    std::cerr << SmartMet::Spine::log_time_str() << message << std::endl;
-  }
-  catch (...)
-  {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
-  }
-}
-
 std::string getLocationCacheKey(int geoID,
                                 int numberOfStations,
                                 std::string stationType,

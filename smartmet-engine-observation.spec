@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 17.10.23
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -15,7 +15,7 @@ BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
 Requires: libconfig
-BuildRequires: smartmet-library-spine-devel >= 17.9.13
+BuildRequires: smartmet-library-spine-devel >= 17.10.23
 BuildRequires: smartmet-engine-geonames-devel >= 17.8.29
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.1.1
@@ -28,7 +28,7 @@ BuildRequires: libatomic
 BuildRequires: bzip2-devel
 Requires: smartmet-server >= 17.8.28
 Requires: smartmet-engine-geonames >= 17.8.29
-Requires: smartmet-library-spine >= 17.9.13
+Requires: smartmet-library-spine >= 17.10.23
 Requires: smartmet-library-locus >= 17.8.28
 Requires: smartmet-library-macgyver >= 17.8.28
 Requires: libatomic
@@ -96,6 +96,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Oct 23 2017 Mika Heiskanen <mika.heiskanen@fmi.fi> - 17.10.23-2.fmi
+- Removed Utils::errorLog as obsolete - leave logging to higher levels
+
 * Mon Oct 23 2017 Mika Heiskanen <mika.heiskanen@fmi.fi> - 17.10.23-1.fmi
 - Fixed spatialite indexes
 
