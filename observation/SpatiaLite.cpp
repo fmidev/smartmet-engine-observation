@@ -262,6 +262,8 @@ void SpatiaLite::createObservationDataTable()
                   "data_quality INTEGER, "
                   "PRIMARY KEY (fmisid, data_time, measurand_id, producer_id, "
                   "measurand_no));";
+    itsSession << "CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON "
+                  "observation_data(data_time);";
 
     tr.commit();
   }
@@ -287,6 +289,8 @@ void SpatiaLite::createWeatherDataQCTable()
                   "value REAL NOT NULL, "
                   "flag INTEGER NOT NULL, "
                   "PRIMARY KEY (fmisid, obstime, parameter, sensor_no));";
+    itsSession << "CREATE INDEX IF NOT EXISTS weather_data_qc_obstime_idx ON "
+                  "weather_data_qc(obstime);";
 
     tr.commit();
   }
@@ -328,7 +332,7 @@ void SpatiaLite::createFlashDataTable()
         "PRIMARY KEY (flash_id, stroke_time, stroke_time_fraction));";
 
     itsSession << createsql;
-    itsSession << "CREATE INDEX IF NOT EXISTS idx_flash_data_stroke_time ON "
+    itsSession << "CREATE INDEX IF NOT EXISTS flash_data_stroke_time_idx ON "
                   "flash_data(stroke_time);";
 
     try
