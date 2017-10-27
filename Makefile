@@ -13,9 +13,9 @@ else
 endif
 
 ifeq ($(origin LOCALSTATEDIR), undefined)
-  localstatedir = /var
+  localstatedir = /var/smartmet/observation
 else
-  localstatedir = $(LOCALSTATEDIR)
+  localstatedir = $(LOCALSTATEDIR)/var/smartmet/observation
 endif
 
 ifeq ($(processor), x86_64)
@@ -160,9 +160,9 @@ install:
 	done
 	@mkdir -p $(enginedir)
 	$(INSTALL_PROG) $(LIBFILE) $(enginedir)/$(LIBFILE)
-	@mkdir -p $(localstatedir)/smartmet/observation/
-	$(INSTALL_DATA) cnf/stations.txt $(localstatedir)/smartmet/observation/
-	$(INSTALL_DATA) cnf/stations.sqlite.2 $(localstatedir)/smartmet/observation/
+	@mkdir -p $(localstatedir)
+	if [[ ! -e $(localstatedir)/stations.txt ]]; then $(INSTALL_DATA) cnf/stations.txt $(localstatedir)/; fi
+	if [[ ! -e $(localstatedir)/stations.sqlite.2 ]]; then $(INSTALL_DATA) cnf/stations.sqlite.2 $(localstatedir)/; fi
 
 test:
 	cd test && make test
