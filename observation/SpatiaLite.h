@@ -11,6 +11,8 @@
 #include "WeatherDataQCItem.h"
 #include "sqlite3pp.h"
 
+#include "sqlite3pp.h"
+
 // clang-format off
 namespace sqlite_api
 {

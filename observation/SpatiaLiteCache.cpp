@@ -749,7 +749,6 @@ SpatiaLiteCache::SpatiaLiteCache(boost::shared_ptr<EngineParameters> p, Spine::C
                                  ", exit code = " + Fmi::to_string(err));
 
     // Enable or disable memory statistics
-
     err = sqlite3_config(SQLITE_CONFIG_MEMSTATUS, itsParameters.sqlite.memstatus);
     if (err != 0)
       throw Spine::Exception(

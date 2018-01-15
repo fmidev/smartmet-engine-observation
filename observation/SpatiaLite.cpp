@@ -132,7 +132,6 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
     // better, for best speed we
     // choose off (0), since this is only a cache.
     //    options += " synchronous=" + synchronous;
-
     void *cache = sqlite_api::spatialite_alloc_connection();
     sqlite_api::spatialite_init_ex(itsDB.sqlite3_handle(), cache, 0);
 
@@ -519,7 +518,6 @@ boost::posix_time::ptime SpatiaLite::getLatestWeatherDataQCTime()
   try
   {
     // Spine::ReadLock lock(write_mutex);
-
     sqlite3pp::query qry(itsDB, "SELECT MAX(obstime) FROM weather_data_qc");
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
@@ -687,6 +685,7 @@ void SpatiaLite::fillLocationCache(const vector<LocationItem> &locations)
     }
     if (retries == max_retries)
       throw Spine::Exception(BCP, "Filling of location cache failed!", nullptr);
+
     boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
   }
 }
@@ -2338,6 +2337,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
 
     Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
         Spine::TimeSeries::TimeSeriesVectorPtr(new Spine::TimeSeries::TimeSeriesVector);
+
     // Set timeseries objects for each requested parameter
     for (unsigned int i = 0; i < settings.parameters.size(); i++)
     {

@@ -23,7 +23,6 @@
 // THE SOFTWARE.
 
 #include <spine/Thread.h>
-
 #include <cstring>
 #include <memory>
 
