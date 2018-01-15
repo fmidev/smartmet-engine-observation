@@ -12,10 +12,10 @@ else
   PREFIX = $(PREFIX)
 endif
 
-ifeq ($(origin LOCALSTATEDIR), undefined)
-  localstatedir = /var/smartmet/observation
+ifeq ($(origin localstatedir), undefined)
+  vardir = /var/smartmet/observation
 else
-  localstatedir = $(LOCALSTATEDIR)/var/smartmet/observation
+  vardir = $(localstatedir)/smartmet/observation
 endif
 
 ifeq ($(processor), x86_64)
@@ -150,7 +150,7 @@ clean:
 format:
 	clang-format -i -style=file $(SUBNAME)/*.h $(SUBNAME)/*.cpp
 
-install:
+debuginstall:
 	@mkdir -p $(includedir)/$(INCDIR)
 	@list='$(HDRS)'; \
 	for hdr in $$list; do \
@@ -160,9 +160,23 @@ install:
 	done
 	@mkdir -p $(enginedir)
 	$(INSTALL_PROG) $(LIBFILE) $(enginedir)/$(LIBFILE)
-	@mkdir -p $(localstatedir)
-	if [[ ! -e $(localstatedir)/stations.txt ]]; then $(INSTALL_DATA) cnf/stations.txt $(localstatedir)/; fi
-	if [[ ! -e $(localstatedir)/stations.sqlite.2 ]]; then $(INSTALL_DATA) cnf/stations.sqlite.2 $(localstatedir)/; fi
+	@mkdir -p $(vardir)
+	if [[ ! -e $(vardir)/stations.txt ]]; then $(INSTALL_DATA) cnf/stations.txt $(vardir)/; fi
+	if [[ ! -e $(vardir)/stations.sqlite.2 ]]; then $(INSTALL_DATA) cnf/stations.sqlite.2 $(vardir)/; fi
+
+install:
+	@mkdir -p $(includedir)/$(INCDIR)
+	@list='$(HDRS)'; \
+	for hdr in $$list; do \
+	  HDR=$$(basename $$hdr); \
+	  echo $(INSTALL_DATA) $$hdr $(includedir)/$(INCDIR)/$$HDR; \
+	  $(INSTALL_DATA) $$hdr $(includedir)/$(INCDIR)/$$HDR; \
+	done
+	mkdir -p $(enginedir)
+	$(INSTALL_PROG) $(LIBFILE) $(enginedir)/$(LIBFILE)
+	mkdir -p $(vardir)
+	$(INSTALL_DATA) cnf/stations.txt $(vardir)/
+	$(INSTALL_DATA) cnf/stations.sqlite.2 $(vardir)/
 
 test:
 	cd test && make test
