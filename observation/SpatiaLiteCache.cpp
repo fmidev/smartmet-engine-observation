@@ -657,7 +657,7 @@ SpatiaLiteCache::SpatiaLiteCache(boost::shared_ptr<EngineParameters> p, Spine::C
     readConfig(cfg);
 
     // Verify multithreading is possible
-    if (!sqlite_api::sqlite3_threadsafe())
+    if (!sqlite3_threadsafe())
       throw Spine::Exception(BCP, "Installed sqlite is not thread safe");
 
     // Switch from serialized to multithreaded access
@@ -665,9 +665,9 @@ SpatiaLiteCache::SpatiaLiteCache(boost::shared_ptr<EngineParameters> p, Spine::C
     int err;
 
     if (itsParameters.threadingMode == "MULTITHREAD")
-      err = sqlite_api::sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
+      err = sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
     else if (itsParameters.threadingMode == "SERIALIZED")
-      err = sqlite_api::sqlite3_config(SQLITE_CONFIG_SERIALIZED);
+      err = sqlite3_config(SQLITE_CONFIG_SERIALIZED);
     else
       throw Spine::Exception(BCP, "Unknown sqlite threading mode: " + itsParameters.threadingMode);
 
@@ -679,7 +679,7 @@ SpatiaLiteCache::SpatiaLiteCache(boost::shared_ptr<EngineParameters> p, Spine::C
 
     // Enable or disable memory statistics
 
-    err = sqlite_api::sqlite3_config(SQLITE_CONFIG_MEMSTATUS, itsParameters.memstatus);
+    err = sqlite3_config(SQLITE_CONFIG_MEMSTATUS, itsParameters.memstatus);
     if (err != 0)
       throw Spine::Exception(
           BCP, "Failed to initialize sqlite3 memstatus mode, exit code " + Fmi::to_string(err));
