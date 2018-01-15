@@ -52,8 +52,7 @@ ifeq ($(CXX), clang++)
  INCLUDES = \
 	-isystem $(includedir) \
 	-isystem $(includedir)/smartmet \
-	-isystem $(includedir)/mysql \
-	-isystem $(includedir)/soci 
+	-isystem $(includedir)/mysql
 
 else
 
@@ -74,8 +73,7 @@ else
  INCLUDES = \
 	-I$(includedir) \
 	-I$(includedir)/smartmet \
-	-I$(includedir)/mysql \
-	-I$(includedir)/soci
+	-I$(includedir)/mysql
 
 endif
 
@@ -103,8 +101,6 @@ LIBS = -L$(libdir) \
         -lboost_system \
         -lboost_serialization \
 	-lsqlite3 \
-	-lsoci_core \
-	-lsoci_sqlite3 \
 	`pkg-config --libs spatialite` \
         -lbz2 -lz \
 	-latomic -lpthread

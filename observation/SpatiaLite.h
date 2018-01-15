@@ -1,5 +1,7 @@
 #include <string>
 
+#include "sqlite3pp.h"
+
 // clang-format off
 namespace sqlite_api
 {
@@ -10,8 +12,6 @@ namespace sqlite_api
 
 #define DATABASE_VERSION "2"
 
-#define SOCI_USE_BOOST
-
 #include "DataItem.h"
 #include "FlashDataItem.h"
 #include "LocationItem.h"
@@ -19,10 +19,6 @@ namespace sqlite_api
 #include "StationInfo.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
-
-#include <soci/boost-optional.h>
-#include <soci/soci.h>
-#include <soci/sqlite3/soci-sqlite3.h>
 
 #include <macgyver/TimeFormatter.h>
 #include <macgyver/TimeZones.h>
@@ -49,7 +45,7 @@ class SpatiaLite : private boost::noncopyable
 
  private:
   // Private members
-  soci::session itsSession;
+  sqlite3pp::database itsDB;
   std::string srid;
   bool itsShutdownRequested;
   int itsConnectionId;
@@ -344,6 +340,8 @@ class SpatiaLite : private boost::noncopyable
       const std::string language,
       const std::map<std::string, std::map<std::string, std::string> > &parameterMap,
       const std::string &stationType);
+
+  size_t selectCount(const std::string &queryString);
 };
 
 }  // namespace Observation
