@@ -20,8 +20,6 @@ BuildRequires: smartmet-engine-geonames-devel >= 18.1.15
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.1.1
 BuildRequires: sqlite-devel >= 3.11.0
-BuildRequires: soci-devel >= 3.2.3
-BuildRequires: soci-sqlite3-devel >= 3.2.3
 BuildRequires: smartmet-library-locus-devel >= 18.1.15
 BuildRequires: smartmet-library-macgyver-devel >= 17.11.27
 BuildRequires: libatomic
@@ -36,8 +34,6 @@ Requires: unixODBC
 Requires: mysql++
 Requires: libspatialite >= 4.1.1
 Requires: sqlite >= 3.11.0
-Requires: soci >= 3.2.3
-Requires: soci-sqlite3 >= 3.2.3
 Requires: boost-date-time
 Requires: boost-iostreams
 Requires: boost-locale
