@@ -9,6 +9,8 @@ namespace Engine
 {
 namespace Observation
 {
+class SpatiaLiteOptions;
+
 class SpatiaLiteConnectionPool
 {
  public:
@@ -19,23 +21,15 @@ class SpatiaLiteConnectionPool
 
   SpatiaLiteConnectionPool(int poolSize,
                            const std::string &spatialiteFile,
-                           std::size_t max_insert_size,
-                           const std::string &synchronous,
-                           const std::string &journal_mode,
-                           std::size_t mmap_size,
-                           bool shared_cache,
-                           int timeout);
+                           std::size_t maxInsertSize,
+                           const SpatiaLiteOptions &options);
 
   void shutdown();
 
  private:
   std::string itsSpatialiteFile;
   std::size_t itsMaxInsertSize;
-  std::string itsSynchronous;
-  std::string itsJournalMode;
-  std::size_t itsMMapSize;
-  bool itsSharedCache;
-  int itsTimeout;
+  SpatiaLiteOptions itsOptions;
 
   std::vector<int> itsWorkingList;
   std::vector<boost::shared_ptr<SpatiaLite> > itsWorkerList;

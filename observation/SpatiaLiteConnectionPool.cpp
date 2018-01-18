@@ -35,23 +35,13 @@ struct Releaser
 
   SmartMet::Engine::Observation::SpatiaLiteConnectionPool* poolHandle;
 };
-}
+}  // namespace
 
 SpatiaLiteConnectionPool::SpatiaLiteConnectionPool(int poolSize,
                                                    const string& spatialiteFile,
-                                                   std::size_t max_insert_size,
-                                                   const std::string& synchronous,
-                                                   const std::string& journal_mode,
-                                                   std::size_t mmap_size,
-                                                   bool shared_cache,
-                                                   int timeout)
-    : itsSpatialiteFile(spatialiteFile),
-      itsMaxInsertSize(max_insert_size),
-      itsSynchronous(synchronous),
-      itsJournalMode(journal_mode),
-      itsMMapSize(mmap_size),
-      itsSharedCache(shared_cache),
-      itsTimeout(timeout)
+                                                   std::size_t maxInsertSize,
+                                                   const SpatiaLiteOptions& options)
+    : itsSpatialiteFile(spatialiteFile), itsMaxInsertSize(maxInsertSize), itsOptions(options)
 {
   try
   {
@@ -98,13 +88,8 @@ boost::shared_ptr<SpatiaLite> SpatiaLiteConnectionPool::getConnection()
             try
             {
               // Logon here
-              itsWorkerList[i] = boost::make_shared<SpatiaLite>(itsSpatialiteFile,
-                                                                itsMaxInsertSize,
-                                                                itsSynchronous,
-                                                                itsJournalMode,
-                                                                itsMMapSize,
-                                                                itsSharedCache,
-                                                                itsTimeout);
+              itsWorkerList[i] =
+                  boost::make_shared<SpatiaLite>(itsSpatialiteFile, itsMaxInsertSize, itsOptions);
 
               itsWorkingList[i] = 1;
               itsWorkerList[i]->setConnectionId(i);

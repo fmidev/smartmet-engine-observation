@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 
 #include "sqlite3pp.h"
@@ -16,6 +18,7 @@ namespace sqlite_api
 #include "FlashDataItem.h"
 #include "LocationItem.h"
 #include "Settings.h"
+#include "SpatiaLiteOptions.h"
 #include "StationInfo.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
@@ -103,12 +106,8 @@ class SpatiaLite : private boost::noncopyable
 
  public:
   SpatiaLite(const std::string &spatialiteFile,
-             std::size_t max_insert_size,
-             const std::string &synchronous,
-             const std::string &journal_mode,
-             std::size_t mmap_size,
-             bool shared_cache,
-             int timeout);
+             std::size_t maxInsertSize,
+             const SpatiaLiteOptions &options);
 
   ~SpatiaLite();
 
@@ -194,7 +193,7 @@ class SpatiaLite : private boost::noncopyable
    *        observation_data table which is used to store data
    *        from stations maintained by FMI.
    * @param[in] cacheData Data from observation_data.
-  */
+   */
   void fillDataCache(const std::vector<DataItem> &cacheData);
 
   /**
@@ -317,24 +316,24 @@ class SpatiaLite : private boost::noncopyable
   void shutdown();
 
   /**
- * @brief Get count of flashes are in the time interval
- * @param starttime Start of the time interval
- * @param endtime End of the time interval
- * @param boundingBox The bounding box. Must have crs EPSG:4326.
- * @retval FlashCounts The number of flashes in the interval
- */
+   * @brief Get count of flashes are in the time interval
+   * @param starttime Start of the time interval
+   * @param endtime End of the time interval
+   * @param boundingBox The bounding box. Must have crs EPSG:4326.
+   * @retval FlashCounts The number of flashes in the interval
+   */
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
                             const SmartMet::Spine::TaggedLocationList &locations);
 
   /**
- * @brief Get observable properties
- * @param parameters
- * @param language
- * @param parameterMap
- * @param stationType
- * @retval Shared pointer to vector of observable properties
- */
+   * @brief Get observable properties
+   * @param parameters
+   * @param language
+   * @param parameterMap
+   * @param stationType
+   * @retval Shared pointer to vector of observable properties
+   */
   boost::shared_ptr<std::vector<ObservableProperty> > getObservableProperties(
       std::vector<std::string> &parameters,
       const std::string language,

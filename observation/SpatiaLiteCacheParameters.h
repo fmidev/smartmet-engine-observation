@@ -4,6 +4,7 @@
 #include "FlashDataItem.h"
 #include "LocationItem.h"
 #include "Settings.h"
+#include "SpatiaLiteOptions.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
 #include <spine/Station.h>
@@ -34,17 +35,11 @@ struct SpatiaLiteCacheParameters
   {
   }
 
+  SpatiaLiteOptions options;
   int connectionPoolSize;
   std::string cacheFile;
   std::size_t maxInsertSize;
-  std::string synchronous;
-  std::string journalMode;
-  std::size_t mmapSize;
-  std::string threadingMode;
-  bool memstatus;
-  bool sharedCache;
-  int cacheTimeout;
-  bool quiet;
+  bool quiet = true;
   bool cacheHasStations;
   boost::shared_ptr<boost::posix_time::time_period> flashCachePeriod;
   boost::shared_ptr<StationInfo> stationInfo;

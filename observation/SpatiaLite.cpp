@@ -90,16 +90,12 @@ boost::optional<std::tm> parse_tm(sqlite3pp::query::iterator &iter, int column)
   return ret;
 }
 
-};  // anonaymous namespace
+};  // namespace
 
 SpatiaLite::SpatiaLite(const std::string &spatialiteFile,
-                       std::size_t max_insert_size,
-                       const std::string &synchronous,
-                       const std::string &journal_mode,
-                       std::size_t mmap_size,
-                       bool shared_cache,
-                       int timeout)
-    : itsMaxInsertSize(max_insert_size)
+                       std::size_t maxInsertSize,
+                       const SpatiaLiteOptions &options)
+    : itsMaxInsertSize(maxInsertSize)
 {
   try
   {
@@ -115,7 +111,7 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile,
 
     itsDB.connect(spatialiteFile.c_str(), flags);
     // timeout ms
-    itsDB.set_busy_timeout(timeout);
+    itsDB.set_busy_timeout(options.timeout);
 
     // Default is fully synchronous (2), with WAL normal (1) is supposedly
     // better, for best speed we
@@ -125,9 +121,9 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile,
     void *cache = sqlite_api::spatialite_alloc_connection();
     sqlite_api::spatialite_init_ex(itsDB.sqlite3_handle(), cache, 0);
 
-    std::string journalModePragma = ("PRAGMA journal_mode=" + journal_mode);
-    std::string mmapSizePragma = ("PRAGMA mmap_size=" + Fmi::to_string(mmap_size));
-    std::string synchronousPragma = ("PRAGMA synchronous=" + synchronous);
+    std::string journalModePragma = ("PRAGMA journal_mode=" + options.journal_mode);
+    std::string mmapSizePragma = ("PRAGMA mmap_size=" + Fmi::to_string(options.mmap_size));
+    std::string synchronousPragma = ("PRAGMA synchronous=" + options.synchronous);
     itsDB.execute(journalModePragma.c_str());
     itsDB.execute(mmapSizePragma.c_str());
     itsDB.execute(synchronousPragma.c_str());
@@ -139,9 +135,7 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile,
   }
 }
 
-SpatiaLite::~SpatiaLite()
-{
-}
+SpatiaLite::~SpatiaLite() {}
 
 void SpatiaLite::createTables()
 {

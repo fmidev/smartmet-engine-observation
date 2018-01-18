@@ -53,7 +53,7 @@ Spine::Stations findNearestStations(const StationInfo &info,
                              endtime);
 }
 
-}  // anonaymous namespace
+}  // namespace
 
 void SpatiaLiteCache::initializeConnectionPool(int finCacheDuration)
 {
@@ -65,11 +65,7 @@ void SpatiaLiteCache::initializeConnectionPool(int finCacheDuration)
     itsConnectionPool = new SpatiaLiteConnectionPool(itsParameters.connectionPoolSize,
                                                      itsParameters.cacheFile,
                                                      itsParameters.maxInsertSize,
-                                                     itsParameters.synchronous,
-                                                     itsParameters.journalMode,
-                                                     itsParameters.mmapSize,
-                                                     itsParameters.sharedCache,
-                                                     itsParameters.cacheTimeout);
+                                                     itsParameters.options);
 
     // Ensure that necessary tables exists:
     // 1) stations
@@ -664,22 +660,23 @@ SpatiaLiteCache::SpatiaLiteCache(boost::shared_ptr<EngineParameters> p, Spine::C
 
     int err;
 
-    if (itsParameters.threadingMode == "MULTITHREAD")
+    if (itsParameters.options.threading_mode == "MULTITHREAD")
       err = sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
-    else if (itsParameters.threadingMode == "SERIALIZED")
+    else if (itsParameters.options.threading_mode == "SERIALIZED")
       err = sqlite3_config(SQLITE_CONFIG_SERIALIZED);
     else
-      throw Spine::Exception(BCP, "Unknown sqlite threading mode: " + itsParameters.threadingMode);
+      throw Spine::Exception(
+          BCP, "Unknown sqlite threading mode: " + itsParameters.options.threading_mode);
 
     if (err != 0)
       throw Spine::Exception(BCP,
                              "Failed to set sqlite3 multithread mode to " +
-                                 itsParameters.threadingMode +
+                                 itsParameters.options.threading_mode +
                                  ", exit code = " + Fmi::to_string(err));
 
     // Enable or disable memory statistics
 
-    err = sqlite3_config(SQLITE_CONFIG_MEMSTATUS, itsParameters.memstatus);
+    err = sqlite3_config(SQLITE_CONFIG_MEMSTATUS, itsParameters.options.memstatus);
     if (err != 0)
       throw Spine::Exception(
           BCP, "Failed to initialize sqlite3 memstatus mode, exit code " + Fmi::to_string(err));
@@ -690,13 +687,8 @@ SpatiaLiteCache::SpatiaLiteCache(boost::shared_ptr<EngineParameters> p, Spine::C
     // warning during startup if the engine is simultaneously bombed with
     // requests.
 
-    SpatiaLite connection(itsParameters.cacheFile,
-                          itsParameters.maxInsertSize,
-                          itsParameters.synchronous,
-                          itsParameters.journalMode,
-                          itsParameters.mmapSize,
-                          itsParameters.sharedCache,
-                          itsParameters.cacheTimeout);
+    SpatiaLite connection(
+        itsParameters.cacheFile, itsParameters.maxInsertSize, itsParameters.options);
   }
   catch (...)
   {
@@ -728,16 +720,17 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
   itsParameters.cacheFile = cfg.get_mandatory_path("spatialiteFile");
   itsParameters.maxInsertSize = cfg.get_optional_config_param<std::size_t>(
       "cache.maxInsertSize", 9999999999);  // default = all at once
-  itsParameters.threadingMode =
+  itsParameters.options.threading_mode =
       cfg.get_optional_config_param<std::string>("sqlite.threading_mode", "SERIALIZED");
-  itsParameters.cacheTimeout = cfg.get_optional_config_param<size_t>("sqlite.timeout", 30000);
-  itsParameters.sharedCache = cfg.get_optional_config_param<bool>("sqlite.shared_cache", false);
-  itsParameters.memstatus = cfg.get_optional_config_param<bool>("sqlite.memstatus", false);
-  itsParameters.synchronous =
+  itsParameters.options.timeout = cfg.get_optional_config_param<size_t>("sqlite.timeout", 30000);
+  itsParameters.options.shared_cache =
+      cfg.get_optional_config_param<bool>("sqlite.shared_cache", false);
+  itsParameters.options.memstatus = cfg.get_optional_config_param<bool>("sqlite.memstatus", false);
+  itsParameters.options.synchronous =
       cfg.get_optional_config_param<std::string>("sqlite.synchronous", "NORMAL");
-  itsParameters.journalMode =
+  itsParameters.options.journal_mode =
       cfg.get_optional_config_param<std::string>("sqlite.journal_mode", "WAL");
-  itsParameters.mmapSize = cfg.get_optional_config_param<long>("sqlite.mmap_size", 0);
+  itsParameters.options.mmap_size = cfg.get_optional_config_param<long>("sqlite.mmap_size", 0);
 }
 
 bool SpatiaLiteCache::cacheHasStations() const
