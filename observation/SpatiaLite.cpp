@@ -133,6 +133,9 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile,
     std::string autoVacuumPragma = "PRAGMA auto_vacuum=" + options.auto_vacuum;
     itsDB.execute(autoVacuumPragma.c_str());
 
+    std::string threadsPragma = "PRAGMA threads=" + Fmi::to_string(options.threads);
+    itsDB.execute(threadsPragma.c_str());
+
     if (options.cache_size != 0)
     {
       std::string cacheSizePragma = "PRAGMA cache_size=" + Fmi::to_string(options.cache_size);

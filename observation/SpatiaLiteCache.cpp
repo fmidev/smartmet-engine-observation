@@ -726,6 +726,9 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
   itsParameters.options.cache_size = cfg.get_optional_config_param<std::size_t>(
       "sqlite.cache_size", 0);  // zero = use default value
 
+  itsParameters.options.threads =
+      cfg.get_optional_config_param<int>("sqlite.threads", 0);  // zero = no helper threads
+
   itsParameters.options.threading_mode =
       cfg.get_optional_config_param<std::string>("sqlite.threading_mode", "SERIALIZED");
 
