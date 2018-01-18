@@ -18,6 +18,7 @@ struct SpatiaLiteOptions
   bool memstatus = false;
   bool shared_cache = false;
   int timeout = 30000;  // milliseconds
+  long cache_size = 0;  // positive = bytes, negative = nro of pages, zero = use defaults
 };
 
 }  // namespace Observation
