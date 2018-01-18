@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 18.1.18
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Jan 18 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.1.18-2.fmi
+- Added missing transaction commit to updateStations()
+
 * Thu Jan 18 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.1.18-1.fmi
 - Added setting sqlite.auto_vacuum with default value NONE
 - Added setting sqlite.cache_size with default value zero (use sqlite default)

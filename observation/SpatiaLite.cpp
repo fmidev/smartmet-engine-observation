@@ -1054,6 +1054,8 @@ void SpatiaLite::updateStations(const SmartMet::Spine::Stations &stations)
       cmd.bind(":station_end", start_end, sqlite3pp::nocopy);
       cmd.execute();
     }
+
+    xct.commit();
   }
   catch (...)
   {
