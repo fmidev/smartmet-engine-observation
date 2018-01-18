@@ -121,9 +121,10 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile,
     void *cache = sqlite_api::spatialite_alloc_connection();
     sqlite_api::spatialite_init_ex(itsDB.sqlite3_handle(), cache, 0);
 
-    std::string journalModePragma = ("PRAGMA journal_mode=" + options.journal_mode);
-    std::string mmapSizePragma = ("PRAGMA mmap_size=" + Fmi::to_string(options.mmap_size));
-    std::string synchronousPragma = ("PRAGMA synchronous=" + options.synchronous);
+    std::string journalModePragma = "PRAGMA journal_mode=" + options.journal_mode;
+    std::string mmapSizePragma = "PRAGMA mmap_size=" + Fmi::to_string(options.mmap_size);
+    std::string synchronousPragma = "PRAGMA synchronous=" + options.synchronous;
+    std::string autoVacuum = "PRAGMA auto_vacuum=" + options.auto_vacuum;
     itsDB.execute(journalModePragma.c_str());
     itsDB.execute(mmapSizePragma.c_str());
     itsDB.execute(synchronousPragma.c_str());

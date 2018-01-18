@@ -717,19 +717,31 @@ boost::shared_ptr<std::vector<ObservableProperty> > SpatiaLiteCache::observableP
 void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
 {
   itsParameters.connectionPoolSize = cfg.get_mandatory_config_param<int>("cache.poolSize");
+
   itsParameters.cacheFile = cfg.get_mandatory_path("spatialiteFile");
+
   itsParameters.maxInsertSize = cfg.get_optional_config_param<std::size_t>(
-      "cache.maxInsertSize", 9999999999);  // default = all at once
+      "cache.max_insert_size", 9999999999);  // default = all at once
+
   itsParameters.options.threading_mode =
       cfg.get_optional_config_param<std::string>("sqlite.threading_mode", "SERIALIZED");
+
   itsParameters.options.timeout = cfg.get_optional_config_param<size_t>("sqlite.timeout", 30000);
+
   itsParameters.options.shared_cache =
       cfg.get_optional_config_param<bool>("sqlite.shared_cache", false);
+
   itsParameters.options.memstatus = cfg.get_optional_config_param<bool>("sqlite.memstatus", false);
+
   itsParameters.options.synchronous =
       cfg.get_optional_config_param<std::string>("sqlite.synchronous", "NORMAL");
+
   itsParameters.options.journal_mode =
       cfg.get_optional_config_param<std::string>("sqlite.journal_mode", "WAL");
+
+  itsParameters.options.auto_vacuum =
+      cfg.get_optional_config_param<std::string>("sqlite.auto_vacuum", "NONE");
+
   itsParameters.options.mmap_size = cfg.get_optional_config_param<long>("sqlite.mmap_size", 0);
 }
 
