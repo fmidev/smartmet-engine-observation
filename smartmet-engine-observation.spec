@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.1.17
+Version: 18.1.18
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Jan 18 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.1.18-1.fmi
+- Added setting sqlite.auto_vacuum with default value NONE
+- Added setting sqlite.cache_size with default value zero (use sqlite default)
+- Added setting sqlite.threads with default value zero (no helper threads)
+
 * Wed Jan 17 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.1.17-1.fmi
 - soci-api replaced by sqlit3pp-api: BRAINSTORM-965
 
