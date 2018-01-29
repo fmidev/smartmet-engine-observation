@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.1.18
-Release: 2%{?dist}.fmi
+Version: 18.1.29
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -18,8 +18,8 @@ Requires: libconfig
 BuildRequires: smartmet-library-spine-devel >= 18.1.15
 BuildRequires: smartmet-engine-geonames-devel >= 18.1.17
 BuildRequires: mysql++-devel >= 3.1.0
-BuildRequires: libspatialite-devel >= 4.1.1
-BuildRequires: sqlite-devel >= 3.11.0
+BuildRequires: libspatialite-devel >= 4.3.0a
+BuildRequires: sqlite-devel >= 3.20.1
 BuildRequires: smartmet-library-locus-devel >= 18.1.15
 BuildRequires: smartmet-library-macgyver-devel >= 17.11.27
 BuildRequires: libatomic
@@ -32,8 +32,8 @@ Requires: smartmet-library-macgyver >= 17.11.27
 Requires: libatomic
 Requires: unixODBC
 Requires: mysql++
-Requires: libspatialite >= 4.1.1
-Requires: sqlite >= 3.11.0
+Requires: libspatialite >= 4.3.0a
+Requires: sqlite >= 3.20.1
 Requires: boost-date-time
 Requires: boost-iostreams
 Requires: boost-locale
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Jan 29 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.1.29-1.fmi
+- Beta release
+
 * Thu Jan 18 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.1.18-2.fmi
 - Added missing transaction commit to updateStations()
 
