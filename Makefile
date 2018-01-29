@@ -158,7 +158,7 @@ debuginstall:
 	$(INSTALL_PROG) $(LIBFILE) $(enginedir)/$(LIBFILE)
 	@mkdir -p $(vardir)
 	if [[ ! -e $(vardir)/stations.txt ]]; then $(INSTALL_DATA) cnf/stations.txt $(vardir)/; fi
-	if [[ ! -e $(vardir)/stations.sqlite.2 ]]; then $(INSTALL_DATA) cnf/stations.sqlite.2 $(vardir)/; fi
+	if [[ ! -e $(vardir)/stations.sqlite ]]; then $(INSTALL_DATA) cnf/stations.sqlite $(vardir)/; fi
 
 install:
 	@mkdir -p $(includedir)/$(INCDIR)
@@ -172,7 +172,7 @@ install:
 	$(INSTALL_PROG) $(LIBFILE) $(enginedir)/$(LIBFILE)
 	mkdir -p $(vardir)
 	$(INSTALL_DATA) cnf/stations.txt $(vardir)/
-	$(INSTALL_DATA) cnf/stations.sqlite.2 $(vardir)/
+	$(INSTALL_DATA) cnf/stations.sqlite $(vardir)/
 
 test:
 	cd test && make test

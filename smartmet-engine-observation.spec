@@ -85,7 +85,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/smartmet/engines/%{DIRNAME}.so
 %defattr(0664,root,root,0775)
 %config(noreplace) %{_var}/smartmet/observation/stations.txt
-%config(noreplace) %{_var}/smartmet/observation/stations.sqlite.2
+%config(noreplace) %{_var}/smartmet/observation/stations.sqlite
 
 %files -n %{SPECNAME}-devel
 %defattr(0664,root,root,0775)
@@ -93,7 +93,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 * Mon Jan 29 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.1.29-1.fmi
-- Beta release
+- Use stations.sqlite instead of stations.sqlite.2
 
 * Thu Jan 18 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.1.18-2.fmi
 - Added missing transaction commit to updateStations()
