@@ -721,7 +721,7 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
   itsParameters.cacheFile = cfg.get_mandatory_path("spatialiteFile");
 
   itsParameters.maxInsertSize = cfg.get_optional_config_param<std::size_t>(
-      "cache.max_insert_size", 9999999999);  // default = all at once
+      "cache.maxInsertSize", 99999999);  // default = all at once
 
   itsParameters.options.cache_size = cfg.get_optional_config_param<std::size_t>(
       "sqlite.cache_size", 0);  // zero = use default value
