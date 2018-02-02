@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.1.29
+Version: 18.2.2
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Feb  2 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.2.2-1.fmi
+- Automatically retry sqlite requests when the db is locked or otherwise busy
+
 * Mon Jan 29 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.1.29-1.fmi
 - Use stations.sqlite instead of stations.sqlite.2
 
