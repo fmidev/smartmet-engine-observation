@@ -692,7 +692,6 @@ void SpatiaLite::fillLocationCache(const vector<LocationItem> &locations)
       }
       xct.commit();
 
-      // Success!
       return;
     }
     catch (std::exception &e)
@@ -786,42 +785,31 @@ void SpatiaLite::fillDataCache(const vector<DataItem> &cacheData)
       if (pos1 > 0)
       {
         boost::this_thread::yield();
-        // std::cout << "," << std::flush;
       }
 
       SmartMet::Spine::WriteLock lock(write_mutex);
 
       std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, cacheData.size());
 
+      sqlite3pp::transaction xct(itsDB);
+      sqlite3pp::command cmd(itsDB, sqltemplate);
+
+      for (std::size_t i = pos1; i < pos2; ++i)
       {
-        //        auto begin = std::chrono::high_resolution_clock::now();
-
-        sqlite3pp::transaction xct(itsDB);
-        sqlite3pp::command cmd(itsDB, sqltemplate);
-
-        for (std::size_t i = pos1; i < pos2; ++i)
-        {
-          const auto &item = cacheData[i];
-          cmd.bind(":fmisid", item.fmisid);
-          cmd.bind(":measurand_id", item.measurand_id);
-          cmd.bind(":producer_id", item.producer_id);
-          cmd.bind(":measurand_no", item.measurand_no);
-          std::string timestring = to_iso_extended_string(item.data_time);
-          cmd.bind(":data_time", timestring, sqlite3pp::nocopy);
-          cmd.bind(":data_value", item.data_value);
-          cmd.bind(":data_quality", item.data_quality);
-          cmd.execute();
-          cmd.reset();
-        }
-
-        xct.commit();
-        /*
-auto end = std::chrono::high_resolution_clock::now();
-std::cout << "(data cache) Cached " << (pos2 - pos1 + 1) << " observations in "
-          << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-          << " ms" << std::endl;
-        */
+        const auto &item = cacheData[i];
+        cmd.bind(":fmisid", item.fmisid);
+        cmd.bind(":measurand_id", item.measurand_id);
+        cmd.bind(":producer_id", item.producer_id);
+        cmd.bind(":measurand_no", item.measurand_no);
+        std::string timestring = to_iso_extended_string(item.data_time);
+        cmd.bind(":data_time", timestring, sqlite3pp::nocopy);
+        cmd.bind(":data_value", item.data_value);
+        cmd.bind(":data_quality", item.data_quality);
+        cmd.execute();
+        cmd.reset();
       }
+
+      xct.commit();
 
       pos1 += itsMaxInsertSize;
     }
@@ -855,32 +843,29 @@ void SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &cacheDa
       if (pos1 > 0)
       {
         boost::this_thread::yield();
-        // std::cout << "-" << std::flush;
       }
 
       SmartMet::Spine::WriteLock lock(write_mutex);
-
       std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, cacheData.size());
 
-      {
-        sqlite3pp::transaction xct(itsDB);
-        sqlite3pp::command cmd(itsDB, sqltemplate);
+      sqlite3pp::transaction xct(itsDB);
+      sqlite3pp::command cmd(itsDB, sqltemplate);
 
-        for (std::size_t i = pos1; i < pos2; ++i)
-        {
-          const auto &item = cacheData[i];
-          cmd.bind(":fmisid", item.fmisid);
-          std::string timestring = to_iso_extended_string(item.obstime);
-          cmd.bind(":obstime", timestring, sqlite3pp::nocopy);
-          cmd.bind(":parameter", item.parameter, sqlite3pp::nocopy);
-          cmd.bind(":sensor_no", item.sensor_no);
-          cmd.bind(":value", item.value);
-          cmd.bind(":flag", item.flag);
-          cmd.execute();
-          cmd.reset();
-        }
-        xct.commit();
+      for (std::size_t i = pos1; i < pos2; ++i)
+      {
+        const auto &item = cacheData[i];
+        cmd.bind(":fmisid", item.fmisid);
+        std::string timestring = to_iso_extended_string(item.obstime);
+        cmd.bind(":obstime", timestring, sqlite3pp::nocopy);
+        cmd.bind(":parameter", item.parameter, sqlite3pp::nocopy);
+        cmd.bind(":sensor_no", item.sensor_no);
+        cmd.bind(":value", item.value);
+        cmd.bind(":flag", item.flag);
+        cmd.execute();
+        cmd.reset();
       }
+      xct.commit();
+
       pos1 += itsMaxInsertSize;
     }
   }
@@ -902,7 +887,6 @@ void SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCacheData)
       if (pos1 > 0)
       {
         boost::this_thread::yield();
-        // std::cout << "f" << std::flush;
       }
 
       SmartMet::Spine::WriteLock lock(write_mutex);
