@@ -22,15 +22,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#include <spine/Thread.h>
+
 #include <cstring>
 #include <memory>
-
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <Windows.h>
-#define usleep(x) Sleep(x / 1000)
-#endif
 
 namespace sqlite3pp
 {
@@ -308,7 +303,7 @@ inline int statement::prepare_impl(char const* stmt)
   auto rc = sqlite3_prepare_v2(db_.db_, stmt, std::strlen(stmt), &stmt_, &tail_);
   while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY)
   {
-    usleep(5000);
+    boost::this_thread::sleep(boost::posix_time::milliseconds(1));
     rc = sqlite3_prepare_v2(db_.db_, stmt, std::strlen(stmt), &stmt_, &tail_);
   }
   return rc;
@@ -341,7 +336,7 @@ inline int statement::step()
   auto rc = sqlite3_step(stmt_);
   while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY)
   {
-    usleep(5000);
+    boost::this_thread::sleep(boost::posix_time::milliseconds(1));
     sqlite3_reset(stmt_);
     rc = sqlite3_step(stmt_);
   }

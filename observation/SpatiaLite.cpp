@@ -784,7 +784,8 @@ void SpatiaLite::fillDataCache(const vector<DataItem> &cacheData)
       // Yield if there is more than 1 block
       if (pos1 > 0)
       {
-        boost::this_thread::yield();
+        // boost::this_thread::yield();
+        boost::this_thread::sleep(boost::posix_time::milliseconds(5));
       }
 
       SmartMet::Spine::WriteLock lock(write_mutex);
@@ -842,7 +843,8 @@ void SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &cacheDa
       // Yield if there is more than 1 block
       if (pos1 > 0)
       {
-        boost::this_thread::yield();
+        // boost::this_thread::yield();
+        boost::this_thread::sleep(boost::posix_time::milliseconds(5));
       }
 
       SmartMet::Spine::WriteLock lock(write_mutex);
@@ -886,7 +888,8 @@ void SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCacheData)
       // Yield if there is more than 1 block
       if (pos1 > 0)
       {
-        boost::this_thread::yield();
+        // boost::this_thread::yield();
+        boost::this_thread::sleep(boost::posix_time::milliseconds(5));
       }
 
       SmartMet::Spine::WriteLock lock(write_mutex);
