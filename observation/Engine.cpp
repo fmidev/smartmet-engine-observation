@@ -50,7 +50,7 @@ void Engine::init()
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Observation-engine initialization failed", NULL);
+    throw Spine::Exception::Trace(BCP, "Observation-engine initialization failed");
   }
 }
 
@@ -91,7 +91,7 @@ void Engine::unserializeStations()
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Failed to unserialize station info!", NULL);
+    throw Spine::Exception::Trace(BCP, "Failed to unserialize station info!");
   }
 }
 
@@ -140,7 +140,7 @@ bool Engine::stationHasRightType(const Spine::Station &station, const Settings &
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -187,7 +187,7 @@ Spine::Stations Engine::getStationsByArea(const Settings &settings, const std::s
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -227,7 +227,7 @@ void Engine::getStationsByRadius(Spine::Stations &stations,
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -249,7 +249,7 @@ void Engine::initializeCache()
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -273,7 +273,7 @@ void Engine::setGeonames(Geonames::Engine *geonames_)
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -356,7 +356,7 @@ std::set<std::string> Engine::getValidStationTypes() const
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

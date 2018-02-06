@@ -1,7 +1,14 @@
 #pragma once
 
-#include <string>
-
+#include "DataItem.h"
+#include "FlashDataItem.h"
+#include "InsertStatus.h"
+#include "LocationItem.h"
+#include "Settings.h"
+#include "SpatiaLiteOptions.h"
+#include "StationInfo.h"
+#include "Utils.h"
+#include "WeatherDataQCItem.h"
 #include "sqlite3pp.h"
 
 // clang-format off
@@ -14,18 +21,8 @@ namespace sqlite_api
 
 #define DATABASE_VERSION "2"
 
-#include "DataItem.h"
-#include "FlashDataItem.h"
-#include "LocationItem.h"
-#include "Settings.h"
-#include "SpatiaLiteOptions.h"
-#include "StationInfo.h"
-#include "Utils.h"
-#include "WeatherDataQCItem.h"
-
 #include <macgyver/TimeFormatter.h>
 #include <macgyver/TimeZones.h>
-
 #include <spine/Location.h>
 #include <spine/Station.h>
 #include <spine/Thread.h>
@@ -33,6 +30,7 @@ namespace sqlite_api
 #include <spine/TimeSeriesGenerator.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
 #include <spine/Value.h>
+#include <string>
 
 namespace SmartMet
 {
@@ -41,73 +39,14 @@ namespace Engine
 namespace Observation
 {
 class ObservableProperty;
+class SpatiaLiteCacheParameters;
 
 class SpatiaLite : private boost::noncopyable
 {
-  typedef std::map<std::string, std::map<std::string, std::string> > ParameterMap;
-
- private:
-  // Private members
-  sqlite3pp::database itsDB;
-  std::string srid;
-  bool itsShutdownRequested;
-  int itsConnectionId;
-  int itsMaxInsertSize;
-  std::map<std::string, std::string> stationTypeMap;
-
-  // Private methods
-
-  std::string stationType(const std::string &type);
-  std::string stationType(SmartMet::Spine::Station &station);
-
-  void addSpecialParameterToTimeSeries(
-      const std::string &paramname,
-      SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-      const SmartMet::Spine::Station &station,
-      const int pos,
-      const std::string stationtype,
-      const boost::local_time::local_date_time &obstime);
-
-  void addParameterToTimeSeries(
-      SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-      const std::pair<boost::local_time::local_date_time,
-                      std::map<std::string, SmartMet::Spine::TimeSeries::Value> > &dataItem,
-      const std::map<std::string, int> &specialPositions,
-      const std::map<std::string, std::string> &parameterNameMap,
-      const std::map<std::string, int> &timeseriesPositions,
-      const ParameterMap &parameterMap,
-      const std::string &stationtype,
-      const SmartMet::Spine::Station &station);
-
-  void addEmptyValuesToTimeSeries(
-      SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-      const boost::local_time::local_date_time &obstime,
-      const std::map<std::string, int> &specialPositions,
-      const std::map<std::string, std::string> &parameterNameMap,
-      const std::map<std::string, int> &timeseriesPositions,
-      const std::string &stationtype,
-      const SmartMet::Spine::Station &station);
-
-  void updateStations(const SmartMet::Spine::Stations &stations);
-  void updateStationGroups(const StationInfo &info);
-
-  boost::posix_time::ptime getLatestTimeFromTable(std::string tablename, std::string time_field);
-  boost::posix_time::ptime getOldestTimeFromTable(std::string tablename, std::string time_field);
-
-  void initSpatialMetaData();
-  void createStationTable();
-  void createStationGroupsTable();
-  void createGroupMembersTable();
-  void createLocationsTable();
-  void createObservationDataTable();
-  void createWeatherDataQCTable();
-  void createFlashDataTable();
-  void createObservablePropertyTable();
-
  public:
-  SpatiaLite(const std::string &spatialiteFile,
-             std::size_t maxInsertSize,
-             const SpatiaLiteOptions &options);
+  using ParameterMap = std::map<std::string, std::map<std::string, std::string>>;
+
+  SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheParameters &options);
 
   ~SpatiaLite();
 
@@ -194,20 +133,20 @@ class SpatiaLite : private boost::noncopyable
    *        from stations maintained by FMI.
    * @param[in] cacheData Data from observation_data.
    */
-  void fillDataCache(const std::vector<DataItem> &cacheData);
+  std::size_t fillDataCache(const std::vector<DataItem> &cacheData);
 
   /**
    * @brief Update weather_data_qc with data from Oracle's respective table
    *        which is used to store data from road and foreign stations
    * @param[in] cacheData Data from weather_data_qc.
    */
-  void fillWeatherDataQCCache(const std::vector<WeatherDataQCItem> &cacheData);
+  std::size_t fillWeatherDataQCCache(const std::vector<WeatherDataQCItem> &cacheData);
 
   /**
    * @brief Insert cached observations into observation_data table
    * @param cacheData Observation data to be inserted into the table
    */
-  void fillFlashDataCache(const std::vector<FlashDataItem> &flashCacheData);
+  std::size_t fillFlashDataCache(const std::vector<FlashDataItem> &flashCacheData);
 
   /**
    * @brief Delete old observation data from tablename table using time_column
@@ -334,13 +273,75 @@ class SpatiaLite : private boost::noncopyable
    * @param stationType
    * @retval Shared pointer to vector of observable properties
    */
-  boost::shared_ptr<std::vector<ObservableProperty> > getObservableProperties(
+  boost::shared_ptr<std::vector<ObservableProperty>> getObservableProperties(
       std::vector<std::string> &parameters,
       const std::string language,
-      const std::map<std::string, std::map<std::string, std::string> > &parameterMap,
+      const std::map<std::string, std::map<std::string, std::string>> &parameterMap,
       const std::string &stationType);
 
   size_t selectCount(const std::string &queryString);
+
+ private:
+  // Private members
+  sqlite3pp::database itsDB;
+  std::string srid;
+  bool itsShutdownRequested;
+  std::size_t itsConnectionId;
+  std::size_t itsMaxInsertSize;
+  std::map<std::string, std::string> stationTypeMap;
+
+  InsertStatus itsDataInsertCache;
+  InsertStatus itsWeatherQCInsertCache;
+  InsertStatus itsFlashInsertCache;
+
+  // Private methods
+
+  std::string stationType(const std::string &type);
+  std::string stationType(SmartMet::Spine::Station &station);
+
+  void addSpecialParameterToTimeSeries(
+      const std::string &paramname,
+      SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+      const SmartMet::Spine::Station &station,
+      const int pos,
+      const std::string stationtype,
+      const boost::local_time::local_date_time &obstime);
+
+  void addParameterToTimeSeries(
+      SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+      const std::pair<boost::local_time::local_date_time,
+                      std::map<std::string, SmartMet::Spine::TimeSeries::Value>> &dataItem,
+      const std::map<std::string, int> &specialPositions,
+      const std::map<std::string, std::string> &parameterNameMap,
+      const std::map<std::string, int> &timeseriesPositions,
+      const ParameterMap &parameterMap,
+      const std::string &stationtype,
+      const SmartMet::Spine::Station &station);
+
+  void addEmptyValuesToTimeSeries(
+      SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+      const boost::local_time::local_date_time &obstime,
+      const std::map<std::string, int> &specialPositions,
+      const std::map<std::string, std::string> &parameterNameMap,
+      const std::map<std::string, int> &timeseriesPositions,
+      const std::string &stationtype,
+      const SmartMet::Spine::Station &station);
+
+  void updateStations(const SmartMet::Spine::Stations &stations);
+  void updateStationGroups(const StationInfo &info);
+
+  boost::posix_time::ptime getLatestTimeFromTable(std::string tablename, std::string time_field);
+  boost::posix_time::ptime getOldestTimeFromTable(std::string tablename, std::string time_field);
+
+  void initSpatialMetaData();
+  void createStationTable();
+  void createStationGroupsTable();
+  void createGroupMembersTable();
+  void createLocationsTable();
+  void createObservationDataTable();
+  void createWeatherDataQCTable();
+  void createFlashDataTable();
+  void createObservablePropertyTable();
 };
 
 }  // namespace Observation

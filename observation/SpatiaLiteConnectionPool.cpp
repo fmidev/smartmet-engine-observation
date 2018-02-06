@@ -1,4 +1,5 @@
 #include "SpatiaLiteConnectionPool.h"
+#include "SpatiaLiteCacheParameters.h"
 #include <spine/Exception.h>
 
 #include <boost/foreach.hpp>
@@ -17,10 +18,7 @@ namespace
 template <class T>
 struct Releaser
 {
-  Releaser(SmartMet::Engine::Observation::SpatiaLiteConnectionPool* pool_handle)
-      : poolHandle(pool_handle)
-  {
-  }
+  Releaser(Engine::Observation::SpatiaLiteConnectionPool* pool_handle) : poolHandle(pool_handle) {}
   void operator()(T* t)
   {
     try
@@ -29,28 +27,25 @@ struct Releaser
     }
     catch (...)
     {
-      throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+      throw Spine::Exception::Trace(BCP, "Operation failed!");
     }
   }
 
-  SmartMet::Engine::Observation::SpatiaLiteConnectionPool* poolHandle;
+  Engine::Observation::SpatiaLiteConnectionPool* poolHandle;
 };
 }  // namespace
 
-SpatiaLiteConnectionPool::SpatiaLiteConnectionPool(int poolSize,
-                                                   const string& spatialiteFile,
-                                                   std::size_t maxInsertSize,
-                                                   const SpatiaLiteOptions& options)
-    : itsSpatialiteFile(spatialiteFile), itsMaxInsertSize(maxInsertSize), itsOptions(options)
+SpatiaLiteConnectionPool::SpatiaLiteConnectionPool(const SpatiaLiteCacheParameters& options)
+    : itsSpatialiteFile(options.cacheFile), itsOptions(options)
 {
   try
   {
-    itsWorkingList.resize(poolSize, -1);
-    itsWorkerList.resize(poolSize);
+    itsWorkingList.resize(options.connectionPoolSize, -1);
+    itsWorkerList.resize(options.connectionPoolSize);
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -73,7 +68,7 @@ boost::shared_ptr<SpatiaLite> SpatiaLiteConnectionPool::getConnection()
     while (true)
     {
       {
-        SmartMet::Spine::WriteLock lock(itsGetMutex);
+        Spine::WriteLock lock(itsGetMutex);
         for (unsigned int i = 0; i < itsWorkingList.size(); i++)
         {
           if (itsWorkingList[i] == 0)
@@ -88,8 +83,7 @@ boost::shared_ptr<SpatiaLite> SpatiaLiteConnectionPool::getConnection()
             try
             {
               // Logon here
-              itsWorkerList[i] =
-                  boost::make_shared<SpatiaLite>(itsSpatialiteFile, itsMaxInsertSize, itsOptions);
+              itsWorkerList[i] = boost::make_shared<SpatiaLite>(itsSpatialiteFile, itsOptions);
 
               itsWorkingList[i] = 1;
               itsWorkerList[i]->setConnectionId(i);
@@ -112,7 +106,7 @@ boost::shared_ptr<SpatiaLite> SpatiaLiteConnectionPool::getConnection()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -135,7 +129,7 @@ void SpatiaLiteConnectionPool::releaseConnection(int connectionId)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -153,13 +147,13 @@ void SpatiaLiteConnectionPool::shutdown()
     for (unsigned int i = 0; i < itsWorkerList.size(); i++)
     {
       auto sl = itsWorkerList[i].get();
-      if (sl != NULL)
+      if (sl != nullptr)
         sl->shutdown();
     }
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

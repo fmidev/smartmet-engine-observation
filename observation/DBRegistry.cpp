@@ -14,13 +14,9 @@ namespace Engine
 {
 namespace Observation
 {
-DBRegistry::DBRegistry()
-{
-}
+DBRegistry::DBRegistry() {}
 
-DBRegistry::~DBRegistry()
-{
-}
+DBRegistry::~DBRegistry() {}
 
 void DBRegistry::loadConfigurations(const std::string& configFolderPath)
 {
@@ -30,7 +26,7 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
     boost::filesystem::path p(configFolderPath.c_str());
     if (!boost::filesystem::exists(p))
     {
-      SmartMet::Spine::Exception exception(BCP, "Folder path does not exists!");
+      Spine::Exception exception(BCP, "Folder path does not exists!");
       exception.addParameter("Path", p.c_str());
       std::cerr << exception.getStackTrace();
       throw exception;
@@ -38,7 +34,7 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
 
     if (!boost::filesystem::is_directory(p))
     {
-      SmartMet::Spine::Exception exception(BCP, "Folder path is not a directory!");
+      Spine::Exception exception(BCP, "Folder path is not a directory!");
       exception.addParameter("Path", p.c_str());
       std::cerr << exception.getStackTrace();
       throw exception;
@@ -59,8 +55,8 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
           !boost::algorithm::starts_with(fileName, "#") and
           boost::algorithm::ends_with(fileName, ".conf"))
       {
-        boost::shared_ptr<SmartMet::Spine::ConfigBase> cBase(
-            new SmartMet::Spine::ConfigBase(entry.string(), "DBRegisty configuration"));
+        boost::shared_ptr<Spine::ConfigBase> cBase(
+            new Spine::ConfigBase(entry.string(), "DBRegisty configuration"));
         try
         {
           std::shared_ptr<DBRegistryConfig> registryConfig(new DBRegistryConfig(cBase));
@@ -68,8 +64,7 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
         }
         catch (const std::exception& err)
         {
-          SmartMet::Spine::Exception exception(
-              BCP, "DBRegistry configuration file reading failed!", NULL);
+          Spine::Exception exception(BCP, "DBRegistry configuration file reading failed!", NULL);
           exception.addParameter("File", entry.string());
           std::cerr << exception.getStackTrace();
         }
@@ -78,7 +73,7 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -98,7 +93,7 @@ const std::shared_ptr<DBRegistryConfig> DBRegistry::dbRegistryConfig(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

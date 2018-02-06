@@ -1,14 +1,12 @@
 #include "SpatiaLite.h"
+#include "ObservableProperty.h"
+#include "SpatiaLiteCacheParameters.h"
 
+#include <macgyver/StringConversion.h>
+#include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <spine/Exception.h>
 #include <spine/Thread.h>
 #include <spine/TimeSeriesOutput.h>
-
-#include "ObservableProperty.h"
-#include <macgyver/StringConversion.h>
-
-#include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
-
 #include <chrono>
 #include <iostream>
 
@@ -25,7 +23,7 @@ namespace SmartMet
 // Mutex for write operations - otherwise you get table locked errors
 // in MULTITHREAD-mode.
 
-SmartMet::Spine::MutexType write_mutex;
+Spine::MutexType write_mutex;
 
 namespace Engine
 {
@@ -69,7 +67,7 @@ void solveMeasurandIds(const std::vector<std::string> &parameters,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Solving measurand id failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Solving measurand id failed!");
   }
 }
 
@@ -92,10 +90,11 @@ boost::optional<std::tm> parse_tm(sqlite3pp::query::iterator &iter, int column)
 
 };  // namespace
 
-SpatiaLite::SpatiaLite(const std::string &spatialiteFile,
-                       std::size_t maxInsertSize,
-                       const SpatiaLiteOptions &options)
-    : itsMaxInsertSize(maxInsertSize)
+SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheParameters &options)
+    : itsMaxInsertSize(options.maxInsertSize),
+      itsDataInsertCache(options.dataInsertCacheSize),
+      itsWeatherQCInsertCache(options.weatherDataQCInsertCacheSize),
+      itsFlashInsertCache(options.flashInsertCacheSize)
 {
   try
   {
@@ -111,7 +110,7 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile,
 
     itsDB.connect(spatialiteFile.c_str(), flags);
     // timeout ms
-    itsDB.set_busy_timeout(options.timeout);
+    itsDB.set_busy_timeout(options.sqlite.timeout);
 
     // Default is fully synchronous (2), with WAL normal (1) is supposedly
     // better, for best speed we
@@ -121,31 +120,31 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile,
     void *cache = sqlite_api::spatialite_alloc_connection();
     sqlite_api::spatialite_init_ex(itsDB.sqlite3_handle(), cache, 0);
 
-    std::string journalModePragma = "PRAGMA journal_mode=" + options.journal_mode;
+    std::string journalModePragma = "PRAGMA journal_mode=" + options.sqlite.journal_mode;
     itsDB.execute(journalModePragma.c_str());
 
-    std::string mmapSizePragma = "PRAGMA mmap_size=" + Fmi::to_string(options.mmap_size);
+    std::string mmapSizePragma = "PRAGMA mmap_size=" + Fmi::to_string(options.sqlite.mmap_size);
     itsDB.execute(mmapSizePragma.c_str());
 
-    std::string synchronousPragma = "PRAGMA synchronous=" + options.synchronous;
+    std::string synchronousPragma = "PRAGMA synchronous=" + options.sqlite.synchronous;
     itsDB.execute(synchronousPragma.c_str());
 
-    std::string autoVacuumPragma = "PRAGMA auto_vacuum=" + options.auto_vacuum;
+    std::string autoVacuumPragma = "PRAGMA auto_vacuum=" + options.sqlite.auto_vacuum;
     itsDB.execute(autoVacuumPragma.c_str());
 
-    std::string threadsPragma = "PRAGMA threads=" + Fmi::to_string(options.threads);
+    std::string threadsPragma = "PRAGMA threads=" + Fmi::to_string(options.sqlite.threads);
     itsDB.execute(threadsPragma.c_str());
 
-    if (options.cache_size != 0)
+    if (options.sqlite.cache_size != 0)
     {
-      std::string cacheSizePragma = "PRAGMA cache_size=" + Fmi::to_string(options.cache_size);
+      std::string cacheSizePragma =
+          "PRAGMA cache_size=" + Fmi::to_string(options.sqlite.cache_size);
       itsDB.execute(cacheSizePragma.c_str());
     }
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(
-        BCP, "Connecting database '" + spatialiteFile + "' failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Connecting database '" + spatialiteFile + "' failed!");
   }
 }
 
@@ -168,7 +167,7 @@ void SpatiaLite::createTables()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Creation of database tables failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Creation of database tables failed!");
   }
 }
 
@@ -205,7 +204,7 @@ void SpatiaLite::createLocationsTable()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Creation of locations table failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Creation of locations table failed!");
   }
 }
 
@@ -221,7 +220,7 @@ void SpatiaLite::createStationGroupsTable()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Creation of station_groups table failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Creation of station_groups table failed!");
   }
 }
 
@@ -247,7 +246,7 @@ void SpatiaLite::createGroupMembersTable()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Creation of group_members table failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Creation of group_members table failed!");
   }
 }
 
@@ -275,7 +274,7 @@ void SpatiaLite::createObservationDataTable()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Creation of observation_data table failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Creation of observation_data table failed!");
   }
 }
 
@@ -301,7 +300,7 @@ void SpatiaLite::createWeatherDataQCTable()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Creation of weather_data_qc table failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Creation of weather_data_qc table failed!");
   }
 }
 
@@ -371,7 +370,7 @@ void SpatiaLite::createFlashDataTable()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Creation of flash_data table failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Creation of flash_data table failed!");
   }
 }
 
@@ -396,7 +395,7 @@ void SpatiaLite::initSpatialMetaData()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "initSpatialMetaData failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "initSpatialMetaData failed!");
   }
 }
 
@@ -430,7 +429,7 @@ void SpatiaLite::createStationTable()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Creation of stations table failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Creation of stations table failed!");
   }
 }
 
@@ -448,7 +447,7 @@ size_t SpatiaLite::selectCount(const std::string &queryString)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "count(*) query failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "count(*) query failed!");
   }
 }
 
@@ -476,7 +475,7 @@ boost::posix_time::ptime SpatiaLite::getLatestObservationTime()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Latest observation time query failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Latest observation time query failed!");
   }
 }
 
@@ -503,7 +502,7 @@ boost::posix_time::ptime SpatiaLite::getOldestObservationTime()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Oldest observation time query failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Oldest observation time query failed!");
   }
 }
 
@@ -529,7 +528,7 @@ boost::posix_time::ptime SpatiaLite::getLatestWeatherDataQCTime()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Latest WeatherDataQCTime query failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Latest WeatherDataQCTime query failed!");
   }
 }
 
@@ -551,7 +550,7 @@ boost::posix_time::ptime SpatiaLite::getOldestWeatherDataQCTime()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Oldest WeatherDataQCTime query failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Oldest WeatherDataQCTime query failed!");
   }
 }
 
@@ -565,7 +564,7 @@ boost::posix_time::ptime SpatiaLite::getLatestFlashTime()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Latest flash time query failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Latest flash time query failed!");
   }
 }
 
@@ -579,7 +578,7 @@ boost::posix_time::ptime SpatiaLite::getOldestFlashTime()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Oldest flash time query failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Oldest flash time query failed!");
   }
 }
 
@@ -606,7 +605,7 @@ boost::posix_time::ptime SpatiaLite::getLatestTimeFromTable(const std::string ta
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Latest time query failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Latest time query failed!");
   }
 }
 
@@ -634,7 +633,7 @@ boost::posix_time::ptime SpatiaLite::getOldestTimeFromTable(const std::string ta
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Oldest time query failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Oldest time query failed!");
   }
 }
 
@@ -648,7 +647,7 @@ void SpatiaLite::fillLocationCache(const vector<LocationItem> &locations)
   {
     try
     {
-      SmartMet::Spine::WriteLock lock(write_mutex);
+      Spine::WriteLock lock(write_mutex);
 
       sqlite3pp::transaction xct(itsDB);
       sqlite3pp::command cmd(itsDB,
@@ -704,7 +703,7 @@ void SpatiaLite::fillLocationCache(const vector<LocationItem> &locations)
                 << ": failed to initialize spatialite locations database" << std::endl;
     }
     if (retries == max_retries)
-      throw SmartMet::Spine::Exception(BCP, "Filling of location cache failed!", NULL);
+      throw Spine::Exception(BCP, "Filling of location cache failed!", nullptr);
     boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
   }
 }
@@ -713,7 +712,7 @@ void SpatiaLite::cleanDataCache(const boost::posix_time::ptime &timetokeep)
 {
   try
   {
-    SmartMet::Spine::WriteLock lock(write_mutex);
+    Spine::WriteLock lock(write_mutex);
 
     std::string timestring = to_iso_extended_string(timetokeep);
     sqlite3pp::command cmd(itsDB, "DELETE FROM observation_data WHERE data_time < :timetokeep");
@@ -722,7 +721,7 @@ void SpatiaLite::cleanDataCache(const boost::posix_time::ptime &timetokeep)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Cleaning of data cache failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Cleaning of data cache failed!");
   }
 }
 
@@ -730,7 +729,7 @@ void SpatiaLite::cleanWeatherDataQCCache(const boost::posix_time::ptime &timetok
 {
   try
   {
-    SmartMet::Spine::WriteLock lock(write_mutex);
+    Spine::WriteLock lock(write_mutex);
 
     std::string timestring = to_iso_extended_string(timetokeep);
     sqlite3pp::command cmd(itsDB, "DELETE FROM weather_data_qc WHERE obstime < :timetokeep");
@@ -739,7 +738,7 @@ void SpatiaLite::cleanWeatherDataQCCache(const boost::posix_time::ptime &timetok
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Cleaning of WeatherDataQCCache failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Cleaning of WeatherDataQCCache failed!");
   }
 }
 
@@ -747,7 +746,7 @@ void SpatiaLite::cleanFlashDataCache(const boost::posix_time::ptime &timetokeep)
 {
   try
   {
-    SmartMet::Spine::WriteLock lock(write_mutex);
+    Spine::WriteLock lock(write_mutex);
 
     std::string timestring = to_iso_extended_string(timetokeep);
     sqlite3pp::command cmd(itsDB, "DELETE FROM flash_data WHERE stroke_time < :timetokeep");
@@ -756,16 +755,16 @@ void SpatiaLite::cleanFlashDataCache(const boost::posix_time::ptime &timetokeep)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Cleaning of FlashDataCache failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Cleaning of FlashDataCache failed!");
   }
 }
 
-void SpatiaLite::fillDataCache(const vector<DataItem> &cacheData)
+std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData)
 {
   try
   {
     if (cacheData.empty())
-      return;
+      return cacheData.size();
 
     const char *sqltemplate =
         "INSERT OR REPLACE INTO observation_data "
@@ -776,6 +775,7 @@ void SpatiaLite::fillDataCache(const vector<DataItem> &cacheData)
         ";";
 
     std::size_t pos1 = 0;
+    std::size_t write_count = 0;
 
     while (pos1 < cacheData.size())
     {
@@ -788,45 +788,75 @@ void SpatiaLite::fillDataCache(const vector<DataItem> &cacheData)
         boost::this_thread::sleep(boost::posix_time::milliseconds(5));
       }
 
-      SmartMet::Spine::WriteLock lock(write_mutex);
+      // Collect new items before taking a lock - we might avoid one completely
+      std::vector<std::size_t> new_items;
+      std::vector<std::size_t> new_hashes;
+      new_items.reserve(itsMaxInsertSize);
+      new_hashes.reserve(itsMaxInsertSize);
 
-      std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, cacheData.size());
-
-      sqlite3pp::transaction xct(itsDB);
-      sqlite3pp::command cmd(itsDB, sqltemplate);
-
-      for (std::size_t i = pos1; i < pos2; ++i)
+      std::size_t pos2;
+      for (pos2 = pos1; new_hashes.size() < itsMaxInsertSize && pos2 < cacheData.size(); ++pos2)
       {
-        const auto &item = cacheData[i];
-        cmd.bind(":fmisid", item.fmisid);
-        cmd.bind(":measurand_id", item.measurand_id);
-        cmd.bind(":producer_id", item.producer_id);
-        cmd.bind(":measurand_no", item.measurand_no);
-        std::string timestring = to_iso_extended_string(item.data_time);
-        cmd.bind(":data_time", timestring, sqlite3pp::nocopy);
-        cmd.bind(":data_value", item.data_value);
-        cmd.bind(":data_quality", item.data_quality);
-        cmd.execute();
-        cmd.reset();
+        const auto &item = cacheData[pos2];
+
+        auto hash = item.hash_value();
+
+        if (!itsDataInsertCache.exists(hash))
+        {
+          new_items.push_back(pos2);
+          new_hashes.push_back(hash);
+        }
       }
 
-      xct.commit();
+      // Now insert the new items
 
-      pos1 += itsMaxInsertSize;
+      if (!new_items.empty())
+      {
+        Spine::WriteLock lock(write_mutex);
+        sqlite3pp::transaction xct(itsDB);
+        sqlite3pp::command cmd(itsDB, sqltemplate);
+
+        for (const auto i : new_items)
+        {
+          const auto &item = cacheData[i];
+          cmd.bind(":fmisid", item.fmisid);
+          cmd.bind(":measurand_id", item.measurand_id);
+          cmd.bind(":producer_id", item.producer_id);
+          cmd.bind(":measurand_no", item.measurand_no);
+          std::string timestring = to_iso_extended_string(item.data_time);
+          cmd.bind(":data_time", timestring, sqlite3pp::nocopy);
+          cmd.bind(":data_value", item.data_value);
+          cmd.bind(":data_quality", item.data_quality);
+          cmd.execute();
+          cmd.reset();
+        }
+        xct.commit();
+      }
+
+      // We insert the new hashes only when the transaction has completed so that
+      // if the above code for some reason throws, the rows may be inserted again
+      // in a later attempt.
+
+      write_count += new_hashes.size();
+      for (const auto &hash : new_hashes)
+        itsDataInsertCache.add(hash);
+
+      pos1 = pos2;
     }
+    return write_count;
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Filling of data cache failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Filling of data cache failed!");
   }
 }
 
-void SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &cacheData)
+std::size_t SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &cacheData)
 {
   try
   {
     if (cacheData.empty())
-      return;
+      return cacheData.size();
 
     const char *sqltemplate =
         "INSERT OR IGNORE INTO weather_data_qc"
@@ -834,6 +864,7 @@ void SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &cacheDa
         "VALUES (:fmisid,:obstime,:parameter,:sensor_no,:value,:flag)";
 
     std::size_t pos1 = 0;
+    std::size_t write_count = 0;
 
     while (pos1 < cacheData.size())
     {
@@ -847,41 +878,77 @@ void SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &cacheDa
         boost::this_thread::sleep(boost::posix_time::milliseconds(5));
       }
 
-      SmartMet::Spine::WriteLock lock(write_mutex);
-      std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, cacheData.size());
+      // Collect new items before taking a lock - we might avoid one completely
+      std::vector<std::size_t> new_items;
+      std::vector<std::size_t> new_hashes;
+      new_items.reserve(itsMaxInsertSize);
+      new_hashes.reserve(itsMaxInsertSize);
 
-      sqlite3pp::transaction xct(itsDB);
-      sqlite3pp::command cmd(itsDB, sqltemplate);
-
-      for (std::size_t i = pos1; i < pos2; ++i)
+      std::size_t pos2;
+      for (pos2 = pos1; new_hashes.size() < itsMaxInsertSize && pos2 < cacheData.size(); ++pos2)
       {
-        const auto &item = cacheData[i];
-        cmd.bind(":fmisid", item.fmisid);
-        std::string timestring = to_iso_extended_string(item.obstime);
-        cmd.bind(":obstime", timestring, sqlite3pp::nocopy);
-        cmd.bind(":parameter", item.parameter, sqlite3pp::nocopy);
-        cmd.bind(":sensor_no", item.sensor_no);
-        cmd.bind(":value", item.value);
-        cmd.bind(":flag", item.flag);
-        cmd.execute();
-        cmd.reset();
-      }
-      xct.commit();
+        const auto &item = cacheData[pos2];
 
-      pos1 += itsMaxInsertSize;
+        auto hash = item.hash_value();
+
+        if (!itsWeatherQCInsertCache.exists(hash))
+        {
+          new_items.push_back(pos2);
+          new_hashes.push_back(hash);
+        }
+      }
+
+      // Now insert the new items
+
+      if (!new_items.empty())
+      {
+        Spine::WriteLock lock(write_mutex);
+        sqlite3pp::transaction xct(itsDB);
+        sqlite3pp::command cmd(itsDB, sqltemplate);
+
+        for (const auto i : new_items)
+        {
+          const auto &item = cacheData[i];
+          cmd.bind(":fmisid", item.fmisid);
+          std::string timestring = to_iso_extended_string(item.obstime);
+          cmd.bind(":obstime", timestring, sqlite3pp::nocopy);
+          cmd.bind(":parameter", item.parameter, sqlite3pp::nocopy);
+          cmd.bind(":sensor_no", item.sensor_no);
+          cmd.bind(":value", item.value);
+          cmd.bind(":flag", item.flag);
+          cmd.execute();
+          cmd.reset();
+        }
+        xct.commit();
+      }
+
+      // We insert the new hashes only when the transaction has completed so that
+      // if the above code for some reason throws, the rows may be inserted again
+      // in a later attempt.
+
+      write_count += new_hashes.size();
+      for (const auto &hash : new_hashes)
+        itsWeatherQCInsertCache.add(hash);
+
+      pos1 = pos2;
     }
+    return write_count;
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Filling of WeatherDataQCCache failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Filling of WeatherDataQCCache failed!");
   }
 }
 
-void SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCacheData)
+std::size_t SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCacheData)
 {
   try
   {
+    if (flashCacheData.empty())
+      return flashCacheData.size();
+
     std::size_t pos1 = 0;
+    std::size_t write_count = 0;
 
     while (pos1 < flashCacheData.size())
     {
@@ -892,95 +959,129 @@ void SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCacheData)
         boost::this_thread::sleep(boost::posix_time::milliseconds(5));
       }
 
-      SmartMet::Spine::WriteLock lock(write_mutex);
+      // Collect new items before taking a lock - we might avoid one completely
+      std::vector<std::size_t> new_items;
+      std::vector<std::size_t> new_hashes;
+      new_items.reserve(itsMaxInsertSize);
+      new_hashes.reserve(itsMaxInsertSize);
 
-      std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, flashCacheData.size());
-
-      sqlite3pp::transaction xct(itsDB);
-      for (std::size_t i = pos1; i < pos2; ++i)
+      std::size_t pos2;
+      for (pos2 = pos1; new_hashes.size() < itsMaxInsertSize && pos2 < flashCacheData.size();
+           ++pos2)
       {
-        const auto &item = flashCacheData[i];
+        const auto &item = flashCacheData[pos2];
 
-        std::string stroke_location = "GeomFromText('POINT(" +
-                                      Fmi::to_string("%.10g", item.longitude) + " " +
-                                      Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
+        auto hash = item.hash_value();
 
-        std::string sqltemplate =
-            "INSERT OR IGNORE INTO flash_data "
-            "(stroke_time, stroke_time_fraction, flash_id, multiplicity, "
-            "peak_current, sensors, freedom_degree, ellipse_angle, "
-            "ellipse_major, "
-            "ellipse_minor, "
-            "chi_square, rise_time, ptz_time, cloud_indicator, "
-            "angle_indicator, "
-            "signal_indicator, timing_indicator, stroke_status, "
-            "data_source, stroke_location) "
-            "VALUES ("
-            ":timestring,"
-            ":stroke_time_fraction, "
-            ":flash_id,"
-            ":multiplicity,"
-            ":peak_current,"
-            ":sensors,"
-            ":freedom_degree,"
-            ":ellipse_angle,"
-            ":ellipse_major,"
-            ":ellipse_minor,"
-            ":chi_square,"
-            ":rise_time,"
-            ":ptz_time,"
-            ":cloud_indicator,"
-            ":angle_indicator,"
-            ":signal_indicator,"
-            ":timing_indicator,"
-            ":stroke_status,"
-            ":data_source," +
-            stroke_location + ");";
-
-        sqlite3pp::command cmd(itsDB, sqltemplate.c_str());
-
-        std::string timestring = boost::posix_time::to_iso_extended_string(item.stroke_time);
-        boost::replace_all(timestring, ",", ".");
-
-        // @todo There is no simple way to optionally set possible NULL values.
-        // Find out later how to do it.
-
-        try
+        if (!itsFlashInsertCache.exists(hash))
         {
-          cmd.bind(":timestring", timestring, sqlite3pp::nocopy);
-          cmd.bind(":stroke_time_fraction", item.stroke_time_fraction);
-          cmd.bind(":flash_id", static_cast<int>(item.flash_id));
-          cmd.bind(":multiplicity", item.multiplicity);
-          cmd.bind(":peak_current", item.peak_current);
-          cmd.bind(":sensors", item.sensors);
-          cmd.bind(":freedom_degree", item.freedom_degree);
-          cmd.bind(":ellipse_angle", item.ellipse_angle);
-          cmd.bind(":ellipse_major", item.ellipse_major);
-          cmd.bind(":ellipse_minor", item.ellipse_minor);
-          cmd.bind(":chi_square", item.chi_square);
-          cmd.bind(":rise_time", item.rise_time);
-          cmd.bind(":ptz_time", item.ptz_time);
-          cmd.bind(":cloud_indicator", item.cloud_indicator);
-          cmd.bind(":angle_indicator", item.angle_indicator);
-          cmd.bind(":signal_indicator", item.signal_indicator);
-          cmd.bind(":timing_indicator", item.timing_indicator);
-          cmd.bind(":stroke_status", item.stroke_status);
-          cmd.bind(":data_source", item.data_source);
-          cmd.execute();
-          cmd.reset();
-        }
-        catch (std::exception &e)
-        {
-          std::cerr << "Problem updating flash data: " << e.what() << std::endl;
+          new_items.push_back(pos2);
+          new_hashes.push_back(hash);
         }
       }
-      xct.commit();
-      pos1 += itsMaxInsertSize;
+
+      // Now insert the new items
+
+      if (!new_items.empty())
+      {
+        Spine::WriteLock lock(write_mutex);
+        sqlite3pp::transaction xct(itsDB);
+
+        for (const auto i : new_items)
+        {
+          const auto &item = flashCacheData[i];
+
+          std::string stroke_location =
+              "GeomFromText('POINT(" + Fmi::to_string("%.10g", item.longitude) + " " +
+              Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
+
+          std::string sqltemplate =
+              "INSERT OR IGNORE INTO flash_data "
+              "(stroke_time, stroke_time_fraction, flash_id, multiplicity, "
+              "peak_current, sensors, freedom_degree, ellipse_angle, "
+              "ellipse_major, "
+              "ellipse_minor, "
+              "chi_square, rise_time, ptz_time, cloud_indicator, "
+              "angle_indicator, "
+              "signal_indicator, timing_indicator, stroke_status, "
+              "data_source, stroke_location) "
+              "VALUES ("
+              ":timestring,"
+              ":stroke_time_fraction, "
+              ":flash_id,"
+              ":multiplicity,"
+              ":peak_current,"
+              ":sensors,"
+              ":freedom_degree,"
+              ":ellipse_angle,"
+              ":ellipse_major,"
+              ":ellipse_minor,"
+              ":chi_square,"
+              ":rise_time,"
+              ":ptz_time,"
+              ":cloud_indicator,"
+              ":angle_indicator,"
+              ":signal_indicator,"
+              ":timing_indicator,"
+              ":stroke_status,"
+              ":data_source," +
+              stroke_location + ");";
+
+          sqlite3pp::command cmd(itsDB, sqltemplate.c_str());
+
+          std::string timestring = boost::posix_time::to_iso_extended_string(item.stroke_time);
+          boost::replace_all(timestring, ",", ".");
+
+          // @todo There is no simple way to optionally set possible NULL values.
+          // Find out later how to do it.
+
+          try
+          {
+            cmd.bind(":timestring", timestring, sqlite3pp::nocopy);
+            cmd.bind(":stroke_time_fraction", item.stroke_time_fraction);
+            cmd.bind(":flash_id", static_cast<int>(item.flash_id));
+            cmd.bind(":multiplicity", item.multiplicity);
+            cmd.bind(":peak_current", item.peak_current);
+            cmd.bind(":sensors", item.sensors);
+            cmd.bind(":freedom_degree", item.freedom_degree);
+            cmd.bind(":ellipse_angle", item.ellipse_angle);
+            cmd.bind(":ellipse_major", item.ellipse_major);
+            cmd.bind(":ellipse_minor", item.ellipse_minor);
+            cmd.bind(":chi_square", item.chi_square);
+            cmd.bind(":rise_time", item.rise_time);
+            cmd.bind(":ptz_time", item.ptz_time);
+            cmd.bind(":cloud_indicator", item.cloud_indicator);
+            cmd.bind(":angle_indicator", item.angle_indicator);
+            cmd.bind(":signal_indicator", item.signal_indicator);
+            cmd.bind(":timing_indicator", item.timing_indicator);
+            cmd.bind(":stroke_status", item.stroke_status);
+            cmd.bind(":data_source", item.data_source);
+            cmd.execute();
+            cmd.reset();
+          }
+          catch (std::exception &e)
+          {
+            std::cerr << "Problem updating flash data: " << e.what() << std::endl;
+          }
+        }
+        xct.commit();
+      }
+
+      // We insert the new hashes only when the transaction has completed so that
+      // if the above code for some reason throws, the rows may be inserted again
+      // in a later attempt.
+
+      write_count += new_hashes.size();
+      for (const auto &hash : new_hashes)
+        itsFlashInsertCache.add(hash);
+
+      pos1 = pos2;
     }
+    return write_count;
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Flash data cache update failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Flash data cache update failed!");
   }
 }
 
@@ -993,17 +1094,17 @@ void SpatiaLite::updateStationsAndGroups(const StationInfo &info)
     // so it would be impossible to create a single transaction of
     // both updates.
 
-    SmartMet::Spine::WriteLock lock(write_mutex);
+    Spine::WriteLock lock(write_mutex);
     updateStations(info.stations);
     updateStationGroups(info);
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Update of stations and groups failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Update of stations and groups failed!");
   }
 }
 
-void SpatiaLite::updateStations(const SmartMet::Spine::Stations &stations)
+void SpatiaLite::updateStations(const Spine::Stations &stations)
 {
   try
   {
@@ -1012,7 +1113,7 @@ void SpatiaLite::updateStations(const SmartMet::Spine::Stations &stations)
     sqlite3pp::transaction xct(itsDB);
 
     stringstream insertsql;
-    for (const SmartMet::Spine::Station &station : stations)
+    for (const Spine::Station &station : stations)
     {
       if (itsShutdownRequested)
         break;
@@ -1046,7 +1147,7 @@ void SpatiaLite::updateStations(const SmartMet::Spine::Stations &stations)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Stations update failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Stations update failed!");
   }
 }
 
@@ -1061,7 +1162,7 @@ void SpatiaLite::updateStationGroups(const StationInfo &info)
     // Station groups at the moment.
     size_t stationGroupsCount = selectCount("SELECT COUNT(*) FROM station_groups");
 
-    for (const SmartMet::Spine::Station &station : info.stations)
+    for (const Spine::Station &station : info.stations)
     {
       // Skipping the empty cases.
       if (station.station_type.empty())
@@ -1115,12 +1216,11 @@ void SpatiaLite::updateStationGroups(const StationInfo &info)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Updating station groups failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Updating station groups failed!");
   }
 }
 
-SmartMet::Spine::Stations SpatiaLite::findStationsByWMO(const Settings &settings,
-                                                        const StationInfo &info)
+Spine::Stations SpatiaLite::findStationsByWMO(const Settings &settings, const StationInfo &info)
 {
   try
   {
@@ -1128,12 +1228,11 @@ SmartMet::Spine::Stations SpatiaLite::findStationsByWMO(const Settings &settings
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Searching stations by WMO numbers failed", NULL);
+    throw Spine::Exception::Trace(BCP, "Searching stations by WMO numbers failed");
   }
 }
 
-SmartMet::Spine::Stations SpatiaLite::findStationsByLPNN(const Settings &settings,
-                                                         const StationInfo &info)
+Spine::Stations SpatiaLite::findStationsByLPNN(const Settings &settings, const StationInfo &info)
 {
   try
   {
@@ -1141,18 +1240,17 @@ SmartMet::Spine::Stations SpatiaLite::findStationsByLPNN(const Settings &setting
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Searching stations by LPNN numbers failed", NULL);
+    throw Spine::Exception::Trace(BCP, "Searching stations by LPNN numbers failed");
   }
 }
 
-SmartMet::Spine::Stations SpatiaLite::findNearestStations(
-    const SmartMet::Spine::LocationPtr &location,
-    const map<int, SmartMet::Spine::Station> &stationIndex,
-    int maxdistance,
-    int numberofstations,
-    const std::set<std::string> &stationgroup_codes,
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime)
+Spine::Stations SpatiaLite::findNearestStations(const Spine::LocationPtr &location,
+                                                const map<int, Spine::Station> &stationIndex,
+                                                int maxdistance,
+                                                int numberofstations,
+                                                const std::set<std::string> &stationgroup_codes,
+                                                const boost::posix_time::ptime &starttime,
+                                                const boost::posix_time::ptime &endtime)
 {
   try
   {
@@ -1167,23 +1265,22 @@ SmartMet::Spine::Stations SpatiaLite::findNearestStations(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Finding nearest stations failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Finding nearest stations failed!");
   }
 }
 
-SmartMet::Spine::Stations SpatiaLite::findNearestStations(
-    double latitude,
-    double longitude,
-    const map<int, SmartMet::Spine::Station> &stationIndex,
-    int maxdistance,
-    int numberofstations,
-    const std::set<std::string> &stationgroup_codes,
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime)
+Spine::Stations SpatiaLite::findNearestStations(double latitude,
+                                                double longitude,
+                                                const map<int, Spine::Station> &stationIndex,
+                                                int maxdistance,
+                                                int numberofstations,
+                                                const std::set<std::string> &stationgroup_codes,
+                                                const boost::posix_time::ptime &starttime,
+                                                const boost::posix_time::ptime &endtime)
 {
   try
   {
-    SmartMet::Spine::Stations stations;
+    Spine::Stations stations;
 
     std::string distancesql =
         "SELECT DISTINCT s.fmisid, "
@@ -1296,12 +1393,12 @@ SmartMet::Spine::Stations SpatiaLite::findNearestStations(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Finding nearest stations failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Finding nearest stations failed!");
   }
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
-    const SmartMet::Spine::Stations &stations,
+Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
+    const Spine::Stations &stations,
     const Settings &settings,
     const ParameterMap &parameterMap,
     const Fmi::TimeZones &timezones)
@@ -1314,8 +1411,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDat
     timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
 
     stringstream ss;
-    map<int, SmartMet::Spine::Station> tmpStations;
-    for (const SmartMet::Spine::Station &s : stations)
+    map<int, Spine::Station> tmpStations;
+    for (const Spine::Station &s : stations)
     {
       tmpStations.insert(std::make_pair(s.station_id, s));
       ss << s.station_id << ",";
@@ -1331,7 +1428,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDat
     std::string param;
 
     unsigned int pos = 0;
-    for (const SmartMet::Spine::Parameter &p : settings.parameters)
+    for (const Spine::Parameter &p : settings.parameters)
     {
       if (not_special(p))
       {
@@ -1381,8 +1478,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDat
       pos++;
     }
 
-    SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns(
-        new SmartMet::Spine::TimeSeries::TimeSeriesVector);
+    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns(
+        new Spine::TimeSeries::TimeSeriesVector);
 
     // Set timeseries objects for each requested parameter
     for (unsigned int i = 0; i < settings.parameters.size(); i++)
@@ -1514,16 +1611,16 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDat
 
     if (settings.timestep > 1 && !settings.latest)
     {
-      SmartMet::Spine::TimeSeriesGeneratorOptions opt;
+      Spine::TimeSeriesGeneratorOptions opt;
       opt.startTime = settings.starttime;
       opt.endTime = settings.endtime;
       opt.timeStep = settings.timestep;
       opt.startTimeUTC = false;
       opt.endTimeUTC = false;
-      auto tlist = SmartMet::Spine::TimeSeriesGenerator::generate(
+      auto tlist = Spine::TimeSeriesGenerator::generate(
           opt, timezones.time_zone_from_string(settings.timezone));
 
-      for (const SmartMet::Spine::Station &s : stations)
+      for (const Spine::Station &s : stations)
       {
         if (data.count(s.fmisid) == 0)
         {
@@ -1560,7 +1657,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDat
     }
     else
     {
-      for (const SmartMet::Spine::Station &s : stations)
+      for (const Spine::Station &s : stations)
       {
         int fmisid = s.station_id;
         map<boost::local_time::local_date_time, map<std::string, ts::Value> > stationData =
@@ -1583,15 +1680,14 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDat
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Cached WeatherDataQCData query failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Cached WeatherDataQCData query failed!");
   }
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
-    const SmartMet::Spine::Stations &stations,
-    const Settings &settings,
-    const ParameterMap &parameterMap,
-    const Fmi::TimeZones &timezones)
+Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::Stations &stations,
+                                                                 const Settings &settings,
+                                                                 const ParameterMap &parameterMap,
+                                                                 const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -1609,8 +1705,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
 
     stringstream ss;
-    map<int, SmartMet::Spine::Station> tmpStations;
-    for (const SmartMet::Spine::Station &s : stations)
+    map<int, Spine::Station> tmpStations;
+    for (const Spine::Station &s : stations)
     {
       tmpStations.insert(std::make_pair(s.station_id, s));
       ss << s.station_id << ",";
@@ -1627,7 +1723,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
 
     string param;
     unsigned int pos = 0;
-    for (const SmartMet::Spine::Parameter &p : settings.parameters)
+    for (const Spine::Parameter &p : settings.parameters)
     {
       if (not_special(p))
       {
@@ -1727,9 +1823,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
       data_valuesAll.push_back(data_value);
     }
 
-    SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-        SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr(
-            new SmartMet::Spine::TimeSeries::TimeSeriesVector);
+    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
+        Spine::TimeSeries::TimeSeriesVectorPtr(new Spine::TimeSeries::TimeSeriesVector);
 
     // Set timeseries objects for each requested parameter
     for (unsigned int i = 0; i < settings.parameters.size(); i++)
@@ -1764,7 +1859,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
       i++;
     }
 
-    SmartMet::Spine::TimeSeriesGeneratorOptions opt;
+    Spine::TimeSeriesGeneratorOptions opt;
     opt.startTime = settings.starttime;
     opt.endTime = settings.endtime;
     opt.timeStep = settings.timestep;
@@ -1776,10 +1871,10 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
 
     if (settings.timestep > 1 || settings.latest)
     {
-      auto tlist = SmartMet::Spine::TimeSeriesGenerator::generate(
+      auto tlist = Spine::TimeSeriesGenerator::generate(
           opt, timezones.time_zone_from_string(settings.timezone));
       {
-        for (const SmartMet::Spine::Station &s : stations)
+        for (const Spine::Station &s : stations)
         {
           if (settings.latest)
           {
@@ -1960,7 +2055,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     }
     else
     {
-      for (const SmartMet::Spine::Station &s : stations)
+      for (const Spine::Station &s : stations)
       {
         int fmisid = s.station_id;
         map<boost::local_time::local_date_time, map<std::string, ts::Value> > stationData =
@@ -1983,18 +2078,18 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Getting cached data failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Getting cached data failed!");
   }
 }
 
 void SpatiaLite::addEmptyValuesToTimeSeries(
-    SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+    Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
     const boost::local_time::local_date_time &obstime,
     const std::map<std::string, int> &specialPositions,
     const std::map<std::string, std::string> &parameterNameMap,
     const std::map<std::string, int> &timeseriesPositions,
     const std::string &stationtype,
-    const SmartMet::Spine::Station &station)
+    const Spine::Station &station)
 {
   try
   {
@@ -2026,12 +2121,12 @@ void SpatiaLite::addEmptyValuesToTimeSeries(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
 void SpatiaLite::addParameterToTimeSeries(
-    SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+    Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
     const std::pair<boost::local_time::local_date_time, std::map<std::string, ts::Value> >
         &dataItem,
     const std::map<std::string, int> &specialPositions,
@@ -2039,7 +2134,7 @@ void SpatiaLite::addParameterToTimeSeries(
     const std::map<std::string, int> &timeseriesPositions,
     const ParameterMap &parameterMap,
     const std::string &stationtype,
-    const SmartMet::Spine::Station &station)
+    const Spine::Station &station)
 {
   try
   {
@@ -2121,11 +2216,11 @@ void SpatiaLite::addParameterToTimeSeries(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
+Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
     const Settings &settings, const ParameterMap &parameterMap, const Fmi::TimeZones &timezones)
 {
   try
@@ -2140,7 +2235,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
 
     string param;
     unsigned int pos = 0;
-    for (const SmartMet::Spine::Parameter &p : settings.parameters)
+    for (const Spine::Parameter &p : settings.parameters)
     {
       if (not_special(p))
       {
@@ -2189,7 +2284,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
     {
       for (auto tloc : settings.taggedLocations)
       {
-        if (tloc.loc->type == SmartMet::Spine::Location::CoordinatePoint)
+        if (tloc.loc->type == Spine::Location::CoordinatePoint)
         {
           std::string lon = Fmi::to_string(tloc.loc->longitude);
           std::string lat = Fmi::to_string(tloc.loc->latitude);
@@ -2198,10 +2293,10 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
           query += " AND PtDistWithin((SELECT GeomFromText('POINT(" + lon + " " + lat +
                    ")', 4326)), flash.stroke_location, " + radius + ") = 1 ";
         }
-        if (tloc.loc->type == SmartMet::Spine::Location::BoundingBox)
+        if (tloc.loc->type == Spine::Location::BoundingBox)
         {
           std::string bboxString = tloc.loc->name;
-          SmartMet::Spine::BoundingBox bbox(bboxString);
+          Spine::BoundingBox bbox(bboxString);
 
           query += "AND MbrWithin(flash.stroke_location, BuildMbr(" + Fmi::to_string(bbox.xMin) +
                    ", " + Fmi::to_string(bbox.yMin) + ", " + Fmi::to_string(bbox.xMax) + ", " +
@@ -2212,9 +2307,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
 
     query += "ORDER BY flash.stroke_time ASC, flash.stroke_time_fraction ASC;";
 
-    SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-        SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr(
-            new SmartMet::Spine::TimeSeries::TimeSeriesVector);
+    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
+        Spine::TimeSeries::TimeSeriesVectorPtr(new Spine::TimeSeries::TimeSeriesVector);
     // Set timeseries objects for each requested parameter
     for (unsigned int i = 0; i < settings.parameters.size(); i++)
     {
@@ -2292,14 +2386,14 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
 void SpatiaLite::addSpecialParameterToTimeSeries(
     const std::string &paramname,
-    SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-    const SmartMet::Spine::Station &station,
+    Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+    const Spine::Station &station,
     const int pos,
     const std::string stationtype,
     const boost::local_time::local_date_time &obstime)
@@ -2379,7 +2473,7 @@ void SpatiaLite::addSpecialParameterToTimeSeries(
           "Unsupported special parameter '" +
           paramname + "'";
 
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+      Spine::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg);
       throw exception;
@@ -2387,11 +2481,11 @@ void SpatiaLite::addSpecialParameterToTimeSeries(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
-SmartMet::Spine::Stations SpatiaLite::findAllStationsFromGroups(
+Spine::Stations SpatiaLite::findAllStationsFromGroups(
     const std::set<std::string> stationgroup_codes,
     const StationInfo &info,
     const boost::posix_time::ptime &starttime,
@@ -2403,17 +2497,17 @@ SmartMet::Spine::Stations SpatiaLite::findAllStationsFromGroups(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Failed to find all stations in the given groups", NULL);
+    throw Spine::Exception::Trace(BCP, "Failed to find all stations in the given groups");
   }
 }
 
-SmartMet::Spine::Stations SpatiaLite::findStationsInsideArea(const Settings &settings,
-                                                             const std::string &areaWkt,
-                                                             const StationInfo &info)
+Spine::Stations SpatiaLite::findStationsInsideArea(const Settings &settings,
+                                                   const std::string &areaWkt,
+                                                   const StationInfo &info)
 {
   try
   {
-    SmartMet::Spine::Stations stations;
+    Spine::Stations stations;
 
     stringstream sqlstmt;
     sqlstmt.precision(10);  // To avoid rounding
@@ -2456,7 +2550,7 @@ SmartMet::Spine::Stations SpatiaLite::findStationsInsideArea(const Settings &set
       {
         int geoid = row.get<int>(0);
         int station_id = row.get<int>(1);
-        SmartMet::Spine::Station station = info.getStation(station_id, settings.stationgroup_codes);
+        Spine::Station station = info.getStation(station_id, settings.stationgroup_codes);
         station.geoid = geoid;
         stations.push_back(station);
       }
@@ -2476,16 +2570,15 @@ SmartMet::Spine::Stations SpatiaLite::findStationsInsideArea(const Settings &set
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
-SmartMet::Spine::Stations SpatiaLite::findStationsInsideBox(const Settings &settings,
-                                                            const StationInfo &info)
+Spine::Stations SpatiaLite::findStationsInsideBox(const Settings &settings, const StationInfo &info)
 {
   try
   {
-    SmartMet::Spine::Stations stations;
+    Spine::Stations stations;
 
     stringstream sqlstmt;
     sqlstmt.precision(10);  // To avoid rounding
@@ -2531,7 +2624,7 @@ SmartMet::Spine::Stations SpatiaLite::findStationsInsideBox(const Settings &sett
       {
         int geoid = row.get<int>(0);
         int station_id = row.get<int>(1);
-        SmartMet::Spine::Station station = info.getStation(station_id, settings.stationgroup_codes);
+        Spine::Station station = info.getStation(station_id, settings.stationgroup_codes);
         station.geoid = geoid;
         stations.push_back(station);
       }
@@ -2551,12 +2644,11 @@ SmartMet::Spine::Stations SpatiaLite::findStationsInsideBox(const Settings &sett
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
-bool SpatiaLite::fillMissing(SmartMet::Spine::Station &s,
-                             const std::set<std::string> &stationgroup_codes)
+bool SpatiaLite::fillMissing(Spine::Station &s, const std::set<std::string> &stationgroup_codes)
 {
   try
   {
@@ -2675,17 +2767,17 @@ bool SpatiaLite::fillMissing(SmartMet::Spine::Station &s,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
-bool SpatiaLite::getStationById(SmartMet::Spine::Station &station,
+bool SpatiaLite::getStationById(Spine::Station &station,
                                 int station_id,
                                 const std::set<std::string> &stationgroup_codes)
 {
   try
   {
-    SmartMet::Spine::Station s;
+    Spine::Station s;
     s.station_id = station_id;
     s.fmisid = -1;
     s.wmo = -1;
@@ -2700,13 +2792,13 @@ bool SpatiaLite::getStationById(SmartMet::Spine::Station &station,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
 FlashCounts SpatiaLite::getFlashCount(const boost::posix_time::ptime &starttime,
                                       const boost::posix_time::ptime &endtime,
-                                      const SmartMet::Spine::TaggedLocationList &locations)
+                                      const Spine::TaggedLocationList &locations)
 {
   try
   {
@@ -2731,7 +2823,7 @@ FlashCounts SpatiaLite::getFlashCount(const boost::posix_time::ptime &starttime,
     {
       for (auto tloc : locations)
       {
-        if (tloc.loc->type == SmartMet::Spine::Location::CoordinatePoint)
+        if (tloc.loc->type == Spine::Location::CoordinatePoint)
         {
           std::string lon = Fmi::to_string(tloc.loc->longitude);
           std::string lat = Fmi::to_string(tloc.loc->latitude);
@@ -2740,10 +2832,10 @@ FlashCounts SpatiaLite::getFlashCount(const boost::posix_time::ptime &starttime,
           sqltemplate += " AND PtDistWithin((SELECT GeomFromText('POINT(" + lon + " " + lat +
                          ")', 4326)), flash.stroke_location, " + radius + ") = 1 ";
         }
-        if (tloc.loc->type == SmartMet::Spine::Location::BoundingBox)
+        if (tloc.loc->type == Spine::Location::BoundingBox)
         {
           std::string bboxString = tloc.loc->name;
-          SmartMet::Spine::BoundingBox bbox(bboxString);
+          Spine::BoundingBox bbox(bboxString);
 
           sqltemplate += "AND MbrWithin(flash.stroke_location, BuildMbr(" +
                          Fmi::to_string(bbox.xMin) + ", " + Fmi::to_string(bbox.yMin) + ", " +
@@ -2767,15 +2859,15 @@ FlashCounts SpatiaLite::getFlashCount(const boost::posix_time::ptime &starttime,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
-    const SmartMet::Spine::Stations &stations,
+Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
+    const Spine::Stations &stations,
     const Settings &settings,
     const ParameterMap &parameterMap,
-    const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
   try
@@ -2786,8 +2878,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDat
     timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
 
     stringstream ss;
-    map<int, SmartMet::Spine::Station> tmpStations;
-    for (const SmartMet::Spine::Station &s : stations)
+    map<int, Spine::Station> tmpStations;
+    for (const Spine::Station &s : stations)
     {
       tmpStations.insert(std::make_pair(s.station_id, s));
       ss << s.station_id << ",";
@@ -2803,7 +2895,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDat
     std::string param;
 
     unsigned int pos = 0;
-    for (const SmartMet::Spine::Parameter &p : settings.parameters)
+    for (const Spine::Parameter &p : settings.parameters)
     {
       if (not_special(p))
       {
@@ -2853,8 +2945,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDat
       pos++;
     }
 
-    SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns(
-        new SmartMet::Spine::TimeSeries::TimeSeriesVector);
+    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns(
+        new Spine::TimeSeries::TimeSeriesVector);
 
     // Set timeseries objects for each requested parameter
     for (unsigned int i = 0; i < settings.parameters.size(); i++)
@@ -2988,10 +3080,10 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDat
 
     if (!settings.latest && !timeSeriesOptions.all())
     {
-      auto tlist = SmartMet::Spine::TimeSeriesGenerator::generate(
+      auto tlist = Spine::TimeSeriesGenerator::generate(
           timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
 
-      for (const SmartMet::Spine::Station &s : stations)
+      for (const Spine::Station &s : stations)
       {
         if (data.count(s.fmisid) == 0)
         {
@@ -3028,7 +3120,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDat
     }
     else
     {
-      for (const SmartMet::Spine::Station &s : stations)
+      for (const Spine::Station &s : stations)
       {
         int fmisid = s.station_id;
         map<boost::local_time::local_date_time, map<std::string, ts::Value> > stationData =
@@ -3051,15 +3143,15 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDat
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
-    SmartMet::Spine::Stations &stations,
+Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
+    Spine::Stations &stations,
     Settings &settings,
     ParameterMap &parameterMap,
-    const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
   try
@@ -3078,8 +3170,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
 
     stringstream ss;
-    map<int, SmartMet::Spine::Station> tmpStations;
-    for (const SmartMet::Spine::Station &s : stations)
+    map<int, Spine::Station> tmpStations;
+    for (const Spine::Station &s : stations)
     {
       tmpStations.insert(std::make_pair(s.station_id, s));
       ss << s.station_id << ",";
@@ -3096,7 +3188,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
 
     string param;
     unsigned int pos = 0;
-    for (const SmartMet::Spine::Parameter &p : settings.parameters)
+    for (const Spine::Parameter &p : settings.parameters)
     {
       if (not_special(p))
       {
@@ -3195,9 +3287,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
       data_valuesAll.push_back(data_value);
     }
 
-    SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-        SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr(
-            new SmartMet::Spine::TimeSeries::TimeSeriesVector);
+    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
+        Spine::TimeSeries::TimeSeriesVectorPtr(new Spine::TimeSeries::TimeSeriesVector);
 
     // Set timeseries objects for each requested parameter
     for (unsigned int i = 0; i < settings.parameters.size(); i++)
@@ -3238,7 +3329,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     // Accept all time steps
     if (timeSeriesOptions.all() && !settings.latest)
     {
-      for (const SmartMet::Spine::Station &s : stations)
+      for (const Spine::Station &s : stations)
       {
         int fmisid = s.station_id;
         map<boost::local_time::local_date_time, map<std::string, ts::Value> > stationData =
@@ -3259,10 +3350,10 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     else
     {
       // Accept only generated time series
-      auto tlist = SmartMet::Spine::TimeSeriesGenerator::generate(
+      auto tlist = Spine::TimeSeriesGenerator::generate(
           timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
       {
-        for (const SmartMet::Spine::Station &s : stations)
+        for (const Spine::Station &s : stations)
 
           if (settings.latest)
           {
@@ -3445,7 +3536,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -3470,7 +3561,7 @@ void SpatiaLite::createObservablePropertyTable()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Creation of observable_property table failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Creation of observable_property table failed!");
   }
 }
 
@@ -3534,7 +3625,7 @@ boost::shared_ptr<std::vector<ObservableProperty> > SpatiaLite::getObservablePro
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 
   return data;

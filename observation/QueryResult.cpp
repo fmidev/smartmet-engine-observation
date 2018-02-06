@@ -22,7 +22,7 @@ QueryResult::QueryResult(const size_t& numberOfValueVectors)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -48,13 +48,11 @@ QueryResult::QueryResult(const QueryResult& other)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
-QueryResult::~QueryResult()
-{
-}
+QueryResult::~QueryResult() {}
 
 QueryResult::ValueVectorType::const_iterator QueryResult::begin(const std::string& valueVectorName)
 {
@@ -65,7 +63,7 @@ QueryResult::ValueVectorType::const_iterator QueryResult::begin(const std::strin
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -78,7 +76,7 @@ QueryResult::ValueVectorType::const_iterator QueryResult::end(const std::string&
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -149,7 +147,7 @@ std::string QueryResult::toString(const ValueVectorType::const_iterator value,
       std::ostringstream msg;
       msg << "warning: QueryResult::toString : Unsupported data type '" << (*value).type().name();
 
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+      Spine::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg.str());
       throw exception;
@@ -157,7 +155,7 @@ std::string QueryResult::toString(const ValueVectorType::const_iterator value,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -200,7 +198,7 @@ std::pair<double, double> QueryResult::minMax(const ValueVectorType::const_itera
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -213,7 +211,7 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId, ValueVectorTyp
       std::ostringstream msg;
       msg << "QueryResult::set : value vector index is out of range.";
 
-      SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+      Spine::Exception exception(BCP, "Invalid parameter value!");
       // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
       exception.addDetail(msg.str());
       throw exception;
@@ -233,7 +231,7 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId, ValueVectorTyp
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -247,7 +245,7 @@ void QueryResult::getValueVectorData(const std::string& valueVectorName,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -261,7 +259,7 @@ void QueryResult::getValueVectorData(const std::string& valueVectorName,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -275,7 +273,7 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
       std::ostringstream msg;
       msg << "QueryResult::set : value vector index is out of range.";
 
-      SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+      Spine::Exception exception(BCP, "Invalid parameter value!");
       // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
       exception.addDetail(msg.str());
       throw exception;
@@ -360,7 +358,7 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
       std::ostringstream msg;
       msg << "QueryResult::getValueVectorData : " << e.what();
 
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!", NULL);
+      Spine::Exception exception(BCP, "Operation processing failed!", nullptr);
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg.str());
       throw exception;
@@ -368,7 +366,7 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -386,14 +384,14 @@ size_t QueryResult::getValueVectorId(const std::string& valueVectorName)
     std::ostringstream msg;
     msg << "QueryResult::end : value vector name '" << valueVectorName << "' not found.";
 
-    SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+    Spine::Exception exception(BCP, "Invalid parameter value!");
     // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
     exception.addDetail(msg.str());
     throw exception;
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -406,7 +404,7 @@ std::string QueryResult::getValueVectorName(const size_t& valueVectorId)
       std::ostringstream msg;
       msg << "QueryResult::getValueVectorName : value vector index is out of range.";
 
-      SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+      Spine::Exception exception(BCP, "Invalid parameter value!");
       // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
       exception.addDetail(msg.str());
       throw exception;
@@ -416,7 +414,7 @@ std::string QueryResult::getValueVectorName(const size_t& valueVectorId)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -476,7 +474,7 @@ bool QueryResult::set(const std::shared_ptr<QueryResultBase> input)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -489,7 +487,7 @@ void QueryResult::set(const size_t& valueVectorId, const ValueType& value)
       std::ostringstream msg;
       msg << "QueryResult::set : value vector index is out of range.";
 
-      SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+      Spine::Exception exception(BCP, "Invalid parameter value!");
       // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
       exception.addDetail(msg.str());
       throw exception;
@@ -508,7 +506,7 @@ void QueryResult::set(const size_t& valueVectorId, const ValueType& value)
         msg << "QueryResult::set : wrong data type '" << value.type().name() << "' with '"
             << m_valueTypeOfVector[valueVectorId].type().name() << "'\n";
 
-        SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+        Spine::Exception exception(BCP, "Invalid parameter value!");
         // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
         exception.addDetail(msg.str());
         throw exception;
@@ -519,7 +517,7 @@ void QueryResult::set(const size_t& valueVectorId, const ValueType& value)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -533,7 +531,7 @@ void QueryResult::setValueVectorName(const size_t& valueVectorId,
       std::ostringstream msg;
       msg << "QueryResult::setValueVectorName : value vector index is out of range.";
 
-      SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+      Spine::Exception exception(BCP, "Invalid parameter value!");
       // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
       exception.addDetail(msg.str());
       throw exception;
@@ -543,7 +541,7 @@ void QueryResult::setValueVectorName(const size_t& valueVectorId,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

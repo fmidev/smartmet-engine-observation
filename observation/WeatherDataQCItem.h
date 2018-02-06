@@ -4,8 +4,6 @@
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <string>
 
-namespace pt = boost::posix_time;
-
 namespace SmartMet
 {
 namespace Engine
@@ -16,13 +14,13 @@ class WeatherDataQCItem
 {
  public:
   int fmisid;
-  pt::ptime obstime;
+  boost::posix_time::ptime obstime;
   std::string parameter;
   int sensor_no;
   double value;
   int flag;
 
- private:
+  std::size_t hash_value() const;
 };
 
 }  // namespace Observation

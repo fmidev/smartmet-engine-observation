@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SpatiaLite.h"
+#include "SpatiaLiteCacheParameters.h"
 #include <spine/Thread.h>
 
 namespace SmartMet
@@ -9,8 +10,6 @@ namespace Engine
 {
 namespace Observation
 {
-class SpatiaLiteOptions;
-
 class SpatiaLiteConnectionPool
 {
  public:
@@ -19,17 +18,13 @@ class SpatiaLiteConnectionPool
 
   void releaseConnection(int connectionId);
 
-  SpatiaLiteConnectionPool(int poolSize,
-                           const std::string &spatialiteFile,
-                           std::size_t maxInsertSize,
-                           const SpatiaLiteOptions &options);
+  SpatiaLiteConnectionPool(const SpatiaLiteCacheParameters& options);
 
   void shutdown();
 
  private:
   std::string itsSpatialiteFile;
-  std::size_t itsMaxInsertSize;
-  SpatiaLiteOptions itsOptions;
+  SpatiaLiteCacheParameters itsOptions;
 
   std::vector<int> itsWorkingList;
   std::vector<boost::shared_ptr<SpatiaLite> > itsWorkerList;

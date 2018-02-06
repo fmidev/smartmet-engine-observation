@@ -83,7 +83,7 @@ void SpatiaLiteDatabaseDriver::init(Geonames::Engine *geonames)
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -96,7 +96,7 @@ void SpatiaLiteDatabaseDriver::shutdown()
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -114,7 +114,7 @@ void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb)
     if (*(itsParameters.shutdownRequested))
       return;
 
-    if (qb == NULL)
+    if (qb == nullptr)
     {
       std::ostringstream msg;
       msg << "SpatiaLiteDatabaseDriver::makeQuery : Implementation of '" << typeid(qb).name()
@@ -150,7 +150,7 @@ void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb)
         return;
     }
 
-    if (result == NULL)
+    if (result == nullptr)
     {
       std::ostringstream msg;
       msg << "SpatiaLiteDatabaseDriver::makeQuery : Result container of '" << typeid(*qb).name()
@@ -175,7 +175,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
   try
   {
     if (*(itsParameters.shutdownRequested))
-      return NULL;
+      return nullptr;
 
     // Do sanity check for the parameters
     for (const Spine::Parameter &p : settings.parameters)
@@ -215,12 +215,12 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
     }
     catch (...)
     {
-      throw Spine::Exception(BCP, "Operation failed!", NULL);
+      throw Spine::Exception::Trace(BCP, "Operation failed!");
     }
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 
   return ret;
@@ -271,12 +271,12 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
     }
     catch (...)
     {
-      throw Spine::Exception(BCP, "Operation failed!", NULL);
+      throw Spine::Exception::Trace(BCP, "Operation failed!");
     }
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
   return ret;
 }
@@ -308,7 +308,7 @@ bool SpatiaLiteDatabaseDriver::isParameter(const std::string &alias,
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -329,7 +329,7 @@ bool SpatiaLiteDatabaseDriver::isParameterVariant(const std::string &name) const
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -353,7 +353,7 @@ FlashCounts SpatiaLiteDatabaseDriver::getFlashCount(const boost::posix_time::pti
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -598,33 +598,33 @@ if (!settings.lpnns.empty()) {
       itsParameters.observationCache->getStationsByBoundingBox(stations, settings);
     }
 
-// 7) For output purposes, translate the station id to WMO only if needed.
-// LPNN conversion is done anyway, because the data is sorted by LPNN number
-// in data views. For road weather or mareograph stations this is not
-// applicable, because
-// there is no LPNN or WMO numbers for them
-/*
-  if (settings.stationtype != "road" &&
-      settings.stationtype != "mareograph") {
-    for (const Spine::Parameter &p : settings.parameters) {
-      if (p.name() == "wmo") {
-        db.translateToWMO(stations);
-        break;
+    // 7) For output purposes, translate the station id to WMO only if needed.
+    // LPNN conversion is done anyway, because the data is sorted by LPNN number
+    // in data views. For road weather or mareograph stations this is not
+    // applicable, because
+    // there is no LPNN or WMO numbers for them
+    /*
+      if (settings.stationtype != "road" &&
+          settings.stationtype != "mareograph") {
+        for (const Spine::Parameter &p : settings.parameters) {
+          if (p.name() == "wmo") {
+            db.translateToWMO(stations);
+            break;
+          }
+        }
       }
-    }
-  }
-*/
-// 8) For road stations, translate FMISID to RWSID if requested
-/*
-  if (settings.stationtype == "road") {
-    for (const Spine::Parameter &p : settings.parameters) {
-      if (p.name() == "rwsid") {
-        db.translateToRWSID(stations);
-        break;
+    */
+    // 8) For road stations, translate FMISID to RWSID if requested
+    /*
+      if (settings.stationtype == "road") {
+        for (const Spine::Parameter &p : settings.parameters) {
+          if (p.name() == "rwsid") {
+            db.translateToRWSID(stations);
+            break;
+          }
+        }
       }
-    }
-  }
-*/
+    */
 
 #ifdef MYDEBUG
     std::cout << "total number of stations: " << stations.size() << std::endl;
@@ -634,29 +634,19 @@ if (!settings.lpnns.empty()) {
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
-void SpatiaLiteDatabaseDriver::updateFlashCache()
-{
-}
+void SpatiaLiteDatabaseDriver::updateFlashCache() {}
 
-void SpatiaLiteDatabaseDriver::updateObservationCache()
-{
-}
+void SpatiaLiteDatabaseDriver::updateObservationCache() {}
 
-void SpatiaLiteDatabaseDriver::updateWeatherDataQCCache()
-{
-}
+void SpatiaLiteDatabaseDriver::updateWeatherDataQCCache() {}
 
-void SpatiaLiteDatabaseDriver::locationsFromDatabase()
-{
-}
+void SpatiaLiteDatabaseDriver::locationsFromDatabase() {}
 
-void SpatiaLiteDatabaseDriver::preloadStations(const std::string &serializedStationsFile)
-{
-}
+void SpatiaLiteDatabaseDriver::preloadStations(const std::string &serializedStationsFile) {}
 
 void SpatiaLiteDatabaseDriver::readConfig(Spine::ConfigBase &cfg)
 {

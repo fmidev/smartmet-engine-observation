@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DataItem.h"
+#include "EngineParameters.h"
 #include "FlashDataItem.h"
 #include "LocationItem.h"
 #include "Settings.h"
@@ -26,7 +27,7 @@ class StationtypeConfig;
 
 struct SpatiaLiteCacheParameters
 {
-  SpatiaLiteCacheParameters(boost::shared_ptr<Engine::Observation::EngineParameters> p)
+  SpatiaLiteCacheParameters(const boost::shared_ptr<Engine::Observation::EngineParameters>& p)
       : quiet(p->quiet),
         stationInfo(p->stationInfo),
         parameterMap(p->parameterMap),
@@ -35,10 +36,13 @@ struct SpatiaLiteCacheParameters
   {
   }
 
-  SpatiaLiteOptions options;
+  SpatiaLiteOptions sqlite;
   int connectionPoolSize;
   std::string cacheFile;
-  std::size_t maxInsertSize;
+  std::size_t maxInsertSize = 5000;
+  std::size_t dataInsertCacheSize = 0;
+  std::size_t weatherDataQCInsertCacheSize = 0;
+  std::size_t flashInsertCacheSize = 0;
   bool quiet = true;
   bool cacheHasStations;
   boost::shared_ptr<boost::posix_time::time_period> flashCachePeriod;

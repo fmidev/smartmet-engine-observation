@@ -9,13 +9,9 @@ namespace Engine
 {
 namespace Observation
 {
-MastQuery::MastQuery() : m_selectSize(0)
-{
-}
+MastQuery::MastQuery() : m_selectSize(0) {}
 
-MastQuery::~MastQuery()
-{
-}
+MastQuery::~MastQuery() {}
 
 std::string MastQuery::getSQLStatement() const
 {
@@ -41,7 +37,7 @@ std::string MastQuery::getSQLStatement() const
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -59,7 +55,7 @@ std::shared_ptr<QueryResult> MastQuery::getQueryResultContainer()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -176,7 +172,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

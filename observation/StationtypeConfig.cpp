@@ -12,13 +12,9 @@ namespace Engine
 {
 namespace Observation
 {
-StationtypeConfig::StationtypeConfig()
-{
-}
+StationtypeConfig::StationtypeConfig() {}
 
-StationtypeConfig::~StationtypeConfig()
-{
-}
+StationtypeConfig::~StationtypeConfig() {}
 
 void StationtypeConfig::addStationtype(const StationtypeType& stationtype,
                                        const GroupCodeVectorType& stationgroupVector)
@@ -29,29 +25,26 @@ void StationtypeConfig::addStationtype(const StationtypeType& stationtype,
 
     if (stationtypeLower.empty())
     {
-      throw SmartMet::Spine::Exception(
-          BCP,
-          "SmartMet::Engine::Observation::StationtypeConfig::addStationtype : Empty "
-          "stationtype name found.");
+      throw Spine::Exception(BCP,
+                             "Engine::Observation::StationtypeConfig::addStationtype : Empty "
+                             "stationtype name found.");
     }
 
     STGroupCodeSetMapType::iterator it = m_stationtypeMap.find(stationtypeLower);
     if (it != m_stationtypeMap.end())
     {
-      throw SmartMet::Spine::Exception(
-          BCP,
-          "SmartMet::Engine::Observation::StationtypeConfig::addStationtype : "
-          "Duplicate stationtype configuration '" +
-              stationtype + "'.");
+      throw Spine::Exception(BCP,
+                             "Engine::Observation::StationtypeConfig::addStationtype : "
+                             "Duplicate stationtype configuration '" +
+                                 stationtype + "'.");
     }
 
     if (stationgroupVector.empty())
     {
-      throw SmartMet::Spine::Exception(
-          BCP,
-          "SmartMet::Engine::Observation::StationtypeConfig::addStationtype : Empty "
-          "group code array found for '" +
-              stationtype + "' stationtype");
+      throw Spine::Exception(BCP,
+                             "Engine::Observation::StationtypeConfig::addStationtype : Empty "
+                             "group code array found for '" +
+                                 stationtype + "' stationtype");
     }
 
     // We do not check the group code values, so e.g. zero length codes are allowed.
@@ -62,7 +55,7 @@ void StationtypeConfig::addStationtype(const StationtypeType& stationtype,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -78,7 +71,7 @@ StationtypeConfig::getDatabaseTableNameByStationtype(const StationtypeType& stat
       std::ostringstream msg;
       msg << "Database table name for the stationtype '" << stationtype << "' not found.";
 
-      SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+      Spine::Exception exception(BCP, "Invalid parameter value!");
       // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
       exception.addDetail(msg.str());
       throw exception;
@@ -88,7 +81,7 @@ StationtypeConfig::getDatabaseTableNameByStationtype(const StationtypeType& stat
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -108,7 +101,7 @@ StationtypeConfig::getGroupCodeSetByStationtype(const StationtypeType& stationty
       std::ostringstream msg;
       msg << "Stationtype '" << stationtype << "' not found.";
 
-      SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+      Spine::Exception exception(BCP, "Invalid parameter value!");
       // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
       exception.addDetail(msg.str());
       throw exception;
@@ -116,7 +109,7 @@ StationtypeConfig::getGroupCodeSetByStationtype(const StationtypeType& stationty
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -135,7 +128,7 @@ StationtypeConfig::getProducerIdSetByStationtype(const StationtypeType& stationt
     {
       std::ostringstream msg;
       msg << "Producer id list not found for Stationtype '" << stationtype << "'.";
-      SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+      Spine::Exception exception(BCP, "Invalid parameter value!");
       // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
       exception.addDetail(msg.str());
       throw exception;
@@ -143,7 +136,7 @@ StationtypeConfig::getProducerIdSetByStationtype(const StationtypeType& stationt
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -162,7 +155,7 @@ StationtypeConfig::UseCommonQueryMethodType StationtypeConfig::getUseCommonQuery
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -181,7 +174,7 @@ void StationtypeConfig::setDatabaseTableName(const StationtypeType& stationtype,
       msg << "Stationtype '" << stationtype
           << "' not found. Add first the stationtype into the class object.";
 
-      SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+      Spine::Exception exception(BCP, "Invalid parameter value!");
       // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
       exception.addDetail(msg.str());
       throw exception;
@@ -197,7 +190,7 @@ void StationtypeConfig::setDatabaseTableName(const StationtypeType& stationtype,
           << "'  for the stationtype '" << stationtype << "'. Table name '" << databaseTableName
           << "' is not added.";
 
-      SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+      Spine::Exception exception(BCP, "Invalid parameter value!");
       // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
       exception.addDetail(msg.str());
       throw exception;
@@ -211,7 +204,7 @@ void StationtypeConfig::setDatabaseTableName(const StationtypeType& stationtype,
       std::ostringstream msg;
       msg << "The database table name is empty for the stationtype '" << stationtype << "'.";
 
-      SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+      Spine::Exception exception(BCP, "Invalid parameter value!");
       // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
       exception.addDetail(msg.str());
       throw exception;
@@ -221,7 +214,7 @@ void StationtypeConfig::setDatabaseTableName(const StationtypeType& stationtype,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -240,7 +233,7 @@ void StationtypeConfig::setUseCommonQueryMethod(const StationtypeType& stationty
       msg << "Stationtype '" << stationtype
           << "' not found. Add first the stationtype into the class object.";
 
-      SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+      Spine::Exception exception(BCP, "Invalid parameter value!");
       // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
       exception.addDetail(msg.str());
       throw exception;
@@ -250,7 +243,7 @@ void StationtypeConfig::setUseCommonQueryMethod(const StationtypeType& stationty
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -272,7 +265,7 @@ void StationtypeConfig::setProducerIds(const StationtypeType& stationtype,
       msg << "Stationtype '" << stationtype
           << "' not found. Add first the stationtype into the class object.";
 
-      SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+      Spine::Exception exception(BCP, "Invalid parameter value!");
       // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
       exception.addDetail(msg.str());
       throw exception;
@@ -295,7 +288,7 @@ void StationtypeConfig::setProducerIds(const StationtypeType& stationtype,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

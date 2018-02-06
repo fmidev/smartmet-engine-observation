@@ -23,13 +23,13 @@ MinimumStandardFilter::MinimumStandardFilter() : FEConformanceClassBase()
     }
     catch (...)
     {
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!", NULL);
+      Spine::Exception exception(BCP, "Operation processing failed!", nullptr);
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
     }
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "MinimumStandardFilter initialization failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "MinimumStandardFilter initialization failed!");
   }
 }
 
@@ -47,17 +47,15 @@ MinimumStandardFilter::getNewOperationInstance(const NameType& field,
     }
     catch (...)
     {
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!", NULL);
+      Spine::Exception exception(BCP, "Operation processing failed!", nullptr);
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       throw exception;
     }
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(
-        BCP,
-        "MinimumStandardFilter operation '" + operationName + "' initialization failed!",
-        NULL);
+    throw Spine::Exception::Trace(
+        BCP, "MinimumStandardFilter operation '" + operationName + "' initialization failed!");
   }
 }
 

@@ -19,7 +19,7 @@ std::string QueryParamsBase::getBeginTime(const std::string& format) const
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -33,7 +33,7 @@ std::string QueryParamsBase::getEndTime(const std::string& format) const
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -47,7 +47,7 @@ void QueryParamsBase::setTimeRange(const pt::ptime& beginTime, const pt::ptime& 
       msg << "Invalid time interval " << pt::to_simple_string(beginTime) << " - "
           << pt::to_simple_string(endTime);
 
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+      Spine::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg.str());
       throw exception;
@@ -59,7 +59,7 @@ void QueryParamsBase::setTimeRange(const pt::ptime& beginTime, const pt::ptime& 
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -90,7 +90,7 @@ void QueryParamsBase::setBoundingBox(const double& xMin,
       err << "Invalid bounding box "
           << " - " << msg;
 
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+      Spine::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(err.str());
       throw exception;
@@ -104,7 +104,7 @@ void QueryParamsBase::setBoundingBox(const double& xMin,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -124,14 +124,14 @@ std::string QueryParamsBase::formattedTime(const pt::ptime& t, const std::string
     msg << "Time format conversion failure"
         << " - '" << fT << "'.";
 
-    SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+    Spine::Exception exception(BCP, "Operation processing failed!");
     // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
     exception.addDetail(msg.str());
     throw exception;
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

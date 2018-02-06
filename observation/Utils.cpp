@@ -32,24 +32,24 @@ bool removePrefix(std::string& parameter, const std::string& prefix)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
 /** *\brief Return true of a parameter looks to be normal enough to be an observation
  */
 
-bool not_special(const SmartMet::Spine::Parameter& theParam)
+bool not_special(const Spine::Parameter& theParam)
 {
   try
   {
     switch (theParam.type())
     {
-      case SmartMet::Spine::Parameter::Type::Data:
-      case SmartMet::Spine::Parameter::Type::Landscaped:
+      case Spine::Parameter::Type::Data:
+      case Spine::Parameter::Type::Landscaped:
         return true;
-      case SmartMet::Spine::Parameter::Type::DataDerived:
-      case SmartMet::Spine::Parameter::Type::DataIndependent:
+      case Spine::Parameter::Type::DataDerived:
+      case Spine::Parameter::Type::DataIndependent:
         return false;
     }
     // NOT REACHED
@@ -57,7 +57,7 @@ bool not_special(const SmartMet::Spine::Parameter& theParam)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -70,7 +70,7 @@ std::string trimCommasFromEnd(const std::string& what)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -93,12 +93,12 @@ std::string translateParameter(const std::string& paramname,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
 // Calculates station direction in degrees from given coordinates
-void calculateStationDirection(SmartMet::Spine::Station& station)
+void calculateStationDirection(Spine::Station& station)
 {
   try
   {
@@ -122,7 +122,7 @@ void calculateStationDirection(SmartMet::Spine::Station& station)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -207,7 +207,7 @@ std::string parseParameterName(const std::string& parameter)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -244,17 +244,17 @@ int parseSensorNumber(const std::string& parameter)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
-SmartMet::Spine::Stations removeDuplicateStations(SmartMet::Spine::Stations& stations)
+Spine::Stations removeDuplicateStations(Spine::Stations& stations)
 {
   try
   {
     std::vector<int> ids;
-    SmartMet::Spine::Stations noDuplicates;
-    for (const SmartMet::Spine::Station& s : stations)
+    Spine::Stations noDuplicates;
+    for (const Spine::Station& s : stations)
     {
       if (std::find(ids.begin(), ids.end(), s.station_id) == ids.end())
       {
@@ -267,7 +267,7 @@ SmartMet::Spine::Stations removeDuplicateStations(SmartMet::Spine::Stations& sta
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -316,7 +316,7 @@ std::string timeToString(const boost::posix_time::ptime& time)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -325,11 +325,11 @@ void logMessage(const std::string& message, bool quiet)
   try
   {
     if (!quiet)
-      std::cout << SmartMet::Spine::log_time_str() << ' ' << message << std::endl;
+      std::cout << Spine::log_time_str() << ' ' << message << std::endl;
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -359,7 +359,7 @@ std::string getLocationCacheKey(int geoID,
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

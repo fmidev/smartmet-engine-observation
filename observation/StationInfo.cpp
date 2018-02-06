@@ -45,11 +45,10 @@ void createSerializedStationsDirectory(const std::string& filename)
   }
   catch (...)
   {
-    SmartMet::Spine::Exception ex(
-        BCP, "Failed to create directory for serialized station information", NULL);
-    ex.addParameter("stationfile", filename);
-    ex.addParameter("directory", directory.string());
-    throw ex;
+    throw Spine::Exception::Trace(BCP,
+                                  "Failed to create directory for serialized station information")
+        .addParameter("stationfile", filename)
+        .addParameter("directory", directory.string());
   }
 }
 
@@ -89,7 +88,7 @@ void StationInfo::serialize(const std::string& filename) const
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "StationInfo serialization failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "StationInfo serialization failed!");
   }
 }
 
@@ -128,14 +127,13 @@ void StationInfo::unserialize(const std::string& filename)
  */
 // ----------------------------------------------------------------------
 
-SmartMet::Spine::Stations StationInfo::findNearestStations(
-    double longitude,
-    double latitude,
-    double maxdistance,
-    int numberofstations,
-    const std::set<std::string>& groups,
-    const boost::posix_time::ptime& starttime,
-    const boost::posix_time::ptime& endtime) const
+Spine::Stations StationInfo::findNearestStations(double longitude,
+                                                 double latitude,
+                                                 double maxdistance,
+                                                 int numberofstations,
+                                                 const std::set<std::string>& groups,
+                                                 const boost::posix_time::ptime& starttime,
+                                                 const boost::posix_time::ptime& endtime) const
 {
   // Find all stations withing the distance limit
   StationNearTreeLatLon searchpoint{longitude, latitude};
@@ -144,7 +142,7 @@ SmartMet::Spine::Stations StationInfo::findNearestStations(
 
   // Validate other search conditions one by one
 
-  SmartMet::Spine::Stations result;
+  Spine::Stations result;
   for (const auto& candidate : candidates)
   {
     double distance = StationNearTreeLatLon::SurfaceLength(candidate.first);
@@ -163,7 +161,7 @@ SmartMet::Spine::Stations StationInfo::findNearestStations(
       continue;
 
     // Update metadata with a new copy
-    SmartMet::Spine::Station newstation = station;
+    Spine::Station newstation = station;
 
     newstation.distance =
         Fmi::to_string(std::round(distance * 10) / 10.0);  // round to 100 meter precision
@@ -245,7 +243,7 @@ Spine::Stations findStations(const Spine::Stations& stations,
  */
 // ----------------------------------------------------------------------
 
-SmartMet::Spine::Stations StationInfo::findFmisidStations(const std::vector<int>& fmisids) const
+Spine::Stations StationInfo::findFmisidStations(const std::vector<int>& fmisids) const
 {
   return findStations(stations, fmisids, fmisidstations);
 }
@@ -256,10 +254,9 @@ SmartMet::Spine::Stations StationInfo::findFmisidStations(const std::vector<int>
  */
 // ----------------------------------------------------------------------
 
-SmartMet::Spine::Stations StationInfo::findFmisidStations(
-    const std::vector<int>& fmisids,
-    const boost::posix_time::ptime& starttime,
-    const boost::posix_time::ptime& endtime) const
+Spine::Stations StationInfo::findFmisidStations(const std::vector<int>& fmisids,
+                                                const boost::posix_time::ptime& starttime,
+                                                const boost::posix_time::ptime& endtime) const
 {
   return findStations(stations, fmisids, fmisidstations, starttime, endtime);
 }
@@ -270,7 +267,7 @@ SmartMet::Spine::Stations StationInfo::findFmisidStations(
  */
 // ----------------------------------------------------------------------
 
-SmartMet::Spine::Stations StationInfo::findWmoStations(const std::vector<int>& wmos) const
+Spine::Stations StationInfo::findWmoStations(const std::vector<int>& wmos) const
 {
   return findStations(stations, wmos, wmostations);
 }
@@ -281,10 +278,9 @@ SmartMet::Spine::Stations StationInfo::findWmoStations(const std::vector<int>& w
  */
 // ----------------------------------------------------------------------
 
-SmartMet::Spine::Stations StationInfo::findWmoStations(
-    const std::vector<int>& wmos,
-    const boost::posix_time::ptime& starttime,
-    const boost::posix_time::ptime& endtime) const
+Spine::Stations StationInfo::findWmoStations(const std::vector<int>& wmos,
+                                             const boost::posix_time::ptime& starttime,
+                                             const boost::posix_time::ptime& endtime) const
 {
   return findStations(stations, wmos, wmostations, starttime, endtime);
 }
@@ -295,7 +291,7 @@ SmartMet::Spine::Stations StationInfo::findWmoStations(
  */
 // ----------------------------------------------------------------------
 
-SmartMet::Spine::Stations StationInfo::findLpnnStations(const std::vector<int>& lpnns) const
+Spine::Stations StationInfo::findLpnnStations(const std::vector<int>& lpnns) const
 {
   return findStations(stations, lpnns, lpnnstations);
 }
@@ -306,10 +302,9 @@ SmartMet::Spine::Stations StationInfo::findLpnnStations(const std::vector<int>& 
  */
 // ----------------------------------------------------------------------
 
-SmartMet::Spine::Stations StationInfo::findLpnnStations(
-    const std::vector<int>& lpnns,
-    const boost::posix_time::ptime& starttime,
-    const boost::posix_time::ptime& endtime) const
+Spine::Stations StationInfo::findLpnnStations(const std::vector<int>& lpnns,
+                                              const boost::posix_time::ptime& starttime,
+                                              const boost::posix_time::ptime& endtime) const
 {
   return findStations(stations, lpnns, lpnnstations, starttime, endtime);
 }
@@ -320,7 +315,7 @@ SmartMet::Spine::Stations StationInfo::findLpnnStations(
  */
 // ----------------------------------------------------------------------
 
-SmartMet::Spine::Stations StationInfo::findRwsidStations(const std::vector<int>& rwsids) const
+Spine::Stations StationInfo::findRwsidStations(const std::vector<int>& rwsids) const
 {
   return findStations(stations, rwsids, rwsidstations);
 }
@@ -331,10 +326,9 @@ SmartMet::Spine::Stations StationInfo::findRwsidStations(const std::vector<int>&
  */
 // ----------------------------------------------------------------------
 
-SmartMet::Spine::Stations StationInfo::findRwsidStations(
-    const std::vector<int>& rwsids,
-    const boost::posix_time::ptime& starttime,
-    const boost::posix_time::ptime& endtime) const
+Spine::Stations StationInfo::findRwsidStations(const std::vector<int>& rwsids,
+                                               const boost::posix_time::ptime& starttime,
+                                               const boost::posix_time::ptime& endtime) const
 {
   return findStations(stations, rwsids, rwsidstations, starttime, endtime);
 }
@@ -345,10 +339,9 @@ SmartMet::Spine::Stations StationInfo::findRwsidStations(
  */
 // ----------------------------------------------------------------------
 
-SmartMet::Spine::Stations StationInfo::findStationsInGroup(
-    const std::set<std::string> groups,
-    const boost::posix_time::ptime& starttime,
-    const boost::posix_time::ptime& endtime) const
+Spine::Stations StationInfo::findStationsInGroup(const std::set<std::string> groups,
+                                                 const boost::posix_time::ptime& starttime,
+                                                 const boost::posix_time::ptime& endtime) const
 {
   std::set<StationID> all_ids;
 
@@ -467,14 +460,13 @@ std::vector<StationID> searchStations(
  */
 // ----------------------------------------------------------------------
 
-SmartMet::Spine::Stations StationInfo::findStationsInsideBox(
-    double minx,
-    double miny,
-    double maxx,
-    double maxy,
-    const std::set<std::string> groups,
-    const boost::posix_time::ptime& starttime,
-    const boost::posix_time::ptime& endtime) const
+Spine::Stations StationInfo::findStationsInsideBox(double minx,
+                                                   double miny,
+                                                   double maxx,
+                                                   double maxy,
+                                                   const std::set<std::string> groups,
+                                                   const boost::posix_time::ptime& starttime,
+                                                   const boost::posix_time::ptime& endtime) const
 {
   auto ids = searchStations(stations, minx, miny, maxx, maxy);
 

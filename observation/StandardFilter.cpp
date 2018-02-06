@@ -21,7 +21,7 @@ StandardFilter::StandardFilter() : MinimumStandardFilter()
     }
     catch (...)
     {
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!", NULL);
+      Spine::Exception exception(BCP, "Operation processing failed!", nullptr);
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail("StandardFilter initialization failed.");
       throw exception;
@@ -29,7 +29,7 @@ StandardFilter::StandardFilter() : MinimumStandardFilter()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -48,7 +48,7 @@ std::shared_ptr<const StandardFilter::PropertyIsBaseType> StandardFilter::getNew
       std::ostringstream msg;
       msg << "StandardFilter operation '" << operationName << "' initialization failed!";
 
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!", NULL);
+      Spine::Exception exception(BCP, "Operation processing failed!", nullptr);
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg.str());
       throw exception;
@@ -56,7 +56,7 @@ std::shared_ptr<const StandardFilter::PropertyIsBaseType> StandardFilter::getNew
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

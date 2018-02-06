@@ -32,7 +32,7 @@ ParameterMap createParameterMapping(Spine::ConfigBase &cfg)
       for (const std::string &paramname : param_names)
       {
         if (Fmi::ascii_tolower_copy(paramname).compare(0, 3, "qc_") == 0)
-          throw SmartMet::Spine::Exception(
+          throw Spine::Exception(
               BCP,
               "Observation error: Parameter aliases with 'qc_' prefix are not allowed. Fix the '" +
                   paramname + "' parameter.");
@@ -50,7 +50,7 @@ ParameterMap createParameterMapping(Spine::ConfigBase &cfg)
         const std::string lower_parame_name = Fmi::ascii_tolower_copy(paramname);
 
         if (pm.find(lower_parame_name) != pm.end())
-          throw SmartMet::Spine::Exception(
+          throw Spine::Exception(
               BCP, "Observation error: Duplicate parameter alias '" + paramname + "' found.");
 
         // All internal comparisons between parameter names are done with lower case names
@@ -67,7 +67,7 @@ ParameterMap createParameterMapping(Spine::ConfigBase &cfg)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -179,7 +179,7 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -226,7 +226,7 @@ Spine::Parameter EngineParameters::makeParameter(const std::string &name) const
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -256,7 +256,7 @@ bool EngineParameters::isParameter(const std::string &alias, const std::string &
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -277,7 +277,7 @@ bool EngineParameters::isParameterVariant(const std::string &name) const
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -317,7 +317,7 @@ uint64_t EngineParameters::getParameterId(const std::string &alias,
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

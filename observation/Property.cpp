@@ -10,13 +10,9 @@ namespace Observation
 {
 namespace Property
 {
-Base::Base()
-{
-}
+Base::Base() {}
 
-Base::~Base()
-{
-}
+Base::~Base() {}
 
 Base::Base(const Base& other)
 {
@@ -28,7 +24,7 @@ Base::Base(const Base& other)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -49,7 +45,7 @@ Base::NameType Base::getExpression(const NameType& viewName) const
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -102,13 +98,13 @@ Base::NameType Base::toWhatString(const boost::any& value) const
     else
     {
       std::ostringstream msg;
-      msg << "warning: SmartMet::Engine::Observation::Property::Base::toWhatString : Unsupported "
+      msg << "warning: Engine::Observation::Property::Base::toWhatString : Unsupported "
              "data "
              "type "
              "'"
           << (value).type().name() << "'.";
 
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+      Spine::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg.str());
       throw exception;
@@ -116,7 +112,7 @@ Base::NameType Base::toWhatString(const boost::any& value) const
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -171,7 +167,7 @@ Base::NameType Base::getValueTypeString() const
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -199,7 +195,7 @@ Base::NameType MinuteValueModuloIsEqualToZero::getExpression(const Base::NameTyp
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -216,7 +212,7 @@ Base::NameType MinuteValueModuloIsEqualToZero::getValueTypeString() const
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

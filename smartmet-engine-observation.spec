@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.2.5
+Version: 18.2.6
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Feb  6 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.2.6-1.fmi
+- Avoid writing same rows to the cache again
+
 * Mon Feb  5 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.2.5-1.fmi
 - Readers sleep 1 ms if DB is locked, writers sleep 5 ms after each bulk insert.
 

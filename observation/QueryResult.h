@@ -115,7 +115,7 @@ class QueryResult : public QueryResultBase
         std::ostringstream msg;
         msg << "QueryResult::toString : Unsupported data type '" << (*value).type().name() << "'.";
 
-        SmartMet::Spine::Exception exception(BCP, "Operation processing failed!", NULL);
+        Spine::Exception exception(BCP, "Operation processing failed!", nullptr);
         // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
         exception.addDetail(msg.str());
         throw exception;
@@ -127,7 +127,7 @@ class QueryResult : public QueryResultBase
       msg << "QueryResult::castTo : Bad any cast from '" << (*value).type().name() << "' type. "
           << e.what();
 
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!", NULL);
+      Spine::Exception exception(BCP, "Operation processing failed!", nullptr);
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg.str());
       throw exception;
@@ -138,7 +138,7 @@ class QueryResult : public QueryResultBase
       msg << "QueryResult::castTo : Bad cast from '" << (*value).type().name() << "' to '"
           << typeid(OutType).name() << "'. " << e.what();
 
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!", NULL);
+      Spine::Exception exception(BCP, "Operation processing failed!", nullptr);
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg.str());
       throw exception;

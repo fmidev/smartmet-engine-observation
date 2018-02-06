@@ -3,8 +3,6 @@
 #include <boost/date_time/gregorian/formatters.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 
-namespace pt = boost::posix_time;
-
 namespace SmartMet
 {
 namespace Engine
@@ -14,7 +12,7 @@ namespace Observation
 class FlashDataItem
 {
  public:
-  pt::ptime stroke_time;
+  boost::posix_time::ptime stroke_time;
   int stroke_time_fraction;
   double longitude;
   double latitude;
@@ -35,11 +33,11 @@ class FlashDataItem
   int timing_indicator;
   int stroke_status;
   int data_source;
-  pt::ptime created;
-  pt::ptime modified_last;
+  boost::posix_time::ptime created;
+  boost::posix_time::ptime modified_last;
   int modified_by;
 
- private:
+  std::size_t hash_value() const;
 };
 
 }  // namespace Observation

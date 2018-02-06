@@ -13,9 +13,7 @@ VerifiableMessageQuery::VerifiableMessageQuery()
   m_returnOnlyLatest = false;
 }
 
-VerifiableMessageQuery::~VerifiableMessageQuery()
-{
-}
+VerifiableMessageQuery::~VerifiableMessageQuery() {}
 
 std::string VerifiableMessageQuery::getSQLStatement() const
 {
@@ -82,7 +80,7 @@ std::string VerifiableMessageQuery::getSQLStatement() const
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -100,7 +98,7 @@ std::shared_ptr<QueryResult> VerifiableMessageQuery::getQueryResultContainer()
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -126,7 +124,7 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
       std::ostringstream msg;
       msg << "Empty select name list.";
 
-      SmartMet::Spine::Exception exception(BCP, "Invalid SQL statement!");
+      Spine::Exception exception(BCP, "Invalid SQL statement!");
       exception.addDetail(msg.str());
       throw exception;
     }
@@ -154,13 +152,13 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
       std::ostringstream msg;
       msg << "Empty table name.";
 
-      SmartMet::Spine::Exception exception(BCP, "Invalid SQL statement!");
+      Spine::Exception exception(BCP, "Invalid SQL statement!");
       exception.addDetail(msg.str());
       throw exception;
     }
     m_from.append(" data");
 
-    SmartMet::Engine::Observation::VerifiableMessageQueryParams::StationIdVectorType *icaoCodes =
+    Engine::Observation::VerifiableMessageQueryParams::StationIdVectorType *icaoCodes =
         qParams->getStationIdVector();
 
     if (icaoCodes->empty())
@@ -168,7 +166,7 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
       std::ostringstream msg;
       msg << "Empty location list.";
 
-      SmartMet::Spine::Exception exception(BCP, msg.str());
+      Spine::Exception exception(BCP, msg.str());
       exception.addDetail(msg.str());
       throw exception;
     }
@@ -182,8 +180,7 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
     else
     {
       m_where.append("(");
-      SmartMet::Engine::Observation::VerifiableMessageQueryParams::StationIdVectorType::iterator
-          icaoIT;
+      Engine::Observation::VerifiableMessageQueryParams::StationIdVectorType::iterator icaoIT;
       for (icaoIT = icaoCodes->begin(); icaoIT != icaoCodes->end(); icaoIT++)
       {
         m_where.append("data.station_id = '").append(*icaoIT).append("'");
@@ -230,7 +227,7 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

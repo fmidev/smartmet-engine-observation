@@ -15,7 +15,7 @@ MastQueryParams::MastQueryParams(const std::shared_ptr<DBRegistryConfig> dbrConf
   {
     if (!dbrConfig)
     {
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+      Spine::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail("Database registry configuration is not set.");
       throw exception;
@@ -26,13 +26,11 @@ MastQueryParams::MastQueryParams(const std::shared_ptr<DBRegistryConfig> dbrConf
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
-MastQueryParams::~MastQueryParams()
-{
-}
+MastQueryParams::~MastQueryParams() {}
 
 void MastQueryParams::addJoinOnConfig(const std::shared_ptr<DBRegistryConfig> dbrConfigJoinOn,
                                       const NameType& joinOnField,
@@ -46,7 +44,7 @@ void MastQueryParams::addJoinOnConfig(const std::shared_ptr<DBRegistryConfig> db
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -58,14 +56,14 @@ void MastQueryParams::addJoinOnConfig(const std::shared_ptr<DBRegistryConfig> db
   {
     if (!dbrConfigJoinOn)
     {
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+      Spine::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail("Database registry configuration is not set.");
       throw exception;
     }
     if (joinOnFields.empty())
     {
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+      Spine::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(ObsEngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail("Join fields not set.");
       throw exception;
@@ -92,7 +90,7 @@ void MastQueryParams::addJoinOnConfig(const std::shared_ptr<DBRegistryConfig> db
             << dbrConfigJoinOn->getTableName() << "' by using field name '" << *joinOnField
             << "' is not possible";
 
-        SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+        Spine::Exception exception(BCP, "Operation processing failed!");
         // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
         exception.addDetail(msg.str());
         throw exception;
@@ -107,7 +105,7 @@ void MastQueryParams::addJoinOnConfig(const std::shared_ptr<DBRegistryConfig> db
       std::ostringstream msg;
       msg << "Type of join '" << typeOfJoin << "' is not tupperted. ";
 
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+      Spine::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(ObsEngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg.str());
       throw exception;
@@ -120,7 +118,7 @@ void MastQueryParams::addJoinOnConfig(const std::shared_ptr<DBRegistryConfig> db
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -154,14 +152,14 @@ void MastQueryParams::addField(const NameType& field, const NameType& alias)
     std::ostringstream msg;
     msg << "Field name '" << field << "' not found.";
 
-    SmartMet::Spine::Exception exception(BCP, "Invalid parameter value!");
+    Spine::Exception exception(BCP, "Invalid parameter value!");
     // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
     exception.addDetail(msg.str());
     throw exception;
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -178,7 +176,7 @@ void MastQueryParams::addOperation(const std::string& groupName,
     {
       msg << "MastQueryParams::addOperation operation '" << operationName << "' not found\n";
 
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+      Spine::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg.str());
       throw exception;
@@ -191,7 +189,7 @@ void MastQueryParams::addOperation(const std::string& groupName,
     {
       msg << "MastQueryParams::addOperation '" << operationName << "' operation not found\n";
 
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+      Spine::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg.str());
       throw exception;
@@ -244,14 +242,14 @@ void MastQueryParams::addOperation(const std::string& groupName,
 
     msg << "MastQueryParams::addOperation the table not found that has '" << field << "' field.\n";
 
-    SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+    Spine::Exception exception(BCP, "Operation processing failed!");
     // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
     exception.addDetail(msg.str());
     throw exception;
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -280,7 +278,7 @@ void MastQueryParams::addOrderBy(const NameType& field, const NameType& ascDesc)
       msg << "Trying to order SQL query result by using a field name '" << field
           << "' that is not found from the configurations.";
 
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+      Spine::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg.str());
       throw exception;
@@ -294,7 +292,7 @@ void MastQueryParams::addOrderBy(const NameType& field, const NameType& ascDesc)
         std::ostringstream msg;
         msg << "Trying to order SQL query result twice by using a field name '" << field << "'.";
 
-        SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+        Spine::Exception exception(BCP, "Operation processing failed!");
         // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
         exception.addDetail(msg.str());
         throw exception;
@@ -307,7 +305,7 @@ void MastQueryParams::addOrderBy(const NameType& field, const NameType& ascDesc)
       std::ostringstream msg;
       msg << "Invalid order '" << ascDesc << "'. Only 'ASC' and 'DESC' are allowed.";
 
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
+      Spine::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg.str());
       throw exception;
@@ -317,7 +315,7 @@ void MastQueryParams::addOrderBy(const NameType& field, const NameType& ascDesc)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -329,7 +327,7 @@ const std::shared_ptr<MastQueryParams::OperationMapType> MastQueryParams::getOpe
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -341,7 +339,7 @@ const std::shared_ptr<MastQueryParams::OrderByVectorType> MastQueryParams::getOr
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -354,7 +352,7 @@ MastQueryParams::getJoinOnListTupleVector() const
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -366,7 +364,7 @@ MastQueryParams::NameType MastQueryParams::getTableName() const
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -378,7 +376,7 @@ const std::shared_ptr<MastQueryParams::FieldMapType> MastQueryParams::getFieldMa
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -390,7 +388,7 @@ const std::shared_ptr<MastQueryParams::FieldAliasMapType> MastQueryParams::getFi
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

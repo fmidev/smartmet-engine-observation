@@ -23,7 +23,7 @@ DBRegistryConfig::DBRegistryConfig(boost::shared_ptr<SmartMet::Spine::ConfigBase
     // Field name restrictions checks.
     if (m_name.empty() or (std::isalpha(m_name[0], std::locale()) == 0))
     {
-      SmartMet::Spine::Exception exception(BCP, "Invalid table name in the config file!", NULL);
+      Spine::Exception exception(BCP, "Invalid table name in the config file!", nullptr);
       exception.addParameter("Table", m_name);
       exception.addParameter("Config file", config->get_file_name());
       exception.addDetail("First character of the table name must be an alphabetic character.");
@@ -56,11 +56,11 @@ DBRegistryConfig::DBRegistryConfig(boost::shared_ptr<SmartMet::Spine::ConfigBase
       }
       catch (const std::exception& err)
       {
-        SmartMet::Spine::Exception exception(
-            BCP, "Error while parsing DBRegistry configuration file!", NULL);
+        Spine::Exception exception(
+            BCP, "Error while parsing DBRegistry configuration file!", nullptr);
         exception.addParameter("Config file", config->get_file_name());
         std::ostringstream msg;
-        SmartMet::Spine::ConfigBase::dump_setting(msg, item, 16);
+        Spine::ConfigBase::dump_setting(msg, item, 16);
         exception.addDetail(msg.str());
         throw exception;
       }
@@ -68,8 +68,8 @@ DBRegistryConfig::DBRegistryConfig(boost::shared_ptr<SmartMet::Spine::ConfigBase
       // Field name restrictions checks.
       if (fieldName.empty() or (std::isalpha(fieldName[0], std::locale()) == 0))
       {
-        SmartMet::Spine::Exception exception(
-            BCP, "Invalid field name '" + fieldName + "' in the configuration file!", NULL);
+        Spine::Exception exception(
+            BCP, "Invalid field name '" + fieldName + "' in the configuration file!", nullptr);
         exception.addParameter("Config file", config->get_file_name());
         exception.addDetail("First character of a field name must be an alphabetic character.");
         throw exception;
@@ -78,8 +78,8 @@ DBRegistryConfig::DBRegistryConfig(boost::shared_ptr<SmartMet::Spine::ConfigBase
       // Duplicates are not allowed.
       if (m_fieldNameMap.find(fieldName) != m_fieldNameMap.end())
       {
-        SmartMet::Spine::Exception exception(
-            BCP, "Duplicate field name '" + fieldName + "' in the configuration file!", NULL);
+        Spine::Exception exception(
+            BCP, "Duplicate field name '" + fieldName + "' in the configuration file!", nullptr);
         exception.addParameter("Config file", config->get_file_name());
         throw exception;
       }
@@ -98,15 +98,15 @@ DBRegistryConfig::DBRegistryConfig(boost::shared_ptr<SmartMet::Spine::ConfigBase
 
     if (m_fieldNameMap.size() == 0)
     {
-      SmartMet::Spine::Exception exception(
-          BCP, "At least one field must be defined in the configuration file!", NULL);
+      Spine::Exception exception(
+          BCP, "At least one field must be defined in the configuration file!", nullptr);
       exception.addParameter("Config file", config->get_file_name());
       throw exception;
     }
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -123,7 +123,7 @@ DBRegistryConfig::NameType DBRegistryConfig::getMethod(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -135,16 +135,15 @@ NamesAllowed::NamesAllowed(const std::shared_ptr<DBRegistryConfig> dbrConfig,
   {
     if (!dbrConfig)
     {
-      std::cerr
-          << "warning : SmartMet::Engine::::Obs::NamesAllowed class object got DBRegistryConfig "
-             "without reference.\n";
+      std::cerr << "warning : Engine::::Obs::NamesAllowed class object got DBRegistryConfig "
+                   "without reference.\n";
       return;
     }
 
     const std::shared_ptr<NameMapType> nameMap = dbrConfig->getFieldNameMap();
     if (not nameMap)
     {
-      std::cerr << "warning : SmartMet::Engine::Observation::NamesAllowed class object use an "
+      std::cerr << "warning : Engine::Observation::NamesAllowed class object use an "
                    "empty name map.\n";
       return;
     }
@@ -167,13 +166,11 @@ NamesAllowed::NamesAllowed(const std::shared_ptr<DBRegistryConfig> dbrConfig,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
-NamesAllowed::~NamesAllowed()
-{
-}
+NamesAllowed::~NamesAllowed() {}
 
 bool NamesAllowed::addName(const std::string& inName)
 {
@@ -198,7 +195,7 @@ bool NamesAllowed::addName(const std::string& inName)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

@@ -62,10 +62,7 @@ void SpatiaLiteCache::initializeConnectionPool(int finCacheDuration)
     logMessage("[Observation Engine] Initializing SpatiaLite cache connection pool...",
                itsParameters.quiet);
 
-    itsConnectionPool = new SpatiaLiteConnectionPool(itsParameters.connectionPoolSize,
-                                                     itsParameters.cacheFile,
-                                                     itsParameters.maxInsertSize,
-                                                     itsParameters.options);
+    itsConnectionPool = new SpatiaLiteConnectionPool(itsParameters);
 
     // Ensure that necessary tables exists:
     // 1) stations
@@ -95,7 +92,7 @@ void SpatiaLiteCache::initializeConnectionPool(int finCacheDuration)
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -132,7 +129,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -171,7 +168,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -188,7 +185,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &set
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -336,7 +333,7 @@ Spine::Stations SpatiaLiteCache::getStationsFromSpatiaLite(
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -356,7 +353,7 @@ bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &start
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -376,7 +373,7 @@ bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &star
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -396,7 +393,7 @@ bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -462,7 +459,7 @@ Spine::Stations SpatiaLiteCache::getStationsByTaggedLocations(
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -510,7 +507,7 @@ void SpatiaLiteCache::getStationsByBoundingBox(Spine::Stations &stations,
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -545,7 +542,7 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Operation failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -593,7 +590,8 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestFlashTime() const
   return itsConnectionPool->getConnection()->getLatestFlashTime();
 }
 
-void SpatiaLiteCache::fillFlashDataCache(const std::vector<FlashDataItem> &flashCacheData) const
+std::size_t SpatiaLiteCache::fillFlashDataCache(
+    const std::vector<FlashDataItem> &flashCacheData) const
 {
   return itsConnectionPool->getConnection()->fillFlashDataCache(flashCacheData);
 }
@@ -608,7 +606,7 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestObservationTime() const
   return itsConnectionPool->getConnection()->getLatestObservationTime();
 }
 
-void SpatiaLiteCache::fillDataCache(const std::vector<DataItem> &cacheData) const
+std::size_t SpatiaLiteCache::fillDataCache(const std::vector<DataItem> &cacheData) const
 {
   return itsConnectionPool->getConnection()->fillDataCache(cacheData);
 }
@@ -623,7 +621,8 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCTime() const
   return itsConnectionPool->getConnection()->getLatestWeatherDataQCTime();
 }
 
-void SpatiaLiteCache::fillWeatherDataQCCache(const std::vector<WeatherDataQCItem> &cacheData) const
+std::size_t SpatiaLiteCache::fillWeatherDataQCCache(
+    const std::vector<WeatherDataQCItem> &cacheData) const
 {
   return itsConnectionPool->getConnection()->fillWeatherDataQCCache(cacheData);
 }
@@ -660,39 +659,30 @@ SpatiaLiteCache::SpatiaLiteCache(boost::shared_ptr<EngineParameters> p, Spine::C
 
     int err;
 
-    if (itsParameters.options.threading_mode == "MULTITHREAD")
+    if (itsParameters.sqlite.threading_mode == "MULTITHREAD")
       err = sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
-    else if (itsParameters.options.threading_mode == "SERIALIZED")
+    else if (itsParameters.sqlite.threading_mode == "SERIALIZED")
       err = sqlite3_config(SQLITE_CONFIG_SERIALIZED);
     else
       throw Spine::Exception(
-          BCP, "Unknown sqlite threading mode: " + itsParameters.options.threading_mode);
+          BCP, "Unknown sqlite threading mode: " + itsParameters.sqlite.threading_mode);
 
     if (err != 0)
       throw Spine::Exception(BCP,
                              "Failed to set sqlite3 multithread mode to " +
-                                 itsParameters.options.threading_mode +
+                                 itsParameters.sqlite.threading_mode +
                                  ", exit code = " + Fmi::to_string(err));
 
     // Enable or disable memory statistics
 
-    err = sqlite3_config(SQLITE_CONFIG_MEMSTATUS, itsParameters.options.memstatus);
+    err = sqlite3_config(SQLITE_CONFIG_MEMSTATUS, itsParameters.sqlite.memstatus);
     if (err != 0)
       throw Spine::Exception(
           BCP, "Failed to initialize sqlite3 memstatus mode, exit code " + Fmi::to_string(err));
-
-    // Make one connection so that SOCI can initialize its once-types without
-    // worrying about race conditions. This prevents a "database table is
-    // locked"
-    // warning during startup if the engine is simultaneously bombed with
-    // requests.
-
-    SpatiaLite connection(
-        itsParameters.cacheFile, itsParameters.maxInsertSize, itsParameters.options);
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Observation-engine initialization failed", NULL);
+    throw Spine::Exception::Trace(BCP, "Observation-engine initialization failed");
   }
 }
 
@@ -708,7 +698,7 @@ boost::shared_ptr<std::vector<ObservableProperty> > SpatiaLiteCache::observableP
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "SpatiaLiteCache::observablePropertyQuery failed", NULL);
+    throw Spine::Exception::Trace(BCP, "SpatiaLiteCache::observablePropertyQuery failed");
   }
 
   return data;
@@ -723,32 +713,39 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
   itsParameters.maxInsertSize = cfg.get_optional_config_param<std::size_t>(
       "cache.maxInsertSize", 99999999);  // default = all at once
 
-  itsParameters.options.cache_size = cfg.get_optional_config_param<std::size_t>(
+  itsParameters.dataInsertCacheSize =
+      cfg.get_optional_config_param<std::size_t>("cache.dataInsertCacheSize", 100000);
+  itsParameters.weatherDataQCInsertCacheSize =
+      cfg.get_optional_config_param<std::size_t>("cache.weatherDataQCInsertCacheSize", 100000);
+  itsParameters.flashInsertCacheSize =
+      cfg.get_optional_config_param<std::size_t>("cache.flashInsertCacheSize", 10000);
+
+  itsParameters.sqlite.cache_size = cfg.get_optional_config_param<std::size_t>(
       "sqlite.cache_size", 0);  // zero = use default value
 
-  itsParameters.options.threads =
+  itsParameters.sqlite.threads =
       cfg.get_optional_config_param<int>("sqlite.threads", 0);  // zero = no helper threads
 
-  itsParameters.options.threading_mode =
+  itsParameters.sqlite.threading_mode =
       cfg.get_optional_config_param<std::string>("sqlite.threading_mode", "SERIALIZED");
 
-  itsParameters.options.timeout = cfg.get_optional_config_param<size_t>("sqlite.timeout", 30000);
+  itsParameters.sqlite.timeout = cfg.get_optional_config_param<size_t>("sqlite.timeout", 30000);
 
-  itsParameters.options.shared_cache =
+  itsParameters.sqlite.shared_cache =
       cfg.get_optional_config_param<bool>("sqlite.shared_cache", false);
 
-  itsParameters.options.memstatus = cfg.get_optional_config_param<bool>("sqlite.memstatus", false);
+  itsParameters.sqlite.memstatus = cfg.get_optional_config_param<bool>("sqlite.memstatus", false);
 
-  itsParameters.options.synchronous =
+  itsParameters.sqlite.synchronous =
       cfg.get_optional_config_param<std::string>("sqlite.synchronous", "NORMAL");
 
-  itsParameters.options.journal_mode =
+  itsParameters.sqlite.journal_mode =
       cfg.get_optional_config_param<std::string>("sqlite.journal_mode", "WAL");
 
-  itsParameters.options.auto_vacuum =
+  itsParameters.sqlite.auto_vacuum =
       cfg.get_optional_config_param<std::string>("sqlite.auto_vacuum", "NONE");
 
-  itsParameters.options.mmap_size = cfg.get_optional_config_param<long>("sqlite.mmap_size", 0);
+  itsParameters.sqlite.mmap_size = cfg.get_optional_config_param<long>("sqlite.mmap_size", 0);
 }
 
 bool SpatiaLiteCache::cacheHasStations() const
