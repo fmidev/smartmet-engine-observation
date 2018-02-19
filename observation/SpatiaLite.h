@@ -285,7 +285,7 @@ class SpatiaLite : private boost::noncopyable
   // Private members
   sqlite3pp::database itsDB;
   std::string srid;
-  bool itsShutdownRequested;
+  boost::atomic<bool> itsShutdownRequested;
   std::size_t itsConnectionId;
   std::size_t itsMaxInsertSize;
   std::map<std::string, std::string> stationTypeMap;

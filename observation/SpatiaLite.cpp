@@ -91,14 +91,14 @@ boost::optional<std::tm> parse_tm(sqlite3pp::query::iterator &iter, int column)
 };  // namespace
 
 SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheParameters &options)
-    : itsMaxInsertSize(options.maxInsertSize),
+    : itsShutdownRequested(false),
+      itsMaxInsertSize(options.maxInsertSize),
       itsDataInsertCache(options.dataInsertCacheSize),
       itsWeatherQCInsertCache(options.weatherDataQCInsertCacheSize),
       itsFlashInsertCache(options.flashInsertCacheSize)
 {
   try
   {
-    itsShutdownRequested = false;
     srid = "4326";
 
     // Enabling shared cache may decrease read performance:

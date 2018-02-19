@@ -39,7 +39,11 @@ void Engine::init()
 
     itsEngineParameters->observationCache.reset(
         ObservationCacheFactory::create(itsEngineParameters, cfg));
+#ifdef TODO_CAUSES_SEGFAULT_AT_EXIT
     itsDatabaseDriver.reset(DatabaseDriverFactory::create(itsEngineParameters, cfg));
+#else
+    itsDatabaseDriver = DatabaseDriverFactory::create(itsEngineParameters, cfg);
+#endif
     if (itsDatabaseDriver)
     {
       logMessage("[Observation Engine] database driver '" + itsDatabaseDriver->id() + "' created",
@@ -63,7 +67,6 @@ void Engine::init()
 void Engine::shutdown()
 {
   std::cout << "  -- Shutdown requested (Observation)" << std::endl;
-  itsEngineParameters->shutdownRequested = true;
   itsDatabaseDriver->shutdown();
 }
 

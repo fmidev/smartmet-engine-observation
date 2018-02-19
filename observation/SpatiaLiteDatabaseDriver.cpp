@@ -87,19 +87,6 @@ void SpatiaLiteDatabaseDriver::init(Geonames::Engine *geonames)
   }
 }
 
-void SpatiaLiteDatabaseDriver::shutdown()
-{
-  try
-  {
-    // Shutting down cache connections
-    itsParameters.observationCache->shutdown();
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
-  }
-}
-
 boost::shared_ptr<Spine::Table> SpatiaLiteDatabaseDriver::makeQuery(
     Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter)
 {
@@ -111,19 +98,13 @@ void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb)
 {
   try
   {
-    if (*(itsParameters.shutdownRequested))
-      return;
-
     if (qb == nullptr)
     {
       std::ostringstream msg;
       msg << "SpatiaLiteDatabaseDriver::makeQuery : Implementation of '" << typeid(qb).name()
           << "' class is missing.\n";
 
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-
-      exception.addDetail(msg.str());
-      throw exception;
+      throw Spine::Exception(BCP, "Invalid parameter value!").addDetail(msg.str());
     }
 
     const std::string sqlStatement = qb->getSQLStatement();
@@ -134,9 +115,7 @@ void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb)
       msg << "SpatiaLiteDatabaseDriver::makeQuery : SQL statement of '" << typeid(*qb).name()
           << "' class is empty.\n";
 
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-      exception.addDetail(msg.str());
-      throw exception;
+      throw Spine::Exception(BCP, "Invalid parameter value!").addDetail(msg.str());
     }
 
     std::shared_ptr<QueryResultBase> result = qb->getQueryResultContainer();
@@ -156,15 +135,12 @@ void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb)
       msg << "SpatiaLiteDatabaseDriver::makeQuery : Result container of '" << typeid(*qb).name()
           << "' class not found.\n";
 
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-      exception.addDetail(msg.str());
-      throw exception;
+      throw Spine::Exception(BCP, "Invalid parameter value!").addDetail(msg.str());
     }
   }
   catch (...)
   {
-    Spine::Exception exception(BCP, "Operation failed!");
-    throw exception;
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -174,9 +150,6 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
 
   try
   {
-    if (*(itsParameters.shutdownRequested))
-      return nullptr;
-
     // Do sanity check for the parameters
     for (const Spine::Parameter &p : settings.parameters)
     {
@@ -717,6 +690,8 @@ std::string SpatiaLiteDatabaseDriver::id() const
 {
   return "spatialite";
 }
+
+void SpatiaLiteDatabaseDriver::shutdown() {}
 
 }  // namespace Observation
 }  // namespace Engine

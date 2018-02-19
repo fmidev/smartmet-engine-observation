@@ -48,7 +48,6 @@ class SpatiaLiteDatabaseDriver : public DatabaseDriver
 
   ~SpatiaLiteDatabaseDriver() {}
 
- protected:
  private:
   bool isParameter(const std::string &alias, const std::string &stationType) const;
   bool isParameterVariant(const std::string &name) const;

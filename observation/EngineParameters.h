@@ -36,17 +36,16 @@ struct EngineParameters
 
   std::map<std::string, std::string> stationTypeMap;
   StationtypeConfig stationtypeConfig;
-  volatile bool shutdownRequested = false;
 
-  using ParameterMap = std::map<std::string, std::map<std::string, std::string> >;
+  using ParameterMap = std::map<std::string, std::map<std::string, std::string>>;
   ParameterMap parameterMap;
 
   std::string observationCacheId;
   std::string dbDriverFile;
 
   boost::shared_ptr<StationInfo> stationInfo;
-  Fmi::Cache::Cache<std::string, std::vector<Spine::Station> > locationCache;
-  Fmi::Cache::Cache<std::string, std::shared_ptr<QueryResultBase> > queryResultBaseCache;
+  Fmi::Cache::Cache<std::string, std::vector<Spine::Station>> locationCache;
+  Fmi::Cache::Cache<std::string, std::shared_ptr<QueryResultBase>> queryResultBaseCache;
 
   bool quiet;
 

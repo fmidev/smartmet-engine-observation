@@ -26,8 +26,7 @@ struct SpatiaLiteDriverParameters
         locationCache(p->locationCache),
         queryResultBaseCache(p->queryResultBaseCache),
         observationCache(p->observationCache),
-        stationtypeConfig(p->stationtypeConfig),
-        shutdownRequested(&p->shutdownRequested)
+        stationtypeConfig(p->stationtypeConfig)
   {
   }
 
@@ -38,7 +37,6 @@ struct SpatiaLiteDriverParameters
   Fmi::Cache::Cache<std::string, std::shared_ptr<QueryResultBase> >& queryResultBaseCache;
   boost::shared_ptr<ObservationCache> observationCache;
   StationtypeConfig& stationtypeConfig;
-  volatile bool* shutdownRequested;
   bool quiet;
   int finCacheDuration = 0;
 };

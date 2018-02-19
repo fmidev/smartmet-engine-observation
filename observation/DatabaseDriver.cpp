@@ -1,6 +1,7 @@
 #include "DatabaseDriver.h"
 
-extern "C" {
+extern "C"
+{
 #include <dlfcn.h>
 }
 

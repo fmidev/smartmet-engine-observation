@@ -48,11 +48,23 @@ class DatabaseDriver
   virtual void updateWeatherDataQCCache() = 0;
   virtual void locationsFromDatabase() = 0;
   virtual void preloadStations(const std::string &serializedStationsFile) = 0;
-  virtual void shutdown() = 0;
   virtual MetaData metaData(const std::string &producer) = 0;
+
+  virtual void shutdown() = 0;
+
+  // Accessors for the actual driver
+  boost::condition_variable &shutdownCondition() { return itsShutdownCondition; }
+  bool shutdownRequested() const { return itsShutdownRequested; }
 
  protected:
   DatabaseDriver() {}
+
+  // derived classes must use this to indicate the number of active threads
+  // in order for the base class shutdown to succeed properly.
+  boost::atomic<int> itsActiveThreadCount;
+  boost::mutex itsShutdownMutex;
+  boost::condition_variable itsShutdownCondition;
+  bool itsShutdownRequested = false;
 
  private:
   // Pointer to dymanically loaded database driver

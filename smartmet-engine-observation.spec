@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.2.9
+Version: 18.2.19
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,20 +15,20 @@ BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
 Requires: libconfig
-BuildRequires: smartmet-library-spine-devel >= 18.2.9
-BuildRequires: smartmet-engine-geonames-devel >= 18.1.31
+BuildRequires: smartmet-library-spine-devel >= 18.2.14
+BuildRequires: smartmet-engine-geonames-devel >= 18.2.9
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.20.1
 BuildRequires: smartmet-library-locus-devel >= 18.1.15
-BuildRequires: smartmet-library-macgyver-devel >= 18.2.6
+BuildRequires: smartmet-library-macgyver-devel >= 18.2.12
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 Requires: smartmet-server >= 17.11.10
-Requires: smartmet-engine-geonames >= 18.1.31
-Requires: smartmet-library-spine >= 18.2.9
+Requires: smartmet-engine-geonames >= 18.2.9
+Requires: smartmet-library-spine >= 18.2.14
 Requires: smartmet-library-locus >= 18.1.15
-Requires: smartmet-library-macgyver >= 18.2.6
+Requires: smartmet-library-macgyver >= 18.2.12
 Requires: libatomic
 Requires: unixODBC
 Requires: mysql++
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Feb 19 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.2.19-1.fmi
+- Fixed shutdown to exit cleanly
+
 * Fri Feb  9 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.2.9-1.fmi
 - Repackaged since base class SmartMetEngine size changed
 

@@ -53,13 +53,13 @@ class Engine : public SmartMet::Spine::SmartMetEngine
                            double latitude);
 
   /* \brief Test if the given alias name is configured and it has a field for
-* the stationType.
+   * the stationType.
    * \param[in] alias Alias name of a meteorologal parameter.
    * \param[in] stationType Station type to use for the alias.
    * \retval true The alias exist and it has configuration for the stationType.
-* \retval false The alias is not configured or there isn't a field for the
-* stationType inside of
-* the alias configuration block.
+   * \retval false The alias is not configured or there isn't a field for the
+   * stationType inside of
+   * the alias configuration block.
    */
 
   bool isParameter(const std::string &alias, const std::string &stationType = "unknown") const;
@@ -67,9 +67,9 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   /* \brief Test if the given alias name is configured
    * \param[in] name Alias name of a meteorologal parameter.
    * \retval true The alias exist and it has configuration for the stationType.
-* \retval false The alias is not configured or there isn't a field for the
-* stationType inside of
-* the alias configuration block.
+   * \retval false The alias is not configured or there isn't a field for the
+   * stationType inside of
+   * the alias configuration block.
    */
 
   bool isParameterVariant(const std::string &name) const;
@@ -103,12 +103,17 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   std::string itsConfigFile;
   bool itsReady = false;
 
+  boost::shared_ptr<EngineParameters> itsEngineParameters;
+
   boost::mutex itsSetGeonamesMutex;
 
   std::shared_ptr<DBRegistry> itsDatabaseRegistry;
 
-  std::unique_ptr<DatabaseDriver> itsDatabaseDriver;
-  boost::shared_ptr<EngineParameters> itsEngineParameters;
+#ifdef TODO_CAUSES_SEGFAULT_AT_EXIT
+  // std::unique_ptr<DatabaseDriver> itsDatabaseDriver;
+#else
+  DatabaseDriver *itsDatabaseDriver;
+#endif
 };
 
 }  // namespace Observation
