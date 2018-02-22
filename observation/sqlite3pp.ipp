@@ -303,10 +303,9 @@ inline int statement::prepare_impl(char const* stmt)
   auto rc = sqlite3_prepare_v2(db_.db_, stmt, std::strlen(stmt), &stmt_, &tail_);
   while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY)
   {
-    boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+    boost::this_thread::sleep(boost::posix_time::milliseconds(10));
     rc = sqlite3_prepare_v2(db_.db_, stmt, std::strlen(stmt), &stmt_, &tail_);
   }
-  return rc;
 #endif
 }
 
@@ -336,7 +335,7 @@ inline int statement::step()
   auto rc = sqlite3_step(stmt_);
   while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY)
   {
-    boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+    boost::this_thread::sleep(boost::posix_time::milliseconds(10));
     sqlite3_reset(stmt_);
     rc = sqlite3_step(stmt_);
   }

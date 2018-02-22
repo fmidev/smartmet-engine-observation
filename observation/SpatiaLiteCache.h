@@ -59,13 +59,13 @@ class SpatiaLiteCache : public ObservationCache
                             const Spine::TaggedLocationList &locations) const;
   boost::posix_time::ptime getLatestFlashTime() const;
   std::size_t fillFlashDataCache(const std::vector<FlashDataItem> &flashCacheData) const;
-  void cleanFlashDataCache(const boost::posix_time::ptime &timetokeep) const;
+  void cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const;
   boost::posix_time::ptime getLatestObservationTime() const;
   std::size_t fillDataCache(const std::vector<DataItem> &cacheData) const;
-  void cleanDataCache(const boost::posix_time::ptime &last_time) const;
+  void cleanDataCache(const boost::posix_time::time_duration &timetokeep) const;
   boost::posix_time::ptime getLatestWeatherDataQCTime() const;
   std::size_t fillWeatherDataQCCache(const std::vector<WeatherDataQCItem> &cacheData) const;
-  void cleanWeatherDataQCCache(const boost::posix_time::ptime &last_time) const;
+  void cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep) const;
   void fillLocationCache(const std::vector<LocationItem> &locations) const;
 
   boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(

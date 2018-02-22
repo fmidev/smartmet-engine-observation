@@ -49,8 +49,6 @@ void Engine::init()
       logMessage("[Observation Engine] database driver '" + itsDatabaseDriver->id() + "' created",
                  itsEngineParameters->quiet);
     }
-
-    itsReady = true;
   }
   catch (...)
   {
@@ -272,6 +270,7 @@ void Engine::setGeonames(Geonames::Engine *geonames_)
       itsEngineParameters->geonames = geonames_;
       // Connection pool can be initialized only afer geonames is set
       itsDatabaseDriver->init(geonames_);
+      itsReady = true;
     }
   }
   catch (...)

@@ -144,9 +144,14 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     // Get stations
+    std::ostringstream out;
+
+    out << "Getting SP connection: " << boost::posix_time::second_clock::local_time() << std::endl;
     boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
+    out << "Got SP connection: " << boost::posix_time::second_clock::local_time() << std::endl;
 
     Spine::Stations stations = getStationsFromSpatiaLite(settings, spatialitedb);
+    out << "Got stations: " << boost::posix_time::second_clock::local_time() << std::endl;
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
@@ -157,11 +162,14 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
       {
         ret = spatialitedb->getCachedWeatherDataQCData(
             stations, settings, itsParameters.parameterMap, timeSeriesOptions, itsTimeZones);
-        return ret;
+        out << "Got QC data: " << boost::posix_time::second_clock::local_time() << std::endl;
       }
-
-      ret = spatialitedb->getCachedData(
-          stations, settings, itsParameters.parameterMap, timeSeriesOptions, itsTimeZones);
+      else
+      {
+        ret = spatialitedb->getCachedData(
+            stations, settings, itsParameters.parameterMap, timeSeriesOptions, itsTimeZones);
+        out << "Got FIN data: " << boost::posix_time::second_clock::local_time() << std::endl;
+      }
     }
 
     return ret;
@@ -596,7 +604,7 @@ std::size_t SpatiaLiteCache::fillFlashDataCache(
   return itsConnectionPool->getConnection()->fillFlashDataCache(flashCacheData);
 }
 
-void SpatiaLiteCache::cleanFlashDataCache(const boost::posix_time::ptime &timetokeep) const
+void SpatiaLiteCache::cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const
 {
   return itsConnectionPool->getConnection()->cleanFlashDataCache(timetokeep);
 }
@@ -611,9 +619,9 @@ std::size_t SpatiaLiteCache::fillDataCache(const std::vector<DataItem> &cacheDat
   return itsConnectionPool->getConnection()->fillDataCache(cacheData);
 }
 
-void SpatiaLiteCache::cleanDataCache(const boost::posix_time::ptime &last_time) const
+void SpatiaLiteCache::cleanDataCache(const boost::posix_time::time_duration &timetokeep) const
 {
-  return itsConnectionPool->getConnection()->cleanDataCache(last_time);
+  return itsConnectionPool->getConnection()->cleanDataCache(timetokeep);
 }
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCTime() const
@@ -627,9 +635,10 @@ std::size_t SpatiaLiteCache::fillWeatherDataQCCache(
   return itsConnectionPool->getConnection()->fillWeatherDataQCCache(cacheData);
 }
 
-void SpatiaLiteCache::cleanWeatherDataQCCache(const boost::posix_time::ptime &last_time) const
+void SpatiaLiteCache::cleanWeatherDataQCCache(
+    const boost::posix_time::time_duration &timetokeep) const
 {
-  return itsConnectionPool->getConnection()->cleanWeatherDataQCCache(last_time);
+  return itsConnectionPool->getConnection()->cleanWeatherDataQCCache(timetokeep);
 }
 
 void SpatiaLiteCache::fillLocationCache(const std::vector<LocationItem> &locations) const
@@ -746,6 +755,9 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
       cfg.get_optional_config_param<std::string>("sqlite.auto_vacuum", "NONE");
 
   itsParameters.sqlite.mmap_size = cfg.get_optional_config_param<long>("sqlite.mmap_size", 0);
+
+  itsParameters.sqlite.wal_autocheckpoint =
+      cfg.get_optional_config_param<int>("sqlite.wal_autocheckpoint", 1000);
 }
 
 bool SpatiaLiteCache::cacheHasStations() const

@@ -18,6 +18,24 @@ using namespace boost::gregorian;
 using namespace boost::posix_time;
 using namespace boost::local_time;
 
+template <typename Clock, typename Duration>
+std::ostream &operator<<(std::ostream &stream,
+                         const std::chrono::time_point<Clock, Duration> &time_point)
+{
+  const time_t time = Clock::to_time_t(time_point);
+#if __GNUC__ > 4 || ((__GNUC__ == 4) && __GNUC_MINOR__ > 8 && __GNUC_REVISION__ > 1)
+  // Maybe the put_time will be implemented later?
+  struct tm tm;
+  localtime_r(&time, &tm);
+  return stream << std::put_time(&tm, "%c");  // Print standard date&time
+#else
+  char buffer[26];
+  ctime_r(&time, buffer);
+  buffer[24] = '\0';  // Removes the newline that is added
+  return stream << buffer;
+#endif
+}
+
 namespace SmartMet
 {
 // Mutex for write operations - otherwise you get table locked errors
@@ -31,6 +49,14 @@ namespace Observation
 {
 namespace
 {
+// Round down to HH:00:00
+
+boost::posix_time::ptime round_down_to_hour(const boost::posix_time::ptime &t)
+{
+  auto hour = t.time_of_day().hours();
+  return boost::posix_time::ptime(t.date(), boost::posix_time::hours(hour));
+}
+
 void solveMeasurandIds(const std::vector<std::string> &parameters,
                        const ParameterMap &parameterMap,
                        const std::string &stationType,
@@ -106,7 +132,8 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
     // However, for a single shared db it may be better to share:
     // https://github.com/mapnik/mapnik/issues/797
 
-    int flags = (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_SHAREDCACHE);
+    int flags = (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_SHAREDCACHE |
+                 SQLITE_OPEN_NOMUTEX);
 
     itsDB.connect(spatialiteFile.c_str(), flags);
     // timeout ms
@@ -134,6 +161,10 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
 
     std::string threadsPragma = "PRAGMA threads=" + Fmi::to_string(options.sqlite.threads);
     itsDB.execute(threadsPragma.c_str());
+
+    std::string walSizePragma =
+        "PRAGMA wal_autocheckpoint=" + Fmi::to_string(options.sqlite.wal_autocheckpoint);
+    itsDB.execute(walSizePragma.c_str());
 
     if (options.sqlite.cache_size != 0)
     {
@@ -266,7 +297,7 @@ void SpatiaLite::createObservationDataTable()
         "measurand_no INTEGER NOT NULL,"
         "data_value REAL, "
         "data_quality INTEGER, "
-        "PRIMARY KEY (fmisid, data_time, measurand_id, producer_id, "
+        "PRIMARY KEY (data_time, fmisid, measurand_id, producer_id, "
         "measurand_no)); CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON "
         "observation_data(data_time);");
     cmd.execute();
@@ -292,7 +323,7 @@ void SpatiaLite::createWeatherDataQCTable()
                            "sensor_no INTEGER NOT NULL, "
                            "value REAL NOT NULL, "
                            "flag INTEGER NOT NULL, "
-                           "PRIMARY KEY (fmisid, obstime, parameter, sensor_no)); CREATE INDEX IF "
+                           "PRIMARY KEY (obstime, fmisid, parameter, sensor_no)); CREATE INDEX IF "
                            "NOT EXISTS weather_data_qc_obstime_idx ON "
                            "weather_data_qc(obstime);");
     cmd.execute();
@@ -333,7 +364,7 @@ void SpatiaLite::createFlashDataTable()
                            "created  DATETIME, "
                            "modified_last DATETIME, "
                            "modified_by INTEGER, "
-                           "PRIMARY KEY (flash_id, stroke_time, stroke_time_fraction)); CREATE "
+                           "PRIMARY KEY (stroke_time, stroke_time_fraction, flash_id)); CREATE "
                            "INDEX IF NOT EXISTS flash_data_stroke_time_idx ON "
                            "flash_data(stroke_time)");
     cmd.execute();
@@ -437,6 +468,8 @@ size_t SpatiaLite::selectCount(const std::string &queryString)
 {
   try
   {
+    // Spine::ReadLock lock(write_mutex);
+
     size_t count = 0;
     sqlite3pp::query qry(itsDB, queryString.c_str());
     sqlite3pp::query::iterator iter = qry.begin();
@@ -460,6 +493,8 @@ boost::posix_time::ptime SpatiaLite::getLatestObservationTime()
 {
   try
   {
+    // Spine::ReadLock lock(write_mutex);
+
     boost::optional<std::tm> time;
 
     sqlite3pp::query qry(itsDB, "SELECT MAX(data_time) FROM observation_data");
@@ -483,6 +518,8 @@ boost::posix_time::ptime SpatiaLite::getOldestObservationTime()
 {
   try
   {
+    // Spine::ReadLock lock(write_mutex);
+
     boost::optional<std::tm> time;
 
     sqlite3pp::query qry(itsDB, "SELECT MIN(data_time) FROM observation_data");
@@ -510,9 +547,10 @@ boost::posix_time::ptime SpatiaLite::getLatestWeatherDataQCTime()
 {
   try
   {
+    // Spine::ReadLock lock(write_mutex);
+
     boost::optional<std::tm> time;
 
-    // Add 2 hours more observation for safety reasons
     sqlite3pp::query qry(itsDB, "SELECT MAX(obstime) FROM weather_data_qc");
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter != qry.end())
@@ -536,12 +574,15 @@ boost::posix_time::ptime SpatiaLite::getOldestWeatherDataQCTime()
 {
   try
   {
+    // Spine::ReadLock lock(write_mutex);
+
     boost::optional<std::tm> time;
 
     sqlite3pp::query qry(itsDB, "SELECT MIN(obstime) FROM weather_data_qc");
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter != qry.end())
       time = parse_tm(iter, 0);
+
     if (time.is_initialized())
       return boost::posix_time::ptime_from_tm(time.get());
     else
@@ -587,6 +628,8 @@ boost::posix_time::ptime SpatiaLite::getLatestTimeFromTable(const std::string ta
 {
   try
   {
+    // Spine::ReadLock lock(write_mutex);
+
     boost::optional<std::tm> time;
     std::string stmt = ("SELECT DATETIME(MAX(" + time_field + ")) FROM " + tablename);
     sqlite3pp::query qry(itsDB, stmt.c_str());
@@ -614,6 +657,8 @@ boost::posix_time::ptime SpatiaLite::getOldestTimeFromTable(const std::string ta
 {
   try
   {
+    // Spine::ReadLock lock(write_mutex);
+
     boost::optional<std::tm> time;
 
     std::string stmt = ("SELECT DATETIME(MIN(" + time_field + ")) FROM " + tablename);
@@ -708,15 +753,22 @@ void SpatiaLite::fillLocationCache(const vector<LocationItem> &locations)
   }
 }
 
-void SpatiaLite::cleanDataCache(const boost::posix_time::ptime &timetokeep)
+void SpatiaLite::cleanDataCache(const boost::posix_time::time_duration &timetokeep)
 {
   try
   {
-    Spine::WriteLock lock(write_mutex);
+    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    t = round_down_to_hour(t);
 
-    std::string timestring = to_iso_extended_string(timetokeep);
-    sqlite3pp::command cmd(itsDB, "DELETE FROM observation_data WHERE data_time < :timetokeep");
-    cmd.bind(":timetokeep", timestring, sqlite3pp::nocopy);
+    auto oldest = getOldestObservationTime();
+    if (t <= oldest)
+      return;
+
+    std::string timestring = Fmi::to_iso_extended_string(t);
+
+    Spine::WriteLock lock(write_mutex);
+    sqlite3pp::command cmd(itsDB, "DELETE FROM observation_data WHERE data_time < :timestring");
+    cmd.bind(":timestring", timestring, sqlite3pp::nocopy);
     cmd.execute();
   }
   catch (...)
@@ -725,15 +777,23 @@ void SpatiaLite::cleanDataCache(const boost::posix_time::ptime &timetokeep)
   }
 }
 
-void SpatiaLite::cleanWeatherDataQCCache(const boost::posix_time::ptime &timetokeep)
+void SpatiaLite::cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep)
 {
   try
   {
+    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    t = round_down_to_hour(t);
+
+    auto oldest = getOldestWeatherDataQCTime();
+    if (t <= oldest)
+      return;
+
+    std::string timestring = Fmi::to_iso_extended_string(t);
+
     Spine::WriteLock lock(write_mutex);
 
-    std::string timestring = to_iso_extended_string(timetokeep);
-    sqlite3pp::command cmd(itsDB, "DELETE FROM weather_data_qc WHERE obstime < :timetokeep");
-    cmd.bind(":timetokeep", timestring, sqlite3pp::nocopy);
+    sqlite3pp::command cmd(itsDB, "DELETE FROM weather_data_qc WHERE obstime < :timestring");
+    cmd.bind(":timestring", timestring, sqlite3pp::nocopy);
     cmd.execute();
   }
   catch (...)
@@ -742,15 +802,22 @@ void SpatiaLite::cleanWeatherDataQCCache(const boost::posix_time::ptime &timetok
   }
 }
 
-void SpatiaLite::cleanFlashDataCache(const boost::posix_time::ptime &timetokeep)
+void SpatiaLite::cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep)
 {
   try
   {
-    Spine::WriteLock lock(write_mutex);
+    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    t = round_down_to_hour(t);
 
-    std::string timestring = to_iso_extended_string(timetokeep);
-    sqlite3pp::command cmd(itsDB, "DELETE FROM flash_data WHERE stroke_time < :timetokeep");
-    cmd.bind(":timetokeep", timestring, sqlite3pp::nocopy);
+    auto oldest = getOldestFlashTime();
+    if (t <= oldest)
+      return;
+
+    std::string timestring = Fmi::to_iso_extended_string(t);
+
+    Spine::WriteLock lock(write_mutex);
+    sqlite3pp::command cmd(itsDB, "DELETE FROM flash_data WHERE stroke_time < :timestring");
+    cmd.bind(":timestring", timestring, sqlite3pp::nocopy);
     cmd.execute();
   }
   catch (...)
@@ -785,7 +852,7 @@ std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData)
       if (pos1 > 0)
       {
         // boost::this_thread::yield();
-        boost::this_thread::sleep(boost::posix_time::milliseconds(5));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
       }
 
       // Collect new items before taking a lock - we might avoid one completely
@@ -875,7 +942,7 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
       if (pos1 > 0)
       {
         // boost::this_thread::yield();
-        boost::this_thread::sleep(boost::posix_time::milliseconds(5));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
       }
 
       // Collect new items before taking a lock - we might avoid one completely
@@ -956,7 +1023,7 @@ std::size_t SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCac
       if (pos1 > 0)
       {
         // boost::this_thread::yield();
-        boost::this_thread::sleep(boost::posix_time::milliseconds(5));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
       }
 
       // Collect new items before taking a lock - we might avoid one completely
@@ -1541,35 +1608,38 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     std::vector<boost::optional<double> > data_valuesAll;
     std::vector<boost::optional<double> > sensor_nosAll;
 
-    sqlite3pp::query qry(itsDB, query.c_str());
-
-    for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
     {
-      boost::optional<int> fmisid;
-      boost::optional<std::tm> obstime;
-      boost::optional<double> latitude;
-      boost::optional<double> longitude;
-      boost::optional<double> elevation;
-      boost::optional<double> data_value;
-      boost::optional<double> sensor_no;
-      boost::optional<std::string> parameter;
-      fmisid = (*iter).get<int>(0);
-      obstime = parse_tm(iter, 1);
-      latitude = (*iter).get<double>(2);
-      longitude = (*iter).get<double>(3);
-      elevation = (*iter).get<double>(4);
-      parameter = (*iter).get<std::string>(5);
-      if ((*iter).column_type(6) != SQLITE_NULL)
-        data_value = (*iter).get<double>(6);
-      sensor_no = (*iter).get<double>(7);
-      fmisidsAll.push_back(fmisid);
-      obstimesAll.push_back(obstime);
-      latitudesAll.push_back(latitude);
-      longitudesAll.push_back(longitude);
-      elevationsAll.push_back(elevation);
-      parametersAll.push_back(parameter);
-      data_valuesAll.push_back(data_value);
-      sensor_nosAll.push_back(sensor_no);
+      // Spine::ReadLock lock(write_mutex);
+      sqlite3pp::query qry(itsDB, query.c_str());
+
+      for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
+      {
+        boost::optional<int> fmisid;
+        boost::optional<std::tm> obstime;
+        boost::optional<double> latitude;
+        boost::optional<double> longitude;
+        boost::optional<double> elevation;
+        boost::optional<double> data_value;
+        boost::optional<double> sensor_no;
+        boost::optional<std::string> parameter;
+        fmisid = (*iter).get<int>(0);
+        obstime = parse_tm(iter, 1);
+        latitude = (*iter).get<double>(2);
+        longitude = (*iter).get<double>(3);
+        elevation = (*iter).get<double>(4);
+        parameter = (*iter).get<std::string>(5);
+        if ((*iter).column_type(6) != SQLITE_NULL)
+          data_value = (*iter).get<double>(6);
+        sensor_no = (*iter).get<double>(7);
+        fmisidsAll.push_back(fmisid);
+        obstimesAll.push_back(obstime);
+        latitudesAll.push_back(latitude);
+        longitudesAll.push_back(longitude);
+        elevationsAll.push_back(elevation);
+        parametersAll.push_back(parameter);
+        data_valuesAll.push_back(data_value);
+        sensor_nosAll.push_back(sensor_no);
+      }
     }
 
     unsigned int i = 0;
@@ -1796,31 +1866,35 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
     std::vector<boost::optional<int> > measurand_idsAll;
     std::vector<boost::optional<double> > data_valuesAll;
 
-    sqlite3pp::query qry(itsDB, query.c_str());
-    for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
     {
-      boost::optional<int> fmisid;
-      boost::optional<std::tm> obstime;
-      boost::optional<double> latitude;
-      boost::optional<double> longitude;
-      boost::optional<double> elevation;
-      boost::optional<int> measurand_id;
-      boost::optional<double> data_value;
-      fmisid = (*iter).get<int>(0);
-      obstime = parse_tm(iter, 1);
-      latitude = (*iter).get<double>(2);
-      longitude = (*iter).get<double>(3);
-      elevation = (*iter).get<double>(4);
-      measurand_id = (*iter).get<int>(5);
-      if ((*iter).column_type(6) != SQLITE_NULL)
-        data_value = (*iter).get<double>(6);
-      fmisidsAll.push_back(fmisid);
-      obstimesAll.push_back(obstime);
-      latitudesAll.push_back(latitude);
-      longitudesAll.push_back(longitude);
-      elevationsAll.push_back(elevation);
-      measurand_idsAll.push_back(measurand_id);
-      data_valuesAll.push_back(data_value);
+      // Spine::ReadLock lock(write_mutex);
+      sqlite3pp::query qry(itsDB, query.c_str());
+
+      for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
+      {
+        boost::optional<int> fmisid;
+        boost::optional<std::tm> obstime;
+        boost::optional<double> latitude;
+        boost::optional<double> longitude;
+        boost::optional<double> elevation;
+        boost::optional<int> measurand_id;
+        boost::optional<double> data_value;
+        fmisid = (*iter).get<int>(0);
+        obstime = parse_tm(iter, 1);
+        latitude = (*iter).get<double>(2);
+        longitude = (*iter).get<double>(3);
+        elevation = (*iter).get<double>(4);
+        measurand_id = (*iter).get<int>(5);
+        if ((*iter).column_type(6) != SQLITE_NULL)
+          data_value = (*iter).get<double>(6);
+        fmisidsAll.push_back(fmisid);
+        obstimesAll.push_back(obstime);
+        latitudesAll.push_back(latitude);
+        longitudesAll.push_back(longitude);
+        elevationsAll.push_back(elevation);
+        measurand_idsAll.push_back(measurand_id);
+        data_valuesAll.push_back(data_value);
+      }
     }
 
     Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
@@ -2319,65 +2393,68 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
     double longitude = std::numeric_limits<double>::max();
     double latitude = std::numeric_limits<double>::max();
 
-    sqlite3pp::query qry(itsDB, query.c_str());
-
-    for (auto row : qry)
     {
-      map<std::string, ts::Value> result;
+      // Spine::ReadLock lock(write_mutex);
+      sqlite3pp::query qry(itsDB, query.c_str());
 
-      // These will be always in this order
-      stroke_time = row.get<string>(0);
-      // int stroke_time_fraction = row.get<int>(1);
-      // int flash_id = row.get<int>(2);
-      longitude = Fmi::stod(row.get<string>(3));
-      latitude = Fmi::stod(row.get<string>(4));
-
-      // Rest of the parameters in requested order
-      for (int i = 5; i != qry.column_count(); ++i)
+      for (auto row : qry)
       {
-        int data_type = row.column_type(i);
-        ts::Value temp;
-        if (data_type == SQLITE_TEXT)
-        {
-          temp = row.get<std::string>(i);
-        }
-        else if (data_type == SQLITE_FLOAT)
-        {
-          temp = row.get<double>(i);
-        }
-        else if (data_type == SQLITE_INTEGER)
-        {
-          temp = row.get<int>(i);
-        }
-        result[qry.column_name(i)] = temp;
-      }
+        map<std::string, ts::Value> result;
 
-      boost::posix_time::ptime utctime = boost::posix_time::time_from_string(stroke_time);
-      auto localtz = timezones.time_zone_from_string(settings.timezone);
-      local_date_time localtime = local_date_time(utctime, localtz);
+        // These will be always in this order
+        stroke_time = row.get<string>(0);
+        // int stroke_time_fraction = row.get<int>(1);
+        // int flash_id = row.get<int>(2);
+        longitude = Fmi::stod(row.get<string>(3));
+        latitude = Fmi::stod(row.get<string>(4));
 
-      std::pair<string, int> p;
-      for (const auto &p : timeseriesPositions)
-      {
-        std::string name = p.first;
-        int pos = p.second;
-
-        ts::Value val = result[name];
-        timeSeriesColumns->at(pos).push_back(ts::TimedValue(localtime, val));
-      }
-      for (const auto &p : specialPositions)
-      {
-        string name = p.first;
-        int pos = p.second;
-        if (name == "latitude")
+        // Rest of the parameters in requested order
+        for (int i = 5; i != qry.column_count(); ++i)
         {
-          ts::Value val = latitude;
+          int data_type = row.column_type(i);
+          ts::Value temp;
+          if (data_type == SQLITE_TEXT)
+          {
+            temp = row.get<std::string>(i);
+          }
+          else if (data_type == SQLITE_FLOAT)
+          {
+            temp = row.get<double>(i);
+          }
+          else if (data_type == SQLITE_INTEGER)
+          {
+            temp = row.get<int>(i);
+          }
+          result[qry.column_name(i)] = temp;
+        }
+
+        boost::posix_time::ptime utctime = boost::posix_time::time_from_string(stroke_time);
+        auto localtz = timezones.time_zone_from_string(settings.timezone);
+        local_date_time localtime = local_date_time(utctime, localtz);
+
+        std::pair<string, int> p;
+        for (const auto &p : timeseriesPositions)
+        {
+          std::string name = p.first;
+          int pos = p.second;
+
+          ts::Value val = result[name];
           timeSeriesColumns->at(pos).push_back(ts::TimedValue(localtime, val));
         }
-        if (name == "longitude")
+        for (const auto &p : specialPositions)
         {
-          ts::Value val = longitude;
-          timeSeriesColumns->at(pos).push_back(ts::TimedValue(localtime, val));
+          string name = p.first;
+          int pos = p.second;
+          if (name == "latitude")
+          {
+            ts::Value val = latitude;
+            timeSeriesColumns->at(pos).push_back(ts::TimedValue(localtime, val));
+          }
+          if (name == "longitude")
+          {
+            ts::Value val = longitude;
+            timeSeriesColumns->at(pos).push_back(ts::TimedValue(localtime, val));
+          }
         }
       }
     }

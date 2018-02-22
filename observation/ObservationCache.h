@@ -67,16 +67,17 @@ class ObservationCache
   virtual boost::posix_time::ptime getLatestFlashTime() const = 0;
   virtual std::size_t fillFlashDataCache(
       const std::vector<FlashDataItem> &flashCacheData) const = 0;
-  virtual void cleanFlashDataCache(const boost::posix_time::ptime &timetokeep) const = 0;
+  virtual void cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const = 0;
 
   virtual boost::posix_time::ptime getLatestObservationTime() const = 0;
   virtual std::size_t fillDataCache(const std::vector<DataItem> &cacheData) const = 0;
-  virtual void cleanDataCache(const boost::posix_time::ptime &last_time) const = 0;
+  virtual void cleanDataCache(const boost::posix_time::time_duration &timetokeep) const = 0;
 
   virtual boost::posix_time::ptime getLatestWeatherDataQCTime() const = 0;
   virtual std::size_t fillWeatherDataQCCache(
       const std::vector<WeatherDataQCItem> &cacheData) const = 0;
-  virtual void cleanWeatherDataQCCache(const boost::posix_time::ptime &last_time) const = 0;
+  virtual void cleanWeatherDataQCCache(
+      const boost::posix_time::time_duration &timetokeep) const = 0;
 
   virtual void fillLocationCache(const std::vector<LocationItem> &locations) const = 0;
 

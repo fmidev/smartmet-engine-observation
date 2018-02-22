@@ -40,8 +40,12 @@ SpatiaLiteConnectionPool::SpatiaLiteConnectionPool(const SpatiaLiteCacheParamete
 {
   try
   {
-    itsWorkingList.resize(options.connectionPoolSize, -1);
+    itsWorkingList.resize(options.connectionPoolSize, 0);
     itsWorkerList.resize(options.connectionPoolSize);
+
+    // Create all connections in advance, not when needed
+    for (std::size_t i = 0; i < itsWorkerList.size(); i++)
+      itsWorkerList[i] = boost::make_shared<SpatiaLite>(itsSpatialiteFile, itsOptions);
   }
   catch (...)
   {
@@ -77,24 +81,6 @@ boost::shared_ptr<SpatiaLite> SpatiaLiteConnectionPool::getConnection()
             itsWorkerList[i]->setConnectionId(i);
             return boost::shared_ptr<SpatiaLite>(itsWorkerList[i].get(),
                                                  Releaser<SpatiaLite>(this));
-          }
-          else if (itsWorkingList[i] == -1)
-          {
-            try
-            {
-              // Logon here
-              itsWorkerList[i] = boost::make_shared<SpatiaLite>(itsSpatialiteFile, itsOptions);
-
-              itsWorkingList[i] = 1;
-              itsWorkerList[i]->setConnectionId(i);
-              return boost::shared_ptr<SpatiaLite>(itsWorkerList[i].get(),
-                                                   Releaser<SpatiaLite>(this));
-            }
-            catch (...)
-            {
-              cerr << "[Observation] SpatiaLiteConnectionPool error: could not get a connection: "
-                   << endl;
-            }
           }
         }
       }
