@@ -306,6 +306,7 @@ inline int statement::prepare_impl(char const* stmt)
     boost::this_thread::sleep(boost::posix_time::milliseconds(10));
     rc = sqlite3_prepare_v2(db_.db_, stmt, std::strlen(stmt), &stmt_, &tail_);
   }
+  return rc;
 #endif
 }
 

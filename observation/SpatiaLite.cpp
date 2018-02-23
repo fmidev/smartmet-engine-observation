@@ -2348,11 +2348,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
         param +
         " "
         "FROM flash_data flash "
-        "WHERE flash.stroke_time >= DATETIME('" +
+        "WHERE flash.stroke_time >= '" +
         starttimeString +
-        "') "
-        "AND flash.stroke_time <= DATETIME('" +
-        endtimeString + "') ";
+        "' "
+        "AND flash.stroke_time <= '" +
+        endtimeString + "' ";
 
     if (!settings.taggedLocations.empty())
     {
