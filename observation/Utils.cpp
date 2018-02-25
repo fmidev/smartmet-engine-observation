@@ -363,6 +363,302 @@ std::string getLocationCacheKey(int geoID,
   }
 }
 
+boost::optional<int> calcSmartsymbolNumber(int wawa,
+                                           int cloudiness,
+                                           double temperature)
+{
+
+  const int wawa_group1[] = {0, 4, 5, 10, 20, 21, 22, 23, 24, 25};
+  const int wawa_group2[] = {30, 31, 32, 33, 34};
+
+  const int cloudiness_limit1 = 0;
+  const int cloudiness_limit2 = 1;
+  const int cloudiness_limit3 = 5;
+  const int cloudiness_limit4 = 7;
+  const int cloudiness_limit5 = 9;
+
+  if (std::find(std::begin(wawa_group1), std::end(wawa_group1), wawa) != std::end(wawa_group1))
+  {
+    if (cloudiness <= cloudiness_limit1)
+      return 1;
+    else if (cloudiness <= cloudiness_limit2)
+      return 2;
+    else if (cloudiness <= cloudiness_limit3)
+      return 4;
+    else if (cloudiness <= cloudiness_limit4)
+      return 6;
+    else if (cloudiness <= cloudiness_limit5)
+      return 7;
+  }
+  else if (std::find(std::begin(wawa_group2), std::end(wawa_group2), wawa) != std::end(wawa_group2))
+  {
+    if (cloudiness <= cloudiness_limit1)
+      return 1;
+    else if (cloudiness <= cloudiness_limit2)
+      return 2;
+    else if (cloudiness <= cloudiness_limit3)
+      return 4;
+    else if (cloudiness <= cloudiness_limit4)
+      return 6;
+    else if (cloudiness <= cloudiness_limit5)
+      return 9;
+  }
+
+  else if (wawa == 40 || wawa == 41)
+  {
+    if (temperature <= 0)
+    {
+      if (cloudiness <= 5)
+        return 51;
+      else if (cloudiness <= 7)
+        return 54;
+      else if (cloudiness <= 9)
+        return 57;
+    }
+    else
+    {
+      if (cloudiness <= 5)
+        return 31;
+      else if (cloudiness <= 7)
+        return 34;
+      else if (cloudiness <= 9)
+        return 37;
+    }
+  }
+  else if (wawa == 42)
+  {
+    if (temperature <= 0)
+    {
+      if (cloudiness <= 5)
+        return 53;
+      else if (cloudiness <= 7)
+        return 56;
+      else if (cloudiness <= 9)
+        return 59;
+    }
+    else
+    {
+      if (cloudiness <= 5)
+        return 33;
+      else if (cloudiness <= 7)
+        return 36;
+      else if (cloudiness <= 9)
+        return 39;
+    }
+  }
+  else if (wawa >= 50 && wawa <= 53)
+  {
+    if (cloudiness <= 9)
+      return 11;
+  }
+  else if (wawa >= 54 && wawa <= 56)
+  {
+    if (cloudiness <= 9)
+      return 14;
+  }
+  else if (wawa == 60)
+  {
+    if (cloudiness <= 5)
+      return 31;
+    else if (cloudiness <= 7)
+      return 34;
+    else if (cloudiness <= 9)
+      return 37;
+  }
+  else if (wawa == 61)
+  {
+    if (cloudiness <= 5)
+      return 31;
+    else if (cloudiness <= 7)
+      return 34;
+    else if (cloudiness <= 9)
+      return 37;
+  }
+  else if (wawa == 62)
+  {
+    if (cloudiness <= 5)
+      return 32;
+    else if (cloudiness <= 7)
+      return 35;
+    else if (cloudiness <= 9)
+      return 38;
+  }
+  else if (wawa == 63)
+  {
+    if (cloudiness <= 5)
+      return 33;
+    else if (cloudiness <= 7)
+      return 36;
+    else if (cloudiness <= 9)
+      return 39;
+  }
+  else if (wawa >= 64 && wawa <= 66)
+  {
+    if (cloudiness <= 9)
+      return 17;
+  }
+  else if (wawa == 67)
+  {
+    if (cloudiness <= 5)
+      return 41;
+    else if (cloudiness <= 7)
+      return 44;
+    else if (cloudiness <= 9)
+      return 47;
+  }
+  else if (wawa == 68)
+  {
+    if (cloudiness <= 5)
+      return 42;
+    else if (cloudiness <= 7)
+      return 45;
+    else if (cloudiness <= 9)
+      return 48;
+  }
+  else if (wawa == 70)
+  {
+    if (cloudiness <= 5)
+      return 51;
+    else if (cloudiness <= 7)
+      return 54;
+    else if (cloudiness <= 9)
+      return 57;
+  }
+  else if (wawa == 71)
+  {
+    if (cloudiness <= 5)
+      return 51;
+    else if (cloudiness <= 7)
+      return 54;
+    else if (cloudiness <= 9)
+      return 57;
+  }
+  else if (wawa == 72)
+  {
+    if (cloudiness <= 5)
+      return 52;
+    else if (cloudiness <= 7)
+      return 55;
+    else if (cloudiness <= 9)
+      return 58;
+  }
+  else if (wawa == 73)
+  {
+    if (cloudiness <= 5)
+      return 53;
+    else if (cloudiness <= 7)
+      return 56;
+    else if (cloudiness <= 9)
+      return 59;
+  }
+  else if (wawa == 74)
+  {
+    if (cloudiness <= 5)
+      return 51;
+    else if (cloudiness <= 7)
+      return 54;
+    else if (cloudiness <= 9)
+      return 57;
+  }
+  else if (wawa == 75)
+  {
+    if (cloudiness <= 5)
+      return 52;
+    else if (cloudiness <= 7)
+      return 55;
+    else if (cloudiness <= 9)
+      return 58;
+  }
+  else if (wawa == 76)
+  {
+    if (cloudiness <= 5)
+      return 53;
+    else if (cloudiness <= 7)
+      return 56;
+    else if (cloudiness <= 9)
+      return 59;
+  }
+  else if (wawa == 77)
+  {
+    if (cloudiness <= 9)
+      return 57;
+  }
+  else if (wawa == 78)
+  {
+    if (cloudiness <= 9)
+      return 57;
+  }
+  else if (wawa == 80)
+  {
+    if (temperature <= 0)
+    {
+      if (cloudiness <= 5)
+        return 51;
+      else if (cloudiness <= 7)
+        return 54;
+      else if (cloudiness <= 9)
+        return 57;
+    }
+    else
+    {
+      if (cloudiness <= 5)
+        return 21;
+      else if (cloudiness <= 7)
+        return 24;
+      else if (cloudiness <= 9)
+        return 27;
+    }
+  }
+  else if (wawa >= 81 && wawa <= 84)
+  {
+    if (cloudiness <= 5)
+      return 21;
+    else if (cloudiness <= 7)
+      return 24;
+    else if (cloudiness <= 9)
+      return 27;
+  }
+  else if (wawa == 85)
+  {
+    if (cloudiness <= 5)
+      return 51;
+    else if (cloudiness <= 7)
+      return 54;
+    else if (cloudiness <= 9)
+      return 57;
+  }
+  else if (wawa == 86)
+  {
+    if (cloudiness <= 5)
+      return 52;
+    else if (cloudiness <= 7)
+      return 55;
+    else if (cloudiness <= 9)
+      return 58;
+  }
+  else if (wawa == 87)
+  {
+    if (cloudiness <= 5)
+      return 53;
+    else if (cloudiness <= 7)
+      return 56;
+    else if (cloudiness <= 9)
+      return 59;
+  }
+  else if (wawa == 89)
+  {
+    if (cloudiness <= 5)
+      return 61;
+    else if (cloudiness <= 7)
+      return 64;
+    else if (cloudiness <= 9)
+      return 67;
+  }
+
+  // No valid combination found, return empty value
+  return {};
+}
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

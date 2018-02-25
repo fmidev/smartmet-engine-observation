@@ -8,6 +8,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/utility.hpp>
+#include <boost/optional.hpp>
 
 #include <map>
 #include <string>
@@ -99,6 +100,19 @@ std::string getLocationCacheKey(int geoID,
                                 int maxDistance,
                                 const boost::posix_time::ptime& starttime,
                                 const boost::posix_time::ptime& endtime);
+
+// ----------------------------------------------------------------------
+/*!
+ * \brief Calculate the weather symbol using wawa code, temperature and cloudiness
+ * 
+ * The logic is described in: 
+ * https://wiki.fmi.fi/display/PROJEKTIT/Havaintojen+muuntaminen+SmartSymboliksi
+ */
+// ----------------------------------------------------------------------
+
+boost::optional<int> calcSmartsymbolNumber(int wawa,
+                                           int cloudiness,
+                                           double temperature);
 
 }  // namespace Observation
 }  // namespace Engine
