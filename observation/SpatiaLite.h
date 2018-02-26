@@ -298,6 +298,15 @@ class SpatiaLite : private boost::noncopyable
   std::string stationType(const std::string &type);
   std::string stationType(SmartMet::Spine::Station &station);
 
+  void addSmartSymbolToTimeSeries(
+      const int pos,
+      const Spine::Station &s,
+      const boost::local_time::local_date_time &time,
+      const ParameterMap &parameterMap,
+      const std::string &stationtype,
+      const std::map<int, std::map<boost::local_time::local_date_time, std::map<int, SmartMet::Spine::TimeSeries::Value> > > &data,
+      const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns);
+
   void addSpecialParameterToTimeSeries(
       const std::string &paramname,
       SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
