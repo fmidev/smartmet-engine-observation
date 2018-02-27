@@ -2327,7 +2327,6 @@ void SpatiaLite::addParameterToTimeSeries(
         std::string wawapos = parameterMap.at("wawa").at(stationtype);
         std::string totalcloudcoverpos = parameterMap.at("totalcloudcover").at(stationtype);
         std::string temppos = parameterMap.at("temperature").at(stationtype);
-
         if (data.count(wawapos) == 0 || data.count(totalcloudcoverpos) == 0 || data.count(temppos) == 0)
         {
           ts::Value missing = ts::None();
@@ -2338,8 +2337,11 @@ void SpatiaLite::addParameterToTimeSeries(
           float temp = boost::get<double>(data.at(temppos));
           int totalcloudcover= static_cast<int>(boost::get<double>(data.at(totalcloudcoverpos)));
           int wawa = static_cast<int>(boost::get<double>(data.at(wawapos)));
+          double lat = station.latitude_out;
+          double lon = station.longitude_out;
 
-          ts::Value smartsymbol = ts::Value(*calcSmartsymbolNumber(wawa, totalcloudcover, temp));
+          ts::Value smartsymbol = ts::Value(*calcSmartsymbolNumber(
+              wawa, totalcloudcover, temp, obstime, lat, lon));
           timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, smartsymbol));
         }
       }
@@ -2556,9 +2558,10 @@ void SpatiaLite::addSmartSymbolToTimeSeries(
     double temp = boost::get<double>(dataItem.at(temppos));
     int totalcloudcover = static_cast<int>(boost::get<double>(dataItem.at(totalcloudcoverpos)));
     int wawa = static_cast<int>(boost::get<double>(dataItem.at(wawapos)));
-    
-    ts::Value smartsymbol =
-        ts::Value(*calcSmartsymbolNumber(wawa, totalcloudcover, temp));
+    double lat = s.latitude_out;
+    double lon = s.longitude_out;
+    ts::Value smartsymbol = ts::Value(*calcSmartsymbolNumber(
+        wawa, totalcloudcover, temp, time, lat, lon));
     timeSeriesColumns->at(pos).push_back(ts::TimedValue(time, smartsymbol));
   }
 }
@@ -3645,9 +3648,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
                   double temp = boost::get<double>(data[s.fmisid][t][temppos]);
                   int totalcloudcover = static_cast<int>(boost::get<double>(data[s.fmisid][t][totalcloudcoverpos]));
                   int wawa = static_cast<int>(boost::get<double>(data[s.fmisid][t][wawapos]));
-
-                  ts::Value smartsymbol =
-                      ts::Value(*calcSmartsymbolNumber(wawa, totalcloudcover, temp));
+                  double lat = s.latitude_out;
+                  double lon = s.longitude_out;
+                  ts::Value smartsymbol = ts::Value(*calcSmartsymbolNumber(
+                      wawa, totalcloudcover, temp, t, lat, lon));
                   timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, smartsymbol));
                 }
               }
@@ -3754,9 +3758,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
                   double temp = boost::get<double>(data[s.fmisid][t][temppos]);
                   int totalcloudcover = static_cast<int>(boost::get<double>(data[s.fmisid][t][totalcloudcoverpos]));
                   int wawa = static_cast<int>(boost::get<double>(data[s.fmisid][t][wawapos]));
+                  double lat = s.latitude_out;
+                  double lon = s.longitude_out;
 
-                  ts::Value smartsymbol =
-                      ts::Value(*calcSmartsymbolNumber(wawa, totalcloudcover, temp));
+                  ts::Value smartsymbol = ts::Value(*calcSmartsymbolNumber(
+                      wawa, totalcloudcover, temp, t, lat, lon));
                   timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, smartsymbol));
                 }
                 }
