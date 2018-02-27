@@ -190,39 +190,32 @@ Spine::Parameter EngineParameters::makeParameter(const std::string &name) const
     if (name.empty())
       throw Spine::Exception(BCP, "Empty parameters are not allowed");
 
-    std::string paramname = name;
+    std::string p = boost::algorithm::to_lower_copy(name);
     Spine::Parameter::Type type = Spine::Parameter::Type::Data;
 
-    if (paramname == "level" || paramname == "latitude" || paramname == "longitude" ||
-        paramname == "latlon" || paramname == "lonlat" || paramname == "geoid" ||
-        paramname == "place" || paramname == "stationname" || paramname == "name" ||
-        paramname == "iso2" || paramname == "region" || paramname == "country" ||
-        paramname == "elevation" || paramname == "sunelevation" || paramname == "sundeclination" ||
-        paramname == "sunazimuth" || paramname == "dark" || paramname == "sunrise" ||
-        paramname == "sunset" || paramname == "noon" || paramname == "sunrisetoday" ||
-        paramname == "sunsettoday" || paramname == "moonphase" || paramname == "model" ||
-        paramname == "time" || paramname == "localtime" || paramname == "utctime" ||
-        paramname == "epochtime" || paramname == "isotime" || paramname == "xmltime" ||
-        paramname == "localtz" || paramname == "tz" || paramname == "origintime" ||
-        paramname == "wday" || paramname == "weekday" || paramname == "mon" ||
-        paramname == "month" || paramname == "hour" || paramname == "timestring" ||
-        paramname == "station_name" || paramname == "distance" || paramname == "direction" ||
-        paramname == "stationary" || paramname == "lon" || paramname == "lat" ||
-        paramname == "stationlon" || paramname == "stationlat" || paramname == "stationlongitude" ||
-        paramname == "stationlatitude" || paramname == "station_elevation" || paramname == "wmo" ||
-        paramname == "lpnn" || paramname == "fmisid" || paramname == "rwsid" ||
-        paramname == "sensor_no")
+    if (p == "level" || p == "latitude" || p == "longitude" || p == "latlon" || p == "lonlat" ||
+        p == "geoid" || p == "place" || p == "stationname" || p == "name" || p == "iso2" ||
+        p == "region" || p == "country" || p == "elevation" || p == "sunelevation" ||
+        p == "sundeclination" || p == "sunazimuth" || p == "dark" || p == "sunrise" ||
+        p == "sunset" || p == "noon" || p == "sunrisetoday" || p == "sunsettoday" ||
+        p == "moonphase" || p == "model" || p == "time" || p == "localtime" || p == "utctime" ||
+        p == "epochtime" || p == "isotime" || p == "xmltime" || p == "localtz" || p == "tz" ||
+        p == "origintime" || p == "wday" || p == "weekday" || p == "mon" || p == "month" ||
+        p == "hour" || p == "timestring" || p == "station_name" || p == "distance" ||
+        p == "direction" || p == "stationary" || p == "lon" || p == "lat" || p == "stationlon" ||
+        p == "stationlat" || p == "stationlongitude" || p == "stationlatitude" ||
+        p == "station_elevation" || p == "wmo" || p == "lpnn" || p == "fmisid" || p == "rwsid" ||
+        p == "sensor_no")
     {
       type = Spine::Parameter::Type::DataIndependent;
     }
-    else if (paramname == "WindCompass8" || paramname == "WindCompass16" ||
-             paramname == "WindCompass32" || paramname == "Cloudiness8th" ||
-             paramname == "WindChill" || paramname == "Weather")
+    else if (p == "windcompass8" || p == "windcompass16" || p == "windcompass32" ||
+             p == "cloudiness8th" || p == "windchill" || p == "weather" || p == "smartsymbol")
     {
       type = Spine::Parameter::Type::DataDerived;
     }
 
-    return Spine::Parameter(paramname, type);
+    return Spine::Parameter(name, type);
   }
   catch (...)
   {
