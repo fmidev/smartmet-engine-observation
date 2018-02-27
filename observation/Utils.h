@@ -9,7 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/utility.hpp>
 #include <boost/optional.hpp>
-
+#include <boost/date_time/local_time/local_time.hpp>
 #include <map>
 #include <string>
 #include <vector>
@@ -110,9 +110,13 @@ std::string getLocationCacheKey(int geoID,
  */
 // ----------------------------------------------------------------------
 
-boost::optional<int> calcSmartsymbolNumber(int wawa,
-                                           int cloudiness,
-                                           double temperature);
+boost::optional<int> calcSmartsymbolNumber(
+    int wawa,
+    int cloudiness,
+    double temperature,
+    const boost::local_time::local_date_time &ldt,
+    double lat,
+    double lon);
 
 }  // namespace Observation
 }  // namespace Engine

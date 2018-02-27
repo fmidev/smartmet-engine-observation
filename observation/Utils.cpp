@@ -7,6 +7,7 @@
 #include <boost/regex.hpp>
 #include <boost/serialization/vector.hpp>
 #include <macgyver/TypeName.h>
+#include <macgyver/Astronomy.h>
 #include <spine/Convenience.h>
 #include <spine/Exception.h>
 #include <fstream>
@@ -363,10 +364,15 @@ std::string getLocationCacheKey(int geoID,
   }
 }
 
-boost::optional<int> calcSmartsymbolNumber(int wawa,
-                                           int cloudiness,
-                                           double temperature)
+boost::optional<int> calcSmartsymbolNumber(
+    int wawa,
+    int cloudiness,
+    double temperature,
+    const boost::local_time::local_date_time &ldt,
+    double lat,
+    double lon)
 {
+  boost::optional<int> smartsymbol = {};
 
   const int wawa_group1[] = {0, 4, 5, 10, 20, 21, 22, 23, 24, 25};
   const int wawa_group2[] = {30, 31, 32, 33, 34};
@@ -380,28 +386,28 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
   if (std::find(std::begin(wawa_group1), std::end(wawa_group1), wawa) != std::end(wawa_group1))
   {
     if (cloudiness <= cloudiness_limit1)
-      return 1;
+      smartsymbol = 1;
     else if (cloudiness <= cloudiness_limit2)
-      return 2;
+      smartsymbol = 2;
     else if (cloudiness <= cloudiness_limit3)
-      return 4;
+      smartsymbol = 4;
     else if (cloudiness <= cloudiness_limit4)
-      return 6;
+      smartsymbol = 6;
     else if (cloudiness <= cloudiness_limit5)
-      return 7;
+      smartsymbol = 7;
   }
   else if (std::find(std::begin(wawa_group2), std::end(wawa_group2), wawa) != std::end(wawa_group2))
   {
     if (cloudiness <= cloudiness_limit1)
-      return 1;
+      smartsymbol = 1;
     else if (cloudiness <= cloudiness_limit2)
-      return 2;
+      smartsymbol = 2;
     else if (cloudiness <= cloudiness_limit3)
-      return 4;
+      smartsymbol = 4;
     else if (cloudiness <= cloudiness_limit4)
-      return 6;
+      smartsymbol = 6;
     else if (cloudiness <= cloudiness_limit5)
-      return 9;
+      smartsymbol = 9;
   }
 
   else if (wawa == 40 || wawa == 41)
@@ -409,20 +415,20 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
     if (temperature <= 0)
     {
       if (cloudiness <= 5)
-        return 51;
+        smartsymbol = 51;
       else if (cloudiness <= 7)
-        return 54;
+        smartsymbol = 54;
       else if (cloudiness <= 9)
-        return 57;
+        smartsymbol = 57;
     }
     else
     {
       if (cloudiness <= 5)
-        return 31;
+        smartsymbol = 31;
       else if (cloudiness <= 7)
-        return 34;
+        smartsymbol = 34;
       else if (cloudiness <= 9)
-        return 37;
+        smartsymbol = 37;
     }
   }
   else if (wawa == 42)
@@ -430,229 +436,239 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
     if (temperature <= 0)
     {
       if (cloudiness <= 5)
-        return 53;
+        smartsymbol = 53;
       else if (cloudiness <= 7)
-        return 56;
+        smartsymbol = 56;
       else if (cloudiness <= 9)
-        return 59;
+        smartsymbol = 59;
     }
     else
     {
       if (cloudiness <= 5)
-        return 33;
+        smartsymbol = 33;
       else if (cloudiness <= 7)
-        return 36;
+        smartsymbol = 36;
       else if (cloudiness <= 9)
-        return 39;
+        smartsymbol = 39;
     }
   }
   else if (wawa >= 50 && wawa <= 53)
   {
     if (cloudiness <= 9)
-      return 11;
+      smartsymbol = 11;
   }
   else if (wawa >= 54 && wawa <= 56)
   {
     if (cloudiness <= 9)
-      return 14;
+      smartsymbol = 14;
   }
   else if (wawa == 60)
   {
     if (cloudiness <= 5)
-      return 31;
+      smartsymbol = 31;
     else if (cloudiness <= 7)
-      return 34;
+      smartsymbol = 34;
     else if (cloudiness <= 9)
-      return 37;
+      smartsymbol = 37;
   }
   else if (wawa == 61)
   {
     if (cloudiness <= 5)
-      return 31;
+      smartsymbol = 31;
     else if (cloudiness <= 7)
-      return 34;
+      smartsymbol = 34;
     else if (cloudiness <= 9)
-      return 37;
+      smartsymbol = 37;
   }
   else if (wawa == 62)
   {
     if (cloudiness <= 5)
-      return 32;
+      smartsymbol = 32;
     else if (cloudiness <= 7)
-      return 35;
+      smartsymbol = 35;
     else if (cloudiness <= 9)
-      return 38;
+      smartsymbol = 38;
   }
   else if (wawa == 63)
   {
     if (cloudiness <= 5)
-      return 33;
+      smartsymbol = 33;
     else if (cloudiness <= 7)
-      return 36;
+      smartsymbol = 36;
     else if (cloudiness <= 9)
-      return 39;
+      smartsymbol = 39;
   }
   else if (wawa >= 64 && wawa <= 66)
   {
     if (cloudiness <= 9)
-      return 17;
+      smartsymbol = 17;
   }
   else if (wawa == 67)
   {
     if (cloudiness <= 5)
-      return 41;
+      smartsymbol = 41;
     else if (cloudiness <= 7)
-      return 44;
+      smartsymbol = 44;
     else if (cloudiness <= 9)
-      return 47;
+      smartsymbol = 47;
   }
   else if (wawa == 68)
   {
     if (cloudiness <= 5)
-      return 42;
+      smartsymbol = 42;
     else if (cloudiness <= 7)
-      return 45;
+      smartsymbol = 45;
     else if (cloudiness <= 9)
-      return 48;
+      smartsymbol = 48;
   }
   else if (wawa == 70)
   {
     if (cloudiness <= 5)
-      return 51;
+      smartsymbol = 51;
     else if (cloudiness <= 7)
-      return 54;
+      smartsymbol = 54;
     else if (cloudiness <= 9)
-      return 57;
+      smartsymbol = 57;
   }
   else if (wawa == 71)
   {
     if (cloudiness <= 5)
-      return 51;
+      smartsymbol = 51;
     else if (cloudiness <= 7)
-      return 54;
+      smartsymbol = 54;
     else if (cloudiness <= 9)
-      return 57;
+      smartsymbol = 57;
   }
   else if (wawa == 72)
   {
     if (cloudiness <= 5)
-      return 52;
+      smartsymbol = 52;
     else if (cloudiness <= 7)
-      return 55;
+      smartsymbol = 55;
     else if (cloudiness <= 9)
-      return 58;
+      smartsymbol = 58;
   }
   else if (wawa == 73)
   {
     if (cloudiness <= 5)
-      return 53;
+      smartsymbol = 53;
     else if (cloudiness <= 7)
-      return 56;
+      smartsymbol = 56;
     else if (cloudiness <= 9)
-      return 59;
+      smartsymbol = 59;
   }
   else if (wawa == 74)
   {
     if (cloudiness <= 5)
-      return 51;
+      smartsymbol = 51;
     else if (cloudiness <= 7)
-      return 54;
+      smartsymbol = 54;
     else if (cloudiness <= 9)
-      return 57;
+      smartsymbol = 57;
   }
   else if (wawa == 75)
   {
     if (cloudiness <= 5)
-      return 52;
+      smartsymbol = 52;
     else if (cloudiness <= 7)
-      return 55;
+      smartsymbol = 55;
     else if (cloudiness <= 9)
-      return 58;
+      smartsymbol = 58;
   }
   else if (wawa == 76)
   {
     if (cloudiness <= 5)
-      return 53;
+      smartsymbol = 53;
     else if (cloudiness <= 7)
-      return 56;
+      smartsymbol = 56;
     else if (cloudiness <= 9)
-      return 59;
+      smartsymbol = 59;
   }
   else if (wawa == 77)
   {
     if (cloudiness <= 9)
-      return 57;
+      smartsymbol = 57;
   }
   else if (wawa == 78)
   {
     if (cloudiness <= 9)
-      return 57;
+      smartsymbol = 57;
   }
   else if (wawa == 80)
   {
     if (temperature <= 0)
     {
       if (cloudiness <= 5)
-        return 51;
+        smartsymbol = 51;
       else if (cloudiness <= 7)
-        return 54;
+        smartsymbol = 54;
       else if (cloudiness <= 9)
-        return 57;
+        smartsymbol = 57;
     }
     else
     {
       if (cloudiness <= 5)
-        return 21;
+        smartsymbol = 21;
       else if (cloudiness <= 7)
-        return 24;
+        smartsymbol = 24;
       else if (cloudiness <= 9)
-        return 27;
+        smartsymbol = 27;
     }
   }
   else if (wawa >= 81 && wawa <= 84)
   {
     if (cloudiness <= 5)
-      return 21;
+      smartsymbol = 21;
     else if (cloudiness <= 7)
-      return 24;
+      smartsymbol = 24;
     else if (cloudiness <= 9)
-      return 27;
+      smartsymbol = 27;
   }
   else if (wawa == 85)
   {
     if (cloudiness <= 5)
-      return 51;
+      smartsymbol = 51;
     else if (cloudiness <= 7)
-      return 54;
+      smartsymbol = 54;
     else if (cloudiness <= 9)
-      return 57;
+      smartsymbol = 57;
   }
   else if (wawa == 86)
   {
     if (cloudiness <= 5)
-      return 52;
+      smartsymbol = 52;
     else if (cloudiness <= 7)
-      return 55;
+      smartsymbol = 55;
     else if (cloudiness <= 9)
-      return 58;
+      smartsymbol = 58;
   }
   else if (wawa == 87)
   {
     if (cloudiness <= 5)
-      return 53;
+      smartsymbol = 53;
     else if (cloudiness <= 7)
-      return 56;
+      smartsymbol = 56;
     else if (cloudiness <= 9)
-      return 59;
+      smartsymbol = 59;
   }
   else if (wawa == 89)
   {
     if (cloudiness <= 5)
-      return 61;
+      smartsymbol = 61;
     else if (cloudiness <= 7)
-      return 64;
+      smartsymbol = 64;
     else if (cloudiness <= 9)
-      return 67;
+      smartsymbol = 67;
+  }
+
+  // Add day/night information
+  Fmi::Astronomy::solar_position_t sp =
+      Fmi::Astronomy::solar_position(ldt, lon, lat);
+  if (smartsymbol)
+  {
+    if (sp.dark())
+      return 100 + *smartsymbol;
+    return *smartsymbol;
   }
 
   // No valid combination found, return empty value
