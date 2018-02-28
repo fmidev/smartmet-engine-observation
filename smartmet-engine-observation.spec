@@ -15,7 +15,7 @@ BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
 Requires: libconfig
-BuildRequires: smartmet-library-spine-devel >= 18.2.26
+BuildRequires: smartmet-library-spine-devel >= 18.2.27
 BuildRequires: smartmet-engine-geonames-devel >= 18.2.9
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
@@ -26,7 +26,7 @@ BuildRequires: libatomic
 BuildRequires: bzip2-devel
 Requires: smartmet-server >= 17.11.10
 Requires: smartmet-engine-geonames >= 18.2.9
-Requires: smartmet-library-spine >= 18.2.26
+Requires: smartmet-library-spine >= 18.2.27
 Requires: smartmet-library-locus >= 18.1.15
 Requires: smartmet-library-macgyver >= 18.2.12
 Requires: libatomic
@@ -92,7 +92,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Tue Feb 27 2018  <santeri.oksman@fmi.fin> - 18.2.28-1.fmi
+* Wed Feb 28 2018  <santeri.oksman@fmi.fin> - 18.2.28-1.fmi
 - Added night/day calculcation to SmartSymbol
 
 * Tue Feb 27 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.2.27-2.fmi
