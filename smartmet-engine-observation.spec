@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 18.2.28
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -92,7 +92,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Wed Feb 28 2018  <santeri.oksman@fmi.fin> - 18.2.28-1.fmi
+* Wed Feb 28 2018 Santeri Oksman <santeri.oksman@fmi.fi> - 18.2.28-2.fmi
+- Fix wawa parameter handling in SmartSymbol calculation.
+
+* Wed Feb 28 2018 Santeri Oksman <santeri.oksman@fmi.fi> - 18.2.28-1.fmi
 - Added night/day calculcation to SmartSymbol
 
 * Tue Feb 27 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.2.27-2.fmi

@@ -2541,7 +2541,7 @@ void SpatiaLite::addSmartSymbolToTimeSeries(
     const std::map<int, std::map<boost::local_time::local_date_time, std::map<int, ts::Value> > > &data,
     const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns)
 {
-  int wawapos = Fmi::stoi(parameterMap.at("windspeedms").at(stationtype));
+  int wawapos = Fmi::stoi(parameterMap.at("wawa").at(stationtype));
   int totalcloudcoverpos = Fmi::stoi(parameterMap.at("totalcloudcover").at(stationtype));
   int temppos = Fmi::stoi(parameterMap.at("temperature").at(stationtype));
 
@@ -3631,7 +3631,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
               }
               else if (special.first.find("smartsymbol") != std::string::npos)
               {
-                int wawapos = Fmi::stoi(parameterMap.at("windspeedms").at(stationtype));
+                int wawapos = Fmi::stoi(parameterMap.at("wawa").at(stationtype));
                 int totalcloudcoverpos =
                     Fmi::stoi(parameterMap.at("totalcloudcover").at(stationtype));
                 int temppos = Fmi::stoi(parameterMap.at("temperature").at(stationtype));
@@ -3741,7 +3741,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
                 }
                 else if (special.first.find("smartsymbol") != std::string::npos)
                 {
-                  int wawapos = Fmi::stoi(parameterMap.at("windspeedms").at(stationtype));
+                  int wawapos = Fmi::stoi(parameterMap.at("wawa").at(stationtype));
                 int totalcloudcoverpos =
                     Fmi::stoi(parameterMap.at("totalcloudcover").at(stationtype));
                 int temppos = Fmi::stoi(parameterMap.at("temperature").at(stationtype));
