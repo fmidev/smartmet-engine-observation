@@ -190,7 +190,7 @@ Spine::Parameter EngineParameters::makeParameter(const std::string &name) const
     if (name.empty())
       throw Spine::Exception(BCP, "Empty parameters are not allowed");
 
-    std::string p = boost::algorithm::to_lower_copy(name);
+    std::string p = boost::algorithm::to_lower_copy(name, std::locale::classic());
     Spine::Parameter::Type type = Spine::Parameter::Type::Data;
 
     if (p == "level" || p == "latitude" || p == "longitude" || p == "latlon" || p == "lonlat" ||

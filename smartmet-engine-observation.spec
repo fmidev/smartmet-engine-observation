@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.2.28
-Release: 2%{?dist}.fmi
+Version: 18.3.1
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Mar  1 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.3.1-1.fmi
+- Avoid locale copying in case conversions
+
 * Wed Feb 28 2018 Santeri Oksman <santeri.oksman@fmi.fi> - 18.2.28-2.fmi
 - Fix wawa parameter handling in SmartSymbol calculation.
 
