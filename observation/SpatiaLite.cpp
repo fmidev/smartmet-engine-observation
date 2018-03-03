@@ -3,6 +3,7 @@
 #include "SpatiaLiteCacheParameters.h"
 
 #include <macgyver/StringConversion.h>
+#include <macgyver/TimeParser.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <spine/Exception.h>
 #include <spine/Thread.h>
@@ -97,21 +98,13 @@ void solveMeasurandIds(const std::vector<std::string> &parameters,
   }
 }
 
-boost::optional<std::tm> parse_tm(sqlite3pp::query::iterator &iter, int column)
+boost::posix_time::ptime parse_sqlite_time(sqlite3pp::query::iterator &iter, int column)
 {
-  boost::optional<std::tm> ret;
+  if ((*iter).column_type(column) != SQLITE_TEXT)
+    throw Spine::Exception(BCP, "Invalid time column from sqlite query");
 
-  if ((*iter).column_type(column) == SQLITE_TEXT)
-  {
-    std::string timestring = (*iter).get<char const *>(column);
-    if (timestring.size() > 10)
-    {
-      timestring[10] = ' ';
-      ret = to_tm(time_from_string(timestring));
-    }
-  }
-
-  return ret;
+  std::string timestring = (*iter).get<char const *>(column);
+  return Fmi::TimeParser::parse(timestring);
 }
 
 };  // namespace
@@ -495,18 +488,11 @@ boost::posix_time::ptime SpatiaLite::getLatestObservationTime()
   {
     // Spine::ReadLock lock(write_mutex);
 
-    boost::optional<std::tm> time;
-
     sqlite3pp::query qry(itsDB, "SELECT MAX(data_time) FROM observation_data");
     sqlite3pp::query::iterator iter = qry.begin();
-    if (iter != qry.end())
-      time = parse_tm(iter, 0);
-
-    if (time.is_initialized())
-      return boost::posix_time::ptime_from_tm(time.get());
-    else
-      // If there is no cached observations in the database, return a bad time
+    if (iter == qry.end())
       return boost::posix_time::not_a_date_time;
+    return parse_sqlite_time(iter, 0);
   }
   catch (...)
   {
@@ -520,22 +506,11 @@ boost::posix_time::ptime SpatiaLite::getOldestObservationTime()
   {
     // Spine::ReadLock lock(write_mutex);
 
-    boost::optional<std::tm> time;
-
     sqlite3pp::query qry(itsDB, "SELECT MIN(data_time) FROM observation_data");
     sqlite3pp::query::iterator iter = qry.begin();
-    if (iter != qry.end())
-      time = parse_tm(iter, 0);
-
-    if (time.is_initialized())
-    {
-      return boost::posix_time::ptime_from_tm(time.get());
-    }
-    else
-    {
-      // If there is no cached observations in the database, return a bad time
+    if (iter == qry.end())
       return boost::posix_time::not_a_date_time;
-    };
+    return parse_sqlite_time(iter, 0);
   }
   catch (...)
   {
@@ -549,20 +524,11 @@ boost::posix_time::ptime SpatiaLite::getLatestWeatherDataQCTime()
   {
     // Spine::ReadLock lock(write_mutex);
 
-    boost::optional<std::tm> time;
-
     sqlite3pp::query qry(itsDB, "SELECT MAX(obstime) FROM weather_data_qc");
     sqlite3pp::query::iterator iter = qry.begin();
-    if (iter != qry.end())
-      time = parse_tm(iter, 0);
-
-    if (time.is_initialized())
-      return boost::posix_time::ptime_from_tm(time.get());
-    else
-    {
-      // If there is no cached observations in the database, return a bad time
+    if (iter == qry.end())
       return boost::posix_time::not_a_date_time;
-    }
+    return parse_sqlite_time(iter, 0);
   }
   catch (...)
   {
@@ -576,18 +542,11 @@ boost::posix_time::ptime SpatiaLite::getOldestWeatherDataQCTime()
   {
     // Spine::ReadLock lock(write_mutex);
 
-    boost::optional<std::tm> time;
-
     sqlite3pp::query qry(itsDB, "SELECT MIN(obstime) FROM weather_data_qc");
     sqlite3pp::query::iterator iter = qry.begin();
-    if (iter != qry.end())
-      time = parse_tm(iter, 0);
-
-    if (time.is_initialized())
-      return boost::posix_time::ptime_from_tm(time.get());
-    else
-      // If there is no cached observations in the database, return a bad time
+    if (iter == qry.end())
       return boost::posix_time::not_a_date_time;
+    return parse_sqlite_time(iter, 0);
   }
   catch (...)
   {
@@ -630,21 +589,13 @@ boost::posix_time::ptime SpatiaLite::getLatestTimeFromTable(const std::string ta
   {
     // Spine::ReadLock lock(write_mutex);
 
-    boost::optional<std::tm> time;
     std::string stmt = ("SELECT DATETIME(MAX(" + time_field + ")) FROM " + tablename);
     sqlite3pp::query qry(itsDB, stmt.c_str());
     sqlite3pp::query::iterator iter = qry.begin();
-    if (iter != qry.end())
-      time = parse_tm(iter, 0);
 
-    if (time.is_initialized())
-      return boost::posix_time::ptime_from_tm(time.get());
-    else
-    {
-      // If there is no cached observations in the database, return
-      // not_a_date_time
+    if (iter == qry.end())
       return boost::posix_time::not_a_date_time;
-    }
+    return parse_sqlite_time(iter, 0);
   }
   catch (...)
   {
@@ -659,22 +610,13 @@ boost::posix_time::ptime SpatiaLite::getOldestTimeFromTable(const std::string ta
   {
     // Spine::ReadLock lock(write_mutex);
 
-    boost::optional<std::tm> time;
-
     std::string stmt = ("SELECT DATETIME(MIN(" + time_field + ")) FROM " + tablename);
     sqlite3pp::query qry(itsDB, stmt.c_str());
     sqlite3pp::query::iterator iter = qry.begin();
-    if (iter != qry.end())
-      time = parse_tm(iter, 0);
 
-    if (time.is_initialized())
-      return boost::posix_time::ptime_from_tm(time.get());
-    else
-    {
-      // If there is no cached observations in the database, return
-      // not_a_date_time
+    if (iter == qry.end())
       return boost::posix_time::not_a_date_time;
-    }
+    return parse_sqlite_time(iter, 0);
   }
   catch (...)
   {
@@ -1608,7 +1550,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     }
 
     std::vector<boost::optional<int> > fmisidsAll;
-    std::vector<boost::optional<std::tm> > obstimesAll;
+    std::vector<boost::posix_time::ptime> obstimesAll;
     std::vector<boost::optional<double> > longitudesAll;
     std::vector<boost::optional<double> > latitudesAll;
     std::vector<boost::optional<double> > elevationsAll;
@@ -1622,23 +1564,16 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
 
       for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
       {
-        boost::optional<int> fmisid;
-        boost::optional<std::tm> obstime;
-        boost::optional<double> latitude;
-        boost::optional<double> longitude;
-        boost::optional<double> elevation;
+        boost::optional<int> fmisid = (*iter).get<int>(0);
+        boost::posix_time::ptime obstime = parse_sqlite_time(iter, 1);
+        boost::optional<double> latitude = (*iter).get<double>(2);
+        boost::optional<double> longitude = (*iter).get<double>(3);
+        boost::optional<double> elevation = (*iter).get<double>(4);
+        boost::optional<std::string> parameter = (*iter).get<std::string>(5);
         boost::optional<double> data_value;
-        boost::optional<double> sensor_no;
-        boost::optional<std::string> parameter;
-        fmisid = (*iter).get<int>(0);
-        obstime = parse_tm(iter, 1);
-        latitude = (*iter).get<double>(2);
-        longitude = (*iter).get<double>(3);
-        elevation = (*iter).get<double>(4);
-        parameter = (*iter).get<std::string>(5);
         if ((*iter).column_type(6) != SQLITE_NULL)
           data_value = (*iter).get<double>(6);
-        sensor_no = (*iter).get<double>(7);
+        boost::optional<double> sensor_no = (*iter).get<double>(7);
         fmisidsAll.push_back(fmisid);
         obstimesAll.push_back(obstime);
         latitudesAll.push_back(latitude);
@@ -1655,10 +1590,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     // Generate data structure which can be transformed to TimeSeriesVector
     map<int, map<boost::local_time::local_date_time, map<std::string, ts::Value> > > data;
 
-    for (const boost::optional<std::tm> &time : obstimesAll)
+    for (const auto &time : obstimesAll)
     {
       int fmisid = *fmisidsAll[i];
-      boost::posix_time::ptime utctime = boost::posix_time::ptime_from_tm(*time);
+      boost::posix_time::ptime utctime = time;
       std::string zone(settings.timezone == "localtime" ? tmpStations.at(fmisid).timezone
                                                         : settings.timezone);
       auto localtz = timezones.time_zone_from_string(zone);
@@ -1874,7 +1809,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
         "ORDER BY fmisid ASC, obstime ASC;";
 
     std::vector<boost::optional<int> > fmisidsAll;
-    std::vector<boost::optional<std::tm> > obstimesAll;
+    std::vector<boost::posix_time::ptime> obstimesAll;
     std::vector<boost::optional<double> > longitudesAll;
     std::vector<boost::optional<double> > latitudesAll;
     std::vector<boost::optional<double> > elevationsAll;
@@ -1887,19 +1822,13 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
 
       for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
       {
-        boost::optional<int> fmisid;
-        boost::optional<std::tm> obstime;
-        boost::optional<double> latitude;
-        boost::optional<double> longitude;
-        boost::optional<double> elevation;
-        boost::optional<int> measurand_id;
+        boost::optional<int> fmisid = (*iter).get<int>(0);
+        boost::posix_time::ptime obstime = parse_sqlite_time(iter, 1);
+        boost::optional<double> latitude = (*iter).get<double>(2);
+        boost::optional<double> longitude = (*iter).get<double>(3);
+        boost::optional<double> elevation = (*iter).get<double>(4);
+        boost::optional<int> measurand_id = (*iter).get<int>(5);
         boost::optional<double> data_value;
-        fmisid = (*iter).get<int>(0);
-        obstime = parse_tm(iter, 1);
-        latitude = (*iter).get<double>(2);
-        longitude = (*iter).get<double>(3);
-        elevation = (*iter).get<double>(4);
-        measurand_id = (*iter).get<int>(5);
         if ((*iter).column_type(6) != SQLITE_NULL)
           data_value = (*iter).get<double>(6);
         fmisidsAll.push_back(fmisid);
@@ -1907,7 +1836,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
         latitudesAll.push_back(latitude);
         longitudesAll.push_back(longitude);
         elevationsAll.push_back(elevation);
-        measurand_idsAll.push_back(measurand_id);
         data_valuesAll.push_back(data_value);
       }
     }
@@ -1928,10 +1856,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
     map<int, map<boost::local_time::local_date_time, map<std::string, ts::Value> > >
         dataWithStringParameterId;
 
-    for (const boost::optional<std::tm> &time : obstimesAll)
+    for (const auto &time : obstimesAll)
     {
       int fmisid = *fmisidsAll[i];
-      boost::posix_time::ptime utctime = boost::posix_time::ptime_from_tm(*time);
+      boost::posix_time::ptime utctime = time;
       std::string zone(settings.timezone == "localtime" ? tmpStations[fmisid].timezone
                                                         : settings.timezone);
       auto localtz = timezones.time_zone_from_string(zone);
@@ -3170,7 +3098,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     }
 
     std::vector<boost::optional<int> > fmisidsAll;
-    std::vector<boost::optional<std::tm> > obstimesAll;
+    std::vector<boost::posix_time::ptime> obstimesAll;
     std::vector<boost::optional<double> > longitudesAll;
     std::vector<boost::optional<double> > latitudesAll;
     std::vector<boost::optional<double> > elevationsAll;
@@ -3182,24 +3110,17 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
 
     for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
     {
-      boost::optional<int> fmisid;
-      boost::optional<std::tm> obstime;
-      boost::optional<double> latitude;
-      boost::optional<double> longitude;
-      boost::optional<double> elevation;
+      boost::optional<int> fmisid = (*iter).get<int>(0);
+      boost::posix_time::ptime obstime = parse_sqlite_time(iter, 1);
+      boost::optional<double> latitude = (*iter).get<double>(2);
+      boost::optional<double> longitude = (*iter).get<double>(3);
+      boost::optional<double> elevation = (*iter).get<double>(4);
+      boost::optional<std::string> parameter = (*iter).get<std::string>(5);
       boost::optional<double> data_value;
-      boost::optional<double> sensor_no;
-      boost::optional<std::string> parameter;
-
-      fmisid = (*iter).get<int>(0);
-      obstime = parse_tm(iter, 1);
-      latitude = (*iter).get<double>(2);
-      longitude = (*iter).get<double>(3);
-      elevation = (*iter).get<double>(4);
-      parameter = (*iter).get<std::string>(5);
       if ((*iter).column_type(6) != SQLITE_NULL)
         data_value = (*iter).get<double>(6);
-      sensor_no = (*iter).get<double>(7);
+      boost::optional<double> sensor_no = (*iter).get<double>(7);
+
       fmisidsAll.push_back(fmisid);
       obstimesAll.push_back(obstime);
       latitudesAll.push_back(latitude);
@@ -3215,11 +3136,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     // Generate data structure which can be transformed to TimeSeriesVector
     map<int, map<boost::local_time::local_date_time, map<std::string, ts::Value> > > data;
 
-    for (const boost::optional<std::tm> &time : obstimesAll)
+    for (const auto &time : obstimesAll)
     {
       int fmisid = *fmisidsAll[i];
 
-      boost::posix_time::ptime utctime = boost::posix_time::ptime_from_tm(*time);
+      boost::posix_time::ptime utctime = time;
       std::string zone(settings.timezone == "localtime" ? tmpStations.at(fmisid).timezone
                                                         : settings.timezone);
       auto localtz = timezones.time_zone_from_string(zone);
@@ -3430,7 +3351,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
         "loc.latitude, loc.longitude, loc.elevation "
         "ORDER BY fmisid ASC, obstime ASC";
     std::vector<boost::optional<int> > fmisidsAll;
-    std::vector<boost::optional<std::tm> > obstimesAll;
+    std::vector<boost::posix_time::ptime> obstimesAll;
     std::vector<boost::optional<double> > longitudesAll;
     std::vector<boost::optional<double> > latitudesAll;
     std::vector<boost::optional<double> > elevationsAll;
@@ -3440,19 +3361,13 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     sqlite3pp::query qry(itsDB, query.c_str());
     for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
     {
-      boost::optional<int> fmisid;
-      boost::optional<std::tm> obstime;
-      boost::optional<double> latitude;
-      boost::optional<double> longitude;
-      boost::optional<double> elevation;
-      boost::optional<int> measurand_id;
+      boost::optional<int> fmisid = (*iter).get<int>(0);
+      boost::posix_time::ptime obstime = parse_sqlite_time(iter, 1);
+      boost::optional<double> latitude = (*iter).get<double>(2);
+      boost::optional<double> longitude = (*iter).get<double>(3);
+      boost::optional<double> elevation = (*iter).get<double>(4);
+      boost::optional<int> measurand_id = (*iter).get<int>(5);
       boost::optional<double> data_value;
-      fmisid = (*iter).get<int>(0);
-      obstime = parse_tm(iter, 1);
-      latitude = (*iter).get<double>(2);
-      longitude = (*iter).get<double>(3);
-      elevation = (*iter).get<double>(4);
-      measurand_id = (*iter).get<int>(5);
       if ((*iter).column_type(6) != SQLITE_NULL)
         data_value = (*iter).get<double>(6);
       fmisidsAll.push_back(fmisid);
@@ -3480,10 +3395,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     map<int, map<boost::local_time::local_date_time, map<std::string, ts::Value> > >
         dataWithStringParameterId;
 
-    for (const boost::optional<std::tm> &time : obstimesAll)
+    for (const auto &time : obstimesAll)
     {
       int fmisid = *fmisidsAll[i];
-      boost::posix_time::ptime utctime = boost::posix_time::ptime_from_tm(*time);
+      boost::posix_time::ptime utctime = time;
       std::string zone(settings.timezone == "localtime" ? tmpStations[fmisid].timezone
                                                         : settings.timezone);
       auto localtz = timezones.time_zone_from_string(zone);
