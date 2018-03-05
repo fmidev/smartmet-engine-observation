@@ -1836,6 +1836,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
         latitudesAll.push_back(latitude);
         longitudesAll.push_back(longitude);
         elevationsAll.push_back(elevation);
+        measurand_idsAll.push_back(measurand_id);
         data_valuesAll.push_back(data_value);
       }
     }
