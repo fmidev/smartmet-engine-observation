@@ -1858,6 +1858,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
 
     for (const auto &time : obstimesAll)
     {
+      // Safety against missing values. At least the latter has occasionally been missing
+      if (!fmisidsAll[i] || !measurand_idsAll[i])
+        continue;
+
       int fmisid = *fmisidsAll[i];
       boost::posix_time::ptime utctime = time;
       std::string zone(settings.timezone == "localtime" ? tmpStations[fmisid].timezone

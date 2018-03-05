@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.3.3
+Version: 18.3.5
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Mar  5 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.3.5-1.fmi
+- Added safety check against a missing measurand_id value
+
 * Sat Mar  3 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.3.3-1.fmi
 - Avoid locale copying when converting SQL timestamps to posix_time
 
