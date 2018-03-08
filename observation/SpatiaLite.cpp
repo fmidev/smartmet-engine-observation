@@ -19,6 +19,12 @@ using namespace boost::gregorian;
 using namespace boost::posix_time;
 using namespace boost::local_time;
 
+template <typename Container, typename Key>
+bool exists(const Container &container, const Key &key)
+{
+  return (container.find(key) != container.end());
+}
+
 template <typename Clock, typename Duration>
 std::ostream &operator<<(std::ostream &stream,
                          const std::chrono::time_point<Clock, Duration> &time_point)
@@ -2466,8 +2472,9 @@ void SpatiaLite::addSmartSymbolToTimeSeries(
 
   auto dataItem = data.at(s.fmisid).at(time);
 
-  if (!dataItem.at(wawapos).which() || !dataItem.at(totalcloudcoverpos).which() ||
-      !dataItem.at(temppos).which())
+  if (!exists(dataItem, wawapos) || !exists(dataItem, totalcloudcoverpos) ||
+      !exists(dataItem, temppos) || !dataItem.at(wawapos).which() ||
+      !dataItem.at(totalcloudcoverpos).which() || !dataItem.at(temppos).which())
   {
     ts::Value missing;
     timeSeriesColumns->at(pos).push_back(ts::TimedValue(time, missing));

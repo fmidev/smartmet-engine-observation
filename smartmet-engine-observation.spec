@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.3.5
+Version: 18.3.8
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Mar  8 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.3.8-1.fmi
+- Fixed SmartSymbol to return a missing value instead of throwing if required parameters are missing
+
 * Mon Mar  5 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.3.5-1.fmi
 - Added safety check against a missing measurand_id value
 
