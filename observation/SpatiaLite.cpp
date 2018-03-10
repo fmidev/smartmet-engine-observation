@@ -665,8 +665,8 @@ void SpatiaLite::fillLocationCache(const vector<LocationItem> &locations)
 
       for (const LocationItem &item : locations)
       {
-        std::string location_start = to_iso_extended_string(item.location_start);
-        std::string location_end = to_iso_extended_string(item.location_end);
+        std::string location_start = Fmi::to_iso_extended_string(item.location_start);
+        std::string location_end = Fmi::to_iso_extended_string(item.location_end);
         cmd.bind(":location_id", item.location_id);
         cmd.bind(":fmisid", item.fmisid);
         cmd.bind(":country_id", item.country_id);
@@ -838,7 +838,7 @@ std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData)
           cmd.bind(":measurand_id", item.measurand_id);
           cmd.bind(":producer_id", item.producer_id);
           cmd.bind(":measurand_no", item.measurand_no);
-          std::string timestring = to_iso_extended_string(item.data_time);
+          std::string timestring = Fmi::to_iso_extended_string(item.data_time);
           cmd.bind(":data_time", timestring, sqlite3pp::nocopy);
           cmd.bind(":data_value", item.data_value);
           cmd.bind(":data_quality", item.data_quality);
@@ -925,7 +925,7 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
         {
           const auto &item = cacheData[i];
           cmd.bind(":fmisid", item.fmisid);
-          std::string timestring = to_iso_extended_string(item.obstime);
+          std::string timestring = Fmi::to_iso_extended_string(item.obstime);
           cmd.bind(":obstime", timestring, sqlite3pp::nocopy);
           cmd.bind(":parameter", item.parameter, sqlite3pp::nocopy);
           cmd.bind(":sensor_no", item.sensor_no);
@@ -1044,7 +1044,7 @@ std::size_t SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCac
 
           sqlite3pp::command cmd(itsDB, sqltemplate.c_str());
 
-          std::string timestring = boost::posix_time::to_iso_extended_string(item.stroke_time);
+          std::string timestring = Fmi::to_iso_extended_string(item.stroke_time);
           boost::replace_all(timestring, ",", ".");
 
           // @todo There is no simple way to optionally set possible NULL values.
@@ -1150,8 +1150,8 @@ void SpatiaLite::updateStations(const Spine::Stations &stations)
 
       sqlite3pp::command cmd(itsDB, insertsql.str().c_str());
 
-      std::string start_time = to_iso_extended_string(station.station_start);
-      std::string start_end = to_iso_extended_string(station.station_end);
+      std::string start_time = Fmi::to_iso_extended_string(station.station_start);
+      std::string start_end = Fmi::to_iso_extended_string(station.station_end);
       cmd.bind(":station_formal_name", station.station_formal_name, sqlite3pp::nocopy);
       cmd.bind(":station_start", start_time, sqlite3pp::nocopy);
       cmd.bind(":station_end", start_end, sqlite3pp::nocopy);
@@ -1525,8 +1525,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
           qstations +
           ") "
           "AND data.obstime >= '" +
-          to_iso_extended_string(settings.starttime) + "' AND data.obstime <= '" +
-          to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + param +
+          Fmi::to_iso_extended_string(settings.starttime) + "' AND data.obstime <= '" +
+          Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + param +
           ") "
           "GROUP BY data.fmisid, data.parameter, data.sensor_no, "
           "loc.location_id, "
@@ -1546,8 +1546,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
           qstations +
           ") "
           "AND data.obstime >= '" +
-          to_iso_extended_string(settings.starttime) + "' AND data.obstime <= '" +
-          to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + param +
+          Fmi::to_iso_extended_string(settings.starttime) + "' AND data.obstime <= '" +
+          Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + param +
           ") "
           "GROUP BY data.fmisid, data.obstime, data.parameter, "
           "data.sensor_no, loc.location_id, "
@@ -1804,8 +1804,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
         qstations +
         ") "
         "AND data.data_time >= '" +
-        to_iso_extended_string(settings.starttime) + "' AND data.data_time <= '" +
-        to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" + param +
+        Fmi::to_iso_extended_string(settings.starttime) + "' AND data.data_time <= '" +
+        Fmi::to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" + param +
         ") "
         "AND data.measurand_no = 1 "
         "GROUP BY data.fmisid, data.data_time, data.measurand_id, "
@@ -2321,9 +2321,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
 
     param = trimCommasFromEnd(param);
 
-    string starttimeString = boost::posix_time::to_iso_extended_string(settings.starttime);
+    string starttimeString = Fmi::to_iso_extended_string(settings.starttime);
     boost::replace_all(starttimeString, ",", ".");
-    string endtimeString = boost::posix_time::to_iso_extended_string(settings.endtime);
+    string endtimeString = Fmi::to_iso_extended_string(settings.endtime);
     boost::replace_all(endtimeString, ",", ".");
 
     std::string distancequery;
@@ -2639,9 +2639,9 @@ Spine::Stations SpatiaLite::findStationsInsideArea(const Settings &settings,
     }
 
     sqlstmt << "Contains(GeomFromText('" << areaWkt << "'), s.the_geom) AND ('"
-            << to_iso_extended_string(settings.starttime)
+            << Fmi::to_iso_extended_string(settings.starttime)
             << "' BETWEEN s.station_start AND s.station_end OR '"
-            << to_iso_extended_string(settings.endtime)
+            << Fmi::to_iso_extended_string(settings.endtime)
             << "' BETWEEN s.station_start AND s.station_end)";
 
     sqlite3pp::query qry(itsDB, sqlstmt.str().c_str());
@@ -2713,9 +2713,9 @@ Spine::Stations SpatiaLite::findStationsInsideBox(const Settings &settings, cons
             << ',' << Fmi::to_string(settings.boundingBox.at("miny")) << ','
             << Fmi::to_string(settings.boundingBox.at("maxx")) << ','
             << Fmi::to_string(settings.boundingBox.at("maxy")) << ") AND ('"
-            << to_iso_extended_string(settings.starttime)
+            << Fmi::to_iso_extended_string(settings.starttime)
             << "' BETWEEN s.station_start AND s.station_end OR '"
-            << to_iso_extended_string(settings.endtime)
+            << Fmi::to_iso_extended_string(settings.endtime)
             << "' BETWEEN s.station_start AND s.station_end)";
 
     sqlite3pp::query qry(itsDB, sqlstmt.str().c_str());
@@ -2919,7 +2919,8 @@ FlashCounts SpatiaLite::getFlashCount(const boost::posix_time::ptime &starttime,
         "THEN 1 ELSE 0 END), 0) AS iccount "
         " FROM flash_data flash "
         "WHERE flash.stroke_time BETWEEN '" +
-        to_iso_extended_string(starttime) + "' AND '" + to_iso_extended_string(endtime) + "'";
+        Fmi::to_iso_extended_string(starttime) + "' AND '" + Fmi::to_iso_extended_string(endtime) +
+        "'";
 
     if (!locations.empty())
     {
@@ -3079,8 +3080,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
           qstations +
           ") "
           "AND data.obstime >= '" +
-          to_iso_extended_string(settings.starttime) + "' AND data.obstime <= '" +
-          to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + param +
+          Fmi::to_iso_extended_string(settings.starttime) + "' AND data.obstime <= '" +
+          Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + param +
           ") "
           "GROUP BY data.fmisid, data.parameter, data.sensor_no, "
           "loc.location_id, "
@@ -3100,8 +3101,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
           qstations +
           ") "
           "AND data.obstime >= '" +
-          to_iso_extended_string(settings.starttime) + "' AND data.obstime <= '" +
-          to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + param +
+          Fmi::to_iso_extended_string(settings.starttime) + "' AND data.obstime <= '" +
+          Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + param +
           ") "
           "GROUP BY data.fmisid, data.obstime, data.parameter, "
           "data.sensor_no, loc.location_id, "
@@ -3353,8 +3354,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
         qstations +
         ") "
         "AND data.data_time >= '" +
-        to_iso_extended_string(settings.starttime) + "' AND data.data_time <= '" +
-        to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" + param +
+        Fmi::to_iso_extended_string(settings.starttime) + "' AND data.data_time <= '" +
+        Fmi::to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" + param +
         ") "
         "AND data.measurand_no = 1 "
         "GROUP BY data.fmisid, data.data_time, data.measurand_id, "

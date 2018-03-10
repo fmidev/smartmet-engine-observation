@@ -2,9 +2,9 @@
 #define QUERY_RESULT_H
 
 #include "QueryResultBase.h"
-
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/lexical_cast.hpp>
+#include <macgyver/StringConversion.h>
 #include <spine/Exception.h>
 #include <algorithm>
 #include <memory>
@@ -106,9 +106,8 @@ class QueryResult : public QueryResultBase
       }
       else if ((*value).type() == typeid(boost::posix_time::ptime))
       {
-        return boost::lexical_cast<OutType>(boost::posix_time::to_iso_extended_string(
-                                                boost::any_cast<boost::posix_time::ptime>(*value)) +
-                                            "Z");
+        return boost::lexical_cast<OutType>(
+            Fmi::to_iso_extended_string(boost::any_cast<boost::posix_time::ptime>(*value)) + "Z");
       }
       else
       {
