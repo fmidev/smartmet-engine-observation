@@ -1,5 +1,4 @@
-#ifndef VERIFIABLE_MESSAGE_QUERY_H
-#define VERIFIABLE_MESSAGE_QUERY_H
+#pragma once
 
 #include "QueryBase.h"
 #include "QueryParamsBase.h"
@@ -81,5 +80,3 @@ class VerifiableMessageQuery : public QueryBase
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-
-#endif  // VERIFIABLE_MESSAGE_QUERY_H

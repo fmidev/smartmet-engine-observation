@@ -1,5 +1,4 @@
-#ifndef QUERY_PARAMS_BASE_H
-#define QUERY_PARAMS_BASE_H
+#pragma once
 
 #include <boost/date_time/gregorian/formatters.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
@@ -72,5 +71,3 @@ class QueryParamsBase
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-
-#endif  // QUERY_PARAMS_BASE_H

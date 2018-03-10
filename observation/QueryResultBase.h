@@ -1,5 +1,4 @@
-#ifndef QUERY_RESULT_BASE_H
-#define QUERY_RESULT_BASE_H
+#pragma once
 
 #include <boost/any.hpp>
 #include <memory>
@@ -101,5 +100,3 @@ class QueryResultBase
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-
-#endif  // QUERY_RESULT_BASE_H

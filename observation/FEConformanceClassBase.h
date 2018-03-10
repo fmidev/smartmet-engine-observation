@@ -1,17 +1,15 @@
-#ifndef FE_CONFORMANCE_CLASS_BASE_H
-#define FE_CONFORMANCE_CLASS_BASE_H
+#pragma once
 
+#include "Property.h"
 #include <boost/any.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
-#include <string>
-#include <vector>
-
-#include "Property.h"
 #include <macgyver/StringConversion.h>
 #include <spine/ConfigBase.h>
 #include <spine/Exception.h>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace SmartMet
 {
@@ -116,5 +114,3 @@ class FEConformanceClassBase : public OperationMap
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-
-#endif  // FE_CONFORMANCE_CLASS_BASE_H

@@ -1,5 +1,4 @@
-#ifndef PROPERTY_H
-#define PROPERTY_H
+#pragma once
 
 #include <boost/any.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
@@ -253,9 +252,7 @@ class MinuteValueModuloIsEqualToZero : public Base
   NameType getValueTypeString() const;
 };
 
-}  // namepsace Property
+}  // namespace Property
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-
-#endif  // PROPERTY_H

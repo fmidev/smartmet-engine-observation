@@ -1,5 +1,4 @@
-#ifndef DB_REGISTRY_CONFIG_H
-#define DB_REGISTRY_CONFIG_H
+#pragma once
 
 #include <boost/algorithm/string.hpp>
 #include <boost/shared_ptr.hpp>
@@ -148,5 +147,3 @@ fields :
 @endverbatim
 
 */
-
-#endif  // DB_REGISTRY_CONFIG_H

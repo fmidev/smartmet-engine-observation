@@ -1,5 +1,4 @@
-#ifndef VERIFIABLE_MESSAGE_QUERY_PARAMS_H
-#define VERIFIABLE_MESSAGE_QUERY_PARAMS_H
+#pragma once
 
 #include "DBRegistryConfig.h"
 #include "QueryParamsBase.h"
@@ -95,8 +94,8 @@ class VerifiableMessageQueryParams : public QueryParamsBase
   bool isRestriction(int id) const;
 
   /**
-	 * @brief Set the restriction on.
-	 */  // FIXME!! replace the method with setRestriction(int id)
+   * @brief Set the restriction on.
+   */  // FIXME!! replace the method with setRestriction(int id)
   void setReturnOnlyLatest();
 
  private:
@@ -114,5 +113,3 @@ class VerifiableMessageQueryParams : public QueryParamsBase
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-
-#endif  // VERIFIABLE_MESSAGE_QUERY_PARAMS_H

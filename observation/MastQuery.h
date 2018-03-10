@@ -1,5 +1,4 @@
-#ifndef MAST_QUERY_H
-#define MAST_QUERY_H
+#pragma once
 
 #include "MastQueryParams.h"
 #include "QueryBase.h"
@@ -72,5 +71,3 @@ class MastQuery : public QueryBase
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-
-#endif  // ENVIRONMENTAL_MONITORING_FACILITY_QUERY_H

@@ -1,5 +1,4 @@
-#ifndef DB_REGISTRY_H
-#define DB_REGISTRY_H
+#pragma once
 
 #include "DBRegistryConfig.h"
 #include <memory>
@@ -48,5 +47,3 @@ class DBRegistry
   are ignored.
 
 */
-
-#endif  // DB_REGISTRY_H

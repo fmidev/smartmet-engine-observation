@@ -1,5 +1,4 @@
-#ifndef MINIMUM_STANDARD_FILTER_H
-#define MINIMUM_STANDARD_FILTER_H
+#pragma once
 
 #include "FEConformanceClassBase.h"
 
@@ -43,5 +42,3 @@ class MinimumStandardFilter : public FEConformanceClassBase
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-
-#endif  // MINIMUM_STANDARD_FILTER_H

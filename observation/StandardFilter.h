@@ -1,5 +1,4 @@
-#ifndef STANDARD_FILTER_H
-#define STANDARD_FILTER_H
+#pragma once
 
 #include "MinimumStandardFilter.h"
 #include <spine/Exception.h>
@@ -92,5 +91,3 @@ class ExtendedStandardFilter : public StandardFilter
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-
-#endif  // STANDARD_FILTER_H

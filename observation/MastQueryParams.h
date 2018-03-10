@@ -1,5 +1,4 @@
-#ifndef MAST_QUERY_PARAMS_H
-#define MAST_QUERY_PARAMS_H
+#pragma once
 
 #include "DBRegistryConfig.h"
 #include "MinimumStandardFilter.h"
@@ -172,5 +171,3 @@ class MastQueryParams : public QueryParamsBase
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-
-#endif  // ENVIRONMENTAL_MONITORING_FACILITY_QUERY_PARAMS_H

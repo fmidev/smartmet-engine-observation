@@ -1,5 +1,4 @@
-#ifndef QUERY_RESULT_H
-#define QUERY_RESULT_H
+#pragma once
 
 #include "QueryResultBase.h"
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -202,5 +201,3 @@ class QueryResult : public QueryResultBase
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-
-#endif  // QUERY_RESULT_H

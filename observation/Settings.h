@@ -1,5 +1,4 @@
-#ifndef OBSENGINE_SETTINGS_H
-#define OBSENGINE_SETTINGS_H
+#pragma once
 
 #include <spine/Location.h>
 #include <spine/Parameter.h>
@@ -65,5 +64,3 @@ class Settings
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-
-#endif
