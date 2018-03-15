@@ -73,13 +73,9 @@ class ExtendedStandardFilter : public StandardFilter
     }
     catch (...)
     {
-      std::ostringstream msg;
-      msg << "ExtendedStandardFilter operation '" << operationName << "' initialization failed!";
-
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!", nullptr);
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg.str());
-      throw exception;
+      throw Spine::Exception(BCP, "Operation processing failed!")
+          .addDetail(fmt::format("ExtendedStandardFilter operation '{}' initialization failed!",
+                                 operationName));
     }
   }
 

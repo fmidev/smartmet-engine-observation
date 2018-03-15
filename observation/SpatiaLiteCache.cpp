@@ -144,14 +144,9 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     // Get stations
-    std::ostringstream out;
-
-    out << "Getting SP connection: " << boost::posix_time::second_clock::local_time() << std::endl;
     boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    out << "Got SP connection: " << boost::posix_time::second_clock::local_time() << std::endl;
 
     Spine::Stations stations = getStationsFromSpatiaLite(settings, spatialitedb);
-    out << "Got stations: " << boost::posix_time::second_clock::local_time() << std::endl;
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
@@ -162,13 +157,11 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
       {
         ret = spatialitedb->getCachedWeatherDataQCData(
             stations, settings, itsParameters.parameterMap, timeSeriesOptions, itsTimeZones);
-        out << "Got QC data: " << boost::posix_time::second_clock::local_time() << std::endl;
       }
       else
       {
         ret = spatialitedb->getCachedData(
             stations, settings, itsParameters.parameterMap, timeSeriesOptions, itsTimeZones);
-        out << "Got FIN data: " << boost::posix_time::second_clock::local_time() << std::endl;
       }
     }
 

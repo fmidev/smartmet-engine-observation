@@ -1,4 +1,5 @@
 #include "Property.h"
+#include <fmt/format.h>
 #include <macgyver/StringConversion.h>
 #include <spine/Exception.h>
 
@@ -96,19 +97,11 @@ Base::NameType Base::toWhatString(const boost::any& value) const
              "','YYYY-MM-DD HH24:MI:SS')";
     }
     else
-    {
-      std::ostringstream msg;
-      msg << "warning: Engine::Observation::Property::Base::toWhatString : Unsupported "
-             "data "
-             "type "
-             "'"
-          << (value).type().name() << "'.";
-
-      Spine::Exception exception(BCP, "Operation processing failed!");
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Operation processing failed!")
+          .addDetail(fmt::format(
+              "warning: Engine::Observation::Property::Base::toWhatString : Unsupported data type "
+              "'{}'.",
+              (value).type().name()));
   }
   catch (...)
   {

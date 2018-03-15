@@ -45,13 +45,9 @@ std::shared_ptr<const StandardFilter::PropertyIsBaseType> StandardFilter::getNew
     }
     catch (...)
     {
-      std::ostringstream msg;
-      msg << "StandardFilter operation '" << operationName << "' initialization failed!";
-
-      Spine::Exception exception(BCP, "Operation processing failed!", nullptr);
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg.str());
-      throw exception;
+      throw Spine::Exception(BCP, "Operation processing failed!")
+          .addDetail(
+              fmt::format("StandardFilter operation '{}' initialization failed!", operationName));
     }
   }
   catch (...)

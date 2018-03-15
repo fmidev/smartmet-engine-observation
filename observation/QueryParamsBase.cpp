@@ -1,4 +1,5 @@
 #include "QueryParamsBase.h"
+#include <fmt/format.h>
 #include <spine/Exception.h>
 #include <sstream>
 
@@ -42,16 +43,10 @@ void QueryParamsBase::setTimeRange(const pt::ptime& beginTime, const pt::ptime& 
   try
   {
     if (beginTime > endTime)
-    {
-      std::ostringstream msg;
-      msg << "Invalid time interval " << pt::to_simple_string(beginTime) << " - "
-          << pt::to_simple_string(endTime);
-
-      Spine::Exception exception(BCP, "Operation processing failed!");
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Operation processing failed!")
+          .addDetail(fmt::format("Invalid time interval {} - {}",
+                                 pt::to_simple_string(beginTime),
+                                 pt::to_simple_string(endTime)));
 
     m_beginTime = beginTime;
     m_endTime = endTime;
@@ -70,31 +65,22 @@ void QueryParamsBase::setBoundingBox(const double& xMin,
 {
   try
   {
-    std::ostringstream msg;
+    std::string msg;
     if (xMin > xMax)
-      msg << "xMin '" << xMin << "' is greater than xMax '" << xMax << "'";
+      msg = fmt::format("xMin '{}' is greater than xMax '{}'", xMin, xMax);
     else if (yMin > yMax)
-      msg << "yMin '" << yMin << "' is greater than yMAx '" << yMax << "'";
-    else if (xMin < -180.0000)
-      msg << "xMin '" << xMin << "' is less than -180.0";
+      msg = fmt::format("yMin '{}' is greater than yMax '{}'", yMin, yMax);
+    else if (xMin < -180)
+      msg = fmt::format("xMin '{}' is less than -180.0", xMin);
     else if (xMax > 180.0000)
-      msg << "xMax '" << xMax << "' is greater than 180.0";
+      msg = fmt::format("xMax '{}' is greater than 180.0", xMax);
     else if (yMin < -90.0000)
-      msg << "yMin '" << yMin << "' is less than -90.0000";
+      msg = fmt::format("yMin '{}' is less than -90.0000", yMin);
     else if (yMax > 90.0000)
-      msg << "yMax '" << yMax << "' is greater than 90.0000";
+      msg = fmt::format("yMax '{}' is greater than 90.0000", yMax);
 
-    if (msg.str().length() > 0)
-    {
-      std::ostringstream err;
-      err << "Invalid bounding box "
-          << " - " << msg;
-
-      Spine::Exception exception(BCP, "Operation processing failed!");
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(err.str());
-      throw exception;
-    }
+    if (!msg.empty())
+      throw Spine::Exception(BCP, "Invalid bounding box!").addDetail(msg);
 
     m_bbox.xMin = xMin;
     m_bbox.yMin = yMin;
@@ -120,14 +106,8 @@ std::string QueryParamsBase::formattedTime(const pt::ptime& t, const std::string
         return fT;
     }
 
-    std::ostringstream msg;
-    msg << "Time format conversion failure"
-        << " - '" << fT << "'.";
-
-    Spine::Exception exception(BCP, "Operation processing failed!");
-    // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-    exception.addDetail(msg.str());
-    throw exception;
+    throw Spine::Exception(BCP, "Operation processing failed!")
+        .addDetail(fmt::format("Time format conversion failure - '{}'", fT));
   }
   catch (...)
   {

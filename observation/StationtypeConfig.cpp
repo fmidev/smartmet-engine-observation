@@ -1,6 +1,7 @@
 #include "StationtypeConfig.h"
 
 #include <boost/algorithm/string.hpp>
+#include <fmt/format.h>
 #include <macgyver/StringConversion.h>
 #include <spine/Exception.h>
 #include <iostream>
@@ -67,15 +68,9 @@ StationtypeConfig::getDatabaseTableNameByStationtype(const StationtypeType& stat
     const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
     STDatabaseTableNameMapType::const_iterator it = m_stDatabaseTableNameMap.find(stationtypeLower);
     if (it == m_stDatabaseTableNameMap.end())
-    {
-      std::ostringstream msg;
-      msg << "Database table name for the stationtype '" << stationtype << "' not found.";
-
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-      // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail(
+              fmt::format("Database table name for the stationtype '{}' not found.", stationtype));
 
     return std::make_shared<DatabaseTableNameType>(it->second);
   }
@@ -97,15 +92,8 @@ StationtypeConfig::getGroupCodeSetByStationtype(const StationtypeType& stationty
       return std::make_shared<GroupCodeSetType>(it->second);
     }
     else
-    {
-      std::ostringstream msg;
-      msg << "Stationtype '" << stationtype << "' not found.";
-
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-      // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail(fmt::format("Stationtype '{}' not found.", stationtype));
   }
   catch (...)
   {
@@ -125,14 +113,8 @@ StationtypeConfig::getProducerIdSetByStationtype(const StationtypeType& stationt
       return std::make_shared<ProducerIdSetType>(it->second);
     }
     else
-    {
-      std::ostringstream msg;
-      msg << "Producer id list not found for Stationtype '" << stationtype << "'.";
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-      // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail(fmt::format("Producer id list not found for Stationtype '{}'.", stationtype));
   }
   catch (...)
   {
@@ -169,46 +151,31 @@ void StationtypeConfig::setDatabaseTableName(const StationtypeType& stationtype,
     STGroupCodeSetMapType::const_iterator stGroupCodeSetMapIt =
         m_stationtypeMap.find(stationtypeLower);
     if (stGroupCodeSetMapIt == m_stationtypeMap.end())
-    {
-      std::ostringstream msg;
-      msg << "Stationtype '" << stationtype
-          << "' not found. Add first the stationtype into the class object.";
-
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-      // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail(fmt::format(
+              "Stationtype '{}' not found. Add first the stationtype into the class object.",
+              stationtype));
 
     // Checking that there is not already added a database table name.
     STDatabaseTableNameMapType::const_iterator stDatabaseTableNameMapIt =
         m_stDatabaseTableNameMap.find(stationtypeLower);
-    if (stDatabaseTableNameMapIt != m_stDatabaseTableNameMap.end())
-    {
-      std::ostringstream msg;
-      msg << "There is already added a database table name '" << stDatabaseTableNameMapIt->second
-          << "'  for the stationtype '" << stationtype << "'. Table name '" << databaseTableName
-          << "' is not added.";
 
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-      // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+    if (stDatabaseTableNameMapIt != m_stDatabaseTableNameMap.end())
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail(fmt::format(
+              "There is already added a database table name '{}' for the stationtype '{}'. Table "
+              "name '{}' is not added.",
+              stDatabaseTableNameMapIt->second,
+              stationtype,
+              databaseTableName));
 
     const DatabaseTableNameType tablenameLower = Fmi::ascii_tolower_copy(databaseTableName);
 
     // We do not want to store empty values.
     if (tablenameLower.empty())
-    {
-      std::ostringstream msg;
-      msg << "The database table name is empty for the stationtype '" << stationtype << "'.";
-
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-      // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail(fmt::format("The database table name is empty for the stationtype '{}'.",
+                                 stationtype));
 
     m_stDatabaseTableNameMap.emplace(std::make_pair(stationtypeLower, tablenameLower));
   }
@@ -228,16 +195,10 @@ void StationtypeConfig::setUseCommonQueryMethod(const StationtypeType& stationty
     STGroupCodeSetMapType::const_iterator stGroupCodeSetMapIt =
         m_stationtypeMap.find(stationtypeLower);
     if (stGroupCodeSetMapIt == m_stationtypeMap.end())
-    {
-      std::ostringstream msg;
-      msg << "Stationtype '" << stationtype
-          << "' not found. Add first the stationtype into the class object.";
-
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-      // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail(fmt::format(
+              "Stationtype '{}' not found. Add first the stationtype into the class object.",
+              stationtype));
 
     m_stUseCommonQueryMethodMap.emplace(std::make_pair(stationtypeLower, value));
   }
@@ -259,17 +220,12 @@ void StationtypeConfig::setProducerIds(const StationtypeType& stationtype,
     const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
     STGroupCodeSetMapType::const_iterator stGroupCodeSetMapIt =
         m_stationtypeMap.find(stationtypeLower);
-    if (stGroupCodeSetMapIt == m_stationtypeMap.end())
-    {
-      std::ostringstream msg;
-      msg << "Stationtype '" << stationtype
-          << "' not found. Add first the stationtype into the class object.";
 
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-      // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+    if (stGroupCodeSetMapIt == m_stationtypeMap.end())
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail(fmt::format(
+              "Stationtype '{}' not found. Add first the stationtype into the class object.",
+              stationtype));
 
     STProducerIdSetMapType::iterator stProducerIdSetMapIt =
         m_stProducerIdSetMap.find(stationtypeLower);

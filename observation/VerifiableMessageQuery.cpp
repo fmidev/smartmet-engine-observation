@@ -120,14 +120,7 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
     const VerifiableMessageQueryParams::SelectNameListType *selectNames =
         qParams->getSelectNameList();
     if (selectNames->empty())
-    {
-      std::ostringstream msg;
-      msg << "Empty select name list.";
-
-      Spine::Exception exception(BCP, "Invalid SQL statement!");
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Invalid SQL statement: Empty select name list");
 
     for (VerifiableMessageQueryParams::SelectNameListType::const_iterator it = selectNames->begin();
          it != selectNames->end();
@@ -148,28 +141,15 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
 
     m_from = qParams->getTableName();
     if (m_from.empty())
-    {
-      std::ostringstream msg;
-      msg << "Empty table name.";
+      throw Spine::Exception(BCP, "Invalid SQL statement: Empty table name");
 
-      Spine::Exception exception(BCP, "Invalid SQL statement!");
-      exception.addDetail(msg.str());
-      throw exception;
-    }
     m_from.append(" data");
 
     Engine::Observation::VerifiableMessageQueryParams::StationIdVectorType *icaoCodes =
         qParams->getStationIdVector();
 
     if (icaoCodes->empty())
-    {
-      std::ostringstream msg;
-      msg << "Empty location list.";
-
-      Spine::Exception exception(BCP, msg.str());
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Empty location list");
 
     if (m_returnOnlyLatest)
     {  // Station_id list is used in getSQLStatement

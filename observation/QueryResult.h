@@ -3,6 +3,7 @@
 #include "QueryResultBase.h"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/lexical_cast.hpp>
+#include <fmt/format.h>
 #include <macgyver/StringConversion.h>
 #include <spine/Exception.h>
 #include <algorithm>
@@ -63,83 +64,70 @@ class QueryResult : public QueryResultBase
 
     try
     {
-      if ((*value).type() == typeid(int32_t))
+      if (value->type() == typeid(int32_t))
       {
         return boost::lexical_cast<OutType>(boost::any_cast<int32_t>(*value));
       }
-      else if ((*value).type() == typeid(uint32_t))
+      else if (value->type() == typeid(uint32_t))
       {
         return boost::lexical_cast<OutType>(boost::any_cast<uint32_t>(*value));
       }
-      else if ((*value).type() == typeid(int64_t))
+      else if (value->type() == typeid(int64_t))
       {
         return boost::lexical_cast<OutType>(boost::any_cast<int64_t>(*value));
       }
-      else if ((*value).type() == typeid(uint64_t))
+      else if (value->type() == typeid(uint64_t))
       {
         return boost::lexical_cast<OutType>(boost::any_cast<uint64_t>(*value));
       }
-      else if ((*value).type() == typeid(int16_t))
+      else if (value->type() == typeid(int16_t))
       {
         return boost::lexical_cast<OutType>(boost::any_cast<int16_t>(*value));
       }
-      else if ((*value).type() == typeid(uint16_t))
+      else if (value->type() == typeid(uint16_t))
       {
         return boost::lexical_cast<OutType>(boost::any_cast<uint16_t>(*value));
       }
-      else if ((*value).type() == typeid(float))
+      else if (value->type() == typeid(float))
       {
-        std::ostringstream out;
-        out << std::setprecision(precision) << std::fixed << boost::any_cast<float>(*value);
-        return boost::lexical_cast<OutType>(out.str());
+        auto tmp = fmt::format("{:.{}f}", boost::any_cast<float>(*value), precision);
+        return boost::lexical_cast<OutType>(tmp);
       }
-      else if ((*value).type() == typeid(double))
+      else if (value->type() == typeid(double))
       {
-        std::ostringstream out;
-        out << std::setprecision(precision) << std::fixed << boost::any_cast<double>(*value);
-        return boost::lexical_cast<OutType>(out.str());
+        auto tmp = fmt::format("{:.{}f}", boost::any_cast<double>(*value), precision);
+        return boost::lexical_cast<OutType>(tmp);
       }
-      else if ((*value).type() == typeid(std::string))
+      else if (value->type() == typeid(std::string))
       {
         return boost::lexical_cast<OutType>(boost::any_cast<std::string>(*value));
       }
-      else if ((*value).type() == typeid(boost::posix_time::ptime))
+      else if (value->type() == typeid(boost::posix_time::ptime))
       {
         return boost::lexical_cast<OutType>(
             Fmi::to_iso_extended_string(boost::any_cast<boost::posix_time::ptime>(*value)) + "Z");
       }
       else
       {
-        std::ostringstream msg;
-        msg << "QueryResult::toString : Unsupported data type '" << (*value).type().name() << "'.";
-
-        Spine::Exception exception(BCP, "Operation processing failed!", nullptr);
-        // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-        exception.addDetail(msg.str());
-        throw exception;
+        throw Spine::Exception(BCP, "Operation processing failed!")
+            .addDetail(fmt::format("QueryResult::toString : Unsupported data type '{}'.",
+                                   value->type().name()));
       }
     }
     catch (const boost::bad_any_cast& e)
     {
-      std::ostringstream msg;
-      msg << "QueryResult::castTo : Bad any cast from '" << (*value).type().name() << "' type. "
-          << e.what();
-
-      Spine::Exception exception(BCP, "Operation processing failed!", nullptr);
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg.str());
-      throw exception;
+      throw Spine::Exception(BCP, "Operation processing failed!")
+          .addDetail(fmt::format("QueryResult::castTo : Bad any cast from '{}' type. {}",
+                                 value->type().name(),
+                                 e.what()));
     }
     catch (const boost::bad_lexical_cast& e)
     {
-      std::ostringstream msg;
-      msg << "QueryResult::castTo : Bad cast from '" << (*value).type().name() << "' to '"
-          << typeid(OutType).name() << "'. " << e.what();
-
-      Spine::Exception exception(BCP, "Operation processing failed!", nullptr);
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg.str());
-      throw exception;
+      throw Spine::Exception(BCP, "Operation processing failed!")
+          .addDetail(fmt::format("QueryResult::castTo : Bad cast from '{}' to '{}'. {}",
+                                 value->type().name(),
+                                 typeid(OutType).name(),
+                                 e.what()));
     }
   }
 

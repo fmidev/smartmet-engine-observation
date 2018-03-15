@@ -22,7 +22,6 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
 {
   try
   {
-    std::ostringstream msg;
     boost::filesystem::path p(configFolderPath.c_str());
     if (!boost::filesystem::exists(p))
     {

@@ -4,6 +4,7 @@
 #include <boost/any.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
+#include <fmt/format.h>
 #include <macgyver/StringConversion.h>
 #include <spine/ConfigBase.h>
 #include <spine/Exception.h>
@@ -44,9 +45,7 @@ class OperationMap
     OperationMapType::const_iterator it = m_ops.find(n);
     if (it != m_ops.end())
     {
-      std::ostringstream msg;
-      msg << METHOD_NAME << " : duplicate map key '" << name << "'.\n";
-      std::cerr << msg.str();
+      std::cerr << fmt::format("{} : duplicate map key '{}'.\n", METHOD_NAME, name);
       return false;
     }
     OperationMapValueType value = boost::bind(&T::get, opClass, ::_1, ::_2);
@@ -67,14 +66,8 @@ class OperationMap
     OperationMapType::const_iterator it = m_ops.find(n);
 
     if (it == m_ops.end())
-    {
-      std::ostringstream msg;
-      msg << "Operation '" << name << "' not found.";
-      SmartMet::Spine::Exception exception(BCP, "Operation processing failed!");
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Operation processing failed!")
+          .addDetail(fmt::format("Operation '{}' not found.", name));
     else
       return it->second;
   }

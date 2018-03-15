@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.3.10
+Version: 18.3.15
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -14,7 +14,6 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-Requires: libconfig
 BuildRequires: smartmet-library-spine-devel >= 18.2.27
 BuildRequires: smartmet-engine-geonames-devel >= 18.2.9
 BuildRequires: mysql++-devel >= 3.1.0
@@ -24,6 +23,9 @@ BuildRequires: smartmet-library-locus-devel >= 18.1.15
 BuildRequires: smartmet-library-macgyver-devel >= 18.2.12
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
+BuildRequires: fmt-devel
+Requires: fmt
+Requires: libconfig
 Requires: smartmet-server >= 17.11.10
 Requires: smartmet-engine-geonames >= 18.2.9
 Requires: smartmet-library-spine >= 18.2.27
@@ -92,6 +94,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Mar 15 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.3.15-1.fmi
+- Use fmt::format instead of ostringstream to avoid std::locale locks
+
+* Mon Mar 12 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.3.12-1.fmi
+- Fixed spatialite min/max time methods to accept NULL SQL responses
+
 * Sat Mar 10 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.3.10-1.fmi
 - Use macgyver time to string conversions to avoid global locale locks
 

@@ -1,7 +1,7 @@
+#include "EngineParameters.h"
+#include <fmt/format.h>
 #include <macgyver/StringConversion.h>
 #include <spine/ConfigBase.h>
-
-#include "EngineParameters.h"
 
 namespace SmartMet
 {
@@ -140,18 +140,11 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
         std::vector<uint> producerIdVector =
             cfg.get_mandatory_config_array<uint>(stationtypeGroup, "producerIds");
         if (producerIdVector.empty())
-        {
-          std::ostringstream msg;
-          msg << "At least one producer id must be defined into producerIds "
-                 "array for the "
-                 "stationtype '"
-              << type << "' if the useCommonQueryMethod value is true.";
-
-          Spine::Exception exception(BCP, "Invalid parameter value!");
-          // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-          exception.addDetail(msg.str());
-          throw exception;
-        }
+          throw Spine::Exception(BCP, "Invalid parameter value!")
+              .addDetail(fmt::format(
+                  "At least one producer id must be defined into producerIds "
+                  "array for the stationtype '{}' if the useCommonQueryMethod value is true.",
+                  type));
         stationtypeConfig.setProducerIds(type, producerIdVector);
       }
 
@@ -162,17 +155,10 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
         stationtypeConfig.setDatabaseTableName(type, databaseTableName);
       }
       else if (useCommonQueryMethod)
-      {
-        std::ostringstream msg;
-        msg << "databaseTableName parameter definition is required for the "
-               "stationtype '"
-            << type << "' if the useCommonQueryMethod value is true.";
-
-        Spine::Exception exception(BCP, "Invalid parameter value!");
-        // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-        exception.addDetail(msg.str());
-        throw exception;
-      }
+        throw Spine::Exception(BCP, "Invalid parameter value!")
+            .addDetail(fmt::format("databaseTableName parameter definition is required for the "
+                                   "stationtype '{}' if the useCommonQueryMethod value is true.",
+                                   type));
 
       stationtypeConfig.setUseCommonQueryMethod(type, useCommonQueryMethod);
     }

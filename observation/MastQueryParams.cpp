@@ -85,31 +85,22 @@ void MastQueryParams::addJoinOnConfig(const std::shared_ptr<DBRegistryConfig> db
 
       if (it == map->end() or joinIt == jmap->end())
       {
-        std::ostringstream msg;
-        msg << "Joining database views '" << m_dbrConfig.at(0)->getTableName() << "' and '"
-            << dbrConfigJoinOn->getTableName() << "' by using field name '" << *joinOnField
-            << "' is not possible";
-
-        Spine::Exception exception(BCP, "Operation processing failed!");
-        // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-        exception.addDetail(msg.str());
-        throw exception;
+        throw Spine::Exception(BCP, "Operation processing failed!")
+            .addDetail(fmt::format(
+                "Joining database views '{}' and '{}' by using field name '{}' is not possible",
+                m_dbrConfig.at(0)->getTableName(),
+                dbrConfigJoinOn->getTableName(),
+                *joinOnField));
       }
     }
 
     m_dbrConfig.push_back(dbrConfigJoinOn);
 
     TypeOfJoinMapType::const_iterator typeOfJoinMapIt = typeOfJoinMap.find(typeOfJoin);
-    if (typeOfJoinMapIt == typeOfJoinMap.end())
-    {
-      std::ostringstream msg;
-      msg << "Type of join '" << typeOfJoin << "' is not tupperted. ";
 
-      Spine::Exception exception(BCP, "Operation processing failed!");
-      // exception.setExceptionCode(ObsEngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+    if (typeOfJoinMapIt == typeOfJoinMap.end())
+      throw Spine::Exception(BCP, "Operation processing failed!")
+          .addDetail(fmt::format("Type of join '{}' is not supported.", typeOfJoin));
 
     m_joinOnListTupleVector.push_back(JoinOnListTupleType(m_dbrConfig.at(0)->getTableName(),
                                                           dbrConfigJoinOn->getTableName(),
@@ -149,13 +140,8 @@ void MastQueryParams::addField(const NameType& field, const NameType& alias)
       }
     }
 
-    std::ostringstream msg;
-    msg << "Field name '" << field << "' not found.";
-
-    Spine::Exception exception(BCP, "Invalid parameter value!");
-    // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-    exception.addDetail(msg.str());
-    throw exception;
+    throw Spine::Exception(BCP, "Invalid parameter value!")
+        .addDetail(fmt::format("Field name '{}' not found.", field));
   }
   catch (...)
   {
@@ -170,30 +156,19 @@ void MastQueryParams::addOperation(const std::string& groupName,
 {
   try
   {
-    std::ostringstream msg;
     // Is the conformance class creted.
     if (not m_conformanceClass)
-    {
-      msg << "MastQueryParams::addOperation operation '" << operationName << "' not found\n";
-
-      Spine::Exception exception(BCP, "Operation processing failed!");
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Operation processing failed!")
+          .addDetail(
+              fmt::format("MastQueryParams::addOperation operation '{}' not found", operationName));
 
     // is the operation
     std::shared_ptr<const PropertyIsBaseType> op =
         m_conformanceClass->getNewOperationInstance(field, operationName, toWhat);
     if (not op)
-    {
-      msg << "MastQueryParams::addOperation '" << operationName << "' operation not found\n";
-
-      Spine::Exception exception(BCP, "Operation processing failed!");
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Operation processing failed!")
+          .addDetail(
+              fmt::format("MastQueryParams::addOperation '{}' operation not found", operationName));
 
     // Find the table name where the field is defined.
     DBRegistryConfigVectorType::const_iterator configIt = m_dbrConfig.begin();
@@ -240,12 +215,9 @@ void MastQueryParams::addOperation(const std::string& groupName,
       }
     }
 
-    msg << "MastQueryParams::addOperation the table not found that has '" << field << "' field.\n";
-
-    Spine::Exception exception(BCP, "Operation processing failed!");
-    // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-    exception.addDetail(msg.str());
-    throw exception;
+    throw Spine::Exception(BCP, "Operation processing failed!")
+        .addDetail(fmt::format(
+            "MastQueryParams::addOperation the table not found that has '{}' field.", field));
   }
   catch (...)
   {
@@ -273,43 +245,26 @@ void MastQueryParams::addOrderBy(const NameType& field, const NameType& ascDesc)
     }
 
     if (not validFieldName)
-    {
-      std::ostringstream msg;
-      msg << "Trying to order SQL query result by using a field name '" << field
-          << "' that is not found from the configurations.";
-
-      Spine::Exception exception(BCP, "Operation processing failed!");
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Operation processing failed!")
+          .addDetail(fmt::format(
+              "Trying to order SQL query result by using a field name '{}' that is not found from "
+              "the configurations.",
+              field));
 
     for (OrderByVectorType::iterator it = m_orderByVector.begin(); it != m_orderByVector.end();
          ++it)
     {
       if (it->first == fieldUpper)
-      {
-        std::ostringstream msg;
-        msg << "Trying to order SQL query result twice by using a field name '" << field << "'.";
-
-        Spine::Exception exception(BCP, "Operation processing failed!");
-        // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-        exception.addDetail(msg.str());
-        throw exception;
-      }
+        throw Spine::Exception(BCP, "Operation processing failed!")
+            .addDetail(fmt::format(
+                "Trying to order SQL query result twice by using a field name '{}'.", field));
     }
 
     const std::string ascDescUpper = Fmi::ascii_toupper_copy(ascDesc);
     if (ascDescUpper != "ASC" and ascDescUpper != "DESC")
-    {
-      std::ostringstream msg;
-      msg << "Invalid order '" << ascDesc << "'. Only 'ASC' and 'DESC' are allowed.";
-
-      Spine::Exception exception(BCP, "Operation processing failed!");
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Operation processing failed!")
+          .addDetail(
+              fmt::format("Invalid order '{}'. Only 'ASC' and 'DESC' are allowed.", ascDesc));
 
     m_orderByVector.push_back(std::pair<NameType, NameType>(fieldUpper, ascDescUpper));
   }

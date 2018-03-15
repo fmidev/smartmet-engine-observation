@@ -1,7 +1,7 @@
 #include "SpatiaLite.h"
 #include "ObservableProperty.h"
 #include "SpatiaLiteCacheParameters.h"
-
+#include <fmt/format.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeParser.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
@@ -106,8 +106,10 @@ void solveMeasurandIds(const std::vector<std::string> &parameters,
 
 boost::posix_time::ptime parse_sqlite_time(sqlite3pp::query::iterator &iter, int column)
 {
+  // 1 = INTEGER; 2 = FLOAT, 3 = TEXT, 4 = BLOB, 5 = NULL
   if ((*iter).column_type(column) != SQLITE_TEXT)
-    throw Spine::Exception(BCP, "Invalid time column from sqlite query");
+    throw Spine::Exception(BCP, "Invalid time column from sqlite query")
+        .addParameter("columntype", Fmi::to_string((*iter).column_type(column)));
 
   std::string timestring = (*iter).get<char const *>(column);
   return Fmi::TimeParser::parse(timestring);
@@ -496,7 +498,7 @@ boost::posix_time::ptime SpatiaLite::getLatestObservationTime()
 
     sqlite3pp::query qry(itsDB, "SELECT MAX(data_time) FROM observation_data");
     sqlite3pp::query::iterator iter = qry.begin();
-    if (iter == qry.end())
+    if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
     return parse_sqlite_time(iter, 0);
   }
@@ -514,7 +516,7 @@ boost::posix_time::ptime SpatiaLite::getOldestObservationTime()
 
     sqlite3pp::query qry(itsDB, "SELECT MIN(data_time) FROM observation_data");
     sqlite3pp::query::iterator iter = qry.begin();
-    if (iter == qry.end())
+    if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
     return parse_sqlite_time(iter, 0);
   }
@@ -532,7 +534,7 @@ boost::posix_time::ptime SpatiaLite::getLatestWeatherDataQCTime()
 
     sqlite3pp::query qry(itsDB, "SELECT MAX(obstime) FROM weather_data_qc");
     sqlite3pp::query::iterator iter = qry.begin();
-    if (iter == qry.end())
+    if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
     return parse_sqlite_time(iter, 0);
   }
@@ -550,7 +552,7 @@ boost::posix_time::ptime SpatiaLite::getOldestWeatherDataQCTime()
 
     sqlite3pp::query qry(itsDB, "SELECT MIN(obstime) FROM weather_data_qc");
     sqlite3pp::query::iterator iter = qry.begin();
-    if (iter == qry.end())
+    if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
     return parse_sqlite_time(iter, 0);
   }
@@ -599,7 +601,7 @@ boost::posix_time::ptime SpatiaLite::getLatestTimeFromTable(const std::string ta
     sqlite3pp::query qry(itsDB, stmt.c_str());
     sqlite3pp::query::iterator iter = qry.begin();
 
-    if (iter == qry.end())
+    if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
     return parse_sqlite_time(iter, 0);
   }
@@ -620,7 +622,7 @@ boost::posix_time::ptime SpatiaLite::getOldestTimeFromTable(const std::string ta
     sqlite3pp::query qry(itsDB, stmt.c_str());
     sqlite3pp::query::iterator iter = qry.begin();
 
-    if (iter == qry.end())
+    if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
     return parse_sqlite_time(iter, 0);
   }
@@ -1127,28 +1129,25 @@ void SpatiaLite::updateStations(const Spine::Stations &stations)
 
     sqlite3pp::transaction xct(itsDB);
 
-    stringstream insertsql;
     for (const Spine::Station &station : stations)
     {
       if (itsShutdownRequested)
         break;
 
-      insertsql.str("");
-      insertsql.precision(10);  // So that latitude and longitude values do not get rounded
+      auto sql = fmt::format(
+          "INSERT OR REPLACE INTO stations (fmisid, geoid, wmo, lpnn, station_formal_name, "
+          "station_start, station_end, the_geom) VALUES "
+          "({},{},{},{},:station_formal_name,:station_start,:station_end,GeomFromText('POINT({:."
+          "10f} {:.10f})', {}))",
+          station.fmisid,
+          station.geoid,
+          station.wmo,
+          station.lpnn,
+          station.longitude_out,
+          station.latitude_out,
+          srid);
 
-      insertsql << "INSERT OR REPLACE INTO stations "
-                << "(fmisid, geoid, wmo, lpnn, station_formal_name, "
-                   "station_start, station_end, "
-                   "the_geom) "
-                << "VALUES (" << station.fmisid << "," << station.geoid << "," << station.wmo << ","
-                << station.lpnn << ","
-                << ":station_formal_name,"
-                << ":station_start,"
-                << ":station_end,"
-                << "GeomFromText('POINT(" << station.longitude_out << " " << station.latitude_out
-                << ")', " << srid << "))";
-
-      sqlite3pp::command cmd(itsDB, insertsql.str().c_str());
+      sqlite3pp::command cmd(itsDB, sql.c_str());
 
       std::string start_time = Fmi::to_iso_extended_string(station.station_start);
       std::string start_end = Fmi::to_iso_extended_string(station.station_end);
@@ -1186,12 +1185,12 @@ void SpatiaLite::updateStationGroups(const StationInfo &info)
       const std::string groupCodeUpper = Fmi::ascii_toupper_copy(station.station_type);
 
       // Search the group_id for a group_code.
-      std::stringstream groupIdSql;
-      groupIdSql << "SELECT group_id FROM station_groups WHERE group_code = '" << groupCodeUpper
-                 << "' LIMIT 1;";
+      auto sql = fmt::format("SELECT group_id FROM station_groups WHERE group_code = '{}' LIMIT 1;",
+                             groupCodeUpper);
+
       boost::optional<int> group_id;
 
-      sqlite3pp::query qry(itsDB, groupIdSql.str().c_str());
+      sqlite3pp::query qry(itsDB, sql.c_str());
       sqlite3pp::query::iterator iter = qry.begin();
       if (iter != qry.end())
         group_id = (*iter).get<int>(0);
@@ -1201,29 +1200,31 @@ void SpatiaLite::updateStationGroups(const StationInfo &info)
       {
         stationGroupsCount++;
         group_id = stationGroupsCount;
-        std::stringstream insertStationGroupSql;
-        insertStationGroupSql << "INSERT OR REPLACE INTO station_groups (group_id, group_code) "
-                              << "VALUES (" << stationGroupsCount << ", '" << groupCodeUpper
-                              << "');";
-        sqlite3pp::command cmd(itsDB, insertStationGroupSql.str().c_str());
+        auto sql = fmt::format(
+            "INSERT OR REPLACE INTO station_groups (group_id, group_code) VALUES ({}, '{}')",
+            stationGroupsCount,
+            groupCodeUpper);
+        sqlite3pp::command cmd(itsDB, sql.c_str());
         cmd.execute();
       }
 
       // Avoid duplicates.
-      std::stringstream memberCountSql;
-      memberCountSql << "SELECT COUNT(*) FROM group_members WHERE group_id = " << group_id.get()
-                     << " AND fmisid = " << station.fmisid << ";";
-      int groupCount = selectCount(memberCountSql.str());
+      auto dupsql =
+          fmt::format("SELECT COUNT(*) FROM group_members WHERE group_id={} AND fmisid={}",
+                      group_id.get(),
+                      station.fmisid);
+
+      int groupCount = selectCount(dupsql);
 
       if (groupCount == 0)
       {
         // Insert a group member. Ignore if insertion fail (perhaps group_id or
-        // fmisid is not found
-        // from the stations table)
-        std::stringstream insertGroupMemberSql;
-        insertGroupMemberSql << "INSERT OR IGNORE INTO group_members (group_id, fmisid) "
-                             << "VALUES (" << group_id.get() << ", " << station.fmisid << ");";
-        sqlite3pp::command cmd(itsDB, insertGroupMemberSql.str().c_str());
+        // fmisid is not found from the stations table)
+        auto sql =
+            fmt::format("INSERT OR IGNORE INTO group_members (group_id, fmisid) VALUES ({}, {})",
+                        group_id.get(),
+                        station.fmisid);
+        sqlite3pp::command cmd(itsDB, sql.c_str());
         cmd.execute();
       }
     }
@@ -1357,17 +1358,13 @@ Spine::Stations SpatiaLite::findNearestStations(double latitude,
     std::string station_formal_name = "";
 
     sqlite3pp::query qry(itsDB, distancesql.c_str());
-    std::ostringstream ss;
     for (auto row : qry)
     {
       try
       {
         fmisid = row.get<int>(0);
         // Round distances to 100 meter precision
-        ss.str("");
-        ss << std::fixed << std::setprecision(1);
-        ss << Fmi::stod(row.get<string>(1));
-        distance = ss.str();
+        distance = fmt::format("{:.1f}", Fmi::stod(row.get<string>(1)));
         wmo = row.get<int>(2);
         geoid = row.get<int>(3);
         lpnn = row.get<int>(4);
@@ -1425,14 +1422,13 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
     timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
 
-    stringstream ss;
+    std::string qstations;
     map<int, Spine::Station> tmpStations;
     for (const Spine::Station &s : stations)
     {
       tmpStations.insert(std::make_pair(s.station_id, s));
-      ss << s.station_id << ",";
+      qstations += Fmi::to_string(s.station_id) + ",";
     }
-    string qstations = ss.str();
     qstations = qstations.substr(0, qstations.length() - 1);
 
     // This maps measurand_id and the parameter position in TimeSeriesVector
@@ -1723,14 +1719,13 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
     boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
     timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
 
-    stringstream ss;
+    std::string qstations;
     map<int, Spine::Station> tmpStations;
     for (const Spine::Station &s : stations)
     {
       tmpStations.insert(std::make_pair(s.station_id, s));
-      ss << s.station_id << ",";
+      qstations += Fmi::to_string(s.station_id) + ",";
     }
-    string qstations = ss.str();
     qstations = qstations.substr(0, qstations.length() - 1);
 
     // This maps measurand_id and the parameter position in TimeSeriesVector
@@ -2611,40 +2606,39 @@ Spine::Stations SpatiaLite::findStationsInsideArea(const Settings &settings,
   {
     Spine::Stations stations;
 
-    stringstream sqlstmt;
-    sqlstmt.precision(10);  // To avoid rounding
-
-    sqlstmt << "SELECT distinct s.geoid, s.fmisid FROM ";
+    std::string sql = "SELECT distinct s.geoid, s.fmisid FROM ";
 
     if (not settings.stationgroup_codes.empty())
     {
-      sqlstmt << "group_members gm "
-              << "JOIN station_groups sg ON gm.group_id = sg.group_id "
-              << "JOIN stations s ON gm.fmisid = s.fmisid ";
+      sql +=
+          "group_members gm "
+          "JOIN station_groups sg ON gm.group_id = sg.group_id "
+          "JOIN stations s ON gm.fmisid = s.fmisid ";
     }
     else
     {
-      sqlstmt << "stations s ";
+      sql += "stations s ";
     }
 
-    sqlstmt << "WHERE ";
+    sql += "WHERE ";
 
     if (not settings.stationgroup_codes.empty())
     {
       auto it = settings.stationgroup_codes.begin();
-      sqlstmt << "( sg.group_code='" << *it << "' ";
+      sql += fmt::format("( sg.group_code='{}' ", *it);
       for (it++; it != settings.stationgroup_codes.end(); it++)
-        sqlstmt << "OR sg.group_code='" << *it << "' ";
-      sqlstmt << ") AND ";
+        sql += fmt::format("OR sg.group_code='{}' ", *it);
+      sql += ") AND ";
     }
 
-    sqlstmt << "Contains(GeomFromText('" << areaWkt << "'), s.the_geom) AND ('"
-            << Fmi::to_iso_extended_string(settings.starttime)
-            << "' BETWEEN s.station_start AND s.station_end OR '"
-            << Fmi::to_iso_extended_string(settings.endtime)
-            << "' BETWEEN s.station_start AND s.station_end)";
+    sql += fmt::format(
+        "Contains(GeomFromText('{}'), s.the_geom) AND ('{}' BETWEEN s.station_start AND "
+        "s.station_end OR '{}' BETWEEN s.station_start AND s.station_end)",
+        areaWkt,
+        Fmi::to_iso_extended_string(settings.starttime),
+        Fmi::to_iso_extended_string(settings.endtime));
 
-    sqlite3pp::query qry(itsDB, sqlstmt.str().c_str());
+    sqlite3pp::query qry(itsDB, sql.c_str());
 
     for (const auto &row : qry)
     {
@@ -2682,43 +2676,43 @@ Spine::Stations SpatiaLite::findStationsInsideBox(const Settings &settings, cons
   {
     Spine::Stations stations;
 
-    stringstream sqlstmt;
-    sqlstmt.precision(10);  // To avoid rounding
-
-    sqlstmt << "SELECT distinct s.geoid, s.fmisid FROM ";
+    std::string sql = "SELECT distinct s.geoid, s.fmisid FROM ";
 
     if (not settings.stationgroup_codes.empty())
     {
-      sqlstmt << "group_members gm "
-              << "JOIN station_groups sg ON gm.group_id = sg.group_id "
-              << "JOIN stations s ON gm.fmisid = s.fmisid ";
+      sql +=
+          "group_members gm "
+          "JOIN station_groups sg ON gm.group_id = sg.group_id "
+          "JOIN stations s ON gm.fmisid = s.fmisid ";
     }
     else
     {
-      sqlstmt << "stations s ";
+      sql += "stations s ";
     }
 
-    sqlstmt << "WHERE ";
+    sql += "WHERE ";
 
     if (not settings.stationgroup_codes.empty())
     {
       auto it = settings.stationgroup_codes.begin();
-      sqlstmt << "( sg.group_code='" << *it << "' ";
+      sql += fmt::format("( sg.group_code='{}' ", *it);
       for (it++; it != settings.stationgroup_codes.end(); it++)
-        sqlstmt << "OR sg.group_code='" << *it << "' ";
-      sqlstmt << ") AND ";
+        sql += fmt::format("OR sg.group_code='{}' ", *it);
+      sql += ") AND ";
     }
 
-    sqlstmt << "ST_EnvIntersects(s.the_geom," << Fmi::to_string(settings.boundingBox.at("minx"))
-            << ',' << Fmi::to_string(settings.boundingBox.at("miny")) << ','
-            << Fmi::to_string(settings.boundingBox.at("maxx")) << ','
-            << Fmi::to_string(settings.boundingBox.at("maxy")) << ") AND ('"
-            << Fmi::to_iso_extended_string(settings.starttime)
-            << "' BETWEEN s.station_start AND s.station_end OR '"
-            << Fmi::to_iso_extended_string(settings.endtime)
-            << "' BETWEEN s.station_start AND s.station_end)";
+    sql += fmt::format(
+        "ST_EnvIntersects(s.the_geom,{:.10f},{:.10f},{:.10f},{:.10f}) AND ('{}' BETWEEN "
+        "s.station_start AND "
+        "s.station_end OR '{}' BETWEEN s.station_start AND s.station_end)",
+        settings.boundingBox.at("minx"),
+        settings.boundingBox.at("miny"),
+        settings.boundingBox.at("maxx"),
+        settings.boundingBox.at("maxy"),
+        Fmi::to_iso_extended_string(settings.starttime),
+        Fmi::to_iso_extended_string(settings.endtime));
 
-    sqlite3pp::query qry(itsDB, sqlstmt.str().c_str());
+    sqlite3pp::query qry(itsDB, sql.c_str());
 
     for (const auto &row : qry)
     {
@@ -2767,52 +2761,49 @@ bool SpatiaLite::fillMissing(Spine::Station &s, const std::set<std::string> &sta
     if (missingStationId and missingFmisId and missingWmoId and missingGeoId)
       return false;
 
-    stringstream sqlStr;
-    sqlStr.precision(10);  // To avoid rounding
-    sqlStr << "SELECT s.fmisid, s.wmo, s.geoid, s.lpnn"
-           << ", X(s.the_geom) AS lon"
-           << ", Y(s.the_geom) AS lat"
-           << ", s.station_formal_name"
-           << " FROM ";
+    std::string sql =
+        "SELECT s.fmisid, s.wmo, s.geoid, s.lpnn, X(s.the_geom) AS lon, Y(s.the_geom) AS lat, "
+        "s.station_formal_name FROM ";
 
     if (not stationgroup_codes.empty())
     {
-      sqlStr << "group_members gm "
-             << "JOIN station_groups sg ON gm.group_id = sg.group_id "
-             << "JOIN stations s ON gm.fmisid = s.fmisid ";
+      sql +=
+          "group_members gm "
+          "JOIN station_groups sg ON gm.group_id = sg.group_id "
+          "JOIN stations s ON gm.fmisid = s.fmisid ";
     }
     else
     {
-      sqlStr << "stations s ";
+      sql += "stations s ";
     }
 
-    sqlStr << " WHERE";
+    sql += " WHERE";
 
     if (not stationgroup_codes.empty())
     {
       auto it = stationgroup_codes.begin();
-      sqlStr << "( sg.group_code='" << *it << "' ";
+      sql += fmt::format("( sg.group_code='{}' ", *it);
       for (it++; it != stationgroup_codes.end(); it++)
-        sqlStr << "OR sg.group_code='" << *it << "' ";
-      sqlStr << ") AND ";
+        sql += fmt::format("OR sg.group_code='{}' ", *it);
+      sql += ") AND ";
     }
 
     // Use the first id that is not missing.
     if (not missingStationId)
-      sqlStr << " s.fmisid = " << s.station_id;
+      sql += fmt::format(" s.fmisid={}", s.station_id);
     else if (not missingFmisId)
-      sqlStr << " s.fmisid = " << s.fmisid;
+      sql += fmt::format(" s.fmisid={}", s.fmisid);
     else if (not missingWmoId)
-      sqlStr << " s.wmo = " << s.wmo;
+      sql += fmt::format(" s.wmo={}", s.wmo);
     else if (not missingGeoId)
-      sqlStr << " s.geoid = " << s.geoid;
+      sql += fmt::format(" s.geoid={}", s.geoid);
     else if (not missingLpnnId)
-      sqlStr << " s.lpnn = " << s.lpnn;
+      sql += fmt::format(" s.lpnn={}", s.lpnn);
     else
       return false;
 
     // There might be multiple locations for a station.
-    sqlStr << " AND DATETIME('now') BETWEEN s.station_start AND s.station_end";
+    sql += " AND DATETIME('now') BETWEEN s.station_start AND s.station_end";
 
     boost::optional<int> fmisid;
     boost::optional<int> wmo;
@@ -2823,10 +2814,10 @@ bool SpatiaLite::fillMissing(Spine::Station &s, const std::set<std::string> &sta
     boost::optional<std::string> station_formal_name;
 
     // We need only the first one (ID values are unique).
-    sqlStr << " LIMIT 1";
+    sql += " LIMIT 1";
 
     // Executing the search
-    sqlite3pp::query qry(itsDB, sqlStr.str().c_str());
+    sqlite3pp::query qry(itsDB, sql.c_str());
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter != qry.end())
     {
@@ -2980,14 +2971,13 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
     timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
 
-    stringstream ss;
+    std::string qstations;
     map<int, Spine::Station> tmpStations;
     for (const Spine::Station &s : stations)
     {
       tmpStations.insert(std::make_pair(s.station_id, s));
-      ss << s.station_id << ",";
+      qstations += Fmi::to_string(s.station_id) + ",";
     }
-    string qstations = ss.str();
     qstations = qstations.substr(0, qstations.length() - 1);
 
     // This maps measurand_id and the parameter position in TimeSeriesVector
@@ -3273,14 +3263,13 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
     timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
 
-    stringstream ss;
+    std::string qstations;
     map<int, Spine::Station> tmpStations;
     for (const Spine::Station &s : stations)
     {
       tmpStations.insert(std::make_pair(s.station_id, s));
-      ss << s.station_id << ",";
+      qstations += Fmi::to_string(s.station_id) + ",";
     }
-    string qstations = ss.str();
     qstations = qstations.substr(0, qstations.length() - 1);
 
     // This maps measurand_id and the parameter position in TimeSeriesVector

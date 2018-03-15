@@ -98,59 +98,51 @@ std::string QueryResult::toString(const ValueVectorType::const_iterator value,
 {
   try
   {
-    if ((*value).type() == typeid(int32_t))
+    if (value->type() == typeid(int32_t))
     {
       return Fmi::to_string(boost::any_cast<int32_t>(*value));
     }
-    else if ((*value).type() == typeid(uint32_t))
+    else if (value->type() == typeid(uint32_t))
     {
       return Fmi::to_string(boost::any_cast<uint32_t>(*value));
     }
-    else if ((*value).type() == typeid(int64_t))
+    else if (value->type() == typeid(int64_t))
     {
       return Fmi::to_string(boost::any_cast<int64_t>(*value));
     }
-    else if ((*value).type() == typeid(uint64_t))
+    else if (value->type() == typeid(uint64_t))
     {
       return Fmi::to_string(boost::any_cast<uint64_t>(*value));
     }
-    else if ((*value).type() == typeid(int16_t))
+    else if (value->type() == typeid(int16_t))
     {
       return Fmi::to_string(boost::any_cast<int16_t>(*value));
     }
-    else if ((*value).type() == typeid(uint16_t))
+    else if (value->type() == typeid(uint16_t))
     {
       return Fmi::to_string(static_cast<unsigned long>(boost::any_cast<uint16_t>(*value)));
     }
-    else if ((*value).type() == typeid(float))
+    else if (value->type() == typeid(float))
     {
-      std::ostringstream out;
-      out << std::setprecision(precision) << std::fixed << boost::any_cast<float>(*value);
-      return out.str();
+      return fmt::format("{:.{}f}", boost::any_cast<float>(*value), precision);
     }
-    else if ((*value).type() == typeid(double))
+    else if (value->type() == typeid(double))
     {
-      std::ostringstream out;
-      out << std::setprecision(precision) << std::fixed << boost::any_cast<double>(*value);
-      return out.str();
+      return fmt::format("{:.{}f}", boost::any_cast<double>(*value), precision);
     }
-    else if ((*value).type() == typeid(std::string))
+    else if (value->type() == typeid(std::string))
     {
       return boost::any_cast<std::string>(*value);
     }
-    else if ((*value).type() == typeid(boost::posix_time::ptime))
+    else if (value->type() == typeid(boost::posix_time::ptime))
     {
       return Fmi::to_iso_extended_string(boost::any_cast<boost::posix_time::ptime>(*value)) + "Z";
     }
     else
     {
-      std::ostringstream msg;
-      msg << "warning: QueryResult::toString : Unsupported data type '" << (*value).type().name();
-
-      Spine::Exception exception(BCP, "Operation processing failed!");
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg.str());
-      throw exception;
+      throw Spine::Exception(BCP, "Operation processing failed!")
+          .addDetail(fmt::format("warning: QueryResult::toString : Unsupported data type '{}'",
+                                 value->type().name()));
     }
   }
   catch (...)
@@ -207,15 +199,8 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId, ValueVectorTyp
   try
   {
     if (m_numberOfValueVectors <= valueVectorId)
-    {
-      std::ostringstream msg;
-      msg << "QueryResult::set : value vector index is out of range.";
-
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-      // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail("QueryResult::set : value vector index is out of range.");
 
     outValueVector.resize(m_valueContainer.at(valueVectorId).size());
 
@@ -269,15 +254,8 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
   try
   {
     if (m_numberOfValueVectors <= valueVectorId)
-    {
-      std::ostringstream msg;
-      msg << "QueryResult::set : value vector index is out of range.";
-
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-      // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail("QueryResult::set : value vector index is out of range.");
 
     outValueVector.resize(m_valueContainer.at(valueVectorId).size());
 
@@ -355,13 +333,8 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
     }
     catch (std::bad_cast& e)
     {
-      std::ostringstream msg;
-      msg << "QueryResult::getValueVectorData : " << e.what();
-
-      Spine::Exception exception(BCP, "Operation processing failed!", nullptr);
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg.str());
-      throw exception;
+      throw Spine::Exception(BCP, "Operation processing failed!")
+          .addDetail(fmt::format("QueryResult::getValueVectorData : {}", e.what()));
     }
   }
   catch (...)
@@ -381,13 +354,9 @@ size_t QueryResult::getValueVectorId(const std::string& valueVectorName)
         return id;
     }
 
-    std::ostringstream msg;
-    msg << "QueryResult::end : value vector name '" << valueVectorName << "' not found.";
-
-    Spine::Exception exception(BCP, "Invalid parameter value!");
-    // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-    exception.addDetail(msg.str());
-    throw exception;
+    throw Spine::Exception(BCP, "Invalid parameter value!")
+        .addDetail(
+            fmt::format("QueryResult::end : value vector name '{}' not found.", valueVectorName));
   }
   catch (...)
   {
@@ -400,15 +369,8 @@ std::string QueryResult::getValueVectorName(const size_t& valueVectorId)
   try
   {
     if (m_numberOfValueVectors <= valueVectorId)
-    {
-      std::ostringstream msg;
-      msg << "QueryResult::getValueVectorName : value vector index is out of range.";
-
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-      // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail("QueryResult::getValueVectorName : value vector index is out of range.");
 
     return m_valueVectorName.at(valueVectorId);
   }
@@ -483,15 +445,8 @@ void QueryResult::set(const size_t& valueVectorId, const ValueType& value)
   try
   {
     if (m_numberOfValueVectors <= valueVectorId)
-    {
-      std::ostringstream msg;
-      msg << "QueryResult::set : value vector index is out of range.";
-
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-      // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail("QueryResult::set : value vector index is out of range.");
 
     // Store the first value and compare its type with the following ones.
     if (m_valueContainer[valueVectorId].size() == 0)
@@ -502,14 +457,10 @@ void QueryResult::set(const size_t& valueVectorId, const ValueType& value)
     {
       if (m_valueTypeOfVector[valueVectorId].type() != value.type())
       {
-        std::ostringstream msg;
-        msg << "QueryResult::set : wrong data type '" << value.type().name() << "' with '"
-            << m_valueTypeOfVector[valueVectorId].type().name() << "'\n";
-
-        Spine::Exception exception(BCP, "Invalid parameter value!");
-        // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-        exception.addDetail(msg.str());
-        throw exception;
+        throw Spine::Exception(BCP, "Invalid parameter value!")
+            .addDetail(fmt::format("QueryResult::set : wrong data type '{}' with '{}'",
+                                   value.type().name(),
+                                   m_valueTypeOfVector[valueVectorId].type().name()));
       }
     }
 
@@ -527,15 +478,8 @@ void QueryResult::setValueVectorName(const size_t& valueVectorId,
   try
   {
     if (m_numberOfValueVectors <= valueVectorId)
-    {
-      std::ostringstream msg;
-      msg << "QueryResult::setValueVectorName : value vector index is out of range.";
-
-      Spine::Exception exception(BCP, "Invalid parameter value!");
-      // exception.setExceptionCode(Obs_EngineException::INVALID_PARAMETER_VALUE);
-      exception.addDetail(msg.str());
-      throw exception;
-    }
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail("QueryResult::setValueVectorName : value vector index is out of range.");
 
     m_valueVectorName.at(valueVectorId) = valueVectorName;
   }

@@ -5,7 +5,7 @@
 #include "SpatiaLiteDriverParameters.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
-
+#include <fmt/format.h>
 #include <spine/Convenience.h>
 #include <atomic>
 #include <chrono>
@@ -99,24 +99,18 @@ void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb)
   try
   {
     if (qb == nullptr)
-    {
-      std::ostringstream msg;
-      msg << "SpatiaLiteDatabaseDriver::makeQuery : Implementation of '" << typeid(qb).name()
-          << "' class is missing.\n";
-
-      throw Spine::Exception(BCP, "Invalid parameter value!").addDetail(msg.str());
-    }
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail(fmt::format(
+              "SpatiaLiteDatabaseDriver::makeQuery : Implementation of '{}' class is missing.",
+              typeid(qb).name()));
 
     const std::string sqlStatement = qb->getSQLStatement();
 
     if (sqlStatement.empty())
-    {
-      std::ostringstream msg;
-      msg << "SpatiaLiteDatabaseDriver::makeQuery : SQL statement of '" << typeid(*qb).name()
-          << "' class is empty.\n";
-
-      throw Spine::Exception(BCP, "Invalid parameter value!").addDetail(msg.str());
-    }
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail(fmt::format(
+              "SpatiaLiteDatabaseDriver::makeQuery : SQL statement of '{}' class is empty.",
+              typeid(*qb).name()));
 
     std::shared_ptr<QueryResultBase> result = qb->getQueryResultContainer();
 
@@ -130,13 +124,10 @@ void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb)
     }
 
     if (result == nullptr)
-    {
-      std::ostringstream msg;
-      msg << "SpatiaLiteDatabaseDriver::makeQuery : Result container of '" << typeid(*qb).name()
-          << "' class not found.\n";
-
-      throw Spine::Exception(BCP, "Invalid parameter value!").addDetail(msg.str());
-    }
+      throw Spine::Exception(BCP, "Invalid parameter value!")
+          .addDetail(fmt::format(
+              "SpatiaLiteDatabaseDriver::makeQuery : Result container of '{}' class not found.",
+              typeid(*qb).name()));
   }
   catch (...)
   {
