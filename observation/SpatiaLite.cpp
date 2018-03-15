@@ -3510,9 +3510,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
                 // measured using
                 // dedicated stations
                 // dedicated stations
-                int windpos = boost::lexical_cast<int>(parameterMap["windspeedms"][stationtype]);
-                int rhpos = boost::lexical_cast<int>(parameterMap["relativehumidity"][stationtype]);
-                int temppos = boost::lexical_cast<int>(parameterMap["temperature"][stationtype]);
+                int windpos = Fmi::stoi(parameterMap["windspeedms"][stationtype]);
+                int rhpos = Fmi::stoi(parameterMap["relativehumidity"][stationtype]);
+                int temppos = Fmi::stoi(parameterMap["temperature"][stationtype]);
 
                 if (!data[s.fmisid][t][windpos].which() || !data[s.fmisid][t][rhpos].which() ||
                     !data[s.fmisid][t][temppos].which())
@@ -3620,10 +3620,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
                   // Feels like - deduction. This ignores radiation, since it is
                   // measured using
                   // dedicated stations
-                  int windpos = boost::lexical_cast<int>(parameterMap["windspeedms"][stationtype]);
-                  int rhpos =
-                      boost::lexical_cast<int>(parameterMap["relativehumidity"][stationtype]);
-                  int temppos = boost::lexical_cast<int>(parameterMap["temperature"][stationtype]);
+                  int windpos = Fmi::stoi(parameterMap["windspeedms"][stationtype]);
+                  int rhpos = Fmi::stoi(parameterMap["relativehumidity"][stationtype]);
+                  int temppos = Fmi::stoi(parameterMap["temperature"][stationtype]);
 
                   if (!data[s.fmisid][t][windpos].which() || !data[s.fmisid][t][rhpos].which() ||
                       !data[s.fmisid][t][temppos].which())

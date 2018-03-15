@@ -211,7 +211,7 @@ class IsLike : public Base
     // Special case when the type is string. (boost::posix_time::ptime is also a problem).
     // toWhatString method is catenating apostrophes (') around a string.
     if ((toWhat).type() == typeid(std::string))
-      val = "%" + boost::lexical_cast<std::string>(boost::any_cast<std::string>(toWhat)) + "%";
+      val = "%" + boost::any_cast<std::string>(toWhat) + "%";
     else
       val = "%" + toWhatString(toWhat) + "%";
     obj->set(property, boost::any(val), "LIKE");
