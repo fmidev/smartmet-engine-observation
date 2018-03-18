@@ -38,6 +38,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
 
   bool ready() const;
 
+  Geonames::Engine *getGeonames() const;
   void setGeonames(Geonames::Engine *geonames);
 
   const std::shared_ptr<DBRegistry> dbRegistry() const { return itsDatabaseRegistry; }
@@ -101,11 +102,8 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   void unserializeStations();
 
   std::string itsConfigFile;
-  bool itsReady = false;
 
   boost::shared_ptr<EngineParameters> itsEngineParameters;
-
-  boost::mutex itsSetGeonamesMutex;
 
   std::shared_ptr<DBRegistry> itsDatabaseRegistry;
 

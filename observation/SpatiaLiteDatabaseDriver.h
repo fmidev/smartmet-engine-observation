@@ -2,7 +2,6 @@
 
 #include "DatabaseDriver.h"
 #include "SpatiaLiteDriverParameters.h"
-
 #include <string>
 
 namespace SmartMet
@@ -11,12 +10,14 @@ namespace Engine
 {
 namespace Observation
 {
+class Engine;
+
 class SpatiaLiteDatabaseDriver : public DatabaseDriver
 {
  public:
   SpatiaLiteDatabaseDriver(boost::shared_ptr<EngineParameters> p, Spine::ConfigBase &cfg);
 
-  void init(Geonames::Engine *geonames);
+  void init(Engine *obsengine);
 
   Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings);
 
@@ -56,6 +57,7 @@ class SpatiaLiteDatabaseDriver : public DatabaseDriver
   Fmi::TimeZones itsTimeZones;
   SpatiaLiteDriverParameters itsParameters;
   std::map<std::string, MetaData> itsMetaData;
+  Engine *itsObsEngine = nullptr;
 };
 
 }  // namespace Observation

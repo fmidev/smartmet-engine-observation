@@ -30,7 +30,7 @@ struct SpatiaLiteDriverParameters
   {
   }
 
-  Geonames::Engine* geonames;
+  // Geonames::Engine* geonames;
   std::map<std::string, std::map<std::string, std::string> >& parameterMap;
   boost::shared_ptr<StationInfo> stationInfo;
   Fmi::Cache::Cache<std::string, std::vector<Spine::Station> >& locationCache;

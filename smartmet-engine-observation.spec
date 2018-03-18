@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.3.15
-Release: 2%{?dist}.fmi
+Version: 18.3.19
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -14,7 +14,7 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 18.2.27
+BuildRequires: smartmet-library-spine-devel >= 18.3.7
 BuildRequires: smartmet-engine-geonames-devel >= 18.2.9
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
@@ -28,7 +28,7 @@ Requires: fmt
 Requires: libconfig
 Requires: smartmet-server >= 17.11.10
 Requires: smartmet-engine-geonames >= 18.2.9
-Requires: smartmet-library-spine >= 18.2.27
+Requires: smartmet-library-spine >= 18.3.7
 Requires: smartmet-library-locus >= 18.1.15
 Requires: smartmet-library-macgyver >= 18.2.12
 Requires: libatomic
@@ -94,6 +94,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Mar 19 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.3.19-1.fmi
+- obsengine will now register after all caches have been updated
+
 * Thu Mar 15 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.3.15-2.fmi
 - Replaced uses of boost::lexical_cast with non std::locale locking calls
 

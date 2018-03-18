@@ -1,4 +1,5 @@
 #include "SpatiaLiteDatabaseDriver.h"
+#include "Engine.h"
 #include "ObservationCache.h"
 #include "QueryResult.h"
 #include "QueryResultBase.h"
@@ -70,13 +71,13 @@ SpatiaLiteDatabaseDriver::SpatiaLiteDatabaseDriver(boost::shared_ptr<EngineParam
   readConfig(cfg);
 }
 
-void SpatiaLiteDatabaseDriver::init(Geonames::Engine *geonames)
+void SpatiaLiteDatabaseDriver::init(Engine *obsengine)
 {
   try
   {
     logMessage("[SpatiaLiteDatabaseDriver] initializing connection pool...", itsParameters.quiet);
 
-    itsParameters.geonames = geonames;
+    itsObsEngine = obsengine;
     itsParameters.observationCache->initializeConnectionPool(itsParameters.finCacheDuration);
 
     logMessage("[SpatiaLiteDatabaseDriver] Connection pool ready.", itsParameters.quiet);
@@ -251,7 +252,7 @@ bool SpatiaLiteDatabaseDriver::isParameter(const std::string &alias,
   try
   {
     std::string parameterAliasName = Fmi::ascii_tolower_copy(alias);
-    Engine::Observation::removePrefix(parameterAliasName, "qc_");
+    removePrefix(parameterAliasName, "qc_");
 
     // Is the alias configured.
     std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
@@ -281,7 +282,7 @@ bool SpatiaLiteDatabaseDriver::isParameterVariant(const std::string &name) const
   try
   {
     std::string parameterLowerCase = Fmi::ascii_tolower_copy(name);
-    Engine::Observation::removePrefix(parameterLowerCase, "qc_");
+    removePrefix(parameterLowerCase, "qc_");
     // Is the alias configured.
     std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
         itsParameters.parameterMap.find(parameterLowerCase);
@@ -528,7 +529,8 @@ if (!settings.lpnns.empty()) {
         opts.SetCountries("");
         opts.SetFullCountrySearch(true);
 
-        auto places = itsParameters.geonames->idSearch(opts, geoid);
+        auto *geonames = itsObsEngine->getGeonames();
+        auto places = geonames->idSearch(opts, geoid);
         if (!places.empty())
         {
           for (const auto &place : places)

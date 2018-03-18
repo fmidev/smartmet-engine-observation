@@ -5,8 +5,9 @@
 #include "QueryResultBase.h"
 #include "Settings.h"
 #include "Utils.h"
+#include <boost/atomic.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <engines/geonames/Engine.h>
+#include <boost/thread/condition.hpp>
 #include <spine/Station.h>
 #include <spine/TimeSeries.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
@@ -17,6 +18,7 @@ namespace Engine
 {
 namespace Observation
 {
+class Engine;
 class ObservationCache;
 class ObservableProperty;
 class StationInfo;
@@ -26,7 +28,7 @@ class DatabaseDriver
 {
  public:
   virtual ~DatabaseDriver();
-  virtual void init(Geonames::Engine *geonames) = 0;
+  virtual void init(Engine *obsengine) = 0;
   virtual std::string id() const = 0;
 
   virtual boost::shared_ptr<Spine::Table> makeQuery(

@@ -1,7 +1,6 @@
 #include "DummyDatabaseDriver.h"
 #include "ObservableProperty.h"
 #include "Utils.h"
-
 #include <spine/Table.h>
 
 namespace ts = SmartMet::Spine::TimeSeries;
@@ -12,13 +11,9 @@ namespace Engine
 {
 namespace Observation
 {
-DummyDatabaseDriver::DummyDatabaseDriver()
-{
-}
+DummyDatabaseDriver::DummyDatabaseDriver() {}
 
-void DummyDatabaseDriver::init(Geonames::Engine *geonames)
-{
-}
+void DummyDatabaseDriver::init(Engine *obsengine) {}
 
 boost::shared_ptr<Spine::Table> DummyDatabaseDriver::makeQuery(
     Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter)

@@ -2,11 +2,10 @@
 #include "DBRegistry.h"
 #include "DatabaseDriverFactory.h"
 #include "ObservationCacheFactory.h"
-
 #include <boost/make_shared.hpp>
 #include <macgyver/Geometry.h>
 #include <spine/Convenience.h>
-#include <atomic>
+#include <spine/Reactor.h>
 
 namespace ts = SmartMet::Spine::TimeSeries;
 
@@ -49,6 +48,7 @@ void Engine::init()
       logMessage("[Observation Engine] database driver '" + itsDatabaseDriver->id() + "' created",
                  itsEngineParameters->quiet);
     }
+    itsDatabaseDriver->init(this);
   }
   catch (...)
   {
@@ -256,28 +256,18 @@ void Engine::initializeCache()
 
 bool Engine::ready() const
 {
-  return itsReady;
+  std::cout << "Warning: obsengine::ready called" << std::endl;
+  return true;
 }
 
-void Engine::setGeonames(Geonames::Engine *geonames_)
+Geonames::Engine *Engine::getGeonames() const
 {
-  try
-  {
-    boost::mutex::scoped_lock lock(itsSetGeonamesMutex);
-
-    if (!itsEngineParameters->geonames)
-    {
-      itsEngineParameters->geonames = geonames_;
-      // Connection pool can be initialized only afer geonames is set
-      itsDatabaseDriver->init(geonames_);
-      itsReady = true;
-    }
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
-  }
+  // this will wait until the engine is ready
+  auto *engine = itsReactor->getSingleton("Geonames", nullptr);
+  return reinterpret_cast<Geonames::Engine *>(engine);
 }
+
+void Engine::setGeonames(Geonames::Engine * /* geonames_ */) {}
 
 FlashCounts Engine::getFlashCount(const boost::posix_time::ptime &starttime,
                                   const boost::posix_time::ptime &endtime,

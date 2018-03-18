@@ -12,7 +12,7 @@ class DummyDatabaseDriver : public DatabaseDriver
 {
  public:
   DummyDatabaseDriver();
-  void init(Geonames::Engine *geonames);
+  void init(Engine *obsengine);
 
   boost::shared_ptr<Spine::Table> makeQuery(
       Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter);
