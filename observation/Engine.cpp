@@ -267,8 +267,6 @@ Geonames::Engine *Engine::getGeonames() const
   return reinterpret_cast<Geonames::Engine *>(engine);
 }
 
-void Engine::setGeonames(Geonames::Engine * /* geonames_ */) {}
-
 FlashCounts Engine::getFlashCount(const boost::posix_time::ptime &starttime,
                                   const boost::posix_time::ptime &endtime,
                                   const Spine::TaggedLocationList &locations)
