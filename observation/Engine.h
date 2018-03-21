@@ -107,9 +107,9 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   std::shared_ptr<DBRegistry> itsDatabaseRegistry;
 
 #ifdef TODO_CAUSES_SEGFAULT_AT_EXIT
-  // std::unique_ptr<DatabaseDriver> itsDatabaseDriver;
+  std::unique_ptr<DatabaseDriver> itsDatabaseDriver;
 #else
-  DatabaseDriver *itsDatabaseDriver;
+  DatabaseDriver *itsDatabaseDriver{nullptr};
 #endif
 };
 
