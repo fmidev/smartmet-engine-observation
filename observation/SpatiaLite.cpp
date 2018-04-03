@@ -798,12 +798,6 @@ std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData)
     {
       if (itsShutdownRequested)
         break;
-      // Yield if there is more than 1 block
-      if (pos1 > 0)
-      {
-        // boost::this_thread::yield();
-        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
-      }
 
       // Collect new items before taking a lock - we might avoid one completely
       std::vector<std::size_t> new_items;
@@ -829,6 +823,10 @@ std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData)
 
       if (!new_items.empty())
       {
+        // Yield (not sleep!) if there is more than 1 block.
+        if (pos1 > 0)
+          boost::this_thread::yield();
+
         Spine::WriteLock lock(write_mutex);
         sqlite3pp::transaction xct(itsDB);
         sqlite3pp::command cmd(itsDB, sqltemplate);
@@ -888,13 +886,6 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
       if (itsShutdownRequested)
         break;
 
-      // Yield if there is more than 1 block
-      if (pos1 > 0)
-      {
-        // boost::this_thread::yield();
-        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
-      }
-
       // Collect new items before taking a lock - we might avoid one completely
       std::vector<std::size_t> new_items;
       std::vector<std::size_t> new_hashes;
@@ -919,6 +910,10 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
 
       if (!new_items.empty())
       {
+        // Yield (not sleep!) if there is more than 1 block
+        if (pos1 > 0)
+          boost::this_thread::yield();
+
         Spine::WriteLock lock(write_mutex);
         sqlite3pp::transaction xct(itsDB);
         sqlite3pp::command cmd(itsDB, sqltemplate);
@@ -969,13 +964,6 @@ std::size_t SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCac
 
     while (pos1 < flashCacheData.size())
     {
-      // Yield if there is more than 1 block
-      if (pos1 > 0)
-      {
-        // boost::this_thread::yield();
-        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
-      }
-
       // Collect new items before taking a lock - we might avoid one completely
       std::vector<std::size_t> new_items;
       std::vector<std::size_t> new_hashes;
@@ -1001,6 +989,10 @@ std::size_t SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCac
 
       if (!new_items.empty())
       {
+        // Yield (not sleep!) if there is more than 1 block
+        if (pos1 > 0)
+          boost::this_thread::yield();
+
         Spine::WriteLock lock(write_mutex);
         sqlite3pp::transaction xct(itsDB);
 
