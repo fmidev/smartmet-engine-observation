@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.4.3
+Version: 18.4.7
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -14,23 +14,23 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 18.3.7
-BuildRequires: smartmet-engine-geonames-devel >= 18.2.9
+BuildRequires: smartmet-library-spine-devel >= 18.4.7
+BuildRequires: smartmet-engine-geonames-devel >= 18.4.7
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.20.1
-BuildRequires: smartmet-library-locus-devel >= 18.1.15
-BuildRequires: smartmet-library-macgyver-devel >= 18.2.12
+BuildRequires: smartmet-library-locus-devel >= 18.4.7
+BuildRequires: smartmet-library-macgyver-devel >= 18.4.7
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel
 Requires: fmt
 Requires: libconfig
-Requires: smartmet-server >= 17.11.10
-Requires: smartmet-engine-geonames >= 18.2.9
-Requires: smartmet-library-spine >= 18.3.7
-Requires: smartmet-library-locus >= 18.1.15
-Requires: smartmet-library-macgyver >= 18.2.12
+Requires: smartmet-server >= 18.4.7
+Requires: smartmet-engine-geonames >= 18.4.7
+Requires: smartmet-library-spine >= 18.4.7
+Requires: smartmet-library-locus >= 18.4.7
+Requires: smartmet-library-macgyver >= 18.4.7
 Requires: libatomic
 Requires: unixODBC
 Requires: mysql++
@@ -94,6 +94,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Sat Apr  7 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.4.7-1.fmi
+- Upgrade to boost 1.66
+
 * Tue Apr  3 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.4.3-1.fmi
 - Prefer yielding writer threads over sleeping to give more time for sqlite readers
 
