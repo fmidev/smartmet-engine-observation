@@ -6,8 +6,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
 #include <boost/serialization/vector.hpp>
-#include <macgyver/TypeName.h>
 #include <macgyver/Astronomy.h>
+#include <macgyver/TypeName.h>
 #include <spine/Convenience.h>
 #include <spine/Exception.h>
 #include <fstream>
@@ -364,13 +364,12 @@ std::string getLocationCacheKey(int geoID,
   }
 }
 
-boost::optional<int> calcSmartsymbolNumber(
-    int wawa,
-    int cloudiness,
-    double temperature,
-    const boost::local_time::local_date_time &ldt,
-    double lat,
-    double lon)
+boost::optional<int> calcSmartsymbolNumber(int wawa,
+                                           int cloudiness,
+                                           double temperature,
+                                           const boost::local_time::local_date_time& ldt,
+                                           double lat,
+                                           double lon)
 {
   boost::optional<int> smartsymbol = {};
 
@@ -662,8 +661,7 @@ boost::optional<int> calcSmartsymbolNumber(
   }
 
   // Add day/night information
-  Fmi::Astronomy::solar_position_t sp =
-      Fmi::Astronomy::solar_position(ldt, lon, lat);
+  Fmi::Astronomy::solar_position_t sp = Fmi::Astronomy::solar_position(ldt, lon, lat);
   if (smartsymbol)
   {
     if (sp.dark())

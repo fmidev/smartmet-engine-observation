@@ -1,7 +1,8 @@
 #include "DatabaseDriverFactory.h"
 #include "DummyDatabaseDriver.h"
 #include "SpatiaLiteDatabaseDriver.h"
-extern "C" {
+extern "C"
+{
 #include <dlfcn.h>
 }
 

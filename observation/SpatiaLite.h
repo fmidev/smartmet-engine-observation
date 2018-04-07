@@ -304,7 +304,9 @@ class SpatiaLite : private boost::noncopyable
       const boost::local_time::local_date_time &time,
       const ParameterMap &parameterMap,
       const std::string &stationtype,
-      const std::map<int, std::map<boost::local_time::local_date_time, std::map<int, SmartMet::Spine::TimeSeries::Value> > > &data,
+      const std::map<int,
+                     std::map<boost::local_time::local_date_time,
+                              std::map<int, SmartMet::Spine::TimeSeries::Value>>> &data,
       const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns);
 
   void addSpecialParameterToTimeSeries(

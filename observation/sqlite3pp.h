@@ -52,7 +52,7 @@ namespace ext
 class function;
 class aggregate;
 database borrow(sqlite3* pdb);
-}
+}  // namespace ext
 
 template <class T>
 struct convert

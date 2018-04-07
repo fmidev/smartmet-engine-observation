@@ -7,9 +7,9 @@
 #include <spine/Station.h>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/utility.hpp>
-#include <boost/optional.hpp>
 #include <boost/date_time/local_time/local_time.hpp>
+#include <boost/optional.hpp>
+#include <boost/utility.hpp>
 #include <map>
 #include <string>
 #include <vector>
@@ -104,19 +104,18 @@ std::string getLocationCacheKey(int geoID,
 // ----------------------------------------------------------------------
 /*!
  * \brief Calculate the weather symbol using wawa code, temperature and cloudiness
- * 
- * The logic is described in: 
+ *
+ * The logic is described in:
  * https://wiki.fmi.fi/display/PROJEKTIT/Havaintojen+muuntaminen+SmartSymboliksi
  */
 // ----------------------------------------------------------------------
 
-boost::optional<int> calcSmartsymbolNumber(
-    int wawa,
-    int cloudiness,
-    double temperature,
-    const boost::local_time::local_date_time &ldt,
-    double lat,
-    double lon);
+boost::optional<int> calcSmartsymbolNumber(int wawa,
+                                           int cloudiness,
+                                           double temperature,
+                                           const boost::local_time::local_date_time& ldt,
+                                           double lat,
+                                           double lon);
 
 }  // namespace Observation
 }  // namespace Engine

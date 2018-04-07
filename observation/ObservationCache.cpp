@@ -6,13 +6,9 @@ namespace Engine
 {
 namespace Observation
 {
-ObservationCache::ObservationCache()
-{
-}
+ObservationCache::ObservationCache() {}
 
-ObservationCache::~ObservationCache()
-{
-}
+ObservationCache::~ObservationCache() {}
 
 }  // namespace Observation
 }  // namespace Engine
