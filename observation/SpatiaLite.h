@@ -164,16 +164,16 @@ class SpatiaLite : private boost::noncopyable
   /**
    * @brief Delete everything from observation_data table which is
    *        older than the given duration
-   * @param[in] timetokeep
+   * @param[in] newstarttime
    */
-  void cleanDataCache(const boost::posix_time::time_duration &timetokeep);
+  void cleanDataCache(const boost::posix_time::ptime &newstarttime);
 
   /**
    * @brief Delete everything from weather_data_qc table which
    *        is older than given duration
-   * @param[in] timetokeep
+   * @param[in] newstarttime
    */
-  void cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep);
+  void cleanWeatherDataQCCache(const boost::posix_time::ptime &newstarttime);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedWeatherDataQCData(
       const SmartMet::Spine::Stations &stations,
@@ -183,9 +183,9 @@ class SpatiaLite : private boost::noncopyable
 
   /**
    * @brief Delete old flash observation data from flash_data table
-   * @param timetokeep Delete everything from flash_data which is older than given duration
+   * @param newstarttime Delete everything from flash_data which is older than given time
    */
-  void cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep);
+  void cleanFlashDataCache(const boost::posix_time::ptime &newstarttime);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedData(
       const SmartMet::Spine::Stations &stations,

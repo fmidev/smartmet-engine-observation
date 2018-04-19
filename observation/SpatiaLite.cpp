@@ -703,18 +703,15 @@ void SpatiaLite::fillLocationCache(const vector<LocationItem> &locations)
   }
 }
 
-void SpatiaLite::cleanDataCache(const boost::posix_time::time_duration &timetokeep)
+void SpatiaLite::cleanDataCache(const boost::posix_time::ptime &newstarttime)
 {
   try
   {
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-    t = round_down_to_hour(t);
-
     auto oldest = getOldestObservationTime();
-    if (t <= oldest)
+    if (newstarttime <= oldest)
       return;
 
-    std::string timestring = Fmi::to_iso_extended_string(t);
+    std::string timestring = Fmi::to_iso_extended_string(newstarttime);
 
     Spine::WriteLock lock(write_mutex);
     sqlite3pp::command cmd(itsDB, "DELETE FROM observation_data WHERE data_time < :timestring");
@@ -727,18 +724,15 @@ void SpatiaLite::cleanDataCache(const boost::posix_time::time_duration &timetoke
   }
 }
 
-void SpatiaLite::cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep)
+void SpatiaLite::cleanWeatherDataQCCache(const boost::posix_time::ptime &newstarttime)
 {
   try
   {
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-    t = round_down_to_hour(t);
-
     auto oldest = getOldestWeatherDataQCTime();
-    if (t <= oldest)
+    if (newstarttime <= oldest)
       return;
 
-    std::string timestring = Fmi::to_iso_extended_string(t);
+    std::string timestring = Fmi::to_iso_extended_string(newstarttime);
 
     Spine::WriteLock lock(write_mutex);
 
@@ -752,18 +746,15 @@ void SpatiaLite::cleanWeatherDataQCCache(const boost::posix_time::time_duration 
   }
 }
 
-void SpatiaLite::cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep)
+void SpatiaLite::cleanFlashDataCache(const boost::posix_time::ptime &newstarttime)
 {
   try
   {
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-    t = round_down_to_hour(t);
-
     auto oldest = getOldestFlashTime();
-    if (t <= oldest)
+    if (newstarttime <= oldest)
       return;
 
-    std::string timestring = Fmi::to_iso_extended_string(t);
+    std::string timestring = Fmi::to_iso_extended_string(newstarttime);
 
     Spine::WriteLock lock(write_mutex);
     sqlite3pp::command cmd(itsDB, "DELETE FROM flash_data WHERE stroke_time < :timestring");

@@ -14,6 +14,14 @@ namespace Observation
 {
 namespace
 {
+// Round down to HH:00:00
+
+boost::posix_time::ptime round_down_to_hour(const boost::posix_time::ptime &t)
+{
+  auto hour = t.time_of_day().hours();
+  return boost::posix_time::ptime(t.date(), boost::posix_time::hours(hour));
+}
+
 /*!
  * \brief Find stations close to the given coordinate with filtering
  */
@@ -343,14 +351,11 @@ bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &start
 {
   try
   {
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    auto oldest_time = spatialitedb->getOldestObservationTime();
-
-    if (oldest_time.is_not_a_date_time())
+    Spine::ReadLock lock(itsTimeIntervalMutex);
+    if (itsTimeIntervalStart.is_not_a_date_time())
       return false;
-
-    // we need only the beginning though
-    return (starttime >= oldest_time);
+    // We ignore end time intentionally
+    return (starttime >= itsTimeIntervalStart);
   }
   catch (...)
   {
@@ -522,20 +527,13 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
     if (settings.stationtype == "opendata" || settings.stationtype == "fmi" ||
         settings.stationtype == "opendata_mareograph" || settings.stationtype == "opendata_buoy" ||
         settings.stationtype == "research" || settings.stationtype == "syke")
-    {
-      if (timeIntervalIsCached(settings.starttime, settings.endtime))
-      {
-        return true;
-      }
-    }
-    else if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
-             timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
-    {
-      return true;
-    }
-    else if (settings.stationtype == "flash" &&
-             flashIntervalIsCached(settings.starttime, settings.endtime))
-      return true;
+      return timeIntervalIsCached(settings.starttime, settings.endtime);
+
+    else if (settings.stationtype == "road" || settings.stationtype == "foreign")
+      return timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime);
+
+    else if (settings.stationtype == "flash")
+      return flashIntervalIsCached(settings.starttime, settings.endtime);
 
     // Either the stationtype is not cached or the requested time interval is
     // not cached
@@ -594,12 +592,37 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestFlashTime() const
 std::size_t SpatiaLiteCache::fillFlashDataCache(
     const std::vector<FlashDataItem> &flashCacheData) const
 {
-  return itsConnectionPool->getConnection()->fillFlashDataCache(flashCacheData);
+  auto conn = itsConnectionPool->getConnection();
+  auto sz = conn->fillFlashDataCache(flashCacheData);
+
+  // Update what really now really is in the database
+  auto start = conn->getOldestFlashTime();
+  auto end = conn->getLatestFlashTime();
+  Spine::WriteLock lock(itsFlashTimeIntervalMutex);
+  itsFlashTimeIntervalStart = start;
+  itsFlashTimeIntervalEnd = end;
+  return sz;
 }
 
 void SpatiaLiteCache::cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const
 {
-  return itsConnectionPool->getConnection()->cleanFlashDataCache(timetokeep);
+  boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+  t = round_down_to_hour(t);
+
+  auto conn = itsConnectionPool->getConnection();
+  {
+    // We know the cache will not contain anything before this after the update
+    Spine::WriteLock lock(itsFlashTimeIntervalMutex);
+    itsFlashTimeIntervalStart = t;
+  }
+  conn->cleanFlashDataCache(t);
+
+  // Update what really remains in the database
+  auto start = conn->getOldestFlashTime();
+  auto end = conn->getLatestFlashTime();
+  Spine::WriteLock lock(itsFlashTimeIntervalMutex);
+  itsFlashTimeIntervalStart = start;
+  itsFlashTimeIntervalEnd = end;
 }
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestObservationTime() const
@@ -609,12 +632,37 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestObservationTime() const
 
 std::size_t SpatiaLiteCache::fillDataCache(const std::vector<DataItem> &cacheData) const
 {
-  return itsConnectionPool->getConnection()->fillDataCache(cacheData);
+  auto conn = itsConnectionPool->getConnection();
+  auto sz = conn->fillDataCache(cacheData);
+
+  // Update what really now really is in the database
+  auto start = conn->getOldestObservationTime();
+  auto end = conn->getLatestObservationTime();
+  Spine::WriteLock lock(itsTimeIntervalMutex);
+  itsTimeIntervalStart = start;
+  itsTimeIntervalEnd = end;
+  return sz;
 }
 
 void SpatiaLiteCache::cleanDataCache(const boost::posix_time::time_duration &timetokeep) const
 {
-  return itsConnectionPool->getConnection()->cleanDataCache(timetokeep);
+  boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+  t = round_down_to_hour(t);
+
+  auto conn = itsConnectionPool->getConnection();
+  {
+    // We know the cache will not contain anything before this after the update
+    Spine::WriteLock lock(itsTimeIntervalMutex);
+    itsTimeIntervalStart = t;
+  }
+  conn->cleanDataCache(t);
+
+  // Update what really remains in the database
+  auto start = conn->getOldestObservationTime();
+  auto end = conn->getLatestObservationTime();
+  Spine::WriteLock lock(itsTimeIntervalMutex);
+  itsTimeIntervalStart = start;
+  itsTimeIntervalEnd = end;
 }
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCTime() const
@@ -625,13 +673,38 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCTime() const
 std::size_t SpatiaLiteCache::fillWeatherDataQCCache(
     const std::vector<WeatherDataQCItem> &cacheData) const
 {
-  return itsConnectionPool->getConnection()->fillWeatherDataQCCache(cacheData);
+  auto conn = itsConnectionPool->getConnection();
+  auto sz = conn->fillWeatherDataQCCache(cacheData);
+
+  // Update what really now really is in the database
+  auto start = conn->getOldestWeatherDataQCTime();
+  auto end = conn->getLatestWeatherDataQCTime();
+  Spine::WriteLock lock(itsTimeIntervalMutex);
+  itsWeatherDataQCTimeIntervalStart = start;
+  itsWeatherDataQCTimeIntervalEnd = end;
+  return sz;
 }
 
 void SpatiaLiteCache::cleanWeatherDataQCCache(
     const boost::posix_time::time_duration &timetokeep) const
 {
-  return itsConnectionPool->getConnection()->cleanWeatherDataQCCache(timetokeep);
+  boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+  t = round_down_to_hour(t);
+
+  auto conn = itsConnectionPool->getConnection();
+  {
+    // We know the cache will not contain anything before this after the update
+    Spine::WriteLock lock(itsWeatherDataQCTimeIntervalMutex);
+    itsWeatherDataQCTimeIntervalStart = t;
+  }
+  conn->cleanWeatherDataQCCache(t);
+
+  // Update what really remains in the database
+  auto start = conn->getOldestWeatherDataQCTime();
+  auto end = conn->getLatestWeatherDataQCTime();
+  Spine::WriteLock lock(itsTimeIntervalMutex);
+  itsWeatherDataQCTimeIntervalStart = start;
+  itsWeatherDataQCTimeIntervalEnd = end;
 }
 
 void SpatiaLiteCache::fillLocationCache(const std::vector<LocationItem> &locations) const
