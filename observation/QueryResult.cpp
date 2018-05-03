@@ -331,7 +331,7 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
         }
       }
     }
-    catch (std::bad_cast& e)
+    catch (const std::bad_cast& e)
     {
       throw Spine::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("QueryResult::getValueVectorData : {}", e.what()));

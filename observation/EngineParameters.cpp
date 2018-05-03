@@ -58,7 +58,7 @@ ParameterMap createParameterMapping(Spine::ConfigBase &cfg)
         pm.insert(make_pair(lower_parame_name, p));
       }
     }
-    catch (libconfig::ConfigException &)
+    catch (const libconfig::ConfigException &)
     {
       cfg.handle_libconfig_exceptions("createParameterMapping");
     }

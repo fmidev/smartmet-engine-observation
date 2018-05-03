@@ -89,7 +89,7 @@ void solveMeasurandIds(const std::vector<std::string> &parameters,
       {
         id = std::stoi(gid->second);
       }
-      catch (std::exception &)
+      catch (const std::exception &)
       {
         // gid is either too large or not convertible (ie. something is wrong)
         continue;
@@ -377,7 +377,7 @@ void SpatiaLite::createFlashDataTable()
       sqlite3pp::query qry(itsDB, "SELECT X(stroke_location) AS latitude FROM flash_data LIMIT 1");
       got_data = qry.begin() != qry.end();
     }
-    catch (std::exception const &e)
+    catch (const std::exception &e)
     {
       sqlite3pp::query qry(itsDB,
                            "SELECT AddGeometryColumn('flash_data', 'stroke_location', "
@@ -688,7 +688,7 @@ void SpatiaLite::fillLocationCache(const vector<LocationItem> &locations)
 
       return;
     }
-    catch (std::exception &e)
+    catch (const std::exception &e)
     {
       std::cerr << "Warning, retry " << ++retries << ": " << e.what() << std::endl;
     }
@@ -1059,7 +1059,7 @@ std::size_t SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCac
             cmd.execute();
             cmd.reset();
           }
-          catch (std::exception &e)
+          catch (const std::exception &e)
           {
             std::cerr << "Problem updating flash data: " << e.what() << std::endl;
           }
