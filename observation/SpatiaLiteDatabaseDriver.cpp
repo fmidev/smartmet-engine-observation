@@ -655,7 +655,7 @@ void SpatiaLiteDatabaseDriver::readConfig(Spine::ConfigBase &cfg)
                                                     1);  // default value 1 min
 
     Spine::BoundingBox bounding_box(bbox);
-    boost::posix_time::time_period time_period(Fmi::TimeParser::parse(first_observation_time),
+    boost::posix_time::time_period time_period(itsDateTimeParser.parse(first_observation_time),
                                                boost::posix_time::second_clock::universal_time());
     itsMetaData.insert(make_pair(type, MetaData(bounding_box, time_period, timestep)));
   }

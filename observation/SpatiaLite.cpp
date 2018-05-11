@@ -3,7 +3,6 @@
 #include "SpatiaLiteCacheParameters.h"
 #include <fmt/format.h>
 #include <macgyver/StringConversion.h>
-#include <macgyver/TimeParser.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <spine/Exception.h>
 #include <spine/Thread.h>
@@ -102,17 +101,6 @@ void solveMeasurandIds(const std::vector<std::string> &parameters,
   {
     throw Spine::Exception::Trace(BCP, "Solving measurand id failed!");
   }
-}
-
-boost::posix_time::ptime parse_sqlite_time(sqlite3pp::query::iterator &iter, int column)
-{
-  // 1 = INTEGER; 2 = FLOAT, 3 = TEXT, 4 = BLOB, 5 = NULL
-  if ((*iter).column_type(column) != SQLITE_TEXT)
-    throw Spine::Exception(BCP, "Invalid time column from sqlite query")
-        .addParameter("columntype", Fmi::to_string((*iter).column_type(column)));
-
-  std::string timestring = (*iter).get<char const *>(column);
-  return Fmi::TimeParser::parse(timestring);
 }
 
 };  // namespace
@@ -500,7 +488,7 @@ boost::posix_time::ptime SpatiaLite::getLatestObservationTime()
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
-    return parse_sqlite_time(iter, 0);
+    return parseSqliteTime(iter, 0);
   }
   catch (...)
   {
@@ -518,7 +506,7 @@ boost::posix_time::ptime SpatiaLite::getOldestObservationTime()
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
-    return parse_sqlite_time(iter, 0);
+    return parseSqliteTime(iter, 0);
   }
   catch (...)
   {
@@ -536,7 +524,7 @@ boost::posix_time::ptime SpatiaLite::getLatestWeatherDataQCTime()
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
-    return parse_sqlite_time(iter, 0);
+    return parseSqliteTime(iter, 0);
   }
   catch (...)
   {
@@ -554,7 +542,7 @@ boost::posix_time::ptime SpatiaLite::getOldestWeatherDataQCTime()
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
-    return parse_sqlite_time(iter, 0);
+    return parseSqliteTime(iter, 0);
   }
   catch (...)
   {
@@ -603,7 +591,7 @@ boost::posix_time::ptime SpatiaLite::getLatestTimeFromTable(const std::string ta
 
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
-    return parse_sqlite_time(iter, 0);
+    return parseSqliteTime(iter, 0);
   }
   catch (...)
   {
@@ -624,7 +612,7 @@ boost::posix_time::ptime SpatiaLite::getOldestTimeFromTable(const std::string ta
 
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
-    return parse_sqlite_time(iter, 0);
+    return parseSqliteTime(iter, 0);
   }
   catch (...)
   {
@@ -1550,7 +1538,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
       for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
       {
         boost::optional<int> fmisid = (*iter).get<int>(0);
-        boost::posix_time::ptime obstime = parse_sqlite_time(iter, 1);
+        boost::posix_time::ptime obstime = parseSqliteTime(iter, 1);
         boost::optional<double> latitude = (*iter).get<double>(2);
         boost::optional<double> longitude = (*iter).get<double>(3);
         boost::optional<double> elevation = (*iter).get<double>(4);
@@ -1807,7 +1795,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
       for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
       {
         boost::optional<int> fmisid = (*iter).get<int>(0);
-        boost::posix_time::ptime obstime = parse_sqlite_time(iter, 1);
+        boost::posix_time::ptime obstime = parseSqliteTime(iter, 1);
         boost::optional<double> latitude = (*iter).get<double>(2);
         boost::optional<double> longitude = (*iter).get<double>(3);
         boost::optional<double> elevation = (*iter).get<double>(4);
@@ -3097,7 +3085,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
     {
       boost::optional<int> fmisid = (*iter).get<int>(0);
-      boost::posix_time::ptime obstime = parse_sqlite_time(iter, 1);
+      boost::posix_time::ptime obstime = parseSqliteTime(iter, 1);
       boost::optional<double> latitude = (*iter).get<double>(2);
       boost::optional<double> longitude = (*iter).get<double>(3);
       boost::optional<double> elevation = (*iter).get<double>(4);
@@ -3347,7 +3335,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
     {
       boost::optional<int> fmisid = (*iter).get<int>(0);
-      boost::posix_time::ptime obstime = parse_sqlite_time(iter, 1);
+      boost::posix_time::ptime obstime = parseSqliteTime(iter, 1);
       boost::optional<double> latitude = (*iter).get<double>(2);
       boost::optional<double> longitude = (*iter).get<double>(3);
       boost::optional<double> elevation = (*iter).get<double>(4);
@@ -3760,6 +3748,18 @@ boost::shared_ptr<std::vector<ObservableProperty> > SpatiaLite::getObservablePro
   }
 
   return data;
+}
+
+boost::posix_time::ptime SpatiaLite::parseSqliteTime(sqlite3pp::query::iterator &iter,
+                                                     int column) const
+{
+  // 1 = INTEGER; 2 = FLOAT, 3 = TEXT, 4 = BLOB, 5 = NULL
+  if ((*iter).column_type(column) != SQLITE_TEXT)
+    throw Spine::Exception(BCP, "Invalid time column from sqlite query")
+        .addParameter("columntype", Fmi::to_string((*iter).column_type(column)));
+
+  std::string timestring = (*iter).get<char const *>(column);
+  return itsDateTimeParser.parse(timestring);
 }
 
 }  // namespace Observation

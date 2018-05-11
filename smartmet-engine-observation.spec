@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.4.19
+Version: 18.5.11
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,23 +15,23 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 18.4.7
+BuildRequires: smartmet-library-spine-devel >= 18.5.11
 BuildRequires: smartmet-engine-geonames-devel >= 18.4.7
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.20.1
 BuildRequires: smartmet-library-locus-devel >= 18.4.7
-BuildRequires: smartmet-library-macgyver-devel >= 18.4.7
+BuildRequires: smartmet-library-macgyver-devel >= 18.4.11
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel
 Requires: fmt
 Requires: libconfig
-Requires: smartmet-server >= 18.4.7
+Requires: smartmet-server >= 18.4.9
 Requires: smartmet-engine-geonames >= 18.4.7
-Requires: smartmet-library-spine >= 18.4.7
+Requires: smartmet-library-spine >= 18.5.11
 Requires: smartmet-library-locus >= 18.4.7
-Requires: smartmet-library-macgyver >= 18.4.7
+Requires: smartmet-library-macgyver >= 18.4.11
 Requires: libatomic
 Requires: unixODBC
 Requires: mysql++
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri May 11 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.5.11-1.fmi
+- Use DateTimeParser instead of TimeParser for speed
+
 * Thu Apr 19 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.4.19-1.fmi
 - Cache available time intervals of cached data to reduce the number of sqlite connection requests
 

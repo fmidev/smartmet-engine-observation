@@ -2,6 +2,7 @@
 
 #include "DatabaseDriver.h"
 #include "SpatiaLiteDriverParameters.h"
+#include <macgyver/DateTimeParser.h>
 #include <string>
 
 namespace SmartMet
@@ -58,6 +59,7 @@ class SpatiaLiteDatabaseDriver : public DatabaseDriver
   SpatiaLiteDriverParameters itsParameters;
   std::map<std::string, MetaData> itsMetaData;
   Engine *itsObsEngine = nullptr;
+  Fmi::DateTimeParser itsDateTimeParser;
 };
 
 }  // namespace Observation

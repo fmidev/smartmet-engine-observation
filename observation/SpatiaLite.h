@@ -23,6 +23,7 @@ namespace sqlite_api
 
 #include <macgyver/TimeFormatter.h>
 #include <macgyver/TimeZones.h>
+#include <macgyver/DateTimeParser.h>
 #include <spine/Location.h>
 #include <spine/Station.h>
 #include <spine/Thread.h>
@@ -288,6 +289,7 @@ class SpatiaLite : private boost::noncopyable
   std::size_t itsConnectionId;
   std::size_t itsMaxInsertSize;
   std::map<std::string, std::string> stationTypeMap;
+  Fmi::DateTimeParser itsDateTimeParser;
 
   InsertStatus itsDataInsertCache;
   InsertStatus itsWeatherQCInsertCache;
@@ -352,6 +354,8 @@ class SpatiaLite : private boost::noncopyable
   void createWeatherDataQCTable();
   void createFlashDataTable();
   void createObservablePropertyTable();
+
+  boost::posix_time::ptime parseSqliteTime(sqlite3pp::query::iterator &iter, int column) const;
 };
 
 }  // namespace Observation
