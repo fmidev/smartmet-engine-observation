@@ -1,4 +1,4 @@
-#include "SpatiaLiteCache.h"
+#include "PostgreSQLCache.h"
 #include "ObservableProperty.h"
 #include <boost/make_shared.hpp>
 #include <macgyver/StringConversion.h>
@@ -14,14 +14,6 @@ namespace Observation
 {
 namespace
 {
-// Round down to HH:00:00
-
-boost::posix_time::ptime round_down_to_hour(const boost::posix_time::ptime &t)
-{
-  auto hour = t.time_of_day().hours();
-  return boost::posix_time::ptime(t.date(), boost::posix_time::hours(hour));
-}
-
 /*!
  * \brief Find stations close to the given coordinate with filtering
  */
@@ -63,28 +55,28 @@ Spine::Stations findNearestStations(const StationInfo &info,
 
 }  // namespace
 
-void SpatiaLiteCache::initializeConnectionPool(int finCacheDuration)
+void PostgreSQLCache::initializeConnectionPool(int finCacheDuration)
 {
   try
   {
-    logMessage("[Observation Engine] Initializing SpatiaLite cache connection pool...",
+    logMessage("[Observation Engine] Initializing PostgreSQL cache connection pool...",
                itsParameters.quiet);
 
-    itsConnectionPool = new SpatiaLiteConnectionPool(itsParameters);
+    itsConnectionPool = new PostgreSQLConnectionPool(itsParameters);
 
     // Ensure that necessary tables exists:
     // 1) stations
     // 2) locations
     // 3) observation_data
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    spatialitedb->createTables();
+    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    db->createTables();
 
-    boost::posix_time::ptime last_time(spatialitedb->getLatestObservationTime());
+    boost::posix_time::ptime last_time(db->getLatestObservationTime());
 
-    // Check first if we already have stations in SpatiaLite db so that we know
+    // Check first if we already have stations in PostgreSQL db so that we know
     // if we can use it
     // before loading station info
-    size_t stationCount = spatialitedb->getStationCount();
+    size_t stationCount = db->getStationCount();
     if (stationCount > 1)  // Arbitrary number because we cannot know how many
                            // stations there must be
     {
@@ -93,10 +85,10 @@ void SpatiaLiteCache::initializeConnectionPool(int finCacheDuration)
 
     for (int i = 0; i < itsParameters.connectionPoolSize; i++)
     {
-      boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+      boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
     }
 
-    logMessage("[Observation Engine] SpatiaLite connection pool ready.", itsParameters.quiet);
+    logMessage("[Observation Engine] PostgreSQL connection pool ready.", itsParameters.quiet);
   }
   catch (...)
   {
@@ -104,18 +96,18 @@ void SpatiaLiteCache::initializeConnectionPool(int finCacheDuration)
   }
 }
 
-ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
+ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
 {
   try
   {
     if (settings.stationtype == "flash")
-      return flashValuesFromSpatiaLite(settings);
+      return flashValuesFromPostgreSQL(settings);
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     // Get stations
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    Spine::Stations stations = getStationsFromSpatiaLite(settings, spatialitedb);
+    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    Spine::Stations stations = getStationsFromPostgreSQL(settings, db);
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
@@ -124,13 +116,12 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = spatialitedb->getCachedWeatherDataQCData(
+        ret = db->getCachedWeatherDataQCData(
             stations, settings, itsParameters.parameterMap, itsTimeZones);
         return ret;
       }
 
-      ret =
-          spatialitedb->getCachedData(stations, settings, itsParameters.parameterMap, itsTimeZones);
+      ret = db->getCachedData(stations, settings, itsParameters.parameterMap, itsTimeZones);
     }
 
     return ret;
@@ -141,20 +132,20 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
   }
 }
 
-ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
+ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
     Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
   try
   {
     if (settings.stationtype == "flash")
-      return flashValuesFromSpatiaLite(settings);
+      return flashValuesFromPostgreSQL(settings);
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     // Get stations
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
+    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
 
-    Spine::Stations stations = getStationsFromSpatiaLite(settings, spatialitedb);
+    Spine::Stations stations = getStationsFromPostgreSQL(settings, db);
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
@@ -163,16 +154,15 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = spatialitedb->getCachedWeatherDataQCData(
+        ret = db->getCachedWeatherDataQCData(
             stations, settings, itsParameters.parameterMap, timeSeriesOptions, itsTimeZones);
       }
       else
       {
-        ret = spatialitedb->getCachedData(
+        ret = db->getCachedData(
             stations, settings, itsParameters.parameterMap, timeSeriesOptions, itsTimeZones);
       }
     }
-
     return ret;
   }
   catch (...)
@@ -181,14 +171,14 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
   }
 }
 
-ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &settings) const
+ts::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(Settings &settings) const
 {
   try
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    ret = spatialitedb->getCachedFlashData(settings, itsParameters.parameterMap, itsTimeZones);
+    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    ret = db->getCachedFlashData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
   }
@@ -198,14 +188,13 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &set
   }
 }
 
-Spine::Stations SpatiaLiteCache::getStationsFromSpatiaLite(
-    Settings &settings, boost::shared_ptr<SpatiaLite> spatialitedb)
+Spine::Stations PostgreSQLCache::getStationsFromPostgreSQL(Settings &settings,
+                                                           boost::shared_ptr<PostgreSQL> db)
 {
   try
   {
     auto stationstarttime = day_start(settings.starttime);
     auto stationendtime = day_end(settings.endtime);
-
     Spine::Stations stations;
 
     try
@@ -223,7 +212,7 @@ Spine::Stations SpatiaLiteCache::getStationsFromSpatiaLite(
 
     if (settings.allplaces)
     {
-      Spine::Stations allStationsFromGroups = spatialitedb->findAllStationsFromGroups(
+      Spine::Stations allStationsFromGroups = db->findAllStationsFromGroups(
           settings.stationgroup_codes, *info, settings.starttime, settings.starttime);
       return allStationsFromGroups;
     }
@@ -237,6 +226,7 @@ Spine::Stations SpatiaLiteCache::getStationsFromSpatiaLite(
                                                        settings.stationgroup_codes,
                                                        settings.starttime,
                                                        settings.endtime);
+
     for (const auto &s : taggedStations)
       stations.push_back(s);
 
@@ -274,12 +264,11 @@ Spine::Stations SpatiaLiteCache::getStationsFromSpatiaLite(
         }
       }
     }
-
     // Find station data by using fmisid
     for (int fmisid : settings.fmisids)
     {
       Spine::Station s;
-      if (not spatialitedb->getStationById(s, fmisid, settings.stationgroup_codes))
+      if (not db->getStationById(s, fmisid, settings.stationgroup_codes))
         continue;
 
       tmpIdStations.push_back(s);
@@ -289,7 +278,7 @@ Spine::Stations SpatiaLiteCache::getStationsFromSpatiaLite(
     for (int geoid : settings.geoids)
     {
       Spine::Station s;
-      if (not spatialitedb->getStationByGeoid(s, geoid, settings.stationgroup_codes))
+      if (not db->getStationByGeoid(s, geoid, settings.stationgroup_codes))
         continue;
 
       tmpIdStations.push_back(s);
@@ -312,14 +301,14 @@ Spine::Stations SpatiaLiteCache::getStationsFromSpatiaLite(
 
     if (!settings.wmos.empty())
     {
-      Spine::Stations tmpStations = spatialitedb->findStationsByWMO(settings, *info);
+      Spine::Stations tmpStations = db->findStationsByWMO(settings, *info);
       for (const Spine::Station &s : tmpStations)
         tmpIdStations.push_back(s);
     }
 
     if (!settings.lpnns.empty())
     {
-      Spine::Stations tmpStations = spatialitedb->findStationsByLPNN(settings, *info);
+      Spine::Stations tmpStations = db->findStationsByLPNN(settings, *info);
       for (const Spine::Station &s : tmpStations)
         tmpIdStations.push_back(s);
     }
@@ -347,7 +336,6 @@ Spine::Stations SpatiaLiteCache::getStationsFromSpatiaLite(
           stations.push_back(nstation);
       }
     }
-
     return stations;
   }
   catch (...)
@@ -356,16 +344,19 @@ Spine::Stations SpatiaLiteCache::getStationsFromSpatiaLite(
   }
 }
 
-bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &starttime,
+bool PostgreSQLCache::timeIntervalIsCached(const boost::posix_time::ptime &starttime,
                                            const boost::posix_time::ptime &endtime) const
 {
   try
   {
-    Spine::ReadLock lock(itsTimeIntervalMutex);
-    if (itsTimeIntervalStart.is_not_a_date_time())
+    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    auto oldest_time = db->getOldestObservationTime();
+
+    if (oldest_time.is_not_a_date_time())
       return false;
-    // We ignore end time intentionally
-    return (starttime >= itsTimeIntervalStart);
+
+    // we need only the beginning though
+    return (starttime >= oldest_time);
   }
   catch (...)
   {
@@ -373,13 +364,13 @@ bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &start
   }
 }
 
-bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &starttime,
+bool PostgreSQLCache::flashIntervalIsCached(const boost::posix_time::ptime &starttime,
                                             const boost::posix_time::ptime &endtime) const
 {
   try
   {
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    auto oldest_time = spatialitedb->getOldestFlashTime();
+    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    auto oldest_time = db->getOldestFlashTime();
 
     if (oldest_time.is_not_a_date_time())
       return false;
@@ -393,13 +384,13 @@ bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &star
   }
 }
 
-bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
+bool PostgreSQLCache::timeIntervalWeatherDataQCIsCached(
     const boost::posix_time::ptime &starttime, const boost::posix_time::ptime &endtime) const
 {
   try
   {
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    auto oldest_time = spatialitedb->getOldestWeatherDataQCTime();
+    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    auto oldest_time = db->getOldestWeatherDataQCTime();
 
     if (oldest_time.is_not_a_date_time())
       return false;
@@ -413,7 +404,7 @@ bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
   }
 }
 
-Spine::Stations SpatiaLiteCache::getStationsByTaggedLocations(
+Spine::Stations PostgreSQLCache::getStationsByTaggedLocations(
     const Spine::TaggedLocationList &taggedLocations,
     const int numberofstations,
     const std::string &stationtype,
@@ -479,7 +470,7 @@ Spine::Stations SpatiaLiteCache::getStationsByTaggedLocations(
   }
 }
 
-void SpatiaLiteCache::getStationsByBoundingBox(Spine::Stations &stations,
+void PostgreSQLCache::getStationsByBoundingBox(Spine::Stations &stations,
                                                const Settings &settings) const
 {
   try
@@ -510,8 +501,8 @@ void SpatiaLiteCache::getStationsByBoundingBox(Spine::Stations &stations,
                                                      tempSettings.starttime,
                                                      tempSettings.endtime);
 #else
-      boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-      auto stationList = spatialitedb->findStationsInsideBox(tempSettings, *info);
+      boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+      auto stationList = db->findStationsInsideBox(tempSettings, *info);
 #endif
       for (const auto &station : stationList)
         stations.push_back(station);
@@ -527,26 +518,34 @@ void SpatiaLiteCache::getStationsByBoundingBox(Spine::Stations &stations,
   }
 }
 
-bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
+bool PostgreSQLCache::dataAvailableInCache(const Settings &settings) const
 {
   try
   {
     // If stationtype is cached and if we have requested time interval in
-    // SpatiaLite, get all data
+    // PostgreSQL, get all data
     // from there
     if (settings.stationtype == "opendata" || settings.stationtype == "fmi" ||
         settings.stationtype == "opendata_mareograph" || settings.stationtype == "opendata_buoy" ||
         settings.stationtype == "research" || settings.stationtype == "syke")
-      return timeIntervalIsCached(settings.starttime, settings.endtime);
-
-    else if (settings.stationtype == "road" || settings.stationtype == "foreign")
-      return timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime);
-
-    else if (settings.stationtype == "flash")
-      return flashIntervalIsCached(settings.starttime, settings.endtime);
+    {
+      if (timeIntervalIsCached(settings.starttime, settings.endtime))
+      {
+        return true;
+      }
+    }
+    else if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
+             timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
+    {
+      return true;
+    }
+    else if (settings.stationtype == "flash" &&
+             flashIntervalIsCached(settings.starttime, settings.endtime))
+      return true;
 
     // Either the stationtype is not cached or the requested time interval is
     // not cached
+
     return false;
   }
   catch (...)
@@ -555,14 +554,13 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
   }
 }
 
-void SpatiaLiteCache::updateStationsAndGroups(const StationInfo &info) const
+void PostgreSQLCache::updateStationsAndGroups(const StationInfo &info) const
 {
-  logMessage("Updating stations to SpatiaLite databases...", itsParameters.quiet);
-  boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-  spatialitedb->updateStationsAndGroups(info);
+  logMessage("Updating stations to PostgreSQL database...", itsParameters.quiet);
+  itsConnectionPool->getConnection()->updateStationsAndGroups(info);
 }
 
-Spine::Stations SpatiaLiteCache::findAllStationsFromGroups(
+Spine::Stations PostgreSQLCache::findAllStationsFromGroups(
     const std::set<std::string> stationgroup_codes,
     const StationInfo &info,
     const boost::posix_time::ptime &starttime,
@@ -572,7 +570,7 @@ Spine::Stations SpatiaLiteCache::findAllStationsFromGroups(
       stationgroup_codes, info, starttime, endtime);
 }
 
-bool SpatiaLiteCache::getStationById(Spine::Station &station,
+bool PostgreSQLCache::getStationById(Spine::Station &station,
                                      int station_id,
                                      const std::set<std::string> &stationgroup_codes) const
 {
@@ -580,189 +578,86 @@ bool SpatiaLiteCache::getStationById(Spine::Station &station,
       station, station_id, stationgroup_codes);
 }
 
-Spine::Stations SpatiaLiteCache::findStationsInsideArea(const Settings &settings,
+Spine::Stations PostgreSQLCache::findStationsInsideArea(const Settings &settings,
                                                         const std::string &areaWkt,
                                                         const StationInfo &info) const
 {
   return itsConnectionPool->getConnection()->findStationsInsideArea(settings, areaWkt, info);
 }
 
-FlashCounts SpatiaLiteCache::getFlashCount(const boost::posix_time::ptime &starttime,
+FlashCounts PostgreSQLCache::getFlashCount(const boost::posix_time::ptime &starttime,
                                            const boost::posix_time::ptime &endtime,
                                            const Spine::TaggedLocationList &locations) const
 {
   return itsConnectionPool->getConnection()->getFlashCount(starttime, endtime, locations);
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestFlashTime() const
+boost::posix_time::ptime PostgreSQLCache::getLatestFlashTime() const
 {
   return itsConnectionPool->getConnection()->getLatestFlashTime();
 }
 
-std::size_t SpatiaLiteCache::fillFlashDataCache(
+std::size_t PostgreSQLCache::fillFlashDataCache(
     const std::vector<FlashDataItem> &flashCacheData) const
 {
-  auto conn = itsConnectionPool->getConnection();
-  auto sz = conn->fillFlashDataCache(flashCacheData);
-
-  // Update what really now really is in the database
-  auto start = conn->getOldestFlashTime();
-  auto end = conn->getLatestFlashTime();
-  Spine::WriteLock lock(itsFlashTimeIntervalMutex);
-  itsFlashTimeIntervalStart = start;
-  itsFlashTimeIntervalEnd = end;
-  return sz;
+  return itsConnectionPool->getConnection()->fillFlashDataCache(flashCacheData);
 }
 
-void SpatiaLiteCache::cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const
+void PostgreSQLCache::cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const
 {
-  boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-  t = round_down_to_hour(t);
-
-  auto conn = itsConnectionPool->getConnection();
-  {
-    // We know the cache will not contain anything before this after the update
-    Spine::WriteLock lock(itsFlashTimeIntervalMutex);
-    itsFlashTimeIntervalStart = t;
-  }
-  conn->cleanFlashDataCache(t);
-
-  // Update what really remains in the database
-  auto start = conn->getOldestFlashTime();
-  auto end = conn->getLatestFlashTime();
-  Spine::WriteLock lock(itsFlashTimeIntervalMutex);
-  itsFlashTimeIntervalStart = start;
-  itsFlashTimeIntervalEnd = end;
+  return itsConnectionPool->getConnection()->cleanFlashDataCache(timetokeep);
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestObservationTime() const
+boost::posix_time::ptime PostgreSQLCache::getLatestObservationTime() const
 {
   return itsConnectionPool->getConnection()->getLatestObservationTime();
 }
 
-std::size_t SpatiaLiteCache::fillDataCache(const std::vector<DataItem> &cacheData) const
+std::size_t PostgreSQLCache::fillDataCache(const std::vector<DataItem> &cacheData) const
 {
-  auto conn = itsConnectionPool->getConnection();
-  auto sz = conn->fillDataCache(cacheData);
-
-  // Update what really now really is in the database
-  auto start = conn->getOldestObservationTime();
-  auto end = conn->getLatestObservationTime();
-  Spine::WriteLock lock(itsTimeIntervalMutex);
-  itsTimeIntervalStart = start;
-  itsTimeIntervalEnd = end;
-  return sz;
+  return itsConnectionPool->getConnection()->fillDataCache(cacheData);
 }
 
-void SpatiaLiteCache::cleanDataCache(const boost::posix_time::time_duration &timetokeep) const
+void PostgreSQLCache::cleanDataCache(const boost::posix_time::time_duration &timetokeep) const
 {
-  boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-  t = round_down_to_hour(t);
-
-  auto conn = itsConnectionPool->getConnection();
-  {
-    // We know the cache will not contain anything before this after the update
-    Spine::WriteLock lock(itsTimeIntervalMutex);
-    itsTimeIntervalStart = t;
-  }
-  conn->cleanDataCache(t);
-
-  // Update what really remains in the database
-  auto start = conn->getOldestObservationTime();
-  auto end = conn->getLatestObservationTime();
-  Spine::WriteLock lock(itsTimeIntervalMutex);
-  itsTimeIntervalStart = start;
-  itsTimeIntervalEnd = end;
+  return itsConnectionPool->getConnection()->cleanDataCache(timetokeep);
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCTime() const
+boost::posix_time::ptime PostgreSQLCache::getLatestWeatherDataQCTime() const
 {
   return itsConnectionPool->getConnection()->getLatestWeatherDataQCTime();
 }
 
-std::size_t SpatiaLiteCache::fillWeatherDataQCCache(
+std::size_t PostgreSQLCache::fillWeatherDataQCCache(
     const std::vector<WeatherDataQCItem> &cacheData) const
 {
-  auto conn = itsConnectionPool->getConnection();
-  auto sz = conn->fillWeatherDataQCCache(cacheData);
-
-  // Update what really now really is in the database
-  auto start = conn->getOldestWeatherDataQCTime();
-  auto end = conn->getLatestWeatherDataQCTime();
-  Spine::WriteLock lock(itsTimeIntervalMutex);
-  itsWeatherDataQCTimeIntervalStart = start;
-  itsWeatherDataQCTimeIntervalEnd = end;
-  return sz;
+  return itsConnectionPool->getConnection()->fillWeatherDataQCCache(cacheData);
 }
 
-void SpatiaLiteCache::cleanWeatherDataQCCache(
+void PostgreSQLCache::cleanWeatherDataQCCache(
     const boost::posix_time::time_duration &timetokeep) const
 {
-  boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-  t = round_down_to_hour(t);
-
-  auto conn = itsConnectionPool->getConnection();
-  {
-    // We know the cache will not contain anything before this after the update
-    Spine::WriteLock lock(itsWeatherDataQCTimeIntervalMutex);
-    itsWeatherDataQCTimeIntervalStart = t;
-  }
-  conn->cleanWeatherDataQCCache(t);
-
-  // Update what really remains in the database
-  auto start = conn->getOldestWeatherDataQCTime();
-  auto end = conn->getLatestWeatherDataQCTime();
-  Spine::WriteLock lock(itsTimeIntervalMutex);
-  itsWeatherDataQCTimeIntervalStart = start;
-  itsWeatherDataQCTimeIntervalEnd = end;
+  return itsConnectionPool->getConnection()->cleanWeatherDataQCCache(timetokeep);
 }
 
-void SpatiaLiteCache::fillLocationCache(const std::vector<LocationItem> &locations) const
+void PostgreSQLCache::fillLocationCache(const std::vector<LocationItem> &locations) const
 {
   return itsConnectionPool->getConnection()->fillLocationCache(locations);
 }
 
-void SpatiaLiteCache::shutdown()
+void PostgreSQLCache::shutdown()
 {
   if (itsConnectionPool)
     itsConnectionPool->shutdown();
   itsConnectionPool = nullptr;
 }
 
-SpatiaLiteCache::SpatiaLiteCache(boost::shared_ptr<EngineParameters> p, Spine::ConfigBase &cfg)
+PostgreSQLCache::PostgreSQLCache(boost::shared_ptr<EngineParameters> p, Spine::ConfigBase &cfg)
     : itsParameters(p)
 {
   try
   {
     readConfig(cfg);
-
-    // Verify multithreading is possible
-    if (!sqlite3_threadsafe())
-      throw Spine::Exception(BCP, "Installed sqlite is not thread safe");
-
-    // Switch from serialized to multithreaded access
-
-    int err;
-
-    if (itsParameters.sqlite.threading_mode == "MULTITHREAD")
-      err = sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
-    else if (itsParameters.sqlite.threading_mode == "SERIALIZED")
-      err = sqlite3_config(SQLITE_CONFIG_SERIALIZED);
-    else
-      throw Spine::Exception(
-          BCP, "Unknown sqlite threading mode: " + itsParameters.sqlite.threading_mode);
-
-    if (err != 0)
-      throw Spine::Exception(BCP,
-                             "Failed to set sqlite3 multithread mode to " +
-                                 itsParameters.sqlite.threading_mode +
-                                 ", exit code = " + Fmi::to_string(err));
-
-    // Enable or disable memory statistics
-    err = sqlite3_config(SQLITE_CONFIG_MEMSTATUS, itsParameters.sqlite.memstatus);
-    if (err != 0)
-      throw Spine::Exception(
-          BCP, "Failed to initialize sqlite3 memstatus mode, exit code " + Fmi::to_string(err));
   }
   catch (...)
   {
@@ -770,7 +665,7 @@ SpatiaLiteCache::SpatiaLiteCache(boost::shared_ptr<EngineParameters> p, Spine::C
   }
 }
 
-boost::shared_ptr<std::vector<ObservableProperty> > SpatiaLiteCache::observablePropertyQuery(
+boost::shared_ptr<std::vector<ObservableProperty> > PostgreSQLCache::observablePropertyQuery(
     std::vector<std::string> &parameters, const std::string language) const
 {
   boost::shared_ptr<std::vector<ObservableProperty> > data(new std::vector<ObservableProperty>());
@@ -782,17 +677,29 @@ boost::shared_ptr<std::vector<ObservableProperty> > SpatiaLiteCache::observableP
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "SpatiaLiteCache::observablePropertyQuery failed");
+    throw Spine::Exception::Trace(BCP, "PostgreSQLCache::observablePropertyQuery failed");
   }
 
   return data;
 }
 
-void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
+void PostgreSQLCache::readConfig(Spine::ConfigBase &cfg)
 {
-  itsParameters.connectionPoolSize = cfg.get_mandatory_config_param<int>("cache.poolSize");
+  itsParameters.postgresql.host = cfg.get_mandatory_config_param<std::string>("postgresql.host");
+  itsParameters.postgresql.port =
+      Fmi::to_string(cfg.get_mandatory_config_param<unsigned int>("postgresql.port"));
+  itsParameters.postgresql.database =
+      cfg.get_mandatory_config_param<std::string>("postgresql.database");
+  itsParameters.postgresql.username =
+      cfg.get_mandatory_config_param<std::string>("postgresql.username");
+  itsParameters.postgresql.password =
+      cfg.get_mandatory_config_param<std::string>("postgresql.password");
+  itsParameters.postgresql.encoding =
+      cfg.get_optional_config_param<std::string>("postgresql.encoding", "UTF8");
+  itsParameters.postgresql.connect_timeout =
+      Fmi::to_string(cfg.get_optional_config_param<unsigned int>("postgresql.connect_timeout", 60));
 
-  itsParameters.cacheFile = cfg.get_mandatory_path("spatialiteFile");
+  itsParameters.connectionPoolSize = cfg.get_mandatory_config_param<int>("cache.poolSize");
 
   itsParameters.maxInsertSize = cfg.get_optional_config_param<std::size_t>(
       "cache.maxInsertSize", 99999999);  // default = all at once
@@ -803,44 +710,14 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
       cfg.get_optional_config_param<std::size_t>("cache.weatherDataQCInsertCacheSize", 100000);
   itsParameters.flashInsertCacheSize =
       cfg.get_optional_config_param<std::size_t>("cache.flashInsertCacheSize", 10000);
-
-  itsParameters.sqlite.cache_size = cfg.get_optional_config_param<std::size_t>(
-      "sqlite.cache_size", 0);  // zero = use default value
-
-  itsParameters.sqlite.threads =
-      cfg.get_optional_config_param<int>("sqlite.threads", 0);  // zero = no helper threads
-
-  itsParameters.sqlite.threading_mode =
-      cfg.get_optional_config_param<std::string>("sqlite.threading_mode", "SERIALIZED");
-
-  itsParameters.sqlite.timeout = cfg.get_optional_config_param<size_t>("sqlite.timeout", 30000);
-
-  itsParameters.sqlite.shared_cache =
-      cfg.get_optional_config_param<bool>("sqlite.shared_cache", false);
-
-  itsParameters.sqlite.memstatus = cfg.get_optional_config_param<bool>("sqlite.memstatus", false);
-
-  itsParameters.sqlite.synchronous =
-      cfg.get_optional_config_param<std::string>("sqlite.synchronous", "NORMAL");
-
-  itsParameters.sqlite.journal_mode =
-      cfg.get_optional_config_param<std::string>("sqlite.journal_mode", "WAL");
-
-  itsParameters.sqlite.auto_vacuum =
-      cfg.get_optional_config_param<std::string>("sqlite.auto_vacuum", "NONE");
-
-  itsParameters.sqlite.mmap_size = cfg.get_optional_config_param<long>("sqlite.mmap_size", 0);
-
-  itsParameters.sqlite.wal_autocheckpoint =
-      cfg.get_optional_config_param<int>("sqlite.wal_autocheckpoint", 1000);
 }
 
-bool SpatiaLiteCache::cacheHasStations() const
+bool PostgreSQLCache::cacheHasStations() const
 {
   return itsParameters.cacheHasStations;
 }
 
-SpatiaLiteCache::~SpatiaLiteCache()
+PostgreSQLCache::~PostgreSQLCache()
 {
   shutdown();
 }
