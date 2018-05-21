@@ -4,28 +4,15 @@
 #include "FlashDataItem.h"
 #include "InsertStatus.h"
 #include "LocationItem.h"
+#include "PostgreSQLOptions.h"
 #include "Settings.h"
-#include "SpatiaLiteOptions.h"
 #include "StationInfo.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
-#include "sqlite3pp.h"
 
-#include "sqlite3pp.h"
-
-// clang-format off
-namespace sqlite_api
-{
-#include <sqlite3.h>
-#include <spatialite.h>
-}
-// clang-format on
-
-#define DATABASE_VERSION "2"
-
+#include <locus/Connection.h>
 #include <macgyver/TimeFormatter.h>
 #include <macgyver/TimeZones.h>
-#include <macgyver/DateTimeParser.h>
 #include <spine/Location.h>
 #include <spine/Station.h>
 #include <spine/Thread.h>
@@ -42,16 +29,28 @@ namespace Engine
 namespace Observation
 {
 class ObservableProperty;
-class SpatiaLiteCacheParameters;
+class PostgreSQLCacheParameters;
 
-class SpatiaLite : private boost::noncopyable
+struct cached_data
+{
+  std::vector<boost::optional<int>> fmisidsAll;
+  std::vector<boost::posix_time::ptime> obstimesAll;
+  std::vector<boost::optional<double>> longitudesAll;
+  std::vector<boost::optional<double>> latitudesAll;
+  std::vector<boost::optional<double>> elevationsAll;
+  std::vector<boost::optional<std::string>> parametersAll;
+  std::vector<boost::optional<int>> measurand_idsAll;
+  std::vector<boost::optional<double>> data_valuesAll;
+  std::vector<boost::optional<double>> sensor_nosAll;
+};
+
+class PostgreSQL : private boost::noncopyable
 {
  public:
   using ParameterMap = std::map<std::string, std::map<std::string, std::string>>;
 
-  SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheParameters &options);
-
-  ~SpatiaLite();
+  PostgreSQL(const PostgreSQLCacheParameters &options);
+  ~PostgreSQL();
 
   /**
    * @brief Get the time of the newest observation in observation_data table
@@ -82,7 +81,7 @@ class SpatiaLite : private boost::noncopyable
   boost::posix_time::ptime getOldestWeatherDataQCTime();
 
   /**
-   * @brief Create the SpatiaLite tables from scratch
+   * @brief Create the PostgreSQL tables from scratch
    */
 
   void createTables();
@@ -167,16 +166,16 @@ class SpatiaLite : private boost::noncopyable
   /**
    * @brief Delete everything from observation_data table which is
    *        older than the given duration
-   * @param[in] newstarttime
+   * @param[in] timetokeep
    */
-  void cleanDataCache(const boost::posix_time::ptime &newstarttime);
+  void cleanDataCache(const boost::posix_time::time_duration &timetokeep);
 
   /**
    * @brief Delete everything from weather_data_qc table which
    *        is older than given duration
-   * @param[in] newstarttime
+   * @param[in] timetokeep
    */
-  void cleanWeatherDataQCCache(const boost::posix_time::ptime &newstarttime);
+  void cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedWeatherDataQCData(
       const SmartMet::Spine::Stations &stations,
@@ -186,9 +185,9 @@ class SpatiaLite : private boost::noncopyable
 
   /**
    * @brief Delete old flash observation data from flash_data table
-   * @param newstarttime Delete everything from flash_data which is older than given time
+   * @param timetokeep Delete everything from flash_data which is older than given duration
    */
-  void cleanFlashDataCache(const boost::posix_time::ptime &newstarttime);
+  void cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedData(
       const SmartMet::Spine::Stations &stations,
@@ -253,6 +252,7 @@ class SpatiaLite : private boost::noncopyable
   bool getStationById(SmartMet::Spine::Station &station,
                       int station_id,
                       const std::set<std::string> &stationgroup_codes);
+
   /**
    * @brief Get the station odered by \c geo_id.
    * @param geo_id Primary identity of the requested station.
@@ -299,20 +299,19 @@ class SpatiaLite : private boost::noncopyable
 
  private:
   // Private members
-  sqlite3pp::database itsDB;
+
   std::string srid;
   boost::atomic<bool> itsShutdownRequested;
   std::size_t itsConnectionId;
   std::size_t itsMaxInsertSize;
   std::map<std::string, std::string> stationTypeMap;
-  Fmi::DateTimeParser itsDateTimeParser;
 
   InsertStatus itsDataInsertCache;
   InsertStatus itsWeatherQCInsertCache;
   InsertStatus itsFlashInsertCache;
 
   // Private methods
-
+  Locus::Connection itsDB;
   std::string stationType(const std::string &type);
   std::string stationType(SmartMet::Spine::Station &station);
 
@@ -361,7 +360,6 @@ class SpatiaLite : private boost::noncopyable
   boost::posix_time::ptime getLatestTimeFromTable(std::string tablename, std::string time_field);
   boost::posix_time::ptime getOldestTimeFromTable(std::string tablename, std::string time_field);
 
-  void initSpatialMetaData();
   void createStationTable();
   void createStationGroupsTable();
   void createGroupMembersTable();
@@ -370,8 +368,15 @@ class SpatiaLite : private boost::noncopyable
   void createWeatherDataQCTable();
   void createFlashDataTable();
   void createObservablePropertyTable();
+  Spine::Stations fetchStationsFromDB(const std::string &sqlStmt,
+                                      const Settings &settings,
+                                      const StationInfo &info) const;
+  void fetchCachedDataFromDB(const std::string &sqlStmt,
+                             struct cached_data &data,
+                             bool measurand = false);  // const;
 
-  boost::posix_time::ptime parseSqliteTime(sqlite3pp::query::iterator &iter, int column) const;
+  boost::posix_time::ptime getTime(const std::string &timeQuery) const;
+  std::map<unsigned int, std::string> itsPostgreDataTypes;
 };
 
 }  // namespace Observation

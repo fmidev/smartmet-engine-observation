@@ -40,7 +40,7 @@ struct EngineParameters
   using ParameterMap = std::map<std::string, std::map<std::string, std::string>>;
   ParameterMap parameterMap;
 
-  std::string observationCacheId;
+  std::string cacheDB;
   std::string dbDriverFile;
 
   boost::shared_ptr<StationInfo> stationInfo;

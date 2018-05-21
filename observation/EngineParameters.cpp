@@ -90,8 +90,7 @@ EngineParameters::EngineParameters(Spine::ConfigBase &cfg)
     dbDriverFile = cfg.get_optional_config_param<std::string>(
         "dbDriverFile", "");  // when empty or 'dummy'-> create dummy drver, when 'spatialite' ->
                               // create spatialite driver
-    observationCacheId =
-        cfg.get_optional_config_param<std::string>("observationCacheId", "spatialite");
+    cacheDB = cfg.get_optional_config_param<std::string>("cacheDB", "spatialite");
 
     readStationTypeConfig(cfg);
     parameterMap = createParameterMapping(cfg);
