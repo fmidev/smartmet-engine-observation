@@ -70,10 +70,10 @@ void Engine::shutdown()
 
 void Engine::unserializeStations()
 {
+  boost::filesystem::path path = itsEngineParameters->serializedStationsFile;
+
   try
   {
-    boost::filesystem::path path =
-        boost::filesystem::path(itsEngineParameters->serializedStationsFile);
     if (boost::filesystem::exists(path) && !boost::filesystem::is_empty(path))
     {
       boost::shared_ptr<StationInfo> stationinfo = boost::make_shared<StationInfo>();
@@ -92,7 +92,8 @@ void Engine::unserializeStations()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Failed to unserialize station info!");
+    throw Spine::Exception::Trace(BCP, "Failed to unserialize station info!")
+        .addParameter("station file", path.string());
   }
 }
 
