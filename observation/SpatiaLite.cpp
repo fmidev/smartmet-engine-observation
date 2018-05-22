@@ -154,6 +154,9 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
         "PRAGMA wal_autocheckpoint=" + Fmi::to_string(options.sqlite.wal_autocheckpoint);
     itsDB.execute(walSizePragma.c_str());
 
+    std::string tempStorePragma = "PRAGMA temp_store=" + options.sqlite.temp_store;
+    itsDB.execute(tempStorePragma.c_str());
+
     if (options.sqlite.cache_size != 0)
     {
       std::string cacheSizePragma =

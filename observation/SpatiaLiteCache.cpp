@@ -826,6 +826,9 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
   itsParameters.sqlite.journal_mode =
       cfg.get_optional_config_param<std::string>("sqlite.journal_mode", "WAL");
 
+  itsParameters.sqlite.temp_store =
+      cfg.get_optional_config_param<std::string>("sqlite.temp_store", "DEFAULT");
+
   itsParameters.sqlite.auto_vacuum =
       cfg.get_optional_config_param<std::string>("sqlite.auto_vacuum", "NONE");
 

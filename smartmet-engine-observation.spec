@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.5.21
+Version: 18.5.22
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue May 22 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.5.22-1.fmi
+- Added possibility to set sqlite temp_store pragma
+
 * Mon May 21 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.5.21-1.fmi
 - Added support for PostgreSQL-cache
 
