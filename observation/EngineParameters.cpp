@@ -84,6 +84,8 @@ EngineParameters::EngineParameters(Spine::ConfigBase &cfg)
     queryResultBaseCacheSize =
         cfg.get_optional_config_param<size_t>("cache.queryResultBaseCacheSize", 1000);
 
+    stationIdCacheSize = cfg.get_optional_config_param<size_t>("cache.stationIdCacheSize", 10000);
+
     serializedStationsFile = cfg.get_mandatory_path("serializedStationsFile");
     dbRegistryFolderPath = cfg.get_mandatory_path("dbRegistryFolderPath");
 

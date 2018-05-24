@@ -103,6 +103,10 @@ class SpatiaLiteCache : public ObservationCache
   mutable Spine::MutexType itsFlashTimeIntervalMutex;
   mutable boost::posix_time::ptime itsFlashTimeIntervalStart;
   mutable boost::posix_time::ptime itsFlashTimeIntervalEnd;
+
+  // Cache for station id searches
+  using StationIdCache = Fmi::Cache::Cache<std::size_t, Spine::Station>;
+  mutable StationIdCache itsStationIdCache;
 };
 
 }  // namespace Observation
