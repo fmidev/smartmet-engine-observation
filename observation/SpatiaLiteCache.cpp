@@ -378,14 +378,11 @@ bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &star
 {
   try
   {
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    auto oldest_time = spatialitedb->getOldestFlashTime();
-
-    if (oldest_time.is_not_a_date_time())
+    Spine::ReadLock lock(itsFlashTimeIntervalMutex);
+    if (itsFlashTimeIntervalStart.is_not_a_date_time())
       return false;
-
-    // we need only the beginning though
-    return (starttime >= oldest_time);
+    // We ignore end time intentionally
+    return (starttime >= itsFlashTimeIntervalStart);
   }
   catch (...)
   {
@@ -398,14 +395,11 @@ bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
 {
   try
   {
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    auto oldest_time = spatialitedb->getOldestWeatherDataQCTime();
-
-    if (oldest_time.is_not_a_date_time())
+    Spine::ReadLock lock(itsWeatherDataQCTimeIntervalMutex);
+    if (itsWeatherDataQCTimeIntervalStart.is_not_a_date_time())
       return false;
-
-    // we need only the beginning though
-    return (starttime >= oldest_time);
+    // We ignore end time intentionally
+    return (starttime >= itsWeatherDataQCTimeIntervalStart);
   }
   catch (...)
   {
