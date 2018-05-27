@@ -14,12 +14,13 @@ namespace Observation
 {
 namespace
 {
-// Round down to HH:00:00
+// Round down to HH:MM:00. Deleting an entire hour at once takes too long, and causes a major
+// increase in response times. This should perhaps be made configurable.
 
-boost::posix_time::ptime round_down_to_hour(const boost::posix_time::ptime &t)
+boost::posix_time::ptime round_down_to_cache_clean_interval(const boost::posix_time::ptime &t)
 {
-  auto hour = t.time_of_day().hours();
-  return boost::posix_time::ptime(t.date(), boost::posix_time::hours(hour));
+  auto secs = (t.time_of_day().total_seconds() / 60) * 60;
+  return boost::posix_time::ptime(t.date(), boost::posix_time::seconds(secs));
 }
 
 /*!
@@ -639,7 +640,7 @@ std::size_t SpatiaLiteCache::fillFlashDataCache(
 void SpatiaLiteCache::cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const
 {
   boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-  t = round_down_to_hour(t);
+  t = round_down_to_cache_clean_interval(t);
 
   auto conn = itsConnectionPool->getConnection();
   {
@@ -679,7 +680,7 @@ std::size_t SpatiaLiteCache::fillDataCache(const std::vector<DataItem> &cacheDat
 void SpatiaLiteCache::cleanDataCache(const boost::posix_time::time_duration &timetokeep) const
 {
   boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-  t = round_down_to_hour(t);
+  t = round_down_to_cache_clean_interval(t);
 
   auto conn = itsConnectionPool->getConnection();
   {
@@ -721,7 +722,7 @@ void SpatiaLiteCache::cleanWeatherDataQCCache(
     const boost::posix_time::time_duration &timetokeep) const
 {
   boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-  t = round_down_to_hour(t);
+  t = round_down_to_cache_clean_interval(t);
 
   auto conn = itsConnectionPool->getConnection();
   {

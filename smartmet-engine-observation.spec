@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.5.24
-Release: 2%{?dist}.fmi
+Version: 18.5.27
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -15,7 +15,7 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 18.5.23
+BuildRequires: smartmet-library-spine-devel >= 18.5.27
 BuildRequires: smartmet-engine-geonames-devel >= 18.4.7
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
@@ -29,7 +29,7 @@ Requires: fmt
 Requires: libconfig
 Requires: smartmet-server >= 18.5.15
 Requires: smartmet-engine-geonames >= 18.4.7
-Requires: smartmet-library-spine >= 18.5.23
+Requires: smartmet-library-spine >= 18.5.27
 Requires: smartmet-library-locus >= 18.5.21
 Requires: smartmet-library-macgyver >= 18.5.23
 Requires: libatomic
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Sun May 27 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.5.27-1.fmi
+- Clean the cache every minute instead of every hour, which causes a major increase in response times
+
 * Thu May 24 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.5.24-2.fmi
 - Fixed time interval caching for flash and foreign stations
 
