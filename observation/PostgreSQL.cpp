@@ -656,38 +656,66 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
       if (!new_items.empty())
       {
         Spine::WriteLock lock(write_mutex_postgres);
-        std::vector<std::string> values_vector;
-        for (const auto i : new_items)
-        {
-          const auto &item = cacheData[i];
-          std::string values = "(";
-          values += Fmi::to_string(item.fmisid) + ",";
-          values += ("'" + boost::posix_time::to_iso_string(item.data_time) + "',");
-          values += Fmi::to_string(item.measurand_id) + ",";
-          values += Fmi::to_string(item.producer_id) + ",";
-          values += Fmi::to_string(item.measurand_no) + ",";
-          values += Fmi::to_string(item.data_value) + ",";
-          values += Fmi::to_string(item.data_quality) + ")";
-          values_vector.push_back(values);
-        }
+        std::vector<std::size_t> observationsToUpdate = new_items;
 
-        std::string sqlStmt =
-            "INSERT INTO observation_data "
-            "(fmisid, data_time, measurand_id, producer_id, measurand_no, "
-            "data_value, data_quality) VALUES ";
-
-        for (const auto &v : values_vector)
+        while (observationsToUpdate.size() > 0)
         {
-          sqlStmt += v;
-          if (&v != &values_vector.back())
-            sqlStmt += ",";
+          const auto &last_item = cacheData[observationsToUpdate.back()];
+          std::vector<std::string> values_vector;
+          std::set<std::string> key_set;  // to check duplicates
+          std::vector<std::size_t> duplicateObservations;
+
+          for (const auto i : observationsToUpdate)
+          {
+            const auto &item = cacheData[i];
+            // data_time, fmisid, measurand_id, producer_id, measurand_no
+            std::string key = boost::posix_time::to_iso_string(item.data_time);
+            key += Fmi::to_string(item.fmisid);
+            key += Fmi::to_string(item.measurand_id);
+            key += Fmi::to_string(item.producer_id);
+            key += Fmi::to_string(item.measurand_no);
+            if (key_set.find(key) != key_set.end())
+            {
+              duplicateObservations.push_back(i);
+            }
+            else
+            {
+              key_set.insert(key);
+              std::string values = "(";
+              values += Fmi::to_string(item.fmisid) + ",";
+              values += ("'" + boost::posix_time::to_iso_string(item.data_time) + "',");
+              values += Fmi::to_string(item.measurand_id) + ",";
+              values += Fmi::to_string(item.producer_id) + ",";
+              values += Fmi::to_string(item.measurand_no) + ",";
+              values += Fmi::to_string(item.data_value) + ",";
+              values += Fmi::to_string(item.data_quality) + ")";
+              values_vector.push_back(values);
+            }
+
+            if ((values_vector.size() % itsMaxInsertSize == 0) || &item == &last_item)
+            {
+              std::string sqlStmt =
+                  "INSERT INTO observation_data "
+                  "(fmisid, data_time, measurand_id, producer_id, measurand_no, "
+                  "data_value, data_quality) VALUES ";
+
+              for (const auto &v : values_vector)
+              {
+                sqlStmt += v;
+                if (&v != &values_vector.back())
+                  sqlStmt += ",";
+              }
+              sqlStmt +=
+                  " ON CONFLICT(data_time, fmisid, measurand_id, producer_id, measurand_no) DO "
+                  "UPDATE SET "
+                  "(data_value, data_quality) = "
+                  "(EXCLUDED.data_value, EXCLUDED.data_quality)";
+              itsDB.executeNonTransaction(sqlStmt);
+              values_vector.clear();
+            }
+          }
+          observationsToUpdate = duplicateObservations;
         }
-        sqlStmt +=
-            " ON CONFLICT(data_time, fmisid, measurand_id, producer_id, measurand_no) DO "
-            "UPDATE SET "
-            "(data_value, data_quality) = "
-            "(EXCLUDED.data_value, EXCLUDED.data_quality)";
-        itsDB.executeNonTransaction(sqlStmt);
       }
 
       // We insert the new hashes only when the transaction has completed so that
@@ -700,6 +728,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
 
       pos1 = pos2;
     }
+
     itsDB.executeNonTransaction("VACUUM ANALYZE observation_data");
 
     return write_count;
@@ -752,41 +781,65 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
         }
       }
 
-      // Now insert the new items
-
       if (!new_items.empty())
       {
         Spine::WriteLock lock(write_mutex_postgres);
-        std::vector<std::string> values_vector;
-        for (const auto i : new_items)
+        std::vector<std::size_t> weatherDataToUpdate = new_items;
+        while (weatherDataToUpdate.size() > 0)
         {
-          const auto &item = cacheData[i];
-          std::string values = "(";
-          values += Fmi::to_string(item.fmisid) + ",";
-          values += ("'" + boost::posix_time::to_iso_string(item.obstime) + "',");
-          values += ("'" + item.parameter + "',");
-          values += Fmi::to_string(item.sensor_no) + ",";
-          values += Fmi::to_string(item.value) + ",";
-          values += Fmi::to_string(item.flag) + ")";
-          values_vector.push_back(values);
-        }
+          const auto &last_item = cacheData[weatherDataToUpdate.back()];
+          std::vector<std::string> values_vector;
+          std::set<std::string> key_set;  // to check duplicates
+          std::vector<std::size_t> duplicateWeatherData;
 
-        std::string sqlStmt =
-            "INSERT INTO weather_data_qc "
-            "(fmisid, obstime, parameter, sensor_no, value, flag) VALUES ";
+          for (const auto i : weatherDataToUpdate)
+          {
+            const auto &item = cacheData[i];
+            // obstime, fmisid, parameter, sensor_no
+            std::string key = boost::posix_time::to_iso_string(item.obstime);
+            key += Fmi::to_string(item.fmisid);
+            key += item.parameter;
+            key += Fmi::to_string(item.sensor_no);
+            if (key_set.find(key) != key_set.end())
+            {
+              duplicateWeatherData.push_back(i);
+            }
+            else
+            {
+              key_set.insert(key);
+              std::string values = "(";
+              values += Fmi::to_string(item.fmisid) + ",";
+              values += ("'" + boost::posix_time::to_iso_string(item.obstime) + "',");
+              values += ("'" + item.parameter + "',");
+              values += Fmi::to_string(item.sensor_no) + ",";
+              values += Fmi::to_string(item.value) + ",";
+              values += Fmi::to_string(item.flag) + ")";
+              values_vector.push_back(values);
+            }
 
-        for (const auto &v : values_vector)
-        {
-          sqlStmt += v;
-          if (&v != &values_vector.back())
-            sqlStmt += ",";
+            if ((values_vector.size() % itsMaxInsertSize == 0) || &item == &last_item)
+            {
+              std::string sqlStmt =
+                  "INSERT INTO weather_data_qc "
+                  "(fmisid, obstime, parameter, sensor_no, value, flag) VALUES ";
+
+              for (const auto &v : values_vector)
+              {
+                sqlStmt += v;
+                if (&v != &values_vector.back())
+                  sqlStmt += ",";
+              }
+              sqlStmt +=
+                  " ON CONFLICT(fmisid, obstime, parameter, sensor_no) DO "
+                  "UPDATE SET "
+                  "(value, flag) = "
+                  "(EXCLUDED.value, EXCLUDED.flag)";
+              itsDB.executeNonTransaction(sqlStmt);
+              values_vector.clear();
+            }
+          }
+          weatherDataToUpdate = duplicateWeatherData;
         }
-        sqlStmt +=
-            " ON CONFLICT(fmisid, obstime, parameter, sensor_no) DO "
-            "UPDATE SET "
-            "(value, flag) = "
-            "(EXCLUDED.value, EXCLUDED.flag)";
-        itsDB.executeNonTransaction(sqlStmt);
       }
 
       // We insert the new hashes only when the transaction has completed so that
@@ -935,7 +988,8 @@ std::size_t PostgreSQL::fillFlashDataCache(const vector<FlashDataItem> &flashCac
                   "EXCLUDED.freedom_degree, EXCLUDED.ellipse_angle, EXCLUDED.ellipse_major, "
                   "EXCLUDED.ellipse_minor, EXCLUDED.chi_square, EXCLUDED.rise_time, "
                   "EXCLUDED.ptz_time, EXCLUDED.cloud_indicator, EXCLUDED.angle_indicator, "
-                  "EXCLUDED.signal_indicator, EXCLUDED.timing_indicator, EXCLUDED.stroke_status, "
+                  "EXCLUDED.signal_indicator, EXCLUDED.timing_indicator, "
+                  "EXCLUDED.stroke_status, "
                   "EXCLUDED.data_source, EXCLUDED.stroke_location)";
               itsDB.executeNonTransaction(sqlStmt);
               values_vector.clear();
