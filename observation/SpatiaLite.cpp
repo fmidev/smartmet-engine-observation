@@ -55,14 +55,6 @@ namespace Observation
 {
 namespace
 {
-// Round down to HH:00:00
-
-boost::posix_time::ptime round_down_to_hour(const boost::posix_time::ptime &t)
-{
-  auto hour = t.time_of_day().hours();
-  return boost::posix_time::ptime(t.date(), boost::posix_time::hours(hour));
-}
-
 void solveMeasurandIds(const std::vector<std::string> &parameters,
                        const ParameterMap &parameterMap,
                        const std::string &stationType,
