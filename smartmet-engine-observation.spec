@@ -104,6 +104,9 @@ rm -rf $RPM_BUILD_ROOT
 * Thu May 24 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.5.24-1.fmi
 - Added caching of station ID requests to reduce sqlite pool size requirements
 
+* Wed May 23 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.5.23-1.fmi
+- Docker files for postgresql/postgis added
+
 * Tue May 22 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.5.22-1.fmi
 - Added possibility to set sqlite temp_store pragma
 
