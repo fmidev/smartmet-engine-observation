@@ -14,12 +14,13 @@ namespace Observation
 {
 namespace
 {
-// Round down to HH:00:00
+// Round down to HH:MM:00. Deleting an entire hour at once takes too long, and causes a major
+// increase in response times. This should perhaps be made configurable.
 
-boost::posix_time::ptime round_down_to_hour(const boost::posix_time::ptime &t)
+boost::posix_time::ptime round_down_to_cache_clean_interval(const boost::posix_time::ptime &t)
 {
-  auto hour = t.time_of_day().hours();
-  return boost::posix_time::ptime(t.date(), boost::posix_time::hours(hour));
+  auto secs = (t.time_of_day().total_seconds() / 60) * 60;
+  return boost::posix_time::ptime(t.date(), boost::posix_time::seconds(secs));
 }
 
 /*!
@@ -378,14 +379,11 @@ bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &star
 {
   try
   {
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    auto oldest_time = spatialitedb->getOldestFlashTime();
-
-    if (oldest_time.is_not_a_date_time())
+    Spine::ReadLock lock(itsFlashTimeIntervalMutex);
+    if (itsFlashTimeIntervalStart.is_not_a_date_time())
       return false;
-
-    // we need only the beginning though
-    return (starttime >= oldest_time);
+    // We ignore end time intentionally
+    return (starttime >= itsFlashTimeIntervalStart);
   }
   catch (...)
   {
@@ -398,14 +396,11 @@ bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
 {
   try
   {
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    auto oldest_time = spatialitedb->getOldestWeatherDataQCTime();
-
-    if (oldest_time.is_not_a_date_time())
+    Spine::ReadLock lock(itsWeatherDataQCTimeIntervalMutex);
+    if (itsWeatherDataQCTimeIntervalStart.is_not_a_date_time())
       return false;
-
-    // we need only the beginning though
-    return (starttime >= oldest_time);
+    // We ignore end time intentionally
+    return (starttime >= itsWeatherDataQCTimeIntervalStart);
   }
   catch (...)
   {
@@ -560,6 +555,9 @@ void SpatiaLiteCache::updateStationsAndGroups(const StationInfo &info) const
   logMessage("Updating stations to SpatiaLite databases...", itsParameters.quiet);
   boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
   spatialitedb->updateStationsAndGroups(info);
+
+  // Clear all cached search results, read new info from sqlite
+  itsStationIdCache.clear();
 }
 
 Spine::Stations SpatiaLiteCache::findAllStationsFromGroups(
@@ -572,12 +570,37 @@ Spine::Stations SpatiaLiteCache::findAllStationsFromGroups(
       stationgroup_codes, info, starttime, endtime);
 }
 
+// Station request are cached into memory since asking the data from sqlite
+// wastes a member from the connection pool. In the current sqlite version
+// there can be max 64 spatialite connections, which is not enough during
+// high peak times. Note that updating the Stations table causes the
+// cache to be cleared (itsStationIdCache.clear()).
+
 bool SpatiaLiteCache::getStationById(Spine::Station &station,
                                      int station_id,
                                      const std::set<std::string> &stationgroup_codes) const
 {
-  return itsConnectionPool->getConnection()->getStationById(
-      station, station_id, stationgroup_codes);
+  // Cache key
+  auto key = boost::hash_value(station_id);
+  boost::hash_combine(key, boost::hash_value(stationgroup_codes));
+
+  // Return cached value if it exists
+  auto cached = itsStationIdCache.find(key);
+  if (cached)
+  {
+    station = *cached;
+    return true;
+  }
+
+  // Search the database
+  bool ok =
+      itsConnectionPool->getConnection()->getStationById(station, station_id, stationgroup_codes);
+  if (!ok)
+    return false;
+
+  // Cache the result for next searches
+  itsStationIdCache.insert(key, station);
+  return true;
 }
 
 Spine::Stations SpatiaLiteCache::findStationsInsideArea(const Settings &settings,
@@ -617,7 +640,7 @@ std::size_t SpatiaLiteCache::fillFlashDataCache(
 void SpatiaLiteCache::cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const
 {
   boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-  t = round_down_to_hour(t);
+  t = round_down_to_cache_clean_interval(t);
 
   auto conn = itsConnectionPool->getConnection();
   {
@@ -657,7 +680,7 @@ std::size_t SpatiaLiteCache::fillDataCache(const std::vector<DataItem> &cacheDat
 void SpatiaLiteCache::cleanDataCache(const boost::posix_time::time_duration &timetokeep) const
 {
   boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-  t = round_down_to_hour(t);
+  t = round_down_to_cache_clean_interval(t);
 
   auto conn = itsConnectionPool->getConnection();
   {
@@ -699,7 +722,7 @@ void SpatiaLiteCache::cleanWeatherDataQCCache(
     const boost::posix_time::time_duration &timetokeep) const
 {
   boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-  t = round_down_to_hour(t);
+  t = round_down_to_cache_clean_interval(t);
 
   auto conn = itsConnectionPool->getConnection();
   {
@@ -730,7 +753,7 @@ void SpatiaLiteCache::shutdown()
 }
 
 SpatiaLiteCache::SpatiaLiteCache(boost::shared_ptr<EngineParameters> p, Spine::ConfigBase &cfg)
-    : itsParameters(p)
+    : itsParameters(p), itsStationIdCache(p->stationIdCacheSize)
 {
   try
   {

@@ -27,8 +27,9 @@ struct EngineParameters
   // Cache size settings
   int locationCacheSize;
 
-  size_t queryResultBaseCacheSize = 100;
-  int spatiaLitePoolSize;
+  std::size_t stationIdCacheSize = 10000;
+  std::size_t queryResultBaseCacheSize = 100;
+  std::size_t spatiaLitePoolSize;
 
   std::string serializedStationsFile;
   std::string dbRegistryFolderPath;
