@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.5.27
+Version: 18.5.29
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue May 29 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.5.29-1.fmi
+- Corrected duplicate handling during insert in observation_data and weather_data_qc tables
+
 * Sun May 27 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.5.27-1.fmi
 - Clean the cache every minute instead of every hour, which causes a major increase in response times
 
