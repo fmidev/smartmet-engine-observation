@@ -1,6 +1,6 @@
 NAME = smartmet-server-observation-cache
 TAG = docker.weatherproof.fi/$(NAME)
-VERSION = 10-centos7
+VERSION = 10-2.4-observation-cache
 
 ifneq ($(HTTP_PROXY),)
 	BUILD-ARG-HTTP_PROXY=--build-arg=http_proxy=$(HTTP_PROXY)
