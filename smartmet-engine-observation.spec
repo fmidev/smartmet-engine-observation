@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.5.29
+Version: 18.6.4
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Jun 4 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.4-1.fmi
+- Docker files for postgresql/postgis updated
+
 * Tue May 29 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.5.29-1.fmi
 - Corrected duplicate handling during insert in observation_data and weather_data_qc tables
 
