@@ -373,7 +373,12 @@ class PostgreSQL : private boost::noncopyable
                                       const StationInfo &info) const;
   void fetchCachedDataFromDB(const std::string &sqlStmt,
                              struct cached_data &data,
-                             bool measurand = false);  // const;
+                             bool measurand = false);
+  void createIndex(const std::string &table,
+                   const std::string &column,
+                   const std::string &idx_name,
+                   bool transaction = false) const;
+  void dropIndex(const std::string &idx_name, bool transaction = false) const;
 
   boost::posix_time::ptime getTime(const std::string &timeQuery) const;
   std::map<unsigned int, std::string> itsPostgreDataTypes;

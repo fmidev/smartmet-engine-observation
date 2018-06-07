@@ -49,7 +49,11 @@ namespace SmartMet
 // Mutex for write operations - otherwise you get table locked errors
 // in MULTITHREAD-mode.
 
-Spine::MutexType write_mutex_postgres;
+Spine::MutexType stations_write_mutex;
+Spine::MutexType locations_write_mutex;
+Spine::MutexType observation_data_write_mutex;
+Spine::MutexType weather_data_qc_write_mutex;
+Spine::MutexType flash_data_write_mutex;
 
 namespace Engine
 {
@@ -116,6 +120,7 @@ PostgreSQL::PostgreSQL(const PostgreSQLCacheParameters &options)
 {
   try
   {
+    std::cout << "itsMaxInsertSize: " << itsMaxInsertSize << std::endl;
     srid = "4326";
 
     itsDB.open(options.postgresql.host,
@@ -377,8 +382,6 @@ size_t PostgreSQL::selectCount(const std::string &queryString)
 {
   try
   {
-    // Spine::ReadLock lock(write_mutex_postgres);
-
     size_t count = 0;
     pqxx::result result_set = itsDB.executeNonTransaction(queryString);
 
@@ -405,7 +408,6 @@ boost::posix_time::ptime PostgreSQL::getTime(const std::string &timeQuery) const
 {
   try
   {
-    // Spine::ReadLock lock(write_mutex_postgres);
     boost::posix_time::ptime ret;
 
     std::string sqlStmt = "SELECT EXTRACT(EPOCH FROM(" + timeQuery + "))";
@@ -491,7 +493,7 @@ void PostgreSQL::fillLocationCache(const vector<LocationItem> &locations)
 {
   try
   {
-    Spine::WriteLock lock(write_mutex_postgres);
+    Spine::WriteLock lock(locations_write_mutex);
     std::vector<std::string> values_vector;
     for (const auto &item : locations)
     {
@@ -555,7 +557,7 @@ void PostgreSQL::cleanDataCache(const boost::posix_time::time_duration &timetoke
     if (t <= oldest)
       return;
 
-    Spine::WriteLock lock(write_mutex_postgres);
+    Spine::WriteLock lock(observation_data_write_mutex);
     std::string sqlStmt =
         ("DELETE FROM observation_data WHERE data_time < '" + Fmi::to_iso_extended_string(t) + "'");
     itsDB.executeNonTransaction(sqlStmt);
@@ -577,7 +579,7 @@ void PostgreSQL::cleanWeatherDataQCCache(const boost::posix_time::time_duration 
     if (t <= oldest)
       return;
 
-    Spine::WriteLock lock(write_mutex_postgres);
+    Spine::WriteLock lock(weather_data_qc_write_mutex);
     std::string sqlStmt =
         ("DELETE FROM weather_data_qc WHERE obstime < '" + Fmi::to_iso_extended_string(t) + "'");
     itsDB.executeNonTransaction(sqlStmt);
@@ -599,7 +601,7 @@ void PostgreSQL::cleanFlashDataCache(const boost::posix_time::time_duration &tim
     if (t <= oldest)
       return;
 
-    Spine::WriteLock lock(write_mutex_postgres);
+    Spine::WriteLock lock(flash_data_write_mutex);
     std::string sqlStmt =
         ("DELETE FROM flash_data WHERE stroke_time < '" + Fmi::to_iso_extended_string(t) + "'");
     itsDB.executeNonTransaction(sqlStmt);
@@ -619,6 +621,9 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
 
     std::size_t pos1 = 0;
     std::size_t write_count = 0;
+    itsDB.startTransaction();
+    itsDB.executeTransaction("LOCK TABLE observation_data IN SHARE MODE");
+    dropIndex("observation_data_data_time_idx", true);
 
     while (pos1 < cacheData.size())
     {
@@ -655,7 +660,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
 
       if (!new_items.empty())
       {
-        Spine::WriteLock lock(write_mutex_postgres);
+        Spine::WriteLock lock(observation_data_write_mutex);
         std::vector<std::size_t> observationsToUpdate = new_items;
 
         while (observationsToUpdate.size() > 0)
@@ -710,7 +715,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
                   "UPDATE SET "
                   "(data_value, data_quality) = "
                   "(EXCLUDED.data_value, EXCLUDED.data_quality)";
-              itsDB.executeNonTransaction(sqlStmt);
+              itsDB.executeTransaction(sqlStmt);
               values_vector.clear();
             }
           }
@@ -729,6 +734,8 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
       pos1 = pos2;
     }
 
+    createIndex("observation_data", "data_time", "observation_data_data_time_idx", true);
+    itsDB.commitTransaction();
     itsDB.executeNonTransaction("VACUUM ANALYZE observation_data");
 
     return write_count;
@@ -748,6 +755,9 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
 
     std::size_t pos1 = 0;
     std::size_t write_count = 0;
+    itsDB.startTransaction();
+    itsDB.executeTransaction("LOCK TABLE weather_data_qc IN SHARE MODE");
+    dropIndex("weather_data_qc_obstime_idx", true);
 
     while (pos1 < cacheData.size())
     {
@@ -783,7 +793,7 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
 
       if (!new_items.empty())
       {
-        Spine::WriteLock lock(write_mutex_postgres);
+        Spine::WriteLock lock(weather_data_qc_write_mutex);
         std::vector<std::size_t> weatherDataToUpdate = new_items;
         while (weatherDataToUpdate.size() > 0)
         {
@@ -834,7 +844,7 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
                   "UPDATE SET "
                   "(value, flag) = "
                   "(EXCLUDED.value, EXCLUDED.flag)";
-              itsDB.executeNonTransaction(sqlStmt);
+              itsDB.executeTransaction(sqlStmt);
               values_vector.clear();
             }
           }
@@ -852,6 +862,8 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
 
       pos1 = pos2;
     }
+    createIndex("weather_data_qc", "obstime", "weather_data_qc_obstime_idx", true);
+    itsDB.commitTransaction();
     itsDB.executeNonTransaction("VACUUM ANALYZE weather_data_qc");
 
     return write_count;
@@ -871,6 +883,10 @@ std::size_t PostgreSQL::fillFlashDataCache(const vector<FlashDataItem> &flashCac
 
     std::size_t pos1 = 0;
     std::size_t write_count = 0;
+    itsDB.startTransaction();
+    itsDB.executeTransaction("LOCK TABLE flash_data IN SHARE MODE");
+    dropIndex("flash_data_stroke_time_idx", true);
+    dropIndex("flash_data_gix", true);
 
     while (pos1 < flashCacheData.size())
     {
@@ -905,7 +921,7 @@ std::size_t PostgreSQL::fillFlashDataCache(const vector<FlashDataItem> &flashCac
       // Now insert the new items
       if (!new_items.empty())
       {
-        Spine::WriteLock lock(write_mutex_postgres);
+        Spine::WriteLock lock(flash_data_write_mutex);
         std::vector<std::size_t> flashesToUpdate = new_items;
 
         while (flashesToUpdate.size() > 0)
@@ -991,7 +1007,7 @@ std::size_t PostgreSQL::fillFlashDataCache(const vector<FlashDataItem> &flashCac
                   "EXCLUDED.signal_indicator, EXCLUDED.timing_indicator, "
                   "EXCLUDED.stroke_status, "
                   "EXCLUDED.data_source, EXCLUDED.stroke_location)";
-              itsDB.executeNonTransaction(sqlStmt);
+              itsDB.executeTransaction(sqlStmt);
               values_vector.clear();
             }
           }
@@ -1009,6 +1025,10 @@ std::size_t PostgreSQL::fillFlashDataCache(const vector<FlashDataItem> &flashCac
 
       pos1 = pos2;
     }
+
+    createIndex("flash_data USING GIST", "stroke_location", "flash_data_idx", true);
+    createIndex("flash_data", "stroke_time", "flash_data_stroke_time_idx", true);
+    itsDB.commitTransaction();
     itsDB.executeNonTransaction("VACUUM ANALYZE flash_data");
 
     return write_count;
@@ -1028,7 +1048,7 @@ void PostgreSQL::updateStationsAndGroups(const StationInfo &info)
     // so it would be impossible to create a single transaction of
     // both updates.
 
-    Spine::WriteLock lock(write_mutex_postgres);
+    Spine::WriteLock lock(stations_write_mutex);
     updateStations(info.stations);
     updateStationGroups(info);
   }
@@ -1368,7 +1388,6 @@ void PostgreSQL::fetchCachedDataFromDB(const std::string &sqlStmt,
                                        struct cached_data &data,
                                        bool measurand /*= false*/)
 {
-  // Spine::ReadLock lock(write_mutex_postgres);
   pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
   for (auto row : result_set)
   {
@@ -2303,7 +2322,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedFlashData(
     std::string stroke_time;
     double longitude = std::numeric_limits<double>::max();
     double latitude = std::numeric_limits<double>::max();
-    // Spine::ReadLock lock(write_mutex_postgres);
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
     for (auto row : result_set)
     {
@@ -3645,6 +3663,41 @@ boost::shared_ptr<std::vector<ObservableProperty>> PostgreSQL::getObservableProp
   }
 
   return data;
+}
+
+void PostgreSQL::createIndex(const std::string &table,
+                             const std::string &column,
+                             const std::string &idx_name,
+                             bool transaction /*= false*/) const
+{
+  try
+  {
+    if (transaction)
+      itsDB.executeTransaction("CREATE INDEX IF NOT EXISTS " + idx_name + " ON " + table + "(" +
+                               column + ")");
+    else
+      itsDB.executeNonTransaction("CREATE INDEX IF NOT EXISTS " + idx_name + " ON " + table + "(" +
+                                  column + ")");
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Creating index " + idx_name + " failed!");
+  }
+}
+
+void PostgreSQL::dropIndex(const std::string &idx_name, bool transaction /*= false*/) const
+{
+  try
+  {
+    if (transaction)
+      itsDB.executeTransaction("DROP INDEX IF EXISTS " + idx_name);
+    else
+      itsDB.executeNonTransaction("DROP INDEX IF EXISTS " + idx_name);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Dropping index " + idx_name + " failed!");
+  }
 }
 
 }  // namespace Observation

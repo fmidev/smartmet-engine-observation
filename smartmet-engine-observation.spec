@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.6.4
+Version: 18.6.7
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -20,7 +20,7 @@ BuildRequires: smartmet-engine-geonames-devel >= 18.4.7
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.20.1
-BuildRequires: smartmet-library-locus-devel >= 18.5.21
+BuildRequires: smartmet-library-locus-devel >= 18.6.7
 BuildRequires: smartmet-library-macgyver-devel >= 18.5.23
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
@@ -30,7 +30,7 @@ Requires: libconfig
 Requires: smartmet-server >= 18.5.15
 Requires: smartmet-engine-geonames >= 18.4.7
 Requires: smartmet-library-spine >= 18.5.27
-Requires: smartmet-library-locus >= 18.5.21
+Requires: smartmet-library-locus >= 18.6.7
 Requires: smartmet-library-macgyver >= 18.5.23
 Requires: libatomic
 Requires: unixODBC
@@ -95,6 +95,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Jun 7 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.7-1.fmi
+- Speed up insert performance:
+  - All INSERT statemenst are put into one trasaction
+  - Indexes are dropped before insert and re-created after insert
+  - Own write-mutex dedicated for each table (before there was only one write-mutex for all tables)
+
 * Mon Jun 4 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.4-1.fmi
 - Docker files for postgresql/postgis updated
 
