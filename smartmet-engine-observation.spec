@@ -96,7 +96,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 * Thu Jun 7 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.7-1.fmi
-- Speed up insert performance:
+- Speed up insert performance of PostgreSQL-cache
   - All INSERT statemenst are put into one trasaction
   - Indexes are dropped before insert and re-created after insert
   - Own write-mutex dedicated for each table (before there was only one write-mutex for all tables)
