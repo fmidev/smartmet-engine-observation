@@ -623,7 +623,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
     std::size_t write_count = 0;
     itsDB.startTransaction();
     itsDB.executeTransaction("LOCK TABLE observation_data IN SHARE MODE");
-    dropIndex("observation_data_data_time_idx", true);
+    // dropIndex("observation_data_data_time_idx", true);
 
     while (pos1 < cacheData.size())
     {
@@ -731,7 +731,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
       pos1 = pos2;
     }
 
-    createIndex("observation_data", "data_time", "observation_data_data_time_idx", true);
+    // createIndex("observation_data", "data_time", "observation_data_data_time_idx", true);
     itsDB.commitTransaction();
     itsDB.executeNonTransaction("VACUUM ANALYZE observation_data");
 
@@ -754,7 +754,7 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
     std::size_t write_count = 0;
     itsDB.startTransaction();
     itsDB.executeTransaction("LOCK TABLE weather_data_qc IN SHARE MODE");
-    dropIndex("weather_data_qc_obstime_idx", true);
+    // dropIndex("weather_data_qc_obstime_idx", true);
 
     while (pos1 < cacheData.size())
     {
@@ -856,7 +856,7 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
 
       pos1 = pos2;
     }
-    createIndex("weather_data_qc", "obstime", "weather_data_qc_obstime_idx", true);
+    // createIndex("weather_data_qc", "obstime", "weather_data_qc_obstime_idx", true);
     itsDB.commitTransaction();
     itsDB.executeNonTransaction("VACUUM ANALYZE weather_data_qc");
 
@@ -879,8 +879,8 @@ std::size_t PostgreSQL::fillFlashDataCache(const vector<FlashDataItem> &flashCac
     std::size_t write_count = 0;
     itsDB.startTransaction();
     itsDB.executeTransaction("LOCK TABLE flash_data IN SHARE MODE");
-    dropIndex("flash_data_stroke_time_idx", true);
-    dropIndex("flash_data_gix", true);
+    // dropIndex("flash_data_stroke_time_idx", true);
+    // dropIndex("flash_data_gix", true);
 
     while (pos1 < flashCacheData.size())
     {
@@ -1017,8 +1017,8 @@ std::size_t PostgreSQL::fillFlashDataCache(const vector<FlashDataItem> &flashCac
       pos1 = pos2;
     }
 
-    createIndex("flash_data USING GIST", "stroke_location", "flash_data_idx", true);
-    createIndex("flash_data", "stroke_time", "flash_data_stroke_time_idx", true);
+    // createIndex("flash_data USING GIST", "stroke_location", "flash_data_idx", true);
+    // createIndex("flash_data", "stroke_time", "flash_data_stroke_time_idx", true);
     itsDB.commitTransaction();
     itsDB.executeNonTransaction("VACUUM ANALYZE flash_data");
 
@@ -3676,6 +3676,7 @@ void PostgreSQL::createIndex(const std::string &table,
   }
 }
 
+#if 0
 void PostgreSQL::dropIndex(const std::string &idx_name, bool transaction /*= false*/) const
 {
   try
@@ -3690,6 +3691,7 @@ void PostgreSQL::dropIndex(const std::string &idx_name, bool transaction /*= fal
     throw Spine::Exception::Trace(BCP, "Dropping index " + idx_name + " failed!");
   }
 }
+#endif
 
 }  // namespace Observation
 }  // namespace Engine
