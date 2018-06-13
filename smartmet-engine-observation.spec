@@ -95,7 +95,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Wed Jun 13 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.13-1.fmi
+- Dockerfile updated, reduntant console output removed
 - Speed up insert performance of PostgreSQL-cache:
 - All INSERT statemenst are put into one trasaction
 - Indexes are dropped before insert and re-created after insert
