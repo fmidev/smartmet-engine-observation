@@ -631,10 +631,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
         break;
       // Yield if there is more than 1 block
       if (pos1 > 0)
-      {
-        // boost::this_thread::yield();
-        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
-      }
+        boost::this_thread::yield();
 
       // Collect new items before taking a lock - we might avoid one completely
       std::vector<std::size_t> new_items;
@@ -766,10 +763,7 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
 
       // Yield if there is more than 1 block
       if (pos1 > 0)
-      {
-        // boost::this_thread::yield();
-        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
-      }
+        boost::this_thread::yield();
 
       // Collect new items before taking a lock - we might avoid one completely
       std::vector<std::size_t> new_items;
@@ -892,10 +886,7 @@ std::size_t PostgreSQL::fillFlashDataCache(const vector<FlashDataItem> &flashCac
     {
       // Yield if there is more than 1 block
       if (pos1 > 0)
-      {
-        // boost::this_thread::yield();
-        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
-      }
+        boost::this_thread::yield();
 
       // Collect new items before taking a lock - we might avoid one completely
       std::vector<std::size_t> new_items;
