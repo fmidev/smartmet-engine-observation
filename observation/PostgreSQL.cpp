@@ -120,7 +120,6 @@ PostgreSQL::PostgreSQL(const PostgreSQLCacheParameters &options)
 {
   try
   {
-    std::cout << "itsMaxInsertSize: " << itsMaxInsertSize << std::endl;
     srid = "4326";
 
     itsDB.open(options.postgresql.host,

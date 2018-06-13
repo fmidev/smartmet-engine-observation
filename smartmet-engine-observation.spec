@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.6.7
+Version: 18.6.13
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jun 13 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.13-1.fmi
+- Dockerfile updated, reduntant console output removed
+
 * Thu Jun 7 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.7-1.fmi
 - Speed up insert performance of PostgreSQL-cache
   - All INSERT statemenst are put into one trasaction
