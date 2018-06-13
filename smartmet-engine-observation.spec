@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.6.7
+Version: 18.6.13
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -95,11 +95,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Thu Jun 7 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.7-1.fmi
-- Speed up insert performance of PostgreSQL-cache
-  - All INSERT statemenst are put into one trasaction
-  - Indexes are dropped before insert and re-created after insert
-  - Own write-mutex dedicated for each table (before there was only one write-mutex for all tables)
+* Wed Jun 13 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.13-1.fmi
+- Speed up insert performance of PostgreSQL-cache:
+- All INSERT statemenst are put into one trasaction
+- Indexes are dropped before insert and re-created after insert
+- Own write-mutex dedicated for each table (before there was only one write-mutex for all tables)
 
 * Mon Jun 4 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.4-1.fmi
 - Docker files for postgresql/postgis updated
