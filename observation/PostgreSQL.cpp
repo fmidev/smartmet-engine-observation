@@ -1268,7 +1268,7 @@ Spine::Stations PostgreSQL::findNearestStations(double latitude,
 
     std::string sqlStmt =
         "SELECT DISTINCT s.fmisid, "
-        "IFNULL(ST_Distance(s.the_geom, "
+        "COALESCE(ST_Distance(s.the_geom, "
         "(SELECT ST_GeomFromText('POINT(" +
         Fmi::to_string("%.10g", longitude) + " " + Fmi::to_string("%.10g", latitude) + ")'," +
         srid +
@@ -2845,11 +2845,11 @@ FlashCounts PostgreSQL::getFlashCount(const boost::posix_time::ptime &starttime,
 
     std::string sqlStmt =
         "SELECT "
-        "IFNULL(SUM(CASE WHEN flash.multiplicity > 0 "
+        "COALESCE(SUM(CASE WHEN flash.multiplicity > 0 "
         "THEN 1 ELSE 0 END), 0) AS flashcount, "
-        "IFNULL(SUM(CASE WHEN flash.multiplicity = 0 "
+        "COALESCE(SUM(CASE WHEN flash.multiplicity = 0 "
         "THEN 1 ELSE 0 END), 0) AS strokecount, "
-        "IFNULL(SUM(CASE WHEN flash.cloud_indicator = 1 "
+        "COALESCE(SUM(CASE WHEN flash.cloud_indicator = 1 "
         "THEN 1 ELSE 0 END), 0) AS iccount "
         " FROM flash_data flash "
         "WHERE flash.stroke_time BETWEEN '" +
