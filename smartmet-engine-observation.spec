@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.6.13
+Version: 18.6.15
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,23 +15,23 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 18.5.27
+BuildRequires: smartmet-library-spine-devel >= 18.6.6
 BuildRequires: smartmet-engine-geonames-devel >= 18.4.7
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.20.1
-BuildRequires: smartmet-library-locus-devel >= 18.6.7
-BuildRequires: smartmet-library-macgyver-devel >= 18.5.23
+BuildRequires: smartmet-library-locus-devel >= 18.6.14
+BuildRequires: smartmet-library-macgyver-devel >= 18.6.7
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel
 Requires: fmt
 Requires: libconfig
-Requires: smartmet-server >= 18.5.15
+Requires: smartmet-server >= 18.6.6
 Requires: smartmet-engine-geonames >= 18.4.7
-Requires: smartmet-library-spine >= 18.5.27
-Requires: smartmet-library-locus >= 18.6.7
-Requires: smartmet-library-macgyver >= 18.5.23
+Requires: smartmet-library-spine >= 18.6.6
+Requires: smartmet-library-locus >= 18.6.14
+Requires: smartmet-library-macgyver >= 18.6.7
 Requires: libatomic
 Requires: unixODBC
 Requires: mysql++
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Jun 15 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.6.15-1.fmi
+- Use Fmi::to_iso_string for dates for speed
+
 * Wed Jun 13 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.6.13-1.fmi
 - Dockerfile updated, reduntant console output removed
 - Speed up insert performance of PostgreSQL-cache:
