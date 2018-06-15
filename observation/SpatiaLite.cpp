@@ -679,7 +679,7 @@ void SpatiaLite::fillLocationCache(const vector<LocationItem> &locations)
                 << ": failed to initialize spatialite locations database" << std::endl;
     }
     if (retries == max_retries)
-      throw Spine::Exception(BCP, "Filling of location cache failed!", nullptr);
+      throw Spine::Exception(BCP, "Filling of location cache failed!");
 
     boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
   }

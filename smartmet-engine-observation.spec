@@ -98,6 +98,7 @@ rm -rf $RPM_BUILD_ROOT
 * Fri Jun 15 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.6.15-1.fmi
 - Use Fmi::to_iso_string for dates for speed
 - Use COALESCE instead of IFNULL in PostGreSQL
+- Fixed incorrect throw if location cache could not be updated
 
 * Wed Jun 13 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.6.13-1.fmi
 - Dockerfile updated, reduntant console output removed
