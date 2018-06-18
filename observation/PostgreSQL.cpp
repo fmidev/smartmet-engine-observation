@@ -1774,7 +1774,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(const Spine::St
         "GROUP BY data.fmisid, data.data_time, data.measurand_id, "
         "loc.location_id, "
         "loc.location_end, "
-        "loc.latitude, loc.longitude, loc.elevation "
+        "loc.latitude, loc.longitude, loc.elevation, data.data_value "
         "ORDER BY fmisid ASC, obstime ASC;";
 
     cached_data cachedData;
