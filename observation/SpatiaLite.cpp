@@ -149,6 +149,15 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
     std::string tempStorePragma = "PRAGMA temp_store=" + options.sqlite.temp_store;
     itsDB.execute(tempStorePragma.c_str());
 
+    std::string sharedCachePragma =
+        "PRAGMA schared_cache=" + Fmi::to_string(static_cast<int>(options.sqlite.shared_cache));
+    itsDB.execute(sharedCachePragma.c_str());
+
+    std::string readUncommittedPragma =
+        "PRAGMA read_uncommitted=" +
+        Fmi::to_string(static_cast<int>(options.sqlite.read_uncommitted));
+    itsDB.execute(readUncommittedPragma.c_str());
+
     if (options.sqlite.cache_size != 0)
     {
       std::string cacheSizePragma =

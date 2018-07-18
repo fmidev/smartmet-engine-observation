@@ -841,6 +841,9 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
   itsParameters.sqlite.shared_cache =
       cfg.get_optional_config_param<bool>("sqlite.shared_cache", false);
 
+  itsParameters.sqlite.read_uncommitted =
+      cfg.get_optional_config_param<bool>("sqlite.read_uncommitted", false);
+
   itsParameters.sqlite.memstatus = cfg.get_optional_config_param<bool>("sqlite.memstatus", false);
 
   itsParameters.sqlite.synchronous =
