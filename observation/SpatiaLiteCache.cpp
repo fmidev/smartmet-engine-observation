@@ -827,8 +827,8 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
   itsParameters.flashInsertCacheSize =
       cfg.get_optional_config_param<std::size_t>("cache.flashInsertCacheSize", 10000);
 
-  itsParameters.sqlite.cache_size = cfg.get_optional_config_param<std::size_t>(
-      "sqlite.cache_size", 0);  // zero = use default value
+  itsParameters.sqlite.cache_size =
+      cfg.get_optional_config_param<long>("sqlite.cache_size", 0);  // zero = use default value
 
   itsParameters.sqlite.threads =
       cfg.get_optional_config_param<int>("sqlite.threads", 0);  // zero = no helper threads
