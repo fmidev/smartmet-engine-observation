@@ -821,11 +821,11 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
       "cache.maxInsertSize", 99999999);  // default = all at once
 
   itsDataInsertCache.resize(
-      cfg.get_optional_config_param<std::size_t>("cache.dataInsertCacheSize", 100000));
+      cfg.get_optional_config_param<std::size_t>("cache.dataInsertCacheSize", 1000000));
   itsWeatherQCInsertCache.resize(
-      cfg.get_optional_config_param<std::size_t>("cache.weatherDataQCInsertCacheSize", 100000));
+      cfg.get_optional_config_param<std::size_t>("cache.weatherDataQCInsertCacheSize", 1000000));
   itsFlashInsertCache.resize(
-      cfg.get_optional_config_param<std::size_t>("cache.flashInsertCacheSize", 10000));
+      cfg.get_optional_config_param<std::size_t>("cache.flashInsertCacheSize", 100000));
 
   itsParameters.sqlite.cache_size =
       cfg.get_optional_config_param<long>("sqlite.cache_size", 0);  // zero = use default value
