@@ -761,6 +761,32 @@ std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData, InsertS
     if (cacheData.empty())
       return cacheData.size();
 
+    // Collect new items before taking a lock - we might avoid one completely
+    std::vector<std::size_t> new_items;
+    std::vector<std::size_t> new_hashes;
+
+    for (std::size_t i = 0; i < cacheData.size(); i++)
+    {
+      const auto &item = cacheData[i];
+      auto hash = item.hash_value();
+
+      if (!insertStatus.exists(hash))
+      {
+        new_items.push_back(i);
+        new_hashes.push_back(hash);
+      }
+    }
+
+    // Abort if so requested
+    if (itsShutdownRequested)
+      return 0;
+
+    // Abort if nothing to do
+    if (new_items.empty())
+      return 0;
+
+    // Insert the new items
+
     const char *sqltemplate =
         "INSERT OR REPLACE INTO observation_data "
         "(fmisid, measurand_id, producer_id, measurand_no, data_time, "
@@ -770,73 +796,43 @@ std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData, InsertS
         ";";
 
     std::size_t pos1 = 0;
-    std::size_t write_count = 0;
 
-    while (pos1 < cacheData.size())
+    // block other writers
+
+    Spine::WriteLock lock(write_mutex);
+
+    while (pos1 < new_items.size())
     {
       if (itsShutdownRequested)
-        break;
+        return 0;
 
-      // Collect new items before taking a lock - we might avoid one completely
-      std::vector<std::size_t> new_items;
-      std::vector<std::size_t> new_hashes;
-      new_items.reserve(itsMaxInsertSize);
-      new_hashes.reserve(itsMaxInsertSize);
+      sqlite3pp::transaction xct(itsDB);
+      sqlite3pp::command cmd(itsDB, sqltemplate);
 
-      std::size_t pos2;
-      for (pos2 = pos1; new_hashes.size() < itsMaxInsertSize && pos2 < cacheData.size(); ++pos2)
+      std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, new_items.size());
+      for (std::size_t i = pos1; i < pos2; i++)
       {
-        const auto &item = cacheData[pos2];
-
-        auto hash = item.hash_value();
-
-        if (!insertStatus.exists(hash))
-        {
-          new_items.push_back(pos2);
-          new_hashes.push_back(hash);
-        }
+        const auto &item = cacheData[new_items[i]];
+        cmd.bind(":fmisid", item.fmisid);
+        cmd.bind(":measurand_id", item.measurand_id);
+        cmd.bind(":producer_id", item.producer_id);
+        cmd.bind(":measurand_no", item.measurand_no);
+        std::string timestring = Fmi::to_iso_extended_string(item.data_time);
+        cmd.bind(":data_time", timestring, sqlite3pp::nocopy);
+        cmd.bind(":data_value", item.data_value);
+        cmd.bind(":data_quality", item.data_quality);
+        cmd.execute();
+        cmd.reset();
       }
-
-      // Now insert the new items
-
-      if (!new_items.empty())
-      {
-        // Yield (not sleep!) if there is more than 1 block.
-        if (pos1 > 0)
-          boost::this_thread::yield();
-
-        Spine::WriteLock lock(write_mutex);
-        sqlite3pp::transaction xct(itsDB);
-        sqlite3pp::command cmd(itsDB, sqltemplate);
-
-        for (const auto i : new_items)
-        {
-          const auto &item = cacheData[i];
-          cmd.bind(":fmisid", item.fmisid);
-          cmd.bind(":measurand_id", item.measurand_id);
-          cmd.bind(":producer_id", item.producer_id);
-          cmd.bind(":measurand_no", item.measurand_no);
-          std::string timestring = Fmi::to_iso_extended_string(item.data_time);
-          cmd.bind(":data_time", timestring, sqlite3pp::nocopy);
-          cmd.bind(":data_value", item.data_value);
-          cmd.bind(":data_quality", item.data_quality);
-          cmd.execute();
-          cmd.reset();
-        }
-        xct.commit();
-      }
-
-      // We insert the new hashes only when the transaction has completed so that
-      // if the above code for some reason throws, the rows may be inserted again
-      // in a later attempt.
-
-      write_count += new_hashes.size();
-      for (const auto &hash : new_hashes)
-        insertStatus.add(hash);
+      xct.commit();
 
       pos1 = pos2;
     }
-    return write_count;
+
+    for (const auto &hash : new_hashes)
+      insertStatus.add(hash);
+
+    return new_items.size();
   }
   catch (...)
   {
@@ -850,7 +846,33 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
   try
   {
     if (cacheData.empty())
-      return cacheData.size();
+      return 0;
+
+    // Collect new items before taking a lock - we might avoid one completely
+    std::vector<std::size_t> new_items;
+    std::vector<std::size_t> new_hashes;
+
+    for (std::size_t i = 0; i < cacheData.size(); i++)
+    {
+      const auto &item = cacheData[i];
+      auto hash = item.hash_value();
+
+      if (!insertStatus.exists(hash))
+      {
+        new_items.push_back(i);
+        new_hashes.push_back(hash);
+      }
+    }
+
+    // Abort if so requested
+    if (itsShutdownRequested)
+      return 0;
+
+    // Abort if nothing to do
+    if (new_items.empty())
+      return 0;
+
+    // Insert the new items
 
     const char *sqltemplate =
         "INSERT OR IGNORE INTO weather_data_qc"
@@ -858,72 +880,41 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
         "VALUES (:fmisid,:obstime,:parameter,:sensor_no,:value,:flag)";
 
     std::size_t pos1 = 0;
-    std::size_t write_count = 0;
 
-    while (pos1 < cacheData.size())
+    Spine::WriteLock lock(write_mutex);
+
+    while (pos1 < new_items.size())
     {
       if (itsShutdownRequested)
-        break;
+        return 0;
 
-      // Collect new items before taking a lock - we might avoid one completely
-      std::vector<std::size_t> new_items;
-      std::vector<std::size_t> new_hashes;
-      new_items.reserve(itsMaxInsertSize);
-      new_hashes.reserve(itsMaxInsertSize);
+      sqlite3pp::transaction xct(itsDB);
+      sqlite3pp::command cmd(itsDB, sqltemplate);
 
-      std::size_t pos2;
-      for (pos2 = pos1; new_hashes.size() < itsMaxInsertSize && pos2 < cacheData.size(); ++pos2)
+      std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, new_items.size());
+      for (std::size_t i = pos1; i < pos2; i++)
       {
-        const auto &item = cacheData[pos2];
+        const auto &item = cacheData[new_items[i]];
 
-        auto hash = item.hash_value();
-
-        if (!insertStatus.exists(hash))
-        {
-          new_items.push_back(pos2);
-          new_hashes.push_back(hash);
-        }
+        cmd.bind(":fmisid", item.fmisid);
+        std::string timestring = Fmi::to_iso_extended_string(item.obstime);
+        cmd.bind(":obstime", timestring, sqlite3pp::nocopy);
+        cmd.bind(":parameter", item.parameter, sqlite3pp::nocopy);
+        cmd.bind(":sensor_no", item.sensor_no);
+        cmd.bind(":value", item.value);
+        cmd.bind(":flag", item.flag);
+        cmd.execute();
+        cmd.reset();
       }
-
-      // Now insert the new items
-
-      if (!new_items.empty())
-      {
-        // Yield (not sleep!) if there is more than 1 block
-        if (pos1 > 0)
-          boost::this_thread::yield();
-
-        Spine::WriteLock lock(write_mutex);
-        sqlite3pp::transaction xct(itsDB);
-        sqlite3pp::command cmd(itsDB, sqltemplate);
-
-        for (const auto i : new_items)
-        {
-          const auto &item = cacheData[i];
-          cmd.bind(":fmisid", item.fmisid);
-          std::string timestring = Fmi::to_iso_extended_string(item.obstime);
-          cmd.bind(":obstime", timestring, sqlite3pp::nocopy);
-          cmd.bind(":parameter", item.parameter, sqlite3pp::nocopy);
-          cmd.bind(":sensor_no", item.sensor_no);
-          cmd.bind(":value", item.value);
-          cmd.bind(":flag", item.flag);
-          cmd.execute();
-          cmd.reset();
-        }
-        xct.commit();
-      }
-
-      // We insert the new hashes only when the transaction has completed so that
-      // if the above code for some reason throws, the rows may be inserted again
-      // in a later attempt.
-
-      write_count += new_hashes.size();
-      for (const auto &hash : new_hashes)
-        insertStatus.add(hash);
+      xct.commit();
 
       pos1 = pos2;
     }
-    return write_count;
+
+    for (const auto &hash : new_hashes)
+      insertStatus.add(hash);
+
+    return new_items.size();
   }
   catch (...)
   {
@@ -937,136 +928,132 @@ std::size_t SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCac
   try
   {
     if (flashCacheData.empty())
-      return flashCacheData.size();
+      return 0;
+
+    // Collect new items before taking a lock - we might avoid one completely
+    std::vector<std::size_t> new_items;
+    std::vector<std::size_t> new_hashes;
+
+    for (std::size_t i = 0; i < flashCacheData.size(); i++)
+    {
+      const auto &item = flashCacheData[i];
+      auto hash = item.hash_value();
+
+      if (!insertStatus.exists(hash))
+      {
+        new_items.push_back(i);
+        new_hashes.push_back(hash);
+      }
+    }
+
+    // Abort if so requested
+    if (itsShutdownRequested)
+      return 0;
+
+    // Abort if nothing to do
+    if (new_items.empty())
+      return 0;
+
+    // Insert the new items
 
     std::size_t pos1 = 0;
-    std::size_t write_count = 0;
 
-    while (pos1 < flashCacheData.size())
+    Spine::WriteLock lock(write_mutex);
+
+    while (pos1 < new_items.size())
     {
-      // Collect new items before taking a lock - we might avoid one completely
-      std::vector<std::size_t> new_items;
-      std::vector<std::size_t> new_hashes;
-      new_items.reserve(itsMaxInsertSize);
-      new_hashes.reserve(itsMaxInsertSize);
+      if (itsShutdownRequested)
+        return 0;
 
-      std::size_t pos2;
-      for (pos2 = pos1; new_hashes.size() < itsMaxInsertSize && pos2 < flashCacheData.size();
-           ++pos2)
+      sqlite3pp::transaction xct(itsDB);
+
+      std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, new_items.size());
+      for (std::size_t i = pos1; i < pos2; i++)
       {
-        const auto &item = flashCacheData[pos2];
+        const auto &item = flashCacheData[new_items[i]];
 
-        auto hash = item.hash_value();
+        std::string stroke_location = "GeomFromText('POINT(" +
+                                      Fmi::to_string("%.10g", item.longitude) + " " +
+                                      Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
 
-        if (!insertStatus.exists(hash))
+        std::string sqltemplate =
+            "INSERT OR IGNORE INTO flash_data "
+            "(stroke_time, stroke_time_fraction, flash_id, multiplicity, "
+            "peak_current, sensors, freedom_degree, ellipse_angle, "
+            "ellipse_major, "
+            "ellipse_minor, "
+            "chi_square, rise_time, ptz_time, cloud_indicator, "
+            "angle_indicator, "
+            "signal_indicator, timing_indicator, stroke_status, "
+            "data_source, stroke_location) "
+            "VALUES ("
+            ":timestring,"
+            ":stroke_time_fraction, "
+            ":flash_id,"
+            ":multiplicity,"
+            ":peak_current,"
+            ":sensors,"
+            ":freedom_degree,"
+            ":ellipse_angle,"
+            ":ellipse_major,"
+            ":ellipse_minor,"
+            ":chi_square,"
+            ":rise_time,"
+            ":ptz_time,"
+            ":cloud_indicator,"
+            ":angle_indicator,"
+            ":signal_indicator,"
+            ":timing_indicator,"
+            ":stroke_status,"
+            ":data_source," +
+            stroke_location + ");";
+
+        sqlite3pp::command cmd(itsDB, sqltemplate.c_str());
+
+        std::string timestring = Fmi::to_iso_extended_string(item.stroke_time);
+        boost::replace_all(timestring, ",", ".");
+
+        // @todo There is no simple way to optionally set possible NULL values.
+        // Find out later how to do it.
+
+        try
         {
-          new_items.push_back(pos2);
-          new_hashes.push_back(hash);
+          cmd.bind(":timestring", timestring, sqlite3pp::nocopy);
+          cmd.bind(":stroke_time_fraction", item.stroke_time_fraction);
+          cmd.bind(":flash_id", static_cast<int>(item.flash_id));
+          cmd.bind(":multiplicity", item.multiplicity);
+          cmd.bind(":peak_current", item.peak_current);
+          cmd.bind(":sensors", item.sensors);
+          cmd.bind(":freedom_degree", item.freedom_degree);
+          cmd.bind(":ellipse_angle", item.ellipse_angle);
+          cmd.bind(":ellipse_major", item.ellipse_major);
+          cmd.bind(":ellipse_minor", item.ellipse_minor);
+          cmd.bind(":chi_square", item.chi_square);
+          cmd.bind(":rise_time", item.rise_time);
+          cmd.bind(":ptz_time", item.ptz_time);
+          cmd.bind(":cloud_indicator", item.cloud_indicator);
+          cmd.bind(":angle_indicator", item.angle_indicator);
+          cmd.bind(":signal_indicator", item.signal_indicator);
+          cmd.bind(":timing_indicator", item.timing_indicator);
+          cmd.bind(":stroke_status", item.stroke_status);
+          cmd.bind(":data_source", item.data_source);
+          cmd.execute();
+          cmd.reset();
+        }
+        catch (const std::exception &e)
+        {
+          std::cerr << "Problem updating flash data: " << e.what() << std::endl;
         }
       }
-
-      // Now insert the new items
-
-      if (!new_items.empty())
-      {
-        // Yield (not sleep!) if there is more than 1 block
-        if (pos1 > 0)
-          boost::this_thread::yield();
-
-        Spine::WriteLock lock(write_mutex);
-        sqlite3pp::transaction xct(itsDB);
-
-        for (const auto i : new_items)
-        {
-          const auto &item = flashCacheData[i];
-
-          std::string stroke_location =
-              "GeomFromText('POINT(" + Fmi::to_string("%.10g", item.longitude) + " " +
-              Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
-
-          std::string sqltemplate =
-              "INSERT OR IGNORE INTO flash_data "
-              "(stroke_time, stroke_time_fraction, flash_id, multiplicity, "
-              "peak_current, sensors, freedom_degree, ellipse_angle, "
-              "ellipse_major, "
-              "ellipse_minor, "
-              "chi_square, rise_time, ptz_time, cloud_indicator, "
-              "angle_indicator, "
-              "signal_indicator, timing_indicator, stroke_status, "
-              "data_source, stroke_location) "
-              "VALUES ("
-              ":timestring,"
-              ":stroke_time_fraction, "
-              ":flash_id,"
-              ":multiplicity,"
-              ":peak_current,"
-              ":sensors,"
-              ":freedom_degree,"
-              ":ellipse_angle,"
-              ":ellipse_major,"
-              ":ellipse_minor,"
-              ":chi_square,"
-              ":rise_time,"
-              ":ptz_time,"
-              ":cloud_indicator,"
-              ":angle_indicator,"
-              ":signal_indicator,"
-              ":timing_indicator,"
-              ":stroke_status,"
-              ":data_source," +
-              stroke_location + ");";
-
-          sqlite3pp::command cmd(itsDB, sqltemplate.c_str());
-
-          std::string timestring = Fmi::to_iso_extended_string(item.stroke_time);
-          boost::replace_all(timestring, ",", ".");
-
-          // @todo There is no simple way to optionally set possible NULL values.
-          // Find out later how to do it.
-
-          try
-          {
-            cmd.bind(":timestring", timestring, sqlite3pp::nocopy);
-            cmd.bind(":stroke_time_fraction", item.stroke_time_fraction);
-            cmd.bind(":flash_id", static_cast<int>(item.flash_id));
-            cmd.bind(":multiplicity", item.multiplicity);
-            cmd.bind(":peak_current", item.peak_current);
-            cmd.bind(":sensors", item.sensors);
-            cmd.bind(":freedom_degree", item.freedom_degree);
-            cmd.bind(":ellipse_angle", item.ellipse_angle);
-            cmd.bind(":ellipse_major", item.ellipse_major);
-            cmd.bind(":ellipse_minor", item.ellipse_minor);
-            cmd.bind(":chi_square", item.chi_square);
-            cmd.bind(":rise_time", item.rise_time);
-            cmd.bind(":ptz_time", item.ptz_time);
-            cmd.bind(":cloud_indicator", item.cloud_indicator);
-            cmd.bind(":angle_indicator", item.angle_indicator);
-            cmd.bind(":signal_indicator", item.signal_indicator);
-            cmd.bind(":timing_indicator", item.timing_indicator);
-            cmd.bind(":stroke_status", item.stroke_status);
-            cmd.bind(":data_source", item.data_source);
-            cmd.execute();
-            cmd.reset();
-          }
-          catch (const std::exception &e)
-          {
-            std::cerr << "Problem updating flash data: " << e.what() << std::endl;
-          }
-        }
-        xct.commit();
-      }
-
-      // We insert the new hashes only when the transaction has completed so that
-      // if the above code for some reason throws, the rows may be inserted again
-      // in a later attempt.
-
-      write_count += new_hashes.size();
-      for (const auto &hash : new_hashes)
-        insertStatus.add(hash);
+      xct.commit();
 
       pos1 = pos2;
     }
-    return write_count;
+
+    for (const auto &hash : new_hashes)
+      insertStatus.add(hash);
+
+    return new_items.size();
   }
   catch (...)
   {
