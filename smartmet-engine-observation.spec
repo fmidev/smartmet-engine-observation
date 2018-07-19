@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.7.18
+Version: 18.7.19
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -95,10 +95,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Wed Jul 18 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.7.18-1.fmi
+* Thu Jul 19 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.7.19-1.fmi
 - Fixed option sqlite.shared_cache to have an effect
 - Added option sqlite.read_uncommitted with default value false
 - Allow sqlite.cache_size to be negative, which implies number of pages instead of bytes
+- Use a single copy of the cache to hold information on rows previously inserted to the observation cache
 
 * Mon Jun 18 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.6.18-1.fmi
 - Fixed a GROUP BY clause to include all columns required by PostGreSQL

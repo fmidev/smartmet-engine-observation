@@ -626,7 +626,7 @@ std::size_t SpatiaLiteCache::fillFlashDataCache(
     const std::vector<FlashDataItem> &flashCacheData) const
 {
   auto conn = itsConnectionPool->getConnection();
-  auto sz = conn->fillFlashDataCache(flashCacheData);
+  auto sz = conn->fillFlashDataCache(flashCacheData, itsFlashInsertCache);
 
   // Update what really now really is in the database
   auto start = conn->getOldestFlashTime();
@@ -666,7 +666,7 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestObservationTime() const
 std::size_t SpatiaLiteCache::fillDataCache(const std::vector<DataItem> &cacheData) const
 {
   auto conn = itsConnectionPool->getConnection();
-  auto sz = conn->fillDataCache(cacheData);
+  auto sz = conn->fillDataCache(cacheData, itsDataInsertCache);
 
   // Update what really now really is in the database
   auto start = conn->getOldestObservationTime();
@@ -707,7 +707,7 @@ std::size_t SpatiaLiteCache::fillWeatherDataQCCache(
     const std::vector<WeatherDataQCItem> &cacheData) const
 {
   auto conn = itsConnectionPool->getConnection();
-  auto sz = conn->fillWeatherDataQCCache(cacheData);
+  auto sz = conn->fillWeatherDataQCCache(cacheData, itsWeatherQCInsertCache);
 
   // Update what really now really is in the database
   auto start = conn->getOldestWeatherDataQCTime();
@@ -820,12 +820,12 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
   itsParameters.maxInsertSize = cfg.get_optional_config_param<std::size_t>(
       "cache.maxInsertSize", 99999999);  // default = all at once
 
-  itsParameters.dataInsertCacheSize =
-      cfg.get_optional_config_param<std::size_t>("cache.dataInsertCacheSize", 100000);
-  itsParameters.weatherDataQCInsertCacheSize =
-      cfg.get_optional_config_param<std::size_t>("cache.weatherDataQCInsertCacheSize", 100000);
-  itsParameters.flashInsertCacheSize =
-      cfg.get_optional_config_param<std::size_t>("cache.flashInsertCacheSize", 10000);
+  itsDataInsertCache.resize(
+      cfg.get_optional_config_param<std::size_t>("cache.dataInsertCacheSize", 100000));
+  itsWeatherQCInsertCache.resize(
+      cfg.get_optional_config_param<std::size_t>("cache.weatherDataQCInsertCacheSize", 100000));
+  itsFlashInsertCache.resize(
+      cfg.get_optional_config_param<std::size_t>("cache.flashInsertCacheSize", 10000));
 
   itsParameters.sqlite.cache_size =
       cfg.get_optional_config_param<long>("sqlite.cache_size", 0);  // zero = use default value

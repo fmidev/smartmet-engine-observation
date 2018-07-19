@@ -40,9 +40,6 @@ struct SpatiaLiteCacheParameters
   int connectionPoolSize;
   std::string cacheFile;
   std::size_t maxInsertSize = 5000;
-  std::size_t dataInsertCacheSize = 0;
-  std::size_t weatherDataQCInsertCacheSize = 0;
-  std::size_t flashInsertCacheSize = 0;
   bool quiet = true;
   bool cacheHasStations;
   boost::shared_ptr<boost::posix_time::time_period> flashCachePeriod;

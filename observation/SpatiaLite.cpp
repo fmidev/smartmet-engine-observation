@@ -98,11 +98,7 @@ void solveMeasurandIds(const std::vector<std::string> &parameters,
 };  // namespace
 
 SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheParameters &options)
-    : itsShutdownRequested(false),
-      itsMaxInsertSize(options.maxInsertSize),
-      itsDataInsertCache(options.dataInsertCacheSize),
-      itsWeatherQCInsertCache(options.weatherDataQCInsertCacheSize),
-      itsFlashInsertCache(options.flashInsertCacheSize)
+    : itsShutdownRequested(false), itsMaxInsertSize(options.maxInsertSize)
 {
   try
   {
@@ -758,7 +754,7 @@ void SpatiaLite::cleanFlashDataCache(const boost::posix_time::ptime &newstarttim
   }
 }
 
-std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData)
+std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData, InsertStatus &insertStatus)
 {
   try
   {
@@ -794,7 +790,7 @@ std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData)
 
         auto hash = item.hash_value();
 
-        if (!itsDataInsertCache.exists(hash))
+        if (!insertStatus.exists(hash))
         {
           new_items.push_back(pos2);
           new_hashes.push_back(hash);
@@ -836,7 +832,7 @@ std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData)
 
       write_count += new_hashes.size();
       for (const auto &hash : new_hashes)
-        itsDataInsertCache.add(hash);
+        insertStatus.add(hash);
 
       pos1 = pos2;
     }
@@ -848,7 +844,8 @@ std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData)
   }
 }
 
-std::size_t SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &cacheData)
+std::size_t SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &cacheData,
+                                               InsertStatus &insertStatus)
 {
   try
   {
@@ -881,7 +878,7 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
 
         auto hash = item.hash_value();
 
-        if (!itsWeatherQCInsertCache.exists(hash))
+        if (!insertStatus.exists(hash))
         {
           new_items.push_back(pos2);
           new_hashes.push_back(hash);
@@ -922,7 +919,7 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
 
       write_count += new_hashes.size();
       for (const auto &hash : new_hashes)
-        itsWeatherQCInsertCache.add(hash);
+        insertStatus.add(hash);
 
       pos1 = pos2;
     }
@@ -934,7 +931,8 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
   }
 }
 
-std::size_t SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCacheData)
+std::size_t SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCacheData,
+                                           InsertStatus &insertStatus)
 {
   try
   {
@@ -960,7 +958,7 @@ std::size_t SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCac
 
         auto hash = item.hash_value();
 
-        if (!itsFlashInsertCache.exists(hash))
+        if (!insertStatus.exists(hash))
         {
           new_items.push_back(pos2);
           new_hashes.push_back(hash);
@@ -1064,7 +1062,7 @@ std::size_t SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCac
 
       write_count += new_hashes.size();
       for (const auto &hash : new_hashes)
-        itsFlashInsertCache.add(hash);
+        insertStatus.add(hash);
 
       pos1 = pos2;
     }
