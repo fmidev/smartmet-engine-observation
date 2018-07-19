@@ -100,6 +100,7 @@ rm -rf $RPM_BUILD_ROOT
 - Added option sqlite.read_uncommitted with default value false
 - Allow sqlite.cache_size to be negative, which implies number of pages instead of bytes
 - Use a single copy of the cache to hold information on rows previously inserted to the observation cache
+- Removed unused member from DataItem which messed up cache key calculations
 
 * Mon Jun 18 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.6.18-1.fmi
 - Fixed a GROUP BY clause to include all columns required by PostGreSQL
