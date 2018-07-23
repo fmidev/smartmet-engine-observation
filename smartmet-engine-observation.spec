@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.7.19
-Release: 2%{?dist}.fmi
+Version: 18.7.23
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -15,8 +15,8 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 18.6.6
-BuildRequires: smartmet-engine-geonames-devel >= 18.4.7
+BuildRequires: smartmet-library-spine-devel >= 18.7.23
+BuildRequires: smartmet-engine-geonames-devel >= 18.6.20
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.20.1
@@ -28,8 +28,8 @@ BuildRequires: fmt-devel
 Requires: fmt
 Requires: libconfig
 Requires: smartmet-server >= 18.6.6
-Requires: smartmet-engine-geonames >= 18.4.7
-Requires: smartmet-library-spine >= 18.6.6
+Requires: smartmet-engine-geonames >= 18.6.20
+Requires: smartmet-library-spine >= 18.7.23
 Requires: smartmet-library-locus >= 18.6.14
 Requires: smartmet-library-macgyver >= 18.6.7
 Requires: libatomic
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Jul 23 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.7.23-1.fmi
+- Repackaged since spine ValueFormatter ABI changed
+
 * Thu Jul 19 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.7.19-2.fmi
 - Reduce competition between writers by doing one table update at a time
 
