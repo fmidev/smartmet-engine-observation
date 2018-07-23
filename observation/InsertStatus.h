@@ -36,6 +36,12 @@ class InsertStatus
 
   bool exists(std::size_t key) { return mIterators.count(key) > 0; }
 
+  void resize(std::size_t size)
+  {
+    mCacheSize = size;
+    clean();
+  }
+
   const std::list<std::size_t>& items() const { return mItems; }
 
  private:

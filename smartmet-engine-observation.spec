@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.6.13
+Version: 18.7.23
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,23 +15,23 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 18.5.27
-BuildRequires: smartmet-engine-geonames-devel >= 18.4.7
+BuildRequires: smartmet-library-spine-devel >= 18.7.23
+BuildRequires: smartmet-engine-geonames-devel >= 18.6.20
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.20.1
-BuildRequires: smartmet-library-locus-devel >= 18.6.7
-BuildRequires: smartmet-library-macgyver-devel >= 18.5.23
+BuildRequires: smartmet-library-locus-devel >= 18.6.14
+BuildRequires: smartmet-library-macgyver-devel >= 18.6.7
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel
 Requires: fmt
 Requires: libconfig
-Requires: smartmet-server >= 18.5.15
-Requires: smartmet-engine-geonames >= 18.4.7
-Requires: smartmet-library-spine >= 18.5.27
-Requires: smartmet-library-locus >= 18.6.7
-Requires: smartmet-library-macgyver >= 18.5.23
+Requires: smartmet-server >= 18.6.6
+Requires: smartmet-engine-geonames >= 18.6.20
+Requires: smartmet-library-spine >= 18.7.23
+Requires: smartmet-library-locus >= 18.6.14
+Requires: smartmet-library-macgyver >= 18.6.7
 Requires: libatomic
 Requires: unixODBC
 Requires: mysql++
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Jul 23 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.7.23-1.fmi
+- Repackaged since spine ValueFormatter ABI changed
+
 * Wed Jun 13 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.13-1.fmi
 - Dockerfile updated, reduntant console output removed
 
@@ -103,6 +106,31 @@ rm -rf $RPM_BUILD_ROOT
   - All INSERT statemenst are put into one trasaction
   - Indexes are dropped before insert and re-created after insert
   - Own write-mutex dedicated for each table (before there was only one write-mutex for all tables)
+
+* Thu Jul 19 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.7.19-2.fmi
+- Reduce competition between writers by doing one table update at a time
+
+* Thu Jul 19 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.7.19-1.fmi
+- Fixed option sqlite.shared_cache to have an effect
+- Added option sqlite.read_uncommitted with default value false
+- Allow sqlite.cache_size to be negative, which implies number of pages instead of bytes
+- Use a single copy of the cache to hold information on rows previously inserted to the observation cache
+- Removed unused member from DataItem which messed up cache key calculations
+
+* Mon Jun 18 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.6.18-1.fmi
+- Fixed a GROUP BY clause to include all columns required by PostGreSQL
+
+* Fri Jun 15 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.6.15-1.fmi
+- Use Fmi::to_iso_string for dates for speed
+- Use COALESCE instead of IFNULL in PostGreSQL
+- Fixed incorrect throw if location cache could not be updated
+
+* Wed Jun 13 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.6.13-1.fmi
+- Dockerfile updated, reduntant console output removed
+- Speed up insert performance of PostgreSQL-cache:
+- All INSERT statemenst are put into one trasaction
+- Own write-mutex dedicated for each table (before there was only one write-mutex for all tables)
+>>>>>>> 084626ddd7ff99d7f4ab28235d99a7938d2125da
 
 * Mon Jun 4 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.4-1.fmi
 - Docker files for postgresql/postgis updated

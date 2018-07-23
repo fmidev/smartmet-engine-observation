@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EngineParameters.h"
+#include "InsertStatus.h"
 #include "ObservationCache.h"
 #include "Settings.h"
 #include "SpatiaLiteCacheParameters.h"
@@ -107,6 +108,11 @@ class SpatiaLiteCache : public ObservationCache
   // Cache for station id searches
   using StationIdCache = Fmi::Cache::Cache<std::size_t, Spine::Station>;
   mutable StationIdCache itsStationIdCache;
+
+  // Caches for last inserted rows to avoid duplicate inserts
+  mutable InsertStatus itsDataInsertCache;
+  mutable InsertStatus itsWeatherQCInsertCache;
+  mutable InsertStatus itsFlashInsertCache;
 };
 
 }  // namespace Observation

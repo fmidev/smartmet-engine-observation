@@ -18,6 +18,7 @@ struct SpatiaLiteOptions
   std::size_t mmap_size = 0;
   bool memstatus = false;
   bool shared_cache = false;
+  bool read_uncommitted = false;
   int threads = 0;                // 0 = number of helper threads
   int timeout = 30000;            // milliseconds
   long cache_size = 0;            // positive = bytes, negative = nro of pages, zero = use defaults

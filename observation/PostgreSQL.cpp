@@ -500,8 +500,8 @@ void PostgreSQL::fillLocationCache(const vector<LocationItem> &locations)
       values += Fmi::to_string(item.fmisid) + ",";
       values += Fmi::to_string(item.location_id) + ",";
       values += Fmi::to_string(item.country_id) + ",";
-      values += ("'" + boost::posix_time::to_iso_string(item.location_start) + "',");
-      values += ("'" + boost::posix_time::to_iso_string(item.location_end) + "',");
+      values += ("'" + Fmi::to_iso_string(item.location_start) + "',");
+      values += ("'" + Fmi::to_iso_string(item.location_end) + "',");
       values += Fmi::to_string(item.longitude) + ",";
       values += Fmi::to_string(item.latitude) + ",";
       values += Fmi::to_string(item.x) + ",";
@@ -622,7 +622,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
     std::size_t write_count = 0;
     itsDB.startTransaction();
     itsDB.executeTransaction("LOCK TABLE observation_data IN SHARE MODE");
-    dropIndex("observation_data_data_time_idx", true);
+    // dropIndex("observation_data_data_time_idx", true);
 
     while (pos1 < cacheData.size())
     {
@@ -630,10 +630,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
         break;
       // Yield if there is more than 1 block
       if (pos1 > 0)
-      {
-        // boost::this_thread::yield();
-        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
-      }
+        boost::this_thread::yield();
 
       // Collect new items before taking a lock - we might avoid one completely
       std::vector<std::size_t> new_items;
@@ -673,7 +670,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
           {
             const auto &item = cacheData[i];
             // data_time, fmisid, measurand_id, producer_id, measurand_no
-            std::string key = boost::posix_time::to_iso_string(item.data_time);
+            std::string key = Fmi::to_iso_string(item.data_time);
             key += Fmi::to_string(item.fmisid);
             key += Fmi::to_string(item.measurand_id);
             key += Fmi::to_string(item.producer_id);
@@ -687,7 +684,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
               key_set.insert(key);
               std::string values = "(";
               values += Fmi::to_string(item.fmisid) + ",";
-              values += ("'" + boost::posix_time::to_iso_string(item.data_time) + "',");
+              values += ("'" + Fmi::to_iso_string(item.data_time) + "',");
               values += Fmi::to_string(item.measurand_id) + ",";
               values += Fmi::to_string(item.producer_id) + ",";
               values += Fmi::to_string(item.measurand_no) + ",";
@@ -733,7 +730,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
       pos1 = pos2;
     }
 
-    createIndex("observation_data", "data_time", "observation_data_data_time_idx", true);
+    // createIndex("observation_data", "data_time", "observation_data_data_time_idx", true);
     itsDB.commitTransaction();
     itsDB.executeNonTransaction("VACUUM ANALYZE observation_data");
 
@@ -756,7 +753,7 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
     std::size_t write_count = 0;
     itsDB.startTransaction();
     itsDB.executeTransaction("LOCK TABLE weather_data_qc IN SHARE MODE");
-    dropIndex("weather_data_qc_obstime_idx", true);
+    // dropIndex("weather_data_qc_obstime_idx", true);
 
     while (pos1 < cacheData.size())
     {
@@ -765,10 +762,7 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
 
       // Yield if there is more than 1 block
       if (pos1 > 0)
-      {
-        // boost::this_thread::yield();
-        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
-      }
+        boost::this_thread::yield();
 
       // Collect new items before taking a lock - we might avoid one completely
       std::vector<std::size_t> new_items;
@@ -805,7 +799,7 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
           {
             const auto &item = cacheData[i];
             // obstime, fmisid, parameter, sensor_no
-            std::string key = boost::posix_time::to_iso_string(item.obstime);
+            std::string key = Fmi::to_iso_string(item.obstime);
             key += Fmi::to_string(item.fmisid);
             key += item.parameter;
             key += Fmi::to_string(item.sensor_no);
@@ -818,7 +812,7 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
               key_set.insert(key);
               std::string values = "(";
               values += Fmi::to_string(item.fmisid) + ",";
-              values += ("'" + boost::posix_time::to_iso_string(item.obstime) + "',");
+              values += ("'" + Fmi::to_iso_string(item.obstime) + "',");
               values += ("'" + item.parameter + "',");
               values += Fmi::to_string(item.sensor_no) + ",";
               values += Fmi::to_string(item.value) + ",";
@@ -861,7 +855,7 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
 
       pos1 = pos2;
     }
-    createIndex("weather_data_qc", "obstime", "weather_data_qc_obstime_idx", true);
+    // createIndex("weather_data_qc", "obstime", "weather_data_qc_obstime_idx", true);
     itsDB.commitTransaction();
     itsDB.executeNonTransaction("VACUUM ANALYZE weather_data_qc");
 
@@ -884,17 +878,14 @@ std::size_t PostgreSQL::fillFlashDataCache(const vector<FlashDataItem> &flashCac
     std::size_t write_count = 0;
     itsDB.startTransaction();
     itsDB.executeTransaction("LOCK TABLE flash_data IN SHARE MODE");
-    dropIndex("flash_data_stroke_time_idx", true);
-    dropIndex("flash_data_gix", true);
+    // dropIndex("flash_data_stroke_time_idx", true);
+    // dropIndex("flash_data_gix", true);
 
     while (pos1 < flashCacheData.size())
     {
       // Yield if there is more than 1 block
       if (pos1 > 0)
-      {
-        // boost::this_thread::yield();
-        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
-      }
+        boost::this_thread::yield();
 
       // Collect new items before taking a lock - we might avoid one completely
       std::vector<std::size_t> new_items;
@@ -933,7 +924,7 @@ std::size_t PostgreSQL::fillFlashDataCache(const vector<FlashDataItem> &flashCac
           for (const auto i : flashesToUpdate)
           {
             const auto &item = flashCacheData[i];
-            std::string stroke_time = boost::posix_time::to_iso_string(item.stroke_time);
+            std::string stroke_time = Fmi::to_iso_string(item.stroke_time);
             std::string key = stroke_time;
             key += Fmi::to_string(item.stroke_time_fraction);
             key += Fmi::to_string(item.flash_id);
@@ -1025,8 +1016,8 @@ std::size_t PostgreSQL::fillFlashDataCache(const vector<FlashDataItem> &flashCac
       pos1 = pos2;
     }
 
-    createIndex("flash_data USING GIST", "stroke_location", "flash_data_idx", true);
-    createIndex("flash_data", "stroke_time", "flash_data_stroke_time_idx", true);
+    // createIndex("flash_data USING GIST", "stroke_location", "flash_data_idx", true);
+    // createIndex("flash_data", "stroke_time", "flash_data_stroke_time_idx", true);
     itsDB.commitTransaction();
     itsDB.executeNonTransaction("VACUUM ANALYZE flash_data");
 
@@ -1085,8 +1076,8 @@ void PostgreSQL::updateStations(const Spine::Stations &stations)
         std::string key;
         key += Fmi::to_string(station.fmisid);
         key += Fmi::to_string(station.geoid);
-        key += boost::posix_time::to_iso_string(station.station_start);
-        key += boost::posix_time::to_iso_string(station.station_end);
+        key += Fmi::to_iso_string(station.station_start);
+        key += Fmi::to_iso_string(station.station_end);
         if (key_set.find(key) != key_set.end())
         {
           duplicateStations.push_back(station);
@@ -1101,8 +1092,8 @@ void PostgreSQL::updateStations(const Spine::Stations &stations)
           values += Fmi::to_string(station.geoid) + ",";
           values += Fmi::to_string(station.lpnn) + ",";
           values += "$$" + station.station_formal_name + "$$,";
-          values += "'" + boost::posix_time::to_iso_string(station.station_start) + "',";
-          values += "'" + boost::posix_time::to_iso_string(station.station_end) + "',";
+          values += "'" + Fmi::to_iso_string(station.station_start) + "',";
+          values += "'" + Fmi::to_iso_string(station.station_end) + "',";
           std::string geom = "ST_GeomFromText('POINT(" +
                              Fmi::to_string("%.10g", station.longitude_out) + " " +
                              Fmi::to_string("%.10g", station.latitude_out) + ")', " + srid + ")";
@@ -1277,7 +1268,7 @@ Spine::Stations PostgreSQL::findNearestStations(double latitude,
 
     std::string sqlStmt =
         "SELECT DISTINCT s.fmisid, "
-        "IFNULL(ST_Distance(s.the_geom, "
+        "COALESCE(ST_Distance(s.the_geom, "
         "(SELECT ST_GeomFromText('POINT(" +
         Fmi::to_string("%.10g", longitude) + " " + Fmi::to_string("%.10g", latitude) + ")'," +
         srid +
@@ -1783,7 +1774,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(const Spine::St
         "GROUP BY data.fmisid, data.data_time, data.measurand_id, "
         "loc.location_id, "
         "loc.location_end, "
-        "loc.latitude, loc.longitude, loc.elevation "
+        "loc.latitude, loc.longitude, loc.elevation, data.data_value "
         "ORDER BY fmisid ASC, obstime ASC;";
 
     cached_data cachedData;
@@ -2854,11 +2845,11 @@ FlashCounts PostgreSQL::getFlashCount(const boost::posix_time::ptime &starttime,
 
     std::string sqlStmt =
         "SELECT "
-        "IFNULL(SUM(CASE WHEN flash.multiplicity > 0 "
+        "COALESCE(SUM(CASE WHEN flash.multiplicity > 0 "
         "THEN 1 ELSE 0 END), 0) AS flashcount, "
-        "IFNULL(SUM(CASE WHEN flash.multiplicity = 0 "
+        "COALESCE(SUM(CASE WHEN flash.multiplicity = 0 "
         "THEN 1 ELSE 0 END), 0) AS strokecount, "
-        "IFNULL(SUM(CASE WHEN flash.cloud_indicator = 1 "
+        "COALESCE(SUM(CASE WHEN flash.cloud_indicator = 1 "
         "THEN 1 ELSE 0 END), 0) AS iccount "
         " FROM flash_data flash "
         "WHERE flash.stroke_time BETWEEN '" +
@@ -3684,6 +3675,7 @@ void PostgreSQL::createIndex(const std::string &table,
   }
 }
 
+#if 0
 void PostgreSQL::dropIndex(const std::string &idx_name, bool transaction /*= false*/) const
 {
   try
@@ -3698,6 +3690,7 @@ void PostgreSQL::dropIndex(const std::string &idx_name, bool transaction /*= fal
     throw Spine::Exception::Trace(BCP, "Dropping index " + idx_name + " failed!");
   }
 }
+#endif
 
 }  // namespace Observation
 }  // namespace Engine

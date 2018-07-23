@@ -11,8 +11,6 @@
 #include "WeatherDataQCItem.h"
 #include "sqlite3pp.h"
 
-#include "sqlite3pp.h"
-
 // clang-format off
 namespace sqlite_api
 {
@@ -136,20 +134,22 @@ class SpatiaLite : private boost::noncopyable
    *        from stations maintained by FMI.
    * @param[in] cacheData Data from observation_data.
    */
-  std::size_t fillDataCache(const std::vector<DataItem> &cacheData);
+  std::size_t fillDataCache(const std::vector<DataItem> &cacheData, InsertStatus &insertStatus);
 
   /**
    * @brief Update weather_data_qc with data from Oracle's respective table
    *        which is used to store data from road and foreign stations
    * @param[in] cacheData Data from weather_data_qc.
    */
-  std::size_t fillWeatherDataQCCache(const std::vector<WeatherDataQCItem> &cacheData);
+  std::size_t fillWeatherDataQCCache(const std::vector<WeatherDataQCItem> &cacheData,
+                                     InsertStatus &insertStatus);
 
   /**
    * @brief Insert cached observations into observation_data table
    * @param cacheData Observation data to be inserted into the table
    */
-  std::size_t fillFlashDataCache(const std::vector<FlashDataItem> &flashCacheData);
+  std::size_t fillFlashDataCache(const std::vector<FlashDataItem> &flashCacheData,
+                                 InsertStatus &insertStatus);
 
   /**
    * @brief Delete old observation data from tablename table using time_column
@@ -306,10 +306,6 @@ class SpatiaLite : private boost::noncopyable
   std::size_t itsMaxInsertSize;
   std::map<std::string, std::string> stationTypeMap;
   Fmi::DateTimeParser itsDateTimeParser;
-
-  InsertStatus itsDataInsertCache;
-  InsertStatus itsWeatherQCInsertCache;
-  InsertStatus itsFlashInsertCache;
 
   // Private methods
 
