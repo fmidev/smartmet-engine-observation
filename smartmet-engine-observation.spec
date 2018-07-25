@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.7.23
-Release: 2%{?dist}.fmi
+Version: 18.7.25
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -21,17 +21,17 @@ BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.20.1
 BuildRequires: smartmet-library-locus-devel >= 18.6.14
-BuildRequires: smartmet-library-macgyver-devel >= 18.6.7
+BuildRequires: smartmet-library-macgyver-devel >= 18.7.25
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel
 Requires: fmt
 Requires: libconfig
-Requires: smartmet-server >= 18.6.6
+Requires: smartmet-server >= 18.7.25
 Requires: smartmet-engine-geonames >= 18.6.20
 Requires: smartmet-library-spine >= 18.7.23
 Requires: smartmet-library-locus >= 18.6.14
-Requires: smartmet-library-macgyver >= 18.6.7
+Requires: smartmet-library-macgyver >= 18.7.25
 Requires: libatomic
 Requires: unixODBC
 Requires: mysql++
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jul 25 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.7.25-1.fmi
+- Prefer nullptr over NULL
+
 * Mon Jul 23 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.7.23-2.fmi
 - Serialize station info to a temporary file first to prevent corruption during crashes
 
