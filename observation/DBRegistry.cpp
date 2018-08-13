@@ -63,7 +63,7 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
         }
         catch (const std::exception& err)
         {
-          Spine::Exception exception(BCP, "DBRegistry configuration file reading failed!", NULL);
+          Spine::Exception exception(BCP, "DBRegistry configuration file reading failed!", nullptr);
           exception.addParameter("File", entry.string());
           std::cerr << exception.getStackTrace();
         }

@@ -99,7 +99,7 @@ EngineParameters::EngineParameters(Spine::ConfigBase &cfg)
   }
   catch (...)
   {
-    throw Spine::Exception(BCP, "Configuration file read failed!", NULL);
+    throw Spine::Exception::Trace(BCP, "Configuration file read failed!");
   }
 }
 

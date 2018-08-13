@@ -68,7 +68,11 @@ void StationInfo::serialize(const std::string& filename) const
     // Make sure the output directory exists
     createSerializedStationsDirectory(filename);
 
-    std::ofstream file(filename);
+    // Serialize via a temporary file just in case the server aborts
+
+    std::string tmpfile = filename + ".tmp";
+
+    std::ofstream file(tmpfile);
 
     if (boost::algorithm::iends_with(filename, ".txt"))
     {
@@ -85,6 +89,9 @@ void StationInfo::serialize(const std::string& filename) const
       boost::archive::binary_oarchive archive(file);
       archive& BOOST_SERIALIZATION_NVP(stations);
     }
+
+    // Rename to final filename
+    boost::filesystem::rename(tmpfile, filename);
   }
   catch (...)
   {
