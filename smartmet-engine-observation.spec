@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.8.13
+Version: 18.8.16
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Aug 16 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.8.16-1.fmi
+- Avoid boost::lexical_cast due to locale locks
+
 * Mon Aug 13 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.8.13-1.fmi
 - Repackaged since Spine::Location size changed
 

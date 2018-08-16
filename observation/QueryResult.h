@@ -2,7 +2,6 @@
 
 #include "QueryResultBase.h"
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/lexical_cast.hpp>
 #include <fmt/format.h>
 #include <macgyver/StringConversion.h>
 #include <spine/Exception.h>
@@ -58,61 +57,30 @@ class QueryResult : public QueryResultBase
                               const uint32_t& precision = 0);
 
   template <typename T>
-  static T castTo(const ValueVectorType::const_iterator value, const uint32_t& precision = 0)
+  static T castTo(const ValueVectorType::const_iterator value)
   {
-    typedef T OutType;
-
     try
     {
       if (value->type() == typeid(int32_t))
-      {
-        return boost::lexical_cast<OutType>(boost::any_cast<int32_t>(*value));
-      }
-      else if (value->type() == typeid(uint32_t))
-      {
-        return boost::lexical_cast<OutType>(boost::any_cast<uint32_t>(*value));
-      }
-      else if (value->type() == typeid(int64_t))
-      {
-        return boost::lexical_cast<OutType>(boost::any_cast<int64_t>(*value));
-      }
-      else if (value->type() == typeid(uint64_t))
-      {
-        return boost::lexical_cast<OutType>(boost::any_cast<uint64_t>(*value));
-      }
-      else if (value->type() == typeid(int16_t))
-      {
-        return boost::lexical_cast<OutType>(boost::any_cast<int16_t>(*value));
-      }
-      else if (value->type() == typeid(uint16_t))
-      {
-        return boost::lexical_cast<OutType>(boost::any_cast<uint16_t>(*value));
-      }
-      else if (value->type() == typeid(float))
-      {
-        auto tmp = fmt::format("{:.{}f}", boost::any_cast<float>(*value), precision);
-        return boost::lexical_cast<OutType>(tmp);
-      }
-      else if (value->type() == typeid(double))
-      {
-        auto tmp = fmt::format("{:.{}f}", boost::any_cast<double>(*value), precision);
-        return boost::lexical_cast<OutType>(tmp);
-      }
-      else if (value->type() == typeid(std::string))
-      {
-        return boost::lexical_cast<OutType>(boost::any_cast<std::string>(*value));
-      }
-      else if (value->type() == typeid(boost::posix_time::ptime))
-      {
-        return boost::lexical_cast<OutType>(
-            Fmi::to_iso_extended_string(boost::any_cast<boost::posix_time::ptime>(*value)) + "Z");
-      }
-      else
-      {
-        throw Spine::Exception(BCP, "Operation processing failed!")
-            .addDetail(fmt::format("QueryResult::toString : Unsupported data type '{}'.",
-                                   value->type().name()));
-      }
+        return static_cast<T>(boost::any_cast<int32_t>(*value));
+      if (value->type() == typeid(uint32_t))
+        return static_cast<T>(boost::any_cast<uint32_t>(*value));
+      if (value->type() == typeid(int64_t))
+        return static_cast<T>(boost::any_cast<int64_t>(*value));
+      if (value->type() == typeid(uint64_t))
+        return static_cast<T>(boost::any_cast<uint64_t>(*value));
+      if (value->type() == typeid(int16_t))
+        return static_cast<T>(boost::any_cast<int16_t>(*value));
+      if (value->type() == typeid(uint16_t))
+        return static_cast<T>(boost::any_cast<uint16_t>(*value));
+      if (value->type() == typeid(float))
+        return static_cast<T>(boost::any_cast<float>(*value));
+      if (value->type() == typeid(double))
+        return static_cast<T>(boost::any_cast<double>(*value));
+
+      throw Spine::Exception(BCP, "Operation processing failed!")
+          .addDetail(fmt::format("QueryResult::toString : Unsupported data type '{}'.",
+                                 value->type().name()));
     }
     catch (const boost::bad_any_cast& e)
     {
@@ -126,7 +94,7 @@ class QueryResult : public QueryResultBase
       throw Spine::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("QueryResult::castTo : Bad cast from '{}' to '{}'. {}",
                                  value->type().name(),
-                                 typeid(OutType).name(),
+                                 typeid(T).name(),
                                  e.what()));
     }
   }
