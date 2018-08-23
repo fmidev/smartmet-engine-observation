@@ -236,7 +236,10 @@ class PostgreSQL : private boost::noncopyable
    * @retval true If the data is filled successfully.
    * @retval false If the data is not filled at all.
    */
-  bool fillMissing(SmartMet::Spine::Station &s, const std::set<std::string> &stationgroup_codes);
+  bool fillMissing(SmartMet::Spine::Station &s,
+                   const std::set<std::string> &stationgroup_codes,
+                   const boost::posix_time::ptime &starttime,
+                   const boost::posix_time::ptime &endtime);
 
   /**
    * @brief Get the station odered by \c station_id.
@@ -251,7 +254,9 @@ class PostgreSQL : private boost::noncopyable
    */
   bool getStationById(SmartMet::Spine::Station &station,
                       int station_id,
-                      const std::set<std::string> &stationgroup_codes);
+                      const std::set<std::string> &stationgroup_codes,
+                      const boost::posix_time::ptime &starttime,
+                      const boost::posix_time::ptime &endtime);
 
   /**
    * @brief Get the station odered by \c geo_id.
@@ -266,7 +271,9 @@ class PostgreSQL : private boost::noncopyable
    */
   bool getStationByGeoid(Spine::Station &station,
                          int geo_id,
-                         const std::set<std::string> &stationgroup_codes);
+                         const std::set<std::string> &stationgroup_codes,
+                         const boost::posix_time::ptime &starttime,
+                         const boost::posix_time::ptime &endtime);
 
   void shutdown();
 

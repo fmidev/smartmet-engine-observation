@@ -56,7 +56,9 @@ class ObservationCache
       const boost::posix_time::ptime &endtime) const = 0;
   virtual bool getStationById(Spine::Station &station,
                               int station_id,
-                              const std::set<std::string> &stationgroup_codes) const = 0;
+                              const std::set<std::string> &stationgroup_codes,
+                              const boost::posix_time::ptime &starttime,
+                              const boost::posix_time::ptime &endtime) const = 0;
   virtual Spine::Stations findStationsInsideArea(const Settings &settings,
                                                  const std::string &areaWkt,
                                                  const StationInfo &info) const = 0;

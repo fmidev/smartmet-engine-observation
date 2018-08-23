@@ -280,7 +280,8 @@ Spine::Stations SpatiaLiteCache::getStationsFromSpatiaLite(
     for (int fmisid : settings.fmisids)
     {
       Spine::Station s;
-      if (not spatialitedb->getStationById(s, fmisid, settings.stationgroup_codes))
+      if (not spatialitedb->getStationById(
+              s, fmisid, settings.stationgroup_codes, settings.starttime, settings.endtime))
         continue;
 
       tmpIdStations.push_back(s);
@@ -290,7 +291,8 @@ Spine::Stations SpatiaLiteCache::getStationsFromSpatiaLite(
     for (int geoid : settings.geoids)
     {
       Spine::Station s;
-      if (not spatialitedb->getStationByGeoid(s, geoid, settings.stationgroup_codes))
+      if (not spatialitedb->getStationByGeoid(
+              s, geoid, settings.stationgroup_codes, settings.starttime, settings.endtime))
         continue;
 
       tmpIdStations.push_back(s);
@@ -578,7 +580,9 @@ Spine::Stations SpatiaLiteCache::findAllStationsFromGroups(
 
 bool SpatiaLiteCache::getStationById(Spine::Station &station,
                                      int station_id,
-                                     const std::set<std::string> &stationgroup_codes) const
+                                     const std::set<std::string> &stationgroup_codes,
+                                     const boost::posix_time::ptime &starttime,
+                                     const boost::posix_time::ptime &endtime) const
 {
   // Cache key
   auto key = boost::hash_value(station_id);
@@ -593,8 +597,8 @@ bool SpatiaLiteCache::getStationById(Spine::Station &station,
   }
 
   // Search the database
-  bool ok =
-      itsConnectionPool->getConnection()->getStationById(station, station_id, stationgroup_codes);
+  bool ok = itsConnectionPool->getConnection()->getStationById(
+      station, station_id, stationgroup_codes, starttime, endtime);
   if (!ok)
     return false;
 

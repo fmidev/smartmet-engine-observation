@@ -268,7 +268,8 @@ Spine::Stations PostgreSQLCache::getStationsFromPostgreSQL(Settings &settings,
     for (int fmisid : settings.fmisids)
     {
       Spine::Station s;
-      if (not db->getStationById(s, fmisid, settings.stationgroup_codes))
+      if (not db->getStationById(
+              s, fmisid, settings.stationgroup_codes, settings.starttime, settings.endtime))
         continue;
 
       tmpIdStations.push_back(s);
@@ -278,7 +279,8 @@ Spine::Stations PostgreSQLCache::getStationsFromPostgreSQL(Settings &settings,
     for (int geoid : settings.geoids)
     {
       Spine::Station s;
-      if (not db->getStationByGeoid(s, geoid, settings.stationgroup_codes))
+      if (not db->getStationByGeoid(
+              s, geoid, settings.stationgroup_codes, settings.starttime, settings.endtime))
         continue;
 
       tmpIdStations.push_back(s);
@@ -572,10 +574,12 @@ Spine::Stations PostgreSQLCache::findAllStationsFromGroups(
 
 bool PostgreSQLCache::getStationById(Spine::Station &station,
                                      int station_id,
-                                     const std::set<std::string> &stationgroup_codes) const
+                                     const std::set<std::string> &stationgroup_codes,
+                                     const boost::posix_time::ptime &starttime,
+                                     const boost::posix_time::ptime &endtime) const
 {
   return itsConnectionPool->getConnection()->getStationById(
-      station, station_id, stationgroup_codes);
+      station, station_id, stationgroup_codes, starttime, endtime);
 }
 
 Spine::Stations PostgreSQLCache::findStationsInsideArea(const Settings &settings,

@@ -231,13 +231,16 @@ class SpatiaLite : private boost::noncopyable
    * the Station object.
    * @param[in,out] s Data is filled to this object if some id is present.
    * @param[in] stationgroup_codes Station match requires a correct station
-   * group
-   *        If the stationgroup_codes list is empty the station group is not
-   * used.
+   * group. If the stationgroup_codes list is empty the station group is not used.
+   * @param[in] starttime start time for requested observations
+   * @param[in] endtime end time for requested observations
    * @retval true If the data is filled successfully.
    * @retval false If the data is not filled at all.
    */
-  bool fillMissing(SmartMet::Spine::Station &s, const std::set<std::string> &stationgroup_codes);
+  bool fillMissing(SmartMet::Spine::Station &s,
+                   const std::set<std::string> &stationgroup_codes,
+                   const boost::posix_time::ptime &starttime,
+                   const boost::posix_time::ptime &endtime);
 
   /**
    * @brief Get the station odered by \c station_id.
@@ -247,12 +250,17 @@ class SpatiaLite : private boost::noncopyable
    * group
    *        If the stationgroup_codes list is empty the station group is not
    * used.
+   * @param[in] starttime start time for requested observations
+   * @param[in] endtime end time for requested observations
    * @retval true If the station is found and data stored into the given object.
    * @retval false If the station is no found.
    */
   bool getStationById(SmartMet::Spine::Station &station,
                       int station_id,
-                      const std::set<std::string> &stationgroup_codes);
+                      const std::set<std::string> &stationgroup_codes,
+                      const boost::posix_time::ptime &starttime,
+                      const boost::posix_time::ptime &endtime);
+
   /**
    * @brief Get the station odered by \c geo_id.
    * @param geo_id Primary identity of the requested station.
@@ -266,7 +274,9 @@ class SpatiaLite : private boost::noncopyable
    */
   bool getStationByGeoid(Spine::Station &station,
                          int geo_id,
-                         const std::set<std::string> &stationgroup_codes);
+                         const std::set<std::string> &stationgroup_codes,
+                         const boost::posix_time::ptime &starttime,
+                         const boost::posix_time::ptime &endtime);
 
   void shutdown();
 

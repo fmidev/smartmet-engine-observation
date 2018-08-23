@@ -2660,7 +2660,10 @@ Spine::Stations PostgreSQL::findStationsInsideBox(const Settings &settings, cons
   }
 }
 
-bool PostgreSQL::fillMissing(Spine::Station &s, const std::set<std::string> &stationgroup_codes)
+bool PostgreSQL::fillMissing(Spine::Station &s,
+                             const std::set<std::string> &stationgroup_codes,
+                             const boost::posix_time::ptime &starttime,
+                             const boost::posix_time::ptime &endtime)
 {
   try
   {
@@ -2721,7 +2724,15 @@ bool PostgreSQL::fillMissing(Spine::Station &s, const std::set<std::string> &sta
       return false;
 
     // There might be multiple locations for a station.
-    sqlStmt += " AND now() BETWEEN s.station_start AND s.station_end";
+
+    sqlStmt += " AND (\"" + Fmi::to_iso_extended_string(starttime) +
+               "\" BETWEEN s.station_start AND s.station_end";
+    sqlStmt += " OR \"" + Fmi::to_iso_extended_string(endtime) +
+               "\" BETWEEN s.station_start AND s.station_end)";
+    sqlStmt += " ORDER BY s.station_end DESC";
+
+    // We need only the latest one (ID values are unique).
+    sqlStmt += " LIMIT 1";
 
     boost::optional<int> fmisid;
     boost::optional<int> wmo;
@@ -2730,9 +2741,6 @@ bool PostgreSQL::fillMissing(Spine::Station &s, const std::set<std::string> &sta
     boost::optional<double> longitude_out;
     boost::optional<double> latitude_out;
     boost::optional<std::string> station_formal_name;
-
-    // We need only the first one (ID values are unique).
-    sqlStmt += " LIMIT 1";
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
     if (!result_set.empty())
@@ -2784,7 +2792,9 @@ bool PostgreSQL::fillMissing(Spine::Station &s, const std::set<std::string> &sta
 
 bool PostgreSQL::getStationById(Spine::Station &station,
                                 int station_id,
-                                const std::set<std::string> &stationgroup_codes)
+                                const std::set<std::string> &stationgroup_codes,
+                                const boost::posix_time::ptime &starttime,
+                                const boost::posix_time::ptime &endtime)
 {
   try
   {
@@ -2796,7 +2806,7 @@ bool PostgreSQL::getStationById(Spine::Station &station,
     s.lpnn = -1;
     s.longitude_out = std::numeric_limits<double>::max();
     s.latitude_out = std::numeric_limits<double>::max();
-    if (not fillMissing(s, stationgroup_codes))
+    if (not fillMissing(s, stationgroup_codes, starttime, endtime))
       return false;
     station = s;
     return true;
@@ -2809,7 +2819,10 @@ bool PostgreSQL::getStationById(Spine::Station &station,
 
 bool PostgreSQL::getStationByGeoid(Spine::Station &station,
                                    int geo_id,
-                                   const std::set<std::string> &stationgroup_codes)
+                                   const std::set<std::string> &stationgroup_codes,
+                                   const boost::posix_time::ptime &starttime,
+                                   const boost::posix_time::ptime &endtime)
+
 {
   try
   {
@@ -2821,7 +2834,7 @@ bool PostgreSQL::getStationByGeoid(Spine::Station &station,
     s.lpnn = -1;
     s.longitude_out = std::numeric_limits<double>::max();
     s.latitude_out = std::numeric_limits<double>::max();
-    if (not fillMissing(s, stationgroup_codes))
+    if (not fillMissing(s, stationgroup_codes, starttime, endtime))
       return false;
     station = s;
     return true;

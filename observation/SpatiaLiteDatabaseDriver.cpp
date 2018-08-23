@@ -475,7 +475,8 @@ if (!settings.lpnns.empty()) {
     for (int fmisid : settings.fmisids)
     {
       Spine::Station s;
-      if (itsParameters.observationCache->getStationById(s, fmisid, settings.stationgroup_codes))
+      if (itsParameters.observationCache->getStationById(
+              s, fmisid, settings.stationgroup_codes, settings.starttime, settings.endtime))
       {  // Chenking that some
          // station group match.
         fmisid_collection.push_back(s.station_id);
@@ -489,7 +490,7 @@ if (!settings.lpnns.empty()) {
       Spine::Station s;
 
       if (not itsParameters.observationCache->getStationById(
-              s, fmisid, settings.stationgroup_codes))
+              s, fmisid, settings.stationgroup_codes, settings.starttime, settings.endtime))
         continue;
 
       stations.push_back(s);

@@ -51,7 +51,10 @@ class SpatiaLiteCache : public ObservationCache
                                             const boost::posix_time::ptime &endtime) const;
   bool getStationById(Spine::Station &station,
                       int station_id,
-                      const std::set<std::string> &stationgroup_codes) const;
+                      const std::set<std::string> &stationgroup_codes,
+                      const boost::posix_time::ptime &starttime,
+                      const boost::posix_time::ptime &endtime) const;
+
   Spine::Stations findStationsInsideArea(const Settings &settings,
                                          const std::string &areaWkt,
                                          const StationInfo &info) const;
