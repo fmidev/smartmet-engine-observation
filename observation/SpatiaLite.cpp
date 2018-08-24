@@ -2765,12 +2765,10 @@ bool SpatiaLite::fillMissing(Spine::Station &s,
     else
       return false;
 
-    // There might be multiple locations for a station.
+    // Require overlap with station active time
 
-    sql += " AND (\"" + Fmi::to_iso_extended_string(starttime) +
-           "\" BETWEEN s.station_start AND s.station_end";
-    sql += " OR \"" + Fmi::to_iso_extended_string(endtime) +
-           "\" BETWEEN s.station_start AND s.station_end)";
+    sql += " AND \"" + Fmi::to_iso_extended_string(starttime) + "\" <= s.station_end AND \"" +
+           Fmi::to_iso_extended_string(endtime) + "\" >= s.station_start";
     sql += " ORDER BY s.station_end DESC";
 
     // We need only the latest one (ID values are unique).
