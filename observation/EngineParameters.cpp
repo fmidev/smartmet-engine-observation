@@ -11,17 +11,18 @@ namespace Observation
 {
 namespace
 {
-ParameterMap createParameterMapping(Spine::ConfigBase &cfg)
+ParameterMapPtr createParameterMapping(Spine::ConfigBase &cfg)
 {
   try
   {
-    ParameterMap pm;
+    ParameterMapPtr ret;
+    ParameterMap *pm = new ParameterMap();
     namespace ba = boost::algorithm;
 
     try
     {
-      // Use parameter mapping container like this: parameterMap["parameter"]["station_type"]
-      // Example: parameterMap["t2m"]["road"]
+      // Use parameter mapping container like this: parameterMap.getParameter("parameter",
+      // "station_type") Example: parameterMap.getParameter("t2m", "road")
 
       // Phase 1: Establish producer setting
       std::vector<std::string> param_names =
@@ -49,13 +50,13 @@ ParameterMap createParameterMapping(Spine::ConfigBase &cfg)
 
         const std::string lower_parame_name = Fmi::ascii_tolower_copy(paramname);
 
-        if (pm.find(lower_parame_name) != pm.end())
+        if (pm->find(lower_parame_name) != pm->end())
           throw Spine::Exception(
               BCP, "Observation error: Duplicate parameter alias '" + paramname + "' found.");
 
         // All internal comparisons between parameter names are done with lower case names
         // to prevent confusion and typos
-        pm.insert(make_pair(lower_parame_name, p));
+        pm->addStationParameterMap(lower_parame_name, p);
       }
     }
     catch (const libconfig::ConfigException &)
@@ -63,7 +64,8 @@ ParameterMap createParameterMapping(Spine::ConfigBase &cfg)
       cfg.handle_libconfig_exceptions("createParameterMapping");
     }
 
-    return pm;
+    ret.reset(pm);
+    return ret;
   }
   catch (...)
   {
@@ -218,10 +220,10 @@ bool EngineParameters::isParameter(const std::string &alias, const std::string &
     Engine::Observation::removePrefix(parameterAliasName, "qc_");
 
     // Is the alias configured.
-    std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
-        parameterMap.find(parameterAliasName);
+    ParameterMap::NameToStationParameterMap::const_iterator namePtr =
+        parameterMap->find(parameterAliasName);
 
-    if (namePtr == parameterMap.end())
+    if (namePtr == parameterMap->end())
       return false;
 
     // Is the stationType configured inside configuration block of the alias.
@@ -248,9 +250,9 @@ bool EngineParameters::isParameterVariant(const std::string &name) const
     Engine::Observation::removePrefix(parameterLowerCase, "qc_");
     // Is the alias configured.
     std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
-        parameterMap.find(parameterLowerCase);
+        parameterMap->find(parameterLowerCase);
 
-    if (namePtr == parameterMap.end())
+    if (namePtr == parameterMap->end())
       return false;
 
     return true;
@@ -271,9 +273,9 @@ uint64_t EngineParameters::getParameterId(const std::string &alias,
 
     // Is the alias configured.
     std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
-        parameterMap.find(parameterAliasName);
+        parameterMap->find(parameterAliasName);
 
-    if (namePtr == parameterMap.end())
+    if (namePtr == parameterMap->end())
       return 0;
 
     // Is the stationType configured inside configuration block of the alias.

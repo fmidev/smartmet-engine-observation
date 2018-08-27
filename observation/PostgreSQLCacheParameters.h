@@ -47,7 +47,7 @@ struct PostgreSQLCacheParameters
   bool cacheHasStations;
   boost::shared_ptr<boost::posix_time::time_period> flashCachePeriod;
   boost::shared_ptr<StationInfo> stationInfo;
-  std::map<std::string, std::map<std::string, std::string> >& parameterMap;
+  ParameterMapPtr parameterMap;
   StationtypeConfig& stationtypeConfig;
 };
 

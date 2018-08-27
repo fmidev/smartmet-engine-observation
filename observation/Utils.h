@@ -14,6 +14,8 @@
 #include <string>
 #include <vector>
 
+#include "ParameterMap.h"
+
 namespace SmartMet
 {
 namespace Engine
@@ -38,8 +40,6 @@ bool removePrefix(std::string& parameter, const std::string& prefix);
  */
 
 bool not_special(const SmartMet::Spine::Parameter& theParam);
-
-using ParameterMap = std::map<std::string, std::map<std::string, std::string>>;
 
 std::string trimCommasFromEnd(const std::string& what);
 

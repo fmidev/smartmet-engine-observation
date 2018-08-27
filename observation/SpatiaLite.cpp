@@ -56,7 +56,7 @@ namespace Observation
 namespace
 {
 void solveMeasurandIds(const std::vector<std::string> &parameters,
-                       const ParameterMap &parameterMap,
+                       ParameterMapPtr parameterMap,
                        const std::string &stationType,
                        std::multimap<int, std::string> &parameterIDs)
 {
@@ -65,7 +65,7 @@ void solveMeasurandIds(const std::vector<std::string> &parameters,
     // Empty list means we want all parameters
     const bool findOnlyGiven = (not parameters.empty());
 
-    for (auto params = parameterMap.begin(); params != parameterMap.end(); ++params)
+    for (auto params = parameterMap->begin(); params != parameterMap->end(); ++params)
     {
       if (findOnlyGiven &&
           find(parameters.begin(), parameters.end(), params->first) == parameters.end())
@@ -1371,7 +1371,7 @@ Spine::Stations SpatiaLite::findNearestStations(double latitude,
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     const Spine::Stations &stations,
     const Settings &settings,
-    const ParameterMap &parameterMap,
+    ParameterMapPtr parameterMap,
     const Fmi::TimeZones &timezones)
 {
   try
@@ -1408,9 +1408,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
 
         std::string shortname = parseParameterName(nameInRequest);
 
-        if (!parameterMap.at(shortname).at(stationtype).empty())
+        if (!parameterMap->getParameter(shortname, stationtype).empty())
         {
-          std::string nameInDatabase = parameterMap.at(shortname).at(stationtype);
+          std::string nameInDatabase = parameterMap->getParameter(shortname, stationtype);
           timeseriesPositions[nameInRequest] = pos;
           parameterNameMap[nameInRequest] = nameInDatabase;
 
@@ -1426,26 +1426,34 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
 
         if (name.find("windcompass") != std::string::npos)
         {
-          param += "'" + Fmi::ascii_toupper_copy(parameterMap.at("winddirection").at(stationtype)) +
-                   "',";
-          timeseriesPositions[parameterMap.at("winddirection").at(stationtype)] = pos;
+          param +=
+              "'" +
+              Fmi::ascii_toupper_copy(parameterMap->getParameter("winddirection", stationtype)) +
+              "',";
+          timeseriesPositions[parameterMap->getParameter("winddirection", stationtype)] = pos;
           specialPositions[name] = pos;
         }
         else if (name.find("feelslike") != std::string::npos)
         {
-          param += "'" + Fmi::ascii_toupper_copy(parameterMap.at("windspeedms").at(stationtype)) +
-                   "', '" +
-                   Fmi::ascii_toupper_copy(parameterMap.at("relativehumidity").at(stationtype)) +
-                   "', '" +
-                   Fmi::ascii_toupper_copy(parameterMap.at("temperature").at(stationtype)) + "',";
+          param +=
+              "'" +
+              Fmi::ascii_toupper_copy(parameterMap->getParameter("windspeedms", stationtype)) +
+              "', '" +
+              Fmi::ascii_toupper_copy(parameterMap->getParameter("relativehumidity", stationtype)) +
+              "', '" +
+              Fmi::ascii_toupper_copy(parameterMap->getParameter("temperature", stationtype)) +
+              "',";
           specialPositions[name] = pos;
         }
         else if (name.find("smartsymbol") != std::string::npos)
         {
-          param += "'" + Fmi::ascii_toupper_copy(parameterMap.at("wawa").at(stationtype)) + "', '" +
-                   Fmi::ascii_toupper_copy(parameterMap.at("totalcloudcover").at(stationtype)) +
-                   "', '" +
-                   Fmi::ascii_toupper_copy(parameterMap.at("temperature").at(stationtype)) + "',";
+          param +=
+              "'" + Fmi::ascii_toupper_copy(parameterMap->getParameter("wawa", stationtype)) +
+              "', '" +
+              Fmi::ascii_toupper_copy(parameterMap->getParameter("totalcloudcover", stationtype)) +
+              "', '" +
+              Fmi::ascii_toupper_copy(parameterMap->getParameter("temperature", stationtype)) +
+              "',";
           specialPositions[name] = pos;
         }
         else
@@ -1660,7 +1668,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
 
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::Stations &stations,
                                                                  const Settings &settings,
-                                                                 const ParameterMap &parameterMap,
+                                                                 ParameterMapPtr parameterMap,
                                                                  const Fmi::TimeZones &timezones)
 {
   try
@@ -1704,13 +1712,13 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
         Fmi::ascii_tolower(name);
         removePrefix(name, "qc_");
 
-        if (!parameterMap.at(name).at(stationtype).empty())
+        if (!parameterMap->getParameter(name, stationtype).empty())
         {
-          timeseriesPositions[Fmi::stoi(parameterMap.at(name).at(stationtype))] = pos;
+          timeseriesPositions[Fmi::stoi(parameterMap->getParameter(name, stationtype))] = pos;
           timeseriesPositionsString[name] = pos;
-          parameterNameMap[name] = parameterMap.at(name).at(stationtype);
-          paramVector.push_back(Fmi::stoi(parameterMap.at(name).at(stationtype)));
-          param += parameterMap.at(name).at(stationtype) + ",";
+          parameterNameMap[name] = parameterMap->getParameter(name, stationtype);
+          paramVector.push_back(Fmi::stoi(parameterMap->getParameter(name, stationtype)));
+          param += parameterMap->getParameter(name, stationtype) + ",";
         }
       }
       else
@@ -1720,22 +1728,23 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
 
         if (name.find("windcompass") != std::string::npos)
         {
-          param += parameterMap.at("winddirection").at(stationtype) + ",";
-          timeseriesPositions[Fmi::stoi(parameterMap.at("winddirection").at(stationtype))] = pos;
+          param += parameterMap->getParameter("winddirection", stationtype) + ",";
+          timeseriesPositions[Fmi::stoi(parameterMap->getParameter("winddirection", stationtype))] =
+              pos;
           specialPositions[name] = pos;
         }
         else if (name.find("feelslike") != std::string::npos)
         {
-          param += parameterMap.at("windspeedms").at(stationtype) + "," +
-                   parameterMap.at("relativehumidity").at(stationtype) + "," +
-                   parameterMap.at("temperature").at(stationtype) + ",";
+          param += parameterMap->getParameter("windspeedms", stationtype) + "," +
+                   parameterMap->getParameter("relativehumidity", stationtype) + "," +
+                   parameterMap->getParameter("temperature", stationtype) + ",";
           specialPositions[name] = pos;
         }
         else if (name.find("smartsymbol") != std::string::npos)
         {
-          param += parameterMap.at("wawa").at(stationtype) + "," +
-                   parameterMap.at("totalcloudcover").at(stationtype) + "," +
-                   parameterMap.at("temperature").at(stationtype) + ",";
+          param += parameterMap->getParameter("wawa", stationtype) + "," +
+                   parameterMap->getParameter("totalcloudcover", stationtype) + "," +
+                   parameterMap->getParameter("temperature", stationtype) + ",";
           specialPositions[name] = pos;
         }
         else
@@ -1884,7 +1893,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
               if (special.first.find("windcompass") != std::string::npos)
               {
                 // Have to get wind direction first
-                int winddirectionpos = Fmi::stoi(parameterMap.at("winddirection").at(stationtype));
+                int winddirectionpos =
+                    Fmi::stoi(parameterMap->getParameter("winddirection", stationtype));
                 std::string windCompass;
                 if (!data[s.fmisid][t][winddirectionpos].which())
                 {
@@ -1919,9 +1929,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
                 // measured using
                 // dedicated stations
                 // dedicated stations
-                int windpos = Fmi::stoi(parameterMap.at("windspeedms").at(stationtype));
-                int rhpos = Fmi::stoi(parameterMap.at("relativehumidity").at(stationtype));
-                int temppos = Fmi::stoi(parameterMap.at("temperature").at(stationtype));
+                int windpos = Fmi::stoi(parameterMap->getParameter("windspeedms", stationtype));
+                int rhpos = Fmi::stoi(parameterMap->getParameter("relativehumidity", stationtype));
+                int temppos = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
 
                 if (!data[s.fmisid][t][windpos].which() || !data[s.fmisid][t][rhpos].which() ||
                     !data[s.fmisid][t][temppos].which())
@@ -1975,7 +1985,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
                 {
                   // Have to get wind direction first
                   int winddirectionpos =
-                      Fmi::stoi(parameterMap.at("winddirection").at(stationtype));
+                      Fmi::stoi(parameterMap->getParameter("winddirection", stationtype));
                   std::string windCompass;
                   if (!data[s.fmisid][t][winddirectionpos].which())
                   {
@@ -2009,9 +2019,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::St
                   // Feels like - deduction. This ignores radiation, since it is
                   // measured using
                   // dedicated stations
-                  int windpos = Fmi::stoi(parameterMap.at("windspeedms").at(stationtype));
-                  int rhpos = Fmi::stoi(parameterMap.at("relativehumidity").at(stationtype));
-                  int temppos = Fmi::stoi(parameterMap.at("temperature").at(stationtype));
+                  int windpos = Fmi::stoi(parameterMap->getParameter("windspeedms", stationtype));
+                  int rhpos =
+                      Fmi::stoi(parameterMap->getParameter("relativehumidity", stationtype));
+                  int temppos = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
 
                   if (!data[s.fmisid][t][windpos].which() || !data[s.fmisid][t][rhpos].which() ||
                       !data[s.fmisid][t][temppos].which())
@@ -2126,7 +2137,7 @@ void SpatiaLite::addParameterToTimeSeries(
     const std::map<std::string, int> &specialPositions,
     const std::map<std::string, std::string> &parameterNameMap,
     const std::map<std::string, int> &timeseriesPositions,
-    const ParameterMap &parameterMap,
+    ParameterMapPtr parameterMap,
     const std::string &stationtype,
     const Spine::Station &station)
 {
@@ -2155,7 +2166,7 @@ void SpatiaLite::addParameterToTimeSeries(
       if (special.first.find("windcompass") != std::string::npos)
       {
         // Have to get wind direction first
-        std::string winddirectionpos = parameterMap.at("winddirection").at(stationtype);
+        std::string winddirectionpos = parameterMap->getParameter("winddirection", stationtype);
         std::string windCompass;
         if (dataItem.second.count(winddirectionpos) == 0)
         {
@@ -2182,9 +2193,9 @@ void SpatiaLite::addParameterToTimeSeries(
         // Feels like - deduction. This ignores radiation, since it is measured
         // using
         // dedicated stations
-        std::string windpos = parameterMap.at("windspeedms").at(stationtype);
-        std::string rhpos = parameterMap.at("relativehumidity").at(stationtype);
-        std::string temppos = parameterMap.at("temperature").at(stationtype);
+        std::string windpos = parameterMap->getParameter("windspeedms", stationtype);
+        std::string rhpos = parameterMap->getParameter("relativehumidity", stationtype);
+        std::string temppos = parameterMap->getParameter("temperature", stationtype);
 
         if (data.count(windpos) == 0 || data.count(rhpos) == 0 || data.count(temppos) == 0)
         {
@@ -2203,9 +2214,9 @@ void SpatiaLite::addParameterToTimeSeries(
       }
       else if (special.first.find("smartsymbol") != std::string::npos)
       {
-        std::string wawapos = parameterMap.at("wawa").at(stationtype);
-        std::string totalcloudcoverpos = parameterMap.at("totalcloudcover").at(stationtype);
-        std::string temppos = parameterMap.at("temperature").at(stationtype);
+        std::string wawapos = parameterMap->getParameter("wawa", stationtype);
+        std::string totalcloudcoverpos = parameterMap->getParameter("totalcloudcover", stationtype);
+        std::string temppos = parameterMap->getParameter("temperature", stationtype);
         if (data.count(wawapos) == 0 || data.count(totalcloudcoverpos) == 0 ||
             data.count(temppos) == 0)
         {
@@ -2240,7 +2251,7 @@ void SpatiaLite::addParameterToTimeSeries(
 }
 
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
-    const Settings &settings, const ParameterMap &parameterMap, const Fmi::TimeZones &timezones)
+    const Settings &settings, ParameterMapPtr parameterMap, const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -2260,10 +2271,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
       boost::to_lower(name, std::locale::classic());
       if (not_special(p))
       {
-        if (!parameterMap.at(name).at(stationtype).empty())
+        if (!parameterMap->getParameter(name, stationtype).empty())
         {
-          timeseriesPositions[parameterMap.at(name).at(stationtype)] = pos;
-          param += parameterMap.at(name).at(stationtype) + ",";
+          timeseriesPositions[parameterMap->getParameter(name, stationtype)] = pos;
+          param += parameterMap->getParameter(name, stationtype) + ",";
         }
       }
       else
@@ -2415,15 +2426,15 @@ void SpatiaLite::addSmartSymbolToTimeSeries(
     const int pos,
     const Spine::Station &s,
     const boost::local_time::local_date_time &time,
-    const ParameterMap &parameterMap,
+    ParameterMapPtr parameterMap,
     const std::string &stationtype,
     const std::map<int, std::map<boost::local_time::local_date_time, std::map<int, ts::Value> > >
         &data,
     const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns)
 {
-  int wawapos = Fmi::stoi(parameterMap.at("wawa").at(stationtype));
-  int totalcloudcoverpos = Fmi::stoi(parameterMap.at("totalcloudcover").at(stationtype));
-  int temppos = Fmi::stoi(parameterMap.at("temperature").at(stationtype));
+  int wawapos = Fmi::stoi(parameterMap->getParameter("wawa", stationtype));
+  int totalcloudcoverpos = Fmi::stoi(parameterMap->getParameter("totalcloudcover", stationtype));
+  int temppos = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
 
   auto dataItem = data.at(s.fmisid).at(time);
 
@@ -2955,7 +2966,7 @@ FlashCounts SpatiaLite::getFlashCount(const boost::posix_time::ptime &starttime,
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     const Spine::Stations &stations,
     const Settings &settings,
-    const ParameterMap &parameterMap,
+    ParameterMapPtr parameterMap,
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
@@ -2993,9 +3004,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
 
         std::string shortname = parseParameterName(nameInRequest);
 
-        if (!parameterMap.at(shortname).at(stationtype).empty())
+        if (!parameterMap->getParameter(shortname, stationtype).empty())
         {
-          std::string nameInDatabase = parameterMap.at(shortname).at(stationtype);
+          std::string nameInDatabase = parameterMap->getParameter(shortname, stationtype);
           timeseriesPositions[nameInRequest] = pos;
           parameterNameMap[nameInRequest] = nameInDatabase;
 
@@ -3011,26 +3022,34 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
 
         if (name.find("windcompass") != std::string::npos)
         {
-          param += "'" + Fmi::ascii_toupper_copy(parameterMap.at("winddirection").at(stationtype)) +
-                   "',";
-          timeseriesPositions[parameterMap.at("winddirection").at(stationtype)] = pos;
+          param +=
+              "'" +
+              Fmi::ascii_toupper_copy(parameterMap->getParameter("winddirection", stationtype)) +
+              "',";
+          timeseriesPositions[parameterMap->getParameter("winddirection", stationtype)] = pos;
           specialPositions[name] = pos;
         }
         else if (name.find("feelslike") != std::string::npos)
         {
-          param += "'" + Fmi::ascii_toupper_copy(parameterMap.at("windspeedms").at(stationtype)) +
-                   "', '" +
-                   Fmi::ascii_toupper_copy(parameterMap.at("relativehumidity").at(stationtype)) +
-                   "', '" +
-                   Fmi::ascii_toupper_copy(parameterMap.at("temperature").at(stationtype)) + "',";
+          param +=
+              "'" +
+              Fmi::ascii_toupper_copy(parameterMap->getParameter("windspeedms", stationtype)) +
+              "', '" +
+              Fmi::ascii_toupper_copy(parameterMap->getParameter("relativehumidity", stationtype)) +
+              "', '" +
+              Fmi::ascii_toupper_copy(parameterMap->getParameter("temperature", stationtype)) +
+              "',";
           specialPositions[name] = pos;
         }
         else if (name.find("smartsymbol") != std::string::npos)
         {
-          param += "'" + Fmi::ascii_toupper_copy(parameterMap.at("wawa").at(stationtype)) + "', '" +
-                   Fmi::ascii_toupper_copy(parameterMap.at("totalcloudcover").at(stationtype)) +
-                   "', '" +
-                   Fmi::ascii_toupper_copy(parameterMap.at("temperature").at(stationtype)) + "',";
+          param +=
+              "'" + Fmi::ascii_toupper_copy(parameterMap->getParameter("wawa", stationtype)) +
+              "', '" +
+              Fmi::ascii_toupper_copy(parameterMap->getParameter("totalcloudcover", stationtype)) +
+              "', '" +
+              Fmi::ascii_toupper_copy(parameterMap->getParameter("temperature", stationtype)) +
+              "',";
           specialPositions[name] = pos;
         }
         else
@@ -3239,7 +3258,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     Spine::Stations &stations,
     Settings &settings,
-    ParameterMap &parameterMap,
+    ParameterMapPtr parameterMap,
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
@@ -3284,13 +3303,15 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
         Fmi::ascii_tolower(name);
         removePrefix(name, "qc_");
 
-        if (!parameterMap[name][stationtype].empty())
+        std::string paramStr = parameterMap->getParameter(name, stationtype);
+        if (!paramStr.empty())
         {
-          timeseriesPositions[Fmi::stoi(parameterMap[name][stationtype])] = pos;
+          int paramInt = Fmi::stoi(paramStr);
+          timeseriesPositions[paramInt] = pos;
           timeseriesPositionsString[name] = pos;
-          parameterNameMap[name] = parameterMap[name][stationtype];
-          paramVector.push_back(Fmi::stoi(parameterMap[name][stationtype]));
-          param += parameterMap[name][stationtype] + ",";
+          parameterNameMap[name] = paramStr;
+          paramVector.push_back(paramInt);
+          param += paramStr + ",";
         }
       }
       else
@@ -3300,22 +3321,23 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
 
         if (name.find("windcompass") != std::string::npos)
         {
-          param += parameterMap["winddirection"][stationtype] + ",";
-          timeseriesPositions[Fmi::stoi(parameterMap["winddirection"][stationtype])] = pos;
+          std::string paramStr = parameterMap->getParameter("winddirection", stationtype);
+          param += paramStr + ",";
+          timeseriesPositions[Fmi::stoi(paramStr)] = pos;
           specialPositions[name] = pos;
         }
         else if (name.find("feelslike") != std::string::npos)
         {
-          param += parameterMap["windspeedms"][stationtype] + "," +
-                   parameterMap["relativehumidity"][stationtype] + "," +
-                   parameterMap["temperature"][stationtype] + ",";
+          param += parameterMap->getParameter("windspeedms", stationtype) + "," +
+                   parameterMap->getParameter("relativehumidity", stationtype) + "," +
+                   parameterMap->getParameter("temperature", stationtype) + ",";
           specialPositions[name] = pos;
         }
         else if (name.find("smartsymbol") != std::string::npos)
         {
-          param += parameterMap["wawa"][stationtype] + "," +
-                   parameterMap["totalcloudcover"][stationtype] + "," +
-                   parameterMap["temperature"][stationtype] + ",";
+          param += parameterMap->getParameter("wawa", stationtype) + "," +
+                   parameterMap->getParameter("totalcloudcover", stationtype) + "," +
+                   parameterMap->getParameter("temperature", stationtype) + ",";
           specialPositions[name] = pos;
         }
         else
@@ -3470,7 +3492,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
               if (special.first.find("windcompass") != std::string::npos)
               {
                 // Have to get wind direction first
-                int winddirectionpos = Fmi::stoi(parameterMap["winddirection"][stationtype]);
+                int winddirectionpos =
+                    Fmi::stoi(parameterMap->getParameter("winddirection", stationtype));
                 std::string windCompass;
                 if (!data[s.fmisid][t][winddirectionpos].which())
                 {
@@ -3505,9 +3528,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
                 // measured using
                 // dedicated stations
                 // dedicated stations
-                int windpos = Fmi::stoi(parameterMap["windspeedms"][stationtype]);
-                int rhpos = Fmi::stoi(parameterMap["relativehumidity"][stationtype]);
-                int temppos = Fmi::stoi(parameterMap["temperature"][stationtype]);
+                int windpos = Fmi::stoi(parameterMap->getParameter("windspeedms", stationtype));
+                int rhpos = Fmi::stoi(parameterMap->getParameter("relativehumidity", stationtype));
+                int temppos = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
 
                 if (!data[s.fmisid][t][windpos].which() || !data[s.fmisid][t][rhpos].which() ||
                     !data[s.fmisid][t][temppos].which())
@@ -3528,10 +3551,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
               }
               else if (special.first.find("smartsymbol") != std::string::npos)
               {
-                int wawapos = Fmi::stoi(parameterMap.at("wawa").at(stationtype));
+                int wawapos = Fmi::stoi(parameterMap->getParameter("wawa", stationtype));
                 int totalcloudcoverpos =
-                    Fmi::stoi(parameterMap.at("totalcloudcover").at(stationtype));
-                int temppos = Fmi::stoi(parameterMap.at("temperature").at(stationtype));
+                    Fmi::stoi(parameterMap->getParameter("totalcloudcover", stationtype));
+                int temppos = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
 
                 if (!data[s.fmisid][t][wawapos].which() ||
                     !data[s.fmisid][t][totalcloudcoverpos].which() ||
@@ -3581,7 +3604,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
                 if (special.first.find("windcompass") != std::string::npos)
                 {
                   // Have to get wind direction first
-                  int winddirectionpos = Fmi::stoi(parameterMap["winddirection"][stationtype]);
+                  int winddirectionpos =
+                      Fmi::stoi(parameterMap->getParameter("winddirection", stationtype));
                   std::string windCompass;
                   if (!data[s.fmisid][t][winddirectionpos].which())
                   {
@@ -3615,9 +3639,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
                   // Feels like - deduction. This ignores radiation, since it is
                   // measured using
                   // dedicated stations
-                  int windpos = Fmi::stoi(parameterMap["windspeedms"][stationtype]);
-                  int rhpos = Fmi::stoi(parameterMap["relativehumidity"][stationtype]);
-                  int temppos = Fmi::stoi(parameterMap["temperature"][stationtype]);
+                  int windpos = Fmi::stoi(parameterMap->getParameter("windspeedms", stationtype));
+                  int rhpos =
+                      Fmi::stoi(parameterMap->getParameter("relativehumidity", stationtype));
+                  int temppos = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
 
                   if (!data[s.fmisid][t][windpos].which() || !data[s.fmisid][t][rhpos].which() ||
                       !data[s.fmisid][t][temppos].which())
@@ -3638,10 +3663,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
                 }
                 else if (special.first.find("smartsymbol") != std::string::npos)
                 {
-                  int wawapos = Fmi::stoi(parameterMap.at("wawa").at(stationtype));
+                  int wawapos = Fmi::stoi(parameterMap->getParameter("wawa", stationtype));
                   int totalcloudcoverpos =
-                      Fmi::stoi(parameterMap.at("totalcloudcover").at(stationtype));
-                  int temppos = Fmi::stoi(parameterMap.at("temperature").at(stationtype));
+                      Fmi::stoi(parameterMap->getParameter("totalcloudcover", stationtype));
+                  int temppos = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
 
                   if (!data[s.fmisid][t][wawapos].which() ||
                       !data[s.fmisid][t][totalcloudcoverpos].which() ||
@@ -3711,7 +3736,7 @@ void SpatiaLite::createObservablePropertyTable()
 boost::shared_ptr<std::vector<ObservableProperty> > SpatiaLite::getObservableProperties(
     std::vector<std::string> &parameters,
     const std::string language,
-    const std::map<std::string, std::map<std::string, std::string> > &parameterMap,
+    ParameterMapPtr parameterMap,
     const std::string &stationType)
 {
   boost::shared_ptr<std::vector<ObservableProperty> > data(new std::vector<ObservableProperty>());

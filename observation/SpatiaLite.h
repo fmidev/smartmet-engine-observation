@@ -45,8 +45,6 @@ class SpatiaLiteCacheParameters;
 class SpatiaLite : private boost::noncopyable
 {
  public:
-  using ParameterMap = std::map<std::string, std::map<std::string, std::string>>;
-
   SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheParameters &options);
 
   ~SpatiaLite();
@@ -181,7 +179,7 @@ class SpatiaLite : private boost::noncopyable
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedWeatherDataQCData(
       const SmartMet::Spine::Stations &stations,
       const Settings &settings,
-      const ParameterMap &parameterMap,
+      ParameterMapPtr parameterMap,
       const Fmi::TimeZones &timezones);
 
   /**
@@ -193,23 +191,23 @@ class SpatiaLite : private boost::noncopyable
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedData(
       const SmartMet::Spine::Stations &stations,
       const Settings &settings,
-      const ParameterMap &parameterMap,
+      ParameterMapPtr parameterMap,
       const Fmi::TimeZones &timezones);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedFlashData(
-      const Settings &settings, const ParameterMap &parameterMap, const Fmi::TimeZones &timezones);
+      const Settings &settings, ParameterMapPtr parameterMap, const Fmi::TimeZones &timezones);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedWeatherDataQCData(
       const SmartMet::Spine::Stations &stations,
       const Settings &settings,
-      const ParameterMap &parameterMap,
+      ParameterMapPtr parameterMap,
       const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedData(
       SmartMet::Spine::Stations &stations,
       Settings &settings,
-      ParameterMap &parameterMap,
+      ParameterMapPtr parameterMap,
       const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
 
@@ -302,7 +300,7 @@ class SpatiaLite : private boost::noncopyable
   boost::shared_ptr<std::vector<ObservableProperty>> getObservableProperties(
       std::vector<std::string> &parameters,
       const std::string language,
-      const std::map<std::string, std::map<std::string, std::string>> &parameterMap,
+      ParameterMapPtr parameterMap,
       const std::string &stationType);
 
   size_t selectCount(const std::string &queryString);
@@ -326,7 +324,7 @@ class SpatiaLite : private boost::noncopyable
       const int pos,
       const Spine::Station &s,
       const boost::local_time::local_date_time &time,
-      const ParameterMap &parameterMap,
+      ParameterMapPtr parameterMap,
       const std::string &stationtype,
       const std::map<int,
                      std::map<boost::local_time::local_date_time,
@@ -348,7 +346,7 @@ class SpatiaLite : private boost::noncopyable
       const std::map<std::string, int> &specialPositions,
       const std::map<std::string, std::string> &parameterNameMap,
       const std::map<std::string, int> &timeseriesPositions,
-      const ParameterMap &parameterMap,
+      ParameterMapPtr parameterMap,
       const std::string &stationtype,
       const SmartMet::Spine::Station &station);
 

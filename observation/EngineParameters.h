@@ -38,8 +38,7 @@ struct EngineParameters
   std::map<std::string, std::string> stationTypeMap;
   StationtypeConfig stationtypeConfig;
 
-  using ParameterMap = std::map<std::string, std::map<std::string, std::string>>;
-  ParameterMap parameterMap;
+  ParameterMapPtr parameterMap;
 
   std::string cacheDB;
   std::string dbDriverFile;
