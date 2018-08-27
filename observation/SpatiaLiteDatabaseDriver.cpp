@@ -256,9 +256,9 @@ bool SpatiaLiteDatabaseDriver::isParameter(const std::string &alias,
 
     // Is the alias configured.
     std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
-        itsParameters.parameterMap.find(parameterAliasName);
+        itsParameters.parameterMap->find(parameterAliasName);
 
-    if (namePtr == itsParameters.parameterMap.end())
+    if (namePtr == itsParameters.parameterMap->end())
       return false;
 
     // Is the stationType configured inside configuration block of the alias.
@@ -285,9 +285,9 @@ bool SpatiaLiteDatabaseDriver::isParameterVariant(const std::string &name) const
     removePrefix(parameterLowerCase, "qc_");
     // Is the alias configured.
     std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
-        itsParameters.parameterMap.find(parameterLowerCase);
+        itsParameters.parameterMap->find(parameterLowerCase);
 
-    if (namePtr == itsParameters.parameterMap.end())
+    if (namePtr == itsParameters.parameterMap->end())
       return false;
 
     return true;

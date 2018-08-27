@@ -87,8 +87,9 @@ std::string translateParameter(const std::string& paramname,
   {
     // All parameters are in lower case in parametermap
     std::string p = Fmi::ascii_tolower_copy(paramname);
-    if (!parameterMap[p][stationType].empty())
-      return parameterMap[p][stationType];
+    std::string ret = parameterMap.getParameter(p, stationType);
+    if (!ret.empty())
+      return ret;
     else
       return p;
   }
