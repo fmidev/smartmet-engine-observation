@@ -1426,34 +1426,22 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
 
         if (name.find("windcompass") != std::string::npos)
         {
-          param +=
-              "'" +
-              Fmi::ascii_toupper_copy(parameterMap->getParameter("winddirection", stationtype)) +
-              "',";
+          param += "'" + (parameterMap->getParameter("winddirection", stationtype)) + "',";
           timeseriesPositions[parameterMap->getParameter("winddirection", stationtype)] = pos;
           specialPositions[name] = pos;
         }
         else if (name.find("feelslike") != std::string::npos)
         {
-          param +=
-              "'" +
-              Fmi::ascii_toupper_copy(parameterMap->getParameter("windspeedms", stationtype)) +
-              "', '" +
-              Fmi::ascii_toupper_copy(parameterMap->getParameter("relativehumidity", stationtype)) +
-              "', '" +
-              Fmi::ascii_toupper_copy(parameterMap->getParameter("temperature", stationtype)) +
-              "',";
+          param += "'" + (parameterMap->getParameter("windspeedms", stationtype)) + "', '" +
+                   (parameterMap->getParameter("relativehumidity", stationtype)) + "', '" +
+                   (parameterMap->getParameter("temperature", stationtype)) + "',";
           specialPositions[name] = pos;
         }
         else if (name.find("smartsymbol") != std::string::npos)
         {
-          param +=
-              "'" + Fmi::ascii_toupper_copy(parameterMap->getParameter("wawa", stationtype)) +
-              "', '" +
-              Fmi::ascii_toupper_copy(parameterMap->getParameter("totalcloudcover", stationtype)) +
-              "', '" +
-              Fmi::ascii_toupper_copy(parameterMap->getParameter("temperature", stationtype)) +
-              "',";
+          param += "'" + (parameterMap->getParameter("wawa", stationtype)) + "', '" +
+                   (parameterMap->getParameter("totalcloudcover", stationtype)) + "', '" +
+                   (parameterMap->getParameter("temperature", stationtype)) + "',";
           specialPositions[name] = pos;
         }
         else
@@ -2778,8 +2766,8 @@ bool SpatiaLite::fillMissing(Spine::Station &s,
 
     // Require overlap with station active time
 
-    sql += " AND \"" + Fmi::to_iso_extended_string(starttime) + "\" <= s.station_end AND \"" +
-           Fmi::to_iso_extended_string(endtime) + "\" >= s.station_start";
+    sql += " AND '" + Fmi::to_iso_extended_string(starttime) + "' <= s.station_end AND '" +
+           Fmi::to_iso_extended_string(endtime) + "' >= s.station_start";
     sql += " ORDER BY s.station_end DESC";
 
     // We need only the latest one (ID values are unique).
@@ -3022,34 +3010,22 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
 
         if (name.find("windcompass") != std::string::npos)
         {
-          param +=
-              "'" +
-              Fmi::ascii_toupper_copy(parameterMap->getParameter("winddirection", stationtype)) +
-              "',";
+          param += "'" + (parameterMap->getParameter("winddirection", stationtype)) + "',";
           timeseriesPositions[parameterMap->getParameter("winddirection", stationtype)] = pos;
           specialPositions[name] = pos;
         }
         else if (name.find("feelslike") != std::string::npos)
         {
-          param +=
-              "'" +
-              Fmi::ascii_toupper_copy(parameterMap->getParameter("windspeedms", stationtype)) +
-              "', '" +
-              Fmi::ascii_toupper_copy(parameterMap->getParameter("relativehumidity", stationtype)) +
-              "', '" +
-              Fmi::ascii_toupper_copy(parameterMap->getParameter("temperature", stationtype)) +
-              "',";
+          param += "'" + (parameterMap->getParameter("windspeedms", stationtype)) + "', '" +
+                   (parameterMap->getParameter("relativehumidity", stationtype)) + "', '" +
+                   (parameterMap->getParameter("temperature", stationtype)) + "',";
           specialPositions[name] = pos;
         }
         else if (name.find("smartsymbol") != std::string::npos)
         {
-          param +=
-              "'" + Fmi::ascii_toupper_copy(parameterMap->getParameter("wawa", stationtype)) +
-              "', '" +
-              Fmi::ascii_toupper_copy(parameterMap->getParameter("totalcloudcover", stationtype)) +
-              "', '" +
-              Fmi::ascii_toupper_copy(parameterMap->getParameter("temperature", stationtype)) +
-              "',";
+          param += "'" + (parameterMap->getParameter("wawa", stationtype)) + "', '" +
+                   (parameterMap->getParameter("totalcloudcover", stationtype)) + "', '" +
+                   (parameterMap->getParameter("temperature", stationtype)) + "',";
           specialPositions[name] = pos;
         }
         else

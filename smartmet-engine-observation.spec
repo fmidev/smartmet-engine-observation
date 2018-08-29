@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.8.23
+Version: 18.8.29
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -95,6 +95,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Aug 29 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.8.29-1.fmi
+- New ParameterMap class written and the corresponding variable is now accessed via boost::shared_ptr<const ParametrMap> (BRAINSTORM-1156)
+- Parameter names in observation.conf made uppercase, so case conversions of these parameters has been removed
+
 * Thu Aug 23 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.8.23-1.fmi
 - Use requested time interval when deciding which stations are active
 
