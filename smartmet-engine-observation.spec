@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.8.23
+Version: 18.8.29
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -95,6 +95,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Aug 29 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.8.29-1.fmi
+- New ParameterMap class written and the corresponding variable is now accessed via boost::shared_ptr<const ParametrMap> (BRAINSTORM-1156)
+- Parameter names in observation.conf made uppercase, so case conversions of these parameters has been removed
+
 * Thu Aug 23 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.8.23-1.fmi
 - Use requested time interval when deciding which stations are active
 
@@ -112,6 +116,15 @@ rm -rf $RPM_BUILD_ROOT
 
 * Mon Jul 23 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.7.23-1.fmi
 - Repackaged since spine ValueFormatter ABI changed
+
+* Wed Jun 13 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.13-1.fmi
+- Dockerfile updated, reduntant console output removed
+
+* Thu Jun 7 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.7-1.fmi
+- Speed up insert performance of PostgreSQL-cache
+  - All INSERT statemenst are put into one trasaction
+  - Indexes are dropped before insert and re-created after insert
+  - Own write-mutex dedicated for each table (before there was only one write-mutex for all tables)
 
 * Thu Jul 19 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.7.19-2.fmi
 - Reduce competition between writers by doing one table update at a time
@@ -136,6 +149,7 @@ rm -rf $RPM_BUILD_ROOT
 - Speed up insert performance of PostgreSQL-cache:
 - All INSERT statemenst are put into one trasaction
 - Own write-mutex dedicated for each table (before there was only one write-mutex for all tables)
+>>>>>>> 084626ddd7ff99d7f4ab28235d99a7938d2125da
 
 * Mon Jun 4 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.4-1.fmi
 - Docker files for postgresql/postgis updated
