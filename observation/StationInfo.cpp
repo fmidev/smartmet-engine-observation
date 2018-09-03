@@ -73,6 +73,8 @@ void StationInfo::serialize(const std::string& filename) const
     std::string tmpfile = filename + ".tmp";
 
     std::ofstream file(tmpfile);
+    if (!file)
+      throw Spine::Exception(BCP, "Failed to open " + tmpfile + " for writing");
 
     if (boost::algorithm::iends_with(filename, ".txt"))
     {
@@ -91,11 +93,18 @@ void StationInfo::serialize(const std::string& filename) const
     }
 
     // Rename to final filename
-    boost::filesystem::rename(tmpfile, filename);
+    try
+    {
+      boost::filesystem::rename(tmpfile, filename);
+    }
+    catch (...)
+    {
+      throw Spine::Exception::Trace(BCP, "Failed to rename " + tmpfile + " to " + filename);
+    }
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "StationInfo serialization failed!");
+    throw Spine::Exception::Trace(BCP, "StationInfo serialization failed.");
   }
 }
 
