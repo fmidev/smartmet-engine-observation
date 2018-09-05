@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.8.29
+Version: 18.9.3
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Sep  3 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.9.3-1.fmi
+- Improved error messages if station info serialization fails
+
 * Wed Aug 29 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.8.29-1.fmi
 - New ParameterMap class written and the corresponding variable is now accessed via boost::shared_ptr<const ParametrMap> (BRAINSTORM-1156)
 - Parameter names in observation.conf made uppercase, so case conversions of these parameters has been removed
@@ -149,7 +152,6 @@ rm -rf $RPM_BUILD_ROOT
 - Speed up insert performance of PostgreSQL-cache:
 - All INSERT statemenst are put into one trasaction
 - Own write-mutex dedicated for each table (before there was only one write-mutex for all tables)
->>>>>>> 084626ddd7ff99d7f4ab28235d99a7938d2125da
 
 * Mon Jun 4 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.4-1.fmi
 - Docker files for postgresql/postgis updated
