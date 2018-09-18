@@ -27,7 +27,7 @@ class StationtypeConfig;
 
 struct SpatiaLiteCacheParameters
 {
-  SpatiaLiteCacheParameters(const boost::shared_ptr<Engine::Observation::EngineParameters>& p)
+  SpatiaLiteCacheParameters(const EngineParametersPtr& p)
       : quiet(p->quiet),
         stationInfo(p->stationInfo),
         parameterMap(p->parameterMap),
@@ -44,7 +44,7 @@ struct SpatiaLiteCacheParameters
   bool cacheHasStations;
   boost::shared_ptr<boost::posix_time::time_period> flashCachePeriod;
   boost::shared_ptr<StationInfo> stationInfo;
-  ParameterMapPtr parameterMap;
+  const ParameterMapPtr& parameterMap;
   StationtypeConfig& stationtypeConfig;
 };
 

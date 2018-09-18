@@ -102,7 +102,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
 
   std::string itsConfigFile;
 
-  boost::shared_ptr<EngineParameters> itsEngineParameters;
+  EngineParametersPtr itsEngineParameters;
 
   std::shared_ptr<DBRegistry> itsDatabaseRegistry;
 

@@ -12,8 +12,7 @@ namespace Engine
 {
 namespace Observation
 {
-DatabaseDriver *DatabaseDriverFactory::create(boost::shared_ptr<EngineParameters> p,
-                                              Spine::ConfigBase &cfg)
+DatabaseDriver *DatabaseDriverFactory::create(const EngineParametersPtr &p, Spine::ConfigBase &cfg)
 {
   try
   {

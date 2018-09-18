@@ -14,7 +14,7 @@ class ObservationCache;
 class ObservationCacheFactory
 {
  public:
-  static ObservationCache* create(boost::shared_ptr<EngineParameters> p, Spine::ConfigBase& cfg);
+  static ObservationCache* create(const EngineParametersPtr& p, Spine::ConfigBase& cfg);
 };
 
 }  // namespace Observation

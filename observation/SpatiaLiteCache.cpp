@@ -756,7 +756,7 @@ void SpatiaLiteCache::shutdown()
   itsConnectionPool = nullptr;
 }
 
-SpatiaLiteCache::SpatiaLiteCache(boost::shared_ptr<EngineParameters> p, Spine::ConfigBase &cfg)
+SpatiaLiteCache::SpatiaLiteCache(const EngineParametersPtr &p, Spine::ConfigBase &cfg)
     : itsParameters(p), itsStationIdCache(p->stationIdCacheSize)
 {
   try

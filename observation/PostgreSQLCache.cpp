@@ -656,7 +656,7 @@ void PostgreSQLCache::shutdown()
   itsConnectionPool = nullptr;
 }
 
-PostgreSQLCache::PostgreSQLCache(boost::shared_ptr<EngineParameters> p, Spine::ConfigBase &cfg)
+PostgreSQLCache::PostgreSQLCache(const EngineParametersPtr &p, Spine::ConfigBase &cfg)
     : itsParameters(p)
 {
   try

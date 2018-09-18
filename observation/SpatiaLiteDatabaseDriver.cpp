@@ -64,7 +64,7 @@ Spine::Stations findNearestStations(const StationInfo &info,
 }
 
 };  // anonymous namespace
-SpatiaLiteDatabaseDriver::SpatiaLiteDatabaseDriver(boost::shared_ptr<EngineParameters> p,
+SpatiaLiteDatabaseDriver::SpatiaLiteDatabaseDriver(const EngineParametersPtr &p,
                                                    Spine::ConfigBase &cfg)
     : itsParameters(p)
 {

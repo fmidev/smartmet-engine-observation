@@ -20,7 +20,7 @@ class QueryResultBase;
 
 struct SpatiaLiteDriverParameters
 {
-  SpatiaLiteDriverParameters(boost::shared_ptr<EngineParameters> p)
+  SpatiaLiteDriverParameters(const EngineParametersPtr& p)
       : parameterMap(p->parameterMap),
         stationInfo(p->stationInfo),
         locationCache(p->locationCache),
@@ -31,7 +31,7 @@ struct SpatiaLiteDriverParameters
   }
 
   // Geonames::Engine* geonames;
-  ParameterMapPtr parameterMap;
+  const ParameterMapPtr& parameterMap;
   boost::shared_ptr<StationInfo> stationInfo;
   Fmi::Cache::Cache<std::string, std::vector<Spine::Station> >& locationCache;
   Fmi::Cache::Cache<std::string, std::shared_ptr<QueryResultBase> >& queryResultBaseCache;
