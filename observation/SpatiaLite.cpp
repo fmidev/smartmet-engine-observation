@@ -56,7 +56,7 @@ namespace Observation
 namespace
 {
 void solveMeasurandIds(const std::vector<std::string> &parameters,
-                       ParameterMapPtr parameterMap,
+                       const ParameterMapPtr &parameterMap,
                        const std::string &stationType,
                        std::multimap<int, std::string> &parameterIDs)
 {
@@ -1371,7 +1371,7 @@ Spine::Stations SpatiaLite::findNearestStations(double latitude,
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     const Spine::Stations &stations,
     const Settings &settings,
-    ParameterMapPtr parameterMap,
+    const ParameterMapPtr &parameterMap,
     const Fmi::TimeZones &timezones)
 {
   try
@@ -1654,10 +1654,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
   }
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(const Spine::Stations &stations,
-                                                                 const Settings &settings,
-                                                                 ParameterMapPtr parameterMap,
-                                                                 const Fmi::TimeZones &timezones)
+Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
+    const Spine::Stations &stations,
+    const Settings &settings,
+    const ParameterMapPtr &parameterMap,
+    const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -2125,7 +2126,7 @@ void SpatiaLite::addParameterToTimeSeries(
     const std::map<std::string, int> &specialPositions,
     const std::map<std::string, std::string> &parameterNameMap,
     const std::map<std::string, int> &timeseriesPositions,
-    ParameterMapPtr parameterMap,
+    const ParameterMapPtr &parameterMap,
     const std::string &stationtype,
     const Spine::Station &station)
 {
@@ -2239,7 +2240,7 @@ void SpatiaLite::addParameterToTimeSeries(
 }
 
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
-    const Settings &settings, ParameterMapPtr parameterMap, const Fmi::TimeZones &timezones)
+    const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -2414,7 +2415,7 @@ void SpatiaLite::addSmartSymbolToTimeSeries(
     const int pos,
     const Spine::Station &s,
     const boost::local_time::local_date_time &time,
-    ParameterMapPtr parameterMap,
+    const ParameterMapPtr &parameterMap,
     const std::string &stationtype,
     const std::map<int, std::map<boost::local_time::local_date_time, std::map<int, ts::Value> > >
         &data,
@@ -2954,7 +2955,7 @@ FlashCounts SpatiaLite::getFlashCount(const boost::posix_time::ptime &starttime,
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     const Spine::Stations &stations,
     const Settings &settings,
-    ParameterMapPtr parameterMap,
+    const ParameterMapPtr &parameterMap,
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
@@ -3234,7 +3235,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     Spine::Stations &stations,
     Settings &settings,
-    ParameterMapPtr parameterMap,
+    const ParameterMapPtr &parameterMap,
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
@@ -3712,7 +3713,7 @@ void SpatiaLite::createObservablePropertyTable()
 boost::shared_ptr<std::vector<ObservableProperty> > SpatiaLite::getObservableProperties(
     std::vector<std::string> &parameters,
     const std::string language,
-    ParameterMapPtr parameterMap,
+    const ParameterMapPtr &parameterMap,
     const std::string &stationType)
 {
   boost::shared_ptr<std::vector<ObservableProperty> > data(new std::vector<ObservableProperty>());

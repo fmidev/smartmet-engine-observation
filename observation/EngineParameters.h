@@ -53,6 +53,8 @@ struct EngineParameters
   Geonames::Engine *geonames = nullptr;
 };
 
+using EngineParametersPtr = boost::shared_ptr<EngineParameters>;
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

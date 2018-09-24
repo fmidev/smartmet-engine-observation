@@ -27,7 +27,7 @@ class StationtypeConfig;
 
 struct PostgreSQLCacheParameters
 {
-  PostgreSQLCacheParameters(const boost::shared_ptr<Engine::Observation::EngineParameters>& p)
+  PostgreSQLCacheParameters(const EngineParametersPtr& p)
 
       : quiet(p->quiet),
         stationInfo(p->stationInfo),
@@ -47,7 +47,7 @@ struct PostgreSQLCacheParameters
   bool cacheHasStations;
   boost::shared_ptr<boost::posix_time::time_period> flashCachePeriod;
   boost::shared_ptr<StationInfo> stationInfo;
-  ParameterMapPtr parameterMap;
+  const ParameterMapPtr& parameterMap;
   StationtypeConfig& stationtypeConfig;
 };
 

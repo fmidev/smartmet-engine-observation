@@ -70,7 +70,7 @@ boost::posix_time::ptime round_down_to_hour(const boost::posix_time::ptime &t)
 }
 
 void solveMeasurandIds(const std::vector<std::string> &parameters,
-                       ParameterMapPtr parameterMap,
+                       const ParameterMapPtr &parameterMap,
                        const std::string &stationType,
                        std::multimap<int, std::string> &parameterIDs)
 {
@@ -1414,7 +1414,7 @@ void PostgreSQL::fetchCachedDataFromDB(const std::string &sqlStmt,
 Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedWeatherDataQCData(
     const Spine::Stations &stations,
     const Settings &settings,
-    ParameterMapPtr parameterMap,
+    const ParameterMapPtr &parameterMap,
     const Fmi::TimeZones &timezones)
 {
   try
@@ -1663,10 +1663,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedWeatherDataQCData(
   }
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(const Spine::Stations &stations,
-                                                                 const Settings &settings,
-                                                                 ParameterMapPtr parameterMap,
-                                                                 const Fmi::TimeZones &timezones)
+Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
+    const Spine::Stations &stations,
+    const Settings &settings,
+    const ParameterMapPtr &parameterMap,
+    const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -2103,7 +2104,7 @@ void PostgreSQL::addParameterToTimeSeries(
     const std::map<std::string, int> &specialPositions,
     const std::map<std::string, std::string> &parameterNameMap,
     const std::map<std::string, int> &timeseriesPositions,
-    ParameterMapPtr parameterMap,
+    const ParameterMapPtr &parameterMap,
     const std::string &stationtype,
     const Spine::Station &station)
 {
@@ -2217,7 +2218,7 @@ void PostgreSQL::addParameterToTimeSeries(
 }
 
 Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedFlashData(
-    const Settings &settings, ParameterMapPtr parameterMap, const Fmi::TimeZones &timezones)
+    const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -2385,7 +2386,7 @@ void PostgreSQL::addSmartSymbolToTimeSeries(
     const int pos,
     const Spine::Station &s,
     const boost::local_time::local_date_time &time,
-    ParameterMapPtr parameterMap,
+    const ParameterMapPtr &parameterMap,
     const std::string &stationtype,
     const std::map<int, std::map<boost::local_time::local_date_time, std::map<int, ts::Value>>>
         &data,
@@ -2908,7 +2909,7 @@ FlashCounts PostgreSQL::getFlashCount(const boost::posix_time::ptime &starttime,
 Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedWeatherDataQCData(
     const Spine::Stations &stations,
     const Settings &settings,
-    ParameterMapPtr parameterMap,
+    const ParameterMapPtr &parameterMap,
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
@@ -3157,7 +3158,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedWeatherDataQCData(
 Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
     Spine::Stations &stations,
     Settings &settings,
-    ParameterMapPtr parameterMap,
+    const ParameterMapPtr &parameterMap,
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
@@ -3603,7 +3604,7 @@ void PostgreSQL::createObservablePropertyTable()
 boost::shared_ptr<std::vector<ObservableProperty>> PostgreSQL::getObservableProperties(
     std::vector<std::string> &parameters,
     const std::string language,
-    ParameterMapPtr parameterMap,
+    const ParameterMapPtr &parameterMap,
     const std::string &stationType)
 {
   boost::shared_ptr<std::vector<ObservableProperty>> data(new std::vector<ObservableProperty>());

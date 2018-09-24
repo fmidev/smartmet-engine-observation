@@ -43,12 +43,12 @@ void Engine::init()
 #else
     itsDatabaseDriver = DatabaseDriverFactory::create(itsEngineParameters, cfg);
 #endif
-    if (itsDatabaseDriver)
+    if (itsDatabaseDriver != nullptr)
     {
       logMessage("[Observation Engine] Database driver '" + itsDatabaseDriver->id() + "' created",
                  itsEngineParameters->quiet);
+      itsDatabaseDriver->init(this);
     }
-    itsDatabaseDriver->init(this);
   }
   catch (...)
   {

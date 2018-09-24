@@ -23,7 +23,7 @@ class ObservableProperty;
 class SpatiaLiteCache : public ObservationCache
 {
  public:
-  SpatiaLiteCache(boost::shared_ptr<EngineParameters> p, Spine::ConfigBase &cfg);
+  SpatiaLiteCache(const EngineParametersPtr &p, Spine::ConfigBase &cfg);
   ~SpatiaLiteCache();
 
   void initializeConnectionPool(int finCacheDuration);

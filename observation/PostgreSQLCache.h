@@ -22,7 +22,7 @@ class ObservableProperty;
 class PostgreSQLCache : public ObservationCache
 {
  public:
-  PostgreSQLCache(boost::shared_ptr<EngineParameters> p, Spine::ConfigBase &cfg);
+  PostgreSQLCache(const EngineParametersPtr &p, Spine::ConfigBase &cfg);
   ~PostgreSQLCache();
 
   void initializeConnectionPool(int finCacheDuration);

@@ -16,7 +16,7 @@ class Engine;
 class SpatiaLiteDatabaseDriver : public DatabaseDriver
 {
  public:
-  SpatiaLiteDatabaseDriver(boost::shared_ptr<EngineParameters> p, Spine::ConfigBase &cfg);
+  SpatiaLiteDatabaseDriver(const EngineParametersPtr &p, Spine::ConfigBase &cfg);
 
   void init(Engine *obsengine);
 
