@@ -15,23 +15,23 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 18.8.20
-BuildRequires: smartmet-engine-geonames-devel >= 18.8.23
+BuildRequires: smartmet-library-spine-devel >= 18.9.23
+BuildRequires: smartmet-engine-geonames-devel >= 18.9.23
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: smartmet-library-locus-devel >= 18.8.21
-BuildRequires: smartmet-library-macgyver-devel >= 18.8.20
+BuildRequires: smartmet-library-macgyver-devel >= 18.9.5
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel
 Requires: fmt
 Requires: libconfig
-Requires: smartmet-server >= 18.8.22
-Requires: smartmet-engine-geonames >= 18.8.23
-Requires: smartmet-library-spine >= 18.8.20
+Requires: smartmet-server >= 18.9.12
+Requires: smartmet-engine-geonames >= 18.9.23
+Requires: smartmet-library-spine >= 18.9.23
 Requires: smartmet-library-locus >= 18.8.21
-Requires: smartmet-library-macgyver >= 18.8.20
+Requires: smartmet-library-macgyver >= 18.9.5
 Requires: libatomic
 Requires: unixODBC
 Requires: mysql++
