@@ -123,15 +123,6 @@ rm -rf $RPM_BUILD_ROOT
 * Mon Jul 23 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.7.23-1.fmi
 - Repackaged since spine ValueFormatter ABI changed
 
-* Wed Jun 13 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.13-1.fmi
-- Dockerfile updated, reduntant console output removed
-
-* Thu Jun 7 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.7-1.fmi
-- Speed up insert performance of PostgreSQL-cache
-  - All INSERT statemenst are put into one trasaction
-  - Indexes are dropped before insert and re-created after insert
-  - Own write-mutex dedicated for each table (before there was only one write-mutex for all tables)
-
 * Thu Jul 19 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.7.19-2.fmi
 - Reduce competition between writers by doing one table update at a time
 
@@ -150,11 +141,17 @@ rm -rf $RPM_BUILD_ROOT
 - Use COALESCE instead of IFNULL in PostGreSQL
 - Fixed incorrect throw if location cache could not be updated
 
-* Wed Jun 13 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.6.13-1.fmi
+* Wed Jun 13 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.13-1.fmi
 - Dockerfile updated, reduntant console output removed
 - Speed up insert performance of PostgreSQL-cache:
 - All INSERT statemenst are put into one trasaction
 - Own write-mutex dedicated for each table (before there was only one write-mutex for all tables)
+
+* Thu Jun 7 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.7-1.fmi
+- Speed up insert performance of PostgreSQL-cache
+  - All INSERT statemenst are put into one trasaction
+  - Indexes are dropped before insert and re-created after insert
+  - Own write-mutex dedicated for each table (before there was only one write-mutex for all tables)
 
 * Mon Jun 4 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.6.4-1.fmi
 - Docker files for postgresql/postgis updated
