@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.9.18
+Version: 18.9.26
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Sep 26 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.9.26-1.fmi
+- Fixed finding of nearest stations to check valid time periods correctly
+
 * Tue Sep 18 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.9.18-1.fmi
 - Defined boost::shared_ptr<ParamterMap> and boost::shared_ptr<EngineParameyers> as const reference whenever used after creation
 

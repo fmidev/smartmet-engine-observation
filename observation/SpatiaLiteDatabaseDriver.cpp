@@ -13,7 +13,7 @@
 
 #include "boost/date_time/posix_time/posix_time.hpp"  //include all types plus i/o
 
-#define MYDEBUG 1
+// #define MYDEBUG 1
 
 namespace ts = SmartMet::Spine::TimeSeries;
 
