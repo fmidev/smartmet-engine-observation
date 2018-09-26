@@ -29,6 +29,23 @@ namespace Observation
 {
 // ----------------------------------------------------------------------
 /*!
+ * \brief Test if the station has any observations for the time period
+ *
+ * If one time period ends before another starts, there is no overlap.
+ * If one period starts after another ends, there is no overlap.
+ * If neither test returns true, the ranges must overlap.
+ */
+// ----------------------------------------------------------------------
+
+bool timeok(const Spine::Station& station,
+            const boost::posix_time::ptime& starttime,
+            const boost::posix_time::ptime& endtime)
+{
+  return !(endtime < station.station_start || starttime > station.station_end);
+}
+
+// ----------------------------------------------------------------------
+/*!
  * \brief Create the directory for the serialized stations
  */
 // ----------------------------------------------------------------------
@@ -166,10 +183,7 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
 
     const auto& station = stations.at(id);
 
-    bool timeok = ((starttime >= station.station_start && starttime < station.station_end) ||
-                   (endtime >= station.station_end && endtime < station.station_end));
-
-    if (!timeok)
+    if (!timeok(station, starttime, endtime))
       continue;
 
     // Check whether the station belongs to the right groups
@@ -242,10 +256,8 @@ Spine::Stations findStations(const Spine::Stations& stations,
       for (const auto& id : pos->second)
       {
         const auto& station = stations.at(id);
-        bool timeok = ((starttime >= station.station_start && starttime < station.station_end) ||
-                       (endtime >= station.station_end && endtime < station.station_end));
 
-        if (timeok)
+        if (timeok(station, starttime, endtime))
           result.push_back(station);
       }
     }
@@ -377,10 +389,8 @@ Spine::Stations StationInfo::findStationsInGroup(const std::set<std::string> gro
   for (const auto id : all_ids)
   {
     const auto& station = stations.at(id);
-    bool timeok = ((starttime >= station.station_start && starttime < station.station_end) ||
-                   (endtime >= station.station_end && endtime < station.station_end));
 
-    if (timeok)
+    if (timeok(station, starttime, endtime))
       result.push_back(station);
   }
 
@@ -491,10 +501,8 @@ Spine::Stations StationInfo::findStationsInsideBox(double minx,
   for (const auto& id : ids)
   {
     const auto& station = stations.at(id);
-    bool timeok = ((starttime >= station.station_start && starttime < station.station_end) ||
-                   (endtime >= station.station_end && endtime < station.station_end));
 
-    if (timeok)
+    if (timeok(station, starttime, endtime))
       if (groups.empty() || groups.find(station.station_type) != groups.end())
         result.push_back(station);
   }
