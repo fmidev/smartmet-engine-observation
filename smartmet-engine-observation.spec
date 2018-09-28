@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.9.26
+Version: 18.9.28
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Sep 28 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.9.28-1.fmi
+- Sort nearby stations based on station ID, if the distance is identical to get stable results
+
 * Wed Sep 26 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.9.26-1.fmi
 - Fixed finding of nearest stations to check valid time periods correctly
 

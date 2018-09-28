@@ -168,17 +168,38 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
                                                  const boost::posix_time::ptime& starttime,
                                                  const boost::posix_time::ptime& endtime) const
 {
-  // Find all stations withing the distance limit
+  if (numberofstations < 1)
+    throw Spine::Exception(BCP, "Cannot search for less than 1 nearby stations");
+
+  std::size_t maxcount = static_cast<std::size_t>(numberofstations);
+
+  // Find all stations within the distance limit
   StationNearTreeLatLon searchpoint{longitude, latitude};
   auto candidates = stationtree.nearestones(
       searchpoint, StationNearTreeLatLon::ChordLength(maxdistance / 1000.0));
 
-  // Validate other search conditions one by one
+  // Note: The candidates are stored in a multimap sorted by distance. However,
+  // since road weather stations may have identical coordinates, and NearTree
+  // buildup is not deterministic, the sorting is not stable for the stations
+  // at identical distances, and hence regression tests may fail. We'll use
+  // the station ID as an extra sorting criteria.
 
-  Spine::Stations result;
+  using StationDistance = std::pair<double, StationID>;  // distance first for sorting!
+  std::vector<StationDistance> distances;
+  double previous_distance = -1;
+
   for (const auto& candidate : candidates)
   {
     double distance = StationNearTreeLatLon::SurfaceLength(candidate.first);
+
+    // Abort if distance has changed and desired count has been reached
+    if (distances.size() >= maxcount && distance > previous_distance)
+      break;
+
+    previous_distance = distance;
+
+    // Now filter the stations
+
     StationID id = candidate.second.ID();
 
     const auto& station = stations.at(id);
@@ -190,8 +211,27 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
     if (groups.find(station.station_type) == groups.end())
       continue;
 
-    // Update metadata with a new copy
-    Spine::Station newstation = station;
+    distances.push_back(std::make_pair(distance, id));
+  }
+
+  // Sort the candidates based on distance and id (lexicographic sort)
+
+  std::sort(distances.begin(), distances.end());
+
+  // Accept only max count stations
+
+  if (distances.size() > maxcount)
+    distances.resize(numberofstations);
+
+  // Build the final result
+
+  Spine::Stations result;
+  for (const auto& distance_id : distances)
+  {
+    double distance = distance_id.first;
+    StationID id = distance_id.second;
+
+    Spine::Station newstation = stations.at(id);
 
     newstation.distance =
         Fmi::to_string(std::round(distance * 10) / 10.0);  // round to 100 meter precision
@@ -199,9 +239,6 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
     newstation.requestedLon = longitude;
 
     result.push_back(newstation);
-
-    if (static_cast<long>(result.size()) >= numberofstations)
-      break;
   }
 
   return result;
