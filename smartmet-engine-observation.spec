@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.10.18
+Version: 18.11.9
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,7 +15,7 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 18.9.29
+BuildRequires: smartmet-library-spine-devel >= 18.11.9
 BuildRequires: smartmet-engine-geonames-devel >= 18.9.29
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
@@ -27,9 +27,9 @@ BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 5.2.0
 Requires: fmt >= 5.2.0
 Requires: libconfig
-Requires: smartmet-server >= 18.9.29
+Requires: smartmet-server >= 18.11.8
 Requires: smartmet-engine-geonames >= 18.9.29
-Requires: smartmet-library-spine >= 18.9.29
+Requires: smartmet-library-spine >= 18.11.9
 Requires: smartmet-library-locus >= 18.8.21
 Requires: smartmet-library-macgyver >= 18.9.29
 Requires: libatomic
@@ -95,7 +95,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Thu Oct 18 2018 Anssi Reponen <anssi.reponen@fmi.fi> - 18.10.18-1.fmi
+* Fri Nov  9 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.11.9-1.fmi
 - Support for data_source-field added (BRAINSTORM-1233)
 
 * Sat Sep 29 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.9.29-1.fmi
