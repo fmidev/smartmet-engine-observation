@@ -20,6 +20,7 @@ class DataItem
   boost::posix_time::ptime data_time;
   double data_value = 0;
   int data_quality = 0;
+  int data_source = 0;
 
   std::size_t hash_value() const;
 };

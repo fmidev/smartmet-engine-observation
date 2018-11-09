@@ -199,7 +199,8 @@ Spine::Parameter EngineParameters::makeParameter(const std::string &name) const
       type = Spine::Parameter::Type::DataIndependent;
     }
     else if (p == "windcompass8" || p == "windcompass16" || p == "windcompass32" ||
-             p == "cloudiness8th" || p == "windchill" || p == "weather" || p == "smartsymbol")
+             p == "cloudiness8th" || p == "windchill" || p == "weather" || p == "smartsymbol" ||
+             boost::algorithm::ends_with(p, "data_source"))
     {
       type = Spine::Parameter::Type::DataDerived;
     }
@@ -218,6 +219,9 @@ bool EngineParameters::isParameter(const std::string &alias, const std::string &
   {
     std::string parameterAliasName = Fmi::ascii_tolower_copy(alias);
     Engine::Observation::removePrefix(parameterAliasName, "qc_");
+
+    if (boost::algorithm::ends_with(parameterAliasName, "data_source"))
+      return true;
 
     // Is the alias configured.
     ParameterMap::NameToStationParameterMap::const_iterator namePtr =

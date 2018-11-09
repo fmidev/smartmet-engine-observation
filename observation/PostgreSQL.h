@@ -41,6 +41,7 @@ struct cached_data
   std::vector<boost::optional<std::string>> parametersAll;
   std::vector<boost::optional<int>> measurand_idsAll;
   std::vector<boost::optional<double>> data_valuesAll;
+  std::vector<boost::optional<int>> data_sourcesAll;
   std::vector<boost::optional<double>> sensor_nosAll;
 };
 
@@ -206,8 +207,8 @@ class PostgreSQL : private boost::noncopyable
       const Fmi::TimeZones &timezones);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedData(
-      SmartMet::Spine::Stations &stations,
-      Settings &settings,
+      const SmartMet::Spine::Stations &stations,
+      const Settings &settings,
       const ParameterMapPtr &parameterMap,
       const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);

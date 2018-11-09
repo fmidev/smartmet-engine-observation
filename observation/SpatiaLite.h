@@ -207,8 +207,8 @@ class SpatiaLite : private boost::noncopyable
       const Fmi::TimeZones &timezones);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedData(
-      SmartMet::Spine::Stations &stations,
-      Settings &settings,
+      const SmartMet::Spine::Stations &stations,
+      const Settings &settings,
       const ParameterMapPtr &parameterMap,
       const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
@@ -335,16 +335,16 @@ class SpatiaLite : private boost::noncopyable
 
   void addSpecialParameterToTimeSeries(
       const std::string &paramname,
-      SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+      const SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
       const SmartMet::Spine::Station &station,
       const int pos,
       const std::string stationtype,
       const boost::local_time::local_date_time &obstime);
 
   void addParameterToTimeSeries(
-      SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+      const SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
       const std::pair<boost::local_time::local_date_time,
-                      std::map<std::string, SmartMet::Spine::TimeSeries::Value>> &dataItem,
+                      std::map<std::string, Spine::TimeSeries::Value>> &dataItem,
       const std::map<std::string, int> &specialPositions,
       const std::map<std::string, std::string> &parameterNameMap,
       const std::map<std::string, int> &timeseriesPositions,
