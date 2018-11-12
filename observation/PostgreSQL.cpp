@@ -253,6 +253,7 @@ void PostgreSQL::createObservationDataTable()
 {
   try
   {
+    // If TABLE exists it is not re-created
     itsDB.executeNonTransaction(
         "CREATE TABLE IF NOT EXISTS observation_data("
         "fmisid INTEGER NOT NULL, "
@@ -267,6 +268,20 @@ void PostgreSQL::createObservationDataTable()
         "PRIMARY KEY (data_time, fmisid, measurand_id, producer_id, "
         "measurand_no)); CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON "
         "observation_data(data_time);");
+
+    // If the old version of table exists add data_source-column
+    pqxx::result result_set = itsDB.executeNonTransaction(
+        "select EXISTS (SELECT 1 FROM information_schema.columns where table_schema = 'public' and "
+        "table_name='observation_data' and column_name='data_source')");
+
+    if (!result_set.empty())
+    {
+      pqxx::result::const_iterator row = result_set.begin();
+      if (!row[0].is_null() && row[0].as<bool>() == false)
+      {
+        itsDB.executeNonTransaction("ALTER TABLE observation_data ADD COLUMN data_source INTEGER");
+      }
+    }
   }
   catch (...)
   {
@@ -321,7 +336,7 @@ void PostgreSQL::createFlashDataTable()
         "signal_indicator INTEGER NOT NULL, "
         "timing_indicator INTEGER NOT NULL, "
         "stroke_status INTEGER NOT NULL, "
-        "data_source INTEGER NOT NULL, "
+        "data_source INTEGER, "
         "last_modified timestamp default now(), "
         "PRIMARY KEY (stroke_time, stroke_time_fraction, flash_id)); CREATE "
         "INDEX IF NOT EXISTS flash_data_stroke_time_idx ON "
@@ -335,6 +350,20 @@ void PostgreSQL::createFlashDataTable()
           "SELECT AddGeometryColumn('flash_data', 'stroke_location', 4326, 'POINT', 2)");
       itsDB.executeNonTransaction(
           "CREATE INDEX IF NOT EXISTS flash_data_gix ON flash_data USING GIST (stroke_location)");
+    }
+
+    // If the old version of table exists add data_source-column
+    result_set = itsDB.executeNonTransaction(
+        "select EXISTS (SELECT 1 FROM information_schema.columns where table_schema = 'public' and "
+        "table_name='flash_data' and column_name='data_source')");
+
+    if (!result_set.empty())
+    {
+      pqxx::result::const_iterator row = result_set.begin();
+      if (!row[0].is_null() && row[0].as<bool>() == false)
+      {
+        itsDB.executeNonTransaction("ALTER TABLE flash_data ADD COLUMN data_source INTEGER");
+      }
     }
   }
   catch (...)
@@ -998,6 +1027,7 @@ std::size_t PostgreSQL::fillFlashDataCache(const vector<FlashDataItem> &flashCac
                   "EXCLUDED.signal_indicator, EXCLUDED.timing_indicator, "
                   "EXCLUDED.stroke_status, "
                   "EXCLUDED.data_source, EXCLUDED.stroke_location)";
+
               itsDB.executeTransaction(sqlStmt);
               values_vector.clear();
             }

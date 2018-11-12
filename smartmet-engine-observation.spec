@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.11.9
+Version: 18.11.12
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Nov 12 2018 Mika Heiskanen <anssi.reponen@fmi.fi> - 18.11.12-1.fmi
+- Add data_source-column automatically to observation_data and flash_data tables (BRAINSTORM-1233)
+
 * Fri Nov  9 2018 Mika Heiskanen <mika.heiskanen@fmi.fi> - 18.11.9-1.fmi
 - Support for data_source-field added (BRAINSTORM-1233)
 
