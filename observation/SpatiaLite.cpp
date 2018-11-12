@@ -296,6 +296,37 @@ void SpatiaLite::createObservationDataTable()
   {
     throw Spine::Exception::Trace(BCP, "Creation of observation_data table failed!");
   }
+
+  bool data_source_column_exists = false;
+  try
+  {
+    sqlite3pp::query qry(itsDB, "PRAGMA table_info(observation_data)");
+    for (auto row : qry)
+    {
+      if (row.get<std::string>(1) == "data_source")
+      {
+        data_source_column_exists = true;
+        break;
+      }
+    }
+  }
+  catch (const std::exception &e)
+  {
+    throw Spine::Exception::Trace(BCP, "PRAGMA table_info failed!");
+  }
+
+  if (!data_source_column_exists)
+  {
+    try
+    {
+      itsDB.execute("ALTER TABLE observation_data ADD COLUMN data_source INTEGER");
+    }
+    catch (const std::exception &e)
+    {
+      throw Spine::Exception::Trace(BCP,
+                                    "Failed to add data_source_column to observation_data TABLE!");
+    }
+  }
 }
 
 void SpatiaLite::createWeatherDataQCTable()
@@ -349,7 +380,7 @@ void SpatiaLite::createFlashDataTable()
                            "signal_indicator INTEGER NOT NULL, "
                            "timing_indicator INTEGER NOT NULL, "
                            "stroke_status INTEGER NOT NULL, "
-                           "data_source INTEGER NOT NULL, "
+                           "data_source INTEGER, "
                            "created  DATETIME, "
                            "modified_last DATETIME, "
                            "modified_by INTEGER, "
@@ -391,6 +422,36 @@ void SpatiaLite::createFlashDataTable()
   catch (...)
   {
     throw Spine::Exception::Trace(BCP, "Creation of flash_data table failed!");
+  }
+
+  bool data_source_column_exists = false;
+  try
+  {
+    sqlite3pp::query qry(itsDB, "PRAGMA table_info(flash_data)");
+    for (auto row : qry)
+    {
+      if (row.get<std::string>(1) == "data_source")
+      {
+        data_source_column_exists = true;
+        break;
+      }
+    }
+  }
+  catch (const std::exception &e)
+  {
+    throw Spine::Exception::Trace(BCP, "PRAGMA table_info failed!");
+  }
+
+  if (!data_source_column_exists)
+  {
+    try
+    {
+      itsDB.execute("ALTER TABLE flash_data ADD COLUMN data_source INTEGER");
+    }
+    catch (const std::exception &e)
+    {
+      throw Spine::Exception::Trace(BCP, "Failed to add data_source_column to flash_data TABLE!");
+    }
   }
 }
 
