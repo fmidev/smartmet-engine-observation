@@ -175,7 +175,8 @@ install:
 	$(INSTALL_DATA) cnf/stations.sqlite $(vardir)/
 
 test:
-	cd test && make test
+	@test -d test || echo "No test subdirectory, no tests defined"
+	@test ! -d test || ( cd test && make test )
 
 objdir:
 	@mkdir -p $(objdir)
