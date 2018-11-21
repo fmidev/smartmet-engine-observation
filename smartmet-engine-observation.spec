@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 18.11.12
+Version: 18.11.21
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -61,6 +61,7 @@ SmartMet engine for fetching observations from the climate database (cldb).
 Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
+Requires: %{SPECNAME}
 Requires: smartmet-library-spine-devel
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
@@ -95,6 +96,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Nov 21 2018 Mika Heiskanen <heikki.pernu@fmi.fi> - 18.11.21-1.fmi
+- Add library binary as the devel package dependency
+
 * Mon Nov 12 2018 Mika Heiskanen <anssi.reponen@fmi.fi> - 18.11.12-1.fmi
 - Add data_source-column automatically to observation_data and flash_data tables (BRAINSTORM-1233)
 
