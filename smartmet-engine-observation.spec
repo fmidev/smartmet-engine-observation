@@ -45,6 +45,7 @@ Requires: boost-system
 Requires: boost-thread
 Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
+#TestRequires: make
 
 %if 0%{rhel} >= 7
 BuildRequires: mariadb-devel
