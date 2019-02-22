@@ -1,3 +1,4 @@
+#include "Keywords.h"
 #include "Utils.h"
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -673,6 +674,36 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
   // No valid combination found, return empty value
   return {};
 }
+
+bool is_time_parameter(std::string paramname)
+{
+  Fmi::ascii_tolower(paramname);
+  try
+  {
+    return (
+        paramname == TIME_PARAM || paramname == ISOTIME_PARAM || paramname == XMLTIME_PARAM ||
+        paramname == ORIGINTIME_PARAM || paramname == LOCALTIME_PARAM ||
+        paramname == UTCTIME_PARAM || paramname == EPOCHTIME_PARAM ||
+        paramname == SUNELEVATION_PARAM || paramname == SUNDECLINATION_PARAM ||
+        paramname == SUNAZIMUTH_PARAM || paramname == DARK_PARAM || paramname == MOONPHASE_PARAM ||
+        paramname == MOONRISE_PARAM || paramname == MOONRISE2_PARAM || paramname == MOONSET_PARAM ||
+        paramname == MOONSET2_PARAM || paramname == MOONRISETODAY_PARAM ||
+        paramname == MOONRISE2TODAY_PARAM || paramname == MOONSETTODAY_PARAM ||
+        paramname == MOONSET2TODAY_PARAM || paramname == MOONUP24H_PARAM ||
+        paramname == MOONDOWN24H_PARAM || paramname == SUNRISE_PARAM || paramname == SUNSET_PARAM ||
+        paramname == NOON_PARAM || paramname == SUNRISETODAY_PARAM ||
+        paramname == SUNSETTODAY_PARAM || paramname == DAYLENGTH_PARAM ||
+        paramname == TIMESTRING_PARAM || paramname == WDAY_PARAM || paramname == WEEKDAY_PARAM ||
+        paramname == MON_PARAM || paramname == MONTH_PARAM || paramname == HOUR_PARAM ||
+        paramname == TZ_PARAM || paramname == ORIGINTIME_PARAM ||
+        (paramname.substr(0, 5) == "date(" && paramname[paramname.size() - 1] == ')'));
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
 
 }  // namespace Observation
 }  // namespace Engine
