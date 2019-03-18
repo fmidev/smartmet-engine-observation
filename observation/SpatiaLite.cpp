@@ -1,6 +1,7 @@
 #include "SpatiaLite.h"
 #include "ObservableProperty.h"
 #include "SpatiaLiteCacheParameters.h"
+#include "Keywords.h"
 #include <fmt/format.h>
 #include <macgyver/StringConversion.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
@@ -1919,6 +1920,9 @@ void SpatiaLite::addSpecialParameterToTimeSeries(
 
     else if (paramname == "modtime")
       timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, ""));
+
+    else if(is_time_parameter(paramname))
+      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, obstime));
 
     else
     {

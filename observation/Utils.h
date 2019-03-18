@@ -117,6 +117,8 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
                                            double lat,
                                            double lon);
 
+bool is_time_parameter(std::string paramname);
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
