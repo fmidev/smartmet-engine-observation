@@ -64,7 +64,7 @@ Spine::Stations findNearestStations(const StationInfo &info,
 
 }  // namespace
 
-void SpatiaLiteCache::initializeConnectionPool(int finCacheDuration)
+void SpatiaLiteCache::initializeConnectionPool(int)
 {
   try
   {
@@ -79,8 +79,6 @@ void SpatiaLiteCache::initializeConnectionPool(int finCacheDuration)
     // 3) observation_data
     boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
     spatialitedb->createTables();
-
-    boost::posix_time::ptime last_time(spatialitedb->getLatestObservationTime());
 
     // Check first if we already have stations in SpatiaLite db so that we know
     // if we can use it
@@ -109,6 +107,12 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
 {
   try
   {
+    if (settings.stationtype == "roadcloud")
+      return roadCloudValuesFromSpatiaLite(settings);
+
+    if (settings.stationtype == "netatmo")
+      return netAtmoValuesFromSpatiaLite(settings);
+
     if (settings.stationtype == "flash")
       return flashValuesFromSpatiaLite(settings);
 
@@ -147,6 +151,12 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
 {
   try
   {
+    if (settings.stationtype == "roadcloud")
+      return roadCloudValuesFromSpatiaLite(settings);
+
+    if (settings.stationtype == "netatmo")
+      return netAtmoValuesFromSpatiaLite(settings);
+
     if (settings.stationtype == "flash")
       return flashValuesFromSpatiaLite(settings);
 
@@ -542,6 +552,12 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
     else if (settings.stationtype == "flash")
       return flashIntervalIsCached(settings.starttime, settings.endtime);
 
+    else if (settings.stationtype == "roadcloud")
+      return roadCloudIntervalIsCached(settings.starttime, settings.endtime);
+
+    else if (settings.stationtype == "netatmo")
+      return netAtmoIntervalIsCached(settings.starttime, settings.endtime);
+
     // Either the stationtype is not cached or the requested time interval is
     // not cached
     return false;
@@ -660,6 +676,159 @@ void SpatiaLiteCache::cleanFlashDataCache(const boost::posix_time::time_duration
   Spine::WriteLock lock(itsFlashTimeIntervalMutex);
   itsFlashTimeIntervalStart = start;
   itsFlashTimeIntervalEnd = end;
+}
+
+bool SpatiaLiteCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                                const boost::posix_time::ptime &) const
+{
+  try
+  {
+    Spine::ReadLock lock(itsRoadCloudTimeIntervalMutex);
+    if (itsRoadCloudTimeIntervalStart.is_not_a_date_time())
+      return false;
+
+    // We ignore end time intentionally
+    return (starttime >= itsRoadCloudTimeIntervalStart);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+boost::posix_time::ptime SpatiaLiteCache::getLatestRoadCloudDataTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestRoadCloudDataTime();
+}
+
+std::size_t SpatiaLiteCache::fillRoadCloudCache(
+    const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const
+{
+  auto conn = itsConnectionPool->getConnection();
+  auto sz = conn->fillRoadCloudCache(mobileExternalCacheData, itsRoadCloudInsertCache);
+
+  // Update what really now really is in the database
+  auto start = conn->getOldestRoadCloudDataTime();
+  auto end = conn->getLatestRoadCloudDataTime();
+  Spine::WriteLock lock(itsRoadCloudTimeIntervalMutex);
+  itsRoadCloudTimeIntervalStart = start;
+  itsRoadCloudTimeIntervalEnd = end;
+  return sz;
+}
+
+void SpatiaLiteCache::cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const
+{
+  boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+  t = round_down_to_cache_clean_interval(t);
+
+  auto conn = itsConnectionPool->getConnection();
+  {
+    // We know the cache will not contain anything before this after the update
+    Spine::WriteLock lock(itsRoadCloudTimeIntervalMutex);
+    itsRoadCloudTimeIntervalStart = t;
+  }
+  conn->cleanRoadCloudCache(t);
+
+  // Update what really remains in the database
+  auto start = conn->getOldestRoadCloudDataTime();
+  auto end = conn->getLatestRoadCloudDataTime();
+  Spine::WriteLock lock(itsRoadCloudTimeIntervalMutex);
+  itsRoadCloudTimeIntervalStart = start;
+  itsRoadCloudTimeIntervalEnd = end;
+}
+
+Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpatiaLite(
+    Settings &settings) const
+{
+  try
+  {
+    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+
+    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
+    ret = spatialitedb->getCachedRoadCloudData(settings, itsParameters.parameterMap, itsTimeZones);
+
+    return ret;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+bool SpatiaLiteCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                              const boost::posix_time::ptime &) const
+{
+  try
+  {
+    Spine::ReadLock lock(itsNetAtmoTimeIntervalMutex);
+    if (itsNetAtmoTimeIntervalStart.is_not_a_date_time())
+      return false;
+    // We ignore end time intentionally
+    return (starttime >= itsNetAtmoTimeIntervalStart);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+std::size_t SpatiaLiteCache::fillNetAtmoCache(
+    const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const
+{
+  auto conn = itsConnectionPool->getConnection();
+  auto sz = conn->fillNetAtmoCache(mobileExternalCacheData, itsNetAtmoInsertCache);
+
+  // Update what really now really is in the database
+  auto start = conn->getOldestNetAtmoDataTime();
+  auto end = conn->getLatestNetAtmoDataTime();
+  Spine::WriteLock lock(itsNetAtmoTimeIntervalMutex);
+  itsNetAtmoTimeIntervalStart = start;
+  itsNetAtmoTimeIntervalEnd = end;
+  return sz;
+}
+
+void SpatiaLiteCache::cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const
+{
+  boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+  t = round_down_to_cache_clean_interval(t);
+
+  auto conn = itsConnectionPool->getConnection();
+  {
+    // We know the cache will not contain anything before this after the update
+    Spine::WriteLock lock(itsNetAtmoTimeIntervalMutex);
+    itsNetAtmoTimeIntervalStart = t;
+  }
+  conn->cleanNetAtmoCache(t);
+
+  // Update what really remains in the database
+  auto start = conn->getOldestNetAtmoDataTime();
+  auto end = conn->getLatestNetAtmoDataTime();
+  Spine::WriteLock lock(itsNetAtmoTimeIntervalMutex);
+  itsNetAtmoTimeIntervalStart = start;
+  itsNetAtmoTimeIntervalEnd = end;
+}
+
+Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaLite(
+    Settings &settings) const
+{
+  try
+  {
+    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+
+    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
+    ret = spatialitedb->getCachedNetAtmoData(settings, itsParameters.parameterMap, itsTimeZones);
+
+    return ret;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+boost::posix_time::ptime SpatiaLiteCache::getLatestNetAtmoDataTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestNetAtmoDataTime();
 }
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestObservationTime() const
@@ -830,6 +999,10 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
       cfg.get_optional_config_param<std::size_t>("cache.weatherDataQCInsertCacheSize", 1000000));
   itsFlashInsertCache.resize(
       cfg.get_optional_config_param<std::size_t>("cache.flashInsertCacheSize", 100000));
+  itsRoadCloudInsertCache.resize(
+      cfg.get_optional_config_param<std::size_t>("cache.roadCloudInsertCacheSize", 50000));
+  itsNetAtmoInsertCache.resize(
+      cfg.get_optional_config_param<std::size_t>("cache.netAtmoInsertCacheSize", 50000));
 
   itsParameters.sqlite.cache_size =
       cfg.get_optional_config_param<long>("sqlite.cache_size", 0);  // zero = use default value

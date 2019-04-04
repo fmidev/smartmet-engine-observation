@@ -26,6 +26,11 @@
 #include <cstring>
 #include <memory>
 
+#ifdef __llvm__
+#pragma clang diagnostic ignored "-Wc++98-compat-pedantic"
+#endif
+
+
 namespace sqlite3pp
 {
 namespace
@@ -176,34 +181,34 @@ inline int database::backup(
 inline void database::set_busy_handler(busy_handler h)
 {
   bh_ = h;
-  sqlite3_busy_handler(db_, bh_ ? busy_handler_impl : 0, &bh_);
+  sqlite3_busy_handler(db_, bh_ ? busy_handler_impl : nullptr, &bh_);
 }
 
 inline void database::set_commit_handler(commit_handler h)
 {
   ch_ = h;
-  sqlite3_commit_hook(db_, ch_ ? commit_hook_impl : 0, &ch_);
+  sqlite3_commit_hook(db_, ch_ ? commit_hook_impl : nullptr, &ch_);
 }
 
 inline void database::set_rollback_handler(rollback_handler h)
 {
   rh_ = h;
-  sqlite3_rollback_hook(db_, rh_ ? rollback_hook_impl : 0, &rh_);
+  sqlite3_rollback_hook(db_, rh_ ? rollback_hook_impl : nullptr, &rh_);
 }
 
 inline void database::set_update_handler(update_handler h)
 {
   uh_ = h;
-  sqlite3_update_hook(db_, uh_ ? update_hook_impl : 0, &uh_);
+  sqlite3_update_hook(db_, uh_ ? update_hook_impl : nullptr, &uh_);
 }
 
 inline void database::set_authorize_handler(authorize_handler h)
 {
   ah_ = h;
-  sqlite3_set_authorizer(db_, ah_ ? authorizer_impl : 0, &ah_);
+  sqlite3_set_authorizer(db_, ah_ ? authorizer_impl : nullptr, &ah_);
 }
 
-inline long long int database::last_insert_rowid() const
+inline long long database::last_insert_rowid() const
 {
   return sqlite3_last_insert_rowid(db_);
 }
@@ -245,7 +250,7 @@ inline char const* database::error_msg() const
 
 inline int database::execute(char const* sql)
 {
-  return sqlite3_exec(db_, sql, 0, 0, 0);
+  return sqlite3_exec(db_, sql, nullptr,nullptr,nullptr);
 }
 
 inline int database::executef(char const* sql, ...)
@@ -268,7 +273,7 @@ inline sqlite3* database::sqlite3_handle()
   return db_;
 }
 
-inline statement::statement(database& db, char const* stmt) : db_(db), stmt_(0), tail_(0)
+inline statement::statement(database& db, char const* stmt) : db_(db), stmt_(nullptr), tail_(nullptr)
 {
   if (stmt)
   {
@@ -299,11 +304,11 @@ inline int statement::prepare_impl(char const* stmt)
 #ifdef USE_ORIGINAL_CODE
   return sqlite3_prepare_v2(db_.db_, stmt, std::strlen(stmt), &stmt_, &tail_);
 #else
-  auto rc = sqlite3_prepare_v2(db_.db_, stmt, std::strlen(stmt), &stmt_, &tail_);
+  auto rc = sqlite3_prepare_v2(db_.db_, stmt, static_cast<int>(std::strlen(stmt)), &stmt_, &tail_);
   while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY)
   {
     boost::this_thread::sleep(boost::posix_time::milliseconds(10));
-    rc = sqlite3_prepare_v2(db_.db_, stmt, std::strlen(stmt), &stmt_, &tail_);
+    rc = sqlite3_prepare_v2(db_.db_, stmt, static_cast<int>(std::strlen(stmt)), &stmt_, &tail_);
   }
   return rc;
 #endif
@@ -366,7 +371,7 @@ inline int statement::bind(int idx, long long int value)
 inline int statement::bind(int idx, char const* value, copy_semantic fcopy)
 {
   return sqlite3_bind_text(
-      stmt_, idx, value, std::strlen(value), fcopy == copy ? SQLITE_TRANSIENT : SQLITE_STATIC);
+      stmt_, idx, value, static_cast<int>(std::strlen(value)), fcopy == copy ? SQLITE_TRANSIENT : SQLITE_STATIC);
 }
 
 inline int statement::bind(int idx, void const* value, int n, copy_semantic fcopy)
@@ -377,7 +382,7 @@ inline int statement::bind(int idx, void const* value, int n, copy_semantic fcop
 inline int statement::bind(int idx, std::string const& value, copy_semantic fcopy)
 {
   return sqlite3_bind_text(
-      stmt_, idx, value.c_str(), value.size(), fcopy == copy ? SQLITE_TRANSIENT : SQLITE_STATIC);
+      stmt_, idx, value.c_str(), static_cast<int>(value.size()), fcopy == copy ? SQLITE_TRANSIENT : SQLITE_STATIC);
 }
 
 inline int statement::bind(int idx)
@@ -525,7 +530,7 @@ inline char const* query::rows::get(int idx, char const*) const
 
 inline std::string query::rows::get(int idx, std::string) const
 {
-  return get(idx, (char const*)0);
+  return get(idx, static_cast<char *>(nullptr));
 }
 
 inline void const* query::rows::get(int idx, void const*) const
@@ -543,7 +548,7 @@ inline query::rows::getstream query::rows::getter(int idx)
   return getstream(this, idx);
 }
 
-inline query::query_iterator::query_iterator() : cmd_(0)
+inline query::query_iterator::query_iterator() : cmd_(nullptr)
 {
   rc_ = SQLITE_DONE;
 }

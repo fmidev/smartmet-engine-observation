@@ -3,6 +3,7 @@
 #include "DataItem.h"
 #include "FlashDataItem.h"
 #include "LocationItem.h"
+#include "MobileExternalDataItem.h"
 #include "Settings.h"
 #include "StationInfo.h"
 #include "Utils.h"
@@ -21,7 +22,7 @@ namespace Engine
 {
 namespace Observation
 {
-class ObservableProperty;
+struct ObservableProperty;
 
 class ObservationCache
 {
@@ -80,6 +81,20 @@ class ObservationCache
       const std::vector<WeatherDataQCItem> &cacheData) const = 0;
   virtual void cleanWeatherDataQCCache(
       const boost::posix_time::time_duration &timetokeep) const = 0;
+
+  virtual bool roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                         const boost::posix_time::ptime &endtime) const = 0;
+  virtual boost::posix_time::ptime getLatestRoadCloudDataTime() const = 0;
+  virtual std::size_t fillRoadCloudCache(
+      const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const = 0;
+  virtual void cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const = 0;
+
+  virtual bool netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                       const boost::posix_time::ptime &endtime) const = 0;
+  virtual boost::posix_time::ptime getLatestNetAtmoDataTime() const = 0;
+  virtual std::size_t fillNetAtmoCache(
+      const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const = 0;
+  virtual void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const = 0;
 
   virtual void fillLocationCache(const std::vector<LocationItem> &locations) const = 0;
 

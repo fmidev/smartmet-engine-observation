@@ -55,7 +55,7 @@ Spine::Stations findNearestStations(const StationInfo &info,
 
 }  // namespace
 
-void PostgreSQLCache::initializeConnectionPool(int finCacheDuration)
+void PostgreSQLCache::initializeConnectionPool(int)
 {
   try
   {
@@ -70,8 +70,6 @@ void PostgreSQLCache::initializeConnectionPool(int finCacheDuration)
     // 3) observation_data
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
     db->createTables();
-
-    boost::posix_time::ptime last_time(db->getLatestObservationTime());
 
     // Check first if we already have stations in PostgreSQL db so that we know
     // if we can use it
@@ -100,6 +98,12 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
 {
   try
   {
+    if (settings.stationtype == "roadcloud")
+      return roadCloudValuesFromPostgreSQL(settings);
+
+    if (settings.stationtype == "netatmo")
+      return netAtmoValuesFromPostgreSQL(settings);
+
     if (settings.stationtype == "flash")
       return flashValuesFromPostgreSQL(settings);
 
@@ -137,6 +141,12 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
 {
   try
   {
+    if (settings.stationtype == "roadcloud")
+      return roadCloudValuesFromPostgreSQL(settings);
+
+    if (settings.stationtype == "netatmo")
+      return netAtmoValuesFromPostgreSQL(settings);
+
     if (settings.stationtype == "flash")
       return flashValuesFromPostgreSQL(settings);
 
@@ -179,6 +189,39 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(Settings &set
 
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
     ret = db->getCachedFlashData(settings, itsParameters.parameterMap, itsTimeZones);
+
+    return ret;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+ts::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings &settings) const
+{
+  try
+  {
+    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+
+    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    ret = db->getCachedRoadCloudData(settings, itsParameters.parameterMap, itsTimeZones);
+
+    return ret;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+ts::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &settings) const
+{
+  try
+  {
+    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+
+    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    ret = db->getCachedNetAtmoData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
   }
@@ -531,19 +574,19 @@ bool PostgreSQLCache::dataAvailableInCache(const Settings &settings) const
         settings.stationtype == "opendata_mareograph" || settings.stationtype == "opendata_buoy" ||
         settings.stationtype == "research" || settings.stationtype == "syke")
     {
-      if (timeIntervalIsCached(settings.starttime, settings.endtime))
-      {
-        return true;
-      }
+      return timeIntervalIsCached(settings.starttime, settings.endtime);
     }
-    else if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
-             timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
-    {
-      return true;
-    }
-    else if (settings.stationtype == "flash" &&
-             flashIntervalIsCached(settings.starttime, settings.endtime))
-      return true;
+    else if ((settings.stationtype == "road" || settings.stationtype == "foreign"))
+      return timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime);
+
+    else if (settings.stationtype == "flash")
+      return flashIntervalIsCached(settings.starttime, settings.endtime);
+
+    else if (settings.stationtype == "roadcloud")
+      return roadCloudIntervalIsCached(settings.starttime, settings.endtime);
+
+    else if (settings.stationtype == "netatmo")
+      return netAtmoIntervalIsCached(settings.starttime, settings.endtime);
 
     // Either the stationtype is not cached or the requested time interval is
     // not cached
@@ -644,6 +687,78 @@ void PostgreSQLCache::cleanWeatherDataQCCache(
   return itsConnectionPool->getConnection()->cleanWeatherDataQCCache(timetokeep);
 }
 
+bool PostgreSQLCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                                const boost::posix_time::ptime &) const
+{
+  try
+  {
+    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    auto oldest_time = db->getOldestRoadCloudDataTime();
+
+    if (oldest_time.is_not_a_date_time())
+      return false;
+
+    // we need only the beginning though
+    return (starttime >= oldest_time);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+boost::posix_time::ptime PostgreSQLCache::getLatestRoadCloudDataTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestRoadCloudDataTime();
+}
+
+std::size_t PostgreSQLCache::fillRoadCloudCache(
+    const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const
+{
+  return itsConnectionPool->getConnection()->fillRoadCloudCache(mobileExternalCacheData);
+}
+
+void PostgreSQLCache::cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const
+{
+  return itsConnectionPool->getConnection()->cleanRoadCloudCache(timetokeep);
+}
+
+bool PostgreSQLCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                              const boost::posix_time::ptime &) const
+{
+  try
+  {
+    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    auto oldest_time = db->getOldestNetAtmoDataTime();
+
+    if (oldest_time.is_not_a_date_time())
+      return false;
+
+    // we need only the beginning though
+    return (starttime >= oldest_time);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+boost::posix_time::ptime PostgreSQLCache::getLatestNetAtmoDataTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestNetAtmoDataTime();
+}
+
+std::size_t PostgreSQLCache::fillNetAtmoCache(
+    const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const
+{
+  return itsConnectionPool->getConnection()->fillNetAtmoCache(mobileExternalCacheData);
+}
+
+void PostgreSQLCache::cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const
+{
+  return itsConnectionPool->getConnection()->cleanNetAtmoCache(timetokeep);
+}
+
 void PostgreSQLCache::fillLocationCache(const std::vector<LocationItem> &locations) const
 {
   return itsConnectionPool->getConnection()->fillLocationCache(locations);
@@ -690,8 +805,7 @@ boost::shared_ptr<std::vector<ObservableProperty> > PostgreSQLCache::observableP
 void PostgreSQLCache::readConfig(Spine::ConfigBase &cfg)
 {
   itsParameters.postgresql.host = cfg.get_mandatory_config_param<std::string>("postgresql.host");
-  itsParameters.postgresql.port =
-      Fmi::to_string(cfg.get_mandatory_config_param<unsigned int>("postgresql.port"));
+  itsParameters.postgresql.port = cfg.get_mandatory_config_param<unsigned int>("postgresql.port");
   itsParameters.postgresql.database =
       cfg.get_mandatory_config_param<std::string>("postgresql.database");
   itsParameters.postgresql.username =
@@ -701,7 +815,7 @@ void PostgreSQLCache::readConfig(Spine::ConfigBase &cfg)
   itsParameters.postgresql.encoding =
       cfg.get_optional_config_param<std::string>("postgresql.encoding", "UTF8");
   itsParameters.postgresql.connect_timeout =
-      Fmi::to_string(cfg.get_optional_config_param<unsigned int>("postgresql.connect_timeout", 60));
+      cfg.get_optional_config_param<unsigned int>("postgresql.connect_timeout", 60);
 
   itsParameters.connectionPoolSize = cfg.get_mandatory_config_param<int>("cache.poolSize");
 
@@ -714,6 +828,10 @@ void PostgreSQLCache::readConfig(Spine::ConfigBase &cfg)
       cfg.get_optional_config_param<std::size_t>("cache.weatherDataQCInsertCacheSize", 100000);
   itsParameters.flashInsertCacheSize =
       cfg.get_optional_config_param<std::size_t>("cache.flashInsertCacheSize", 10000);
+  itsParameters.roadCloudInsertCacheSize =
+      cfg.get_optional_config_param<std::size_t>("cache.roadCloudInsertCacheSize", 10000);
+  itsParameters.netAtmoInsertCacheSize =
+      cfg.get_optional_config_param<std::size_t>("cache.netAtmoInsertCacheSize", 10000);
 }
 
 bool PostgreSQLCache::cacheHasStations() const

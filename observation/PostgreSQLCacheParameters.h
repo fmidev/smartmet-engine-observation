@@ -4,10 +4,10 @@
 #include "EngineParameters.h"
 #include "FlashDataItem.h"
 #include "LocationItem.h"
-#include "PostgreSQLOptions.h"
 #include "Settings.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
+#include <macgyver/PostgreSQLConnection.h>
 #include <spine/Station.h>
 #include <spine/TimeSeries.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
@@ -32,16 +32,19 @@ struct PostgreSQLCacheParameters
       : quiet(p->quiet),
         stationInfo(p->stationInfo),
         parameterMap(p->parameterMap),
-        stationtypeConfig(p->stationtypeConfig)
+        stationtypeConfig(p->stationtypeConfig),
+        externalAndMobileProducerConfig(p->externalAndMobileProducerConfig)
   {
   }
 
-  PostgreSQLOptions postgresql;
+  Fmi::Database::PostgreSQLConnectionOptions postgresql;
   int connectionPoolSize;
   std::size_t maxInsertSize = 5000;
   std::size_t dataInsertCacheSize = 0;
   std::size_t weatherDataQCInsertCacheSize = 0;
   std::size_t flashInsertCacheSize = 0;
+  std::size_t roadCloudInsertCacheSize = 0;
+  std::size_t netAtmoInsertCacheSize = 0;
 
   bool quiet = true;
   bool cacheHasStations;
@@ -49,6 +52,7 @@ struct PostgreSQLCacheParameters
   boost::shared_ptr<StationInfo> stationInfo;
   const ParameterMapPtr& parameterMap;
   StationtypeConfig& stationtypeConfig;
+  const ExternalAndMobileProducerConfig& externalAndMobileProducerConfig;
 };
 
 }  // namespace Observation

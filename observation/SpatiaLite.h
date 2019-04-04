@@ -1,15 +1,24 @@
 #pragma once
 
 #include "DataItem.h"
+#include "ExternalAndMobileProducerConfig.h"
 #include "FlashDataItem.h"
 #include "InsertStatus.h"
 #include "LocationItem.h"
+#include "MobileExternalDataItem.h"
 #include "Settings.h"
 #include "SpatiaLiteOptions.h"
 #include "StationInfo.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
+#ifdef __llvm__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+#endif
 #include "sqlite3pp.h"
+#ifdef __llvm__
+#pragma clang diagnostic pop
+#endif
 
 // clang-format off
 namespace sqlite_api
@@ -188,6 +197,71 @@ class SpatiaLite : private boost::noncopyable
    */
   void cleanFlashDataCache(const boost::posix_time::ptime &newstarttime);
 
+  /**
+   * @brief Get the time of the newest RoadCloud observation in ext_obsdata_roadcloud table
+   * @return boost::posix_time::ptime The time of the newest RoadCloud observation
+   */
+
+  boost::posix_time::ptime getLatestRoadCloudDataTime();
+
+  /**
+   * @brief Get the time of the oldest RoadCloud observation in ext_obsdata_roadcloud table
+   * @return boost::posix_time::ptime The time of the oldest RoadCloud observation
+   */
+
+  boost::posix_time::ptime getOldestRoadCloudDataTime();
+
+  /**
+   * @brief Insert cached observations into ext_obsdata_roadcloud table
+   * @param RoadCloud observation data to be inserted into the table
+   */
+  std::size_t fillRoadCloudCache(const std::vector<MobileExternalDataItem> &mobileExternalCacheData,
+                                 InsertStatus &insertStatus);
+
+  /**
+   * @brief Delete old RoadCloud observation data from ext_obsdata_roadcloud table
+   * @param timetokeep Delete RoadCloud data which is older than given duration
+   */
+  void cleanRoadCloudCache(const boost::posix_time::ptime &newstarttime);
+
+  /**
+   * @brief Get the time of the newest NetAtmo observation in ext_obsdata_roadcloud table
+   * @return boost::posix_time::ptime The time of the newest NetAtmo observation
+   */
+
+  boost::posix_time::ptime getLatestNetAtmoDataTime();
+
+  /**
+   * @brief Get the time of the oldest NetAtmo observation in ext_obsdata_roadcloud table
+
+   * @return boost::posix_time::ptime The time of the oldest NetAtmo observation
+   */
+
+  boost::posix_time::ptime getOldestNetAtmoDataTime();
+
+  /**
+   * @brief Insert cached observations into ext_obsdata_roadcloud table
+   * @param NetAtmo observation data to be inserted into the table
+   */
+  std::size_t fillNetAtmoCache(const std::vector<MobileExternalDataItem> &mobileExternalCacheData,
+                               InsertStatus &insertStatus);
+
+  /**
+   * @brief Delete old NetAtmo observation data from ext_obsdata_roadcloud table
+   * @param timetokeep Delete NetAtmo data which is older than given duration
+   */
+  void cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime);
+
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedRoadCloudData(
+      const Settings &settings,
+      const ParameterMapPtr &parameterMap,
+      const Fmi::TimeZones &timezones);
+
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedNetAtmoData(
+      const Settings &settings,
+      const ParameterMapPtr &parameterMap,
+      const Fmi::TimeZones &timezones);
+
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedData(
       const SmartMet::Spine::Stations &stations,
       const Settings &settings,
@@ -316,6 +390,7 @@ class SpatiaLite : private boost::noncopyable
   std::size_t itsMaxInsertSize;
   std::map<std::string, std::string> stationTypeMap;
   Fmi::DateTimeParser itsDateTimeParser;
+  const ExternalAndMobileProducerConfig &itsExternalAndMobileProducerConfig;
 
   // Private methods
 
@@ -375,9 +450,15 @@ class SpatiaLite : private boost::noncopyable
   void createObservationDataTable();
   void createWeatherDataQCTable();
   void createFlashDataTable();
+  void createRoadCloudDataTable();
+  void createNetAtmoDataTable();
   void createObservablePropertyTable();
 
   boost::posix_time::ptime parseSqliteTime(sqlite3pp::query::iterator &iter, int column) const;
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedMobileAndExternalData(
+      const Settings &settings,
+      const ParameterMapPtr &parameterMap,
+      const Fmi::TimeZones &timezones);
 };
 
 }  // namespace Observation

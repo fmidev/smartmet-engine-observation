@@ -343,6 +343,11 @@ std::set<std::string> Engine::getValidStationTypes() const
       stationTypes.insert(mapEntry.first);
     }
 
+    for (auto const &mapEntry : itsEngineParameters->externalAndMobileProducerConfig)
+    {
+      stationTypes.insert(mapEntry.first);
+    }
+
     return stationTypes;
   }
   catch (...)

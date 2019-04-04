@@ -2,6 +2,7 @@
 
 #include <engines/geonames/Engine.h>
 
+#include "ExternalAndMobileProducerConfig.h"
 #include "ObservationCache.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
@@ -37,6 +38,7 @@ struct EngineParameters
 
   std::map<std::string, std::string> stationTypeMap;
   StationtypeConfig stationtypeConfig;
+  ExternalAndMobileProducerConfig externalAndMobileProducerConfig;
 
   ParameterMapPtr parameterMap;
 

@@ -31,8 +31,8 @@ struct SpatiaLiteCacheParameters
       : quiet(p->quiet),
         stationInfo(p->stationInfo),
         parameterMap(p->parameterMap),
-        stationtypeConfig(p->stationtypeConfig)
-
+        stationtypeConfig(p->stationtypeConfig),
+        externalAndMobileProducerConfig(p->externalAndMobileProducerConfig)
   {
   }
 
@@ -46,6 +46,7 @@ struct SpatiaLiteCacheParameters
   boost::shared_ptr<StationInfo> stationInfo;
   const ParameterMapPtr& parameterMap;
   StationtypeConfig& stationtypeConfig;
+  const ExternalAndMobileProducerConfig& externalAndMobileProducerConfig;
 };
 
 }  // namespace Observation

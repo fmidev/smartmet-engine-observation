@@ -1,16 +1,19 @@
 #pragma once
 
 #include "DataItem.h"
+#include "ExternalAndMobileDBInfo.h"
+#include "ExternalAndMobileProducerConfig.h"
 #include "FlashDataItem.h"
 #include "InsertStatus.h"
 #include "LocationItem.h"
-#include "PostgreSQLOptions.h"
+#include "MobileExternalDataItem.h"
+#include "ResultSet.h"
 #include "Settings.h"
 #include "StationInfo.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
 
-#include <locus/Connection.h>
+#include <macgyver/PostgreSQLConnection.h>
 #include <macgyver/TimeFormatter.h>
 #include <macgyver/TimeZones.h>
 #include <spine/Location.h>
@@ -28,8 +31,8 @@ namespace Engine
 {
 namespace Observation
 {
-class ObservableProperty;
-class PostgreSQLCacheParameters;
+struct ObservableProperty;
+struct PostgreSQLCacheParameters;
 
 struct cached_data
 {
@@ -53,42 +56,52 @@ class PostgreSQL : private boost::noncopyable
 
   /**
    * @brief Get the time of the newest observation in observation_data table
-   * @retval boost::posix_time::ptime The time of the newest observation
+   * @return boost::posix_time::ptime The time of the newest observation
    */
 
   boost::posix_time::ptime getLatestObservationTime();
+
+  /**
+   * @brief Get the time of the newest observation in flash_data table
+   * @return boost::posix_time::ptime The time of the newest observation
+   */
+
   boost::posix_time::ptime getLatestFlashTime();
 
   /**
    * @brief Get the time of the newest observation in weather_data_qc table
-   * @retval boost::posix_time::ptime The time of the newest observation
+   * @return boost::posix_time::ptime The time of the newest observation
    */
   boost::posix_time::ptime getLatestWeatherDataQCTime();
 
   /**
    * @brief Get the time of the oldest observation in observation_data table
-   * @retval boost::posix_time::ptime The time of the oldest observation
+   * @return boost::posix_time::ptime The time of the oldest observation
    */
 
   boost::posix_time::ptime getOldestObservationTime();
+
+  /**
+   * @brief Get the time of the oldest observation in flash_data table
+   * @return boost::posix_time::ptime The time of the oldest observation
+   */
+
   boost::posix_time::ptime getOldestFlashTime();
 
   /**
    * @brief Get the time of the oldest observation in weather_data_qc table
-   * @retval boost::posix_time::ptime The time of the oldest observation
+   * @return boost::posix_time::ptime The time of the oldest observation
    */
   boost::posix_time::ptime getOldestWeatherDataQCTime();
 
   /**
    * @brief Create the PostgreSQL tables from scratch
    */
-
   void createTables();
 
   /**
    * @brief Return the number of rows in the stations table
    */
-
   size_t getStationCount();
 
   void updateStationsAndGroups(const StationInfo &info);
@@ -121,10 +134,9 @@ class PostgreSQL : private boost::noncopyable
       const boost::posix_time::ptime &endtime);
 
   void setConnectionId(int connectionId) { itsConnectionId = connectionId; }
-  int connectionId() { return itsConnectionId; }
+  int connectionId() { return static_cast<int>(itsConnectionId); }
   /**
    * @brief Insert new stations or update old ones in locations table.
-   * @param[in] Vector of locations
    */
   void fillLocationCache(const std::vector<LocationItem> &locations);
 
@@ -145,7 +157,7 @@ class PostgreSQL : private boost::noncopyable
 
   /**
    * @brief Insert cached observations into observation_data table
-   * @param cacheData Observation data to be inserted into the table
+   * @param flashCacheData Observation data to be inserted into the table
    */
   std::size_t fillFlashDataCache(const std::vector<FlashDataItem> &flashCacheData);
 
@@ -165,14 +177,14 @@ class PostgreSQL : private boost::noncopyable
   /**
    * @brief Delete everything from observation_data table which is
    *        older than the given duration
-   * @param[in] timetokeep
+   * @param[in] timetokeep Keep these in cache
    */
   void cleanDataCache(const boost::posix_time::time_duration &timetokeep);
 
   /**
    * @brief Delete everything from weather_data_qc table which
    *        is older than given duration
-   * @param[in] timetokeep
+   * @param[in] timetokeep Keep these in cache
    */
   void cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep);
 
@@ -187,6 +199,69 @@ class PostgreSQL : private boost::noncopyable
    * @param timetokeep Delete everything from flash_data which is older than given duration
    */
   void cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep);
+
+  /**
+   * @brief Get the time of the oldest RoadCloud observation in ext_obsdata table
+   * @return boost::posix_time::ptime The time of the oldest observation
+   */
+
+  boost::posix_time::ptime getOldestRoadCloudDataTime();
+
+  /**
+   * @brief Get the time of the newest RoadCloud observation in ext_obsdata table
+   * @return boost::posix_time::ptime The time of the newest observation
+   */
+
+  boost::posix_time::ptime getLatestRoadCloudDataTime();
+
+  /**
+   * @brief Delete old RoadCloud data from ext_obsdata table
+   * @param timetokeep Delete RoadCloud data from ext_obsdata which is older than given duration
+   */
+  void cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep);
+
+  /**
+   * @brief Insert cached RoadCloud observations into ext_obsdata table
+   * @param RoadCloud observation data to be inserted into the table
+   */
+  std::size_t fillRoadCloudCache(
+      const std::vector<MobileExternalDataItem> &mobileExternalCacheData);
+
+  /**
+   * @brief Get the time of the oldest NetAtmo observation in ext_obsdata table
+   * @return boost::posix_time::ptime The time of the oldest observation
+   */
+
+  boost::posix_time::ptime getOldestNetAtmoDataTime();
+
+  /**
+   * @brief Get the time of the newest NetAtmo observation in ext_obsdata table
+   * @return boost::posix_time::ptime The time of the newest observation
+   */
+
+  boost::posix_time::ptime getLatestNetAtmoDataTime();
+
+  /**
+   * @brief Delete old NetAtmo data from ext_obsdata table
+   * @param timetokeep Delete NetAtmo data which is older than given duration
+   */
+  void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep);
+
+  /**
+   * @brief Insert cached NetAtmo observations into ext_obsdata table
+   * @param NetAtmo observation data to be inserted into the table
+   */
+  std::size_t fillNetAtmoCache(const std::vector<MobileExternalDataItem> &mobileExternalCacheData);
+
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedRoadCloudData(
+      const Settings &settings,
+      const ParameterMapPtr &parameterMap,
+      const Fmi::TimeZones &timezones);
+
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedNetAtmoData(
+      const Settings &settings,
+      const ParameterMapPtr &parameterMap,
+      const Fmi::TimeZones &timezones);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedData(
       const SmartMet::Spine::Stations &stations,
@@ -234,8 +309,7 @@ class PostgreSQL : private boost::noncopyable
    * group
    *        If the stationgroup_codes list is empty the station group is not
    * used.
-   * @retval true If the data is filled successfully.
-   * @retval false If the data is not filled at all.
+   * @return true If the data is filled successfully, false If the data is not filled at all.
    */
   bool fillMissing(SmartMet::Spine::Station &s,
                    const std::set<std::string> &stationgroup_codes,
@@ -250,8 +324,8 @@ class PostgreSQL : private boost::noncopyable
    * group
    *        If the stationgroup_codes list is empty the station group is not
    * used.
-   * @retval true If the station is found and data stored into the given object.
-   * @retval false If the station is no found.
+   * @return true If the station is found and data stored into the given object, false If the
+   * station is no found.
    */
   bool getStationById(SmartMet::Spine::Station &station,
                       int station_id,
@@ -267,8 +341,8 @@ class PostgreSQL : private boost::noncopyable
    * group
    *        If the stationgroup_codes list is empty the station group is not
    * used.
-   * @retval true If the station is found and data stored into the given object.
-   * @retval false If the station is no found.
+   * @return true If the station is found and data stored into the given object.
+   * @return false If the station is no found.
    */
   bool getStationByGeoid(Spine::Station &station,
                          int geo_id,
@@ -282,8 +356,8 @@ class PostgreSQL : private boost::noncopyable
    * @brief Get count of flashes are in the time interval
    * @param starttime Start of the time interval
    * @param endtime End of the time interval
-   * @param boundingBox The bounding box. Must have crs EPSG:4326.
-   * @retval FlashCounts The number of flashes in the interval
+   * @param locations Locations
+   * @return FlashCounts The number of flashes in the interval
    */
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
@@ -291,11 +365,7 @@ class PostgreSQL : private boost::noncopyable
 
   /**
    * @brief Get observable properties
-   * @param parameters
-   * @param language
-   * @param parameterMap
-   * @param stationType
-   * @retval Shared pointer to vector of observable properties
+   * @return Shared pointer to vector of observable properties
    */
   boost::shared_ptr<std::vector<ObservableProperty>> getObservableProperties(
       std::vector<std::string> &parameters,
@@ -305,6 +375,12 @@ class PostgreSQL : private boost::noncopyable
 
   size_t selectCount(const std::string &queryString);
 
+  static ResultSet getResultSetForMobileExternalData(
+      const pqxx::result &pgResultSet,
+      const std::vector<std::string> &queryFields,
+      const ExternalAndMobileDBInfo &dbInfo,
+      const ExternalAndMobileProducerMeasurand &producerMeasurand);
+
  private:
   // Private members
 
@@ -312,14 +388,17 @@ class PostgreSQL : private boost::noncopyable
   boost::atomic<bool> itsShutdownRequested;
   std::size_t itsConnectionId;
   std::size_t itsMaxInsertSize;
-  std::map<std::string, std::string> stationTypeMap;
 
   InsertStatus itsDataInsertCache;
   InsertStatus itsWeatherQCInsertCache;
   InsertStatus itsFlashInsertCache;
+  InsertStatus itsRoadCloudInsertCache;
+  InsertStatus itsNetAtmoInsertCache;
+  const ExternalAndMobileProducerConfig &itsExternalAndMobileProducerConfig;
+  std::map<unsigned int, std::string> itsPostgreDataTypes;
 
   // Private methods
-  Locus::Connection itsDB;
+  Fmi::Database::PostgreSQLConnection itsDB;
   std::string stationType(const std::string &type);
   std::string stationType(SmartMet::Spine::Station &station);
 
@@ -375,6 +454,8 @@ class PostgreSQL : private boost::noncopyable
   void createObservationDataTable();
   void createWeatherDataQCTable();
   void createFlashDataTable();
+  void createRoadCloudDataTable();
+  void createNetAtmoDataTable();
   void createObservablePropertyTable();
   Spine::Stations fetchStationsFromDB(const std::string &sqlStmt,
                                       const Settings &settings,
@@ -389,7 +470,10 @@ class PostgreSQL : private boost::noncopyable
   void dropIndex(const std::string &idx_name, bool transaction = false) const;
 
   boost::posix_time::ptime getTime(const std::string &timeQuery) const;
-  std::map<unsigned int, std::string> itsPostgreDataTypes;
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedMobileAndExternalData(
+      const Settings &settings,
+      const ParameterMapPtr &parameterMap,
+      const Fmi::TimeZones &timezones);
 };
 
 }  // namespace Observation
