@@ -21,7 +21,7 @@ BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: smartmet-library-locus-devel >= 18.11.16
-BuildRequires: smartmet-library-macgyver-devel >= 18.11.24
+BuildRequires: smartmet-library-macgyver-devel >= 19.4.4
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 5.2.0
@@ -31,7 +31,7 @@ Requires: smartmet-server >= 18.12.14
 Requires: smartmet-engine-geonames >= 19.2.26
 Requires: smartmet-library-spine >= 19.3.14
 Requires: smartmet-library-locus >= 18.11.16
-Requires: smartmet-library-macgyver >= 18.11.24
+Requires: smartmet-library-macgyver >= 19.4.4
 Requires: libatomic
 Requires: unixODBC
 Requires: mysql++
