@@ -8,6 +8,10 @@ namespace Engine
 {
 namespace Observation
 {
+#ifdef __llvm__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
 class DummyDatabaseDriver : public DatabaseDriver
 {
  public:
@@ -37,6 +41,9 @@ class DummyDatabaseDriver : public DatabaseDriver
   MetaData metaData(const std::string &producer) { return MetaData(); }
   std::string id() const { return "dummy"; }
 };
+#ifdef __llvm__
+#pragma clang diagnostic pop
+#endif
 
 }  // namespace Observation
 }  // namespace Engine

@@ -1,6 +1,8 @@
 #include "PostgreSQL.h"
+#include "ExternalAndMobileDBInfo.h"
 #include "ObservableProperty.h"
 #include "PostgreSQLCacheParameters.h"
+#include "ResultSet.h"
 #include <fmt/format.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeParser.h>
@@ -11,6 +13,10 @@
 #include <chrono>
 #include <iostream>
 #include <thread>
+#ifdef __llvm__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 namespace BO = SmartMet::Engine::Observation;
 namespace ts = SmartMet::Spine::TimeSeries;
@@ -49,11 +55,13 @@ namespace SmartMet
 // Mutex for write operations - otherwise you get table locked errors
 // in MULTITHREAD-mode.
 
-Spine::MutexType stations_write_mutex;
-Spine::MutexType locations_write_mutex;
-Spine::MutexType observation_data_write_mutex;
-Spine::MutexType weather_data_qc_write_mutex;
-Spine::MutexType flash_data_write_mutex;
+static Spine::MutexType stations_write_mutex;
+static Spine::MutexType locations_write_mutex;
+static Spine::MutexType observation_data_write_mutex;
+static Spine::MutexType weather_data_qc_write_mutex;
+static Spine::MutexType flash_data_write_mutex;
+static Spine::MutexType roadcloud_data_write_mutex;
+static Spine::MutexType netatmo_data_write_mutex;
 
 namespace Engine
 {
@@ -109,40 +117,29 @@ void solveMeasurandIds(const std::vector<std::string> &parameters,
   }
 }
 
-};  // namespace
+}  // namespace
 
 PostgreSQL::PostgreSQL(const PostgreSQLCacheParameters &options)
     : itsShutdownRequested(false),
       itsMaxInsertSize(options.maxInsertSize),
       itsDataInsertCache(options.dataInsertCacheSize),
       itsWeatherQCInsertCache(options.weatherDataQCInsertCacheSize),
-      itsFlashInsertCache(options.flashInsertCacheSize)
+      itsFlashInsertCache(options.flashInsertCacheSize),
+      itsRoadCloudInsertCache(options.roadCloudInsertCacheSize),
+      itsNetAtmoInsertCache(options.netAtmoInsertCacheSize),
+      itsExternalAndMobileProducerConfig(options.externalAndMobileProducerConfig)
 {
   try
   {
     srid = "4326";
 
-    itsDB.open(options.postgresql.host,
-               options.postgresql.username,
-               options.postgresql.password,
-               options.postgresql.database,
-               options.postgresql.encoding,
-               options.postgresql.port,
-               options.postgresql.connect_timeout);
+    itsDB.open(options.postgresql);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     if (itsDB.isConnected())
     {
-      //      itsDB.setDebug(true);
-      // Fetch data types
-      pqxx::result result_set = itsDB.executeNonTransaction("select typname,oid from pg_type");
-      for (auto row : result_set)
-      {
-        std::string datatype = row[0].as<string>();
-        unsigned int oid = row[1].as<unsigned int>();
-        itsPostgreDataTypes.insert(std::make_pair(oid, datatype));
-      }
+      itsPostgreDataTypes = itsDB.dataTypes();
     }
   }
   catch (...)
@@ -166,6 +163,8 @@ void PostgreSQL::createTables()
     createWeatherDataQCTable();
     createFlashDataTable();
     createObservablePropertyTable();
+    createRoadCloudDataTable();
+    createNetAtmoDataTable();
   }
   catch (...)
   {
@@ -372,6 +371,82 @@ void PostgreSQL::createFlashDataTable()
   }
 }
 
+void PostgreSQL::createRoadCloudDataTable()
+{
+  try
+  {
+    itsDB.executeNonTransaction(
+        "CREATE TABLE IF NOT EXISTS ext_obsdata_roadcloud("
+        "prod_id INTEGER, "
+        "station_id INTEGER DEFAULT 0, "
+        "dataset_id character VARYING(50) DEFAULT 0, "
+        "data_level INTEGER DEFAULT 0, "
+        "mid INTEGER, "
+        "sensor_no INTEGER DEFAULT 0, "
+        "data_time timestamp without time zone NOT NULL, "
+        "data_value NUMERIC, "
+        "data_value_txt character VARYING(30), "
+        "data_quality INTEGER, "
+        "ctrl_status INTEGER, "
+        "created timestamp without time zone DEFAULT timezone('UTC'::text, now()), "
+        "altitude NUMERIC)");
+    pqxx::result result_set = itsDB.executeNonTransaction(
+        "SELECT * FROM geometry_columns WHERE f_table_name='ext_obsdata_roadcloud'");
+    if (result_set.empty())
+    {
+      itsDB.executeNonTransaction(
+          "SELECT AddGeometryColumn('ext_obsdata_roadcloud', 'geom', 4326, 'POINT', 2)");
+      itsDB.executeNonTransaction(
+          "CREATE INDEX IF NOT EXISTS ext_obsdata_roadcloud_gix ON ext_obsdata_roadcloud USING "
+          "GIST (geom)");
+      itsDB.executeNonTransaction(
+          "ALTER TABLE ext_obsdata_roadcloud ADD PRIMARY KEY (prod_id,mid,data_time, geom)");
+    }
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_roadcloud table failed!");
+  }
+}
+
+void PostgreSQL::createNetAtmoDataTable()
+{
+  try
+  {
+    itsDB.executeNonTransaction(
+        "CREATE TABLE IF NOT EXISTS ext_obsdata_netatmo("
+        "prod_id INTEGER, "
+        "station_id INTEGER DEFAULT 0, "
+        "dataset_id character VARYING(50) DEFAULT 0, "
+        "data_level INTEGER DEFAULT 0, "
+        "mid INTEGER, "
+        "sensor_no INTEGER DEFAULT 0, "
+        "data_time timestamp without time zone NOT NULL, "
+        "data_value NUMERIC, "
+        "data_value_txt character VARYING(30), "
+        "data_quality INTEGER, "
+        "ctrl_status INTEGER, "
+        "created timestamp without time zone DEFAULT timezone('UTC'::text, now()), "
+        "altitude NUMERIC)");
+    pqxx::result result_set = itsDB.executeNonTransaction(
+        "SELECT * FROM geometry_columns WHERE f_table_name='ext_obsdata_netatmo'");
+    if (result_set.empty())
+    {
+      itsDB.executeNonTransaction(
+          "SELECT AddGeometryColumn('ext_obsdata_netatmo', 'geom', 4326, 'POINT', 2)");
+      itsDB.executeNonTransaction(
+          "CREATE INDEX IF NOT EXISTS ext_obsdata_netatmo_gix ON ext_obsdata_netatmo USING GIST "
+          "(geom)");
+      itsDB.executeNonTransaction(
+          "ALTER TABLE ext_obsdata_netatmo ADD PRIMARY KEY (prod_id,mid,data_time, geom)");
+    }
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_netatmo table failed!");
+  }
+}
+
 void PostgreSQL::createStationTable()
 {
   try
@@ -503,6 +578,62 @@ boost::posix_time::ptime PostgreSQL::getOldestFlashTime()
   }
 }
 
+boost::posix_time::ptime PostgreSQL::getOldestRoadCloudDataTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_roadcloud";
+    string time_field = "data_time";
+    return getOldestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Oldest RoadCloud data time query failed!");
+  }
+}
+
+boost::posix_time::ptime PostgreSQL::getLatestRoadCloudDataTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_roadcloud";
+    string time_field = "data_time";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Latest RoadCloud data time query failed!");
+  }
+}
+
+boost::posix_time::ptime PostgreSQL::getOldestNetAtmoDataTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_netatmo";
+    string time_field = "data_time";
+    return getOldestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Oldest NetAtmo data time query failed!");
+  }
+}
+
+boost::posix_time::ptime PostgreSQL::getLatestNetAtmoDataTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_netatmo";
+    string time_field = "data_time";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Latest NetAtmo data time query failed!");
+  }
+}
+
 boost::posix_time::ptime PostgreSQL::getLatestTimeFromTable(const std::string tablename,
                                                             const std::string time_field)
 {
@@ -626,6 +757,7 @@ void PostgreSQL::cleanFlashDataCache(const boost::posix_time::time_duration &tim
     t = round_down_to_hour(t);
 
     auto oldest = getOldestFlashTime();
+
     if (t <= oldest)
       return;
 
@@ -637,6 +769,53 @@ void PostgreSQL::cleanFlashDataCache(const boost::posix_time::time_duration &tim
   catch (...)
   {
     throw Spine::Exception::Trace(BCP, "Cleaning of FlashDataCache failed!");
+  }
+}
+
+void PostgreSQL::cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep)
+{
+  try
+  {
+    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    t = round_down_to_hour(t);
+
+    auto oldest = getOldestRoadCloudDataTime();
+
+    if (t <= oldest)
+      return;
+
+    Spine::WriteLock lock(roadcloud_data_write_mutex);
+    std::string sqlStmt = ("DELETE FROM ext_obsdata_roadcloud WHERE data_time < '" +
+                           Fmi::to_iso_extended_string(t) + "'");
+    itsDB.executeNonTransaction(sqlStmt);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning of RoadCloud cache failed!");
+  }
+}
+
+void PostgreSQL::cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep)
+{
+  try
+  {
+    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    t = round_down_to_hour(t);
+
+    auto oldest = getOldestNetAtmoDataTime();
+
+    if (t <= oldest)
+      return;
+
+    Spine::WriteLock lock(netatmo_data_write_mutex);
+    std::string sqlStmt = ("DELETE FROM ext_obsdata_netatmo WHERE data_time < '" +
+                           Fmi::to_iso_extended_string(t) + "'");
+
+    itsDB.executeNonTransaction(sqlStmt);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning of RoadCloud cache failed!");
   }
 }
 
@@ -719,7 +898,10 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
               values += Fmi::to_string(item.measurand_no) + ",";
               values += Fmi::to_string(item.data_value) + ",";
               values += Fmi::to_string(item.data_quality) + ",";
-              values += Fmi::to_string(item.data_source) + ")";
+              if (item.data_source)
+                values += Fmi::to_string(item.data_source) + ")";
+              else
+                values += "NULL)";
               values_vector.push_back(values);
             }
 
@@ -1058,7 +1240,458 @@ std::size_t PostgreSQL::fillFlashDataCache(const vector<FlashDataItem> &flashCac
   {
     throw Spine::Exception::Trace(BCP, "Flash data cache update failed!");
   }
-}  // namespace Observation
+}
+
+std::size_t PostgreSQL::fillRoadCloudCache(
+    const vector<MobileExternalDataItem> &mobileExternalCacheData)
+{
+  try
+  {
+    if (mobileExternalCacheData.empty())
+      return mobileExternalCacheData.size();
+
+    std::size_t pos1 = 0;
+    std::size_t write_count = 0;
+    itsDB.startTransaction();
+    itsDB.executeTransaction("LOCK TABLE ext_obsdata_roadcloud IN SHARE MODE");
+
+    while (pos1 < mobileExternalCacheData.size())
+    {
+      // Yield if there is more than 1 block
+      if (pos1 > 0)
+        boost::this_thread::yield();
+
+      // Collect new items before taking a lock - we might avoid one completely
+      std::vector<std::size_t> new_items;
+      std::vector<std::size_t> new_hashes;
+      new_items.reserve(itsMaxInsertSize);
+      new_hashes.reserve(itsMaxInsertSize);
+
+      std::size_t pos2;
+      for (pos2 = pos1;
+           new_hashes.size() < itsMaxInsertSize && pos2 < mobileExternalCacheData.size();
+           ++pos2)
+      {
+        const auto &item = mobileExternalCacheData[pos2];
+
+        auto hash = item.hash_value();
+
+        if (!itsRoadCloudInsertCache.exists(hash))
+        {
+          new_items.push_back(pos2);
+          new_hashes.push_back(hash);
+        }
+      }
+
+      // Now insert the new items
+      if (!new_items.empty())
+      {
+        Spine::WriteLock lock(roadcloud_data_write_mutex);
+        std::vector<std::size_t> mobileDataToUpdate = new_items;
+
+        while (mobileDataToUpdate.size() > 0)
+        {
+          const auto &last_item = mobileExternalCacheData[mobileDataToUpdate.back()];
+          std::vector<std::string> values_vector;
+          std::set<std::string> key_set;  // to check duplicates
+          std::vector<std::size_t> duplicateMobileObs;
+
+          for (const auto i : mobileDataToUpdate)
+          {
+            const auto &item = mobileExternalCacheData[i];
+
+            std::string data_time = Fmi::to_iso_string(item.data_time);
+            boost::replace_all(data_time, ",", ".");
+            std::string key = Fmi::to_string(item.prod_id);
+            key += Fmi::to_string(item.mid);
+            key += data_time;
+            key += Fmi::to_string(item.longitude);
+            key += Fmi::to_string(item.latitude);
+            //  prod_id, mid, data_time, longitude, latitude
+            if (key_set.find(key) != key_set.end())
+            {
+              duplicateMobileObs.push_back(i);
+            }
+            else
+            {
+              key_set.insert(key);
+
+              std::string obs_location =
+                  "ST_GeomFromText('POINT(" + Fmi::to_string("%.10g", item.longitude) + " " +
+                  Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
+
+              std::string values = "(";
+              values += Fmi::to_string(item.prod_id) + ",";
+              if (item.station_id)
+                values += Fmi::to_string(*item.station_id) + ",";
+              else
+                values += "NULL,";
+              if (item.dataset_id)
+                values += "'" + *item.dataset_id + "',";
+              else
+                values += "NULL,";
+              if (item.data_level)
+                values += Fmi::to_string(*item.data_level) + ",";
+              else
+                values += "NULL,";
+              values += Fmi::to_string(item.mid) + ",";
+              if (item.sensor_no)
+                values += Fmi::to_string(*item.sensor_no) + ",";
+              else
+                values += "NULL,";
+              values += "'" + data_time + "',";
+              values += Fmi::to_string(item.data_value) + ",";
+              if (item.data_value_txt)
+                values += "'" + *item.data_value_txt + "',";
+              else
+                values += "NULL,";
+              if (item.data_quality)
+                values += Fmi::to_string(*item.data_quality) + ",";
+              else
+                values += "NULL,";
+              if (item.ctrl_status)
+                values += Fmi::to_string(*item.ctrl_status) + ",";
+              else
+                values += "NULL,";
+              std::string created = Fmi::to_iso_string(item.created);
+              boost::replace_all(created, ",", ".");
+              values += "'" + created + "',";
+              if (item.altitude)
+                values += Fmi::to_string(*item.altitude) + ",";
+              else
+                values += "NULL,";
+              values += obs_location + ")";
+              values_vector.push_back(values);
+            }
+
+            if ((values_vector.size() % itsMaxInsertSize == 0) || &item == &last_item)
+            {
+              std::string sqlStmt =
+                  "INSERT INTO ext_obsdata_roadcloud "
+                  "(prod_id, station_id, dataset_id, data_level, mid, sensor_no, "
+                  "data_time, data_value, data_value_txt, data_quality, ctrl_status, "
+                  "created, altitude, geom) "
+                  "VALUES ";
+
+              for (const auto &v : values_vector)
+              {
+                sqlStmt += v;
+                if (&v != &values_vector.back())
+                  sqlStmt += ",";
+              }
+
+              sqlStmt +=
+                  " ON CONFLICT(prod_id, mid, data_time, geom) DO "
+                  "UPDATE SET "
+                  "(station_id, dataset_id, data_level, sensor_no, data_value, data_value_txt, "
+                  "data_quality, ctrl_status, created, altitude) = "
+                  "(EXCLUDED.station_id, EXCLUDED.dataset_id, EXCLUDED.data_level, "
+                  "EXCLUDED.sensor_no, EXCLUDED.data_value, EXCLUDED.data_value_txt, "
+                  "EXCLUDED.data_quality, EXCLUDED.ctrl_status, EXCLUDED.created, "
+                  "EXCLUDED.altitude)";
+
+              itsDB.executeTransaction(sqlStmt);
+              values_vector.clear();
+            }
+          }
+          mobileDataToUpdate = duplicateMobileObs;
+        }
+      }
+
+      // We insert the new hashes only when the transaction has completed so that
+      // if the above code for some reason throws, the rows may be inserted again
+      // in a later attempt.
+
+      write_count += new_hashes.size();
+      for (const auto &hash : new_hashes)
+        itsRoadCloudInsertCache.add(hash);
+
+      pos1 = pos2;
+    }
+
+    itsDB.commitTransaction();
+    itsDB.executeNonTransaction("VACUUM ANALYZE ext_obsdata_roadcloud");
+
+    return write_count;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "RoadCloud cache update failed!");
+  }
+}
+
+std::size_t PostgreSQL::fillNetAtmoCache(
+    const vector<MobileExternalDataItem> &mobileExternalCacheData)
+{
+  try
+  {
+    if (mobileExternalCacheData.empty())
+      return mobileExternalCacheData.size();
+
+    std::size_t pos1 = 0;
+    std::size_t write_count = 0;
+    itsDB.startTransaction();
+    itsDB.executeTransaction("LOCK TABLE ext_obsdata_netatmo IN SHARE MODE");
+
+    while (pos1 < mobileExternalCacheData.size())
+    {
+      // Yield if there is more than 1 block
+      if (pos1 > 0)
+        boost::this_thread::yield();
+
+      // Collect new items before taking a lock - we might avoid one completely
+      std::vector<std::size_t> new_items;
+      std::vector<std::size_t> new_hashes;
+      new_items.reserve(itsMaxInsertSize);
+      new_hashes.reserve(itsMaxInsertSize);
+
+      std::size_t pos2;
+      for (pos2 = pos1;
+           new_hashes.size() < itsMaxInsertSize && pos2 < mobileExternalCacheData.size();
+           ++pos2)
+      {
+        const auto &item = mobileExternalCacheData[pos2];
+
+        auto hash = item.hash_value();
+
+        if (!itsNetAtmoInsertCache.exists(hash))
+        {
+          new_items.push_back(pos2);
+          new_hashes.push_back(hash);
+        }
+      }
+
+      // Now insert the new items
+      if (!new_items.empty())
+      {
+        Spine::WriteLock lock(netatmo_data_write_mutex);
+        std::vector<std::size_t> mobileDataToUpdate = new_items;
+
+        while (mobileDataToUpdate.size() > 0)
+        {
+          const auto &last_item = mobileExternalCacheData[mobileDataToUpdate.back()];
+          std::vector<std::string> values_vector;
+          std::set<std::string> key_set;  // to check duplicates
+          std::vector<std::size_t> duplicateMobileObs;
+
+          for (const auto i : mobileDataToUpdate)
+          {
+            const auto &item = mobileExternalCacheData[i];
+
+            std::string data_time = Fmi::to_iso_string(item.data_time);
+            boost::replace_all(data_time, ",", ".");
+            std::string key = Fmi::to_string(item.prod_id);
+            key += Fmi::to_string(item.mid);
+            key += data_time;
+            key += Fmi::to_string(item.longitude);
+            key += Fmi::to_string(item.latitude);
+            //  prod_id, mid, data_time, longitude, latitude
+            if (key_set.find(key) != key_set.end())
+            {
+              duplicateMobileObs.push_back(i);
+            }
+            else
+            {
+              key_set.insert(key);
+
+              std::string obs_location =
+                  "ST_GeomFromText('POINT(" + Fmi::to_string("%.10g", item.longitude) + " " +
+                  Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
+
+              std::string values = "(";
+              values += Fmi::to_string(item.prod_id) + ",";
+              if (item.station_id)
+                values += Fmi::to_string(*item.station_id) + ",";
+              else
+                values += "NULL,";
+              if (item.dataset_id)
+                values += "'" + *item.dataset_id + "',";
+              else
+                values += "NULL,";
+              if (item.data_level)
+                values += Fmi::to_string(*item.data_level) + ",";
+              else
+                values += "NULL,";
+              values += Fmi::to_string(item.mid) + ",";
+              if (item.sensor_no)
+                values += Fmi::to_string(*item.sensor_no) + ",";
+              else
+                values += "NULL,";
+              values += "'" + data_time + "',";
+              values += Fmi::to_string(item.data_value) + ",";
+              if (item.data_value_txt)
+                values += "'" + *item.data_value_txt + "',";
+              else
+                values += "NULL,";
+              if (item.data_quality)
+                values += Fmi::to_string(*item.data_quality) + ",";
+              else
+                values += "NULL,";
+              if (item.ctrl_status)
+                values += Fmi::to_string(*item.ctrl_status) + ",";
+              else
+                values += "NULL,";
+              std::string created = Fmi::to_iso_string(item.created);
+              boost::replace_all(created, ",", ".");
+              values += "'" + created + "',";
+              if (item.altitude)
+                values += Fmi::to_string(*item.altitude) + ",";
+              else
+                values += "NULL,";
+              values += obs_location + ")";
+              values_vector.push_back(values);
+            }
+
+            if ((values_vector.size() % itsMaxInsertSize == 0) || &item == &last_item)
+            {
+              std::string sqlStmt =
+                  "INSERT INTO ext_obsdata_netatmo "
+                  "(prod_id, station_id, dataset_id, data_level, mid, sensor_no, "
+                  "data_time, data_value, data_value_txt, data_quality, ctrl_status, "
+                  "created, altitude, geom) "
+                  "VALUES ";
+
+              for (const auto &v : values_vector)
+              {
+                sqlStmt += v;
+                if (&v != &values_vector.back())
+                  sqlStmt += ",";
+              }
+
+              sqlStmt +=
+                  " ON CONFLICT(prod_id, mid, data_time, geom) DO "
+                  "UPDATE SET "
+                  "(station_id, dataset_id, data_level, sensor_no, data_value, data_value_txt, "
+                  "data_quality, ctrl_status, created, altitude) = "
+                  "(EXCLUDED.station_id, EXCLUDED.dataset_id, EXCLUDED.data_level, "
+                  "EXCLUDED.sensor_no, EXCLUDED.data_value, EXCLUDED.data_value_txt, "
+                  "EXCLUDED.data_quality, EXCLUDED.ctrl_status, EXCLUDED.created, "
+                  "EXCLUDED.altitude)";
+
+              itsDB.executeTransaction(sqlStmt);
+              values_vector.clear();
+            }
+          }
+          mobileDataToUpdate = duplicateMobileObs;
+        }
+      }
+
+      // We insert the new hashes only when the transaction has completed so that
+      // if the above code for some reason throws, the rows may be inserted again
+      // in a later attempt.
+
+      write_count += new_hashes.size();
+      for (const auto &hash : new_hashes)
+        itsNetAtmoInsertCache.add(hash);
+
+      pos1 = pos2;
+    }
+
+    itsDB.commitTransaction();
+    itsDB.executeNonTransaction("VACUUM ANALYZE ext_obsdata_netatmo");
+
+    return write_count;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "NetAtmo cache update failed!");
+  }
+}
+
+SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedRoadCloudData(
+    const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
+{
+  return getCachedMobileAndExternalData(settings, parameterMap, timezones);
+}
+
+SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedNetAtmoData(
+    const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
+{
+  return getCachedMobileAndExternalData(settings, parameterMap, timezones);
+}
+
+SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedMobileAndExternalData(
+    const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
+{
+  try
+  {
+    Spine::TimeSeries::TimeSeriesVectorPtr ret = initializeResultVector(settings.parameters);
+
+    const ExternalAndMobileProducerMeasurand &producerMeasurand =
+        itsExternalAndMobileProducerConfig.at(settings.stationtype);
+    std::vector<std::string> queryFields;
+    std::vector<int> measurandIds;
+    for (const SmartMet::Spine::Parameter &p : settings.parameters)
+    {
+      std::string name = Fmi::ascii_tolower_copy(p.name());
+      queryFields.push_back(name);
+      const SmartMet::Engine::Observation::Measurands &measurands = producerMeasurand.measurands();
+      if (measurands.find(name) != measurands.end())
+        measurandIds.push_back(measurands.at(name));
+    }
+
+    SmartMet::Spine::TimeSeriesGeneratorOptions timeSeriesOptions;
+    timeSeriesOptions.startTime = settings.starttime;
+    timeSeriesOptions.endTime = settings.endtime;
+    SmartMet::Spine::TimeSeriesGenerator::LocalTimeList tlist;
+    // The desired timeseries, unless all available data if timestep=0 or latest only
+    if (!settings.latest && !timeSeriesOptions.all())
+    {
+      tlist = SmartMet::Spine::TimeSeriesGenerator::generate(
+          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+    }
+
+    ExternalAndMobileDBInfo dbInfo(&producerMeasurand);
+
+    std::string sqlStmt =
+        dbInfo.sqlSelectFromCache(measurandIds,
+                                  settings.starttime,
+                                  settings.endtime,
+                                  "",
+                                  std::map<std::string, std::vector<std::string>>());
+
+    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+
+    ResultSet resultSet = PostgreSQL::getResultSetForMobileExternalData(
+        result_set, queryFields, dbInfo, producerMeasurand);
+
+    SmartMet::Engine::Observation::ResultSet::ResultSetById resultset =
+        resultSet.getResultSet(tlist);
+    boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
+    timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
+
+    for (auto rsTS : resultset)
+      for (auto rsrs : rsTS.second)
+        for (auto rsr : rsrs.second)
+        {
+          boost::local_time::local_date_time obstime =
+              *(boost::get<boost::local_time::local_date_time>(&rsr["data_time"]));
+
+          unsigned int index = 0;
+          for (auto fieldname : queryFields)
+          {
+            if (fieldname == "created")
+            {
+              boost::local_time::local_date_time dt =
+                  *(boost::get<boost::local_time::local_date_time>(&rsr[fieldname]));
+              std::string fieldValue = timeFormatter->format(dt);
+              ret->at(index).push_back(ts::TimedValue(obstime, fieldValue));
+            }
+            else
+            {
+              ret->at(index).push_back(ts::TimedValue(obstime, rsr[fieldname]));
+            }
+            index++;
+          }
+        }
+
+    return ret;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Getting RoadCloud data from database failed!");
+  }
+}
 
 void PostgreSQL::updateStationsAndGroups(const StationInfo &info)
 {
@@ -1215,7 +1848,7 @@ void PostgreSQL::updateStationGroups(const StationInfo &info)
       sqlStmt = "SELECT COUNT(*) FROM group_members WHERE group_id=" + Fmi::to_string(*group_id) +
                 " AND fmisid=" + Fmi::to_string(station.fmisid);
 
-      int groupCount = selectCount(sqlStmt);
+      size_t groupCount = selectCount(sqlStmt);
 
       if (groupCount == 0)
       {
@@ -1290,8 +1923,8 @@ Spine::Stations PostgreSQL::findNearestStations(double latitude,
                                                 int maxdistance,
                                                 int numberofstations,
                                                 const std::set<std::string> &stationgroup_codes,
-                                                const boost::posix_time::ptime &starttime,
-                                                const boost::posix_time::ptime &endtime)
+                                                const boost::posix_time::ptime &,
+                                                const boost::posix_time::ptime &)
 {
   try
   {
@@ -1596,9 +2229,9 @@ void PostgreSQL::addParameterToTimeSeries(
         }
         else
         {
-          float temp = boost::get<double>(data.at(temppos));
-          float rh = boost::get<double>(data.at(rhpos));
-          float wind = boost::get<double>(data.at(windpos));
+          float temp = static_cast<float>(boost::get<double>(data.at(temppos)));
+          float rh = static_cast<float>(boost::get<double>(data.at(rhpos)));
+          float wind = static_cast<float>(boost::get<double>(data.at(windpos)));
 
           ts::Value feelslike = ts::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
           timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, feelslike));
@@ -1617,14 +2250,20 @@ void PostgreSQL::addParameterToTimeSeries(
         }
         else
         {
-          float temp = boost::get<double>(data.at(temppos));
+          float temp = static_cast<float>(boost::get<double>(data.at(temppos)));
           int totalcloudcover = static_cast<int>(boost::get<double>(data.at(totalcloudcoverpos)));
           int wawa = static_cast<int>(boost::get<double>(data.at(wawapos)));
           double lat = station.latitude_out;
           double lon = station.longitude_out;
-
+#ifdef __llvm__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdouble-promotion"
+#endif
           ts::Value smartsymbol =
               ts::Value(*calcSmartsymbolNumber(wawa, totalcloudcover, temp, obstime, lat, lon));
+#ifdef __llvm__
+#pragma clang diagnostic pop
+#endif
           timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, smartsymbol));
         }
       }
@@ -1736,12 +2375,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedFlashData(
     sqlStmt += "ORDER BY flash.stroke_time ASC, flash.stroke_time_fraction ASC;";
 
     Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-        Spine::TimeSeries::TimeSeriesVectorPtr(new Spine::TimeSeries::TimeSeriesVector);
-    // Set timeseries objects for each requested parameter
-    for (unsigned int i = 0; i < settings.parameters.size(); i++)
-    {
-      timeSeriesColumns->push_back(ts::TimeSeries());
-    }
+        initializeResultVector(settings.parameters);
 
     std::string stroke_time;
     double longitude = std::numeric_limits<double>::max();
@@ -2426,14 +3060,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedWeatherDataQCData(
       pos++;
     }
 
-    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns(
-        new Spine::TimeSeries::TimeSeriesVector);
-
-    // Set timeseries objects for each requested parameter
-    for (unsigned int i = 0; i < settings.parameters.size(); i++)
-    {
-      timeSeriesColumns->push_back(ts::TimeSeries());
-    }
+    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
+        initializeResultVector(settings.parameters);
 
     param = trimCommasFromEnd(param);
 
@@ -2499,7 +3127,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedWeatherDataQCData(
       local_date_time obstime = local_date_time(utctime, localtz);
 
       std::string parameter = *cachedData.parametersAll[i];
-      int sensor_no = *cachedData.sensor_nosAll[i];
+      int sensor_no = static_cast<int>(*cachedData.sensor_nosAll[i]);
       Fmi::ascii_tolower(parameter);
       if (sensor_no > 1)
       {
@@ -2565,10 +3193,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedWeatherDataQCData(
     {
       for (const Spine::Station &s : stations)
       {
-        int fmisid = s.station_id;
+        int fmisid = static_cast<int>(s.station_id);
         map<boost::local_time::local_date_time, map<std::string, ts::Value>> stationData =
             data[fmisid];
-        for (const dataItem &item : stationData)
+        for (const auto &item : stationData)
         {
           addParameterToTimeSeries(timeSeriesColumns,
                                    item,
@@ -2702,13 +3330,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
     fetchCachedDataFromDB(sqlStmt, cachedData, true);
 
     Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-        Spine::TimeSeries::TimeSeriesVectorPtr(new Spine::TimeSeries::TimeSeriesVector);
-
-    // Set timeseries objects for each requested parameter
-    for (unsigned int i = 0; i < settings.parameters.size(); i++)
-    {
-      timeSeriesColumns->push_back(ts::TimeSeries());
-    }
+        initializeResultVector(settings.parameters);
 
     unsigned int i = 0;
 
@@ -2745,18 +3367,15 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
       i++;
     }
 
-    typedef std::pair<boost::local_time::local_date_time, map<std::string, ts::Value>>
-        dataItemWithStringParameterId;
-
     // Accept all time steps
     if (timeSeriesOptions.all() && !settings.latest)
     {
       for (const Spine::Station &s : stations)
       {
-        int fmisid = s.station_id;
+        int fmisid = static_cast<int>(s.station_id);
         map<boost::local_time::local_date_time, map<std::string, ts::Value>> stationData =
             dataWithStringParameterId[fmisid];
-        for (const dataItemWithStringParameterId &item : stationData)
+        for (const auto &item : stationData)
         {
           addParameterToTimeSeries(timeSeriesColumns,
                                    item,
@@ -2770,7 +3389,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
 
         // Add *data_source-fields
         stationData = dataSourceWithStringParameterId[fmisid];
-        for (const dataItemWithStringParameterId &item : stationData)
+        for (const auto &item : stationData)
         {
           local_date_time obstime = item.first;
           std::map<std::string, ts::Value> data = item.second;
@@ -2823,7 +3442,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
             // Append special parameters
             for (const auto &special : specialPositions)
             {
-              int pos = special.second;
+              int pos2 = special.second;
               if (special.first.find("windcompass") != std::string::npos)
               {
                 // Have to get wind direction first
@@ -2833,7 +3452,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
                 if (!data[s.fmisid][t][winddirectionpos].which())
                 {
                   ts::Value missing;
-                  timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, missing));
+                  timeSeriesColumns->at(pos2).push_back(ts::TimedValue(t, missing));
                 }
                 else
                 {
@@ -2854,7 +3473,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
                   }
 
                   ts::Value windCompassValue = ts::Value(windCompass);
-                  timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, windCompassValue));
+                  timeSeriesColumns->at(pos2).push_back(ts::TimedValue(t, windCompassValue));
                 }
               }
               else if (special.first.find("feelslike") != std::string::npos)
@@ -2871,17 +3490,17 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
                     !data[s.fmisid][t][temppos].which())
                 {
                   ts::Value missing;
-                  timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, missing));
+                  timeSeriesColumns->at(pos2).push_back(ts::TimedValue(t, missing));
                 }
                 else
                 {
-                  float temp = boost::get<double>(data[s.fmisid][t][temppos]);
-                  float rh = boost::get<double>(data[s.fmisid][t][rhpos]);
-                  float wind = boost::get<double>(data[s.fmisid][t][windpos]);
+                  float temp = static_cast<float>(boost::get<double>(data[s.fmisid][t][temppos]));
+                  float rh = static_cast<float>(boost::get<double>(data[s.fmisid][t][rhpos]));
+                  float wind = static_cast<float>(boost::get<double>(data[s.fmisid][t][windpos]));
 
                   ts::Value feelslike =
                       ts::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
-                  timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, feelslike));
+                  timeSeriesColumns->at(pos2).push_back(ts::TimedValue(t, feelslike));
                 }
               }
               else if (special.first.find("smartsymbol") != std::string::npos)
@@ -2895,7 +3514,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
                 {
                   const std::vector<boost::optional<int>> &measurand_idsAll =
                       cachedData.measurand_idsAll;
-                  if (pos < static_cast<int>(measurand_idsAll.size()))
+                  if (pos < static_cast<unsigned int>(measurand_idsAll.size()))
                   {
                     int measurand_id = *measurand_idsAll[pos];
                     if (data_source[s.fmisid].find(t) != data_source[s.fmisid].end())
@@ -2932,7 +3551,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
                 timeSeriesColumns->at(timeseriesPositions[pos]).push_back(ts::TimedValue(t, val));
               }
               // Append special parameters
-              for (const pair<string, int> &special : specialPositions)
+              for (const auto &special : specialPositions)
               {
                 int pos = special.second;
                 if (special.first.find("windcompass") != std::string::npos)
@@ -2986,9 +3605,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
                   }
                   else
                   {
-                    float temp = boost::get<double>(data[s.fmisid][t][temppos]);
-                    float rh = boost::get<double>(data[s.fmisid][t][rhpos]);
-                    float wind = boost::get<double>(data[s.fmisid][t][windpos]);
+                    float temp = static_cast<float>(boost::get<double>(data[s.fmisid][t][temppos]));
+                    float rh = static_cast<float>(boost::get<double>(data[s.fmisid][t][rhpos]));
+                    float wind = static_cast<float>(boost::get<double>(data[s.fmisid][t][windpos]));
 
                     ts::Value feelslike =
                         ts::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
@@ -3169,6 +3788,111 @@ void PostgreSQL::dropIndex(const std::string &idx_name, bool transaction /*= fal
   }
 }
 #endif
+
+ResultSet PostgreSQL::getResultSetForMobileExternalData(
+    const pqxx::result &pgResultSet,
+    const std::vector<std::string> &queryFields,
+    const ExternalAndMobileDBInfo &dbInfo,
+    const ExternalAndMobileProducerMeasurand &producerMeasurand)
+{
+  ResultSet ret(queryFields);
+
+  if (pgResultSet.size() == 0)
+    return ret;
+
+  std::vector<std::string> fieldNames = dbInfo.fieldNames();
+  const std::map<std::string, unsigned int> &fieldIndexes = dbInfo.fieldIndexes();
+  std::map<std::string, unsigned int> keyFieldIndexes = dbInfo.keyFieldIndexes();
+  int midIndex = fieldIndexes.at("mid");
+  for (auto row : pgResultSet)
+  {
+    SmartMet::Engine::Observation::ResultSet::ResultSetRow rsr;
+    boost::local_time::time_zone_ptr zone(new posix_time_zone("UTC"));
+    boost::local_time::local_date_time timestamp(not_a_date_time, zone);
+
+    int mid = row[midIndex].as<int>();
+
+    const SmartMet::Engine::Observation::MeasurandIdParameterMap &measurandParameters =
+        producerMeasurand.measurandParameters();
+
+    if (measurandParameters.find(mid) == measurandParameters.end())
+    {
+      std::cout << "Error: Invalid value " << mid
+                << " in ext_obsdata table in mid-column. Skipping!" << std::endl;
+      continue;
+    }
+    std::vector<std::string> keyFieldValues;
+    // Lets set null as default value for key
+    for (auto item : keyFieldIndexes)
+      keyFieldValues.push_back("null");
+    for (unsigned int i = 0; i < fieldNames.size(); i++)
+    {
+      std::string fieldname = fieldNames.at(i);
+      if (row[i].is_null())
+      {
+        if (fieldname == "data_value")
+          fieldname = measurandParameters.at(mid);
+        rsr.insert(std::make_pair(fieldname, ts::None()));
+        continue;
+      }
+      const SmartMet::Engine::Observation::FieldDescription &fd =
+          dbInfo.fieldDescription(fieldname);
+      if (fd.field_type == SmartMet::Engine::Observation::FieldType::String)
+      {
+        std::string value = row[i].as<std::string>();
+        if (dbInfo.isKeyField(fieldname))
+          keyFieldValues[keyFieldIndexes.at(fieldname)] = value;
+        rsr.insert(std::make_pair(fieldname, ts::Value(value)));
+      }
+      else if (fd.field_type == SmartMet::Engine::Observation::FieldType::Double)
+      {
+        double value = row[i].as<double>();
+        if (dbInfo.isKeyField(fieldname))
+          keyFieldValues[keyFieldIndexes.at(fieldname)] = std::to_string(value);
+
+        if (fieldname == "data_value")
+          fieldname = measurandParameters.at(mid);
+
+        rsr.insert(std::make_pair(fieldname, ts::Value(value)));
+      }
+      else if (fd.field_type == SmartMet::Engine::Observation::FieldType::Integer)
+      {
+        if (fieldname == "mid")
+        {
+          rsr.insert(std::make_pair(fieldname, ts::Value(mid)));
+          continue;
+        }
+        int value = row[i].as<int>();
+        if (dbInfo.isKeyField(fieldname))
+          keyFieldValues[keyFieldIndexes.at(fieldname)] = std::to_string(value);
+        rsr.insert(std::make_pair(fieldname, ts::Value(value)));
+      }
+      else if (fd.field_type == SmartMet::Engine::Observation::FieldType::DateTime)
+      {
+        boost::posix_time::ptime pt =
+            SmartMet::Engine::Observation::ExternalAndMobileDBInfo::epoch2ptime(
+                row[i].as<double>());
+        boost::local_time::local_date_time value(pt, zone);
+        rsr.insert(std::make_pair(fieldname, ts::Value(value)));
+        if (dbInfo.isKeyField(fieldname))
+          keyFieldValues[keyFieldIndexes.at(fieldname)] = to_iso_string(pt);
+
+        if (fieldname == "data_time")
+          timestamp = value;
+      }
+      else
+        std::cout << "Unknown type in field #"
+                  << " (" << fd.field_name << ") " << std::endl;
+    }
+    if (timestamp.is_not_a_date_time())
+      std::cerr << "Detected non-valid timestamp" << std::endl;
+
+    std::string key = boost::algorithm::join(keyFieldValues, "_");
+
+    ret.addRow(key, timestamp, rsr);
+  }
+  return ret;
+}
 
 }  // namespace Observation
 }  // namespace Engine

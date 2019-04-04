@@ -34,9 +34,16 @@ class QueryResultBase
    *  @param[in] numberOfValueVectors The input parameter defines how many value vectors
    *             will be stored in the container.
    */
+#ifdef __llvm__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
   explicit QueryResultBase(const size_t& numberOfValueVectors) {}
   explicit QueryResultBase(const QueryResultBase& other) {}
   virtual ~QueryResultBase() {}
+#ifdef __llvm__
+#pragma clang diagnostic pop
+#endif
   /**
    *  @brief Get a copy of the value vector data ordered by \c valueVectorId id.
    *  @param[in] valueVectorId Identity of the value vector (Id range is [0,size()-1]).

@@ -71,6 +71,22 @@ class PostgreSQLCache : public ObservationCache
   void cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep) const;
   void fillLocationCache(const std::vector<LocationItem> &locations) const;
 
+  // RoadCloud
+  bool roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                 const boost::posix_time::ptime &endtime) const;
+  boost::posix_time::ptime getLatestRoadCloudDataTime() const;
+  std::size_t fillRoadCloudCache(
+      const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const;
+  void cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const;
+
+  // NetAtmo
+  bool netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
+                               const boost::posix_time::ptime &endtime) const;
+  boost::posix_time::ptime getLatestNetAtmoDataTime() const;
+  std::size_t fillNetAtmoCache(
+      const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const;
+  void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const;
+
   boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language) const;
   bool cacheHasStations() const;
@@ -92,6 +108,9 @@ class PostgreSQLCache : public ObservationCache
   bool timeIntervalWeatherDataQCIsCached(const boost::posix_time::ptime &starttime,
                                          const boost::posix_time::ptime &endtime) const;
   Spine::TimeSeries::TimeSeriesVectorPtr flashValuesFromPostgreSQL(Settings &settings) const;
+  Spine::TimeSeries::TimeSeriesVectorPtr roadCloudValuesFromPostgreSQL(Settings &settings) const;
+  Spine::TimeSeries::TimeSeriesVectorPtr netAtmoValuesFromPostgreSQL(Settings &settings) const;
+
   Fmi::Cache::Cache<std::string, std::vector<Spine::Station> > itsLocationCache;
 
   PostgreSQLCacheParameters itsParameters;

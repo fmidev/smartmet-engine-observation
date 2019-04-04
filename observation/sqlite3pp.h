@@ -43,6 +43,11 @@ SQLITE_EXTENSION_INIT1
 #include <sqlite3.h>
 #endif
 
+#ifdef __llvm__
+// Prevent errors/warningn from long long int
+#pragma clang diagnostic ignored "-Wc++98-compat-pedantic"
+#endif
+
 namespace sqlite3pp
 {
 class database;

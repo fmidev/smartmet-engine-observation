@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DatabaseDriver.h"
+#include "DatabaseDriverInterface.h"
 #include "EngineParameters.h"
 #include "ObservationCache.h"
 #include <spine/Value.h>
@@ -107,9 +107,9 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   std::shared_ptr<DBRegistry> itsDatabaseRegistry;
 
 #ifdef TODO_CAUSES_SEGFAULT_AT_EXIT
-  std::unique_ptr<DatabaseDriver> itsDatabaseDriver;
+  std::unique_ptr<DatabaseDriverInterface> itsDatabaseDriver;
 #else
-  DatabaseDriver *itsDatabaseDriver{nullptr};
+  DatabaseDriverInterface *itsDatabaseDriver{nullptr};
 #endif
 };
 

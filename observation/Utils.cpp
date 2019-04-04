@@ -1,5 +1,5 @@
-#include "Keywords.h"
 #include "Utils.h"
+#include "Keywords.h"
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
@@ -704,6 +704,18 @@ bool is_time_parameter(std::string paramname)
   }
 }
 
+Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(
+    const std::vector<SmartMet::Spine::Parameter>& parameters)
+{
+  Spine::TimeSeries::TimeSeriesVectorPtr ret =
+      boost::make_shared<Spine::TimeSeries::TimeSeriesVector>();
+
+  // Set timeseries objects for each requested parameter
+  for (unsigned int i = 0; i < parameters.size(); i++)
+    ret->push_back(Spine::TimeSeries::TimeSeries());
+
+  return ret;
+}
 
 }  // namespace Observation
 }  // namespace Engine

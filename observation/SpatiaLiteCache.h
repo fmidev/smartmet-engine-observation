@@ -72,6 +72,24 @@ class SpatiaLiteCache : public ObservationCache
   void cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep) const;
   void fillLocationCache(const std::vector<LocationItem> &locations) const;
 
+  // RoadCloud
+  bool roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                 const boost::posix_time::ptime &endtime) const;
+  boost::posix_time::ptime getLatestRoadCloudDataTime() const;
+  std::size_t fillRoadCloudCache(
+      const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const;
+  void cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const;
+  Spine::TimeSeries::TimeSeriesVectorPtr roadCloudValuesFromSpatiaLite(Settings &settings) const;
+
+  // NetAtmo
+  bool netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
+                               const boost::posix_time::ptime &endtime) const;
+  boost::posix_time::ptime getLatestNetAtmoDataTime() const;
+  std::size_t fillNetAtmoCache(
+      const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const;
+  void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const;
+  Spine::TimeSeries::TimeSeriesVectorPtr netAtmoValuesFromSpatiaLite(Settings &settings) const;
+
   boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language) const;
   bool cacheHasStations() const;
@@ -108,6 +126,14 @@ class SpatiaLiteCache : public ObservationCache
   mutable boost::posix_time::ptime itsFlashTimeIntervalStart;
   mutable boost::posix_time::ptime itsFlashTimeIntervalEnd;
 
+  mutable Spine::MutexType itsRoadCloudTimeIntervalMutex;
+  mutable boost::posix_time::ptime itsRoadCloudTimeIntervalStart;
+  mutable boost::posix_time::ptime itsRoadCloudTimeIntervalEnd;
+
+  mutable Spine::MutexType itsNetAtmoTimeIntervalMutex;
+  mutable boost::posix_time::ptime itsNetAtmoTimeIntervalStart;
+  mutable boost::posix_time::ptime itsNetAtmoTimeIntervalEnd;
+
   // Cache for station id searches
   using StationIdCache = Fmi::Cache::Cache<std::size_t, Spine::Station>;
   mutable StationIdCache itsStationIdCache;
@@ -116,6 +142,8 @@ class SpatiaLiteCache : public ObservationCache
   mutable InsertStatus itsDataInsertCache;
   mutable InsertStatus itsWeatherQCInsertCache;
   mutable InsertStatus itsFlashInsertCache;
+  mutable InsertStatus itsRoadCloudInsertCache;
+  mutable InsertStatus itsNetAtmoInsertCache;
 };
 
 }  // namespace Observation

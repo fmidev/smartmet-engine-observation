@@ -5,6 +5,7 @@
 #include <spine/ConfigBase.h>
 #include <spine/Parameter.h>
 #include <spine/Station.h>
+#include <spine/TimeSeries.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/local_time/local_time.hpp>
@@ -116,6 +117,16 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
                                            const boost::local_time::local_date_time& ldt,
                                            double lat,
                                            double lon);
+
+// ----------------------------------------------------------------------
+/*!
+ * \brief Allocates and initializes a result vector for a query
+ *
+ */
+// ----------------------------------------------------------------------
+
+Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(
+    const std::vector<SmartMet::Spine::Parameter>& parameters);
 
 bool is_time_parameter(std::string paramname);
 

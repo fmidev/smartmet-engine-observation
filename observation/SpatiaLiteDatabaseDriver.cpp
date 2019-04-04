@@ -63,7 +63,7 @@ Spine::Stations findNearestStations(const StationInfo &info,
                              endtime);
 }
 
-};  // anonymous namespace
+}  // anonymous namespace
 SpatiaLiteDatabaseDriver::SpatiaLiteDatabaseDriver(const EngineParametersPtr &p,
                                                    Spine::ConfigBase &cfg)
     : itsParameters(p)
@@ -88,12 +88,19 @@ void SpatiaLiteDatabaseDriver::init(Engine *obsengine)
   }
 }
 
+#ifdef __llvm__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
 boost::shared_ptr<Spine::Table> SpatiaLiteDatabaseDriver::makeQuery(
     Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter)
 {
   boost::shared_ptr<Spine::Table> data;
   return data;
 }
+#ifdef __llvm__
+#pragma clang diagnostic pop
+#endif
 
 void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb)
 {
@@ -373,14 +380,14 @@ void SpatiaLiteDatabaseDriver::getStations(Spine::Stations &stations, Settings &
     }
     else
     {
-      auto taggedStations =
-          itsParameters.observationCache->getStationsByTaggedLocations(settings.taggedLocations,
-                                                                       settings.numberofstations,
-                                                                       settings.stationtype,
-                                                                       settings.maxdistance,
-                                                                       settings.stationgroup_codes,
-                                                                       settings.starttime,
-                                                                       settings.endtime);
+      auto taggedStations = itsParameters.observationCache->getStationsByTaggedLocations(
+          settings.taggedLocations,
+          settings.numberofstations,
+          settings.stationtype,
+          static_cast<int>(settings.maxdistance),
+          settings.stationgroup_codes,
+          settings.starttime,
+          settings.endtime);
       for (const auto &s : taggedStations)
         stations.push_back(s);
 
@@ -479,7 +486,7 @@ if (!settings.lpnns.empty()) {
               s, fmisid, settings.stationgroup_codes, settings.starttime, settings.endtime))
       {  // Chenking that some
          // station group match.
-        fmisid_collection.push_back(s.station_id);
+        fmisid_collection.push_back(static_cast<int>(s.station_id));
       }
     }
 
@@ -612,8 +619,14 @@ void SpatiaLiteDatabaseDriver::updateObservationCache() {}
 void SpatiaLiteDatabaseDriver::updateWeatherDataQCCache() {}
 
 void SpatiaLiteDatabaseDriver::locationsFromDatabase() {}
-
+#ifdef __llvm__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
 void SpatiaLiteDatabaseDriver::preloadStations(const std::string &serializedStationsFile) {}
+#ifdef __llvm__
+#pragma clang diagnostic pop
+#endif
 
 void SpatiaLiteDatabaseDriver::readConfig(Spine::ConfigBase &cfg)
 {

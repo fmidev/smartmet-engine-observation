@@ -12,19 +12,21 @@ namespace Engine
 {
 namespace Observation
 {
-DatabaseDriver *DatabaseDriverFactory::create(const EngineParametersPtr &p, Spine::ConfigBase &cfg)
+#ifdef __llvm__
+#pragma clang diagnostic push
+// observation/DatabaseDriverFactory.cpp:31:9: error: cast between pointer-to-function and
+// pointer-to-object is incompatible with C++98 [-Werror,-Wc++98-compat-pedantic]
+#pragma clang diagnostic ignored "-Wc++98-compat-pedantic"
+#endif
+
+DatabaseDriverInterface *DatabaseDriverFactory::create(const EngineParametersPtr &p,
+                                                       Spine::ConfigBase &cfg)
 {
   try
   {
-    if (p->dbDriverFile.empty() ||
-        p->dbDriverFile == "dummy")  // if no filename given create dummy driver
-      return (new DummyDatabaseDriver());
-    else if (p->dbDriverFile == "spatialite")
-      return (new SpatiaLiteDatabaseDriver(p, cfg));
-
     void *handle = dlopen(p->dbDriverFile.c_str(), RTLD_NOW);
 
-    if (handle == 0)
+    if (handle == nullptr)
     {
       // Error occurred while opening the dynamic library
       throw Spine::Exception(BCP, "Unable to load database driver: " + std::string(dlerror()));
@@ -36,16 +38,16 @@ DatabaseDriver *DatabaseDriverFactory::create(const EngineParametersPtr &p, Spin
         reinterpret_cast<driver_create_t *>(dlsym(handle, "create"));
 
     // Check that pointer to create function is loaded succesfully
-    if (driver_create_func == 0)
+    if (driver_create_func == nullptr)
     {
       throw Spine::Exception(BCP, "Cannot load symbols: " + std::string(dlerror()));
     }
 
     // Create an instance of the class using the pointer to "create" function
 
-    DatabaseDriver *driver = driver_create_func(p, cfg);
+    DatabaseDriverInterface *driver = driver_create_func(p, cfg);
 
-    if (driver == 0)
+    if (driver == nullptr)
     {
       throw Spine::Exception(BCP, "Unable to create a new instance of database driver class");
     }
@@ -58,8 +60,13 @@ DatabaseDriver *DatabaseDriverFactory::create(const EngineParametersPtr &p, Spin
     throw Spine::Exception::Trace(BCP, "Failed to create database driver!");
   }
 
-  return nullptr;
+  // This return would never be executed
+  // return nullptr;
 }
+
+#ifdef __llvm__
+#pragma clang diagnostic pop
+#endif
 
 }  // namespace Observation
 }  // namespace Engine

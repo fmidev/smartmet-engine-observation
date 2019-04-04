@@ -39,7 +39,7 @@ class Settings
   std::string missingtext;
   SmartMet::Spine::LocationList locations;
   SmartMet::Spine::TaggedLocationList taggedLocations;
-  std::vector<std::map<std::string, double> > coordinates;
+  std::vector<std::map<std::string, double>> coordinates;
   int numberofstations;
   std::vector<SmartMet::Spine::Parameter> parameters;
   boost::posix_time::ptime starttime;
@@ -58,6 +58,9 @@ class Settings
 
   std::set<std::string> stationgroup_codes;
   std::set<uint> producer_ids;
+  // Filters mobile and external data based on geven parameters, e.g.
+  // "stations_no" -> "1020,1046" returns data rows only where station_no == 1020 or 1046
+  std::map<std::string, std::vector<std::string>> mobileAndExternalDataFilter;
   bool useDataCache;  // default is true
 };
 

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <spine/Value.h>
 
 namespace SmartMet
