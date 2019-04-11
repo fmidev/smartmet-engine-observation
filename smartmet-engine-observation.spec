@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.4.4
+Version: 19.4.11
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -97,6 +97,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Apr 11 2019 Anssi Reponen <anssi.reponen@fmi.fi> - 19.4.11-1.fmi
+- It is possible to give period endtime in configuration file (fixedPeriodEndTime parameter). 
+This is used in WMS-tests so that GetCapabilities response for observation layers doens't 
+change from run to run.
+- Dummy cache class added. This is used in WMS tests, where we need no cache-functionality.
+
 * Thu Apr 4 2019 Anssi Reponen <anssi.reponen@fmi.fi> - 19.4.4-1.fmi
 - Support for mobile and external producers (curretly RoadCloud, NetAtmo)
 
