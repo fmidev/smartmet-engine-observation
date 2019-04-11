@@ -1,4 +1,5 @@
 #include "ObservationCacheFactory.h"
+#include "DummyCache.h"
 #include "PostgreSQLCache.h"
 #include "SpatiaLiteCache.h"
 
@@ -15,6 +16,8 @@ ObservationCache* ObservationCacheFactory::create(const EngineParametersPtr& p,
     return (new SpatiaLiteCache(p, cfg));
   else if (p->cacheDB == "postgresql")
     return (new PostgreSQLCache(p, cfg));
+  else if (p->cacheDB == "dummy")
+    return (new DummyCache());
 
   return nullptr;
 }
