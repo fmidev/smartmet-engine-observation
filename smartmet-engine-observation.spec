@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.4.11
+Version: 19.4.23
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,23 +15,23 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 19.3.14
-BuildRequires: smartmet-engine-geonames-devel >= 19.2.26
+BuildRequires: smartmet-library-spine-devel >= 19.4.23
+BuildRequires: smartmet-engine-geonames-devel >= 19.3.22
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
-BuildRequires: smartmet-library-locus-devel >= 18.11.16
-BuildRequires: smartmet-library-macgyver-devel >= 19.4.4
+BuildRequires: smartmet-library-locus-devel >= 19.3.21
+BuildRequires: smartmet-library-macgyver-devel >= 19.4.23
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 5.2.0
 Requires: fmt >= 5.2.0
 Requires: libconfig
-Requires: smartmet-server >= 18.12.14
-Requires: smartmet-engine-geonames >= 19.2.26
-Requires: smartmet-library-spine >= 19.3.14
-Requires: smartmet-library-locus >= 18.11.16
-Requires: smartmet-library-macgyver >= 19.4.4
+Requires: smartmet-server >= 19.3.19
+Requires: smartmet-engine-geonames >= 19.3.22
+Requires: smartmet-library-spine >= 19.4.23
+Requires: smartmet-library-locus >= 19.3.21
+Requires: smartmet-library-macgyver >= 19.4.23
 Requires: libatomic
 Requires: unixODBC
 Requires: mysql++
@@ -97,13 +97,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Thu Apr 11 2019 Anssi Reponen <anssi.reponen@fmi.fi> - 19.4.11-1.fmi
+* Tue Apr 23 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.4.23-1.fmi
 - It is possible to give period endtime in configuration file (fixedPeriodEndTime parameter). 
 This is used in WMS-tests so that GetCapabilities response for observation layers doens't 
 change from run to run.
 - Dummy cache class added. This is used in WMS tests, where we need no cache-functionality.
-
-* Thu Apr 4 2019 Anssi Reponen <anssi.reponen@fmi.fi> - 19.4.4-1.fmi
 - Support for mobile and external producers (curretly RoadCloud, NetAtmo)
 
 * Mon Mar 18 2019 Santeri Oksman <santeri.oksman@fmi.fi> - 19.3.18-1.fmi
