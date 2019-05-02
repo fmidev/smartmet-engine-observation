@@ -6,6 +6,7 @@
 #include <macgyver/Geometry.h>
 #include <spine/Convenience.h>
 #include <spine/Reactor.h>
+#include <spine/TimeSeriesOutput.h>
 
 namespace ts = SmartMet::Spine::TimeSeries;
 
@@ -49,6 +50,46 @@ void Engine::init()
                  itsEngineParameters->quiet);
       itsDatabaseDriver->init(this);
     }
+
+    itsSpecialParameters.insert("name");
+    itsSpecialParameters.insert("geoid");
+    itsSpecialParameters.insert("stationname");
+    itsSpecialParameters.insert("distance");
+    itsSpecialParameters.insert("stationary");
+    itsSpecialParameters.insert("stationlongitude");
+    itsSpecialParameters.insert("stationlon");
+    itsSpecialParameters.insert("stationlatitude");
+    itsSpecialParameters.insert("stationlat");
+    itsSpecialParameters.insert("longitude");
+    itsSpecialParameters.insert("lon");
+    itsSpecialParameters.insert("latitude");
+    itsSpecialParameters.insert("lat");
+    itsSpecialParameters.insert("elevation");
+    itsSpecialParameters.insert("wmo");
+    itsSpecialParameters.insert("lpnn");
+    itsSpecialParameters.insert("fmisid");
+    itsSpecialParameters.insert("rwsid");
+    itsSpecialParameters.insert("modtime");
+    itsSpecialParameters.insert("model");
+    itsSpecialParameters.insert("origintime");
+    itsSpecialParameters.insert("timestring");
+    itsSpecialParameters.insert("tz");
+    itsSpecialParameters.insert("place");
+    itsSpecialParameters.insert("region");
+    itsSpecialParameters.insert("iso2");
+    itsSpecialParameters.insert("direction");
+    itsSpecialParameters.insert("country");
+    itsSpecialParameters.insert("time");
+    itsSpecialParameters.insert("sensor_no");
+    itsSpecialParameters.insert("level");
+    itsSpecialParameters.insert("xmltime");
+    itsSpecialParameters.insert("localtime");
+    itsSpecialParameters.insert("utctime");
+    itsSpecialParameters.insert("epochtime");
+    itsSpecialParameters.insert("windcompass8");
+    itsSpecialParameters.insert("windcompass16");
+    itsSpecialParameters.insert("windcompass32");
+    itsSpecialParameters.insert("feelslike");
   }
   catch (...)
   {
@@ -289,7 +330,17 @@ boost::shared_ptr<Spine::Table> Engine::makeQuery(
 
 ts::TimeSeriesVectorPtr Engine::values(Settings &settings)
 {
-  return itsDatabaseDriver->values(settings);
+  // Drop unknown parameters from parameter list and
+  // store their indexes
+  std::vector<unsigned int> unknownParameterIndexes;
+  Settings querySettings = beforeQuery(settings, unknownParameterIndexes);
+
+  ts::TimeSeriesVectorPtr ret = itsDatabaseDriver->values(querySettings);
+
+  // Insert missing values for unknown parameters
+  afterQuery(ret, unknownParameterIndexes);
+
+  return ret;
 }
 
 void Engine::makeQuery(QueryBase *qb)
@@ -363,12 +414,63 @@ std::set<std::string> Engine::getValidStationTypes() const
 Spine::TimeSeries::TimeSeriesVectorPtr Engine::values(
     Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
-  return itsDatabaseDriver->values(settings, timeSeriesOptions);
+  // Drop unknown parameters from parameter list and
+  // store their indexes
+  std::vector<unsigned int> unknownParameterIndexes;
+  Settings querySettings = beforeQuery(settings, unknownParameterIndexes);
+
+  Spine::TimeSeries::TimeSeriesVectorPtr ret =
+      itsDatabaseDriver->values(querySettings, timeSeriesOptions);
+
+  // Insert missing values for unknown parameters
+  afterQuery(ret, unknownParameterIndexes);
+
+  return ret;
 }
 
 MetaData Engine::metaData(const std::string &producer) const
 {
   return itsDatabaseDriver->metaData(producer);
+}
+
+Settings Engine::beforeQuery(const Settings &settings,
+                             std::vector<unsigned int> &unknownParameterIndexes) const
+{
+  // Copy original settings
+  Settings ret = settings;
+  // Clear parameter list
+  ret.parameters.clear();
+  // Add known parameters back to list and store indexes of unknown parameters
+  for (unsigned int i = 0; i < settings.parameters.size(); i++)
+  {
+    const auto &p = settings.parameters.at(i);
+    std::string pname = Fmi::ascii_tolower_copy(p.name());
+    if (!isParameter(pname, settings.stationtype) &&
+        itsSpecialParameters.find(pname) == itsSpecialParameters.end())
+    {
+      unknownParameterIndexes.push_back(i);
+      continue;
+    }
+    ret.parameters.push_back(p);
+  }
+
+  return ret;
+}
+
+void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr tsvPtr,
+                        const std::vector<unsigned int> &unknownParameterIndexes) const
+{
+  if (tsvPtr->size() > 0 && unknownParameterIndexes.size() > 0)
+  {
+    // Take copy of the first time series
+    Spine::TimeSeries::TimeSeries ts = tsvPtr->at(0);
+    // Set values in all timestesps to Spine::TimeSeries::None()
+    for (auto &timedvalue : ts)
+      timedvalue.value = Spine::TimeSeries::None();
+    // Insert the nullified times series to time series vector
+    for (auto index : unknownParameterIndexes)
+      tsvPtr->insert(tsvPtr->begin() + index, ts);
+  }
 }
 
 }  // namespace Observation
