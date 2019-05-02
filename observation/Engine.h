@@ -99,10 +99,15 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   void initializeCache();
   bool stationHasRightType(const Spine::Station &station, const Settings &settings);
   void unserializeStations();
+  Settings beforeQuery(const Settings &settings,
+                       std::vector<unsigned int> &unknownParameterIndexes) const;
+  void afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr tsvPtr,
+                  const std::vector<unsigned int> &unknownParameterIndexes) const;
 
   std::string itsConfigFile;
 
   EngineParametersPtr itsEngineParameters;
+  std::set<std::string> itsSpecialParameters;
 
   std::shared_ptr<DBRegistry> itsDatabaseRegistry;
 

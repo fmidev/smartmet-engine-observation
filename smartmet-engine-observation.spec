@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.4.23
+Version: 19.5.2
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -97,6 +97,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu May 2 2019 Anssi Reponen <anssi.reponen@fmi.fi> - 19.5.22-1.fmi
+- Return missing-values for unknown parameters (BRAINSTORM-1520)
+
 * Tue Apr 23 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.4.23-1.fmi
 - It is possible to give period endtime in configuration file (fixedPeriodEndTime parameter). 
 This is used in WMS-tests so that GetCapabilities response for observation layers doens't 

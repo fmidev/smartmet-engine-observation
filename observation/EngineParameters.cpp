@@ -300,6 +300,10 @@ bool EngineParameters::isParameterVariant(const std::string &name) const
   {
     std::string parameterLowerCase = Fmi::ascii_tolower_copy(name);
     Engine::Observation::removePrefix(parameterLowerCase, "qc_");
+
+    if (boost::algorithm::ends_with(parameterLowerCase, "data_source"))
+      return true;
+
     // Is the alias configured.
     std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
         parameterMap->find(parameterLowerCase);
