@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.5.2
+Version: 19.5.9
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,7 +15,7 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 19.4.23
+BuildRequires: smartmet-library-spine-devel >= 19.5.8
 BuildRequires: smartmet-engine-geonames-devel >= 19.3.22
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
@@ -29,7 +29,7 @@ Requires: fmt >= 5.2.0
 Requires: libconfig
 Requires: smartmet-server >= 19.3.19
 Requires: smartmet-engine-geonames >= 19.3.22
-Requires: smartmet-library-spine >= 19.4.23
+Requires: smartmet-library-spine >= 19.5.8
 Requires: smartmet-library-locus >= 19.3.21
 Requires: smartmet-library-macgyver >= 19.4.23
 Requires: libatomic
@@ -97,6 +97,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu May  9 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.5.9-1.fmi
+- Optimized nearest station searches to filter acceptable stations before calculating distances
+
 * Thu May 2 2019 Anssi Reponen <anssi.reponen@fmi.fi> - 19.5.22-1.fmi
 - Return missing-values for unknown parameters (BRAINSTORM-1520)
 

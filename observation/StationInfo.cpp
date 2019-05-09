@@ -190,18 +190,7 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
 
   for (const auto& candidate : candidates)
   {
-    double distance = StationNearTreeLatLon::SurfaceLength(candidate.first);
-
-    // Abort if distance has changed and desired count has been reached
-    if (distances.size() >= maxcount && distance > previous_distance)
-      break;
-
-    previous_distance = distance;
-
-    // Now filter the stations
-
     StationID id = candidate.second.ID();
-
     const auto& station = stations.at(id);
 
     if (!timeok(station, starttime, endtime))
@@ -210,6 +199,14 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
     // Check whether the station belongs to the right groups
     if (groups.find(station.station_type) == groups.end())
       continue;
+
+    double distance = StationNearTreeLatLon::SurfaceLength(candidate.first);
+
+    // Abort if distance has changed and desired count has been reached
+    if (distances.size() >= maxcount && distance > previous_distance)
+      break;
+
+    previous_distance = distance;
 
     distances.push_back(std::make_pair(distance, id));
   }
