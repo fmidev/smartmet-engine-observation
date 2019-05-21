@@ -90,6 +90,7 @@ void Engine::init()
     itsSpecialParameters.insert("windcompass16");
     itsSpecialParameters.insert("windcompass32");
     itsSpecialParameters.insert("feelslike");
+    itsSpecialParameters.insert("smartsymbol");
   }
   catch (...)
   {
