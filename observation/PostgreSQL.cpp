@@ -1643,12 +1643,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedMobileAndE
 
     ExternalAndMobileDBInfo dbInfo(&producerMeasurand);
 
-    std::string sqlStmt =
-        dbInfo.sqlSelectFromCache(measurandIds,
-                                  settings.starttime,
-                                  settings.endtime,
-                                  "",
-                                  std::map<std::string, std::vector<std::string>>());
+    std::string sqlStmt = dbInfo.sqlSelectFromCache(
+        measurandIds, settings.starttime, settings.endtime, settings.wktArea, settings.dataFilter);
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -1689,7 +1685,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedMobileAndE
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting RoadCloud data from database failed!");
+    throw Spine::Exception::Trace(BCP, "Getting mobile data from database failed!");
   }
 }
 

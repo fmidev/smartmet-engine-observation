@@ -1,5 +1,6 @@
 #pragma once
 
+#include "EngineParameters.h"
 #include "ObservationCache.h"
 #include "Settings.h"
 
@@ -18,6 +19,8 @@ class ObservableProperty;
 class DummyCache : public ObservationCache
 {
  public:
+  DummyCache(const EngineParametersPtr &p);
+
   void initializeConnectionPool(int finCacheDuration);
 
   Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(Settings &settings);
@@ -85,6 +88,9 @@ class DummyCache : public ObservationCache
       std::vector<std::string> &parameters, const std::string language) const;
   bool cacheHasStations() const;
   void shutdown();
+
+ private:
+  EngineParametersPtr itsParameters;
 };
 
 }  // namespace Observation
