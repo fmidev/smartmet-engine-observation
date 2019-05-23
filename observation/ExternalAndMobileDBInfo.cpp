@@ -71,7 +71,7 @@ FieldType field_type(const std::string &fieldName)
 }
 
 void add_where_conditions(std::string &sqlStmt,
-                          const std::string &producerName,
+                          const std::string &areaFilterField,
                           const std::vector<int> &measurandIds,
                           const boost::posix_time::ptime &starttime,
                           const boost::posix_time::ptime &endtime,
@@ -82,10 +82,7 @@ void add_where_conditions(std::string &sqlStmt,
   {
     sqlStmt += " AND ST_Contains(ST_GeomFromText('";
     sqlStmt += wktAreaFilter;
-    if (producerName == ROADCLOUD_PRODUCER)
-      sqlStmt += "', 4326), obs.geom)";
-    else if (producerName == NETATMO_PRODUCER)
-      sqlStmt += "', 4326), stat.geom)";
+    sqlStmt += ("', 4326), " + areaFilterField + ")");
   }
 
   std::string mids;
@@ -238,8 +235,13 @@ std::string ExternalAndMobileDBInfo::sqlSelect(
     throw SmartMet::Spine::Exception(BCP, "SQL select not defined for producer " + producerName);
   }
 
-  add_where_conditions(
-      sqlStmt, producerName, measurandIds, starttime, endtime, wktAreaFilter, data_filter);
+  add_where_conditions(sqlStmt,
+                       (producerName == NETATMO_PRODUCER ? "stat.geom" : "obs.geom"),
+                       measurandIds,
+                       starttime,
+                       endtime,
+                       wktAreaFilter,
+                       data_filter);
 
   if (producerName == ROADCLOUD_PRODUCER)
     sqlStmt += " ORDER BY obs.data_time, obs.station_id, obs.mid ASC";
@@ -298,6 +300,12 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(
 
   std::string producerName = itsProducerMeasurand->producerId().name();
 
+  if (producerName != NETATMO_PRODUCER && producerName != ROADCLOUD_PRODUCER &&
+      producerName != TECONER_PRODUCER)
+  {
+    throw SmartMet::Spine::Exception(BCP, "SQL select not defined for producer " + producerName);
+  }
+
   std::string sqlStmt;
 
   if (spatialite)
@@ -314,11 +322,12 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(
         "obs.data_value_txt, obs.data_quality, obs.ctrl_status, "
         "EXTRACT(EPOCH FROM obs.created) as created, ST_X(obs.geom) as longitude, "
         "ST_Y(obs.geom) as latitude, obs.altitude FROM ext_obsdata_";
+
   sqlStmt += producerName;
   sqlStmt += " obs WHERE";
 
   add_where_conditions(
-      sqlStmt, producerName, measurandIds, starttime, endtime, wktAreaFilter, data_filter);
+      sqlStmt, "obs.geom", measurandIds, starttime, endtime, wktAreaFilter, data_filter);
 
   sqlStmt += " ORDER BY obs.data_time, obs.mid ASC";
 

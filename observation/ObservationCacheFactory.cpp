@@ -17,7 +17,7 @@ ObservationCache* ObservationCacheFactory::create(const EngineParametersPtr& p,
   else if (p->cacheDB == "postgresql")
     return (new PostgreSQLCache(p, cfg));
   else if (p->cacheDB == "dummy")
-    return (new DummyCache());
+    return (new DummyCache(p));
 
   return nullptr;
 }

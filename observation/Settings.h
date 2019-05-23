@@ -58,9 +58,10 @@ class Settings
 
   std::set<std::string> stationgroup_codes;
   std::set<uint> producer_ids;
-  // Filters mobile and external data based on geven parameters, e.g.
-  // "stations_no" -> "1020,1046" returns data rows only where station_no == 1020 or 1046
-  std::map<std::string, std::vector<std::string>> mobileAndExternalDataFilter;
+  // Filters mobile and external data and sounding data. Filtering is
+  // based on given parameters, for example "stations_no" -> "1020,1046"
+  // returns data rows only where station_no == 1020 or 1046
+  std::map<std::string, std::vector<std::string>> dataFilter;
   bool useDataCache;  // default is true
 };
 

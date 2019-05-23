@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.5.21
+Version: 19.5.23
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -97,6 +97,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu May 23 2019 Anssi Reponen <anssi.reponen@fmi.fi> - 19.5.23-1.fmi
+- Bugfix for mobile observations: area- and sounding_type-parameter taken into consideration when fetched data from cache
+- Added log message of Dummy cache is creation
+- Name of mobileAndExternalDataFilter changed to dataFilter in observation engine settings since it is used also in sounding-query
+
 * Tue May 21 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.5.21-1.fmi
 - Fixed SmartSymbol to be a known meta parameter
 

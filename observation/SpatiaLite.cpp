@@ -1102,13 +1102,12 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedMobileAndE
 
     ExternalAndMobileDBInfo dbInfo(&producerMeasurand);
 
-    std::string sqlStmt =
-        dbInfo.sqlSelectFromCache(measurandIds,
-                                  settings.starttime,
-                                  settings.endtime,
-                                  "",
-                                  std::map<std::string, std::vector<std::string>>(),
-                                  true);
+    std::string sqlStmt = dbInfo.sqlSelectFromCache(measurandIds,
+                                                    settings.starttime,
+                                                    settings.endtime,
+                                                    settings.wktArea,
+                                                    settings.dataFilter,
+                                                    true);
 
     sqlite3pp::query qry(itsDB, sqlStmt.c_str());
 

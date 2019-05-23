@@ -6,7 +6,12 @@ namespace Engine
 {
 namespace Observation
 {
-void DummyCache::initializeConnectionPool(int finCacheDuration) {}
+DummyCache::DummyCache(const EngineParametersPtr &p) : itsParameters(p) {}
+
+void DummyCache::initializeConnectionPool(int)
+{
+  logMessage("[Observation Engine] Dummy cache initialized!", itsParameters->quiet);
+}
 
 Spine::TimeSeries::TimeSeriesVectorPtr DummyCache::valuesFromCache(Settings &settings)
 {
