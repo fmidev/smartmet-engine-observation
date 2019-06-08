@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.5.23
+Version: 19.6.8
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,7 +15,7 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 19.5.8
+BuildRequires: smartmet-library-spine-devel >= 19.6.4
 BuildRequires: smartmet-engine-geonames-devel >= 19.3.22
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
@@ -29,7 +29,7 @@ Requires: fmt >= 5.2.0
 Requires: libconfig
 Requires: smartmet-server >= 19.3.19
 Requires: smartmet-engine-geonames >= 19.3.22
-Requires: smartmet-library-spine >= 19.5.8
+Requires: smartmet-library-spine >= 19.6.4
 Requires: smartmet-library-locus >= 19.3.21
 Requires: smartmet-library-macgyver >= 19.4.23
 Requires: libatomic
@@ -97,6 +97,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Sat Jun  8 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.6.8-1.fmi
+- Optimized sqlite timestamp parser not to use boost::lexical case which causes (in GNU) global locale locks
+
 * Thu May 23 2019 Anssi Reponen <anssi.reponen@fmi.fi> - 19.5.23-1.fmi
 - Bugfix for mobile observations: area- and sounding_type-parameter taken into consideration when fetched data from cache
 - Added log message of Dummy cache is creation

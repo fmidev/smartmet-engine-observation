@@ -6,6 +6,7 @@
 #include "SpatiaLiteCacheParameters.h"
 #include <fmt/format.h>
 #include <macgyver/StringConversion.h>
+#include <macgyver/TimeParser.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <spine/Exception.h>
 #include <spine/Thread.h>
@@ -3938,7 +3939,10 @@ boost::posix_time::ptime SpatiaLite::parseSqliteTime(sqlite3pp::query::iterator 
   if (timestring.find("T") != std::string::npos)
     timestring.replace(timestring.find("T"), 1, " ");
 
-  return boost::posix_time::time_from_string(timestring);
+  // uses boost::lexical_cast and takes global locale lock in GNU:
+  // return boost::posix_time::time_from_string(timestring);
+
+  return Fmi::TimeParser::parse_sql(timestring);
 }
 
 }  // namespace Observation
