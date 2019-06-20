@@ -59,11 +59,24 @@ class SpatiaLite : private boost::noncopyable
   ~SpatiaLite();
 
   /**
+   * @brief Get the time of the last modified  observation in observation_data table
+   * @retval boost::posix_time::ptime The time of the last modification
+   */
+
+  boost::posix_time::ptime getLatestObservationModifiedTime();
+
+  /**
    * @brief Get the time of the newest observation in observation_data table
    * @retval boost::posix_time::ptime The time of the newest observation
    */
 
   boost::posix_time::ptime getLatestObservationTime();
+
+  /**
+   * @brief Get the time of the newest flash observation
+   * @retval boost::posix_time::ptime The time of the newest observation
+   */
+
   boost::posix_time::ptime getLatestFlashTime();
 
   /**

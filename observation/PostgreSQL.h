@@ -62,6 +62,13 @@ class PostgreSQL : private boost::noncopyable
   boost::posix_time::ptime getLatestObservationTime();
 
   /**
+   * @brief Get the last modified time in observation_data table
+   * @return boost::posix_time::ptime The time of the last modification
+   */
+
+  boost::posix_time::ptime getLatestObservationModifiedTime();
+
+  /**
    * @brief Get the time of the newest observation in flash_data table
    * @return boost::posix_time::ptime The time of the newest observation
    */

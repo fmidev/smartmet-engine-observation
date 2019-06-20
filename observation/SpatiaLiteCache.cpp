@@ -99,7 +99,8 @@ void SpatiaLiteCache::initializeConnectionPool(int)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Operation failed!")
+        .addParameter("filename", itsParameters.cacheFile);
   }
 }
 
@@ -829,6 +830,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaL
 boost::posix_time::ptime SpatiaLiteCache::getLatestNetAtmoDataTime() const
 {
   return itsConnectionPool->getConnection()->getLatestNetAtmoDataTime();
+}
+
+boost::posix_time::ptime SpatiaLiteCache::getLatestObservationModifiedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestObservationModifiedTime();
 }
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestObservationTime() const

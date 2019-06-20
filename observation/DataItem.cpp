@@ -17,6 +17,7 @@ std::size_t DataItem::hash_value() const
   boost::hash_combine(hash, boost::hash_value(Fmi::to_iso_string(data_time)));
   boost::hash_combine(hash, boost::hash_value(data_value));
   boost::hash_combine(hash, boost::hash_value(data_quality));
+  boost::hash_combine(hash, boost::hash_value(Fmi::to_iso_string(modified_last)));
   return hash;
 }
 
@@ -26,8 +27,9 @@ std::size_t DataItem::hash_value() const
 
 std::ostream& operator<<(std::ostream& out, const SmartMet::Engine::Observation::DataItem& item)
 {
-  out << Fmi::to_iso_string(item.data_time) << ' ' << Fmi::to_string(item.fmisid) << ' '
-      << Fmi::to_string(item.measurand_id) << ' ' << Fmi::to_string(item.measurand_no) << ' '
-      << Fmi::to_string(item.data_value) << ' ' << Fmi::to_string(item.hash_value());
+  out << Fmi::to_iso_string(item.data_time) << ' ' << Fmi::to_iso_string(item.modified_last) << ' '
+      << Fmi::to_string(item.fmisid) << ' ' << Fmi::to_string(item.measurand_id) << ' '
+      << Fmi::to_string(item.measurand_no) << ' ' << Fmi::to_string(item.data_value) << ' '
+      << Fmi::to_string(item.hash_value());
   return out;
 };

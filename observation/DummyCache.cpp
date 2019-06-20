@@ -97,6 +97,11 @@ std::size_t DummyCache::fillFlashDataCache(const std::vector<FlashDataItem> &fla
 
 void DummyCache::cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const {}
 
+boost::posix_time::ptime DummyCache::getLatestObservationModifiedTime() const
+{
+  return boost::posix_time::not_a_date_time;
+}
+
 boost::posix_time::ptime DummyCache::getLatestObservationTime() const
 {
   return boost::posix_time::not_a_date_time;

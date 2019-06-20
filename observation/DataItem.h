@@ -13,12 +13,13 @@ class DataItem
 {
  public:
   // If you add new data members don't forget to change hash_value()
+  boost::posix_time::ptime data_time;
+  boost::posix_time::ptime modified_last;
+  double data_value = 0;
   int fmisid = 0;
   int measurand_id = 0;
   int producer_id = 0;
   int measurand_no = 0;
-  boost::posix_time::ptime data_time;
-  double data_value = 0;
   int data_quality = 0;
   int data_source = 0;
 

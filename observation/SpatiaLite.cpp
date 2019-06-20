@@ -8,6 +8,7 @@
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeParser.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
+#include <spine/Convenience.h>
 #include <spine/Exception.h>
 #include <spine/Thread.h>
 #include <spine/TimeSeriesOutput.h>
@@ -289,24 +290,22 @@ void SpatiaLite::createObservationDataTable()
 {
   try
   {
-    // No locking needed during initialization phase
-    sqlite3pp::transaction xct(itsDB);
-    sqlite3pp::command cmd(
-        itsDB,
+    // clang-format off
+    itsDB.execute(
         "CREATE TABLE IF NOT EXISTS observation_data("
         "fmisid INTEGER NOT NULL, "
         "data_time DATETIME NOT NULL, "
+        "modified_last DATETIME NOT NULL, "
         "measurand_id INTEGER NOT NULL,"
         "producer_id INTEGER NOT NULL,"
         "measurand_no INTEGER NOT NULL,"
         "data_value REAL, "
         "data_quality INTEGER, "
         "data_source INTEGER, "
-        "PRIMARY KEY (data_time, fmisid, measurand_id, producer_id, "
-        "measurand_no)); CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON "
-        "observation_data(data_time);");
-    cmd.execute();
-    xct.commit();
+        "PRIMARY KEY (data_time, fmisid, measurand_id, producer_id, measurand_no))");
+
+    itsDB.execute("CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON observation_data(data_time)");
+    
   }
   catch (...)
   {
@@ -314,16 +313,16 @@ void SpatiaLite::createObservationDataTable()
   }
 
   bool data_source_column_exists = false;
+  bool modified_last_column_exists = false;
   try
   {
     sqlite3pp::query qry(itsDB, "PRAGMA table_info(observation_data)");
     for (auto row : qry)
     {
       if (row.get<std::string>(1) == "data_source")
-      {
         data_source_column_exists = true;
-        break;
-      }
+      else if (row.get<std::string>(1) == "modified_last")
+        modified_last_column_exists = true;
     }
   }
   catch (const std::exception &e)
@@ -331,17 +330,35 @@ void SpatiaLite::createObservationDataTable()
     throw Spine::Exception::Trace(BCP, "PRAGMA table_info failed!");
   }
 
-  if (!data_source_column_exists)
+  try
   {
-    try
-    {
+    if (!data_source_column_exists)
       itsDB.execute("ALTER TABLE observation_data ADD COLUMN data_source INTEGER");
-    }
-    catch (const std::exception &e)
+  }
+  catch (const std::exception &e)
+  {
+    throw Spine::Exception::Trace(BCP,
+                                  "Failed to add data_source column to observation_data TABLE!");
+  }
+
+  try
+  {
+    // if we expand an old table, we just make an educated guess for the modified_last column
+    if (!modified_last_column_exists)
     {
-      throw Spine::Exception::Trace(BCP,
-                                    "Failed to add data_source_column to observation_data TABLE!");
+      std::cout << Spine::log_time_str() << " [SpatiaLite] Adding modified_last column to observation_data table" << std::endl;
+      itsDB.execute("ALTER TABLE observation_data ADD COLUMN modified_last DATETIME NOT NULL DEFAULT '1970-01-01'");
+      std::cout << Spine::log_time_str() << " [SpatiaLite] ... Updating all modified_last columns in observation_data table" << std::endl;
+      itsDB.execute("UPDATE observation_data SET modified_last=data_time");
+      std::cout << Spine::log_time_str() << " [SpatiaLite] ... Creating modified_last index in observation_data table" << std::endl;
+      itsDB.execute("CREATE INDEX observation_data_modified_last_idx ON observation_data(modified_last)");
+      std::cout << Spine::log_time_str() << " [SpatiaLite] modified_last processing done" << std::endl;
     }
+  }
+  catch (const std::exception &e)
+  {
+    throw Spine::Exception::Trace(BCP,
+                                  "Failed to add modified_last column to observation_data TABLE!");
   }
 }
 
@@ -694,6 +711,24 @@ boost::posix_time::ptime SpatiaLite::getLatestObservationTime()
   catch (...)
   {
     throw Spine::Exception::Trace(BCP, "Latest observation time query failed!");
+  }
+}
+
+boost::posix_time::ptime SpatiaLite::getLatestObservationModifiedTime()
+{
+  try
+  {
+    // Spine::ReadLock lock(write_mutex);
+
+    sqlite3pp::query qry(itsDB, "SELECT MAX(modified_last) FROM observation_data");
+    sqlite3pp::query::iterator iter = qry.begin();
+    if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
+      return boost::posix_time::not_a_date_time;
+    return parseSqliteTime(iter, 0);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Modified last observation time query failed!");
   }
 }
 
@@ -1288,10 +1323,11 @@ std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData, InsertS
 
     const char *sqltemplate =
         "INSERT OR REPLACE INTO observation_data "
-        "(fmisid, measurand_id, producer_id, measurand_no, data_time, "
+        "(fmisid, measurand_id, producer_id, measurand_no, data_time, modified_last, "
         "data_value, data_quality, data_source) "
         "VALUES "
-        "(:fmisid,:measurand_id,:producer_id,:measurand_no,:data_time,:data_value,:data_quality,:"
+        "(:fmisid,:measurand_id,:producer_id,:measurand_no,:data_time, :modified_last, "
+        ":data_value,:data_quality,:"
         "data_source)"
         ";";
 
@@ -1317,8 +1353,10 @@ std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData, InsertS
         cmd.bind(":measurand_id", item.measurand_id);
         cmd.bind(":producer_id", item.producer_id);
         cmd.bind(":measurand_no", item.measurand_no);
-        std::string timestring = Fmi::to_iso_extended_string(item.data_time);
-        cmd.bind(":data_time", timestring, sqlite3pp::nocopy);
+        std::string data_time_str = Fmi::to_iso_extended_string(item.data_time);
+        cmd.bind(":data_time", data_time_str, sqlite3pp::nocopy);
+        std::string modified_last_str = Fmi::to_iso_extended_string(item.modified_last);
+        cmd.bind(":modified_last", modified_last_str, sqlite3pp::nocopy);
         cmd.bind(":data_value", item.data_value);
         cmd.bind(":data_quality", item.data_quality);
         cmd.bind(":data_source", item.data_source);
@@ -3944,6 +3982,7 @@ boost::posix_time::ptime SpatiaLite::parseSqliteTime(sqlite3pp::query::iterator 
 
   return Fmi::TimeParser::parse_sql(timestring);
 }
+
 
 }  // namespace Observation
 }  // namespace Engine

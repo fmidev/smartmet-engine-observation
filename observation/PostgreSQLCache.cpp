@@ -655,6 +655,11 @@ void PostgreSQLCache::cleanFlashDataCache(const boost::posix_time::time_duration
   return itsConnectionPool->getConnection()->cleanFlashDataCache(timetokeep);
 }
 
+boost::posix_time::ptime PostgreSQLCache::getLatestObservationModifiedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestObservationModifiedTime();
+}
+
 boost::posix_time::ptime PostgreSQLCache::getLatestObservationTime() const
 {
   return itsConnectionPool->getConnection()->getLatestObservationTime();

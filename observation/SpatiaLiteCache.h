@@ -64,6 +64,7 @@ class SpatiaLiteCache : public ObservationCache
   boost::posix_time::ptime getLatestFlashTime() const;
   std::size_t fillFlashDataCache(const std::vector<FlashDataItem> &flashCacheData) const;
   void cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const;
+  boost::posix_time::ptime getLatestObservationModifiedTime() const;
   boost::posix_time::ptime getLatestObservationTime() const;
   std::size_t fillDataCache(const std::vector<DataItem> &cacheData) const;
   void cleanDataCache(const boost::posix_time::time_duration &timetokeep) const;

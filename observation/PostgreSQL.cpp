@@ -535,6 +535,11 @@ boost::posix_time::ptime PostgreSQL::getLatestObservationTime()
   return getTime("SELECT MAX(data_time) FROM observation_data");
 }
 
+boost::posix_time::ptime PostgreSQL::getLatestObservationModifiedTime()
+{
+  return getTime("SELECT MAX(modified_last) FROM observation_data");
+}
+
 boost::posix_time::ptime PostgreSQL::getOldestObservationTime()
 {
   return getTime("SELECT MIN(data_time) FROM observation_data");
@@ -877,8 +882,9 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
           for (const auto i : observationsToUpdate)
           {
             const auto &item = cacheData[i];
-            // data_time, fmisid, measurand_id, producer_id, measurand_no
+            // data_time, modified_last, fmisid, measurand_id, producer_id, measurand_no
             std::string key = Fmi::to_iso_string(item.data_time);
+            key += Fmi::to_iso_string(item.modified_last);
             key += Fmi::to_string(item.fmisid);
             key += Fmi::to_string(item.measurand_id);
             key += Fmi::to_string(item.producer_id);
@@ -893,6 +899,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
               std::string values = "(";
               values += Fmi::to_string(item.fmisid) + ",";
               values += ("'" + Fmi::to_iso_string(item.data_time) + "',");
+              values += ("'" + Fmi::to_iso_string(item.modified_last) + "',");
               values += Fmi::to_string(item.measurand_id) + ",";
               values += Fmi::to_string(item.producer_id) + ",";
               values += Fmi::to_string(item.measurand_no) + ",";
@@ -902,6 +909,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
                 values += Fmi::to_string(item.data_source) + ")";
               else
                 values += "NULL)";
+
               values_vector.push_back(values);
             }
 
@@ -909,7 +917,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
             {
               std::string sqlStmt =
                   "INSERT INTO observation_data "
-                  "(fmisid, data_time, measurand_id, producer_id, measurand_no, "
+                  "(fmisid, data_time, modified_last, measurand_id, producer_id, measurand_no, "
                   "data_value, data_quality, data_source) VALUES ";
 
               for (const auto &v : values_vector)
