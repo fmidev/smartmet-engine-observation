@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.6.8
+Version: 19.6.20
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -97,6 +97,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Jun 20 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.6.20-1.fmi
+- Added modified_last handling
+- Discard values with data_quality > 5
+
 * Sat Jun  8 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.6.8-1.fmi
 - Optimized sqlite timestamp parser not to use boost::lexical case which causes (in GNU) global locale locks
 

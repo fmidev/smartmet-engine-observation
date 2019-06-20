@@ -263,24 +263,12 @@ void PostgreSQL::createObservationDataTable()
         "data_value REAL, "
         "data_quality INTEGER, "
         "data_source INTEGER, "
-        "last_modified timestamp default now(), "
+        "last_modified timestamp NOT NULL DEFAULT now(), "
         "PRIMARY KEY (data_time, fmisid, measurand_id, producer_id, "
-        "measurand_no)); CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON "
-        "observation_data(data_time);");
-
-    // If the old version of table exists add data_source-column
-    pqxx::result result_set = itsDB.executeNonTransaction(
-        "select EXISTS (SELECT 1 FROM information_schema.columns where table_schema = 'public' and "
-        "table_name='observation_data' and column_name='data_source')");
-
-    if (!result_set.empty())
-    {
-      pqxx::result::const_iterator row = result_set.begin();
-      if (!row[0].is_null() && row[0].as<bool>() == false)
-      {
-        itsDB.executeNonTransaction("ALTER TABLE observation_data ADD COLUMN data_source INTEGER");
-      }
-    }
+        "measurand_no));"
+        "CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON observation_data(data_time);"
+        "CREATE INDEX IF NOT EXISTS observation_data_modified_last_idx ON "
+        "observation_data(modified_last);");
   }
   catch (...)
   {
@@ -3318,17 +3306,18 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
     param = trimCommasFromEnd(param);
 
     std::string sqlStmt =
-        "SELECT data.fmisid AS fmisid, EXTRACT(EPOCH FROM data.data_time) AS obstime, "
-        "loc.latitude, loc.longitude, loc.elevation, measurand_id, data_value, data_source "
-        "FROM observation_data data JOIN locations loc ON (data.fmisid = "
-        "loc.fmisid) WHERE data.fmisid IN (" +
+        "SELECT data.fmisid AS fmisid, EXTRACT(EPOCH FROM data.data_time) AS obstime,"
+        " loc.latitude, loc.longitude, loc.elevation, measurand_id, data_value, data_source"
+        " FROM observation_data data JOIN locations loc ON (data.fmisid ="
+        " loc.fmisid) WHERE data.fmisid IN (" +
         qstations + ") AND data.data_time >= '" + Fmi::to_iso_extended_string(settings.starttime) +
         "' AND data.data_time <= '" + Fmi::to_iso_extended_string(settings.endtime) +
         "' AND data.measurand_id IN (" + param +
-        ") AND data.measurand_no = 1 "
-        "GROUP BY data.fmisid, data.data_time, data.measurand_id, data.data_value, data_source, "
-        "loc.location_id, loc.location_end, loc.latitude, loc.longitude, loc.elevation "
-        "ORDER BY fmisid ASC, obstime ASC";
+        ") AND data.measurand_no = 1"
+        " AND data.data_quality <= 5"
+        " GROUP BY data.fmisid, data.data_time, data.measurand_id, data.data_value, data_source,"
+        " loc.location_id, loc.location_end, loc.latitude, loc.longitude, loc.elevation"
+        " ORDER BY fmisid ASC, obstime ASC";
 
     cached_data cachedData;
     fetchCachedDataFromDB(sqlStmt, cachedData, true);

@@ -3504,6 +3504,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
         Fmi::to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" + param +
         ") "
         "AND data.measurand_no = 1 "
+        "AND data.data_quality <= 5 "
         "GROUP BY data.fmisid, data.data_time, data.measurand_id, "
         "loc.location_id, "
         "loc.location_end, "
