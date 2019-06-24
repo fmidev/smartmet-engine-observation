@@ -107,6 +107,8 @@ class SpatiaLiteCache : public ObservationCache
   Spine::TimeSeries::TimeSeriesVectorPtr flashValuesFromSpatiaLite(Settings &settings) const;
   void readConfig(Spine::ConfigBase &cfg);
 
+  boost::shared_ptr<SpatiaLite> getConnection() const;
+
   SpatiaLiteConnectionPool *itsConnectionPool = nullptr;
   Fmi::Cache::Cache<std::string, std::vector<Spine::Station> > itsLocationCache;
   Fmi::TimeZones itsTimeZones;
