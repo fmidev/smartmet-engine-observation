@@ -35,13 +35,36 @@ struct Releaser
 };
 }  // namespace
 
-SpatiaLiteConnectionPool::SpatiaLiteConnectionPool(const SpatiaLiteCacheParameters& options)
-    : itsSpatialiteFile(options.cacheFile), itsOptions(options)
+SpatiaLiteConnectionPool::SpatiaLiteConnectionPool(const SpatiaLiteCacheParameters& options,
+                                                   CacheType cachetype)
+    : itsOptions(options)
 {
   try
   {
-    itsWorkingList.resize(options.connectionPoolSize, 0);
-    itsWorkerList.resize(options.connectionPoolSize);
+    switch (cachetype)
+    {
+      case CacheType::Default:
+      {
+        itsSpatialiteFile = options.defaultCacheFile;
+        itsWorkingList.resize(options.defaultConnectionPoolSize, 0);
+        itsWorkerList.resize(options.defaultConnectionPoolSize);
+        break;
+      }
+      case CacheType::Flash:
+      {
+        itsSpatialiteFile = options.flashCacheFile;
+        itsWorkingList.resize(options.flashConnectionPoolSize, 0);
+        itsWorkerList.resize(options.flashConnectionPoolSize);
+        break;
+      }
+      case CacheType::Mobile:
+      {
+        itsSpatialiteFile = options.mobileCacheFile;
+        itsWorkingList.resize(options.mobileConnectionPoolSize, 0);
+        itsWorkerList.resize(options.mobileConnectionPoolSize);
+        break;
+      }
+    }
 
     // Create all connections in advance, not when needed
     for (std::size_t i = 0; i < itsWorkerList.size(); i++)

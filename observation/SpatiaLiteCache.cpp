@@ -64,48 +64,58 @@ Spine::Stations findNearestStations(const StationInfo &info,
 
 }  // namespace
 
-boost::shared_ptr<SpatiaLite> SpatiaLiteCache::getConnection() const
+boost::shared_ptr<SpatiaLite> SpatiaLiteCache::getConnection(CacheType cachetype) const
 {
-  return itsConnectionPool->getConnection();
+  switch (cachetype)
+  {
+    case CacheType::Default:
+      return itsDefaultConnectionPool->getConnection();
+    case CacheType::Flash:
+      return itsFlashConnectionPool->getConnection();
+    case CacheType::Mobile:
+      return itsMobileConnectionPool->getConnection();
+  }
+
+  // not reached, prevent compiler warnings:
+  assert(false);
 }
 
 void SpatiaLiteCache::initializeConnectionPool(int)
 {
   try
   {
-    logMessage("[Observation Engine] Initializing SpatiaLite cache connection pool...",
-               itsParameters.quiet);
-
-    itsConnectionPool = new SpatiaLiteConnectionPool(itsParameters);
-
-    // Ensure that necessary tables exists:
-    // 1) stations
-    // 2) locations
-    // 3) observation_data
-    boost::shared_ptr<SpatiaLite> spatialitedb = getConnection();
-    spatialitedb->createTables();
-
-    // Check first if we already have stations in SpatiaLite db so that we know
-    // if we can use it
-    // before loading station info
-    size_t stationCount = spatialitedb->getStationCount();
-    if (stationCount > 1)  // Arbitrary number because we cannot know how many
-                           // stations there must be
+    // Ensure that necessary tables exists
     {
-      itsParameters.cacheHasStations = true;
+      logMessage("[Observation Engine] Initializing SpatiaLite default cache connection pool...",
+                 itsParameters.quiet);
+      itsDefaultConnectionPool = new SpatiaLiteConnectionPool(itsParameters, CacheType::Default);
+      auto spatialitedb = getConnection(CacheType::Default);
+      spatialitedb->createTables(CacheType::Default);
+      itsParameters.cacheHasStations = (spatialitedb->getStationCount() > 0);
+    }
+    {
+      logMessage("[Observation Engine] Initializing SpatiaLite flash cache connection pool...",
+                 itsParameters.quiet);
+      itsFlashConnectionPool = new SpatiaLiteConnectionPool(itsParameters, CacheType::Flash);
+      auto spatialitedb = getConnection(CacheType::Flash);
+      spatialitedb->createTables(CacheType::Flash);
+    }
+    {
+      logMessage("[Observation Engine] Initializing SpatiaLite mobile cache connection pool...",
+                 itsParameters.quiet);
+      itsMobileConnectionPool = new SpatiaLiteConnectionPool(itsParameters, CacheType::Mobile);
+      auto spatialitedb = getConnection(CacheType::Mobile);
+      spatialitedb->createTables(CacheType::Mobile);
     }
 
-    for (int i = 0; i < itsParameters.connectionPoolSize; i++)
-    {
-      boost::shared_ptr<SpatiaLite> db = getConnection();
-    }
-
-    logMessage("[Observation Engine] SpatiaLite connection pool ready.", itsParameters.quiet);
+    logMessage("[Observation Engine] SpatiaLite connection pools ready.", itsParameters.quiet);
   }
   catch (...)
   {
     throw Spine::Exception::Trace(BCP, "Operation failed!")
-        .addParameter("filename", itsParameters.cacheFile);
+        .addParameter("default cache", itsParameters.defaultCacheFile)
+        .addParameter("flash cache", itsParameters.flashCacheFile)
+        .addParameter("mobile cache", itsParameters.mobileCacheFile);
   }
 }
 
@@ -125,7 +135,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     // Get stations
-    boost::shared_ptr<SpatiaLite> spatialitedb = getConnection();
+    boost::shared_ptr<SpatiaLite> spatialitedb = getConnection(CacheType::Default);
     Spine::Stations stations = getStationsFromSpatiaLite(settings, spatialitedb);
     stations = removeDuplicateStations(stations);
 
@@ -169,7 +179,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     // Get stations
-    boost::shared_ptr<SpatiaLite> spatialitedb = getConnection();
+    boost::shared_ptr<SpatiaLite> spatialitedb = getConnection(CacheType::Default);
 
     Spine::Stations stations = getStationsFromSpatiaLite(settings, spatialitedb);
     stations = removeDuplicateStations(stations);
@@ -204,7 +214,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &set
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<SpatiaLite> spatialitedb = getConnection();
+    boost::shared_ptr<SpatiaLite> spatialitedb = getConnection(CacheType::Flash);
     ret = spatialitedb->getCachedFlashData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
@@ -523,7 +533,7 @@ void SpatiaLiteCache::getStationsByBoundingBox(Spine::Stations &stations,
                                                      tempSettings.starttime,
                                                      tempSettings.endtime);
 #else
-      boost::shared_ptr<SpatiaLite> spatialitedb = getConnection();
+      boost::shared_ptr<SpatiaLite> spatialitedb = getConnection(CacheType::Default);
       auto stationList = spatialitedb->findStationsInsideBox(tempSettings, *info);
 #endif
       for (const auto &station : stationList)
@@ -577,7 +587,7 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
 void SpatiaLiteCache::updateStationsAndGroups(const StationInfo &info) const
 {
   logMessage("Updating stations to SpatiaLite databases...", itsParameters.quiet);
-  boost::shared_ptr<SpatiaLite> spatialitedb = getConnection();
+  boost::shared_ptr<SpatiaLite> spatialitedb = getConnection(CacheType::Default);
   spatialitedb->updateStationsAndGroups(info);
 
   // Clear all cached search results, read new info from sqlite
@@ -590,7 +600,8 @@ Spine::Stations SpatiaLiteCache::findAllStationsFromGroups(
     const boost::posix_time::ptime &starttime,
     const boost::posix_time::ptime &endtime) const
 {
-  return getConnection()->findAllStationsFromGroups(stationgroup_codes, info, starttime, endtime);
+  return getConnection(CacheType::Default)
+      ->findAllStationsFromGroups(stationgroup_codes, info, starttime, endtime);
 }
 
 // Station request are cached into memory since asking the data from sqlite
@@ -618,8 +629,8 @@ bool SpatiaLiteCache::getStationById(Spine::Station &station,
   }
 
   // Search the database
-  bool ok =
-      getConnection()->getStationById(station, station_id, stationgroup_codes, starttime, endtime);
+  bool ok = getConnection(CacheType::Default)
+                ->getStationById(station, station_id, stationgroup_codes, starttime, endtime);
   if (!ok)
     return false;
 
@@ -632,25 +643,25 @@ Spine::Stations SpatiaLiteCache::findStationsInsideArea(const Settings &settings
                                                         const std::string &areaWkt,
                                                         const StationInfo &info) const
 {
-  return getConnection()->findStationsInsideArea(settings, areaWkt, info);
+  return getConnection(CacheType::Default)->findStationsInsideArea(settings, areaWkt, info);
 }
 
 FlashCounts SpatiaLiteCache::getFlashCount(const boost::posix_time::ptime &starttime,
                                            const boost::posix_time::ptime &endtime,
                                            const Spine::TaggedLocationList &locations) const
 {
-  return getConnection()->getFlashCount(starttime, endtime, locations);
+  return getConnection(CacheType::Flash)->getFlashCount(starttime, endtime, locations);
 }
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestFlashTime() const
 {
-  return getConnection()->getLatestFlashTime();
+  return getConnection(CacheType::Flash)->getLatestFlashTime();
 }
 
 std::size_t SpatiaLiteCache::fillFlashDataCache(
     const std::vector<FlashDataItem> &flashCacheData) const
 {
-  auto conn = getConnection();
+  auto conn = getConnection(CacheType::Flash);
   auto sz = conn->fillFlashDataCache(flashCacheData, itsFlashInsertCache);
 
   // Update what really now really is in the database
@@ -667,7 +678,7 @@ void SpatiaLiteCache::cleanFlashDataCache(const boost::posix_time::time_duration
   boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
   t = round_down_to_cache_clean_interval(t);
 
-  auto conn = getConnection();
+  auto conn = getConnection(CacheType::Flash);
   {
     // We know the cache will not contain anything before this after the update
     Spine::WriteLock lock(itsFlashTimeIntervalMutex);
@@ -703,13 +714,13 @@ bool SpatiaLiteCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestRoadCloudDataTime() const
 {
-  return getConnection()->getLatestRoadCloudDataTime();
+  return getConnection(CacheType::Mobile)->getLatestRoadCloudDataTime();
 }
 
 std::size_t SpatiaLiteCache::fillRoadCloudCache(
     const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const
 {
-  auto conn = getConnection();
+  auto conn = getConnection(CacheType::Mobile);
   auto sz = conn->fillRoadCloudCache(mobileExternalCacheData, itsRoadCloudInsertCache);
 
   // Update what really now really is in the database
@@ -726,7 +737,7 @@ void SpatiaLiteCache::cleanRoadCloudCache(const boost::posix_time::time_duration
   boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
   t = round_down_to_cache_clean_interval(t);
 
-  auto conn = getConnection();
+  auto conn = getConnection(CacheType::Mobile);
   {
     // We know the cache will not contain anything before this after the update
     Spine::WriteLock lock(itsRoadCloudTimeIntervalMutex);
@@ -749,7 +760,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpati
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<SpatiaLite> spatialitedb = getConnection();
+    boost::shared_ptr<SpatiaLite> spatialitedb = getConnection(CacheType::Mobile);
     ret = spatialitedb->getCachedRoadCloudData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
@@ -780,7 +791,7 @@ bool SpatiaLiteCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &st
 std::size_t SpatiaLiteCache::fillNetAtmoCache(
     const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const
 {
-  auto conn = getConnection();
+  auto conn = getConnection(CacheType::Mobile);
   auto sz = conn->fillNetAtmoCache(mobileExternalCacheData, itsNetAtmoInsertCache);
 
   // Update what really now really is in the database
@@ -797,7 +808,7 @@ void SpatiaLiteCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
   boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
   t = round_down_to_cache_clean_interval(t);
 
-  auto conn = getConnection();
+  auto conn = getConnection(CacheType::Mobile);
   {
     // We know the cache will not contain anything before this after the update
     Spine::WriteLock lock(itsNetAtmoTimeIntervalMutex);
@@ -820,7 +831,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaL
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<SpatiaLite> spatialitedb = getConnection();
+    boost::shared_ptr<SpatiaLite> spatialitedb = getConnection(CacheType::Mobile);
     ret = spatialitedb->getCachedNetAtmoData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
@@ -833,22 +844,22 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaL
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestNetAtmoDataTime() const
 {
-  return getConnection()->getLatestNetAtmoDataTime();
+  return getConnection(CacheType::Mobile)->getLatestNetAtmoDataTime();
 }
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestObservationModifiedTime() const
 {
-  return getConnection()->getLatestObservationModifiedTime();
+  return getConnection(CacheType::Default)->getLatestObservationModifiedTime();
 }
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestObservationTime() const
 {
-  return getConnection()->getLatestObservationTime();
+  return getConnection(CacheType::Default)->getLatestObservationTime();
 }
 
 std::size_t SpatiaLiteCache::fillDataCache(const std::vector<DataItem> &cacheData) const
 {
-  auto conn = getConnection();
+  auto conn = getConnection(CacheType::Default);
   auto sz = conn->fillDataCache(cacheData, itsDataInsertCache);
 
   // Update what really now really is in the database
@@ -865,7 +876,7 @@ void SpatiaLiteCache::cleanDataCache(const boost::posix_time::time_duration &tim
   boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
   t = round_down_to_cache_clean_interval(t);
 
-  auto conn = getConnection();
+  auto conn = getConnection(CacheType::Default);
   {
     // We know the cache will not contain anything before this after the update
     Spine::WriteLock lock(itsTimeIntervalMutex);
@@ -883,13 +894,13 @@ void SpatiaLiteCache::cleanDataCache(const boost::posix_time::time_duration &tim
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCTime() const
 {
-  return getConnection()->getLatestWeatherDataQCTime();
+  return getConnection(CacheType::Default)->getLatestWeatherDataQCTime();
 }
 
 std::size_t SpatiaLiteCache::fillWeatherDataQCCache(
     const std::vector<WeatherDataQCItem> &cacheData) const
 {
-  auto conn = getConnection();
+  auto conn = getConnection(CacheType::Default);
   auto sz = conn->fillWeatherDataQCCache(cacheData, itsWeatherQCInsertCache);
 
   // Update what really now really is in the database
@@ -907,7 +918,7 @@ void SpatiaLiteCache::cleanWeatherDataQCCache(
   boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
   t = round_down_to_cache_clean_interval(t);
 
-  auto conn = getConnection();
+  auto conn = getConnection(CacheType::Default);
   {
     // We know the cache will not contain anything before this after the update
     Spine::WriteLock lock(itsWeatherDataQCTimeIntervalMutex);
@@ -925,14 +936,22 @@ void SpatiaLiteCache::cleanWeatherDataQCCache(
 
 void SpatiaLiteCache::fillLocationCache(const std::vector<LocationItem> &locations) const
 {
-  return getConnection()->fillLocationCache(locations);
+  return getConnection(CacheType::Default)->fillLocationCache(locations);
 }
 
 void SpatiaLiteCache::shutdown()
 {
-  if (itsConnectionPool)
-    itsConnectionPool->shutdown();
-  itsConnectionPool = nullptr;
+  if (itsDefaultConnectionPool)
+    itsDefaultConnectionPool->shutdown();
+  itsDefaultConnectionPool = nullptr;
+
+  if (itsFlashConnectionPool)
+    itsFlashConnectionPool->shutdown();
+  itsFlashConnectionPool = nullptr;
+
+  if (itsMobileConnectionPool)
+    itsMobileConnectionPool->shutdown();
+  itsMobileConnectionPool = nullptr;
 }
 
 SpatiaLiteCache::SpatiaLiteCache(const EngineParametersPtr &p, Spine::ConfigBase &cfg)
@@ -983,8 +1002,9 @@ boost::shared_ptr<std::vector<ObservableProperty> > SpatiaLiteCache::observableP
   try
   {
     std::string stationType("metadata");
-    data = getConnection()->getObservableProperties(
-        parameters, language, itsParameters.parameterMap, stationType);
+    data = getConnection(CacheType::Default)
+               ->getObservableProperties(
+                   parameters, language, itsParameters.parameterMap, stationType);
   }
   catch (...)
   {
@@ -996,9 +1016,19 @@ boost::shared_ptr<std::vector<ObservableProperty> > SpatiaLiteCache::observableP
 
 void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
 {
-  itsParameters.connectionPoolSize = cfg.get_mandatory_config_param<int>("cache.poolSize");
+  // This is for backward compatibility
+  int default_pool_size = cfg.get_optional_config_param<int>("cache.poolSize", 10);
 
-  itsParameters.cacheFile = cfg.get_mandatory_path("spatialiteFile");
+  itsParameters.defaultConnectionPoolSize =
+      cfg.get_optional_config_param<int>("cache.defaultPoolSize", default_pool_size);
+  itsParameters.flashConnectionPoolSize =
+      cfg.get_optional_config_param<int>("cache.flashPoolSize", default_pool_size);
+  itsParameters.mobileConnectionPoolSize =
+      cfg.get_optional_config_param<int>("cache.mobilePoolSize", default_pool_size);
+
+  itsParameters.defaultCacheFile = cfg.get_mandatory_path("spatialiteFile");
+  itsParameters.flashCacheFile = cfg.get_mandatory_path("spatialiteFlashFile");
+  itsParameters.mobileCacheFile = cfg.get_mandatory_path("spatialiteMobileFile");
 
   itsParameters.maxInsertSize = cfg.get_optional_config_param<std::size_t>(
       "cache.maxInsertSize", 99999999);  // default = all at once

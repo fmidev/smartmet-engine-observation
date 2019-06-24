@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CacheType.h"
 #include "SpatiaLite.h"
 #include "SpatiaLiteCacheParameters.h"
 #include <spine/Thread.h>
@@ -18,7 +19,7 @@ class SpatiaLiteConnectionPool
 
   void releaseConnection(int connectionId);
 
-  SpatiaLiteConnectionPool(const SpatiaLiteCacheParameters& options);
+  SpatiaLiteConnectionPool(const SpatiaLiteCacheParameters& options, CacheType cachetype);
 
   void shutdown();
 
@@ -29,7 +30,7 @@ class SpatiaLiteConnectionPool
   std::vector<int> itsWorkingList;
   std::vector<boost::shared_ptr<SpatiaLite> > itsWorkerList;
 
-  SmartMet::Spine::MutexType itsGetMutex;
+  Spine::MutexType itsGetMutex;
 };
 
 }  // namespace Observation
