@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CacheType.h"
 #include "DataItem.h"
 #include "ExternalAndMobileProducerConfig.h"
 #include "FlashDataItem.h"
@@ -103,7 +104,7 @@ class SpatiaLite : private boost::noncopyable
    * @brief Create the SpatiaLite tables from scratch
    */
 
-  void createTables();
+  void createTables(CacheType cachetype);
 
   /**
    * @brief Return the number of rows in the stations table
@@ -397,6 +398,7 @@ class SpatiaLite : private boost::noncopyable
  private:
   // Private members
   sqlite3pp::database itsDB;
+  std::string itsFilename;
   std::string srid;
   boost::atomic<bool> itsShutdownRequested;
   std::size_t itsConnectionId;
@@ -466,6 +468,7 @@ class SpatiaLite : private boost::noncopyable
   void createRoadCloudDataTable();
   void createNetAtmoDataTable();
   void createObservablePropertyTable();
+  void dropOldTables();
 
   boost::posix_time::ptime parseSqliteTime(sqlite3pp::query::iterator &iter, int column) const;
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedMobileAndExternalData(

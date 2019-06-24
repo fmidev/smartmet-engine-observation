@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CacheType.h"
 #include "EngineParameters.h"
 #include "InsertStatus.h"
 #include "ObservationCache.h"
@@ -107,7 +108,12 @@ class SpatiaLiteCache : public ObservationCache
   Spine::TimeSeries::TimeSeriesVectorPtr flashValuesFromSpatiaLite(Settings &settings) const;
   void readConfig(Spine::ConfigBase &cfg);
 
-  SpatiaLiteConnectionPool *itsConnectionPool = nullptr;
+  boost::shared_ptr<SpatiaLite> getConnection(CacheType cachetype) const;
+
+  SpatiaLiteConnectionPool *itsDefaultConnectionPool = nullptr;
+  SpatiaLiteConnectionPool *itsFlashConnectionPool = nullptr;
+  SpatiaLiteConnectionPool *itsMobileConnectionPool = nullptr;
+
   Fmi::Cache::Cache<std::string, std::vector<Spine::Station> > itsLocationCache;
   Fmi::TimeZones itsTimeZones;
 
