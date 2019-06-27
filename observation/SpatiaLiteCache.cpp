@@ -542,14 +542,12 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
     // If stationtype is cached and if we have requested time interval in
     // SpatiaLite, get all data
     // from there
-    if (settings.stationtype == "observations_fmi" || settings.stationtype == "opendata" ||
-        settings.stationtype == "fmi" || settings.stationtype == "opendata_mareograph" ||
-        settings.stationtype == "opendata_buoy" || settings.stationtype == "research" ||
-        settings.stationtype == "syke")
+    if (settings.stationtype == "opendata" || settings.stationtype == "fmi" ||
+        settings.stationtype == "opendata_mareograph" || settings.stationtype == "opendata_buoy" ||
+        settings.stationtype == "research" || settings.stationtype == "syke")
       return timeIntervalIsCached(settings.starttime, settings.endtime);
 
-    else if (settings.stationtype == "road" || settings.stationtype == "foreign" ||
-             settings.stationtype == "observations_fmi_extaws")
+    else if (settings.stationtype == "road" || settings.stationtype == "foreign")
       return timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime);
 
     else if (settings.stationtype == "flash")
