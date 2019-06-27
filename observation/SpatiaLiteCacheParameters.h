@@ -37,15 +37,8 @@ struct SpatiaLiteCacheParameters
   }
 
   SpatiaLiteOptions sqlite;
-
-  int defaultConnectionPoolSize;
-  int flashConnectionPoolSize;
-  int mobileConnectionPoolSize;
-
-  std::string defaultCacheFile;
-  std::string flashCacheFile;
-  std::string mobileCacheFile;
-
+  int connectionPoolSize;
+  std::string cacheFile;
   std::size_t maxInsertSize = 5000;
   bool quiet = true;
   bool cacheHasStations;

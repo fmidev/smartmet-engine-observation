@@ -111,8 +111,7 @@ void solveMeasurandIds(const std::vector<std::string> &parameters,
 };  // namespace
 
 SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheParameters &options)
-    : itsFilename(spatialiteFile),
-      itsShutdownRequested(false),
+    : itsShutdownRequested(false),
       itsMaxInsertSize(options.maxInsertSize),
       itsExternalAndMobileProducerConfig(options.externalAndMobileProducerConfig)
 {
@@ -125,10 +124,10 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
     // However, for a single shared db it may be better to share:
     // https://github.com/mapnik/mapnik/issues/797
 
-    int flags = (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_SHAREDCACHE |
+    int flags = (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_PRIVATECACHE |
                  SQLITE_OPEN_NOMUTEX);
 
-    itsDB.connect(itsFilename.c_str(), flags);
+    itsDB.connect(spatialiteFile.c_str(), flags);
     // timeout ms
     itsDB.set_busy_timeout(options.sqlite.timeout);
 
@@ -179,38 +178,28 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Connecting database '" + itsFilename + "' failed!");
+    throw Spine::Exception::Trace(BCP, "Connecting database '" + spatialiteFile + "' failed!");
   }
 }
 
 SpatiaLite::~SpatiaLite() {}
 
-void SpatiaLite::createTables(CacheType cachetype)
+void SpatiaLite::createTables()
 {
-  // No locking needed during initialization phase
   try
   {
+    // No locking needed during initialization phase
     initSpatialMetaData();
-    switch (cachetype)
-    {
-      case CacheType::Default:
-        createStationTable();
-        createStationGroupsTable();
-        createGroupMembersTable();
-        createLocationsTable();
-        createObservationDataTable();
-        createWeatherDataQCTable();
-        createObservablePropertyTable();
-        dropOldTables();
-        break;
-      case CacheType::Flash:
-        createFlashDataTable();
-        break;
-      case CacheType::Mobile:
-        createRoadCloudDataTable();
-        createNetAtmoDataTable();
-        break;
-    }
+    createStationTable();
+    createStationGroupsTable();
+    createGroupMembersTable();
+    createLocationsTable();
+    createObservationDataTable();
+    createWeatherDataQCTable();
+    createFlashDataTable();
+    createObservablePropertyTable();
+    createRoadCloudDataTable();
+    createNetAtmoDataTable();
   }
   catch (...)
   {
@@ -682,21 +671,6 @@ void SpatiaLite::createStationTable()
   }
 }
 
-void SpatiaLite::dropOldTables()
-{
-  try
-  {
-    // No locking needed during initialization phase
-    itsDB.execute("DROP TABLE IF EXISTS flash_data");
-    itsDB.execute("DROP TABLE IF EXISTS ext_obsdata_netatmo");
-    itsDB.execute("DROP TABLE IF EXISTS ext_obsdata_roadcloud");
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Dropping old tables failed!");
-  }
-}
-
 size_t SpatiaLite::selectCount(const std::string &queryString)
 {
   try
@@ -736,7 +710,7 @@ boost::posix_time::ptime SpatiaLite::getLatestObservationTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest observation time query failed!").addParameter("filename",itsFilename);
+    throw Spine::Exception::Trace(BCP, "Latest observation time query failed!");
   }
 }
 
@@ -754,8 +728,7 @@ boost::posix_time::ptime SpatiaLite::getLatestObservationModifiedTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Modified last observation time query failed!").
-        addParameter("filename",itsFilename);
+    throw Spine::Exception::Trace(BCP, "Modified last observation time query failed!");
   }
 }
 
@@ -773,7 +746,7 @@ boost::posix_time::ptime SpatiaLite::getOldestObservationTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest observation time query failed!").addParameter("filename",itsFilename);
+    throw Spine::Exception::Trace(BCP, "Oldest observation time query failed!");
   }
 }
 
@@ -790,7 +763,7 @@ boost::posix_time::ptime SpatiaLite::getLatestWeatherDataQCTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest WeatherDataQCTime query failed!").addParameter("filename",itsFilename);
+    throw Spine::Exception::Trace(BCP, "Latest WeatherDataQCTime query failed!");
   }
 }
 
@@ -808,7 +781,7 @@ boost::posix_time::ptime SpatiaLite::getOldestWeatherDataQCTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest WeatherDataQCTime query failed!").addParameter("filename",itsFilename);
+    throw Spine::Exception::Trace(BCP, "Oldest WeatherDataQCTime query failed!");
   }
 }
 
@@ -822,7 +795,7 @@ boost::posix_time::ptime SpatiaLite::getLatestFlashTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest flash time query failed!").addParameter("filename",itsFilename);
+    throw Spine::Exception::Trace(BCP, "Latest flash time query failed!");
   }
 }
 
@@ -836,7 +809,7 @@ boost::posix_time::ptime SpatiaLite::getOldestFlashTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest flash time query failed!").addParameter("filename",itsFilename);
+    throw Spine::Exception::Trace(BCP, "Oldest flash time query failed!");
   }
 }
 
@@ -850,7 +823,7 @@ boost::posix_time::ptime SpatiaLite::getOldestRoadCloudDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest RaodCloud time query failed!").addParameter("filename",itsFilename);
+    throw Spine::Exception::Trace(BCP, "Oldest RaodCloud time query failed!");
   }
 }
 
@@ -864,7 +837,7 @@ boost::posix_time::ptime SpatiaLite::getLatestRoadCloudDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest RoadCloud data time query failed!").addParameter("filename",itsFilename);
+    throw Spine::Exception::Trace(BCP, "Latest RoadCloud data time query failed!");
   }
 }
 
@@ -878,7 +851,7 @@ boost::posix_time::ptime SpatiaLite::getOldestNetAtmoDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest NetAtmo data time query failed!").addParameter("filename",itsFilename);
+    throw Spine::Exception::Trace(BCP, "Oldest NetAtmo data time query failed!");
   }
 }
 
@@ -892,7 +865,7 @@ boost::posix_time::ptime SpatiaLite::getLatestNetAtmoDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest NetAtmo data time query failed!").addParameter("filename",itsFilename);
+    throw Spine::Exception::Trace(BCP, "Latest NetAtmo data time query failed!");
   }
 }
 
@@ -913,7 +886,7 @@ boost::posix_time::ptime SpatiaLite::getLatestTimeFromTable(const std::string ta
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest time query failed!").addParameter("filename",itsFilename);
+    throw Spine::Exception::Trace(BCP, "Latest time query failed!");
   }
 }
 
@@ -934,7 +907,7 @@ boost::posix_time::ptime SpatiaLite::getOldestTimeFromTable(const std::string ta
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest time query failed!").addParameter("filename",itsFilename);
+    throw Spine::Exception::Trace(BCP, "Oldest time query failed!");
   }
 }
 
