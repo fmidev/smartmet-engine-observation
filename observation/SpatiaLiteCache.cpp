@@ -549,7 +549,7 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
       return timeIntervalIsCached(settings.starttime, settings.endtime);
 
     else if (settings.stationtype == "road" || settings.stationtype == "foreign" ||
-                 settings.stationtype = "observations_fmi_extaws")
+             settings.stationtype == "observations_fmi_extaws")
       return timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime);
 
     else if (settings.stationtype == "flash")
