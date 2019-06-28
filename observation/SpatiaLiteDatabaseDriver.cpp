@@ -162,8 +162,10 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
       }
     }
 
-    if (itsParameters.stationtypeConfig.getUseCommonQueryMethod(settings.stationtype) and
-        settings.producer_ids.empty())
+    settings.useCommonQueryMethod =
+        itsParameters.stationtypeConfig.getUseCommonQueryMethod(settings.stationtype);
+
+    if (settings.useCommonQueryMethod and settings.producer_ids.empty())
       settings.producer_ids =
           *itsParameters.stationtypeConfig.getProducerIdSetByStationtype(settings.stationtype);
 
@@ -179,6 +181,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
       // 1) stationtype is cached
       // 2) we have the requested time interval in cache
       // 3) stations are available in Cache
+
       if (settings.useDataCache && itsParameters.observationCache->dataAvailableInCache(settings) &&
           itsParameters.observationCache->cacheHasStations())
       {
@@ -222,8 +225,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
       }
     }
 
-    if (itsParameters.stationtypeConfig.getUseCommonQueryMethod(settings.stationtype) and
-        settings.producer_ids.empty())
+    settings.useCommonQueryMethod =
+        itsParameters.stationtypeConfig.getUseCommonQueryMethod(settings.stationtype);
+
+    if (settings.useCommonQueryMethod and settings.producer_ids.empty())
       settings.producer_ids =
           *itsParameters.stationtypeConfig.getProducerIdSetByStationtype(settings.stationtype);
     auto stationgroupCodeSet =

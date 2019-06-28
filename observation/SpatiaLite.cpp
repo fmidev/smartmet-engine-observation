@@ -3404,16 +3404,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
 {
   try
   {
-    std::string stationtype;
-    if (settings.stationtype == "opendata_buoy" || settings.stationtype == "opendata_mareograph")
-    {
-      stationtype = settings.stationtype;
-    }
-    else
-    {
-      stationtype = "opendata";
-    }
-
+    // Always use FMI parameter numbers for the narrow table cache
+    
+    std::string stationtype = "observations_fmi";
+   
     boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
     timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
 
@@ -3511,6 +3505,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
         "loc.latitude, loc.longitude, loc.elevation, data.data_value, data.data_source "
         "ORDER BY fmisid ASC, obstime ASC";
 
+    std::cout << "SPATIALITE SQL:\n" << query << "\n";
+    
     std::vector<boost::optional<int>> fmisidsAll;
     std::vector<boost::posix_time::ptime> obstimesAll;
     std::vector<boost::optional<double>> longitudesAll;
@@ -3545,6 +3541,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
       data_sourcesAll.push_back(data_source);
     }
 
+    std::cout << "Found " << fmisidsAll.size() << "rows\n";
+    
     Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
         initializeResultVector(settings.parameters);
 

@@ -35,6 +35,7 @@ Settings::Settings()
     timezone = "localtime";
     boundingBoxIsGiven = false;
     useDataCache = true;
+    useCommonQueryMethod = false;
   }
   catch (...)
   {

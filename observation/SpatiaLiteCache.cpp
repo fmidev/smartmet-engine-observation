@@ -540,25 +540,23 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
   try
   {
     // If stationtype is cached and if we have requested time interval in
-    // SpatiaLite, get all data
-    // from there
-    if (settings.stationtype == "observations_fmi" || settings.stationtype == "opendata" ||
-        settings.stationtype == "fmi" || settings.stationtype == "opendata_mareograph" ||
-        settings.stationtype == "opendata_buoy" || settings.stationtype == "research" ||
-        settings.stationtype == "syke")
+    // SpatiaLite, get all data from there
+
+    if (settings.useCommonQueryMethod)
       return timeIntervalIsCached(settings.starttime, settings.endtime);
 
-    else if (settings.stationtype == "road" || settings.stationtype == "foreign" ||
-                 settings.stationtype = "observations_fmi_extaws")
+    const auto &s = settings.stationtype;
+
+    if (s == "road" || s == "foreign" || s == "observations_fmi_extaws")
       return timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime);
 
-    else if (settings.stationtype == "flash")
+    if (s == "flash")
       return flashIntervalIsCached(settings.starttime, settings.endtime);
 
-    else if (settings.stationtype == "roadcloud")
+    if (s == "roadcloud")
       return roadCloudIntervalIsCached(settings.starttime, settings.endtime);
 
-    else if (settings.stationtype == "netatmo")
+    if (s == "netatmo")
       return netAtmoIntervalIsCached(settings.starttime, settings.endtime);
 
     // Either the stationtype is not cached or the requested time interval is
