@@ -31,6 +31,17 @@ using namespace boost::gregorian;
 using namespace boost::posix_time;
 using namespace boost::local_time;
 
+boost::posix_time::ptime parse_sqlite_time(std::string timestring)
+{
+  if (timestring.find("T") != std::string::npos)
+    timestring.replace(timestring.find("T"), 1, " ");
+
+  // uses boost::lexical_cast and takes global locale lock in GNU:
+  // return boost::posix_time::time_from_string(timestring);
+
+  return Fmi::TimeParser::parse_sql(timestring);
+}
+
 template <typename Container, typename Key>
 bool exists(const Container &container, const Key &key)
 {
@@ -2577,6 +2588,76 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
   }
 }
 
+std::vector<FlashDataItem> SpatiaLite::readFlashCacheData(const boost::posix_time::ptime& starttime)
+{
+  try
+  {
+  string starttimeString = Fmi::to_iso_extended_string(starttime);
+  boost::replace_all(starttimeString, ",", ".");
+
+    // The data is sorted for the benefit of the user and FlashMemoryCache::fill
+  std::string sql =
+      "SELECT DATETIME(stroke_time) as stroke_time, flash_id, "
+      "multiplicity, peak_current, "
+      "sensors, freedom_degree, ellipse_angle, ellipse_major, "
+      "ellipse_minor, chi_square, rise_time, ptz_time, cloud_indicator, "
+      "angle_indicator, signal_indicator, timing_indicator, stroke_status, "
+      "data_source, DATETIME(modified_last) AS modified_last, modified_by, "
+      "X(stroke_location) AS longitude, "
+      "Y(stroke_location) AS latitude "
+      "FROM flash_data "
+      "WHERE stroke_time >= '" + starttimeString + "'"
+      "ORDER BY stroke_time, flash_id";
+
+  std::vector<FlashDataItem> result;
+
+  // Spine::ReadLock lock(write_mutex);
+  sqlite3pp::query qry(itsDB, sql.c_str());
+
+  for (auto row : qry)
+  {
+    FlashDataItem f;
+
+    // Note: For some reason the "created" column present in Oracle flashdata is not
+    // present in the cached flash_data.
+
+    f.stroke_time = parse_sqlite_time(row.get<string>(0));
+    
+    f.flash_id = row.get<int>(1);
+    f.multiplicity = row.get<int>(2);
+    f.peak_current = row.get<int>(3);
+    f.sensors = row.get<int>(4);
+    f.freedom_degree = row.get<int>(5);
+    f.ellipse_angle = row.get<double>(6);
+    f.ellipse_major = row.get<double>(7);
+    f.ellipse_minor = row.get<double>(8);
+    f.chi_square = row.get<double>(9);
+    f.rise_time = row.get<double>(10);
+    f.ptz_time = row.get<double>(11);
+    f.cloud_indicator = row.get<int>(12);
+    f.angle_indicator = row.get<int>(13);
+    f.signal_indicator = row.get<int>(14);
+    f.timing_indicator = row.get<int>(15);
+    f.stroke_status = row.get<int>(16);
+    f.data_source = row.get<int>(17);
+    // these seem to always be null
+    // f.modified_last = parse_sqlite_time(row.get<string>(18));
+    // f.modified_by = row.get<int>(19);
+    f.longitude = Fmi::stod(row.get<string>(20));
+    f.latitude = Fmi::stod(row.get<string>(21));
+
+    result.emplace_back(f);
+  }
+
+  return result;
+}
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Solving measurand id failed!");
+  }
+}
+
+
 void SpatiaLite::addSmartSymbolToTimeSeries(
     const int pos,
     const Spine::Station &s,
@@ -3973,13 +4054,7 @@ boost::posix_time::ptime SpatiaLite::parseSqliteTime(sqlite3pp::query::iterator 
 
   std::string timestring = (*iter).get<char const *>(column);
 
-  if (timestring.find("T") != std::string::npos)
-    timestring.replace(timestring.find("T"), 1, " ");
-
-  // uses boost::lexical_cast and takes global locale lock in GNU:
-  // return boost::posix_time::time_from_string(timestring);
-
-  return Fmi::TimeParser::parse_sql(timestring);
+  return parse_sqlite_time(timestring);
 }
 
 

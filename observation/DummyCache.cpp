@@ -8,9 +8,16 @@ namespace Observation
 {
 DummyCache::DummyCache(const EngineParametersPtr &p) : itsParameters(p) {}
 
-void DummyCache::initializeConnectionPool(int)
+void DummyCache::initializeConnectionPool()
 {
   logMessage("[Observation Engine] Dummy cache initialized!", itsParameters->quiet);
+}
+
+void DummyCache::initializeCaches(int finCacheDuration,
+                                  int extCacheDuration,
+                                  int flashCacheDuration,
+                                  int flashMemoryCacheDuration)
+{
 }
 
 Spine::TimeSeries::TimeSeriesVectorPtr DummyCache::valuesFromCache(Settings &settings)
@@ -95,7 +102,11 @@ std::size_t DummyCache::fillFlashDataCache(const std::vector<FlashDataItem> &fla
   return 0;
 }
 
-void DummyCache::cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const {}
+void DummyCache::cleanFlashDataCache(
+    const boost::posix_time::time_duration & /* timetokeep */,
+    const boost::posix_time::time_duration & /*timetokeep_memory */) const
+{
+}
 
 boost::posix_time::ptime DummyCache::getLatestObservationModifiedTime() const
 {

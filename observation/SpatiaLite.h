@@ -394,6 +394,14 @@ class SpatiaLite : private boost::noncopyable
 
   size_t selectCount(const std::string &queryString);
 
+  /**
+   * \brief Return latest flash data in a FlashDataItem vector
+   * \param starttime Start time for the read
+   * @retval Vector of FlashDataItems
+   */
+
+  std::vector<FlashDataItem> readFlashCacheData(const boost::posix_time::ptime &starttime);
+
  private:
   // Private members
   sqlite3pp::database itsDB;

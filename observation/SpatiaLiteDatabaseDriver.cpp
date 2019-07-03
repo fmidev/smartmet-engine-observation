@@ -78,7 +78,11 @@ void SpatiaLiteDatabaseDriver::init(Engine *obsengine)
     logMessage("[SpatiaLiteDatabaseDriver] initializing connection pool...", itsParameters.quiet);
 
     itsObsEngine = obsengine;
-    itsParameters.observationCache->initializeConnectionPool(itsParameters.finCacheDuration);
+    itsParameters.observationCache->initializeConnectionPool();
+    itsParameters.observationCache->initializeCaches(itsParameters.finCacheDuration,
+                                                     itsParameters.extCacheDuration,
+                                                     itsParameters.flashCacheDuration,
+                                                     itsParameters.flashMemoryCacheDuration);
 
     logMessage("[SpatiaLiteDatabaseDriver] Connection pool ready.", itsParameters.quiet);
   }
@@ -636,7 +640,13 @@ void SpatiaLiteDatabaseDriver::preloadStations(const std::string &serializedStat
 void SpatiaLiteDatabaseDriver::readConfig(Spine::ConfigBase &cfg)
 {
   itsParameters.finCacheDuration =
-      cfg.get_optional_config_param<int>("database_driver.finCacheDuration", 0);
+      cfg.get_mandatory_config_param<int>("database_driver.finCacheDuration");
+  itsParameters.extCacheDuration =
+      cfg.get_mandatory_config_param<int>("database_driver.extCacheDuration");
+  itsParameters.flashCacheDuration =
+      cfg.get_mandatory_config_param<int>("database_driver.flashCacheDuration");
+  itsParameters.flashMemoryCacheDuration =
+      cfg.get_optional_config_param<int>("database_driver.flashMemoryCacheDuration", 0);
 
   // iterate stationtypes and find out metaparameters
   // metaparameter are defined in 'meta_data.bbox'group like 'meta_data.bbox.<producer>= value'

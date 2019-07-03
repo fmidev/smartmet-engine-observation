@@ -39,6 +39,9 @@ struct SpatiaLiteDriverParameters
   StationtypeConfig& stationtypeConfig;
   bool quiet;
   int finCacheDuration = 0;
+  int extCacheDuration = 0;
+  int flashCacheDuration = 0;
+  int flashMemoryCacheDuration = 0;
 };
 
 }  // namespace Observation

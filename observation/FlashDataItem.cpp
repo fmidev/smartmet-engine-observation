@@ -31,8 +31,10 @@ std::size_t FlashDataItem::hash_value() const
   boost::hash_combine(hash, boost::hash_value(timing_indicator));
   boost::hash_combine(hash, boost::hash_value(stroke_status));
   boost::hash_combine(hash, boost::hash_value(data_source));
-  boost::hash_combine(hash, boost::hash_value(Fmi::to_iso_string(created)));
-  boost::hash_combine(hash, boost::hash_value(Fmi::to_iso_string(modified_last)));
+  if (!created.is_not_a_date_time())
+    boost::hash_combine(hash, boost::hash_value(Fmi::to_iso_string(created)));
+  if (!modified_last.is_not_a_date_time())
+    boost::hash_combine(hash, boost::hash_value(Fmi::to_iso_string(modified_last)));
   boost::hash_combine(hash, boost::hash_value(modified_by));
   return hash;
 }

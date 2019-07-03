@@ -64,7 +64,7 @@ Spine::Stations findNearestStations(const StationInfo &info,
 
 }  // namespace
 
-void SpatiaLiteCache::initializeConnectionPool(int)
+void SpatiaLiteCache::initializeConnectionPool()
 {
   try
   {
@@ -96,6 +96,29 @@ void SpatiaLiteCache::initializeConnectionPool(int)
     }
 
     logMessage("[Observation Engine] SpatiaLite connection pool ready.", itsParameters.quiet);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Operation failed!")
+        .addParameter("filename", itsParameters.cacheFile);
+  }
+}
+
+void SpatiaLiteCache::initializeCaches(int finCacheDuration,
+                                       int extCacheDuration,
+                                       int flashCacheDuration,
+                                       int flashMemoryCacheDuration)
+{
+  try
+  {
+    logMessage("[Observation Engine] Initializing SpatiaLite memory cache", itsParameters.quiet);
+
+    auto now = boost::posix_time::second_clock::universal_time();
+    auto timetokeep_memory = boost::posix_time::hours(flashMemoryCacheDuration);
+    auto flashdata =
+        itsConnectionPool->getConnection()->readFlashCacheData(now - timetokeep_memory);
+    itsFlashMemoryCache.fill(flashdata);
+    logMessage("[Observation Engine] SpatiaLite memory cache ready.", itsParameters.quiet);
   }
   catch (...)
   {
@@ -197,12 +220,15 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &set
 {
   try
   {
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+    // Use memory cache if possible. t is not set if the cache is not ready yet
+    auto t = itsFlashMemoryCache.getStartTime();
 
+    if (!t.is_not_a_date_time() && settings.starttime >= t)
+      return itsFlashMemoryCache.getData(settings, itsParameters.parameterMap, itsTimeZones);
+
+    // Must use disk cache instead
     boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    ret = spatialitedb->getCachedFlashData(settings, itsParameters.parameterMap, itsTimeZones);
-
-    return ret;
+    return spatialitedb->getCachedFlashData(settings, itsParameters.parameterMap, itsTimeZones);
   }
   catch (...)
   {
@@ -392,6 +418,8 @@ bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &star
 {
   try
   {
+    // No need to check memory cache here, it is always supposed to be shorted than the disk cache
+
     Spine::ReadLock lock(itsFlashTimeIntervalMutex);
     if (itsFlashTimeIntervalStart.is_not_a_date_time())
       return false;
@@ -646,10 +674,14 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestFlashTime() const
 std::size_t SpatiaLiteCache::fillFlashDataCache(
     const std::vector<FlashDataItem> &flashCacheData) const
 {
+  // Memory cache first
+  itsFlashMemoryCache.fill(flashCacheData);
+
+  // Then disk cache
   auto conn = itsConnectionPool->getConnection();
   auto sz = conn->fillFlashDataCache(flashCacheData, itsFlashInsertCache);
 
-  // Update what really now really is in the database
+  // Update info on what is in the database
   auto start = conn->getOldestFlashTime();
   auto end = conn->getLatestFlashTime();
   Spine::WriteLock lock(itsFlashTimeIntervalMutex);
@@ -658,10 +690,18 @@ std::size_t SpatiaLiteCache::fillFlashDataCache(
   return sz;
 }
 
-void SpatiaLiteCache::cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const
+void SpatiaLiteCache::cleanFlashDataCache(
+    const boost::posix_time::time_duration &timetokeep,
+    const boost::posix_time::time_duration &timetokeep_memory) const
 {
-  boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-  t = round_down_to_cache_clean_interval(t);
+  auto now = boost::posix_time::second_clock::universal_time();
+
+  // Clean memory cache first:
+
+  itsFlashMemoryCache.clean(now - timetokeep_memory);
+
+  // How old observations to keep in the disk cache:
+  auto t = round_down_to_cache_clean_interval(now - timetokeep);
 
   auto conn = itsConnectionPool->getConnection();
   {

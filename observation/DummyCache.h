@@ -21,7 +21,11 @@ class DummyCache : public ObservationCache
  public:
   DummyCache(const EngineParametersPtr &p);
 
-  void initializeConnectionPool(int finCacheDuration);
+  void initializeConnectionPool();
+  void initializeCaches(int finCacheDuration,
+                        int extCacheDuration,
+                        int flashCacheDuration,
+                        int flashMemoryCacheDuration);
 
   Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(Settings &settings);
   Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(
@@ -58,7 +62,8 @@ class DummyCache : public ObservationCache
 
   boost::posix_time::ptime getLatestFlashTime() const;
   std::size_t fillFlashDataCache(const std::vector<FlashDataItem> &flashCacheData) const;
-  void cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const;
+  void cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep,
+                           const boost::posix_time::time_duration &timetokeep_memory) const;
 
   boost::posix_time::ptime getLatestObservationModifiedTime() const;
   boost::posix_time::ptime getLatestObservationTime() const;

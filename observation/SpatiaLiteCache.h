@@ -1,15 +1,14 @@
 #pragma once
 
 #include "EngineParameters.h"
+#include "FlashMemoryCache.h"
 #include "InsertStatus.h"
 #include "ObservationCache.h"
 #include "Settings.h"
 #include "SpatiaLiteCacheParameters.h"
 #include "SpatiaLiteConnectionPool.h"
 #include "StationtypeConfig.h"
-
 #include <macgyver/Cache.h>
-
 #include <string>
 
 namespace SmartMet
@@ -26,7 +25,11 @@ class SpatiaLiteCache : public ObservationCache
   SpatiaLiteCache(const EngineParametersPtr &p, Spine::ConfigBase &cfg);
   ~SpatiaLiteCache();
 
-  void initializeConnectionPool(int finCacheDuration);
+  void initializeConnectionPool();
+  void initializeCaches(int finCacheDuration,
+                        int extCacheDuration,
+                        int flashCacheDuration,
+                        int flashMemoryCacheDuration);
 
   Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(Settings &settings);
   Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(
@@ -63,7 +66,8 @@ class SpatiaLiteCache : public ObservationCache
                             const Spine::TaggedLocationList &locations) const;
   boost::posix_time::ptime getLatestFlashTime() const;
   std::size_t fillFlashDataCache(const std::vector<FlashDataItem> &flashCacheData) const;
-  void cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const;
+  void cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep,
+                           const boost::posix_time::time_duration &timetokeep_memory) const;
   boost::posix_time::ptime getLatestObservationModifiedTime() const;
   boost::posix_time::ptime getLatestObservationTime() const;
   std::size_t fillDataCache(const std::vector<DataItem> &cacheData) const;
@@ -145,6 +149,11 @@ class SpatiaLiteCache : public ObservationCache
   mutable InsertStatus itsFlashInsertCache;
   mutable InsertStatus itsRoadCloudInsertCache;
   mutable InsertStatus itsNetAtmoInsertCache;
+
+  // Memory caches smaller than the spatialite cache itself
+  FlashMemoryCache itsFlashMemoryCache;
+  // ObservationDataMemoryCache itsObservationDataMemoryCache; // UNIMPLEMENTED
+  // WeatherDataQCMemoryCache itsWeatherDataQCMemoryCache; // UNIMPLEMENTED
 };
 
 }  // namespace Observation

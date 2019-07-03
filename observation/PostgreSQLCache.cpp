@@ -55,7 +55,7 @@ Spine::Stations findNearestStations(const StationInfo &info,
 
 }  // namespace
 
-void PostgreSQLCache::initializeConnectionPool(int)
+void PostgreSQLCache::initializeConnectionPool()
 {
   try
   {
@@ -92,6 +92,14 @@ void PostgreSQLCache::initializeConnectionPool(int)
   {
     throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
+}
+
+void PostgreSQLCache::initializeCaches(int finCacheDuration,
+                                       int extCacheDuration,
+                                       int flashCacheDuration,
+                                       int flashMemoryCacheDuration)
+{
+  // Nothing to do
 }
 
 ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
@@ -650,7 +658,9 @@ std::size_t PostgreSQLCache::fillFlashDataCache(
   return itsConnectionPool->getConnection()->fillFlashDataCache(flashCacheData);
 }
 
-void PostgreSQLCache::cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const
+void PostgreSQLCache::cleanFlashDataCache(
+    const boost::posix_time::time_duration &timetokeep,
+    const boost::posix_time::time_duration & /* timetokeep_memory */) const
 {
   return itsConnectionPool->getConnection()->cleanFlashDataCache(timetokeep);
 }
