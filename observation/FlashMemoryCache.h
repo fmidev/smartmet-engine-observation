@@ -1,7 +1,6 @@
 #pragma once
 
 #include "FlashDataItem.h"
-#include "InsertStatus.h"
 #include "Settings.h"
 #include "SpatiaLite.h"
 #include <boost/shared_ptr.hpp>

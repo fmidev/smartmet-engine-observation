@@ -11,6 +11,7 @@
 #include "StationInfo.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
+
 #ifdef __llvm__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -50,6 +51,13 @@ namespace Observation
 {
 class ObservableProperty;
 class SpatiaLiteCacheParameters;
+
+struct ObservationsMap;
+struct QueryMapping;
+struct SqliteObservation;
+using SqliteObservations = std::vector<SqliteObservation>;
+
+using StationMap = std::map<int, Spine::Station>;
 
 class SpatiaLite : private boost::noncopyable
 {
@@ -392,7 +400,7 @@ class SpatiaLite : private boost::noncopyable
       const ParameterMapPtr &parameterMap,
       const std::string &stationType);
 
-  size_t selectCount(const std::string &queryString);
+  std::size_t selectCount(const std::string &queryString);
 
   /**
    * \brief Return latest flash data in a FlashDataItem vector
@@ -427,7 +435,7 @@ class SpatiaLite : private boost::noncopyable
       const std::map<int,
                      std::map<boost::local_time::local_date_time,
                               std::map<int, SmartMet::Spine::TimeSeries::Value>>> &data,
-      const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns);
+      const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns) const;
 
   void addSpecialParameterToTimeSeries(
       const std::string &paramname,
@@ -435,7 +443,7 @@ class SpatiaLite : private boost::noncopyable
       const SmartMet::Spine::Station &station,
       const int pos,
       const std::string stationtype,
-      const boost::local_time::local_date_time &obstime);
+      const boost::local_time::local_date_time &obstime) const;
 
   void addParameterToTimeSeries(
       const SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
@@ -446,7 +454,7 @@ class SpatiaLite : private boost::noncopyable
       const std::map<std::string, int> &timeseriesPositions,
       const ParameterMapPtr &parameterMap,
       const std::string &stationtype,
-      const SmartMet::Spine::Station &station);
+      const SmartMet::Spine::Station &station) const;
 
   void addEmptyValuesToTimeSeries(
       SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
@@ -480,6 +488,61 @@ class SpatiaLite : private boost::noncopyable
       const Settings &settings,
       const ParameterMapPtr &parameterMap,
       const Fmi::TimeZones &timezones);
+
+  Spine::TimeSeries::TimeSeriesVectorPtr build_timeseries(
+      const Spine::Stations &stations,
+      const Settings &settings,
+      const ParameterMapPtr &parameterMap,
+      const std::string &stationtype,
+      const StationMap &tmpStations,
+      const SqliteObservations &observations,
+      ObservationsMap &obsmap,
+      const QueryMapping &qmap,
+      const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Fmi::TimeZones &timezones) const;
+
+  Spine::TimeSeries::TimeSeriesVectorPtr build_timeseries_all_time_steps(
+      const Spine::Stations &stations,
+      const Settings &settings,
+      const ParameterMapPtr &parameterMap,
+      const std::string &stationtype,
+      const StationMap &tmpStations,
+      ObservationsMap &obsmap,
+      const QueryMapping &qmap) const;
+
+  Spine::TimeSeries::TimeSeriesVectorPtr build_timeseries_latest_time_step(
+      const Spine::Stations &stations,
+      const Settings &settings,
+      const ParameterMapPtr &parameterMap,
+      const std::string &stationtype,
+      const StationMap &tmpStations,
+      const SqliteObservations &observations,
+      ObservationsMap &obsmap,
+      const QueryMapping &qmap,
+      const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Fmi::TimeZones &timezones) const;
+
+  Spine::TimeSeries::TimeSeriesVectorPtr build_timeseries_listed_time_steps(
+      const Spine::Stations &stations,
+      const Settings &settings,
+      const ParameterMapPtr &parameterMap,
+      const std::string &stationtype,
+      const StationMap &tmpStations,
+      const SqliteObservations &observations,
+      ObservationsMap &obsmap,
+      const QueryMapping &qmap,
+      const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Fmi::TimeZones &timezones) const;
+
+  void append_weather_parameters(const Spine::Station &s,
+                                 const boost::local_time::local_date_time &t,
+                                 const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+                                 const ParameterMapPtr &parameterMap,
+                                 const std::string &stationtype,
+                                 const StationMap &tmpStations,
+                                 const SqliteObservations &observations,
+                                 ObservationsMap &obsmap,
+                                 const QueryMapping &qmap) const;
 };
 
 }  // namespace Observation
