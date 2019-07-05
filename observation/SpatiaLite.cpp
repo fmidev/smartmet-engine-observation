@@ -298,7 +298,7 @@ struct ObservationsMap
 ObservationsMap map_observations(const SqliteObservations &observations,
                                  const Settings &settings,
                                  const Fmi::TimeZones &timezones,
-                                 const StationMap &tmpStations)
+                                 const StationMap &fmisid_to_station)
 {
   ObservationsMap ret;
 
@@ -306,7 +306,7 @@ ObservationsMap map_observations(const SqliteObservations &observations,
   {
     int fmisid = obs.fmisid;
 
-    std::string zone(settings.timezone == "localtime" ? tmpStations.at(fmisid).timezone
+    std::string zone(settings.timezone == "localtime" ? fmisid_to_station.at(fmisid).timezone
                                                       : settings.timezone);
     auto localtz = timezones.time_zone_from_string(zone);
     local_date_time obstime = local_date_time(obs.obstime, localtz);
@@ -3420,10 +3420,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     std::string stationtype = settings.stationtype;
 
     std::string qstations;
-    map<int, Spine::Station> tmpStations;
+    map<int, Spine::Station> fmisid_to_station;
     for (const Spine::Station &s : stations)
     {
-      tmpStations.insert(std::make_pair(s.station_id, s));
+      fmisid_to_station.insert(std::make_pair(s.station_id, s));
       qstations += Fmi::to_string(s.station_id) + ",";
     }
     qstations = qstations.substr(0, qstations.length() - 1);
@@ -3582,7 +3582,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
       int fmisid = *fmisidsAll[i];
 
       ptime utctime = time;
-      std::string zone(settings.timezone == "localtime" ? tmpStations.at(fmisid).timezone
+      std::string zone(settings.timezone == "localtime" ? fmisid_to_station.at(fmisid).timezone
                                                         : settings.timezone);
       auto localtz = timezones.time_zone_from_string(zone);
       local_date_time obstime = local_date_time(utctime, localtz);
@@ -3635,7 +3635,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
                                      timeseriesPositions,
                                      parameterMap,
                                      stationtype,
-                                     tmpStations.at(s.fmisid));
+                                     fmisid_to_station.at(s.fmisid));
           }
           else
           {
@@ -3645,7 +3645,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
                                        parameterNameMap,
                                        timeseriesPositions,
                                        stationtype,
-                                       tmpStations.at(s.fmisid));
+                                       fmisid_to_station.at(s.fmisid));
           }
         }
       }
@@ -3666,7 +3666,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
                                    timeseriesPositions,
                                    parameterMap,
                                    stationtype,
-                                   tmpStations[fmisid]);
+                                   fmisid_to_station[fmisid]);
         }
       }
     }
@@ -3692,7 +3692,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
 
     std::string stationtype = "observations_fmi";
 
-    StationMap tmpStations = map_query_stations(stations);
+    // Map fmisid to station information
+    
+    StationMap fmisid_to_station = map_query_stations(stations);
 
     // This maps measurand_id and the parameter position in TimeSeriesVector
 
@@ -3703,9 +3705,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     ObservationsMap obsmap = map_observations(observations,
                                               settings,
                                               timezones,
-                                              tmpStations);
+                                              fmisid_to_station);
 
-    return build_timeseries(stations, settings, parameterMap, stationtype, tmpStations, observations, obsmap, qmap, timeSeriesOptions, timezones);
+    return build_timeseries(stations, settings, parameterMap, stationtype, fmisid_to_station, observations, obsmap, qmap, timeSeriesOptions, timezones);
   }
   catch (...)
   {
@@ -3822,7 +3824,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries(
     const Settings &settings,
     const ParameterMapPtr &parameterMap,
     const std::string &stationtype,
-    const StationMap &tmpStations,
+    const StationMap &fmisid_to_station,
     const SqliteObservations& observations,
     ObservationsMap &obsmap,
     const QueryMapping &qmap,
@@ -3831,16 +3833,16 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries(
 {
   // Accept all time steps
   if (timeSeriesOptions.all() && !settings.latest)
-    return build_timeseries_all_time_steps(stations,settings,parameterMap,stationtype,tmpStations,obsmap,qmap);
+    return build_timeseries_all_time_steps(stations,settings,parameterMap,stationtype,fmisid_to_station,obsmap,qmap);
 
   // Accept only latest time from generated time steps
 
   if(settings.latest)
-    return build_timeseries_latest_time_step(stations, settings, parameterMap, stationtype, tmpStations, observations, obsmap, qmap, timeSeriesOptions, timezones);
+    return build_timeseries_latest_time_step(stations, settings, parameterMap, stationtype, fmisid_to_station, observations, obsmap, qmap, timeSeriesOptions, timezones);
 
   // All requested timesteps
 
-  return build_timeseries_listed_time_steps(stations, settings, parameterMap, stationtype, tmpStations, observations, obsmap, qmap, timeSeriesOptions, timezones);
+  return build_timeseries_listed_time_steps(stations, settings, parameterMap, stationtype, fmisid_to_station, observations, obsmap, qmap, timeSeriesOptions, timezones);
 
 }
 
@@ -3849,7 +3851,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_all_time_ste
     const Settings &settings,
     const ParameterMapPtr &parameterMap,
     const std::string &stationtype,
-    const StationMap &tmpStations,
+    const StationMap &fmisid_to_station,
     ObservationsMap &obsmap,
     const QueryMapping &qmap) const
 {
@@ -3873,7 +3875,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_all_time_ste
                                qmap.timeseriesPositionsString,
                                parameterMap,
                                stationtype,
-                               tmpStations.at(fmisid));
+                               fmisid_to_station.at(fmisid));
     }
 
     // Add *data_source-fields
@@ -3908,7 +3910,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_latest_time_
     const Settings &settings,
     const ParameterMapPtr &parameterMap,
     const std::string &stationtype,
-    const StationMap &tmpStations,
+    const StationMap &fmisid_to_station,
     const SqliteObservations& observations,
     ObservationsMap &obsmap,
     const QueryMapping &qmap,
@@ -3933,7 +3935,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_latest_time_
 
     t = fmisid_pos->second.rbegin()->first;
 
-    append_weather_parameters(s,t,timeSeriesColumns,parameterMap,stationtype,tmpStations,observations,obsmap,qmap);
+    append_weather_parameters(s,t,timeSeriesColumns,parameterMap,stationtype,fmisid_to_station,observations,obsmap,qmap);
   }
 
   return timeSeriesColumns;
@@ -3944,7 +3946,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_listed_time_
     const Settings &settings,
     const ParameterMapPtr &parameterMap,
     const std::string &stationtype,
-    const StationMap &tmpStations,
+    const StationMap &fmisid_to_station,
     const SqliteObservations& observations,
     ObservationsMap &obsmap,
     const QueryMapping &qmap,
@@ -3959,7 +3961,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_listed_time_
 
   for (const Spine::Station &s : stations)
     for (const local_date_time &t : tlist)
-      append_weather_parameters(s,t,timeSeriesColumns,parameterMap,stationtype,tmpStations,observations,obsmap,qmap);
+      append_weather_parameters(s,t,timeSeriesColumns,parameterMap,stationtype,fmisid_to_station,observations,obsmap,qmap);
 
   return timeSeriesColumns;
 }
@@ -3969,7 +3971,7 @@ void SpatiaLite::append_weather_parameters(const Spine::Station& s,
                                            const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
                                            const ParameterMapPtr &parameterMap,
                                            const std::string& stationtype,
-                                           const StationMap &tmpStations,
+                                           const StationMap &fmisid_to_station,
                                            const SqliteObservations& observations,
                                            ObservationsMap &obsmap,
                                            const QueryMapping &qmap) const
@@ -4061,7 +4063,7 @@ void SpatiaLite::append_weather_parameters(const Spine::Station& s,
     else
     {
       addSpecialParameterToTimeSeries(
-          special.first, timeSeriesColumns, tmpStations.at(s.fmisid), pos, stationtype, t);
+          special.first, timeSeriesColumns, fmisid_to_station.at(s.fmisid), pos, stationtype, t);
     }
   }
 }
