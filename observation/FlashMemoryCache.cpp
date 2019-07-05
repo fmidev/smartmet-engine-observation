@@ -55,7 +55,7 @@ boost::posix_time::ptime FlashMemoryCache::getStartTime() const
   }
 }
 
-std::size_t FlashMemoryCache::fill(const std::vector<FlashDataItem>& flashCacheData) const
+std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
 {
   try
   {

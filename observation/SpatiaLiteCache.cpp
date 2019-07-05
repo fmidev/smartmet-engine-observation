@@ -672,7 +672,7 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestFlashTime() const
 }
 
 std::size_t SpatiaLiteCache::fillFlashDataCache(
-    const std::vector<FlashDataItem> &flashCacheData) const
+    const FlashDataItems &flashCacheData) const
 {
   // Memory cache first
   itsFlashMemoryCache.fill(flashCacheData);
@@ -743,7 +743,7 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestRoadCloudDataTime() const
 }
 
 std::size_t SpatiaLiteCache::fillRoadCloudCache(
-    const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const
+    const MobileExternalDataItems &mobileExternalCacheData) const
 {
   auto conn = itsConnectionPool->getConnection();
   auto sz = conn->fillRoadCloudCache(mobileExternalCacheData, itsRoadCloudInsertCache);
@@ -814,7 +814,7 @@ bool SpatiaLiteCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &st
 }
 
 std::size_t SpatiaLiteCache::fillNetAtmoCache(
-    const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const
+    const MobileExternalDataItems &mobileExternalCacheData) const
 {
   auto conn = itsConnectionPool->getConnection();
   auto sz = conn->fillNetAtmoCache(mobileExternalCacheData, itsNetAtmoInsertCache);
@@ -882,7 +882,7 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestObservationTime() const
   return itsConnectionPool->getConnection()->getLatestObservationTime();
 }
 
-std::size_t SpatiaLiteCache::fillDataCache(const std::vector<DataItem> &cacheData) const
+std::size_t SpatiaLiteCache::fillDataCache(const DataItems &cacheData) const
 {
   auto conn = itsConnectionPool->getConnection();
   auto sz = conn->fillDataCache(cacheData, itsDataInsertCache);
@@ -923,7 +923,7 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCTime() const
 }
 
 std::size_t SpatiaLiteCache::fillWeatherDataQCCache(
-    const std::vector<WeatherDataQCItem> &cacheData) const
+    const WeatherDataQCItems &cacheData) const
 {
   auto conn = itsConnectionPool->getConnection();
   auto sz = conn->fillWeatherDataQCCache(cacheData, itsWeatherQCInsertCache);
@@ -959,7 +959,7 @@ void SpatiaLiteCache::cleanWeatherDataQCCache(
   itsWeatherDataQCTimeIntervalEnd = end;
 }
 
-void SpatiaLiteCache::fillLocationCache(const std::vector<LocationItem> &locations) const
+void SpatiaLiteCache::fillLocationCache(const LocationItems &locations) const
 {
   return itsConnectionPool->getConnection()->fillLocationCache(locations);
 }

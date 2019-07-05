@@ -3,6 +3,7 @@
 #include <boost/date_time/gregorian/formatters.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <string>
+#include <vector>
 
 namespace SmartMet
 {
@@ -22,6 +23,8 @@ class WeatherDataQCItem
 
   std::size_t hash_value() const;
 };
+
+using WeatherDataQCItems = std::vector<WeatherDataQCItem>;
 
 }  // namespace Observation
 }  // namespace Engine

@@ -4,8 +4,10 @@
 #include "ExternalAndMobileProducerConfig.h"
 #include "FlashDataItem.h"
 #include "InsertStatus.h"
+#include "LocationDataItem.h"
 #include "LocationItem.h"
 #include "MobileExternalDataItem.h"
+#include "ObservationMemoryCache.h"
 #include "Settings.h"
 #include "SpatiaLiteOptions.h"
 #include "StationInfo.h"
@@ -54,9 +56,6 @@ class SpatiaLiteCacheParameters;
 
 struct ObservationsMap;
 struct QueryMapping;
-struct SqliteObservation;
-using SqliteObservations = std::vector<SqliteObservation>;
-
 using StationMap = std::map<int, Spine::Station>;
 
 class SpatiaLite : private boost::noncopyable
@@ -154,7 +153,7 @@ class SpatiaLite : private boost::noncopyable
    * @brief Insert new stations or update old ones in locations table.
    * @param[in] Vector of locations
    */
-  void fillLocationCache(const std::vector<LocationItem> &locations);
+  void fillLocationCache(const LocationItems &locations);
 
   /**
    * @brief Update observation_data with data from Oracle's
@@ -162,22 +161,21 @@ class SpatiaLite : private boost::noncopyable
    *        from stations maintained by FMI.
    * @param[in] cacheData Data from observation_data.
    */
-  std::size_t fillDataCache(const std::vector<DataItem> &cacheData, InsertStatus &insertStatus);
+  std::size_t fillDataCache(const DataItems &cacheData, InsertStatus &insertStatus);
 
   /**
    * @brief Update weather_data_qc with data from Oracle's respective table
    *        which is used to store data from road and foreign stations
    * @param[in] cacheData Data from weather_data_qc.
    */
-  std::size_t fillWeatherDataQCCache(const std::vector<WeatherDataQCItem> &cacheData,
+  std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData,
                                      InsertStatus &insertStatus);
 
   /**
    * @brief Insert cached observations into observation_data table
    * @param cacheData Observation data to be inserted into the table
    */
-  std::size_t fillFlashDataCache(const std::vector<FlashDataItem> &flashCacheData,
-                                 InsertStatus &insertStatus);
+  std::size_t fillFlashDataCache(const FlashDataItems &flashCacheData, InsertStatus &insertStatus);
 
   /**
    * @brief Delete old observation data from tablename table using time_column
@@ -236,7 +234,7 @@ class SpatiaLite : private boost::noncopyable
    * @brief Insert cached observations into ext_obsdata_roadcloud table
    * @param RoadCloud observation data to be inserted into the table
    */
-  std::size_t fillRoadCloudCache(const std::vector<MobileExternalDataItem> &mobileExternalCacheData,
+  std::size_t fillRoadCloudCache(const MobileExternalDataItems &mobileExternalCacheData,
                                  InsertStatus &insertStatus);
 
   /**
@@ -264,7 +262,7 @@ class SpatiaLite : private boost::noncopyable
    * @brief Insert cached observations into ext_obsdata_roadcloud table
    * @param NetAtmo observation data to be inserted into the table
    */
-  std::size_t fillNetAtmoCache(const std::vector<MobileExternalDataItem> &mobileExternalCacheData,
+  std::size_t fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData,
                                InsertStatus &insertStatus);
 
   /**
@@ -408,7 +406,7 @@ class SpatiaLite : private boost::noncopyable
    * @retval Vector of FlashDataItems
    */
 
-  std::vector<FlashDataItem> readFlashCacheData(const boost::posix_time::ptime &starttime);
+  FlashDataItems readFlashCacheData(const boost::posix_time::ptime &starttime);
 
  private:
   // Private members
@@ -420,6 +418,8 @@ class SpatiaLite : private boost::noncopyable
   std::map<std::string, std::string> stationTypeMap;
   Fmi::DateTimeParser itsDateTimeParser;
   const ExternalAndMobileProducerConfig &itsExternalAndMobileProducerConfig;
+
+  ObservationMemoryCache itsObservationMemoryCache;
 
   // Private methods
 
@@ -495,7 +495,7 @@ class SpatiaLite : private boost::noncopyable
       const ParameterMapPtr &parameterMap,
       const std::string &stationtype,
       const StationMap &tmpStations,
-      const SqliteObservations &observations,
+      const LocationDataItems &observations,
       ObservationsMap &obsmap,
       const QueryMapping &qmap,
       const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
@@ -516,7 +516,7 @@ class SpatiaLite : private boost::noncopyable
       const ParameterMapPtr &parameterMap,
       const std::string &stationtype,
       const StationMap &tmpStations,
-      const SqliteObservations &observations,
+      const LocationDataItems &observations,
       ObservationsMap &obsmap,
       const QueryMapping &qmap,
       const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
@@ -528,7 +528,7 @@ class SpatiaLite : private boost::noncopyable
       const ParameterMapPtr &parameterMap,
       const std::string &stationtype,
       const StationMap &tmpStations,
-      const SqliteObservations &observations,
+      const LocationDataItems &observations,
       ObservationsMap &obsmap,
       const QueryMapping &qmap,
       const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
@@ -540,7 +540,7 @@ class SpatiaLite : private boost::noncopyable
                                  const ParameterMapPtr &parameterMap,
                                  const std::string &stationtype,
                                  const StationMap &tmpStations,
-                                 const SqliteObservations &observations,
+                                 const LocationDataItems &observations,
                                  ObservationsMap &obsmap,
                                  const QueryMapping &qmap) const;
 };

@@ -35,7 +35,7 @@ class FlashMemoryCache
    * @param cacheData Observation data to be inserted into the table, sorted by time and flash_id
    */
 
-  std::size_t fill(const std::vector<FlashDataItem>& flashCacheData) const;
+  std::size_t fill(const FlashDataItems& flashCacheData) const;
 
   /**
    * @brief Delete old flash observations. Never called simultaneously with fill.
@@ -56,7 +56,7 @@ class FlashMemoryCache
 
  private:
   // The actual flash data in the cache
-  using FlashDataVector = std::vector<FlashDataItem>;
+  using FlashDataVector = FlashDataItems;
   mutable boost::shared_ptr<FlashDataVector> itsFlashData;
 
   // Last value passed to clean()

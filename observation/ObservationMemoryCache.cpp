@@ -29,7 +29,7 @@ boost::posix_time::ptime ObservationMemoryCache::getStartTime() const
   }
 }
 
-std::size_t ObservationMemoryCache::fill(const std::vector<DataItem>& cacheData) const
+std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
 {
   try
   {
@@ -196,49 +196,10 @@ void ObservationMemoryCache::clean(const boost::posix_time::ptime& newstarttime)
   }
 }
 
-/**
- * @brief Retrieve observations from stations
- * @param stations The stations to retrieve
- * @param settings Time interval etc
- * @param parameteMap Desired parameters
- * @param timezones Global timezone information
- * @retval Time series vectors
- */
-
-Spine::TimeSeries::TimeSeriesVectorPtr ObservationMemoryCache::getData(
-    const Spine::Stations& stations,
-    const Settings& settings,
-    const ParameterMapPtr& parameterMap,
-    const Fmi::TimeZones& timezones) const
+LocationDataItems ObservationMemoryCache::read_observations(const Spine::Stations& stations,
+                                                            const Settings& settings,
+                                                            const QueryMapping& qmap) const
 {
-  Spine::TimeSeriesGeneratorOptions opt;
-  opt.startTime = settings.starttime;
-  opt.endTime = settings.endtime;
-  opt.timeStep = settings.timestep;
-  opt.startTimeUTC = false;
-  opt.endTimeUTC = false;
-
-  return getData(stations, settings, parameterMap, opt, timezones);
-}
-
-/**
- * @brief Retrieve observations from stations
- * @param stations The stations to retrieve
- * @param settings Time interval etc
- * @param parameteMap Desired parameters
- * @param timeSeriesOptions The time points to be picked
- * @param timezones Global timezone information
- * @retval Time series vectors
- */
-
-Spine::TimeSeries::TimeSeriesVectorPtr ObservationMemoryCache::getData(
-    const Spine::Stations& stations,
-    const Settings& settings,
-    const ParameterMapPtr& parameterMap,
-    const Spine::TimeSeriesGeneratorOptions& timeSeriesOptions,
-    const Fmi::TimeZones& timezones) const
-{
-  // see SpatiaLite::getCachedData
   return {};
 }
 

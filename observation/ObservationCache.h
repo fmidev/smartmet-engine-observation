@@ -81,19 +81,19 @@ class ObservationCache
 
   virtual boost::posix_time::ptime getLatestFlashTime() const = 0;
   virtual std::size_t fillFlashDataCache(
-      const std::vector<FlashDataItem> &flashCacheData) const = 0;
+      const FlashDataItems &flashCacheData) const = 0;
   virtual void cleanFlashDataCache(
       const boost::posix_time::time_duration &timetokeep,
       const boost::posix_time::time_duration &timetokeep_memory) const = 0;
 
   virtual boost::posix_time::ptime getLatestObservationModifiedTime() const = 0;
   virtual boost::posix_time::ptime getLatestObservationTime() const = 0;
-  virtual std::size_t fillDataCache(const std::vector<DataItem> &cacheData) const = 0;
+  virtual std::size_t fillDataCache(const DataItems &cacheData) const = 0;
   virtual void cleanDataCache(const boost::posix_time::time_duration &timetokeep) const = 0;
 
   virtual boost::posix_time::ptime getLatestWeatherDataQCTime() const = 0;
   virtual std::size_t fillWeatherDataQCCache(
-      const std::vector<WeatherDataQCItem> &cacheData) const = 0;
+      const WeatherDataQCItems &cacheData) const = 0;
   virtual void cleanWeatherDataQCCache(
       const boost::posix_time::time_duration &timetokeep) const = 0;
 
@@ -101,17 +101,17 @@ class ObservationCache
                                          const boost::posix_time::ptime &endtime) const = 0;
   virtual boost::posix_time::ptime getLatestRoadCloudDataTime() const = 0;
   virtual std::size_t fillRoadCloudCache(
-      const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const = 0;
+      const MobileExternalDataItems &mobileExternalCacheData) const = 0;
   virtual void cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const = 0;
 
   virtual bool netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
                                        const boost::posix_time::ptime &endtime) const = 0;
   virtual boost::posix_time::ptime getLatestNetAtmoDataTime() const = 0;
   virtual std::size_t fillNetAtmoCache(
-      const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const = 0;
+      const MobileExternalDataItems &mobileExternalCacheData) const = 0;
   virtual void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const = 0;
 
-  virtual void fillLocationCache(const std::vector<LocationItem> &locations) const = 0;
+  virtual void fillLocationCache(const LocationItems &locations) const = 0;
 
   virtual boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language) const = 0;

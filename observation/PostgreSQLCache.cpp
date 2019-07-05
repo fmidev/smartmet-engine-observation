@@ -653,7 +653,7 @@ boost::posix_time::ptime PostgreSQLCache::getLatestFlashTime() const
 }
 
 std::size_t PostgreSQLCache::fillFlashDataCache(
-    const std::vector<FlashDataItem> &flashCacheData) const
+    const FlashDataItems &flashCacheData) const
 {
   return itsConnectionPool->getConnection()->fillFlashDataCache(flashCacheData);
 }
@@ -675,7 +675,7 @@ boost::posix_time::ptime PostgreSQLCache::getLatestObservationTime() const
   return itsConnectionPool->getConnection()->getLatestObservationTime();
 }
 
-std::size_t PostgreSQLCache::fillDataCache(const std::vector<DataItem> &cacheData) const
+std::size_t PostgreSQLCache::fillDataCache(const DataItems &cacheData) const
 {
   return itsConnectionPool->getConnection()->fillDataCache(cacheData);
 }
@@ -691,7 +691,7 @@ boost::posix_time::ptime PostgreSQLCache::getLatestWeatherDataQCTime() const
 }
 
 std::size_t PostgreSQLCache::fillWeatherDataQCCache(
-    const std::vector<WeatherDataQCItem> &cacheData) const
+    const WeatherDataQCItems &cacheData) const
 {
   return itsConnectionPool->getConnection()->fillWeatherDataQCCache(cacheData);
 }
@@ -728,7 +728,7 @@ boost::posix_time::ptime PostgreSQLCache::getLatestRoadCloudDataTime() const
 }
 
 std::size_t PostgreSQLCache::fillRoadCloudCache(
-    const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const
+    const MobileExternalDataItems &mobileExternalCacheData) const
 {
   return itsConnectionPool->getConnection()->fillRoadCloudCache(mobileExternalCacheData);
 }
@@ -764,7 +764,7 @@ boost::posix_time::ptime PostgreSQLCache::getLatestNetAtmoDataTime() const
 }
 
 std::size_t PostgreSQLCache::fillNetAtmoCache(
-    const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const
+    const MobileExternalDataItems &mobileExternalCacheData) const
 {
   return itsConnectionPool->getConnection()->fillNetAtmoCache(mobileExternalCacheData);
 }
@@ -774,7 +774,7 @@ void PostgreSQLCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
   return itsConnectionPool->getConnection()->cleanNetAtmoCache(timetokeep);
 }
 
-void PostgreSQLCache::fillLocationCache(const std::vector<LocationItem> &locations) const
+void PostgreSQLCache::fillLocationCache(const LocationItems &locations) const
 {
   return itsConnectionPool->getConnection()->fillLocationCache(locations);
 }

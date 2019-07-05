@@ -2,6 +2,7 @@
 
 #include <boost/date_time/gregorian/formatters.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
+#include <vector>
 
 namespace SmartMet
 {
@@ -39,6 +40,8 @@ class FlashDataItem
 
   std::size_t hash_value() const;
 };
+
+using FlashDataItems = std::vector<FlashDataItem>;
 
 }  // namespace Observation
 }  // namespace Engine

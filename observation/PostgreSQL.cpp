@@ -641,7 +641,7 @@ boost::posix_time::ptime PostgreSQL::getOldestTimeFromTable(const std::string ta
   return getTime(stmt);
 }
 
-void PostgreSQL::fillLocationCache(const vector<LocationItem> &locations)
+void PostgreSQL::fillLocationCache(const LocationItems &locations)
 {
   try
   {
@@ -812,7 +812,7 @@ void PostgreSQL::cleanNetAtmoCache(const boost::posix_time::time_duration &timet
   }
 }
 
-std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
+std::size_t PostgreSQL::fillDataCache(const DataItems &cacheData)
 {
   try
   {
@@ -950,7 +950,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
   }
 }  // namespace Observation
 
-std::size_t PostgreSQL::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &cacheData)
+std::size_t PostgreSQL::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData)
 {
   try
   {
@@ -1075,7 +1075,7 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
   }
 }  // namespace Observation
 
-std::size_t PostgreSQL::fillFlashDataCache(const vector<FlashDataItem> &flashCacheData)
+std::size_t PostgreSQL::fillFlashDataCache(const FlashDataItems &flashCacheData)
 {
   try
   {
@@ -1238,8 +1238,7 @@ std::size_t PostgreSQL::fillFlashDataCache(const vector<FlashDataItem> &flashCac
   }
 }
 
-std::size_t PostgreSQL::fillRoadCloudCache(
-    const vector<MobileExternalDataItem> &mobileExternalCacheData)
+std::size_t PostgreSQL::fillRoadCloudCache(const MobileExternalDataItems &mobileExternalCacheData)
 {
   try
   {
@@ -1416,8 +1415,7 @@ std::size_t PostgreSQL::fillRoadCloudCache(
   }
 }
 
-std::size_t PostgreSQL::fillNetAtmoCache(
-    const vector<MobileExternalDataItem> &mobileExternalCacheData)
+std::size_t PostgreSQL::fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData)
 {
   try
   {

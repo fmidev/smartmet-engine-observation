@@ -220,22 +220,10 @@ QueryMapping build_query_mapping(const Spine::Stations &stations,
 
 // Results read from the sqlite database
 
-struct SqliteObservation
-{
-  ptime obstime;
-  int fmisid;
-  double longitude;
-  double latitude;
-  int measurand_id;
-  boost::optional<double> elevation;
-  boost::optional<double> data_value;
-  boost::optional<int> data_source;
-};
-
-SqliteObservations read_observations(const Spine::Stations &stations,
-                                     const Settings &settings,
-                                     const QueryMapping &qmap,
-                                     sqlite3pp::database &db)
+LocationDataItems read_observations(const Spine::Stations &stations,
+                                    const Settings &settings,
+                                    const QueryMapping &qmap,
+                                    sqlite3pp::database &db)
 {
   auto qstations = build_sql_stationlist(stations);
 
@@ -260,23 +248,23 @@ SqliteObservations read_observations(const Spine::Stations &stations,
       "loc.latitude, loc.longitude, loc.elevation, data.data_value, data.data_source "
       "ORDER BY fmisid ASC, obstime ASC";
 
-  SqliteObservations ret;
+  LocationDataItems ret;
 
   sqlite3pp::query qry(db, sql.c_str());
 
   for (auto iter = qry.begin(); iter != qry.end(); ++iter)
   {
-    SqliteObservation obs;
-    obs.fmisid = (*iter).get<int>(0);
-    obs.obstime = parse_sqlite_time((*iter).get<std::string>(1));
+    LocationDataItem obs;
+    obs.data.fmisid = (*iter).get<int>(0);
+    obs.data.data_time = parse_sqlite_time((*iter).get<std::string>(1));
     obs.latitude = (*iter).get<double>(2);
     obs.longitude = (*iter).get<double>(3);
     obs.elevation = (*iter).get<double>(4);
-    obs.measurand_id = (*iter).get<int>(5);
+    obs.data.measurand_id = (*iter).get<int>(5);
     if ((*iter).column_type(6) != SQLITE_NULL)
-      obs.data_value = (*iter).get<double>(6);
+      obs.data.data_value = (*iter).get<double>(6);
     if ((*iter).column_type(7) != SQLITE_NULL)
-      obs.data_source = (*iter).get<int>(7);
+      obs.data.data_source = (*iter).get<int>(7);
 
     ret.emplace_back(obs);
   }
@@ -295,7 +283,7 @@ struct ObservationsMap
       dataSourceWithStringParameterId;
 };
 
-ObservationsMap map_observations(const SqliteObservations &observations,
+ObservationsMap map_observations(const LocationDataItems &observations,
                                  const Settings &settings,
                                  const Fmi::TimeZones &timezones,
                                  const StationMap &fmisid_to_station)
@@ -304,24 +292,20 @@ ObservationsMap map_observations(const SqliteObservations &observations,
 
   for (const auto &obs : observations)
   {
-    int fmisid = obs.fmisid;
+    int fmisid = obs.data.fmisid;
 
     std::string zone(settings.timezone == "localtime" ? fmisid_to_station.at(fmisid).timezone
                                                       : settings.timezone);
     auto localtz = timezones.time_zone_from_string(zone);
-    local_date_time obstime = local_date_time(obs.obstime, localtz);
+    local_date_time obstime = local_date_time(obs.data.data_time, localtz);
 
-    ts::Value val;
-    if (obs.data_value)
-      val = ts::Value(*obs.data_value);
-    ts::Value data_source_val;
-    if (obs.data_source)
-      data_source_val = ts::Value(*obs.data_source);
+    ts::Value val = ts::Value(obs.data.data_value);
+    ts::Value data_source_val = ts::Value(obs.data.data_source);
 
-    ret.data[fmisid][obstime][obs.measurand_id] = val;
-    ret.data_source[fmisid][obstime][obs.measurand_id] = data_source_val;
-    ret.dataWithStringParameterId[fmisid][obstime][Fmi::to_string(obs.measurand_id)] = val;
-    ret.dataSourceWithStringParameterId[fmisid][obstime][Fmi::to_string(obs.measurand_id)] =
+    ret.data[fmisid][obstime][obs.data.measurand_id] = val;
+    ret.data_source[fmisid][obstime][obs.data.measurand_id] = data_source_val;
+    ret.dataWithStringParameterId[fmisid][obstime][Fmi::to_string(obs.data.measurand_id)] = val;
+    ret.dataSourceWithStringParameterId[fmisid][obstime][Fmi::to_string(obs.data.measurand_id)] =
         data_source_val;
   }
 
@@ -1129,7 +1113,7 @@ ptime SpatiaLite::getOldestTimeFromTable(const std::string tablename,
   }
 }
 
-void SpatiaLite::fillLocationCache(const vector<LocationItem> &locations)
+void SpatiaLite::fillLocationCache(const LocationItems &locations)
 {
   // Use a loop with sleep to avoid "database locked" problems
   const int max_retries = 10;
@@ -1506,7 +1490,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedMobileAndE
   }
 }
 
-std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData, InsertStatus &insertStatus)
+std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &insertStatus)
 {
   try
   {
@@ -1597,7 +1581,7 @@ std::size_t SpatiaLite::fillDataCache(const vector<DataItem> &cacheData, InsertS
   }
 }
 
-std::size_t SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &cacheData,
+std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData,
                                                InsertStatus &insertStatus)
 {
   try
@@ -1679,7 +1663,7 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const vector<WeatherDataQCItem> &
   }
 }
 
-std::size_t SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCacheData,
+std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &flashCacheData,
                                            InsertStatus &insertStatus)
 {
   try
@@ -1819,7 +1803,7 @@ std::size_t SpatiaLite::fillFlashDataCache(const vector<FlashDataItem> &flashCac
 }
 
 std::size_t SpatiaLite::fillRoadCloudCache(
-    const std::vector<MobileExternalDataItem> &mobileExternalCacheData, InsertStatus &insertStatus)
+    const MobileExternalDataItems &mobileExternalCacheData, InsertStatus &insertStatus)
 {
   try
   {
@@ -1965,7 +1949,7 @@ std::size_t SpatiaLite::fillRoadCloudCache(
 }
 
 std::size_t SpatiaLite::fillNetAtmoCache(
-    const std::vector<MobileExternalDataItem> &mobileExternalCacheData, InsertStatus &insertStatus)
+    const MobileExternalDataItems &mobileExternalCacheData, InsertStatus &insertStatus)
 {
   try
   {
@@ -2794,7 +2778,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
   }
 }
 
-std::vector<FlashDataItem> SpatiaLite::readFlashCacheData(const ptime& starttime)
+FlashDataItems SpatiaLite::readFlashCacheData(const ptime& starttime)
 {
   try
   {
@@ -2815,7 +2799,7 @@ std::vector<FlashDataItem> SpatiaLite::readFlashCacheData(const ptime& starttime
       "WHERE stroke_time >= '" + starttimeString + "'"
       "ORDER BY stroke_time, flash_id";
 
-  std::vector<FlashDataItem> result;
+  FlashDataItems result;
 
   // Spine::ReadLock lock(write_mutex);
   sqlite3pp::query qry(itsDB, sql.c_str());
@@ -3700,7 +3684,12 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
 
     auto qmap = build_query_mapping(stations,settings,parameterMap,stationtype);
 
-    SqliteObservations observations = read_observations(stations,settings,qmap, itsDB);
+    LocationDataItems observations;
+    auto cache_start_time = itsObservationMemoryCache.getStartTime();
+    if(!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime)
+      observations = itsObservationMemoryCache.read_observations(stations,settings,qmap);
+    else
+      observations = read_observations(stations,settings,qmap, itsDB);
 
     ObservationsMap obsmap = map_observations(observations,
                                               settings,
@@ -3825,7 +3814,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries(
     const ParameterMapPtr &parameterMap,
     const std::string &stationtype,
     const StationMap &fmisid_to_station,
-    const SqliteObservations& observations,
+    const LocationDataItems& observations,
     ObservationsMap &obsmap,
     const QueryMapping &qmap,
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
@@ -3911,7 +3900,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_latest_time_
     const ParameterMapPtr &parameterMap,
     const std::string &stationtype,
     const StationMap &fmisid_to_station,
-    const SqliteObservations& observations,
+    const LocationDataItems& observations,
     ObservationsMap &obsmap,
     const QueryMapping &qmap,
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
@@ -3947,7 +3936,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_listed_time_
     const ParameterMapPtr &parameterMap,
     const std::string &stationtype,
     const StationMap &fmisid_to_station,
-    const SqliteObservations& observations,
+    const LocationDataItems& observations,
     ObservationsMap &obsmap,
     const QueryMapping &qmap,
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
@@ -3972,7 +3961,7 @@ void SpatiaLite::append_weather_parameters(const Spine::Station& s,
                                            const ParameterMapPtr &parameterMap,
                                            const std::string& stationtype,
                                            const StationMap &fmisid_to_station,
-                                           const SqliteObservations& observations,
+                                           const LocationDataItems& observations,
                                            ObservationsMap &obsmap,
                                            const QueryMapping &qmap) const
 
@@ -4050,7 +4039,7 @@ void SpatiaLite::append_weather_parameters(const Spine::Station& s,
     {
       if (pos < static_cast<int>(observations.size()))
       {
-        int measurand_id = observations[pos].measurand_id;
+        int measurand_id = observations[pos].data.measurand_id;
         if (obsmap.data_source[s.fmisid].find(t) != obsmap.data_source[s.fmisid].end())
         {
           ts::Value val = obsmap.data_source[s.fmisid][t][measurand_id];
