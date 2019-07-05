@@ -497,7 +497,7 @@ void SpatiaLite::createObservationDataTable()
         "PRIMARY KEY (data_time, fmisid, measurand_id, producer_id, measurand_no))");
 
     itsDB.execute("CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON observation_data(data_time)");
-    
+
   }
   catch (...)
   {
@@ -1183,7 +1183,7 @@ void SpatiaLite::cleanDataCache(const ptime &newstarttime)
     if (newstarttime <= oldest)
       return;
 
-    std::string timestring = Fmi::to_iso_extended_string(newstarttime);
+    auto timestring = Fmi::to_iso_extended_string(newstarttime);
 
     Spine::WriteLock lock(write_mutex);
     sqlite3pp::command cmd(itsDB, "DELETE FROM observation_data WHERE data_time < :timestring");
@@ -1204,7 +1204,7 @@ void SpatiaLite::cleanWeatherDataQCCache(const ptime &newstarttime)
     if (newstarttime <= oldest)
       return;
 
-    std::string timestring = Fmi::to_iso_extended_string(newstarttime);
+    auto timestring = Fmi::to_iso_extended_string(newstarttime);
 
     Spine::WriteLock lock(write_mutex);
 
@@ -1226,7 +1226,7 @@ void SpatiaLite::cleanFlashDataCache(const ptime &newstarttime)
     if (newstarttime <= oldest)
       return;
 
-    std::string timestring = Fmi::to_iso_extended_string(newstarttime);
+    auto timestring = Fmi::to_iso_extended_string(newstarttime);
 
     Spine::WriteLock lock(write_mutex);
     sqlite3pp::command cmd(itsDB, "DELETE FROM flash_data WHERE stroke_time < :timestring");
@@ -1344,10 +1344,10 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedMobileAndE
 
     ResultSet resultSet(queryFields);
 
-    std::vector<std::string> fieldNames = dbInfo.fieldNames();
-    const std::map<std::string, unsigned int> &fieldIndexes = dbInfo.fieldIndexes();
-    std::map<std::string, unsigned int> keyFieldIndexes = dbInfo.keyFieldIndexes();
-    int midIndex = fieldIndexes.at("mid");
+    auto fieldNames = dbInfo.fieldNames();
+    const auto &fieldIndexes = dbInfo.fieldIndexes();
+    auto keyFieldIndexes = dbInfo.keyFieldIndexes();
+    auto midIndex = fieldIndexes.at("mid");
 
     for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
     {
@@ -1355,7 +1355,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedMobileAndE
       boost::local_time::time_zone_ptr zone(new posix_time_zone("UTC"));
       local_date_time timestamp(not_a_date_time, zone);
 
-      int mid = (*iter).get<int>(midIndex);
+      auto mid = (*iter).get<int>(midIndex);
 
       const SmartMet::Engine::Observation::MeasurandIdParameterMap &measurandParameters =
           producerMeasurand.measurandParameters();
@@ -1373,7 +1373,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedMobileAndE
 
       for (unsigned int i = 0; i < fieldNames.size(); i++)
       {
-        std::string fieldname = fieldNames.at(i);
+        auto fieldname = fieldNames.at(i);
 
         if ((*iter).column_type(i) == SQLITE_NULL)
         {
@@ -1388,7 +1388,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedMobileAndE
 
         if (fd.field_type == SmartMet::Engine::Observation::FieldType::String)
         {
-          std::string value = (*iter).get<const char *>(i);
+          auto value = (*iter).get<const char *>(i);
 
           if (dbInfo.isKeyField(fieldname))
             keyFieldValues[keyFieldIndexes.at(fieldname)] = value;
@@ -1438,7 +1438,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedMobileAndE
       if (timestamp.is_not_a_date_time())
         std::cerr << "Detected non-valid timestamp" << std::endl;
 
-      std::string key = boost::algorithm::join(keyFieldValues, "_");
+      auto key = boost::algorithm::join(keyFieldValues, "_");
 
       resultSet.addRow(key, timestamp, rsr);
     }
@@ -1447,28 +1447,28 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedMobileAndE
     boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
     timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
 
-    for (auto rsTS : resultset)
-      for (auto rsrs : rsTS.second)
-        for (auto rsr : rsrs.second)
+    for (const auto & rsTS : resultset)
+      for (const auto & rsrs : rsTS.second)
+        for (const auto & rsr : rsrs.second)
         {
           local_date_time obstime =
-              *(boost::get<local_date_time>(&rsr["data_time"]));
+              *(boost::get<local_date_time>(&rsr.at("data_time")));
 
           unsigned int index = 0;
-          for (auto fieldname : queryFields)
+          for (const auto & fieldname : queryFields)
           {
             if (fieldname == "created")
             {
               local_date_time dt =
-                  *(boost::get<local_date_time>(&rsr[fieldname]));
+                  *(boost::get<local_date_time>(&rsr.at(fieldname)));
               std::string fieldValue = timeFormatter->format(dt);
               ret->at(index).push_back(ts::TimedValue(obstime, fieldValue));
             }
             else
             {
-              ret->at(index).push_back(ts::TimedValue(obstime, rsr[fieldname]));
+              ret->at(index).push_back(ts::TimedValue(obstime, rsr.at(fieldname)));
             }
-            index++;
+            ++index;
           }
         }
 
@@ -2335,6 +2335,8 @@ Spine::Stations SpatiaLite::findNearestStations(double latitude,
         "ORDER BY dist ASC, s.fmisid ASC LIMIT " +
         Fmi::to_string(numberofstations) + ";";
 
+    // TODO: This code is HIGHLY suspect.
+    
     int fmisid = 0;
     int wmo = -1;
     int geoid = -1;
@@ -2608,9 +2610,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
   {
     string stationtype = "flash";
 
-    boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
-    timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
-
     map<string, int> timeseriesPositions;
     map<string, int> specialPositions;
 
@@ -2803,7 +2802,7 @@ std::vector<FlashDataItem> SpatiaLite::readFlashCacheData(const ptime& starttime
     // present in the cached flash_data.
 
     f.stroke_time = parse_sqlite_time(row.get<string>(0));
-    
+
     f.flash_id = row.get<int>(1);
     f.multiplicity = row.get<int>(2);
     f.peak_current = row.get<int>(3);
@@ -3394,9 +3393,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
   {
     std::string stationtype = settings.stationtype;
 
-    boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
-    timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
-
     std::string qstations;
     map<int, Spine::Station> tmpStations;
     for (const Spine::Station &s : stations)
@@ -3667,11 +3663,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
   try
   {
     // Always use FMI parameter numbers for the narrow table cache
-    
+
     std::string stationtype = "observations_fmi";
-   
-    boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
-    timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
 
     StationMap tmpStations = map_query_stations(stations);
     std::string qstations = build_sql_stationlist(stations);
@@ -3708,7 +3701,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
                                               timezones,
                                               tmpStations);
 
-  return build_timeseries(stations, settings, parameterMap, stationtype, tmpStations, observations, obsmap, qmap, timeSeriesOptions, timezones);
+    return build_timeseries(stations, settings, parameterMap, stationtype, tmpStations, observations, obsmap, qmap, timeSeriesOptions, timezones);
   }
   catch (...)
   {
@@ -3842,9 +3835,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries(
     return build_timeseries_latest_time_step(stations, settings, parameterMap, stationtype, tmpStations, observations, obsmap, qmap, timeSeriesOptions, timezones);
 
   // All requested timesteps
-  
+
   return build_timeseries_listed_time_steps(stations, settings, parameterMap, stationtype, tmpStations, observations, obsmap, qmap, timeSeriesOptions, timezones);
- 
+
 }
 
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_all_time_steps(
@@ -3858,10 +3851,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_all_time_ste
 {
   using dataItemWithStringParameterId =
       std::pair<local_date_time, map<std::string, ts::Value>>;
-  
+
   Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
       initializeResultVector(settings.parameters);
-  
+
   for (const Spine::Station &s : stations)
   {
     int fmisid = s.station_id;
@@ -3878,23 +3871,23 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_all_time_ste
                                stationtype,
                                tmpStations.at(fmisid));
     }
-    
+
     // Add *data_source-fields
     stationData = obsmap.dataSourceWithStringParameterId.at(fmisid);
     for (const dataItemWithStringParameterId &item : stationData)
     {
-      local_date_time obstime = item.first;
+      const auto &  obstime = item.first;
       std::map<std::string, ts::Value> data = item.second;
       for (const auto &special : qmap.specialPositions)
       {
-        std::string fieldname = special.first;
+        const auto &  fieldname = special.first;
         if (boost::algorithm::ends_with(fieldname, "data_source"))
         {
-          std::string masterParamName = fieldname.substr(0, fieldname.find("data_source"));
+          auto masterParamName = fieldname.substr(0, fieldname.find("data_source"));
           if (!masterParamName.empty())
             masterParamName = masterParamName.substr(0, masterParamName.length() - 1);
           int pos = special.second;
-          std::string nameInDatabase = qmap.parameterNameMap.at(masterParamName);
+          const auto & nameInDatabase = qmap.parameterNameMap.at(masterParamName);
           ts::Value val = ts::None();
           if (data.count(nameInDatabase) > 0)
             val = data.at(nameInDatabase);
@@ -3923,22 +3916,22 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_latest_time_
 
   auto tlist = Spine::TimeSeriesGenerator::generate(
       timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
-  
+
   for (const Spine::Station &s : stations)
   {
     // Get only the last time step if there is many
     local_date_time t(boost::local_time::not_a_date_time);
-      
+
     auto fmisid_pos = obsmap.data.find(s.fmisid);
-      
+
     if (fmisid_pos == obsmap.data.end())
       continue;
-      
+
     t = fmisid_pos->second.rbegin()->first;
-      
+
     append_weather_parameters(s,t,timeSeriesColumns,parameterMap,stationtype,tmpStations,observations,obsmap,qmap);
   }
-  
+
   return timeSeriesColumns;
 }
 
@@ -3959,11 +3952,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_listed_time_
 
   auto tlist = Spine::TimeSeriesGenerator::generate(
       timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
-  
+
   for (const Spine::Station &s : stations)
     for (const local_date_time &t : tlist)
       append_weather_parameters(s,t,timeSeriesColumns,parameterMap,stationtype,tmpStations,observations,obsmap,qmap);
-  
+
   return timeSeriesColumns;
 }
 
@@ -3976,7 +3969,7 @@ void SpatiaLite::append_weather_parameters(const Spine::Station& s,
                                            const SqliteObservations& observations,
                                            ObservationsMap &obsmap,
                                            const QueryMapping &qmap) const
-    
+
 {
   // Append weather parameters
   for (int pos : qmap.paramVector)
@@ -3985,7 +3978,7 @@ void SpatiaLite::append_weather_parameters(const Spine::Station& s,
     timeSeriesColumns->at(qmap.timeseriesPositions.at(pos)).push_back(ts::TimedValue(t, val));
   }
   // Append special parameters
-  for (const pair<string, int> &special : qmap.specialPositions)
+  for (const auto &special : qmap.specialPositions)
   {
     int pos = special.second;
     if (special.first.find("windcompass") != std::string::npos)
@@ -3993,7 +3986,6 @@ void SpatiaLite::append_weather_parameters(const Spine::Station& s,
       // Have to get wind direction first
       int winddirectionpos =
           Fmi::stoi(parameterMap->getParameter("winddirection", stationtype));
-      std::string windCompass;
       if (!obsmap.data[s.fmisid][t][winddirectionpos].which())
       {
         ts::Value missing;
@@ -4001,22 +3993,17 @@ void SpatiaLite::append_weather_parameters(const Spine::Station& s,
       }
       else
       {
+        std::string windCompass;
         if (special.first == "windcompass8")
-        {
           windCompass =
               windCompass8(boost::get<double>(obsmap.data[s.fmisid][t][winddirectionpos]));
-        }
         if (special.first == "windcompass16")
-        {
           windCompass =
               windCompass16(boost::get<double>(obsmap.data[s.fmisid][t][winddirectionpos]));
-        }
         if (special.first == "windcompass32")
-        {
           windCompass =
               windCompass32(boost::get<double>(obsmap.data[s.fmisid][t][winddirectionpos]));
-        }
-              
+
         ts::Value windCompassValue = ts::Value(windCompass);
         timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, windCompassValue));
       }
@@ -4026,10 +4013,10 @@ void SpatiaLite::append_weather_parameters(const Spine::Station& s,
       // Feels like - deduction. This ignores radiation, since it is
       // measured using
       // dedicated stations
-      int windpos = Fmi::stoi(parameterMap->getParameter("windspeedms", stationtype));
-      int rhpos = Fmi::stoi(parameterMap->getParameter("relativehumidity", stationtype));
-      int temppos = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
-            
+      auto windpos = Fmi::stoi(parameterMap->getParameter("windspeedms", stationtype));
+      auto rhpos = Fmi::stoi(parameterMap->getParameter("relativehumidity", stationtype));
+      auto temppos = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
+
       if (!obsmap.data[s.fmisid][t][windpos].which() ||
           !obsmap.data[s.fmisid][t][rhpos].which() ||
           !obsmap.data[s.fmisid][t][temppos].which())
@@ -4039,11 +4026,11 @@ void SpatiaLite::append_weather_parameters(const Spine::Station& s,
       }
       else
       {
-        float temp = boost::get<double>(obsmap.data[s.fmisid][t][temppos]);
-        float rh = boost::get<double>(obsmap.data[s.fmisid][t][rhpos]);
-        float wind = boost::get<double>(obsmap.data[s.fmisid][t][windpos]);
-              
-        ts::Value feelslike =
+        auto temp = boost::get<double>(obsmap.data[s.fmisid][t][temppos]);
+        auto rh = boost::get<double>(obsmap.data[s.fmisid][t][rhpos]);
+        auto wind = boost::get<double>(obsmap.data[s.fmisid][t][windpos]);
+
+        auto feelslike =
             ts::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
         timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, feelslike));
       }
@@ -4053,29 +4040,24 @@ void SpatiaLite::append_weather_parameters(const Spine::Station& s,
       addSmartSymbolToTimeSeries(
           pos, s, t, parameterMap, stationtype, obsmap.data, timeSeriesColumns);
     }
+    else if (boost::algorithm::ends_with(special.first, "data_source"))
+    {
+      if (pos < static_cast<int>(observations.size()))
+      {
+        int measurand_id = observations[pos].measurand_id;
+        if (obsmap.data_source[s.fmisid].find(t) != obsmap.data_source[s.fmisid].end())
+        {
+          ts::Value val = obsmap.data_source[s.fmisid][t][measurand_id];
+          timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, val));
+        }
+        else
+          timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, ts::None()));
+      }
+    }
     else
     {
-      if (boost::algorithm::ends_with(special.first, "data_source"))
-      {
-        if (pos < static_cast<int>(observations.size()))
-        {
-          int measurand_id = observations[pos].measurand_id;
-          if (obsmap.data_source[s.fmisid].find(t) != obsmap.data_source[s.fmisid].end())
-          {
-            ts::Value val = obsmap.data_source[s.fmisid][t][measurand_id];
-            timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, val));
-          }
-          else
-          {
-            timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, ts::None()));
-          }
-        }
-      }
-      else
-      {
-        addSpecialParameterToTimeSeries(
-            special.first, timeSeriesColumns, tmpStations.at(s.fmisid), pos, stationtype, t);
-      }
+      addSpecialParameterToTimeSeries(
+          special.first, timeSeriesColumns, tmpStations.at(s.fmisid), pos, stationtype, t);
     }
   }
 }
