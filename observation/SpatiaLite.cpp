@@ -232,8 +232,34 @@ struct SqliteObservation
   boost::optional<int> data_source;
 };
 
-SqliteObservations read_observations(const std::string &sql, sqlite3pp::database &db)
+SqliteObservations read_observations(const Spine::Stations &stations,
+                                     const Settings &settings,
+                                     const QueryMapping &qmap,
+                                     sqlite3pp::database &db)
 {
+  auto qstations = build_sql_stationlist(stations);
+
+  std::string sql =
+      "SELECT data.fmisid AS fmisid, data.data_time AS obstime, "
+      "loc.latitude, loc.longitude, loc.elevation, "
+      "measurand_id, data_value, data_source "
+      "FROM observation_data data JOIN locations loc ON (data.fmisid = "
+      "loc.fmisid) "
+      "WHERE data.fmisid IN (" +
+      qstations +
+      ") "
+      "AND data.data_time >= '" +
+      Fmi::to_iso_extended_string(settings.starttime) + "' AND data.data_time <= '" +
+      Fmi::to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" + qmap.param +
+      ") "
+      "AND data.measurand_no = 1 "
+      "AND data.data_quality <= 5 "
+      "GROUP BY data.fmisid, data.data_time, data.measurand_id, "
+      "loc.location_id, "
+      "loc.location_end, "
+      "loc.latitude, loc.longitude, loc.elevation, data.data_value, data.data_source "
+      "ORDER BY fmisid ASC, obstime ASC";
+
   SqliteObservations ret;
 
   sqlite3pp::query qry(db, sql.c_str());
@@ -3667,34 +3693,12 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     std::string stationtype = "observations_fmi";
 
     StationMap tmpStations = map_query_stations(stations);
-    std::string qstations = build_sql_stationlist(stations);
 
     // This maps measurand_id and the parameter position in TimeSeriesVector
 
     auto qmap = build_query_mapping(stations,settings,parameterMap,stationtype);
 
-    std::string query =
-        "SELECT data.fmisid AS fmisid, data.data_time AS obstime, "
-        "loc.latitude, loc.longitude, loc.elevation, "
-        "measurand_id, data_value, data_source "
-        "FROM observation_data data JOIN locations loc ON (data.fmisid = "
-        "loc.fmisid) "
-        "WHERE data.fmisid IN (" +
-        qstations +
-        ") "
-        "AND data.data_time >= '" +
-        Fmi::to_iso_extended_string(settings.starttime) + "' AND data.data_time <= '" +
-        Fmi::to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" + qmap.param +
-        ") "
-        "AND data.measurand_no = 1 "
-        "AND data.data_quality <= 5 "
-        "GROUP BY data.fmisid, data.data_time, data.measurand_id, "
-        "loc.location_id, "
-        "loc.location_end, "
-        "loc.latitude, loc.longitude, loc.elevation, data.data_value, data.data_source "
-        "ORDER BY fmisid ASC, obstime ASC";
-
-    SqliteObservations observations = read_observations(query, itsDB);
+    SqliteObservations observations = read_observations(stations,settings,qmap, itsDB);
 
     ObservationsMap obsmap = map_observations(observations,
                                               settings,
