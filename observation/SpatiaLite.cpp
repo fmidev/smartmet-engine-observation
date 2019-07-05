@@ -1206,6 +1206,18 @@ void SpatiaLite::cleanDataCache(const ptime &newstarttime)
   }
 }
 
+void SpatiaLite::cleanMemoryDataCache(const ptime &newstarttime)
+{
+  try
+  {
+    itsObservationMemoryCache.clean(newstarttime);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning of data cache failed!");
+  }
+}
+
 void SpatiaLite::cleanWeatherDataQCCache(const ptime &newstarttime)
 {
   try
@@ -1495,7 +1507,11 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
   try
   {
     if (cacheData.empty())
-      return cacheData.size();
+      return 0;
+
+    // Update memory cache first
+    
+    itsObservationMemoryCache.fill(cacheData);
 
     // Collect new items before taking a lock - we might avoid one completely
     std::vector<std::size_t> new_items;

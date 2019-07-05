@@ -191,11 +191,12 @@ class SpatiaLite : private boost::noncopyable
                        const boost::posix_time::ptime last_time);
 
   /**
-   * @brief Delete everything from observation_data table which is
-   *        older than the given duration
+   * @brief Delete everything from observation_data table which is older than the given duration
    * @param[in] newstarttime
+   * @param[in] newstarttime_memory
    */
   void cleanDataCache(const boost::posix_time::ptime &newstarttime);
+  void cleanMemoryDataCache(const boost::posix_time::ptime &newstarttime);
 
   /**
    * @brief Delete everything from weather_data_qc table which

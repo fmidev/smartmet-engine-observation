@@ -652,8 +652,7 @@ boost::posix_time::ptime PostgreSQLCache::getLatestFlashTime() const
   return itsConnectionPool->getConnection()->getLatestFlashTime();
 }
 
-std::size_t PostgreSQLCache::fillFlashDataCache(
-    const FlashDataItems &flashCacheData) const
+std::size_t PostgreSQLCache::fillFlashDataCache(const FlashDataItems &flashCacheData) const
 {
   return itsConnectionPool->getConnection()->fillFlashDataCache(flashCacheData);
 }
@@ -680,7 +679,9 @@ std::size_t PostgreSQLCache::fillDataCache(const DataItems &cacheData) const
   return itsConnectionPool->getConnection()->fillDataCache(cacheData);
 }
 
-void PostgreSQLCache::cleanDataCache(const boost::posix_time::time_duration &timetokeep) const
+void PostgreSQLCache::cleanDataCache(
+    const boost::posix_time::time_duration &timetokeep,
+    const boost::posix_time::time_duration &timetokeep_memory) const
 {
   return itsConnectionPool->getConnection()->cleanDataCache(timetokeep);
 }
@@ -690,8 +691,7 @@ boost::posix_time::ptime PostgreSQLCache::getLatestWeatherDataQCTime() const
   return itsConnectionPool->getConnection()->getLatestWeatherDataQCTime();
 }
 
-std::size_t PostgreSQLCache::fillWeatherDataQCCache(
-    const WeatherDataQCItems &cacheData) const
+std::size_t PostgreSQLCache::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const
 {
   return itsConnectionPool->getConnection()->fillWeatherDataQCCache(cacheData);
 }

@@ -671,8 +671,7 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestFlashTime() const
   return itsConnectionPool->getConnection()->getLatestFlashTime();
 }
 
-std::size_t SpatiaLiteCache::fillFlashDataCache(
-    const FlashDataItems &flashCacheData) const
+std::size_t SpatiaLiteCache::fillFlashDataCache(const FlashDataItems &flashCacheData) const
 {
   // Memory cache first
   itsFlashMemoryCache.fill(flashCacheData);
@@ -896,18 +895,24 @@ std::size_t SpatiaLiteCache::fillDataCache(const DataItems &cacheData) const
   return sz;
 }
 
-void SpatiaLiteCache::cleanDataCache(const boost::posix_time::time_duration &timetokeep) const
+void SpatiaLiteCache::cleanDataCache(
+    const boost::posix_time::time_duration &timetokeep,
+    const boost::posix_time::time_duration &timetokeep_memory) const
 {
-  boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-  t = round_down_to_cache_clean_interval(t);
+  auto now = boost::posix_time::second_clock::universal_time();
+
+  auto time1 = round_down_to_cache_clean_interval(now - timetokeep);
+  auto time2 = round_down_to_cache_clean_interval(now - timetokeep_memory);
 
   auto conn = itsConnectionPool->getConnection();
+  conn->cleanMemoryDataCache(time2);
+
   {
     // We know the cache will not contain anything before this after the update
     Spine::WriteLock lock(itsTimeIntervalMutex);
-    itsTimeIntervalStart = t;
+    itsTimeIntervalStart = time1;
   }
-  conn->cleanDataCache(t);
+  conn->cleanDataCache(time1);
 
   // Update what really remains in the database
   auto start = conn->getOldestObservationTime();
@@ -922,8 +927,7 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCTime() const
   return itsConnectionPool->getConnection()->getLatestWeatherDataQCTime();
 }
 
-std::size_t SpatiaLiteCache::fillWeatherDataQCCache(
-    const WeatherDataQCItems &cacheData) const
+std::size_t SpatiaLiteCache::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const
 {
   auto conn = itsConnectionPool->getConnection();
   auto sz = conn->fillWeatherDataQCCache(cacheData, itsWeatherQCInsertCache);

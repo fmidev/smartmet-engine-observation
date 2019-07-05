@@ -71,7 +71,8 @@ class SpatiaLiteCache : public ObservationCache
   boost::posix_time::ptime getLatestObservationModifiedTime() const;
   boost::posix_time::ptime getLatestObservationTime() const;
   std::size_t fillDataCache(const DataItems &cacheData) const;
-  void cleanDataCache(const boost::posix_time::time_duration &timetokeep) const;
+  void cleanDataCache(const boost::posix_time::time_duration &timetokeep,
+                      const boost::posix_time::time_duration &timetokeep_memory) const;
   boost::posix_time::ptime getLatestWeatherDataQCTime() const;
   std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const;
   void cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep) const;
@@ -81,8 +82,7 @@ class SpatiaLiteCache : public ObservationCache
   bool roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
                                  const boost::posix_time::ptime &endtime) const;
   boost::posix_time::ptime getLatestRoadCloudDataTime() const;
-  std::size_t fillRoadCloudCache(
-      const MobileExternalDataItems &mobileExternalCacheData) const;
+  std::size_t fillRoadCloudCache(const MobileExternalDataItems &mobileExternalCacheData) const;
   void cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const;
   Spine::TimeSeries::TimeSeriesVectorPtr roadCloudValuesFromSpatiaLite(Settings &settings) const;
 
@@ -90,8 +90,7 @@ class SpatiaLiteCache : public ObservationCache
   bool netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
                                const boost::posix_time::ptime &endtime) const;
   boost::posix_time::ptime getLatestNetAtmoDataTime() const;
-  std::size_t fillNetAtmoCache(
-      const MobileExternalDataItems &mobileExternalCacheData) const;
+  std::size_t fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData) const;
   void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const;
   Spine::TimeSeries::TimeSeriesVectorPtr netAtmoValuesFromSpatiaLite(Settings &settings) const;
 

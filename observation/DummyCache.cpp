@@ -123,15 +123,17 @@ std::size_t DummyCache::fillDataCache(const DataItems &cacheData) const
   return 0;
 }
 
-void DummyCache::cleanDataCache(const boost::posix_time::time_duration &timetokeep) const {}
+void DummyCache::cleanDataCache(const boost::posix_time::time_duration &timetokeep,
+                                const boost::posix_time::time_duration &timetokeep_memory) const
+{
+}
 
 boost::posix_time::ptime DummyCache::getLatestWeatherDataQCTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
 
-std::size_t DummyCache::fillWeatherDataQCCache(
-    const WeatherDataQCItems &cacheData) const
+std::size_t DummyCache::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const
 {
   return 0;
 }
