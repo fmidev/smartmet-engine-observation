@@ -267,8 +267,8 @@ void PostgreSQL::createObservationDataTable()
         "PRIMARY KEY (data_time, fmisid, measurand_id, producer_id, "
         "measurand_no));"
         "CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON observation_data(data_time);"
-        "CREATE INDEX IF NOT EXISTS observation_data_modified_last_idx ON "
-        "observation_data(modified_last);");
+        "CREATE INDEX IF NOT EXISTS observation_data_last_modified_idx ON "
+        "observation_data(last_modified);");
   }
   catch (...)
   {
@@ -525,7 +525,7 @@ boost::posix_time::ptime PostgreSQL::getLatestObservationTime()
 
 boost::posix_time::ptime PostgreSQL::getLatestObservationModifiedTime()
 {
-  return getTime("SELECT MAX(modified_last) FROM observation_data");
+  return getTime("SELECT MAX(last_modified) FROM observation_data");
 }
 
 boost::posix_time::ptime PostgreSQL::getOldestObservationTime()
@@ -905,7 +905,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
             {
               std::string sqlStmt =
                   "INSERT INTO observation_data "
-                  "(fmisid, data_time, modified_last, measurand_id, producer_id, measurand_no, "
+                  "(fmisid, data_time, last_modified, measurand_id, producer_id, measurand_no, "
                   "data_value, data_quality, data_source) VALUES ";
 
               for (const auto &v : values_vector)
