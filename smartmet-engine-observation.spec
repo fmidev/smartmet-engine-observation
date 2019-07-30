@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.7.5
+Version: 19.7.30
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -97,7 +97,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Fri Jul  5 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.7.5-1.fmi
+* Fri Jul 30 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.7.30-1.fmi
+- Fixed incorrect field names in PostgreSQL cache (BRAINSTORM-1646)
+
+* Fri Jul 5 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.7.5-1.fmi
 - Removed debugging messages
 
 * Fri Jun 28 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.6.28-1.fmi
@@ -122,7 +125,7 @@ rm -rf $RPM_BUILD_ROOT
 
 * Thu May 23 2019 Anssi Reponen <anssi.reponen@fmi.fi> - 19.5.23-1.fmi
 - Bugfix for mobile observations: area- and sounding_type-parameter taken into consideration when fetched data from cache
-- Added log message of Dummy cache is creation
+- Added log message of Dummy cache in creation
 - Name of mobileAndExternalDataFilter changed to dataFilter in observation engine settings since it is used also in sounding-query
 
 * Tue May 21 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.5.21-1.fmi
