@@ -872,7 +872,7 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
             const auto &item = cacheData[i];
             // data_time, modified_last, fmisid, measurand_id, producer_id, measurand_no
             std::string key = Fmi::to_iso_string(item.data_time);
-            key += Fmi::to_iso_string(item.modified_last);
+            //            key += Fmi::to_iso_string(item.modified_last);
             key += Fmi::to_string(item.fmisid);
             key += Fmi::to_string(item.measurand_id);
             key += Fmi::to_string(item.producer_id);
@@ -917,8 +917,9 @@ std::size_t PostgreSQL::fillDataCache(const vector<DataItem> &cacheData)
               sqlStmt +=
                   " ON CONFLICT(data_time, fmisid, measurand_id, producer_id, measurand_no) DO "
                   "UPDATE SET "
-                  "(data_value, data_quality, data_source) = "
-                  "(EXCLUDED.data_value, EXCLUDED.data_quality, EXCLUDED.data_source)";
+                  "(data_value, last_modified, data_quality, data_source) = "
+                  "(EXCLUDED.data_value, EXCLUDED.last_modified, EXCLUDED.data_quality, "
+                  "EXCLUDED.data_source)\n";
               itsDB.executeTransaction(sqlStmt);
               values_vector.clear();
             }
