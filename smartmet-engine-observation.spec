@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.7.30
+Version: 19.7.31
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -97,7 +97,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Fri Jul 30 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.7.30-1.fmi
+* Wed Jul 31 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.7.31-1.fmi
+- Fixed PostgreSQL cache update error (BRAINSTORM-1647)
+
+* Tue Jul 30 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.7.30-1.fmi
 - Fixed incorrect field names in PostgreSQL cache (BRAINSTORM-1646)
 
 * Fri Jul 5 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.7.5-1.fmi
