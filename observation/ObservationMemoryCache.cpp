@@ -246,13 +246,32 @@ LocationDataItems ObservationMemoryCache::read_observations(const Spine::Station
     if (obs == obsdata.end())
       continue;
 
+    // Establish station coordinates
+
+    double longitude = 25;
+    double latitude = 60;
+    double elevation = 0;
+
     // Extract wanted parameters.
-    // qmap.paramVector contains the wanted measurand_ids.
 
     for (; obs < obsdata.end(); ++obs)
     {
+      // Done if reached desired endtime
+      if (obs->data_time > settings.endtime)
+        break;
+
+      // Skip unwanted parameters
+      if (std::find(qmap.measurandIds.begin(), qmap.measurandIds.end(), obs->measurand_id) ==
+          qmap.measurandIds.end())
+        continue;
+
+      // Construct LocationDataItem from the DataItem
+
+      ret.emplace_back(LocationDataItem{*obs, longitude, latitude, elevation});
     }
   }
+
+  return ret;
 
 #if 0  
   std::string sql =
@@ -297,8 +316,6 @@ LocationDataItems ObservationMemoryCache::read_observations(const Spine::Station
   }
 
 #endif
-
-  return ret;
 }
 
 }  // namespace Observation
