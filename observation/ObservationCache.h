@@ -8,11 +8,11 @@
 #include "StationInfo.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
+
+#include <macgyver/Cache.h>
 #include <spine/Station.h>
 #include <spine/TimeSeries.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
-
-#include <macgyver/Cache.h>
 
 #include <string>
 
@@ -31,6 +31,7 @@ class ObservationCache
 
   virtual void initializeConnectionPool() = 0;
   virtual void initializeCaches(int finCacheDuration,
+                                int finMemoryCacheDuration,
                                 int extCacheDuration,
                                 int flashCacheDuration,
                                 int flashMemoryCacheDuration) = 0;

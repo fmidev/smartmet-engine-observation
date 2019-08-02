@@ -409,6 +409,13 @@ class SpatiaLite : private boost::noncopyable
 
   FlashDataItems readFlashCacheData(const boost::posix_time::ptime &starttime);
 
+  /**
+   * \brief Init the internal memory cache from SpatiaLite
+   * \param starttime Start time for the update
+   */
+
+  void initObservationMemoryCache(const boost::posix_time::ptime &starttime);
+
  private:
   // Private members
   sqlite3pp::database itsDB;

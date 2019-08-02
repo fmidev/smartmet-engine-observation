@@ -1,9 +1,12 @@
 #include "SpatiaLite.h"
+
 #include "ExternalAndMobileDBInfo.h"
 #include "Keywords.h"
 #include "ObservableProperty.h"
+#include "QueryMapping.h"
 #include "ResultSet.h"
 #include "SpatiaLiteCacheParameters.h"
+
 #include <fmt/format.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeParser.h>
@@ -12,6 +15,7 @@
 #include <spine/Exception.h>
 #include <spine/Thread.h>
 #include <spine/TimeSeriesOutput.h>
+
 #include <chrono>
 #include <iostream>
 
@@ -140,18 +144,6 @@ std::string build_sql_stationlist(const Spine::Stations &stations)
   return ret;
 }
 
-// build mappings for data structures vs sql query
-
-struct QueryMapping
-{
-  std::map<int, int> timeseriesPositions;
-  std::map<std::string, int> timeseriesPositionsString;
-  std::map<std::string, std::string> parameterNameMap;
-  std::vector<int> paramVector;
-  std::map<std::string, int> specialPositions;
-  std::string param;
-};
-
 QueryMapping build_query_mapping(const Spine::Stations &stations,
                                  const Settings &settings,
                                  const ParameterMapPtr &parameterMap,
@@ -168,15 +160,15 @@ QueryMapping build_query_mapping(const Spine::Stations &stations,
       Fmi::ascii_tolower(name);
       removePrefix(name, "qc_");
 
-      std::string paramStr = parameterMap->getParameter(name, stationtype);
-      if (!paramStr.empty())
+      auto sparam = parameterMap->getParameter(name, stationtype);
+      if (!sparam.empty())
       {
-        int paramInt = Fmi::stoi(paramStr);
-        ret.timeseriesPositions[paramInt] = pos;
+        int nparam = Fmi::stoi(sparam);
+        ret.timeseriesPositions[nparam] = pos;
         ret.timeseriesPositionsString[name] = pos;
-        ret.parameterNameMap[name] = paramStr;
-        ret.paramVector.push_back(paramInt);
-        ret.param += paramStr + ",";
+        ret.parameterNameMap[name] = sparam;
+        ret.paramVector.push_back(nparam);
+        ret.measurandIds.push_back(nparam);
       }
     }
     else
@@ -186,23 +178,29 @@ QueryMapping build_query_mapping(const Spine::Stations &stations,
 
       if (name.find("windcompass") != std::string::npos)
       {
-        std::string paramStr = parameterMap->getParameter("winddirection", stationtype);
-        ret.param += paramStr + ",";
-        ret.timeseriesPositions[Fmi::stoi(paramStr)] = pos;
+        auto nparam = Fmi::stoi(parameterMap->getParameter("winddirection", stationtype));
+        ret.measurandIds.push_back(nparam);
+        ret.timeseriesPositions[nparam] = pos;
         ret.specialPositions[name] = pos;
       }
       else if (name.find("feelslike") != std::string::npos)
       {
-        ret.param += parameterMap->getParameter("windspeedms", stationtype) + "," +
-                     parameterMap->getParameter("relativehumidity", stationtype) + "," +
-                     parameterMap->getParameter("temperature", stationtype) + ",";
+        auto nparam1 = Fmi::stoi(parameterMap->getParameter("windspeedms", stationtype));
+        auto nparam2 = Fmi::stoi(parameterMap->getParameter("relativehumidity", stationtype));
+        auto nparam3 = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
+        ret.measurandIds.push_back(nparam1);
+        ret.measurandIds.push_back(nparam2);
+        ret.measurandIds.push_back(nparam3);
         ret.specialPositions[name] = pos;
       }
       else if (name.find("smartsymbol") != std::string::npos)
       {
-        ret.param += parameterMap->getParameter("wawa", stationtype) + "," +
-                     parameterMap->getParameter("totalcloudcover", stationtype) + "," +
-                     parameterMap->getParameter("temperature", stationtype) + ",";
+        auto nparam1 = Fmi::stoi(parameterMap->getParameter("wawa", stationtype));
+        auto nparam2 = Fmi::stoi(parameterMap->getParameter("totalcloudcover", stationtype));
+        auto nparam3 = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
+        ret.measurandIds.push_back(nparam1);
+        ret.measurandIds.push_back(nparam2);
+        ret.measurandIds.push_back(nparam3);
         ret.specialPositions[name] = pos;
       }
       else
@@ -212,8 +210,6 @@ QueryMapping build_query_mapping(const Spine::Stations &stations,
     }
     pos++;
   }
-
-  ret.param = trimCommasFromEnd(ret.param);
 
   return ret;
 }
@@ -225,6 +221,17 @@ LocationDataItems read_observations(const Spine::Stations &stations,
                                     const QueryMapping &qmap,
                                     sqlite3pp::database &db)
 {
+  LocationDataItems ret;
+
+  // Safety check
+  if (qmap.measurandIds.empty())
+    return ret;
+
+  std::string measurand_ids;
+  for (const auto &id : qmap.measurandIds)
+    measurand_ids += Fmi::to_string(id) + ",";
+  measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
+
   auto qstations = build_sql_stationlist(stations);
 
   std::string sql =
@@ -238,7 +245,8 @@ LocationDataItems read_observations(const Spine::Stations &stations,
       ") "
       "AND data.data_time >= '" +
       Fmi::to_iso_extended_string(settings.starttime) + "' AND data.data_time <= '" +
-      Fmi::to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" + qmap.param +
+      Fmi::to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" +
+      measurand_ids +
       ") "
       "AND data.measurand_no = 1 "
       "AND data.data_quality <= 5 "
@@ -248,15 +256,13 @@ LocationDataItems read_observations(const Spine::Stations &stations,
       "loc.latitude, loc.longitude, loc.elevation, data.data_value, data.data_source "
       "ORDER BY fmisid ASC, obstime ASC";
 
-  LocationDataItems ret;
-
   sqlite3pp::query qry(db, sql.c_str());
 
   for (auto iter = qry.begin(); iter != qry.end(); ++iter)
   {
     LocationDataItem obs;
-    obs.data.fmisid = (*iter).get<int>(0);
     obs.data.data_time = parse_sqlite_time((*iter).get<std::string>(1));
+    obs.data.fmisid = (*iter).get<int>(0);
     obs.latitude = (*iter).get<double>(2);
     obs.longitude = (*iter).get<double>(3);
     obs.elevation = (*iter).get<double>(4);
@@ -4072,6 +4078,48 @@ void SpatiaLite::append_weather_parameters(const Spine::Station& s,
     }
   }
 }
+
+void SpatiaLite::initObservationMemoryCache(const boost::posix_time::ptime &starttime)
+{
+  // Read all observations starting from the given time
+  std::string sql =
+      "SELECT data_time, modified_last, data_value, fmisid, measurand_id, producer_id, measurand_no, data_quality, data_source "
+      "FROM observation_data "
+      "WHERE observation_data.data_time >= '" +
+      Fmi::to_iso_extended_string(starttime) +
+      "' GROUP BY fmisid, data_time, measurand_id, data_value, data_source "
+      "ORDER BY fmisid ASC, data_time ASC";
+
+  sqlite3pp::query qry(itsDB, sql.c_str());
+
+  DataItems observations;
+  
+  for (auto iter = qry.begin(); iter != qry.end(); ++iter)
+  {
+    if ((*iter).column_type(2) == SQLITE_NULL) // data_value
+      continue;
+    if ((*iter).column_type(8) == SQLITE_NULL) // data_source
+      continue;
+
+    DataItem obs;
+    obs.data_time = parse_sqlite_time((*iter).get<std::string>(0));
+    obs.modified_last = parse_sqlite_time((*iter).get<std::string>(1));
+    obs.data_value = (*iter).get<double>(2);
+    obs.fmisid = (*iter).get<int>(3);
+    obs.measurand_id = (*iter).get<int>(4);
+    obs.producer_id = (*iter).get<int>(5);
+    obs.measurand_no = (*iter).get<int>(6);
+    obs.data_quality = (*iter).get<int>(7);
+    obs.data_source = (*iter).get<int>(8);
+    observations.emplace_back(obs);
+  }
+
+  // Feed them into the cache
+
+  itsObservationMemoryCache.fill(observations);
+
+}
+
 
 }  // namespace Observation
 }  // namespace Engine

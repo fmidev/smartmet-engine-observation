@@ -1,7 +1,10 @@
 #include "SpatiaLiteCache.h"
+
 #include "ObservableProperty.h"
+
 #include <boost/make_shared.hpp>
 #include <macgyver/StringConversion.h>
+
 #include <atomic>
 
 namespace ts = SmartMet::Spine::TimeSeries;
@@ -105,6 +108,7 @@ void SpatiaLiteCache::initializeConnectionPool()
 }
 
 void SpatiaLiteCache::initializeCaches(int finCacheDuration,
+                                       int finMemoryCacheDuration,
                                        int extCacheDuration,
                                        int flashCacheDuration,
                                        int flashMemoryCacheDuration)
@@ -114,10 +118,18 @@ void SpatiaLiteCache::initializeCaches(int finCacheDuration,
     logMessage("[Observation Engine] Initializing SpatiaLite memory cache", itsParameters.quiet);
 
     auto now = boost::posix_time::second_clock::universal_time();
-    auto timetokeep_memory = boost::posix_time::hours(flashMemoryCacheDuration);
-    auto flashdata =
-        itsConnectionPool->getConnection()->readFlashCacheData(now - timetokeep_memory);
-    itsFlashMemoryCache.fill(flashdata);
+
+    {
+      auto timetokeep_memory = boost::posix_time::hours(flashMemoryCacheDuration);
+      auto flashdata =
+          itsConnectionPool->getConnection()->readFlashCacheData(now - timetokeep_memory);
+      itsFlashMemoryCache.fill(flashdata);
+    }
+    {
+      auto timetokeep_memory = boost::posix_time::hours(finMemoryCacheDuration);
+      itsConnectionPool->getConnection()->initObservationMemoryCache(now - timetokeep_memory);
+    }
+
     logMessage("[Observation Engine] SpatiaLite memory cache ready.", itsParameters.quiet);
   }
   catch (...)

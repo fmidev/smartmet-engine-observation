@@ -1,4 +1,5 @@
 #include "SpatiaLiteDatabaseDriver.h"
+
 #include "Engine.h"
 #include "ObservationCache.h"
 #include "QueryResult.h"
@@ -6,12 +7,13 @@
 #include "SpatiaLiteDriverParameters.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
+#include "boost/date_time/posix_time/posix_time.hpp"  //include all types plus i/o
+
 #include <fmt/format.h>
 #include <spine/Convenience.h>
+
 #include <atomic>
 #include <chrono>
-
-#include "boost/date_time/posix_time/posix_time.hpp"  //include all types plus i/o
 
 // #define MYDEBUG 1
 
@@ -80,6 +82,7 @@ void SpatiaLiteDatabaseDriver::init(Engine *obsengine)
     itsObsEngine = obsengine;
     itsParameters.observationCache->initializeConnectionPool();
     itsParameters.observationCache->initializeCaches(itsParameters.finCacheDuration,
+                                                     itsParameters.finMemoryCacheDuration,
                                                      itsParameters.extCacheDuration,
                                                      itsParameters.flashCacheDuration,
                                                      itsParameters.flashMemoryCacheDuration);
@@ -641,6 +644,8 @@ void SpatiaLiteDatabaseDriver::readConfig(Spine::ConfigBase &cfg)
 {
   itsParameters.finCacheDuration =
       cfg.get_mandatory_config_param<int>("database_driver.finCacheDuration");
+  itsParameters.finMemoryCacheDuration =
+      cfg.get_optional_config_param<int>("database_driver.finMemoryCacheDuration", 0);
   itsParameters.extCacheDuration =
       cfg.get_mandatory_config_param<int>("database_driver.extCacheDuration");
   itsParameters.flashCacheDuration =

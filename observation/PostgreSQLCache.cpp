@@ -1,7 +1,10 @@
 #include "PostgreSQLCache.h"
+
 #include "ObservableProperty.h"
+
 #include <boost/make_shared.hpp>
 #include <macgyver/StringConversion.h>
+
 #include <atomic>
 
 namespace ts = SmartMet::Spine::TimeSeries;
@@ -95,6 +98,7 @@ void PostgreSQLCache::initializeConnectionPool()
 }
 
 void PostgreSQLCache::initializeCaches(int finCacheDuration,
+                                       int finMemoryCacheDuration,
                                        int extCacheDuration,
                                        int flashCacheDuration,
                                        int flashMemoryCacheDuration)

@@ -27,6 +27,7 @@ class PostgreSQLCache : public ObservationCache
 
   void initializeConnectionPool();
   void initializeCaches(int finCacheDuration,
+                        int finMemoryCacheDuration,
                         int extCacheDuration,
                         int flashCacheDuration,
                         int flashMemoryCacheDuration);

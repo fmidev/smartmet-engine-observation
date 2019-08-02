@@ -8,7 +8,9 @@
 #include "SpatiaLiteCacheParameters.h"
 #include "SpatiaLiteConnectionPool.h"
 #include "StationtypeConfig.h"
+
 #include <macgyver/Cache.h>
+
 #include <string>
 
 namespace SmartMet
@@ -27,6 +29,7 @@ class SpatiaLiteCache : public ObservationCache
 
   void initializeConnectionPool();
   void initializeCaches(int finCacheDuration,
+                        int finMemoryCacheDuration,
                         int extCacheDuration,
                         int flashCacheDuration,
                         int flashMemoryCacheDuration);

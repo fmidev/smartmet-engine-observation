@@ -14,6 +14,7 @@ void DummyCache::initializeConnectionPool()
 }
 
 void DummyCache::initializeCaches(int finCacheDuration,
+                                  int finMemoryCacheDuration,
                                   int extCacheDuration,
                                   int flashCacheDuration,
                                   int flashMemoryCacheDuration)
