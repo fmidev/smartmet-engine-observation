@@ -212,14 +212,6 @@ LocationDataItems ObservationMemoryCache::read_observations(const Spine::Station
   if (!cache)
     return ret;
 
-  std::cout << "QUERY:\n"
-            << "timeseriesPositions = " << qmap.timeseriesPositions << "\n"
-            << "timeseriesPositionsString = " << qmap.timeseriesPositionsString << "\n"
-            << "parameterNameMap = " << qmap.parameterNameMap << "\n"
-            << "paramVector = " << qmap.paramVector << "\n"
-            << "specialPositions = " << qmap.specialPositions << "\n"
-            << "measurandIds = " << qmap.measurandIds << "\n\n";
-
   // TODO:
   // 1. loop over stations
   // 2. find desired time interval
@@ -248,9 +240,9 @@ LocationDataItems ObservationMemoryCache::read_observations(const Spine::Station
 
     // Establish station coordinates
 
-    double longitude = 25;
-    double latitude = 60;
-    double elevation = 0;
+    const auto longitude = station.longitude_out;  // not requestedLon!
+    const auto latitude = station.latitude_out;    // not requestedLat!
+    const auto elevation = station.station_elevation;
 
     // Extract wanted parameters.
 
@@ -272,50 +264,6 @@ LocationDataItems ObservationMemoryCache::read_observations(const Spine::Station
   }
 
   return ret;
-
-#if 0  
-  std::string sql =
-      "SELECT data.fmisid AS fmisid, data.data_time AS obstime, "
-      "loc.latitude, loc.longitude, loc.elevation, "
-      "measurand_id, data_value, data_source "
-      "FROM observation_data data JOIN locations loc ON (data.fmisid = "
-      "loc.fmisid) "
-      "WHERE data.fmisid IN (" +
-      qstations +
-      ") "
-      "AND data.data_time >= '" +
-      Fmi::to_iso_extended_string(settings.starttime) + "' AND data.data_time <= '" +
-      Fmi::to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" + qmap.param +
-      ") "
-      "AND data.measurand_no = 1 "
-      "AND data.data_quality <= 5 "
-      "GROUP BY data.fmisid, data.data_time, data.measurand_id, "
-      "loc.location_id, "
-      "loc.location_end, "
-      "loc.latitude, loc.longitude, loc.elevation, data.data_value, data.data_source "
-      "ORDER BY fmisid ASC, obstime ASC";
-
-
-  sqlite3pp::query qry(db, sql.c_str());
-
-  for (auto iter = qry.begin(); iter != qry.end(); ++iter)
-  {
-    LocationDataItem obs;
-    obs.data.fmisid = (*iter).get<int>(0);
-    obs.data.data_time = parse_sqlite_time((*iter).get<std::string>(1));
-    obs.latitude = (*iter).get<double>(2);
-    obs.longitude = (*iter).get<double>(3);
-    obs.elevation = (*iter).get<double>(4);
-    obs.data.measurand_id = (*iter).get<int>(5);
-    if ((*iter).column_type(6) != SQLITE_NULL)
-      obs.data.data_value = (*iter).get<double>(6);
-    if ((*iter).column_type(7) != SQLITE_NULL)
-      obs.data.data_source = (*iter).get<int>(7);
-
-    ret.emplace_back(obs);
-  }
-
-#endif
 }
 
 }  // namespace Observation
