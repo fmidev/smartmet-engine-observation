@@ -427,7 +427,7 @@ class SpatiaLite : private boost::noncopyable
   Fmi::DateTimeParser itsDateTimeParser;
   const ExternalAndMobileProducerConfig &itsExternalAndMobileProducerConfig;
 
-  ObservationMemoryCache itsObservationMemoryCache;
+  std::unique_ptr<ObservationMemoryCache> itsObservationMemoryCache;
 
   // Private methods
 

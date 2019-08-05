@@ -119,12 +119,15 @@ void SpatiaLiteCache::initializeCaches(int finCacheDuration,
 
     auto now = boost::posix_time::second_clock::universal_time();
 
+    if (flashMemoryCacheDuration > 0)
     {
+      itsFlashMemoryCache.reset(new FlashMemoryCache);
       auto timetokeep_memory = boost::posix_time::hours(flashMemoryCacheDuration);
       auto flashdata =
           itsConnectionPool->getConnection()->readFlashCacheData(now - timetokeep_memory);
-      itsFlashMemoryCache.fill(flashdata);
+      itsFlashMemoryCache->fill(flashdata);
     }
+    if (finMemoryCacheDuration > 0)
     {
       auto timetokeep_memory = boost::posix_time::hours(finMemoryCacheDuration);
       itsConnectionPool->getConnection()->initObservationMemoryCache(now - timetokeep_memory);
@@ -233,10 +236,13 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &set
   try
   {
     // Use memory cache if possible. t is not set if the cache is not ready yet
-    auto t = itsFlashMemoryCache.getStartTime();
+    if (itsFlashMemoryCache)
+    {
+      auto t = itsFlashMemoryCache->getStartTime();
 
-    if (!t.is_not_a_date_time() && settings.starttime >= t)
-      return itsFlashMemoryCache.getData(settings, itsParameters.parameterMap, itsTimeZones);
+      if (!t.is_not_a_date_time() && settings.starttime >= t)
+        return itsFlashMemoryCache->getData(settings, itsParameters.parameterMap, itsTimeZones);
+    }
 
     // Must use disk cache instead
     boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
@@ -687,7 +693,8 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestFlashTime() const
 std::size_t SpatiaLiteCache::fillFlashDataCache(const FlashDataItems &flashCacheData) const
 {
   // Memory cache first
-  itsFlashMemoryCache.fill(flashCacheData);
+  if (itsFlashMemoryCache)
+    itsFlashMemoryCache->fill(flashCacheData);
 
   // Then disk cache
   auto conn = itsConnectionPool->getConnection();
@@ -710,7 +717,8 @@ void SpatiaLiteCache::cleanFlashDataCache(
 
   // Clean memory cache first:
 
-  itsFlashMemoryCache.clean(now - timetokeep_memory);
+  if (itsFlashMemoryCache)
+    itsFlashMemoryCache->clean(now - timetokeep_memory);
 
   // How old observations to keep in the disk cache:
   auto t = round_down_to_cache_clean_interval(now - timetokeep);

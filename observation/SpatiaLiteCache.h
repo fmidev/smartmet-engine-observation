@@ -153,7 +153,7 @@ class SpatiaLiteCache : public ObservationCache
   mutable InsertStatus itsNetAtmoInsertCache;
 
   // Memory caches smaller than the spatialite cache itself
-  FlashMemoryCache itsFlashMemoryCache;
+  std::unique_ptr<FlashMemoryCache> itsFlashMemoryCache;
   // ObservationDataMemoryCache itsObservationDataMemoryCache; // UNIMPLEMENTED
   // WeatherDataQCMemoryCache itsWeatherDataQCMemoryCache; // UNIMPLEMENTED
 };

@@ -1216,7 +1216,8 @@ void SpatiaLite::cleanMemoryDataCache(const ptime &newstarttime)
 {
   try
   {
-    itsObservationMemoryCache.clean(newstarttime);
+    if(itsObservationMemoryCache)
+      itsObservationMemoryCache->clean(newstarttime);
   }
   catch (...)
   {
@@ -1516,8 +1517,9 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
       return 0;
 
     // Update memory cache first
-    
-    itsObservationMemoryCache.fill(cacheData);
+
+    if(itsObservationMemoryCache)
+      itsObservationMemoryCache->fill(cacheData);
 
     // Collect new items before taking a lock - we might avoid one completely
     std::vector<std::size_t> new_items;
@@ -3707,13 +3709,21 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     auto qmap = build_query_mapping(stations,settings,parameterMap,stationtype);
 
     LocationDataItems observations;
-    auto cache_start_time = itsObservationMemoryCache.getStartTime();
 
-    if(!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime)
-      observations = itsObservationMemoryCache.read_observations(stations,settings,qmap);
-    else
+
+    
+    if(!itsObservationMemoryCache)
       observations = read_observations(stations,settings,qmap, itsDB);
+    else
+    {
+      auto cache_start_time = itsObservationMemoryCache->getStartTime();
 
+      if(!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime)
+        observations = itsObservationMemoryCache->read_observations(stations,settings,qmap);
+      else
+        observations = read_observations(stations,settings,qmap, itsDB);
+    }
+    
     ObservationsMap obsmap = map_observations(observations,
                                               settings,
                                               timezones,
@@ -4117,7 +4127,8 @@ void SpatiaLite::initObservationMemoryCache(const boost::posix_time::ptime &star
 
   // Feed them into the cache
 
-  itsObservationMemoryCache.fill(observations);
+  itsObservationMemoryCache.reset(new ObservationMemoryCache);
+  itsObservationMemoryCache->fill(observations);
 
 }
 
