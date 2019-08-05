@@ -414,6 +414,10 @@ bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &start
   try
   {
     Spine::ReadLock lock(itsTimeIntervalMutex);
+
+    std::cout << "ItsTimeINtervalStart = " << itsTimeIntervalStart << "\n"
+              << "request: " << starttime << " ... " << endtime << "\n";
+
     if (itsTimeIntervalStart.is_not_a_date_time())
       return false;
     // We ignore end time intentionally
@@ -581,6 +585,8 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
   {
     // If stationtype is cached and if we have requested time interval in
     // SpatiaLite, get all data from there
+
+    std::cout << "Use common query method = " << settings.useCommonQueryMethod << "\n";
 
     if (settings.useCommonQueryMethod)
       return timeIntervalIsCached(settings.starttime, settings.endtime);
