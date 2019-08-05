@@ -212,9 +212,6 @@ LocationDataItems ObservationMemoryCache::read_observations(const Spine::Station
   if (!cache)
     return ret;
 
-  std::cout << "Reading result from memory cache\n";
-
-  // TODO:
   // 1. loop over stations
   // 2. find desired time interval
   // 3. extract wanted measurand_id's

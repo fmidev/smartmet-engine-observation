@@ -3709,8 +3709,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     LocationDataItems observations;
     auto cache_start_time = itsObservationMemoryCache.getStartTime();
 
-    std::cout << "Cache start time is " << cache_start_time << "\tstarttime = " << settings.starttime << std::endl;
-    
     if(!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime)
       observations = itsObservationMemoryCache.read_observations(stations,settings,qmap);
     else
