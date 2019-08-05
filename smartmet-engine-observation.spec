@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.7.3
+Version: 19.7.5
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -99,6 +99,9 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Wed Jul  3 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.7.3-1.fmi
 - Added a memory cache for flashes
+
+* Fri Jul  5 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.7.5-1.fmi
+- Removed debugging messages
 
 * Fri Jun 28 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.6.28-1.fmi
 - Fixed testing whether the given producer is available in the spatialite cache
