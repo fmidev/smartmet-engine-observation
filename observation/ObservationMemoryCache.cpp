@@ -251,7 +251,11 @@ LocationDataItems ObservationMemoryCache::read_observations(const Spine::Station
       if (obs->data_time > settings.endtime)
         break;
 
-      // Skip unwanted parameters
+      // Skip unwanted parameters similarly to SpatiaLite.cpp read_observations
+
+      if (obs->measurand_no != 1 || obs->data_quality > 5)
+        continue;
+
       if (std::find(qmap.measurandIds.begin(), qmap.measurandIds.end(), obs->measurand_id) ==
           qmap.measurandIds.end())
         continue;
