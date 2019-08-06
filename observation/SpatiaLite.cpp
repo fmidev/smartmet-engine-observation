@@ -3886,8 +3886,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_all_time_ste
   for (const Spine::Station &s : stations)
   {
     int fmisid = s.station_id;
+    // This may create an empty object for stations from which we got no values - which is fine
     map<local_date_time, map<std::string, ts::Value>> stationData =
-        obsmap.dataWithStringParameterId.at(fmisid);
+        obsmap.dataWithStringParameterId[fmisid];
     for (const dataItemWithStringParameterId &item : stationData)
     {
       addParameterToTimeSeries(timeSeriesColumns,
@@ -3901,7 +3902,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_all_time_ste
     }
 
     // Add *data_source-fields
-    stationData = obsmap.dataSourceWithStringParameterId.at(fmisid);
+    stationData = obsmap.dataSourceWithStringParameterId[fmisid];
     for (const dataItemWithStringParameterId &item : stationData)
     {
       const auto &  obstime = item.first;
