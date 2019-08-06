@@ -115,12 +115,12 @@ void SpatiaLiteCache::initializeCaches(int finCacheDuration,
 {
   try
   {
-    logMessage("[Observation Engine] Initializing SpatiaLite memory cache", itsParameters.quiet);
-
     auto now = boost::posix_time::second_clock::universal_time();
 
     if (flashMemoryCacheDuration > 0)
     {
+      logMessage("[Observation Engine] Initializing SpatiaLite flash memory cache",
+                 itsParameters.quiet);
       itsFlashMemoryCache.reset(new FlashMemoryCache);
       auto timetokeep_memory = boost::posix_time::hours(flashMemoryCacheDuration);
       auto flashdata =
@@ -129,6 +129,8 @@ void SpatiaLiteCache::initializeCaches(int finCacheDuration,
     }
     if (finMemoryCacheDuration > 0)
     {
+      logMessage("[Observation Engine] Initializing SpatiaLite observation memory cache",
+                 itsParameters.quiet);
       auto timetokeep_memory = boost::posix_time::hours(finMemoryCacheDuration);
       itsConnectionPool->getConnection()->initObservationMemoryCache(now - timetokeep_memory);
     }
