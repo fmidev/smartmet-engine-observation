@@ -2,6 +2,7 @@
 
 #include <boost/date_time/gregorian/formatters.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
+#include <vector>
 
 namespace SmartMet
 {
@@ -25,6 +26,8 @@ class DataItem
 
   std::size_t hash_value() const;
 };
+
+using DataItems = std::vector<DataItem>;
 
 }  // namespace Observation
 }  // namespace Engine

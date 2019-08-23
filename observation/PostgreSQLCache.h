@@ -25,7 +25,12 @@ class PostgreSQLCache : public ObservationCache
   PostgreSQLCache(const EngineParametersPtr &p, Spine::ConfigBase &cfg);
   ~PostgreSQLCache();
 
-  void initializeConnectionPool(int finCacheDuration);
+  void initializeConnectionPool();
+  void initializeCaches(int finCacheDuration,
+                        int finMemoryCacheDuration,
+                        int extCacheDuration,
+                        int flashCacheDuration,
+                        int flashMemoryCacheDuration);
 
   Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(Settings &settings);
   Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(
@@ -61,31 +66,32 @@ class PostgreSQLCache : public ObservationCache
                             const boost::posix_time::ptime &endtime,
                             const Spine::TaggedLocationList &locations) const;
   boost::posix_time::ptime getLatestFlashTime() const;
-  std::size_t fillFlashDataCache(const std::vector<FlashDataItem> &flashCacheData) const;
-  void cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const;
+  std::size_t fillFlashDataCache(const FlashDataItems &flashCacheData) const;
+  void cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep,
+                           const boost::posix_time::time_duration &timetokeep_memory) const;
+
   boost::posix_time::ptime getLatestObservationModifiedTime() const;
   boost::posix_time::ptime getLatestObservationTime() const;
-  std::size_t fillDataCache(const std::vector<DataItem> &cacheData) const;
-  void cleanDataCache(const boost::posix_time::time_duration &timetokeep) const;
+  std::size_t fillDataCache(const DataItems &cacheData) const;
+  void cleanDataCache(const boost::posix_time::time_duration &timetokeep,
+                      const boost::posix_time::time_duration &timetokeep_memory) const;
   boost::posix_time::ptime getLatestWeatherDataQCTime() const;
-  std::size_t fillWeatherDataQCCache(const std::vector<WeatherDataQCItem> &cacheData) const;
+  std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const;
   void cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep) const;
-  void fillLocationCache(const std::vector<LocationItem> &locations) const;
+  void fillLocationCache(const LocationItems &locations) const;
 
   // RoadCloud
   bool roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
                                  const boost::posix_time::ptime &endtime) const;
   boost::posix_time::ptime getLatestRoadCloudDataTime() const;
-  std::size_t fillRoadCloudCache(
-      const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const;
+  std::size_t fillRoadCloudCache(const MobileExternalDataItems &mobileExternalCacheData) const;
   void cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const;
 
   // NetAtmo
   bool netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
                                const boost::posix_time::ptime &endtime) const;
   boost::posix_time::ptime getLatestNetAtmoDataTime() const;
-  std::size_t fillNetAtmoCache(
-      const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const;
+  std::size_t fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData) const;
   void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const;
 
   boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(

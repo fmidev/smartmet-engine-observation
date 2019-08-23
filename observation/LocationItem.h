@@ -30,6 +30,8 @@ class LocationItem
  private:
 };
 
+using LocationItems = std::vector<LocationItem>;
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

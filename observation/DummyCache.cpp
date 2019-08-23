@@ -8,9 +8,17 @@ namespace Observation
 {
 DummyCache::DummyCache(const EngineParametersPtr &p) : itsParameters(p) {}
 
-void DummyCache::initializeConnectionPool(int)
+void DummyCache::initializeConnectionPool()
 {
   logMessage("[Observation Engine] Dummy cache initialized!", itsParameters->quiet);
+}
+
+void DummyCache::initializeCaches(int finCacheDuration,
+                                  int finMemoryCacheDuration,
+                                  int extCacheDuration,
+                                  int flashCacheDuration,
+                                  int flashMemoryCacheDuration)
+{
 }
 
 Spine::TimeSeries::TimeSeriesVectorPtr DummyCache::valuesFromCache(Settings &settings)
@@ -90,12 +98,16 @@ boost::posix_time::ptime DummyCache::getLatestFlashTime() const
   return boost::posix_time::not_a_date_time;
 }
 
-std::size_t DummyCache::fillFlashDataCache(const std::vector<FlashDataItem> &flashCacheData) const
+std::size_t DummyCache::fillFlashDataCache(const FlashDataItems &flashCacheData) const
 {
   return 0;
 }
 
-void DummyCache::cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const {}
+void DummyCache::cleanFlashDataCache(
+    const boost::posix_time::time_duration & /* timetokeep */,
+    const boost::posix_time::time_duration & /*timetokeep_memory */) const
+{
+}
 
 boost::posix_time::ptime DummyCache::getLatestObservationModifiedTime() const
 {
@@ -107,20 +119,22 @@ boost::posix_time::ptime DummyCache::getLatestObservationTime() const
   return boost::posix_time::not_a_date_time;
 }
 
-std::size_t DummyCache::fillDataCache(const std::vector<DataItem> &cacheData) const
+std::size_t DummyCache::fillDataCache(const DataItems &cacheData) const
 {
   return 0;
 }
 
-void DummyCache::cleanDataCache(const boost::posix_time::time_duration &timetokeep) const {}
+void DummyCache::cleanDataCache(const boost::posix_time::time_duration &timetokeep,
+                                const boost::posix_time::time_duration &timetokeep_memory) const
+{
+}
 
 boost::posix_time::ptime DummyCache::getLatestWeatherDataQCTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
 
-std::size_t DummyCache::fillWeatherDataQCCache(
-    const std::vector<WeatherDataQCItem> &cacheData) const
+std::size_t DummyCache::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const
 {
   return 0;
 }
@@ -141,7 +155,7 @@ boost::posix_time::ptime DummyCache::getLatestRoadCloudDataTime() const
 }
 
 std::size_t DummyCache::fillRoadCloudCache(
-    const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const
+    const MobileExternalDataItems &mobileExternalCacheData) const
 {
   return 0;
 }
@@ -160,14 +174,14 @@ boost::posix_time::ptime DummyCache::getLatestNetAtmoDataTime() const
 }
 
 std::size_t DummyCache::fillNetAtmoCache(
-    const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const
+    const MobileExternalDataItems &mobileExternalCacheData) const
 {
   return 0;
 }
 
 void DummyCache::cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const {}
 
-void DummyCache::fillLocationCache(const std::vector<LocationItem> &locations) const {}
+void DummyCache::fillLocationCache(const LocationItems &locations) const {}
 
 boost::shared_ptr<std::vector<ObservableProperty> > DummyCache::observablePropertyQuery(
     std::vector<std::string> &parameters, const std::string language) const

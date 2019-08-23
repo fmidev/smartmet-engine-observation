@@ -1,4 +1,5 @@
 #include "SpatiaLiteDatabaseDriver.h"
+
 #include "Engine.h"
 #include "ObservationCache.h"
 #include "QueryResult.h"
@@ -6,12 +7,13 @@
 #include "SpatiaLiteDriverParameters.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
+#include "boost/date_time/posix_time/posix_time.hpp"  //include all types plus i/o
+
 #include <fmt/format.h>
 #include <spine/Convenience.h>
+
 #include <atomic>
 #include <chrono>
-
-#include "boost/date_time/posix_time/posix_time.hpp"  //include all types plus i/o
 
 // #define MYDEBUG 1
 
@@ -78,7 +80,12 @@ void SpatiaLiteDatabaseDriver::init(Engine *obsengine)
     logMessage("[SpatiaLiteDatabaseDriver] initializing connection pool...", itsParameters.quiet);
 
     itsObsEngine = obsengine;
-    itsParameters.observationCache->initializeConnectionPool(itsParameters.finCacheDuration);
+    itsParameters.observationCache->initializeConnectionPool();
+    itsParameters.observationCache->initializeCaches(itsParameters.finCacheDuration,
+                                                     itsParameters.finMemoryCacheDuration,
+                                                     itsParameters.extCacheDuration,
+                                                     itsParameters.flashCacheDuration,
+                                                     itsParameters.flashMemoryCacheDuration);
 
     logMessage("[SpatiaLiteDatabaseDriver] Connection pool ready.", itsParameters.quiet);
   }
@@ -636,7 +643,15 @@ void SpatiaLiteDatabaseDriver::preloadStations(const std::string &serializedStat
 void SpatiaLiteDatabaseDriver::readConfig(Spine::ConfigBase &cfg)
 {
   itsParameters.finCacheDuration =
-      cfg.get_optional_config_param<int>("database_driver.finCacheDuration", 0);
+      cfg.get_mandatory_config_param<int>("database_driver.finCacheDuration");
+  itsParameters.finMemoryCacheDuration =
+      cfg.get_optional_config_param<int>("database_driver.finMemoryCacheDuration", 0);
+  itsParameters.extCacheDuration =
+      cfg.get_mandatory_config_param<int>("database_driver.extCacheDuration");
+  itsParameters.flashCacheDuration =
+      cfg.get_mandatory_config_param<int>("database_driver.flashCacheDuration");
+  itsParameters.flashMemoryCacheDuration =
+      cfg.get_optional_config_param<int>("database_driver.flashMemoryCacheDuration", 0);
 
   // iterate stationtypes and find out metaparameters
   // metaparameter are defined in 'meta_data.bbox'group like 'meta_data.bbox.<producer>= value'
