@@ -145,7 +145,7 @@ class PostgreSQL : private boost::noncopyable
   /**
    * @brief Insert new stations or update old ones in locations table.
    */
-  void fillLocationCache(const std::vector<LocationItem> &locations);
+  void fillLocationCache(const LocationItems &locations);
 
   /**
    * @brief Update observation_data with data from Oracle's
@@ -153,20 +153,20 @@ class PostgreSQL : private boost::noncopyable
    *        from stations maintained by FMI.
    * @param[in] cacheData Data from observation_data.
    */
-  std::size_t fillDataCache(const std::vector<DataItem> &cacheData);
+  std::size_t fillDataCache(const DataItems &cacheData);
 
   /**
    * @brief Update weather_data_qc with data from Oracle's respective table
    *        which is used to store data from road and foreign stations
    * @param[in] cacheData Data from weather_data_qc.
    */
-  std::size_t fillWeatherDataQCCache(const std::vector<WeatherDataQCItem> &cacheData);
+  std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData);
 
   /**
    * @brief Insert cached observations into observation_data table
    * @param flashCacheData Observation data to be inserted into the table
    */
-  std::size_t fillFlashDataCache(const std::vector<FlashDataItem> &flashCacheData);
+  std::size_t fillFlashDataCache(const FlashDataItems &flashCacheData);
 
   /**
    * @brief Delete old observation data from tablename table using time_column
@@ -232,7 +232,7 @@ class PostgreSQL : private boost::noncopyable
    * @param RoadCloud observation data to be inserted into the table
    */
   std::size_t fillRoadCloudCache(
-      const std::vector<MobileExternalDataItem> &mobileExternalCacheData);
+      const MobileExternalDataItems &mobileExternalCacheData);
 
   /**
    * @brief Get the time of the oldest NetAtmo observation in ext_obsdata table
@@ -258,7 +258,7 @@ class PostgreSQL : private boost::noncopyable
    * @brief Insert cached NetAtmo observations into ext_obsdata table
    * @param NetAtmo observation data to be inserted into the table
    */
-  std::size_t fillNetAtmoCache(const std::vector<MobileExternalDataItem> &mobileExternalCacheData);
+  std::size_t fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedRoadCloudData(
       const Settings &settings,

@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 19.8.23
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -97,8 +97,15 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Aug 23 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.8.23-2.fmi
+- Optimized memory cache implementation
+- Skip protected stations
+
 * Fri Aug 23 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.8.23-1.fmi
 - Do not use stations without timezone information
+
+* Mon Aug  5 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.8.5-1.fmi
+- Added a memory cache for narrow table observations
 
 * Wed Jul 31 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.7.31-1.fmi
 - Fixed PostgreSQL cache update error (BRAINSTORM-1647)
@@ -106,8 +113,8 @@ rm -rf $RPM_BUILD_ROOT
 * Tue Jul 30 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.7.30-1.fmi
 - Fixed incorrect field names in PostgreSQL cache (BRAINSTORM-1646)
 
-* Fri Jul 5 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.7.5-1.fmi
-- Removed debugging messages
+* Wed Jul  3 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.7.3-1.fmi
+- Added a memory cache for flashes
 
 * Fri Jun 28 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.6.28-1.fmi
 - Fixed testing whether the given producer is available in the spatialite cache

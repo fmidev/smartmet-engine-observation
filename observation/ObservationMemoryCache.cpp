@@ -1,0 +1,311 @@
+#include "ObservationMemoryCache.h"
+
+#include "QueryMapping.h"
+
+#include <boost/atomic.hpp>
+#include <boost/make_shared.hpp>
+#include <spine/Exception.h>
+
+namespace SmartMet
+{
+namespace Engine
+{
+namespace Observation
+{
+// After the cache has been initialized, we store the time of the
+// latest deleted observations instead of the actual last
+// observation.
+
+boost::posix_time::ptime ObservationMemoryCache::getStartTime() const
+{
+  try
+  {
+    auto t = boost::atomic_load(&itsStartTime);
+    if (t)
+      return *t;
+
+    return {boost::posix_time::not_a_date_time};
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "ObservationMemoryCache::getStartTime failed");
+  }
+}
+
+// Add new observations to the cache.
+//
+// In principle, if a new station appears, we must update the master shared_ptr to all the
+// observations. Otherwise we need only update one station at a time and keep the master
+// shared_ptr valid.
+//
+// However, the logic needed to keep track if there are any new stations is overly complex
+// when compared to simply copying the std::map of station numbers to shared pointers of
+// data (usually of the order of 1000). Copying the map is safe, since no other writer
+// is assumed to be active.
+//
+// Hence we always copy the initial map with its shared pointers. If some station
+// is updated, we do not need to update the shared pointer atomically, it is a
+// new shared pointer whose update does not update the older observations.
+// Updating the shared pointer to all observations finally updates all reader
+// views of the data which are not then active. The views active at the moment
+// of the update will still see the old data in the previous shared_ptr, since
+// they loaded it atomically. We do not modify the shared data either, so it
+// stays valid for all the readers.
+
+std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
+{
+  try
+  {
+    // The update is sorted first by fmisid and by time, but can contain duplicates.
+    // We discard all observations currently in the cache based on the hash value.
+    // If some observation has changed, its hash value has changed, and it will
+    // pass into the modification phase.
+    // Collect all observations not currently in the cache.
+
+    std::vector<std::size_t> new_items;
+    std::vector<std::size_t> new_hashes;
+
+    for (std::size_t i = 0; i < cacheData.size(); i++)
+    {
+      const auto& item = cacheData[i];
+
+      auto hash = item.hash_value();
+
+      if (itsHashValues.find(hash) == itsHashValues.end())
+      {
+        new_items.push_back(i);
+        new_hashes.push_back(hash);
+      }
+    }
+
+    // Create a new cache only if there are updates
+
+    if (!new_items.empty())
+    {
+      // Since no-one else can modify the cache at the same time, we can make a safe copy
+      // by copying the shared pointers in the unordered map.
+
+      auto cache = itsObservations;
+
+      // On first run we may need to initialize, on further runs we create a new copy
+      if (!cache)
+        cache = boost::make_shared<Observations>();  // first insertion
+      else
+        cache = boost::make_shared<Observations>(*cache);  // copy all shared_ptrs
+
+      // The shared_ptrs now point to the original data. If we reset the data, we do
+      // not disturb readers reading the original data, since these shared_ptrs are
+      // our own, and we a free to reset them.
+
+      // Add the new data to our own copy
+      auto& observations = *cache;
+
+      for (std::size_t i = 0; i < new_items.size();)
+      {
+        const auto& data = cacheData[new_items[i]];
+
+        // Seek the end of the update for this station
+        auto fmisid = data.fmisid;
+
+        std::size_t j = i + 1;
+        for (; j < new_items.size(); j++)
+          if (fmisid != cacheData[new_items[j]].fmisid)
+            break;
+
+        // Copy old station observations, or create a new shared empty vector
+
+        auto pos = observations.find(fmisid);
+        if (pos == observations.end())
+          pos =
+              observations.insert(std::make_pair(fmisid, boost::make_shared<StationObservations>()))
+                  .first;
+
+        // Shorthand alias for the shared station observations to make code more readable
+        auto& shared_obs = pos->second;
+
+        auto newobs = boost::make_shared<StationObservations>(*shared_obs);
+
+        // Indices i...j-1 have the same fmisid
+
+        for (std::size_t k = i; k < j; k++)
+          newobs->push_back(cacheData[new_items[k]]);
+
+        // Sort the data based on time
+
+        auto cmp = [](const DataItem& obs1, const DataItem& obs2) -> bool {
+          return (obs1.data_time < obs2.data_time);
+        };
+        std::sort(shared_obs->begin(), shared_obs->end(), cmp);
+
+        // And store the new station data, no need for atomics since we own this shared_ptr
+        shared_obs = newobs;
+
+        // Move on to the next station
+        i = j;
+      }
+
+      // Mark them inserted based on hash value
+      for (const auto& hash : new_hashes)
+        itsHashValues.insert(hash);
+
+      // Replace old contents. Now we finally need to be atomic.
+
+      boost::atomic_store(&itsObservations, cache);
+    }
+
+    // Indicate fill has been called once
+
+    auto starttime = boost::atomic_load(&itsStartTime);
+    if (!starttime)
+    {
+      // We intentionally store a not_a_date_time, and let the cache cleaner determine
+      // what the oldest observation in the cache is.
+      starttime = boost::make_shared<boost::posix_time::ptime>(boost::posix_time::not_a_date_time);
+      boost::atomic_store(&itsStartTime, starttime);
+    }
+
+    return new_items.size();
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "ObservationMemoryCache::fill failed");
+  }
+}
+
+// Clean the cache from old observations. Only atomics can be used, no locks.
+// No new stations are inserted into the shared map, we only need to update
+// each station data atomically, not the master map of stations. We do not
+// bother removing stations from the map which have stopped observations,
+// this is only a RAM cache which will be created afresh at restart anyway.
+
+void ObservationMemoryCache::clean(const boost::posix_time::ptime& newstarttime) const
+{
+  try
+  {
+    // Note: We do not need to load the shared pointer atomically, since
+    // writes are not done simultaneously, and we shall not modify the
+    // master shared pointer to all observations.
+
+    if (itsObservations)
+    {
+      // shorthand alias
+
+      auto& cache = *itsObservations;
+
+      for (auto& fmisid_obsdata : cache)
+      {
+        // Find first position newer than the given start time
+
+        auto cmp = [](const boost::posix_time::ptime& t, const DataItem& obs) -> bool {
+          return (obs.data_time > t);
+        };
+
+        // No need to load the shared pointer here atomically either, nobody else
+        // can modify it right now, only read it.
+
+        const auto& obsdata = *fmisid_obsdata.second;
+        auto pos = std::upper_bound(obsdata.begin(), obsdata.end(), newstarttime, cmp);
+
+        if (pos != obsdata.end())
+        {
+          // Remove elements from the cache by making a new copy of the elements to be kept
+          for (auto it = obsdata.begin(); it != pos; ++it)
+            itsHashValues.erase(it->hash_value());
+
+          // Make a new copy of the data
+          auto new_obsdata = boost::make_shared<StationObservations>(pos, obsdata.end());
+
+          // Now we need to store the new data atomically just in case someone is about
+          // to read the data at the same time.
+          boost::atomic_store(&fmisid_obsdata.second, new_obsdata);
+        }
+      }
+    }
+
+    // Update new start time for the cache first so no-one can request data before it
+    // before the data has been cleaned
+    auto starttime = boost::make_shared<boost::posix_time::ptime>(newstarttime);
+    boost::atomic_store(&itsStartTime, starttime);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "ObservationMemoryCache::clean failed");
+  }
+}
+
+// Read observations from the cache. Each shared part must be loaded atomically
+// to be safe in case write/clean is in progress.
+
+LocationDataItems ObservationMemoryCache::read_observations(const Spine::Stations& stations,
+                                                            const Settings& settings,
+                                                            const QueryMapping& qmap) const
+{
+  LocationDataItems ret;
+
+  auto cache = boost::atomic_load(&itsObservations);
+
+  if (!cache)
+    return ret;
+
+  // 1. loop over stations
+  // 2. find desired time interval
+  // 3. extract wanted measurand_id's
+  // 4. attach latitude, longitude and elevation for each fmisid
+
+  for (const auto& station : stations)
+  {
+    // Find station specific data
+    const auto& pos = cache->find(station.fmisid);
+    if (pos == cache->end())
+      continue;
+
+    // Safe shared copy of the station observations right at this moment
+    auto obsdata = boost::atomic_load(&pos->second);
+
+    // Find first position >= than the given start time
+
+    auto cmp = [](const boost::posix_time::ptime& t, const DataItem& obs) -> bool {
+      return (obs.data_time >= t);
+    };
+
+    auto obs = std::upper_bound(obsdata->begin(), obsdata->end(), settings.starttime, cmp);
+
+    // Skip station if there is no data in the interval starttime...endtime
+    if (obs == obsdata->end())
+      continue;
+
+    // Establish station coordinates
+
+    const auto longitude = station.longitude_out;  // not requestedLon!
+    const auto latitude = station.latitude_out;    // not requestedLat!
+    const auto elevation = station.station_elevation;
+
+    // Extract wanted parameters.
+
+    for (; obs < obsdata->end(); ++obs)
+    {
+      // Done if reached desired endtime
+      if (obs->data_time > settings.endtime)
+        break;
+
+      // Skip unwanted parameters similarly to SpatiaLite.cpp read_observations
+
+      if (obs->measurand_no != 1 || obs->data_quality > 5)
+        continue;
+
+      if (std::find(qmap.measurandIds.begin(), qmap.measurandIds.end(), obs->measurand_id) ==
+          qmap.measurandIds.end())
+        continue;
+
+      // Construct LocationDataItem from the DataItem
+
+      ret.emplace_back(LocationDataItem{*obs, longitude, latitude, elevation});
+    }
+  }
+
+  return ret;
+}
+
+}  // namespace Observation
+}  // namespace Engine
+}  // namespace SmartMet

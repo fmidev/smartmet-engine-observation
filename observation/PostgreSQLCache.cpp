@@ -1,7 +1,10 @@
 #include "PostgreSQLCache.h"
+
 #include "ObservableProperty.h"
+
 #include <boost/make_shared.hpp>
 #include <macgyver/StringConversion.h>
+
 #include <atomic>
 
 namespace ts = SmartMet::Spine::TimeSeries;
@@ -55,7 +58,7 @@ Spine::Stations findNearestStations(const StationInfo &info,
 
 }  // namespace
 
-void PostgreSQLCache::initializeConnectionPool(int)
+void PostgreSQLCache::initializeConnectionPool()
 {
   try
   {
@@ -92,6 +95,15 @@ void PostgreSQLCache::initializeConnectionPool(int)
   {
     throw Spine::Exception::Trace(BCP, "Operation failed!");
   }
+}
+
+void PostgreSQLCache::initializeCaches(int finCacheDuration,
+                                       int finMemoryCacheDuration,
+                                       int extCacheDuration,
+                                       int flashCacheDuration,
+                                       int flashMemoryCacheDuration)
+{
+  // Nothing to do
 }
 
 ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
@@ -644,13 +656,14 @@ boost::posix_time::ptime PostgreSQLCache::getLatestFlashTime() const
   return itsConnectionPool->getConnection()->getLatestFlashTime();
 }
 
-std::size_t PostgreSQLCache::fillFlashDataCache(
-    const std::vector<FlashDataItem> &flashCacheData) const
+std::size_t PostgreSQLCache::fillFlashDataCache(const FlashDataItems &flashCacheData) const
 {
   return itsConnectionPool->getConnection()->fillFlashDataCache(flashCacheData);
 }
 
-void PostgreSQLCache::cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep) const
+void PostgreSQLCache::cleanFlashDataCache(
+    const boost::posix_time::time_duration &timetokeep,
+    const boost::posix_time::time_duration & /* timetokeep_memory */) const
 {
   return itsConnectionPool->getConnection()->cleanFlashDataCache(timetokeep);
 }
@@ -665,12 +678,14 @@ boost::posix_time::ptime PostgreSQLCache::getLatestObservationTime() const
   return itsConnectionPool->getConnection()->getLatestObservationTime();
 }
 
-std::size_t PostgreSQLCache::fillDataCache(const std::vector<DataItem> &cacheData) const
+std::size_t PostgreSQLCache::fillDataCache(const DataItems &cacheData) const
 {
   return itsConnectionPool->getConnection()->fillDataCache(cacheData);
 }
 
-void PostgreSQLCache::cleanDataCache(const boost::posix_time::time_duration &timetokeep) const
+void PostgreSQLCache::cleanDataCache(
+    const boost::posix_time::time_duration &timetokeep,
+    const boost::posix_time::time_duration &timetokeep_memory) const
 {
   return itsConnectionPool->getConnection()->cleanDataCache(timetokeep);
 }
@@ -680,8 +695,7 @@ boost::posix_time::ptime PostgreSQLCache::getLatestWeatherDataQCTime() const
   return itsConnectionPool->getConnection()->getLatestWeatherDataQCTime();
 }
 
-std::size_t PostgreSQLCache::fillWeatherDataQCCache(
-    const std::vector<WeatherDataQCItem> &cacheData) const
+std::size_t PostgreSQLCache::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const
 {
   return itsConnectionPool->getConnection()->fillWeatherDataQCCache(cacheData);
 }
@@ -718,7 +732,7 @@ boost::posix_time::ptime PostgreSQLCache::getLatestRoadCloudDataTime() const
 }
 
 std::size_t PostgreSQLCache::fillRoadCloudCache(
-    const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const
+    const MobileExternalDataItems &mobileExternalCacheData) const
 {
   return itsConnectionPool->getConnection()->fillRoadCloudCache(mobileExternalCacheData);
 }
@@ -754,7 +768,7 @@ boost::posix_time::ptime PostgreSQLCache::getLatestNetAtmoDataTime() const
 }
 
 std::size_t PostgreSQLCache::fillNetAtmoCache(
-    const std::vector<MobileExternalDataItem> &mobileExternalCacheData) const
+    const MobileExternalDataItems &mobileExternalCacheData) const
 {
   return itsConnectionPool->getConnection()->fillNetAtmoCache(mobileExternalCacheData);
 }
@@ -764,7 +778,7 @@ void PostgreSQLCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
   return itsConnectionPool->getConnection()->cleanNetAtmoCache(timetokeep);
 }
 
-void PostgreSQLCache::fillLocationCache(const std::vector<LocationItem> &locations) const
+void PostgreSQLCache::fillLocationCache(const LocationItems &locations) const
 {
   return itsConnectionPool->getConnection()->fillLocationCache(locations);
 }
