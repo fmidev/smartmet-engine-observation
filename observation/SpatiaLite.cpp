@@ -1924,6 +1924,13 @@ void SpatiaLite::updateStations(const Spine::Stations &stations)
       if (itsShutdownRequested)
         break;
 
+      if(station.timezone.empty())
+      {
+        std::cerr << Spine::log_time_str() << " [SpatiaLite] Warning: Station " << station.fmisid << " '" << station.station_formal_name
+                  << "' timezone missing : station discarded" << std::endl;
+        continue;
+      }
+      
       auto sql = fmt::format(
           "INSERT OR REPLACE INTO stations (fmisid, geoid, wmo, lpnn, station_formal_name, "
           "station_start, station_end, the_geom) VALUES "
