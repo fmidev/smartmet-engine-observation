@@ -55,14 +55,18 @@ Spine::Stations findNearestStations(const StationInfo &info,
                                     const boost::posix_time::ptime &starttime,
                                     const boost::posix_time::ptime &endtime)
 {
-  return findNearestStations(info,
-                             location->longitude,
-                             location->latitude,
-                             maxdistance,
-                             numberofstations,
-                             stationgroup_codes,
-                             starttime,
-                             endtime);
+  if (numberofstations > 1 || !location->fmisid)
+    return findNearestStations(info,
+                               location->longitude,
+                               location->latitude,
+                               maxdistance,
+                               numberofstations,
+                               stationgroup_codes,
+                               starttime,
+                               endtime);
+
+  std::vector<int> fmisids{*(location->fmisid)};
+  return info.findFmisidStations(fmisids, starttime, endtime);
 }
 
 }  // namespace

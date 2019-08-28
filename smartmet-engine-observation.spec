@@ -98,8 +98,10 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 * Fri Aug 23 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.8.23-2.fmi
-- Optimized memory cache implementation
 - Skip protected stations
+
+* Fri Aug 23 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.8.23-1.fmi
+- Optimized memory cache implementation
 
 * Mon Aug  5 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.8.5-1.fmi
 - Added a memory cache for narrow table observations
@@ -109,6 +111,9 @@ rm -rf $RPM_BUILD_ROOT
 
 * Tue Jul 30 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.7.30-1.fmi
 - Fixed incorrect field names in PostgreSQL cache (BRAINSTORM-1646)
+
+* Wed Jul  3 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.7.3-1.fmi
+- Added a memory cache for flashes
 
 * Wed Jul  3 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.7.3-1.fmi
 - Added a memory cache for flashes

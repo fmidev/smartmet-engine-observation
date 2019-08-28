@@ -1,23 +1,19 @@
 #include "StationInfo.h"
 
-#include <spine/Exception.h>
-
-#include <macgyver/StringConversion.h>
-
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
-
 #include <boost/date_time/posix_time/time_serialize.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/vector.hpp>
-
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/filesystem.hpp>
+#include <macgyver/StringConversion.h>
+#include <spine/Exception.h>
 
 #include <fstream>
 
