@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.8.23
-Release: 2%{?dist}.fmi
+Version: 19.8.28
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -15,23 +15,23 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 19.6.4
-BuildRequires: smartmet-engine-geonames-devel >= 19.3.22
+BuildRequires: smartmet-library-spine-devel >= 19.8.28
+BuildRequires: smartmet-engine-geonames-devel >= 19.8.28
 BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
-BuildRequires: smartmet-library-locus-devel >= 19.3.21
-BuildRequires: smartmet-library-macgyver-devel >= 19.4.23
+BuildRequires: smartmet-library-locus-devel >= 19.8.28
+BuildRequires: smartmet-library-macgyver-devel >= 19.8.2
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 5.2.0
 Requires: fmt >= 5.2.0
 Requires: libconfig
-Requires: smartmet-server >= 19.3.19
-Requires: smartmet-engine-geonames >= 19.3.22
-Requires: smartmet-library-spine >= 19.6.4
-Requires: smartmet-library-locus >= 19.3.21
-Requires: smartmet-library-macgyver >= 19.4.23
+Requires: smartmet-server >= 19.8.9
+Requires: smartmet-engine-geonames >= 19.8.28
+Requires: smartmet-library-spine >= 19.8.28
+Requires: smartmet-library-locus >= 19.8.28
+Requires: smartmet-library-macgyver >= 19.8.2
 Requires: libatomic
 Requires: unixODBC
 Requires: mysql++
@@ -97,12 +97,15 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Aug 28 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.8.28-1.fmi
+- Added handling of optional fmisid provided with Location objects
+
 * Fri Aug 23 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.8.23-2.fmi
-- Optimized memory cache implementation
 - Skip protected stations
 
 * Fri Aug 23 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.8.23-1.fmi
 - Do not use stations without timezone information
+- Optimized memory cache implementation
 
 * Mon Aug  5 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.8.5-1.fmi
 - Added a memory cache for narrow table observations
@@ -112,6 +115,9 @@ rm -rf $RPM_BUILD_ROOT
 
 * Tue Jul 30 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.7.30-1.fmi
 - Fixed incorrect field names in PostgreSQL cache (BRAINSTORM-1646)
+
+* Wed Jul  3 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.7.3-1.fmi
+- Added a memory cache for flashes
 
 * Wed Jul  3 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.7.3-1.fmi
 - Added a memory cache for flashes
