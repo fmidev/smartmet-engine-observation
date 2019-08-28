@@ -103,7 +103,13 @@ rm -rf $RPM_BUILD_ROOT
 * Mon Aug  5 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.8.5-1.fmi
 - Added a memory cache for narrow table observations
 
-* Fri Jul  5 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.7.5-1.fmi
+* Wed Jul 31 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.7.31-1.fmi
+- Fixed PostgreSQL cache update error (BRAINSTORM-1647)
+
+* Tue Jul 30 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.7.30-1.fmi
+- Fixed incorrect field names in PostgreSQL cache (BRAINSTORM-1646)
+
+* Fri Jul 5 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.7.5-1.fmi
 - Removed debugging messages
 
 * Wed Jul  3 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.7.3-1.fmi
@@ -131,7 +137,7 @@ rm -rf $RPM_BUILD_ROOT
 
 * Thu May 23 2019 Anssi Reponen <anssi.reponen@fmi.fi> - 19.5.23-1.fmi
 - Bugfix for mobile observations: area- and sounding_type-parameter taken into consideration when fetched data from cache
-- Added log message of Dummy cache is creation
+- Added log message of Dummy cache in creation
 - Name of mobileAndExternalDataFilter changed to dataFilter in observation engine settings since it is used also in sounding-query
 
 * Tue May 21 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.5.21-1.fmi
