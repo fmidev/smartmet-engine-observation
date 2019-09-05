@@ -2148,7 +2148,7 @@ void SpatiaLite::updateStations(const Spine::Stations &stations)
     for (const Spine::Station &station : stations)
     {
       if (itsShutdownRequested)
-        break;
+        return;
 
       if(station.timezone.empty())
       {
@@ -2201,6 +2201,9 @@ void SpatiaLite::updateStationGroups(const StationInfo &info)
 
     for (const Spine::Station &station : info.stations)
     {
+      if(itsShutdownRequested)
+        return;
+      
       // Skipping the empty cases.
       if (station.station_type.empty())
         continue;
