@@ -17,7 +17,6 @@ BuildRequires: libconfig-devel
 BuildRequires: boost-devel
 BuildRequires: smartmet-library-spine-devel >= 19.8.28
 BuildRequires: smartmet-engine-geonames-devel >= 19.8.28
-BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: smartmet-library-locus-devel >= 19.8.28
@@ -34,7 +33,6 @@ Requires: smartmet-library-locus >= 19.8.28
 Requires: smartmet-library-macgyver >= 19.8.2
 Requires: libatomic
 Requires: unixODBC
-Requires: mysql++
 Requires: libspatialite >= 4.3.0a
 Requires: sqlite >= 3.22.0
 Requires: boost-date-time
@@ -47,12 +45,6 @@ Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: make
 
-%if 0%{rhel} >= 7
-BuildRequires: mariadb-devel
-Requires: mariadb-libs
-%else
-BuildRequires: mysql-devel
-%endif
 Provides: %{SPECNAME}
 
 %description
