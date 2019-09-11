@@ -67,7 +67,7 @@ class StationInfo
                                               const boost::posix_time::ptime& starttime,
                                               const boost::posix_time::ptime& endtime) const;
 
-  SmartMet::Spine::Stations findStationsInGroup(const std::set<std::string> groups,
+  SmartMet::Spine::Stations findStationsInGroup(const std::set<std::string>& groups,
                                                 const boost::posix_time::ptime& starttime,
                                                 const boost::posix_time::ptime& endtime) const;
 
@@ -75,7 +75,7 @@ class StationInfo
                                                   double miny,
                                                   double maxx,
                                                   double maxy,
-                                                  const std::set<std::string> groups,
+                                                  const std::set<std::string>& groups,
                                                   const boost::posix_time::ptime& starttime,
                                                   const boost::posix_time::ptime& endtime) const;
 

@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.8.28
+Version: 19.9.11
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -97,6 +97,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Sep 11 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.9.11-1.fmi
+- Modify SQL-queries of mobile data and of queries where data_source-field is present, so that we can get rid of ResultSet class (BRAINSTORM-1673)
+- Improve updating of mobile data cache by utilizing 'created' field in the query
+- Fix bug in iterator of sqlite3pp-API query_iterator-constructor
+- Add missing try-catch blocks and re-write some exception messages to be more accurate
+
 * Wed Aug 28 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.8.28-1.fmi
 - Added handling of optional fmisid provided with Location objects
 
