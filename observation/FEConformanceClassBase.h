@@ -86,7 +86,7 @@ class FEConformanceClassBase : public OperationMap
   typedef Property::Base PropertyIsBaseType;
 
   FEConformanceClassBase();
-  ~FEConformanceClassBase();
+  virtual ~FEConformanceClassBase();
 
   /**
    * @brief Get a new operation (filter) instance.
