@@ -397,7 +397,7 @@ Spine::Stations StationInfo::findRwsidStations(const std::vector<int>& rwsids,
  */
 // ----------------------------------------------------------------------
 
-Spine::Stations StationInfo::findStationsInGroup(const std::set<std::string> groups,
+Spine::Stations StationInfo::findStationsInGroup(const std::set<std::string>& groups,
                                                  const boost::posix_time::ptime& starttime,
                                                  const boost::posix_time::ptime& endtime) const
 {
@@ -520,7 +520,7 @@ Spine::Stations StationInfo::findStationsInsideBox(double minx,
                                                    double miny,
                                                    double maxx,
                                                    double maxy,
-                                                   const std::set<std::string> groups,
+                                                   const std::set<std::string>& groups,
                                                    const boost::posix_time::ptime& starttime,
                                                    const boost::posix_time::ptime& endtime) const
 {

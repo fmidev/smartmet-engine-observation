@@ -106,7 +106,7 @@ void SpatiaLiteCache::initializeConnectionPool()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!")
+    throw Spine::Exception::Trace(BCP, "Initializing connection pool failed!")
         .addParameter("filename", itsParameters.cacheFile);
   }
 }
@@ -143,7 +143,7 @@ void SpatiaLiteCache::initializeCaches(int finCacheDuration,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!")
+    throw Spine::Exception::Trace(BCP, "Cache initialization failed!")
         .addParameter("filename", itsParameters.cacheFile);
   }
 }
@@ -187,7 +187,8 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(
+        BCP, "Getting values from cache for stationtype '" + settings.stationtype + "' failed!");
   }
 }
 
@@ -233,7 +234,8 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(
+        BCP, "Getting values from cache for stationtype '" + settings.stationtype + "' failed!");
   }
 }
 
@@ -256,7 +258,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &set
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting flash values from cache failed!");
   }
 }
 
@@ -416,7 +418,7 @@ Spine::Stations SpatiaLiteCache::getStationsFromSpatiaLite(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting stations from cache failed!");
   }
 }
 
@@ -434,7 +436,7 @@ bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &start
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Checking if time interval is cached failed!");
   }
 }
 
@@ -453,7 +455,7 @@ bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &star
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Checking if flash interval is cached failed!");
   }
 }
 
@@ -470,7 +472,7 @@ bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Checking if weather data QC is cached failed!");
   }
 }
 
@@ -536,7 +538,7 @@ Spine::Stations SpatiaLiteCache::getStationsByTaggedLocations(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting stations by tagged locations failed!");
   }
 }
 
@@ -579,12 +581,12 @@ void SpatiaLiteCache::getStationsByBoundingBox(Spine::Stations &stations,
     }
     catch (...)
     {
-      throw Spine::Exception::Trace(BCP, "Operation failed!");
+      throw Spine::Exception::Trace(BCP, "Getting stations by bounding box failed!");
     }
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting stations by bounding box failed!");
   }
 }
 
@@ -618,18 +620,25 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Checking if data is available in cache failed!");
   }
 }
 
 void SpatiaLiteCache::updateStationsAndGroups(const StationInfo &info) const
 {
-  logMessage("Updating stations to SpatiaLite databases...", itsParameters.quiet);
-  boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-  spatialitedb->updateStationsAndGroups(info);
+  try
+  {
+    logMessage("Updating stations to SpatiaLite databases...", itsParameters.quiet);
+    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
+    spatialitedb->updateStationsAndGroups(info);
 
-  // Clear all cached search results, read new info from sqlite
-  itsStationIdCache.clear();
+    // Clear all cached search results, read new info from sqlite
+    itsStationIdCache.clear();
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Updating stations and groups failed!");
+  }
 }
 
 Spine::Stations SpatiaLiteCache::findAllStationsFromGroups(
@@ -654,27 +663,34 @@ bool SpatiaLiteCache::getStationById(Spine::Station &station,
                                      const boost::posix_time::ptime &starttime,
                                      const boost::posix_time::ptime &endtime) const
 {
-  // Cache key
-  auto key = boost::hash_value(station_id);
-  boost::hash_combine(key, boost::hash_value(stationgroup_codes));
-
-  // Return cached value if it exists
-  auto cached = itsStationIdCache.find(key);
-  if (cached)
+  try
   {
-    station = *cached;
+    // Cache key
+    auto key = boost::hash_value(station_id);
+    boost::hash_combine(key, boost::hash_value(stationgroup_codes));
+
+    // Return cached value if it exists
+    auto cached = itsStationIdCache.find(key);
+    if (cached)
+    {
+      station = *cached;
+      return true;
+    }
+
+    // Search the database
+    bool ok = itsConnectionPool->getConnection()->getStationById(
+        station, station_id, stationgroup_codes, starttime, endtime);
+    if (!ok)
+      return false;
+
+    // Cache the result for next searches
+    itsStationIdCache.insert(key, station);
     return true;
   }
-
-  // Search the database
-  bool ok = itsConnectionPool->getConnection()->getStationById(
-      station, station_id, stationgroup_codes, starttime, endtime);
-  if (!ok)
-    return false;
-
-  // Cache the result for next searches
-  itsStationIdCache.insert(key, station);
-  return true;
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Getting station by id failed!");
+  }
 }
 
 Spine::Stations SpatiaLiteCache::findStationsInsideArea(const Settings &settings,
@@ -698,51 +714,65 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestFlashTime() const
 
 std::size_t SpatiaLiteCache::fillFlashDataCache(const FlashDataItems &flashCacheData) const
 {
-  // Memory cache first
-  if (itsFlashMemoryCache)
-    itsFlashMemoryCache->fill(flashCacheData);
+  try
+  {
+    // Memory cache first
+    if (itsFlashMemoryCache)
+      itsFlashMemoryCache->fill(flashCacheData);
 
-  // Then disk cache
-  auto conn = itsConnectionPool->getConnection();
-  auto sz = conn->fillFlashDataCache(flashCacheData, itsFlashInsertCache);
+    // Then disk cache
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillFlashDataCache(flashCacheData, itsFlashInsertCache);
 
-  // Update info on what is in the database
-  auto start = conn->getOldestFlashTime();
-  auto end = conn->getLatestFlashTime();
-  Spine::WriteLock lock(itsFlashTimeIntervalMutex);
-  itsFlashTimeIntervalStart = start;
-  itsFlashTimeIntervalEnd = end;
-  return sz;
+    // Update info on what is in the database
+    auto start = conn->getOldestFlashTime();
+    auto end = conn->getLatestFlashTime();
+    Spine::WriteLock lock(itsFlashTimeIntervalMutex);
+    itsFlashTimeIntervalStart = start;
+    itsFlashTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Filling flash data cache failed!");
+  }
 }
 
 void SpatiaLiteCache::cleanFlashDataCache(
     const boost::posix_time::time_duration &timetokeep,
     const boost::posix_time::time_duration &timetokeep_memory) const
 {
-  auto now = boost::posix_time::second_clock::universal_time();
-
-  // Clean memory cache first:
-
-  if (itsFlashMemoryCache)
-    itsFlashMemoryCache->clean(now - timetokeep_memory);
-
-  // How old observations to keep in the disk cache:
-  auto t = round_down_to_cache_clean_interval(now - timetokeep);
-
-  auto conn = itsConnectionPool->getConnection();
+  try
   {
-    // We know the cache will not contain anything before this after the update
-    Spine::WriteLock lock(itsFlashTimeIntervalMutex);
-    itsFlashTimeIntervalStart = t;
-  }
-  conn->cleanFlashDataCache(t);
+    auto now = boost::posix_time::second_clock::universal_time();
 
-  // Update what really remains in the database
-  auto start = conn->getOldestFlashTime();
-  auto end = conn->getLatestFlashTime();
-  Spine::WriteLock lock(itsFlashTimeIntervalMutex);
-  itsFlashTimeIntervalStart = start;
-  itsFlashTimeIntervalEnd = end;
+    // Clean memory cache first:
+
+    if (itsFlashMemoryCache)
+      itsFlashMemoryCache->clean(now - timetokeep_memory);
+
+    // How old observations to keep in the disk cache:
+    auto t = round_down_to_cache_clean_interval(now - timetokeep);
+
+    auto conn = itsConnectionPool->getConnection();
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsFlashTimeIntervalMutex);
+      itsFlashTimeIntervalStart = t;
+    }
+    conn->cleanFlashDataCache(t);
+
+    // Update what really remains in the database
+    auto start = conn->getOldestFlashTime();
+    auto end = conn->getLatestFlashTime();
+    Spine::WriteLock lock(itsFlashTimeIntervalMutex);
+    itsFlashTimeIntervalStart = start;
+    itsFlashTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning flash data cache failed!");
+  }
 }
 
 bool SpatiaLiteCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
@@ -759,7 +789,7 @@ bool SpatiaLiteCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Checking if road cloud interval is cached failed!");
   }
 }
 
@@ -768,40 +798,59 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestRoadCloudDataTime() const
   return itsConnectionPool->getConnection()->getLatestRoadCloudDataTime();
 }
 
+boost::posix_time::ptime SpatiaLiteCache::getLatestRoadCloudCreatedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestRoadCloudCreatedTime();
+}
+
 std::size_t SpatiaLiteCache::fillRoadCloudCache(
     const MobileExternalDataItems &mobileExternalCacheData) const
 {
-  auto conn = itsConnectionPool->getConnection();
-  auto sz = conn->fillRoadCloudCache(mobileExternalCacheData, itsRoadCloudInsertCache);
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillRoadCloudCache(mobileExternalCacheData, itsRoadCloudInsertCache);
 
-  // Update what really now really is in the database
-  auto start = conn->getOldestRoadCloudDataTime();
-  auto end = conn->getLatestRoadCloudDataTime();
-  Spine::WriteLock lock(itsRoadCloudTimeIntervalMutex);
-  itsRoadCloudTimeIntervalStart = start;
-  itsRoadCloudTimeIntervalEnd = end;
-  return sz;
+    // Update what really now really is in the database
+    auto start = conn->getOldestRoadCloudDataTime();
+    auto end = conn->getLatestRoadCloudDataTime();
+    Spine::WriteLock lock(itsRoadCloudTimeIntervalMutex);
+    itsRoadCloudTimeIntervalStart = start;
+    itsRoadCloudTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Filling road cloud cached failed!");
+  }
 }
 
 void SpatiaLiteCache::cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const
 {
-  boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-  t = round_down_to_cache_clean_interval(t);
-
-  auto conn = itsConnectionPool->getConnection();
+  try
   {
-    // We know the cache will not contain anything before this after the update
-    Spine::WriteLock lock(itsRoadCloudTimeIntervalMutex);
-    itsRoadCloudTimeIntervalStart = t;
-  }
-  conn->cleanRoadCloudCache(t);
+    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    t = round_down_to_cache_clean_interval(t);
 
-  // Update what really remains in the database
-  auto start = conn->getOldestRoadCloudDataTime();
-  auto end = conn->getLatestRoadCloudDataTime();
-  Spine::WriteLock lock(itsRoadCloudTimeIntervalMutex);
-  itsRoadCloudTimeIntervalStart = start;
-  itsRoadCloudTimeIntervalEnd = end;
+    auto conn = itsConnectionPool->getConnection();
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsRoadCloudTimeIntervalMutex);
+      itsRoadCloudTimeIntervalStart = t;
+    }
+    conn->cleanRoadCloudCache(t);
+
+    // Update what really remains in the database
+    auto start = conn->getOldestRoadCloudDataTime();
+    auto end = conn->getLatestRoadCloudDataTime();
+    Spine::WriteLock lock(itsRoadCloudTimeIntervalMutex);
+    itsRoadCloudTimeIntervalStart = start;
+    itsRoadCloudTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning road cloud cache failed!");
+  }
 }
 
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpatiaLite(
@@ -818,7 +867,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpati
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting road cloud values from cache failed!");
   }
 }
 
@@ -835,44 +884,58 @@ bool SpatiaLiteCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &st
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Checking if NetAtmo interval is cached failed!");
   }
 }
 
 std::size_t SpatiaLiteCache::fillNetAtmoCache(
     const MobileExternalDataItems &mobileExternalCacheData) const
 {
-  auto conn = itsConnectionPool->getConnection();
-  auto sz = conn->fillNetAtmoCache(mobileExternalCacheData, itsNetAtmoInsertCache);
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillNetAtmoCache(mobileExternalCacheData, itsNetAtmoInsertCache);
 
-  // Update what really now really is in the database
-  auto start = conn->getOldestNetAtmoDataTime();
-  auto end = conn->getLatestNetAtmoDataTime();
-  Spine::WriteLock lock(itsNetAtmoTimeIntervalMutex);
-  itsNetAtmoTimeIntervalStart = start;
-  itsNetAtmoTimeIntervalEnd = end;
-  return sz;
+    // Update what really now really is in the database
+    auto start = conn->getOldestNetAtmoDataTime();
+    auto end = conn->getLatestNetAtmoDataTime();
+    Spine::WriteLock lock(itsNetAtmoTimeIntervalMutex);
+    itsNetAtmoTimeIntervalStart = start;
+    itsNetAtmoTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Filling NetAtmo cache failed!");
+  }
 }
 
 void SpatiaLiteCache::cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const
 {
-  boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-  t = round_down_to_cache_clean_interval(t);
-
-  auto conn = itsConnectionPool->getConnection();
+  try
   {
-    // We know the cache will not contain anything before this after the update
-    Spine::WriteLock lock(itsNetAtmoTimeIntervalMutex);
-    itsNetAtmoTimeIntervalStart = t;
-  }
-  conn->cleanNetAtmoCache(t);
+    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    t = round_down_to_cache_clean_interval(t);
 
-  // Update what really remains in the database
-  auto start = conn->getOldestNetAtmoDataTime();
-  auto end = conn->getLatestNetAtmoDataTime();
-  Spine::WriteLock lock(itsNetAtmoTimeIntervalMutex);
-  itsNetAtmoTimeIntervalStart = start;
-  itsNetAtmoTimeIntervalEnd = end;
+    auto conn = itsConnectionPool->getConnection();
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsNetAtmoTimeIntervalMutex);
+      itsNetAtmoTimeIntervalStart = t;
+    }
+    conn->cleanNetAtmoCache(t);
+
+    // Update what really remains in the database
+    auto start = conn->getOldestNetAtmoDataTime();
+    auto end = conn->getLatestNetAtmoDataTime();
+    Spine::WriteLock lock(itsNetAtmoTimeIntervalMutex);
+    itsNetAtmoTimeIntervalStart = start;
+    itsNetAtmoTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning NetAtmo cache failed!");
+  }
 }
 
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaLite(
@@ -889,13 +952,18 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaL
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting NetAtmo values from cache failed!");
   }
 }
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestNetAtmoDataTime() const
 {
   return itsConnectionPool->getConnection()->getLatestNetAtmoDataTime();
+}
+
+boost::posix_time::ptime SpatiaLiteCache::getLatestNetAtmoCreatedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestNetAtmoCreatedTime();
 }
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestObservationModifiedTime() const
@@ -910,43 +978,57 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestObservationTime() const
 
 std::size_t SpatiaLiteCache::fillDataCache(const DataItems &cacheData) const
 {
-  auto conn = itsConnectionPool->getConnection();
-  auto sz = conn->fillDataCache(cacheData, itsDataInsertCache);
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillDataCache(cacheData, itsDataInsertCache);
 
-  // Update what really now really is in the database
-  auto start = conn->getOldestObservationTime();
-  auto end = conn->getLatestObservationTime();
-  Spine::WriteLock lock(itsTimeIntervalMutex);
-  itsTimeIntervalStart = start;
-  itsTimeIntervalEnd = end;
-  return sz;
+    // Update what really now really is in the database
+    auto start = conn->getOldestObservationTime();
+    auto end = conn->getLatestObservationTime();
+    Spine::WriteLock lock(itsTimeIntervalMutex);
+    itsTimeIntervalStart = start;
+    itsTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Filling data cache failed!");
+  }
 }
 
 void SpatiaLiteCache::cleanDataCache(
     const boost::posix_time::time_duration &timetokeep,
     const boost::posix_time::time_duration &timetokeep_memory) const
 {
-  auto now = boost::posix_time::second_clock::universal_time();
-
-  auto time1 = round_down_to_cache_clean_interval(now - timetokeep);
-  auto time2 = round_down_to_cache_clean_interval(now - timetokeep_memory);
-
-  auto conn = itsConnectionPool->getConnection();
-  conn->cleanMemoryDataCache(time2);
-
+  try
   {
-    // We know the cache will not contain anything before this after the update
-    Spine::WriteLock lock(itsTimeIntervalMutex);
-    itsTimeIntervalStart = time1;
-  }
-  conn->cleanDataCache(time1);
+    auto now = boost::posix_time::second_clock::universal_time();
 
-  // Update what really remains in the database
-  auto start = conn->getOldestObservationTime();
-  auto end = conn->getLatestObservationTime();
-  Spine::WriteLock lock(itsTimeIntervalMutex);
-  itsTimeIntervalStart = start;
-  itsTimeIntervalEnd = end;
+    auto time1 = round_down_to_cache_clean_interval(now - timetokeep);
+    auto time2 = round_down_to_cache_clean_interval(now - timetokeep_memory);
+
+    auto conn = itsConnectionPool->getConnection();
+    conn->cleanMemoryDataCache(time2);
+
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsTimeIntervalMutex);
+      itsTimeIntervalStart = time1;
+    }
+    conn->cleanDataCache(time1);
+
+    // Update what really remains in the database
+    auto start = conn->getOldestObservationTime();
+    auto end = conn->getLatestObservationTime();
+    Spine::WriteLock lock(itsTimeIntervalMutex);
+    itsTimeIntervalStart = start;
+    itsTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning data cache failed!");
+  }
 }
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCTime() const
@@ -956,38 +1038,52 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCTime() const
 
 std::size_t SpatiaLiteCache::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const
 {
-  auto conn = itsConnectionPool->getConnection();
-  auto sz = conn->fillWeatherDataQCCache(cacheData, itsWeatherQCInsertCache);
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillWeatherDataQCCache(cacheData, itsWeatherQCInsertCache);
 
-  // Update what really now really is in the database
-  auto start = conn->getOldestWeatherDataQCTime();
-  auto end = conn->getLatestWeatherDataQCTime();
-  Spine::WriteLock lock(itsTimeIntervalMutex);
-  itsWeatherDataQCTimeIntervalStart = start;
-  itsWeatherDataQCTimeIntervalEnd = end;
-  return sz;
+    // Update what really now really is in the database
+    auto start = conn->getOldestWeatherDataQCTime();
+    auto end = conn->getLatestWeatherDataQCTime();
+    Spine::WriteLock lock(itsTimeIntervalMutex);
+    itsWeatherDataQCTimeIntervalStart = start;
+    itsWeatherDataQCTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Filling weather data QC cache failed!");
+  }
 }
 
 void SpatiaLiteCache::cleanWeatherDataQCCache(
     const boost::posix_time::time_duration &timetokeep) const
 {
-  boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-  t = round_down_to_cache_clean_interval(t);
-
-  auto conn = itsConnectionPool->getConnection();
+  try
   {
-    // We know the cache will not contain anything before this after the update
-    Spine::WriteLock lock(itsWeatherDataQCTimeIntervalMutex);
-    itsWeatherDataQCTimeIntervalStart = t;
-  }
-  conn->cleanWeatherDataQCCache(t);
+    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    t = round_down_to_cache_clean_interval(t);
 
-  // Update what really remains in the database
-  auto start = conn->getOldestWeatherDataQCTime();
-  auto end = conn->getLatestWeatherDataQCTime();
-  Spine::WriteLock lock(itsTimeIntervalMutex);
-  itsWeatherDataQCTimeIntervalStart = start;
-  itsWeatherDataQCTimeIntervalEnd = end;
+    auto conn = itsConnectionPool->getConnection();
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsWeatherDataQCTimeIntervalMutex);
+      itsWeatherDataQCTimeIntervalStart = t;
+    }
+    conn->cleanWeatherDataQCCache(t);
+
+    // Update what really remains in the database
+    auto start = conn->getOldestWeatherDataQCTime();
+    auto end = conn->getLatestWeatherDataQCTime();
+    Spine::WriteLock lock(itsTimeIntervalMutex);
+    itsWeatherDataQCTimeIntervalStart = start;
+    itsWeatherDataQCTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning weather data QC cache failed!");
+  }
 }
 
 void SpatiaLiteCache::fillLocationCache(const LocationItems &locations) const
@@ -1039,7 +1135,7 @@ SpatiaLiteCache::SpatiaLiteCache(const EngineParametersPtr &p, Spine::ConfigBase
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Observation-engine initialization failed");
+    throw Spine::Exception::Trace(BCP, "Creating SpatiaLite cache failed!");
   }
 }
 
@@ -1055,7 +1151,7 @@ boost::shared_ptr<std::vector<ObservableProperty> > SpatiaLiteCache::observableP
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "SpatiaLiteCache::observablePropertyQuery failed");
+    throw Spine::Exception::Trace(BCP, "observablePropertyQuery failed!");
   }
 
   return data;
@@ -1063,59 +1159,67 @@ boost::shared_ptr<std::vector<ObservableProperty> > SpatiaLiteCache::observableP
 
 void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
 {
-  itsParameters.connectionPoolSize = cfg.get_mandatory_config_param<int>("cache.poolSize");
+  try
+  {
+    itsParameters.connectionPoolSize = cfg.get_mandatory_config_param<int>("cache.poolSize");
 
-  itsParameters.cacheFile = cfg.get_mandatory_path("spatialiteFile");
+    itsParameters.cacheFile = cfg.get_mandatory_path("spatialiteFile");
 
-  itsParameters.maxInsertSize = cfg.get_optional_config_param<std::size_t>(
-      "cache.maxInsertSize", 99999999);  // default = all at once
+    itsParameters.maxInsertSize = cfg.get_optional_config_param<std::size_t>(
+        "cache.maxInsertSize", 99999999);  // default = all at once
 
-  itsDataInsertCache.resize(
-      cfg.get_optional_config_param<std::size_t>("cache.dataInsertCacheSize", 1000000));
-  itsWeatherQCInsertCache.resize(
-      cfg.get_optional_config_param<std::size_t>("cache.weatherDataQCInsertCacheSize", 1000000));
-  itsFlashInsertCache.resize(
-      cfg.get_optional_config_param<std::size_t>("cache.flashInsertCacheSize", 100000));
-  itsRoadCloudInsertCache.resize(
-      cfg.get_optional_config_param<std::size_t>("cache.roadCloudInsertCacheSize", 50000));
-  itsNetAtmoInsertCache.resize(
-      cfg.get_optional_config_param<std::size_t>("cache.netAtmoInsertCacheSize", 50000));
+    itsDataInsertCache.resize(
+        cfg.get_optional_config_param<std::size_t>("cache.dataInsertCacheSize", 1000000));
+    itsWeatherQCInsertCache.resize(
+        cfg.get_optional_config_param<std::size_t>("cache.weatherDataQCInsertCacheSize", 1000000));
+    itsFlashInsertCache.resize(
+        cfg.get_optional_config_param<std::size_t>("cache.flashInsertCacheSize", 100000));
+    itsRoadCloudInsertCache.resize(
+        cfg.get_optional_config_param<std::size_t>("cache.roadCloudInsertCacheSize", 50000));
+    itsNetAtmoInsertCache.resize(
+        cfg.get_optional_config_param<std::size_t>("cache.netAtmoInsertCacheSize", 50000));
 
-  itsParameters.sqlite.cache_size =
-      cfg.get_optional_config_param<long>("sqlite.cache_size", 0);  // zero = use default value
+    itsParameters.sqlite.cache_size =
+        cfg.get_optional_config_param<long>("sqlite.cache_size", 0);  // zero = use default value
 
-  itsParameters.sqlite.threads =
-      cfg.get_optional_config_param<int>("sqlite.threads", 0);  // zero = no helper threads
+    itsParameters.sqlite.threads =
+        cfg.get_optional_config_param<int>("sqlite.threads", 0);  // zero = no helper threads
 
-  itsParameters.sqlite.threading_mode =
-      cfg.get_optional_config_param<std::string>("sqlite.threading_mode", "SERIALIZED");
+    itsParameters.sqlite.threading_mode =
+        cfg.get_optional_config_param<std::string>("sqlite.threading_mode", "SERIALIZED");
 
-  itsParameters.sqlite.timeout = cfg.get_optional_config_param<size_t>("sqlite.timeout", 30000);
+    itsParameters.sqlite.timeout = cfg.get_optional_config_param<size_t>("sqlite.timeout", 30000);
 
-  itsParameters.sqlite.shared_cache =
-      cfg.get_optional_config_param<bool>("sqlite.shared_cache", false);
+    itsParameters.sqlite.shared_cache =
+        cfg.get_optional_config_param<bool>("sqlite.shared_cache", false);
 
-  itsParameters.sqlite.read_uncommitted =
-      cfg.get_optional_config_param<bool>("sqlite.read_uncommitted", false);
+    itsParameters.sqlite.read_uncommitted =
+        cfg.get_optional_config_param<bool>("sqlite.read_uncommitted", false);
 
-  itsParameters.sqlite.memstatus = cfg.get_optional_config_param<bool>("sqlite.memstatus", false);
+    itsParameters.sqlite.memstatus = cfg.get_optional_config_param<bool>("sqlite.memstatus", false);
 
-  itsParameters.sqlite.synchronous =
-      cfg.get_optional_config_param<std::string>("sqlite.synchronous", "NORMAL");
+    itsParameters.sqlite.synchronous =
+        cfg.get_optional_config_param<std::string>("sqlite.synchronous", "NORMAL");
 
-  itsParameters.sqlite.journal_mode =
-      cfg.get_optional_config_param<std::string>("sqlite.journal_mode", "WAL");
+    itsParameters.sqlite.journal_mode =
+        cfg.get_optional_config_param<std::string>("sqlite.journal_mode", "WAL");
 
-  itsParameters.sqlite.temp_store =
-      cfg.get_optional_config_param<std::string>("sqlite.temp_store", "DEFAULT");
+    itsParameters.sqlite.temp_store =
+        cfg.get_optional_config_param<std::string>("sqlite.temp_store", "DEFAULT");
 
-  itsParameters.sqlite.auto_vacuum =
-      cfg.get_optional_config_param<std::string>("sqlite.auto_vacuum", "NONE");
+    itsParameters.sqlite.auto_vacuum =
+        cfg.get_optional_config_param<std::string>("sqlite.auto_vacuum", "NONE");
 
-  itsParameters.sqlite.mmap_size = cfg.get_optional_config_param<long>("sqlite.mmap_size", 0);
+    itsParameters.sqlite.mmap_size = cfg.get_optional_config_param<long>("sqlite.mmap_size", 0);
 
-  itsParameters.sqlite.wal_autocheckpoint =
-      cfg.get_optional_config_param<int>("sqlite.wal_autocheckpoint", 1000);
+    itsParameters.sqlite.wal_autocheckpoint =
+        cfg.get_optional_config_param<int>("sqlite.wal_autocheckpoint", 1000);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP,
+                                  "Reading SpatiaLite settings from configuration file failed!");
+  }
 }
 
 bool SpatiaLiteCache::cacheHasStations() const

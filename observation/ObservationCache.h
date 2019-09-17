@@ -100,6 +100,7 @@ class ObservationCache
   virtual bool roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
                                          const boost::posix_time::ptime &endtime) const = 0;
   virtual boost::posix_time::ptime getLatestRoadCloudDataTime() const = 0;
+  virtual boost::posix_time::ptime getLatestRoadCloudCreatedTime() const = 0;
   virtual std::size_t fillRoadCloudCache(
       const MobileExternalDataItems &mobileExternalCacheData) const = 0;
   virtual void cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const = 0;
@@ -107,6 +108,7 @@ class ObservationCache
   virtual bool netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
                                        const boost::posix_time::ptime &endtime) const = 0;
   virtual boost::posix_time::ptime getLatestNetAtmoDataTime() const = 0;
+  virtual boost::posix_time::ptime getLatestNetAtmoCreatedTime() const = 0;
   virtual std::size_t fillNetAtmoCache(
       const MobileExternalDataItems &mobileExternalCacheData) const = 0;
   virtual void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const = 0;

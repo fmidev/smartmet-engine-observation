@@ -4,7 +4,6 @@
 #include "Keywords.h"
 #include "ObservableProperty.h"
 #include "QueryMapping.h"
-#include "ResultSet.h"
 #include "SpatiaLiteCacheParameters.h"
 
 #include <fmt/format.h>
@@ -40,13 +39,21 @@ using boost::posix_time::ptime;
 
 ptime parse_sqlite_time(std::string timestring)
 {
-  if (timestring.find("T") != std::string::npos)
-    timestring.replace(timestring.find("T"), 1, " ");
+  try
+  {
+    if (timestring.find("T") != std::string::npos)
+      timestring.replace(timestring.find("T"), 1, " ");
 
-  // uses boost::lexical_cast and takes global locale lock in GNU:
-  // return boost::posix_time::time_from_string(timestring);
+    // uses boost::lexical_cast and takes global locale lock in GNU:
+    // return boost::posix_time::time_from_string(timestring);
 
-  return Fmi::TimeParser::parse_sql(timestring);
+    return Fmi::TimeParser::parse_sql(timestring);
+  }
+  catch (...)
+  {
+    throw SmartMet::Spine::Exception::Trace(
+        BCP, "Parsing sqlite time from string '" + timestring + "' failed!");
+  }
 }
 
 template <typename Container, typename Key>
@@ -151,64 +158,71 @@ QueryMapping build_query_mapping(const Spine::Stations &stations,
 {
   QueryMapping ret;
 
-  unsigned int pos = 0;
-  for (const Spine::Parameter &p : settings.parameters)
+  try
   {
-    if (not_special(p))
+    unsigned int pos = 0;
+    for (const Spine::Parameter &p : settings.parameters)
     {
-      string name = p.name();
-      Fmi::ascii_tolower(name);
-      removePrefix(name, "qc_");
+      if (not_special(p))
+      {
+        string name = p.name();
+        Fmi::ascii_tolower(name);
+        removePrefix(name, "qc_");
 
-      auto sparam = parameterMap->getParameter(name, stationtype);
-      if (!sparam.empty())
-      {
-        int nparam = Fmi::stoi(sparam);
-        ret.timeseriesPositions[nparam] = pos;
-        ret.timeseriesPositionsString[name] = pos;
-        ret.parameterNameMap[name] = sparam;
-        ret.paramVector.push_back(nparam);
-        ret.measurandIds.push_back(nparam);
-      }
-    }
-    else
-    {
-      string name = p.name();
-      Fmi::ascii_tolower(name);
-
-      if (name.find("windcompass") != std::string::npos)
-      {
-        auto nparam = Fmi::stoi(parameterMap->getParameter("winddirection", stationtype));
-        ret.measurandIds.push_back(nparam);
-        ret.timeseriesPositions[nparam] = pos;
-        ret.specialPositions[name] = pos;
-      }
-      else if (name.find("feelslike") != std::string::npos)
-      {
-        auto nparam1 = Fmi::stoi(parameterMap->getParameter("windspeedms", stationtype));
-        auto nparam2 = Fmi::stoi(parameterMap->getParameter("relativehumidity", stationtype));
-        auto nparam3 = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
-        ret.measurandIds.push_back(nparam1);
-        ret.measurandIds.push_back(nparam2);
-        ret.measurandIds.push_back(nparam3);
-        ret.specialPositions[name] = pos;
-      }
-      else if (name.find("smartsymbol") != std::string::npos)
-      {
-        auto nparam1 = Fmi::stoi(parameterMap->getParameter("wawa", stationtype));
-        auto nparam2 = Fmi::stoi(parameterMap->getParameter("totalcloudcover", stationtype));
-        auto nparam3 = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
-        ret.measurandIds.push_back(nparam1);
-        ret.measurandIds.push_back(nparam2);
-        ret.measurandIds.push_back(nparam3);
-        ret.specialPositions[name] = pos;
+        auto sparam = parameterMap->getParameter(name, stationtype);
+        if (!sparam.empty())
+        {
+          int nparam = Fmi::stoi(sparam);
+          ret.timeseriesPositions[nparam] = pos;
+          ret.timeseriesPositionsString[name] = pos;
+          ret.parameterNameMap[name] = sparam;
+          ret.paramVector.push_back(nparam);
+          ret.measurandIds.push_back(nparam);
+        }
       }
       else
       {
-        ret.specialPositions[name] = pos;
+        string name = p.name();
+        Fmi::ascii_tolower(name);
+
+        if (name.find("windcompass") != std::string::npos)
+        {
+          auto nparam = Fmi::stoi(parameterMap->getParameter("winddirection", stationtype));
+          ret.measurandIds.push_back(nparam);
+          ret.timeseriesPositions[nparam] = pos;
+          ret.specialPositions[name] = pos;
+        }
+        else if (name.find("feelslike") != std::string::npos)
+        {
+          auto nparam1 = Fmi::stoi(parameterMap->getParameter("windspeedms", stationtype));
+          auto nparam2 = Fmi::stoi(parameterMap->getParameter("relativehumidity", stationtype));
+          auto nparam3 = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
+          ret.measurandIds.push_back(nparam1);
+          ret.measurandIds.push_back(nparam2);
+          ret.measurandIds.push_back(nparam3);
+          ret.specialPositions[name] = pos;
+        }
+        else if (name.find("smartsymbol") != std::string::npos)
+        {
+          auto nparam1 = Fmi::stoi(parameterMap->getParameter("wawa", stationtype));
+          auto nparam2 = Fmi::stoi(parameterMap->getParameter("totalcloudcover", stationtype));
+          auto nparam3 = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
+          ret.measurandIds.push_back(nparam1);
+          ret.measurandIds.push_back(nparam2);
+          ret.measurandIds.push_back(nparam3);
+          ret.specialPositions[name] = pos;
+        }
+        else
+        {
+          ret.specialPositions[name] = pos;
+        }
       }
+      pos++;
     }
-    pos++;
+  }
+  catch (...)
+  {
+    throw SmartMet::Spine::Exception::Trace(BCP, "Building query mapping failed!");
   }
 
   return ret;
@@ -223,56 +237,64 @@ LocationDataItems read_observations(const Spine::Stations &stations,
 {
   LocationDataItems ret;
 
-  // Safety check
-  if (qmap.measurandIds.empty())
-    return ret;
-
-  std::string measurand_ids;
-  for (const auto &id : qmap.measurandIds)
-    measurand_ids += Fmi::to_string(id) + ",";
-  measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
-
-  auto qstations = build_sql_stationlist(stations);
-
-  std::string sql =
-      "SELECT data.fmisid AS fmisid, data.data_time AS obstime, "
-      "loc.latitude, loc.longitude, loc.elevation, "
-      "measurand_id, data_value, data_source "
-      "FROM observation_data data JOIN locations loc ON (data.fmisid = "
-      "loc.fmisid) "
-      "WHERE data.fmisid IN (" +
-      qstations +
-      ") "
-      "AND data.data_time >= '" +
-      Fmi::to_iso_extended_string(settings.starttime) + "' AND data.data_time <= '" +
-      Fmi::to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" +
-      measurand_ids +
-      ") "
-      "AND data.measurand_no = 1 "
-      "AND data.data_quality <= 5 "
-      "GROUP BY data.fmisid, data.data_time, data.measurand_id, "
-      "loc.location_id, "
-      "loc.location_end, "
-      "loc.latitude, loc.longitude, loc.elevation, data.data_value, data.data_source "
-      "ORDER BY fmisid ASC, obstime ASC";
-
-  sqlite3pp::query qry(db, sql.c_str());
-
-  for (auto iter = qry.begin(); iter != qry.end(); ++iter)
+  try
   {
-    LocationDataItem obs;
-    obs.data.data_time = parse_sqlite_time((*iter).get<std::string>(1));
-    obs.data.fmisid = (*iter).get<int>(0);
-    obs.latitude = (*iter).get<double>(2);
-    obs.longitude = (*iter).get<double>(3);
-    obs.elevation = (*iter).get<double>(4);
-    obs.data.measurand_id = (*iter).get<int>(5);
-    if ((*iter).column_type(6) != SQLITE_NULL)
-      obs.data.data_value = (*iter).get<double>(6);
-    if ((*iter).column_type(7) != SQLITE_NULL)
-      obs.data.data_source = (*iter).get<int>(7);
+    // Safety check
+    if (qmap.measurandIds.empty())
+      return ret;
 
-    ret.emplace_back(obs);
+    std::string measurand_ids;
+    for (const auto &id : qmap.measurandIds)
+      measurand_ids += Fmi::to_string(id) + ",";
+    measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
+
+    auto qstations = build_sql_stationlist(stations);
+
+    std::string sql =
+        "SELECT data.fmisid AS fmisid, data.data_time AS obstime, "
+        "loc.latitude, loc.longitude, loc.elevation, "
+        "measurand_id, data_value, data_source "
+        "FROM observation_data data JOIN locations loc ON (data.fmisid = "
+        "loc.fmisid) "
+        "WHERE data.fmisid IN (" +
+        qstations +
+        ") "
+        "AND data.data_time >= '" +
+        Fmi::to_iso_extended_string(settings.starttime) + "' AND data.data_time <= '" +
+        Fmi::to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" +
+        measurand_ids +
+        ") "
+        "AND data.measurand_no = 1 "
+        "AND data.data_quality <= 5 "
+        "GROUP BY data.fmisid, data.data_time, data.measurand_id, "
+        "loc.location_id, "
+        "loc.location_end, "
+        "loc.latitude, loc.longitude, loc.elevation, data.data_value, data.data_source "
+        "ORDER BY fmisid ASC, obstime ASC";
+
+    sqlite3pp::query qry(db, sql.c_str());
+
+    for (auto iter = qry.begin(); iter != qry.end(); ++iter)
+    {
+      LocationDataItem obs;
+      obs.data.data_time = parse_sqlite_time((*iter).get<std::string>(1));
+      obs.data.fmisid = (*iter).get<int>(0);
+      obs.latitude = (*iter).get<double>(2);
+      obs.longitude = (*iter).get<double>(3);
+      obs.elevation = (*iter).get<double>(4);
+      obs.data.measurand_id = (*iter).get<int>(5);
+      if ((*iter).column_type(6) != SQLITE_NULL)
+        obs.data.data_value = (*iter).get<double>(6);
+      if ((*iter).column_type(7) != SQLITE_NULL)
+        obs.data.data_source = (*iter).get<int>(7);
+
+      ret.emplace_back(obs);
+    }
+  }
+  catch (...)
+  {
+    throw SmartMet::Spine::Exception::Trace(BCP,
+                                            "Reading observations from sqlite database failed!");
   }
 
   return ret;
@@ -296,23 +318,30 @@ ObservationsMap map_observations(const LocationDataItems &observations,
 {
   ObservationsMap ret;
 
-  for (const auto &obs : observations)
+  try
   {
-    int fmisid = obs.data.fmisid;
+    for (const auto &obs : observations)
+    {
+      int fmisid = obs.data.fmisid;
 
-    std::string zone(settings.timezone == "localtime" ? fmisid_to_station.at(fmisid).timezone
-                                                      : settings.timezone);
-    auto localtz = timezones.time_zone_from_string(zone);
-    local_date_time obstime = local_date_time(obs.data.data_time, localtz);
+      std::string zone(settings.timezone == "localtime" ? fmisid_to_station.at(fmisid).timezone
+                                                        : settings.timezone);
+      auto localtz = timezones.time_zone_from_string(zone);
+      local_date_time obstime = local_date_time(obs.data.data_time, localtz);
 
-    ts::Value val = ts::Value(obs.data.data_value);
-    ts::Value data_source_val = ts::Value(obs.data.data_source);
+      ts::Value val = ts::Value(obs.data.data_value);
+      ts::Value data_source_val = ts::Value(obs.data.data_source);
 
-    ret.data[fmisid][obstime][obs.data.measurand_id] = val;
-    ret.data_source[fmisid][obstime][obs.data.measurand_id] = data_source_val;
-    ret.dataWithStringParameterId[fmisid][obstime][Fmi::to_string(obs.data.measurand_id)] = val;
-    ret.dataSourceWithStringParameterId[fmisid][obstime][Fmi::to_string(obs.data.measurand_id)] =
-        data_source_val;
+      ret.data[fmisid][obstime][obs.data.measurand_id] = val;
+      ret.data_source[fmisid][obstime][obs.data.measurand_id] = data_source_val;
+      ret.dataWithStringParameterId[fmisid][obstime][Fmi::to_string(obs.data.measurand_id)] = val;
+      ret.dataSourceWithStringParameterId[fmisid][obstime][Fmi::to_string(obs.data.measurand_id)] =
+          data_source_val;
+    }
+  }
+  catch (...)
+  {
+    throw SmartMet::Spine::Exception::Trace(BCP, "Mapping observations failed!");
   }
 
   return ret;
@@ -336,6 +365,7 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
                  SQLITE_OPEN_NOMUTEX);
 
     itsDB.connect(spatialiteFile.c_str(), flags);
+
     // timeout ms
     itsDB.set_busy_timeout(options.sqlite.timeout);
 
@@ -895,7 +925,7 @@ size_t SpatiaLite::selectCount(const std::string &queryString)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "count(*) query failed!");
+    throw Spine::Exception::Trace(BCP, "SQL-query failed: " + queryString);
   }
 }
 
@@ -1049,6 +1079,20 @@ ptime SpatiaLite::getLatestRoadCloudDataTime()
   }
 }
 
+boost::posix_time::ptime SpatiaLite::getLatestRoadCloudCreatedTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_roadcloud";
+    string time_field = "created";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Latest RoadCloud creaed time query failed!");
+  }
+}
+
 ptime SpatiaLite::getOldestNetAtmoDataTime()
 {
   try
@@ -1077,8 +1121,22 @@ ptime SpatiaLite::getLatestNetAtmoDataTime()
   }
 }
 
-ptime SpatiaLite::getLatestTimeFromTable(const std::string tablename,
-                                                            const std::string time_field)
+boost::posix_time::ptime SpatiaLite::getLatestNetAtmoCreatedTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_netatmo";
+    string time_field = "created";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Latest NetAtmo created time query failed!");
+  }
+}
+
+ptime SpatiaLite::getLatestTimeFromTable(const std::string& tablename,
+                                                            const std::string& time_field)
 {
   try
   {
@@ -1098,8 +1156,8 @@ ptime SpatiaLite::getLatestTimeFromTable(const std::string tablename,
   }
 }
 
-ptime SpatiaLite::getOldestTimeFromTable(const std::string tablename,
-                                                            const std::string time_field)
+ptime SpatiaLite::getOldestTimeFromTable(const std::string& tablename,
+                                                            const std::string& time_field)
 {
   try
   {
@@ -1221,7 +1279,7 @@ void SpatiaLite::cleanMemoryDataCache(const ptime &newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of data cache failed!");
+    throw Spine::Exception::Trace(BCP, "Cleaning of memory data cache failed!");
   }
 }
 
@@ -1334,13 +1392,13 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedMobileAndE
 
     const ExternalAndMobileProducerMeasurand &producerMeasurand =
         itsExternalAndMobileProducerConfig.at(settings.stationtype);
-    std::vector<std::string> queryFields;
+    std::vector<std::string> queryfields;
     std::vector<int> measurandIds;
+	const SmartMet::Engine::Observation::Measurands &measurands = producerMeasurand.measurands();
     for (const SmartMet::Spine::Parameter &p : settings.parameters)
     {
       std::string name = Fmi::ascii_tolower_copy(p.name());
-      queryFields.push_back(name);
-      const SmartMet::Engine::Observation::Measurands &measurands = producerMeasurand.measurands();
+      queryfields.push_back(name);
       if (measurands.find(name) != measurands.end())
         measurandIds.push_back(measurands.at(name));
     }
@@ -1371,138 +1429,61 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedMobileAndE
     if (qry.begin() == qry.end())
       return ret;
 
-    ResultSet resultSet(queryFields);
+	int column_count = qry.column_count();
 
-    auto fieldNames = dbInfo.fieldNames();
-    const auto &fieldIndexes = dbInfo.fieldIndexes();
-    auto keyFieldIndexes = dbInfo.keyFieldIndexes();
-    auto midIndex = fieldIndexes.at("mid");
+  	for (auto row : qry)
+     {
+	   map<std::string, ts::Value> result;
+	   boost::local_time::time_zone_ptr zone(new posix_time_zone("UTC"));
+	   boost::local_time::local_date_time timestep(not_a_date_time, zone);
+	   for(int i = 0; i < column_count; i++)
+		 {
+		   std::string column_name = qry.column_name(i);
 
-    for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
-    {
-      SmartMet::Engine::Observation::ResultSet::ResultSetRow rsr;
-      boost::local_time::time_zone_ptr zone(new posix_time_zone("UTC"));
-      local_date_time timestamp(not_a_date_time, zone);
-
-      auto mid = (*iter).get<int>(midIndex);
-
-      const SmartMet::Engine::Observation::MeasurandIdParameterMap &measurandParameters =
-          producerMeasurand.measurandParameters();
-
-      if (measurandParameters.find(mid) == measurandParameters.end())
-      {
-        std::cout << "Error: Invalid value " << mid
-                  << " in ext_obsdata table in mid-column. Skipping!" << std::endl;
-        continue;
-      }
-      std::vector<std::string> keyFieldValues;
-      // Lets set null as default value for key
-      for (auto item : keyFieldIndexes)
-        keyFieldValues.push_back("null");
-
-      for (unsigned int i = 0; i < fieldNames.size(); i++)
-      {
-        auto fieldname = fieldNames.at(i);
-
-        if ((*iter).column_type(i) == SQLITE_NULL)
-        {
-          if (fieldname == "data_value")
-            fieldname = measurandParameters.at(mid);
-          rsr.insert(std::make_pair(fieldname, ts::None()));
-          continue;
-        }
-
-        const SmartMet::Engine::Observation::FieldDescription &fd =
-            dbInfo.fieldDescription(fieldname);
-
-        if (fd.field_type == SmartMet::Engine::Observation::FieldType::String)
-        {
-          auto value = (*iter).get<const char *>(i);
-
-          if (dbInfo.isKeyField(fieldname))
-            keyFieldValues[keyFieldIndexes.at(fieldname)] = value;
-          rsr.insert(std::make_pair(fieldname, ts::Value(value)));
-        }
-        else if (fd.field_type == SmartMet::Engine::Observation::FieldType::Double)
-        {
-          double value = (*iter).get<double>(i);
-          if (dbInfo.isKeyField(fieldname))
-            keyFieldValues[keyFieldIndexes.at(fieldname)] = std::to_string(value);
-
-          if (fieldname == "data_value")
-            fieldname = measurandParameters.at(mid);
-
-          rsr.insert(std::make_pair(fieldname, ts::Value(value)));
-        }
-        else if (fd.field_type == SmartMet::Engine::Observation::FieldType::Integer)
-        {
-          if (fieldname == "mid")
+		   int data_type = row.column_type(i);
+		   ts::Value value = ts::None();
+          if (data_type == SQLITE_TEXT)
           {
-            rsr.insert(std::make_pair(fieldname, ts::Value(mid)));
-            continue;
+			std::string data_value = row.get<std::string>(i);
+			if(column_name == "data_time" || column_name == "created")
+			  {
+				data_value.resize(19);
+				boost::posix_time::ptime pt = Fmi::TimeParser::parse_iso(data_value);
+				boost::local_time::local_date_time ldt(pt, zone);
+				value = ldt;
+				if(column_name == "data_time")
+				  timestep = ldt;
+			  }
+			else
+			  {
+				value = data_value;
+			  }
           }
-          int value = (*iter).get<int>(i);
-          if (dbInfo.isKeyField(fieldname))
-            keyFieldValues[keyFieldIndexes.at(fieldname)] = std::to_string(value);
-          rsr.insert(std::make_pair(fieldname, ts::Value(value)));
-        }
-        else if (fd.field_type == SmartMet::Engine::Observation::FieldType::DateTime)
-        {
-          ptime pt = parseSqliteTime(iter, i);
-          local_date_time ldt(pt, zone);
-          rsr.insert(std::make_pair(fieldname, ts::Value(ldt)));
-          if (dbInfo.isKeyField(fieldname))
-            keyFieldValues[keyFieldIndexes.at(fieldname)] = to_iso_string(pt);
-
-          if (fieldname == "data_time")
-            timestamp = ldt;
-        }
-        else
-        {
-          std::cout << "Unknown type in field #"
-                    << " (" << fd.field_name << ") " << std::endl;
-        }
-      }
-
-      if (timestamp.is_not_a_date_time())
-        std::cerr << "Detected non-valid timestamp" << std::endl;
-
-      auto key = boost::algorithm::join(keyFieldValues, "_");
-
-      resultSet.addRow(key, timestamp, rsr);
-    }
-
-    ResultSet::ResultSetById resultset = resultSet.getResultSet(tlist);
-    boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
-    timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
-
-    for (const auto & rsTS : resultset)
-      for (const auto & rsrs : rsTS.second)
-        for (const auto & rsr : rsrs.second)
-        {
-          local_date_time obstime =
-              *(boost::get<local_date_time>(&rsr.at("data_time")));
-
-          unsigned int index = 0;
-          for (const auto & fieldname : queryFields)
+          else if (data_type == SQLITE_FLOAT)
           {
-            if (fieldname == "created")
-            {
-              local_date_time dt =
-                  *(boost::get<local_date_time>(&rsr.at(fieldname)));
-              std::string fieldValue = timeFormatter->format(dt);
-              ret->at(index).push_back(ts::TimedValue(obstime, fieldValue));
-            }
-            else
-            {
-              ret->at(index).push_back(ts::TimedValue(obstime, rsr.at(fieldname)));
-            }
-            ++index;
+            value = row.get<double>(i);
           }
-        }
+          else if (data_type == SQLITE_INTEGER)
+          {
+			if(column_name != "prod_id" && column_name != "station_id" && column_name != "data_level" && column_name != "mid" && column_name != "sensor_no" && column_name != "data_quality" && column_name != "ctrl_status")
+			  value = row.get<double>(i);
+			else
+			  value = row.get<int>(i);
+          }
+		  result[column_name] = value;
+		 }
+
+	   unsigned int index = 0;
+	   for(auto paramname : queryfields)
+		 {			 
+		   ts::Value val = result[paramname];
+		   ret->at(index).push_back(ts::TimedValue(timestep, val));
+		   index++;
+		 }
+	 }
 
     return ret;
-  }
+	}
   catch (...)
   {
     throw Spine::Exception::Trace(BCP, "Getting mobile and external data from cache failed!");
@@ -2518,7 +2499,7 @@ void SpatiaLite::addEmptyValuesToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Adding empty values to time series failed!");
   }
 }
 
@@ -2643,7 +2624,7 @@ void SpatiaLite::addParameterToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Adding parameter to time series failed!");
   }
 }
 
@@ -2808,7 +2789,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedFlashData(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting cached flash data failed!");
   }
 }
 
@@ -2874,10 +2855,10 @@ FlashDataItems SpatiaLite::readFlashCacheData(const ptime& starttime)
   }
 
   return result;
-}
+  }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Solving measurand id failed!");
+    throw Spine::Exception::Trace(BCP, "Reading flash cache data failed!");
   }
 }
 
@@ -2892,6 +2873,8 @@ void SpatiaLite::addSmartSymbolToTimeSeries(
         &data,
     const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns) const
 {
+  try
+	{
   auto dataItem = data.at(s.fmisid).at(time);
 
   int wawapos = Fmi::stoi(parameterMap->getParameter("wawa", stationtype));
@@ -2916,6 +2899,11 @@ void SpatiaLite::addSmartSymbolToTimeSeries(
         ts::Value(*calcSmartsymbolNumber(wawa, totalcloudcover, temp, time, lat, lon));
     timeSeriesColumns->at(pos).push_back(ts::TimedValue(time, smartsymbol));
   }
+	}
+ catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Adding smart symbol to time series failed!");
+  }
 }
 
 void SpatiaLite::addSpecialParameterToTimeSeries(
@@ -2923,7 +2911,7 @@ void SpatiaLite::addSpecialParameterToTimeSeries(
     const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
     const Spine::Station &station,
     const int pos,
-    const std::string stationtype,
+    const std::string& stationtype,
     const local_date_time &obstime) const
 {
   try
@@ -3012,12 +3000,12 @@ void SpatiaLite::addSpecialParameterToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Adding special parameter to times series failed!");
   }
 }
 
 Spine::Stations SpatiaLite::findAllStationsFromGroups(
-    const std::set<std::string> stationgroup_codes,
+    const std::set<std::string>& stationgroup_codes,
     const StationInfo &info,
     const ptime &starttime,
     const ptime &endtime)
@@ -3100,7 +3088,7 @@ Spine::Stations SpatiaLite::findStationsInsideArea(const Settings &settings,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "[SpatiaLite] finding stations inside area failed!");
   }
 }
 
@@ -3174,7 +3162,7 @@ Spine::Stations SpatiaLite::findStationsInsideBox(const Settings &settings, cons
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "[Spatialite] Finding stations inside bounding box failed!");
   }
 }
 
@@ -3327,7 +3315,7 @@ bool SpatiaLite::getStationById(Spine::Station &station,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting station by id failed!");
   }
 }
 
@@ -3354,7 +3342,7 @@ bool SpatiaLite::getStationByGeoid(Spine::Station &station,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting station by geoid failed!");
   }
 }
 
@@ -3422,7 +3410,7 @@ FlashCounts SpatiaLite::getFlashCount(const ptime &starttime,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting flash count failed!");
   }
 }
 
@@ -3693,7 +3681,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting cached weather data qc data failed!");
   }
 }
 
@@ -3743,7 +3731,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting cached data failed!");
   }
 }
 
@@ -3774,7 +3762,7 @@ void SpatiaLite::createObservablePropertyTable()
 
 boost::shared_ptr<std::vector<ObservableProperty>> SpatiaLite::getObservableProperties(
     std::vector<std::string> &parameters,
-    const std::string language,
+    const std::string& language,
     const ParameterMapPtr &parameterMap,
     const std::string &stationType)
 {
@@ -3832,7 +3820,7 @@ boost::shared_ptr<std::vector<ObservableProperty>> SpatiaLite::getObservableProp
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting observable properties failed!");
   }
 
   return data;
@@ -3841,6 +3829,8 @@ boost::shared_ptr<std::vector<ObservableProperty>> SpatiaLite::getObservableProp
 ptime SpatiaLite::parseSqliteTime(sqlite3pp::query::iterator &iter,
                                                      int column) const
 {
+  try
+  {
   // 1 = INTEGER; 2 = FLOAT, 3 = TEXT, 4 = BLOB, 5 = NULL
   if ((*iter).column_type(column) != SQLITE_TEXT)
     throw Spine::Exception(BCP, "Invalid time column from sqlite query")
@@ -3849,6 +3839,12 @@ ptime SpatiaLite::parseSqliteTime(sqlite3pp::query::iterator &iter,
   std::string timestring = (*iter).get<char const *>(column);
 
   return parse_sqlite_time(timestring);
+
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Parsing sqlite time failed!");
+  }
 }
 
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries(
@@ -3893,6 +3889,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_all_time_ste
   Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
       initializeResultVector(settings.parameters);
 
+  try
+	{
   for (const Spine::Station &s : stations)
   {
     int fmisid = s.station_id;
@@ -3935,6 +3933,12 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_all_time_ste
       }
     }
   }
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Building time series with all timesteps failed!");
+  }
+
   return timeSeriesColumns;
 }
 
@@ -3950,6 +3954,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_latest_time_
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones) const
 {
+  try
+	{
   Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
       initializeResultVector(settings.parameters);
 
@@ -3972,6 +3978,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_latest_time_
   }
 
   return timeSeriesColumns;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Building time series with latest timestep failed!");
+  }
 }
 
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_listed_time_steps(
@@ -3986,17 +3997,24 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_listed_time_
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones) const
 {
-  Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-      initializeResultVector(settings.parameters);
+  try
+	{
+	  Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
+		initializeResultVector(settings.parameters);
 
-  auto tlist = Spine::TimeSeriesGenerator::generate(
-      timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+	  auto tlist = Spine::TimeSeriesGenerator::generate(timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
 
-  for (const Spine::Station &s : stations)
-    for (const local_date_time &t : tlist)
-      append_weather_parameters(s,t,timeSeriesColumns,parameterMap,stationtype,fmisid_to_station,observations,obsmap,qmap);
+	  for (const Spine::Station &s : stations)
+		for (const local_date_time &t : tlist)
+		  append_weather_parameters(s,t,timeSeriesColumns,parameterMap,stationtype,fmisid_to_station,observations,obsmap,qmap);
 
-  return timeSeriesColumns;
+	  return timeSeriesColumns;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Building time series with listed timesteps failed!");
+  }
+
 }
 
 void SpatiaLite::append_weather_parameters(const Spine::Station& s,
@@ -4010,6 +4028,8 @@ void SpatiaLite::append_weather_parameters(const Spine::Station& s,
                                            const QueryMapping &qmap) const
 
 {
+  try
+	{
   // Append weather parameters
   for (int pos : qmap.paramVector)
   {
@@ -4099,10 +4119,17 @@ void SpatiaLite::append_weather_parameters(const Spine::Station& s,
           special.first, timeSeriesColumns, fmisid_to_station.at(s.fmisid), pos, stationtype, t);
     }
   }
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Appending weather parameter failed!");
+  }
 }
 
 void SpatiaLite::initObservationMemoryCache(const boost::posix_time::ptime &starttime)
 {
+  try
+	{
   // Read all observations starting from the given time
   std::string sql =
       "SELECT data_time, modified_last, data_value, fmisid, measurand_id, producer_id, measurand_no, data_quality, data_source "
@@ -4140,7 +4167,11 @@ void SpatiaLite::initObservationMemoryCache(const boost::posix_time::ptime &star
 
   itsObservationMemoryCache.reset(new ObservationMemoryCache);
   itsObservationMemoryCache->fill(observations);
-
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Initializing observation memory cache failed!");
+  }
 }
 
 

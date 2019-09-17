@@ -1,6 +1,7 @@
 #include "DataItem.h"
 #include <boost/functional/hash.hpp>
 #include <macgyver/StringConversion.h>
+#include <spine/Exception.h>
 
 namespace SmartMet
 {
@@ -10,15 +11,22 @@ namespace Observation
 {
 std::size_t DataItem::hash_value() const
 {
-  std::size_t hash = boost::hash_value(fmisid);
-  boost::hash_combine(hash, boost::hash_value(measurand_id));
-  boost::hash_combine(hash, boost::hash_value(producer_id));
-  boost::hash_combine(hash, boost::hash_value(measurand_no));
-  boost::hash_combine(hash, boost::hash_value(Fmi::to_iso_string(data_time)));
-  boost::hash_combine(hash, boost::hash_value(data_value));
-  boost::hash_combine(hash, boost::hash_value(data_quality));
-  boost::hash_combine(hash, boost::hash_value(Fmi::to_iso_string(modified_last)));
-  return hash;
+  try
+  {
+    std::size_t hash = boost::hash_value(fmisid);
+    boost::hash_combine(hash, boost::hash_value(measurand_id));
+    boost::hash_combine(hash, boost::hash_value(producer_id));
+    boost::hash_combine(hash, boost::hash_value(measurand_no));
+    boost::hash_combine(hash, boost::hash_value(Fmi::to_iso_string(data_time)));
+    boost::hash_combine(hash, boost::hash_value(data_value));
+    boost::hash_combine(hash, boost::hash_value(data_quality));
+    boost::hash_combine(hash, boost::hash_value(Fmi::to_iso_string(modified_last)));
+    return hash;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Failed to get hash_value for DataItem!");
+  }
 }
 
 }  // namespace Observation

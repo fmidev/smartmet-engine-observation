@@ -7,7 +7,6 @@
 #include "InsertStatus.h"
 #include "LocationItem.h"
 #include "MobileExternalDataItem.h"
-#include "ResultSet.h"
 #include "Settings.h"
 #include "StationInfo.h"
 #include "Utils.h"
@@ -31,6 +30,9 @@ namespace Engine
 {
 namespace Observation
 {
+using ResultSetRow = std::map<std::string, SmartMet::Spine::TimeSeries::Value>;
+using ResultSetRows = std::vector<ResultSetRow>;
+
 struct ObservableProperty;
 struct PostgreSQLCacheParameters;
 
@@ -215,6 +217,13 @@ class PostgreSQL : private boost::noncopyable
   boost::posix_time::ptime getOldestRoadCloudDataTime();
 
   /**
+   * @brief Get the latest creation time of RoadCloud observation in ext_obsdata table
+   * @return boost::posix_time::ptime The latest creation time road cloud observation
+   */
+
+  boost::posix_time::ptime getLatestRoadCloudCreatedTime();
+
+  /**
    * @brief Get the time of the newest RoadCloud observation in ext_obsdata table
    * @return boost::posix_time::ptime The time of the newest observation
    */
@@ -231,8 +240,7 @@ class PostgreSQL : private boost::noncopyable
    * @brief Insert cached RoadCloud observations into ext_obsdata table
    * @param RoadCloud observation data to be inserted into the table
    */
-  std::size_t fillRoadCloudCache(
-      const MobileExternalDataItems &mobileExternalCacheData);
+  std::size_t fillRoadCloudCache(const MobileExternalDataItems &mobileExternalCacheData);
 
   /**
    * @brief Get the time of the oldest NetAtmo observation in ext_obsdata table
@@ -247,6 +255,13 @@ class PostgreSQL : private boost::noncopyable
    */
 
   boost::posix_time::ptime getLatestNetAtmoDataTime();
+
+  /**
+   * @brief Get the time of the latest NetAtmo creation time in ext_obsdata table
+   * @return boost::posix_time::ptime The latest creation time
+   */
+
+  boost::posix_time::ptime getLatestNetAtmoCreatedTime();
 
   /**
    * @brief Delete old NetAtmo data from ext_obsdata table
@@ -382,11 +397,8 @@ class PostgreSQL : private boost::noncopyable
 
   size_t selectCount(const std::string &queryString);
 
-  static ResultSet getResultSetForMobileExternalData(
-      const pqxx::result &pgResultSet,
-      const std::vector<std::string> &queryFields,
-      const ExternalAndMobileDBInfo &dbInfo,
-      const ExternalAndMobileProducerMeasurand &producerMeasurand);
+  static ResultSetRows getResultSetForMobileExternalData(
+      const pqxx::result &pgResultSet, const std::map<unsigned int, std::string> &pgDataTypes);
 
  private:
   // Private members
