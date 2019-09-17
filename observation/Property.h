@@ -27,7 +27,7 @@ class Base
   typedef std::string NameType;
   typedef std::string OperatorType;
   explicit Base();
-  ~Base();
+  virtual ~Base();
   /**
    * @brief Get expression string constructed from the member parameter values.
    * @param viewName Name of a view that has the fied name (property) set into the class object.

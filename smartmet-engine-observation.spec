@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.9.11
+Version: 19.9.17
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -17,7 +17,6 @@ BuildRequires: libconfig-devel
 BuildRequires: boost-devel
 BuildRequires: smartmet-library-spine-devel >= 19.8.28
 BuildRequires: smartmet-engine-geonames-devel >= 19.8.28
-BuildRequires: mysql++-devel >= 3.1.0
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: smartmet-library-locus-devel >= 19.8.28
@@ -34,7 +33,6 @@ Requires: smartmet-library-locus >= 19.8.28
 Requires: smartmet-library-macgyver >= 19.8.2
 Requires: libatomic
 Requires: unixODBC
-Requires: mysql++
 Requires: libspatialite >= 4.3.0a
 Requires: sqlite >= 3.22.0
 Requires: boost-date-time
@@ -47,12 +45,6 @@ Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: make
 
-%if 0%{rhel} >= 7
-BuildRequires: mariadb-devel
-Requires: mariadb-libs
-%else
-BuildRequires: mysql-devel
-%endif
 Provides: %{SPECNAME}
 
 %description
@@ -97,11 +89,20 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Wed Sep 11 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.9.11-1.fmi
+* Tue Sep 17 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.9.17-1.fmi
 - Modify SQL-queries of mobile data and of queries where data_source-field is present, so that we can get rid of ResultSet class (BRAINSTORM-1673)
 - Improve updating of mobile data cache by utilizing 'created' field in the query
 - Fix bug in iterator of sqlite3pp-API query_iterator-constructor
 - Add missing try-catch blocks and re-write some exception messages to be more accurate
+
+* Fri Sep 13 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.9.13-1.fmi
+- Do not throw in destructors
+
+* Thu Sep 12 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.9.12-1.fmi
+- Fixed two base classes to have a virtual destructor
+
+* Thu Sep  5 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.9.5-1.fmi
+- Added quick exits on shutdown to the station preload thread
 
 * Wed Aug 28 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.8.28-1.fmi
 - Added handling of optional fmisid provided with Location objects

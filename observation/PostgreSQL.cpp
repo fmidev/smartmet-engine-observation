@@ -1784,7 +1784,7 @@ void PostgreSQL::updateStations(const Spine::Stations &stations)
       for (const auto &station : stationsToUpdate)
       {
         if (itsShutdownRequested)
-          break;
+          return;
 
         std::string key;
         key += Fmi::to_string(station.fmisid);
@@ -1858,6 +1858,9 @@ void PostgreSQL::updateStationGroups(const StationInfo &info)
 
     for (const Spine::Station &station : info.stations)
     {
+      if (itsShutdownRequested)
+        return;
+
       // Skipping the empty cases.
       if (station.station_type.empty())
         continue;

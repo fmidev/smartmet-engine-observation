@@ -69,6 +69,7 @@ else
 	-Wredundant-decls \
 	-Wwrite-strings \
 	-Wsign-promo \
+	-Wnon-virtual-dtor
 
  INCLUDES = \
 	-I$(includedir) \
