@@ -1,6 +1,7 @@
 #pragma once
 
-#include "DatabaseDriver.h"
+#include "DatabaseDriverInterface.h"
+#include "EngineParameters.h"
 
 namespace SmartMet
 {
@@ -8,42 +9,35 @@ namespace Engine
 {
 namespace Observation
 {
-#ifdef __llvm__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
-class DummyDatabaseDriver : public DatabaseDriver
+class Engine;
+struct ObservableProperty;
+
+class DummyDatabaseDriver : public DatabaseDriverInterface
 {
  public:
-  DummyDatabaseDriver();
-  void init(Engine *obsengine);
+  DummyDatabaseDriver(const EngineParametersPtr &p) : itsParameters(p) {}
 
-  boost::shared_ptr<Spine::Table> makeQuery(
-      Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter);
-  void makeQuery(QueryBase *qb) {}
+  void init(Engine *obsengine);
   Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings);
   Spine::TimeSeries::TimeSeriesVectorPtr values(
       Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
+  boost::shared_ptr<Spine::Table> makeQuery(
+      Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter);
+  void makeQuery(QueryBase *) {}
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
                             const Spine::TaggedLocationList &locations);
   boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language);
-  void getStations(Spine::Stations &stations, Settings &settings) {}
-  void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) {}
+  void getStations(Spine::Stations &, Settings &) {}
 
-  void updateFlashCache() {}
-  void updateObservationCache() {}
-  void updateWeatherDataQCCache() {}
-  void locationsFromDatabase() {}
-  void preloadStations(const std::string &serializedStationsFile) {}
   void shutdown() {}
-  MetaData metaData(const std::string &producer) { return MetaData(); }
+  MetaData metaData(const std::string &) { return MetaData(); }
   std::string id() const { return "dummy"; }
+
+ private:
+  const EngineParametersPtr &itsParameters;
 };
-#ifdef __llvm__
-#pragma clang diagnostic pop
-#endif
 
 }  // namespace Observation
 }  // namespace Engine

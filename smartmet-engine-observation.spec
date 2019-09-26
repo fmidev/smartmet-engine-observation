@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.9.17
+Version: 19.9.26
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -89,6 +89,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Sep 26 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.9.26-1.fmi
+- Bugfix in dummy database driver to prevent segfault (BRAINSTORM-1381)
+
 * Tue Sep 17 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.9.17-1.fmi
 - Modify SQL-queries of mobile data and of queries where data_source-field is present, so that we can get rid of ResultSet class (BRAINSTORM-1673)
 - Improve updating of mobile data cache by utilizing 'created' field in the query

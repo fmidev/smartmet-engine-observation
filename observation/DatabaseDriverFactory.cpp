@@ -1,6 +1,5 @@
 #include "DatabaseDriverFactory.h"
 #include "DummyDatabaseDriver.h"
-#include "SpatiaLiteDatabaseDriver.h"
 extern "C"
 {
 #include <dlfcn.h>
@@ -24,6 +23,11 @@ DatabaseDriverInterface *DatabaseDriverFactory::create(const EngineParametersPtr
 {
   try
   {
+    if (p->dbDriverFile.empty() || p->dbDriverFile == "dummy")
+    {
+      return new DummyDatabaseDriver(p);
+    }
+
     void *handle = dlopen(p->dbDriverFile.c_str(), RTLD_NOW);
 
     if (handle == nullptr)
