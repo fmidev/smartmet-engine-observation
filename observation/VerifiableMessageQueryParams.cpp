@@ -24,16 +24,9 @@ VerifiableMessageQueryParams::VerifiableMessageQueryParams(
 
 VerifiableMessageQueryParams::~VerifiableMessageQueryParams()
 {
-  try
-  {
-    m_stationIdVector->clear();
-    delete m_stationIdVector;
-    delete m_namesAllowed;
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
-  }
+  m_stationIdVector->clear();
+  delete m_stationIdVector;
+  delete m_namesAllowed;
 }
 
 bool VerifiableMessageQueryParams::addSelectName(const std::string& selectName)
