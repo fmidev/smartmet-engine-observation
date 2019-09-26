@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.9.12
+Version: 19.9.26
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,22 +15,22 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 19.8.28
-BuildRequires: smartmet-engine-geonames-devel >= 19.8.28
+BuildRequires: smartmet-library-spine-devel >= 19.9.26
+BuildRequires: smartmet-engine-geonames-devel >= 19.9.26
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
-BuildRequires: smartmet-library-locus-devel >= 19.8.28
-BuildRequires: smartmet-library-macgyver-devel >= 19.8.2
+BuildRequires: smartmet-library-locus-devel >= 19.9.26
+BuildRequires: smartmet-library-macgyver-devel >= 19.9.26
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 5.2.0
 Requires: fmt >= 5.2.0
 Requires: libconfig
-Requires: smartmet-server >= 19.8.9
-Requires: smartmet-engine-geonames >= 19.8.28
-Requires: smartmet-library-spine >= 19.8.28
-Requires: smartmet-library-locus >= 19.8.28
-Requires: smartmet-library-macgyver >= 19.8.2
+Requires: smartmet-server >= 19.9.26
+Requires: smartmet-engine-geonames >= 19.9.26
+Requires: smartmet-library-spine >= 19.9.26
+Requires: smartmet-library-locus >= 19.9.26
+Requires: smartmet-library-macgyver >= 19.9.26
 Requires: libatomic
 Requires: unixODBC
 Requires: libspatialite >= 4.3.0a
@@ -89,6 +89,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Sep 26 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.9.26-1.fmi
+- Added support for ASAN & TSAN builds
+- Explicit initialization of POD types (ASAN)
+- Avoid locale locks by not using regex for matching simple numbers
+
 * Thu Sep 12 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.9.12-1.fmi
 - Fixed two base classes to have a virtual destructor
 
