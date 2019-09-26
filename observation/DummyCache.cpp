@@ -154,6 +154,11 @@ boost::posix_time::ptime DummyCache::getLatestRoadCloudDataTime() const
   return boost::posix_time::not_a_date_time;
 }
 
+boost::posix_time::ptime DummyCache::getLatestRoadCloudCreatedTime() const
+{
+  return boost::posix_time::not_a_date_time;
+}
+
 std::size_t DummyCache::fillRoadCloudCache(
     const MobileExternalDataItems &mobileExternalCacheData) const
 {
@@ -169,6 +174,11 @@ bool DummyCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &startti
 }
 
 boost::posix_time::ptime DummyCache::getLatestNetAtmoDataTime() const
+{
+  return boost::posix_time::not_a_date_time;
+}
+
+boost::posix_time::ptime DummyCache::getLatestNetAtmoCreatedTime() const
 {
   return boost::posix_time::not_a_date_time;
 }

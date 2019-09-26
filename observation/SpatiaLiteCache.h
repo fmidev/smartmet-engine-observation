@@ -85,6 +85,7 @@ class SpatiaLiteCache : public ObservationCache
   bool roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
                                  const boost::posix_time::ptime &endtime) const;
   boost::posix_time::ptime getLatestRoadCloudDataTime() const;
+  boost::posix_time::ptime getLatestRoadCloudCreatedTime() const;
   std::size_t fillRoadCloudCache(const MobileExternalDataItems &mobileExternalCacheData) const;
   void cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const;
   Spine::TimeSeries::TimeSeriesVectorPtr roadCloudValuesFromSpatiaLite(Settings &settings) const;
@@ -93,6 +94,7 @@ class SpatiaLiteCache : public ObservationCache
   bool netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
                                const boost::posix_time::ptime &endtime) const;
   boost::posix_time::ptime getLatestNetAtmoDataTime() const;
+  boost::posix_time::ptime getLatestNetAtmoCreatedTime() const;
   std::size_t fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData) const;
   void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const;
   Spine::TimeSeries::TimeSeriesVectorPtr netAtmoValuesFromSpatiaLite(Settings &settings) const;

@@ -2,7 +2,6 @@
 #include "ExternalAndMobileDBInfo.h"
 #include "ObservableProperty.h"
 #include "PostgreSQLCacheParameters.h"
-#include "ResultSet.h"
 #include <fmt/format.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeParser.h>
@@ -73,8 +72,17 @@ namespace
 
 boost::posix_time::ptime round_down_to_hour(const boost::posix_time::ptime &t)
 {
-  auto hour = t.time_of_day().hours();
-  return boost::posix_time::ptime(t.date(), boost::posix_time::hours(hour));
+  try
+  {
+    // Empty list means we want all parameters
+    auto hour = t.time_of_day().hours();
+    return boost::posix_time::ptime(t.date(), boost::posix_time::hours(hour));
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(
+        BCP, "Failed to round down to hour the time '" + to_iso_string(t) + "'!");
+  }
 }
 
 void solveMeasurandIds(const std::vector<std::string> &parameters,
@@ -509,7 +517,14 @@ boost::posix_time::ptime PostgreSQL::getTime(const std::string &timeQuery) const
     {
       pqxx::result::const_iterator row = result_set.begin();
       if (!row[0].is_null())
-        ret = boost::posix_time::from_time_t(row[0].as<time_t>());
+      {
+        double value = row[0].as<double>();
+        time_t seconds = floor(value);
+        ret = boost::posix_time::from_time_t(seconds);
+        double fractions = (value - floor(value));
+        if (fractions > 0.0)
+          ret += milliseconds(fractions * 1000);
+      }
     }
     return ret;
   }
@@ -518,6 +533,7 @@ boost::posix_time::ptime PostgreSQL::getTime(const std::string &timeQuery) const
     throw Spine::Exception::Trace(BCP, "Query failed: " + timeQuery);
   }
 }
+
 boost::posix_time::ptime PostgreSQL::getLatestObservationTime()
 {
   return getTime("SELECT MAX(data_time) FROM observation_data");
@@ -585,6 +601,20 @@ boost::posix_time::ptime PostgreSQL::getOldestRoadCloudDataTime()
   }
 }
 
+boost::posix_time::ptime PostgreSQL::getLatestRoadCloudCreatedTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_roadcloud";
+    string time_field = "created";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Latest RoadCloud created time query failed!");
+  }
+}
+
 boost::posix_time::ptime PostgreSQL::getLatestRoadCloudDataTime()
 {
   try
@@ -624,6 +654,20 @@ boost::posix_time::ptime PostgreSQL::getLatestNetAtmoDataTime()
   catch (...)
   {
     throw Spine::Exception::Trace(BCP, "Latest NetAtmo data time query failed!");
+  }
+}
+
+boost::posix_time::ptime PostgreSQL::getLatestNetAtmoCreatedTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_netatmo";
+    string time_field = "created";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Latest NetAtmo created time query failed!");
   }
 }
 
@@ -1614,13 +1658,13 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedMobileAndE
 
     const ExternalAndMobileProducerMeasurand &producerMeasurand =
         itsExternalAndMobileProducerConfig.at(settings.stationtype);
-    std::vector<std::string> queryFields;
+    std::vector<std::string> queryfields;
     std::vector<int> measurandIds;
+    const SmartMet::Engine::Observation::Measurands &measurands = producerMeasurand.measurands();
     for (const SmartMet::Spine::Parameter &p : settings.parameters)
     {
       std::string name = Fmi::ascii_tolower_copy(p.name());
-      queryFields.push_back(name);
-      const SmartMet::Engine::Observation::Measurands &measurands = producerMeasurand.measurands();
+      queryfields.push_back(name);
       if (measurands.find(name) != measurands.end())
         measurandIds.push_back(measurands.at(name));
     }
@@ -1643,38 +1687,52 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedMobileAndE
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
-    ResultSet resultSet = PostgreSQL::getResultSetForMobileExternalData(
-        result_set, queryFields, dbInfo, producerMeasurand);
+    SmartMet::Engine::Observation::ResultSetRows rsrs =
+        SmartMet::Engine::Observation::PostgreSQL::getResultSetForMobileExternalData(
+            result_set, itsDB.dataTypes());
 
-    SmartMet::Engine::Observation::ResultSet::ResultSetById resultset =
-        resultSet.getResultSet(tlist);
     boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
     timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
 
-    for (auto rsTS : resultset)
-      for (auto rsrs : rsTS.second)
-        for (auto rsr : rsrs.second)
+    for (auto rsr : rsrs)
+    {
+      boost::local_time::local_date_time obstime =
+          *(boost::get<boost::local_time::local_date_time>(&rsr["data_time"]));
+      unsigned int index = 0;
+      for (auto fieldname : queryfields)
+      {
+        if (fieldname == "created")
         {
-          boost::local_time::local_date_time obstime =
-              *(boost::get<boost::local_time::local_date_time>(&rsr["data_time"]));
+          boost::local_time::local_date_time dt =
+              *(boost::get<boost::local_time::local_date_time>(&rsr[fieldname]));
 
-          unsigned int index = 0;
-          for (auto fieldname : queryFields)
-          {
-            if (fieldname == "created")
-            {
-              boost::local_time::local_date_time dt =
-                  *(boost::get<boost::local_time::local_date_time>(&rsr[fieldname]));
-              std::string fieldValue = timeFormatter->format(dt);
-              ret->at(index).push_back(ts::TimedValue(obstime, fieldValue));
-            }
-            else
-            {
-              ret->at(index).push_back(ts::TimedValue(obstime, rsr[fieldname]));
-            }
-            index++;
-          }
+          std::string fieldValue = timeFormatter->format(dt);
+          ret->at(index).push_back(ts::TimedValue(obstime, fieldValue));
         }
+        else
+        {
+          if (measurands.find(fieldname) == measurands.end())
+          {
+            SmartMet::Engine::Observation::ParameterMap::NameToStationParameterMap::const_iterator
+                iter = parameterMap->find(fieldname);
+            if (iter != parameterMap->end())
+            {
+              std::string producer = producerMeasurand.producerId().name();
+              if (iter->second.find(producer) != iter->second.end())
+              {
+                fieldname = iter->second.at(producer);
+              }
+            }
+          }
+          else
+          {
+            fieldname = dbInfo.measurandFieldname(measurands.at(fieldname));
+          }
+          ret->at(index).push_back(ts::TimedValue(obstime, rsr[fieldname]));
+        }
+        index++;
+      }
+    }
 
     return ret;
   }
@@ -2146,7 +2204,7 @@ void PostgreSQL::addEmptyValuesToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Adding empty values to time series failed!");
   }
 }
 
@@ -2278,7 +2336,7 @@ void PostgreSQL::addParameterToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Adding parameter to time series failed!");
   }
 }
 
@@ -2441,7 +2499,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedFlashData(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting cached flash data failed!");
   }
 }
 
@@ -2455,29 +2513,36 @@ void PostgreSQL::addSmartSymbolToTimeSeries(
         &data,
     const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns)
 {
-  int wawapos = Fmi::stoi(parameterMap->getParameter("wawa", stationtype));
-  int totalcloudcoverpos = Fmi::stoi(parameterMap->getParameter("totalcloudcover", stationtype));
-  int temppos = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
-
-  auto dataItem = data.at(s.fmisid).at(time);
-
-  if (!exists(dataItem, wawapos) || !exists(dataItem, totalcloudcoverpos) ||
-      !exists(dataItem, temppos) || !dataItem.at(wawapos).which() ||
-      !dataItem.at(totalcloudcoverpos).which() || !dataItem.at(temppos).which())
+  try
   {
-    ts::Value missing;
-    timeSeriesColumns->at(pos).push_back(ts::TimedValue(time, missing));
+    int wawapos = Fmi::stoi(parameterMap->getParameter("wawa", stationtype));
+    int totalcloudcoverpos = Fmi::stoi(parameterMap->getParameter("totalcloudcover", stationtype));
+    int temppos = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
+
+    auto dataItem = data.at(s.fmisid).at(time);
+
+    if (!exists(dataItem, wawapos) || !exists(dataItem, totalcloudcoverpos) ||
+        !exists(dataItem, temppos) || !dataItem.at(wawapos).which() ||
+        !dataItem.at(totalcloudcoverpos).which() || !dataItem.at(temppos).which())
+    {
+      ts::Value missing;
+      timeSeriesColumns->at(pos).push_back(ts::TimedValue(time, missing));
+    }
+    else
+    {
+      double temp = boost::get<double>(dataItem.at(temppos));
+      int totalcloudcover = static_cast<int>(boost::get<double>(dataItem.at(totalcloudcoverpos)));
+      int wawa = static_cast<int>(boost::get<double>(dataItem.at(wawapos)));
+      double lat = s.latitude_out;
+      double lon = s.longitude_out;
+      ts::Value smartsymbol =
+          ts::Value(*calcSmartsymbolNumber(wawa, totalcloudcover, temp, time, lat, lon));
+      timeSeriesColumns->at(pos).push_back(ts::TimedValue(time, smartsymbol));
+    }
   }
-  else
+  catch (...)
   {
-    double temp = boost::get<double>(dataItem.at(temppos));
-    int totalcloudcover = static_cast<int>(boost::get<double>(dataItem.at(totalcloudcoverpos)));
-    int wawa = static_cast<int>(boost::get<double>(dataItem.at(wawapos)));
-    double lat = s.latitude_out;
-    double lon = s.longitude_out;
-    ts::Value smartsymbol =
-        ts::Value(*calcSmartsymbolNumber(wawa, totalcloudcover, temp, time, lat, lon));
-    timeSeriesColumns->at(pos).push_back(ts::TimedValue(time, smartsymbol));
+    throw Spine::Exception::Trace(BCP, "Adding smart symbol to time series failed!");
   }
 }
 
@@ -2572,7 +2637,7 @@ void PostgreSQL::addSpecialParameterToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Adding special parameter to time series failed!");
   }
 }
 
@@ -2596,30 +2661,37 @@ Spine::Stations PostgreSQL::fetchStationsFromDB(const std::string &sqlStmt,
                                                 const Settings &settings,
                                                 const StationInfo &info) const
 {
-  Spine::Stations stations;
-  pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-  for (auto row : result_set)
+  try
   {
-    try
+    Spine::Stations stations;
+    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+    for (auto row : result_set)
     {
-      int geoid = row[0].as<int>();
-      int station_id = row[1].as<int>();
-      Spine::Station station = info.getStation(station_id, settings.stationgroup_codes);
-      station.geoid = geoid;
-      stations.push_back(station);
+      try
+      {
+        int geoid = row[0].as<int>();
+        int station_id = row[1].as<int>();
+        Spine::Station station = info.getStation(station_id, settings.stationgroup_codes);
+        station.geoid = geoid;
+        stations.push_back(station);
+      }
+      catch (const std::bad_cast &e)
+      {
+        cout << e.what() << endl;
+        continue;
+      }
+      catch (...)
+      {
+        // Probably badly grouped stations in the database
+        continue;
+      }
     }
-    catch (const std::bad_cast &e)
-    {
-      cout << e.what() << endl;
-      continue;
-    }
-    catch (...)
-    {
-      // Probably badly grouped stations in the database
-      continue;
-    }
+    return stations;
   }
-  return stations;
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Getting stations from database failed!");
+  }
 }
 
 Spine::Stations PostgreSQL::findStationsInsideArea(const Settings &settings,
@@ -2669,7 +2741,7 @@ Spine::Stations PostgreSQL::findStationsInsideArea(const Settings &settings,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Finding stations inside area failed!");
   }
 }
 
@@ -2719,7 +2791,7 @@ Spine::Stations PostgreSQL::findStationsInsideBox(const Settings &settings, cons
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Finding stations inside bounding box failed!");
   }
 }
 
@@ -2872,7 +2944,7 @@ bool PostgreSQL::getStationById(Spine::Station &station,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting station by id failed!");
   }
 }
 
@@ -2900,7 +2972,7 @@ bool PostgreSQL::getStationByGeoid(Spine::Station &station,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting station by geoid failed!");
   }
 }
 
@@ -2965,7 +3037,7 @@ FlashCounts PostgreSQL::getFlashCount(const boost::posix_time::ptime &starttime,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting flash count failed!");
   }
 }
 
@@ -3208,7 +3280,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedWeatherDataQCData(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting cached weather data QC data failed!");
   }
 }
 
@@ -3652,7 +3724,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting cached data failed!");
   }
 }
 
@@ -3784,108 +3856,73 @@ void PostgreSQL::dropIndex(const std::string &idx_name, bool transaction /*= fal
 }
 #endif
 
-ResultSet PostgreSQL::getResultSetForMobileExternalData(
-    const pqxx::result &pgResultSet,
-    const std::vector<std::string> &queryFields,
-    const ExternalAndMobileDBInfo &dbInfo,
-    const ExternalAndMobileProducerMeasurand &producerMeasurand)
+ResultSetRows PostgreSQL::getResultSetForMobileExternalData(
+    const pqxx::result &pgResultSet, const std::map<unsigned int, std::string> &pgDataTypes)
 {
-  ResultSet ret(queryFields);
+  ResultSetRows ret;
 
   if (pgResultSet.size() == 0)
     return ret;
 
-  std::vector<std::string> fieldNames = dbInfo.fieldNames();
-  const std::map<std::string, unsigned int> &fieldIndexes = dbInfo.fieldIndexes();
-  std::map<std::string, unsigned int> keyFieldIndexes = dbInfo.keyFieldIndexes();
-  int midIndex = fieldIndexes.at("mid");
-  for (auto row : pgResultSet)
+  try
   {
-    SmartMet::Engine::Observation::ResultSet::ResultSetRow rsr;
-    boost::local_time::time_zone_ptr zone(new posix_time_zone("UTC"));
-    boost::local_time::local_date_time timestamp(not_a_date_time, zone);
+    unsigned int nColumns = pgResultSet.columns();
 
-    int mid = row[midIndex].as<int>();
-
-    const SmartMet::Engine::Observation::MeasurandIdParameterMap &measurandParameters =
-        producerMeasurand.measurandParameters();
-
-    if (measurandParameters.find(mid) == measurandParameters.end())
+    for (auto row : pgResultSet)
     {
-      std::cout << "Error: Invalid value " << mid
-                << " in ext_obsdata table in mid-column. Skipping!" << std::endl;
-      continue;
-    }
-    std::vector<std::string> keyFieldValues;
-    // Lets set null as default value for key
-    for (auto item : keyFieldIndexes)
-      keyFieldValues.push_back("null");
-    for (unsigned int i = 0; i < fieldNames.size(); i++)
-    {
-      std::string fieldname = fieldNames.at(i);
-      if (row[i].is_null())
+      ResultSetRow rsr;
+      for (unsigned int i = 0; i < nColumns; i++)
       {
-        if (fieldname == "data_value")
-          fieldname = measurandParameters.at(mid);
-        rsr.insert(std::make_pair(fieldname, ts::None()));
-        continue;
-      }
-      const SmartMet::Engine::Observation::FieldDescription &fd =
-          dbInfo.fieldDescription(fieldname);
-      if (fd.field_type == SmartMet::Engine::Observation::FieldType::String)
-      {
-        std::string value = row[i].as<std::string>();
-        if (dbInfo.isKeyField(fieldname))
-          keyFieldValues[keyFieldIndexes.at(fieldname)] = value;
-        rsr.insert(std::make_pair(fieldname, ts::Value(value)));
-      }
-      else if (fd.field_type == SmartMet::Engine::Observation::FieldType::Double)
-      {
-        double value = row[i].as<double>();
-        if (dbInfo.isKeyField(fieldname))
-          keyFieldValues[keyFieldIndexes.at(fieldname)] = std::to_string(value);
-
-        if (fieldname == "data_value")
-          fieldname = measurandParameters.at(mid);
-
-        rsr.insert(std::make_pair(fieldname, ts::Value(value)));
-      }
-      else if (fd.field_type == SmartMet::Engine::Observation::FieldType::Integer)
-      {
-        if (fieldname == "mid")
+        std::string data_type = pgDataTypes.at(row.column_type(i));
+        std::string column_name = pgResultSet.column_name(i);
+        ts::Value val = ts::None();
+        if (!row[i].is_null())
         {
-          rsr.insert(std::make_pair(fieldname, ts::Value(mid)));
-          continue;
+          if (data_type == "text" || data_type == "varchar")
+          {
+            val = row[i].as<std::string>();
+          }
+          else if (data_type == "float4" || data_type == "float8" || data_type == "_float4" ||
+                   data_type == "_float8" || data_type == "numeric")
+          {
+            if (column_name == "created" || column_name == "data_time")
+            {
+              boost::posix_time::ptime pt =
+                  SmartMet::Engine::Observation::ExternalAndMobileDBInfo::epoch2ptime(
+                      row[i].as<double>());
+              boost::local_time::time_zone_ptr zone(new posix_time_zone("UTC"));
+              val = boost::local_time::local_date_time(pt, zone);
+            }
+            else
+            {
+              val = row[i].as<double>();
+            }
+          }
+          else if (data_type == "int2" || data_type == "int4" || data_type == "int8" ||
+                   data_type == "_int2" || data_type == "_int4" || data_type == "_int8")
+          {
+            val = row[i].as<int>(i);
+          }
+          else if (data_type == "timestamp")
+          {
+            boost::posix_time::ptime pt =
+                SmartMet::Engine::Observation::ExternalAndMobileDBInfo::epoch2ptime(
+                    row[i].as<double>());
+            boost::local_time::time_zone_ptr zone(new posix_time_zone("UTC"));
+            val = boost::local_time::local_date_time(pt, zone);
+          }
         }
-        int value = row[i].as<int>();
-        if (dbInfo.isKeyField(fieldname))
-          keyFieldValues[keyFieldIndexes.at(fieldname)] = std::to_string(value);
-        rsr.insert(std::make_pair(fieldname, ts::Value(value)));
+        rsr.insert(std::make_pair(column_name, val));
       }
-      else if (fd.field_type == SmartMet::Engine::Observation::FieldType::DateTime)
-      {
-        boost::posix_time::ptime pt =
-            SmartMet::Engine::Observation::ExternalAndMobileDBInfo::epoch2ptime(
-                row[i].as<double>());
-        boost::local_time::local_date_time value(pt, zone);
-        rsr.insert(std::make_pair(fieldname, ts::Value(value)));
-        if (dbInfo.isKeyField(fieldname))
-          keyFieldValues[keyFieldIndexes.at(fieldname)] = to_iso_string(pt);
 
-        if (fieldname == "data_time")
-          timestamp = value;
-      }
-      else
-        std::cout << "Unknown type in field #"
-                  << " (" << fd.field_name << ") " << std::endl;
+      ret.push_back(rsr);
     }
-    if (timestamp.is_not_a_date_time())
-      std::cerr << "Detected non-valid timestamp" << std::endl;
-
-    std::string key = boost::algorithm::join(keyFieldValues, "_");
-
-    ret.addRow(key, timestamp, rsr);
   }
+  catch (...)
+  {
+    throw SmartMet::Spine::Exception::Trace(BCP, "Result set handling of mobile data failed!");
+  }
+
   return ret;
 }
 

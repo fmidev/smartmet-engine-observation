@@ -121,7 +121,7 @@ class SpatiaLite : private boost::noncopyable
   void updateStationsAndGroups(const StationInfo &info);
 
   SmartMet::Spine::Stations findAllStationsFromGroups(
-      const std::set<std::string> stationgroup_codes,
+      const std::set<std::string> &stationgroup_codes,
       const StationInfo &info,
       const boost::posix_time::ptime &starttime,
       const boost::posix_time::ptime &endtime);
@@ -186,9 +186,9 @@ class SpatiaLite : private boost::noncopyable
    * @param last_time Delete everything from tablename which is older than
    * last_time
    */
-  void cleanCacheTable(const std::string tablename,
-                       const std::string time_column,
-                       const boost::posix_time::ptime last_time);
+  void cleanCacheTable(const std::string &tablename,
+                       const std::string &time_column,
+                       const boost::posix_time::ptime &last_time);
 
   /**
    * @brief Delete everything from observation_data table which is older than the given duration
@@ -225,6 +225,13 @@ class SpatiaLite : private boost::noncopyable
   boost::posix_time::ptime getLatestRoadCloudDataTime();
 
   /**
+   * @brief Get the time of the latest RoadCloud creation in ext_obsdata_roadcloud table
+   * @return boost::posix_time::ptime The latest creation time of RoadCloud observation
+   */
+
+  boost::posix_time::ptime getLatestRoadCloudCreatedTime();
+
+  /**
    * @brief Get the time of the oldest RoadCloud observation in ext_obsdata_roadcloud table
    * @return boost::posix_time::ptime The time of the oldest RoadCloud observation
    */
@@ -250,6 +257,13 @@ class SpatiaLite : private boost::noncopyable
    */
 
   boost::posix_time::ptime getLatestNetAtmoDataTime();
+
+  /**
+   * @brief Get the time of the latest NetAtmo creation time in ext_obsdata table
+   * @return boost::posix_time::ptime The latest creation time
+   */
+
+  boost::posix_time::ptime getLatestNetAtmoCreatedTime();
 
   /**
    * @brief Get the time of the oldest NetAtmo observation in ext_obsdata_roadcloud table
@@ -395,7 +409,7 @@ class SpatiaLite : private boost::noncopyable
    */
   boost::shared_ptr<std::vector<ObservableProperty>> getObservableProperties(
       std::vector<std::string> &parameters,
-      const std::string language,
+      const std::string &language,
       const ParameterMapPtr &parameterMap,
       const std::string &stationType);
 
@@ -450,7 +464,7 @@ class SpatiaLite : private boost::noncopyable
       const SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
       const SmartMet::Spine::Station &station,
       const int pos,
-      const std::string stationtype,
+      const std::string &stationtype,
       const boost::local_time::local_date_time &obstime) const;
 
   void addParameterToTimeSeries(
@@ -476,8 +490,10 @@ class SpatiaLite : private boost::noncopyable
   void updateStations(const SmartMet::Spine::Stations &stations);
   void updateStationGroups(const StationInfo &info);
 
-  boost::posix_time::ptime getLatestTimeFromTable(std::string tablename, std::string time_field);
-  boost::posix_time::ptime getOldestTimeFromTable(std::string tablename, std::string time_field);
+  boost::posix_time::ptime getLatestTimeFromTable(const std::string &tablename,
+                                                  const std::string &time_field);
+  boost::posix_time::ptime getOldestTimeFromTable(const std::string &tablename,
+                                                  const std::string &time_field);
 
   void initSpatialMetaData();
   void createStationTable();

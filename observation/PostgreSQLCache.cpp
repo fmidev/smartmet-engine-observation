@@ -93,7 +93,7 @@ void PostgreSQLCache::initializeConnectionPool()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Initializing connection pool failed!");
   }
 }
 
@@ -144,7 +144,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Cache initialization failed!");
   }
 }
 
@@ -189,7 +189,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting values from cache failed!");
   }
 }
 
@@ -206,7 +206,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(Settings &set
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting flash values from cache failed!");
   }
 }
 ts::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings &settings) const
@@ -222,7 +222,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings 
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting road cloud values from cache failed!");
   }
 }
 
@@ -239,7 +239,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &s
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting NetAtmo values from cache failed!");
   }
 }
 
@@ -397,7 +397,7 @@ Spine::Stations PostgreSQLCache::getStationsFromPostgreSQL(Settings &settings,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting stations from cache failed!");
   }
 }
 
@@ -417,7 +417,7 @@ bool PostgreSQLCache::timeIntervalIsCached(const boost::posix_time::ptime &start
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Checking if time interval is cached failed!");
   }
 }
 
@@ -437,7 +437,7 @@ bool PostgreSQLCache::flashIntervalIsCached(const boost::posix_time::ptime &star
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Checking if flash interval is cached failed!");
   }
 }
 
@@ -457,7 +457,7 @@ bool PostgreSQLCache::timeIntervalWeatherDataQCIsCached(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Checking if weather data QC is cached  failed!");
   }
 }
 
@@ -523,7 +523,7 @@ Spine::Stations PostgreSQLCache::getStationsByTaggedLocations(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting stations by tagged locations failed!");
   }
 }
 
@@ -566,12 +566,12 @@ void PostgreSQLCache::getStationsByBoundingBox(Spine::Stations &stations,
     }
     catch (...)
     {
-      throw Spine::Exception::Trace(BCP, "Operation failed!");
+      throw Spine::Exception::Trace(BCP, "Getting stations by bounding box failed!");
     }
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Getting stations by bounding box failed!");
   }
 }
 
@@ -607,7 +607,9 @@ bool PostgreSQLCache::dataAvailableInCache(const Settings &settings) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP,
+                                  "Checking if data is available in cache for stationtype '" +
+                                      settings.stationtype + "' failed!");
   }
 }
 
@@ -722,13 +724,18 @@ bool PostgreSQLCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Checking if road cloud interval is cached failed!");
   }
 }
 
 boost::posix_time::ptime PostgreSQLCache::getLatestRoadCloudDataTime() const
 {
   return itsConnectionPool->getConnection()->getLatestRoadCloudDataTime();
+}
+
+boost::posix_time::ptime PostgreSQLCache::getLatestRoadCloudCreatedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestRoadCloudCreatedTime();
 }
 
 std::size_t PostgreSQLCache::fillRoadCloudCache(
@@ -758,13 +765,18 @@ bool PostgreSQLCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &st
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Spine::Exception::Trace(BCP, "Checking if NetAtmo interval is cached failed!");
   }
 }
 
 boost::posix_time::ptime PostgreSQLCache::getLatestNetAtmoDataTime() const
 {
   return itsConnectionPool->getConnection()->getLatestNetAtmoDataTime();
+}
+
+boost::posix_time::ptime PostgreSQLCache::getLatestNetAtmoCreatedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestNetAtmoCreatedTime();
 }
 
 std::size_t PostgreSQLCache::fillNetAtmoCache(
@@ -823,34 +835,42 @@ boost::shared_ptr<std::vector<ObservableProperty> > PostgreSQLCache::observableP
 
 void PostgreSQLCache::readConfig(Spine::ConfigBase &cfg)
 {
-  itsParameters.postgresql.host = cfg.get_mandatory_config_param<std::string>("postgresql.host");
-  itsParameters.postgresql.port = cfg.get_mandatory_config_param<unsigned int>("postgresql.port");
-  itsParameters.postgresql.database =
-      cfg.get_mandatory_config_param<std::string>("postgresql.database");
-  itsParameters.postgresql.username =
-      cfg.get_mandatory_config_param<std::string>("postgresql.username");
-  itsParameters.postgresql.password =
-      cfg.get_mandatory_config_param<std::string>("postgresql.password");
-  itsParameters.postgresql.encoding =
-      cfg.get_optional_config_param<std::string>("postgresql.encoding", "UTF8");
-  itsParameters.postgresql.connect_timeout =
-      cfg.get_optional_config_param<unsigned int>("postgresql.connect_timeout", 60);
+  try
+  {
+    itsParameters.postgresql.host = cfg.get_mandatory_config_param<std::string>("postgresql.host");
+    itsParameters.postgresql.port = cfg.get_mandatory_config_param<unsigned int>("postgresql.port");
+    itsParameters.postgresql.database =
+        cfg.get_mandatory_config_param<std::string>("postgresql.database");
+    itsParameters.postgresql.username =
+        cfg.get_mandatory_config_param<std::string>("postgresql.username");
+    itsParameters.postgresql.password =
+        cfg.get_mandatory_config_param<std::string>("postgresql.password");
+    itsParameters.postgresql.encoding =
+        cfg.get_optional_config_param<std::string>("postgresql.encoding", "UTF8");
+    itsParameters.postgresql.connect_timeout =
+        cfg.get_optional_config_param<unsigned int>("postgresql.connect_timeout", 60);
 
-  itsParameters.connectionPoolSize = cfg.get_mandatory_config_param<int>("cache.poolSize");
+    itsParameters.connectionPoolSize = cfg.get_mandatory_config_param<int>("cache.poolSize");
 
-  itsParameters.maxInsertSize = cfg.get_optional_config_param<std::size_t>(
-      "cache.maxInsertSize", 99999999);  // default = all at once
+    itsParameters.maxInsertSize = cfg.get_optional_config_param<std::size_t>(
+        "cache.maxInsertSize", 99999999);  // default = all at once
 
-  itsParameters.dataInsertCacheSize =
-      cfg.get_optional_config_param<std::size_t>("cache.dataInsertCacheSize", 100000);
-  itsParameters.weatherDataQCInsertCacheSize =
-      cfg.get_optional_config_param<std::size_t>("cache.weatherDataQCInsertCacheSize", 100000);
-  itsParameters.flashInsertCacheSize =
-      cfg.get_optional_config_param<std::size_t>("cache.flashInsertCacheSize", 10000);
-  itsParameters.roadCloudInsertCacheSize =
-      cfg.get_optional_config_param<std::size_t>("cache.roadCloudInsertCacheSize", 10000);
-  itsParameters.netAtmoInsertCacheSize =
-      cfg.get_optional_config_param<std::size_t>("cache.netAtmoInsertCacheSize", 10000);
+    itsParameters.dataInsertCacheSize =
+        cfg.get_optional_config_param<std::size_t>("cache.dataInsertCacheSize", 100000);
+    itsParameters.weatherDataQCInsertCacheSize =
+        cfg.get_optional_config_param<std::size_t>("cache.weatherDataQCInsertCacheSize", 100000);
+    itsParameters.flashInsertCacheSize =
+        cfg.get_optional_config_param<std::size_t>("cache.flashInsertCacheSize", 10000);
+    itsParameters.roadCloudInsertCacheSize =
+        cfg.get_optional_config_param<std::size_t>("cache.roadCloudInsertCacheSize", 10000);
+    itsParameters.netAtmoInsertCacheSize =
+        cfg.get_optional_config_param<std::size_t>("cache.netAtmoInsertCacheSize", 10000);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP,
+                                  "Reading PostgreSQL settings from configuration file failed");
+  }
 }
 
 bool PostgreSQLCache::cacheHasStations() const

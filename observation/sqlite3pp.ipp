@@ -555,6 +555,7 @@ inline query::query_iterator::query_iterator() : cmd_(nullptr)
 
 inline query::query_iterator::query_iterator(query* cmd) : cmd_(cmd)
 {
+  cmd_->reset();
   rc_ = cmd_->step();
   if (rc_ != SQLITE_ROW && rc_ != SQLITE_DONE)
     throw database_error(cmd_->db_);
