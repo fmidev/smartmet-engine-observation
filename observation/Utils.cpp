@@ -5,9 +5,9 @@
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/date_time/posix_time/time_serialize.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/regex.hpp>
 #include <boost/serialization/vector.hpp>
 #include <macgyver/Astronomy.h>
+#include <macgyver/StringConversion.h>
 #include <macgyver/TypeName.h>
 #include <spine/Convenience.h>
 #include <spine/Exception.h>
@@ -203,7 +203,7 @@ std::string parseParameterName(const std::string& parameter)
     // Test appearance of the parameter between TRS_10MIN_DIF and TRS_10MIN_DIF_1
     std::string sensorNumber = name.substr(startpos + 1, length);
 
-    if (boost::regex_match(sensorNumber, boost::regex("^[0-9]+$")))
+    if (Fmi::looks_unsigned_int(sensorNumber))
       return name.substr(0, startpos);
 
     return name;
