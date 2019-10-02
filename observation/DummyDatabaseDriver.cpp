@@ -11,48 +11,40 @@ namespace Engine
 {
 namespace Observation
 {
-DummyDatabaseDriver::DummyDatabaseDriver() {}
-#ifdef __llvm__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
-
-void DummyDatabaseDriver::init(Engine *obsengine) {}
-
-// HeikkiP:: In my opinion, this leaks memory with multiple new operators. Shouldn't we use
-// make_shared and std::shared_ptr?
-boost::shared_ptr<Spine::Table> DummyDatabaseDriver::makeQuery(
-    Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter)
+void DummyDatabaseDriver::init(Engine *obsengine)
 {
-  return (boost::shared_ptr<Spine::Table>(new Spine::Table));
+  itsParameters->observationCache->initializeConnectionPool();
 }
 
 ts::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings &settings)
 {
-  return (ts::TimeSeriesVectorPtr(new ts::TimeSeriesVector));
+  return boost::make_shared<ts::TimeSeriesVector>();
 }
 
-ts::TimeSeriesVectorPtr DummyDatabaseDriver::values(
-    Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
+ts::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings &settings,
+                                                    const Spine::TimeSeriesGeneratorOptions &)
 {
-  return (ts::TimeSeriesVectorPtr(new ts::TimeSeriesVector));
+  return boost::make_shared<ts::TimeSeriesVector>();
 }
 
-FlashCounts DummyDatabaseDriver::getFlashCount(const boost::posix_time::ptime &starttime,
-                                               const boost::posix_time::ptime &endtime,
-                                               const Spine::TaggedLocationList &locations)
+boost::shared_ptr<Spine::Table> DummyDatabaseDriver::makeQuery(
+    Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &)
+{
+  return boost::make_shared<Spine::Table>();
+}
+
+FlashCounts DummyDatabaseDriver::getFlashCount(const boost::posix_time::ptime &,
+                                               const boost::posix_time::ptime &,
+                                               const Spine::TaggedLocationList &)
 {
   return FlashCounts();
 }
 
-boost::shared_ptr<std::vector<ObservableProperty> > DummyDatabaseDriver::observablePropertyQuery(
-    std::vector<std::string> &parameters, const std::string language)
+boost::shared_ptr<std::vector<ObservableProperty>> DummyDatabaseDriver::observablePropertyQuery(
+    std::vector<std::string> &, const std::string)
 {
-  return (boost::shared_ptr<std::vector<ObservableProperty> >(new std::vector<ObservableProperty>));
+  return boost::make_shared<std::vector<ObservableProperty>>();
 }
-#ifdef __llvm__
-#pragma clang diagnostic pop
-#endif
 
 }  // namespace Observation
 }  // namespace Engine

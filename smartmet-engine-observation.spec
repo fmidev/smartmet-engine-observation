@@ -89,6 +89,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Oct  2 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.10.2-1.fmi
+- Bugfix in dummy database driver to prevent segfault (BRAINSTORM-1381)
+
 * Thu Sep 26 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.9.26-1.fmi
 - Added support for ASAN & TSAN builds
 - Explicit initialization of POD types (ASAN)
