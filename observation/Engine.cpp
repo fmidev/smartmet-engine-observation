@@ -369,6 +369,12 @@ uint64_t Engine::getParameterId(const std::string &alias, const std::string &sta
   return itsEngineParameters->getParameterId(alias, stationType);
 }
 
+std::string Engine::getParameterIdAsString(const std::string &alias,
+                                           const std::string &stationType) const
+{
+  return itsEngineParameters->getParameterIdAsString(alias, stationType);
+}
+
 std::set<std::string> Engine::getValidStationTypes() const
 {
   try
