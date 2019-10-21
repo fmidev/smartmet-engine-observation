@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.10.10
+Version: 19.10.21
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,21 +15,21 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 19.9.26
+BuildRequires: smartmet-library-spine-devel >= 19.10.8
 BuildRequires: smartmet-engine-geonames-devel >= 19.9.26
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
-BuildRequires: smartmet-library-locus-devel >= 19.9.26
+BuildRequires: smartmet-library-locus-devel >= 19.8.28
 BuildRequires: smartmet-library-macgyver-devel >= 19.9.26
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 5.2.0
 Requires: fmt >= 5.2.0
 Requires: libconfig
-Requires: smartmet-server >= 19.9.26
+Requires: smartmet-server >= 19.10.1
 Requires: smartmet-engine-geonames >= 19.9.26
-Requires: smartmet-library-spine >= 19.9.26
-Requires: smartmet-library-locus >= 19.9.26
+Requires: smartmet-library-spine >= 19.10.8
+Requires: smartmet-library-locus >= 19.8.28
 Requires: smartmet-library-macgyver >= 19.9.26
 Requires: libatomic
 Requires: unixODBC
@@ -89,7 +89,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Thu Oct 10 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.10.0-1.fmi
+* Mon Oct 21 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.10.21-1.fmi
 - Added new function to get parameter id as string (related to INSPIRE-889)
 
 * Wed Oct  2 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.10.2-1.fmi
