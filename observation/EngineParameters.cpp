@@ -319,8 +319,8 @@ bool EngineParameters::isParameterVariant(const std::string &name) const
   }
 }
 
-uint64_t EngineParameters::getParameterId(const std::string &alias,
-                                          const std::string &stationType) const
+std::string EngineParameters::getParameterIdAsString(const std::string &alias,
+                                                     const std::string &stationType) const
 {
   try
   {
@@ -332,7 +332,7 @@ uint64_t EngineParameters::getParameterId(const std::string &alias,
         parameterMap->find(parameterAliasName);
 
     if (namePtr == parameterMap->end())
-      return 0;
+      return "";
 
     // Is the stationType configured inside configuration block of the alias.
     std::string stationTypeLowerCase = Fmi::ascii_tolower_copy(stationType);
@@ -340,13 +340,28 @@ uint64_t EngineParameters::getParameterId(const std::string &alias,
         namePtr->second.find(stationTypeLowerCase);
 
     if (stationTypeMapPtr == namePtr->second.end())
-      return 0;
+      return "";
+
+    return stationTypeMapPtr->second;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+uint64_t EngineParameters::getParameterId(const std::string &alias,
+                                          const std::string &stationType) const
+{
+  try
+  {
+    std::string idStr = getParameterIdAsString(alias, stationType);
 
     // Conversion from string to unsigned int.
     // There is possibility that the configured value is not an integer.
     try
     {
-      return Fmi::stoul(stationTypeMapPtr->second);
+      return Fmi::stoul(idStr);
     }
     catch (...)
     {

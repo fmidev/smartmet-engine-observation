@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.10.2
+Version: 19.10.10
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -89,6 +89,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Oct 10 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.10.0-1.fmi
+- Added new function to get parameter id as string (related to INSPIRE-889)
+
 * Wed Oct  2 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.10.2-1.fmi
 - Bugfix in dummy database driver to prevent segfault (BRAINSTORM-1381)
 

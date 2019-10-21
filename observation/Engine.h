@@ -83,6 +83,9 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   uint64_t getParameterId(const std::string &alias,
                           const std::string &stationType = "unknown") const;
 
+  std::string getParameterIdAsString(const std::string &alias,
+                                     const std::string &stationType = "unknown") const;
+
   std::set<std::string> getValidStationTypes() const;
 
   MetaData metaData(const std::string &producer) const;
