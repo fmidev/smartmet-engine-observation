@@ -158,20 +158,6 @@ clean:
 format:
 	clang-format -i -style=file $(SUBNAME)/*.h $(SUBNAME)/*.cpp
 
-debuginstall:
-	@mkdir -p $(includedir)/$(INCDIR)
-	@list='$(HDRS)'; \
-	for hdr in $$list; do \
-	  HDR=$$(basename $$hdr); \
-	  echo $(INSTALL_DATA) $$hdr $(includedir)/$(INCDIR)/$$HDR; \
-	  $(INSTALL_DATA) $$hdr $(includedir)/$(INCDIR)/$$HDR; \
-	done
-	@mkdir -p $(enginedir)
-	$(INSTALL_PROG) $(LIBFILE) $(enginedir)/$(LIBFILE)
-	@mkdir -p $(vardir)
-	if [[ ! -e $(vardir)/stations.txt ]]; then $(INSTALL_DATA) cnf/stations.txt $(vardir)/; fi
-	if [[ ! -e $(vardir)/stations.sqlite ]]; then $(INSTALL_DATA) cnf/stations.sqlite $(vardir)/; fi
-
 install:
 	@mkdir -p $(includedir)/$(INCDIR)
 	@list='$(HDRS)'; \
@@ -183,8 +169,8 @@ install:
 	mkdir -p $(enginedir)
 	$(INSTALL_PROG) $(LIBFILE) $(enginedir)/$(LIBFILE)
 	mkdir -p $(vardir)
-	$(INSTALL_DATA) cnf/stations.txt $(vardir)/
-	$(INSTALL_DATA) cnf/stations.sqlite $(vardir)/
+	if [[ ! -e $(vardir)/stations.txt ]]; then $(INSTALL_DATA) cnf/stations.txt $(vardir)/; fi
+	if [[ ! -e $(vardir)/stations.sqlite ]]; then $(INSTALL_DATA) cnf/stations.sqlite $(vardir)/; fi
 
 test:
 	@test -d test || echo "No test subdirectory, no tests defined"
