@@ -4112,6 +4112,8 @@ void SpatiaLite::append_weather_parameters(const Spine::Station& s,
         else
           timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, ts::None()));
       }
+	  else
+          timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, ts::None()));
     }
     else
     {
