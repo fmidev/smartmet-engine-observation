@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.10.21
+Version: 19.10.29
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -89,6 +89,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Oct 29 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.10.29-1.fmi
+- Fixed data_source handling when reading observations from the cache
+
 * Mon Oct 21 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.10.21-1.fmi
 - Added new function to get parameter id as string (related to INSPIRE-889)
 
