@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 * Wed Oct 30 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.10.30-1.fmi
 - Add spatial indexes at startup to cache database tables flash_data, ext_obsdata_netatmo, ext_obsdata_roadcloud (BRAINSTORM-1716)
 
+* Tue Oct 29 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.10.29-1.fmi
+- Fixed data_source handling when reading observations from the cache
+
 * Mon Oct 28 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.10.28-1.fmi
 - Add missing value for data_source-field when fetching data from cache (BRAINSTORM-1711)
 
