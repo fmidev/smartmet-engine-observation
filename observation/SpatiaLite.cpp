@@ -661,18 +661,17 @@ void SpatiaLite::createFlashDataTable()
     cmd.execute();
     xct.commit();
 
-    bool got_data = false;
     try
     {
       sqlite3pp::query qry(itsDB, "SELECT X(stroke_location) AS latitude FROM flash_data LIMIT 1");
-      got_data = qry.begin() != qry.end();
+	  qry.begin();
     }
     catch (const std::exception &e)
     {
       sqlite3pp::query qry(itsDB,
                            "SELECT AddGeometryColumn('flash_data', 'stroke_location', "
                            "4326, 'POINT', 'XY')");
-      got_data = qry.begin() != qry.end();
+      qry.begin();
     }
 
     // Check whether the spatial index exists already
@@ -685,10 +684,10 @@ void SpatiaLite::createFlashDataTable()
     if (iter != qry.end())
       (*iter).getter() >> spatial_index_enabled;
 
-    if (!got_data || spatial_index_enabled == 0)
+    if (spatial_index_enabled == 0)
     {
-      sqlite3pp::query qrydiscarded(itsDB,
-                                    "SELECT CreateSpatialIndex('flash_data', 'stroke_location')");
+	  std::cout << Spine::log_time_str() << " [SpatiaLite] Adding spatial index to flash_data table" << std::endl;
+	  itsDB.execute("SELECT CreateSpatialIndex('flash_data', 'stroke_location')");
     }
   }
   catch (...)
@@ -751,18 +750,17 @@ void SpatiaLite::createRoadCloudDataTable()
     cmd.execute();
     xct.commit();
 
-    bool got_data = false;
     try
     {
       sqlite3pp::query qry(itsDB, "SELECT X(geom) AS latitude FROM ext_obsdata_roadcloud LIMIT 1");
-      got_data = qry.begin() != qry.end();
+      qry.begin();
     }
     catch (const std::exception &e)
     {
       sqlite3pp::query qry(itsDB,
                            "SELECT AddGeometryColumn('ext_obsdata_roadcloud', 'geom', "
                            "4326, 'POINT', 'XY')");
-      got_data = qry.begin() != qry.end();
+      qry.begin();
       itsDB.execute("ALTER TABLE ext_obsdata ADD PRIMARY KEY (prod_id,mid,data_time, geom)");
     }
 
@@ -772,14 +770,15 @@ void SpatiaLite::createRoadCloudDataTable()
                          "WHERE f_table_name='ext_obsdata_roadcloud' AND f_geometry_column = "
                          "'geom'");
     int spatial_index_enabled = 0;
+
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter != qry.end())
       (*iter).getter() >> spatial_index_enabled;
 
-    if (!got_data || spatial_index_enabled == 0)
+    if (spatial_index_enabled == 0)
     {
-      sqlite3pp::query qrydiscarded(itsDB,
-                                    "SELECT CreateSpatialIndex('ext_obsdata_roadcloud', 'geom')");
+	  std::cout << Spine::log_time_str() << " [SpatiaLite] Adding spatial index to ext_obsdata_roadcloud table" << std::endl;
+	  itsDB.execute("SELECT CreateSpatialIndex('ext_obsdata_roadcloud', 'geom')");
     }
   }
   catch (...)
@@ -812,18 +811,17 @@ void SpatiaLite::createNetAtmoDataTable()
     cmd.execute();
     xct.commit();
 
-    bool got_data = false;
     try
     {
       sqlite3pp::query qry(itsDB, "SELECT X(geom) AS latitude FROM ext_obsdata_netatmo LIMIT 1");
-      got_data = qry.begin() != qry.end();
+      qry.begin();
     }
     catch (const std::exception &e)
     {
       sqlite3pp::query qry(itsDB,
                            "SELECT AddGeometryColumn('ext_obsdata_netatmo', 'geom', "
                            "4326, 'POINT', 'XY')");
-      got_data = qry.begin() != qry.end();
+      qry.begin();
       itsDB.execute(
           "ALTER TABLE ext_obsdata_netatmo ADD PRIMARY KEY (prod_id,mid,data_time, geom)");
     }
@@ -838,10 +836,10 @@ void SpatiaLite::createNetAtmoDataTable()
     if (iter != qry.end())
       (*iter).getter() >> spatial_index_enabled;
 
-    if (!got_data || spatial_index_enabled == 0)
+    if (spatial_index_enabled == 0)
     {
-      sqlite3pp::query qrydiscarded(itsDB,
-                                    "SELECT CreateSpatialIndex('ext_obsdata_netatmo', 'geom')");
+	  std::cout << Spine::log_time_str() << " [SpatiaLite] Adding spatial index to ext_obsdata_netatmo table" << std::endl;
+	  itsDB.execute("SELECT CreateSpatialIndex('ext_obsdata_netatmo', 'geom')");
     }
   }
   catch (...)
@@ -899,8 +897,8 @@ void SpatiaLite::createStationTable()
     if (qry.begin() == qry.end())
     {
       itsDB.execute("SELECT AddGeometryColumn('stations', 'the_geom', 4326, 'POINT', 'XY')");
-      std::cout << "Adding spatial index to stations table" << std::endl;
-      itsDB.execute("SELECT CreateSpatialIndex('stations','the_geom')");
+      std::cout << Spine::log_time_str() << " [SpatiaLite] Adding spatial index to stations table" << std::endl;
+	  itsDB.execute("SELECT CreateSpatialIndex('stations','the_geom')");
     }
   }
   catch (...)

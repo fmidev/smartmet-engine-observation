@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.10.29
+Version: 19.10.30
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -89,6 +89,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Oct 30 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.10.30-1.fmi
+- Add spatial indexes at startup to cache database tables flash_data, ext_obsdata_netatmo, ext_obsdata_roadcloud (BRAINSTORM-1716)
+
 * Tue Oct 29 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.10.29-1.fmi
 - Fixed data_source handling when reading observations from the cache
 
