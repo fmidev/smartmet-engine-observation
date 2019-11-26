@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.10.30
+Version: 19.11.20
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,11 +15,11 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 19.10.8
-BuildRequires: smartmet-engine-geonames-devel >= 19.9.26
+BuildRequires: smartmet-library-spine-devel >= 19.11.20
+BuildRequires: smartmet-engine-geonames-devel >= 19.11.14
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
-BuildRequires: smartmet-library-locus-devel >= 19.8.28
+BuildRequires: smartmet-library-locus-devel >= 19.9.26
 BuildRequires: smartmet-library-macgyver-devel >= 19.9.26
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
@@ -27,9 +27,9 @@ BuildRequires: fmt-devel >= 5.2.0
 Requires: fmt >= 5.2.0
 Requires: libconfig
 Requires: smartmet-server >= 19.10.1
-Requires: smartmet-engine-geonames >= 19.9.26
-Requires: smartmet-library-spine >= 19.10.8
-Requires: smartmet-library-locus >= 19.8.28
+Requires: smartmet-engine-geonames >= 19.11.14
+Requires: smartmet-library-spine >= 19.11.20
+Requires: smartmet-library-locus >= 19.9.26
 Requires: smartmet-library-macgyver >= 19.9.26
 Requires: libatomic
 Requires: unixODBC
@@ -89,8 +89,17 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Nov 20 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.11.20-1.fmi
+- Rebuilt since Spine::Parameter size changed
+
+* Thu Oct 31 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.10.31-1.fmi
+- Rebuilt due to newbase API/ABI changes
+
 * Wed Oct 30 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.10.30-1.fmi
 - Add spatial indexes at startup to cache database tables flash_data, ext_obsdata_netatmo, ext_obsdata_roadcloud (BRAINSTORM-1716)
+
+* Tue Oct 29 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.10.29-1.fmi
+- Fixed data_source handling when reading observations from the cache
 
 * Mon Oct 28 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.10.28-1.fmi
 - Add missing value for data_source-field when fetching data from cache (BRAINSTORM-1711)
