@@ -66,7 +66,18 @@ Spine::Stations findNearestStations(const StationInfo &info,
                                endtime);
 
   std::vector<int> fmisids{*(location->fmisid)};
-  return info.findFmisidStations(fmisids, starttime, endtime);
+
+  Spine::Stations ret = info.findFmisidStations(fmisids, starttime, endtime);
+
+  int number_of_stations = ret.size();
+  for (int i = number_of_stations - 1; i >= 0; i--)
+  {
+    // If station does not belong to the right group, remove it
+    if (stationgroup_codes.find(ret.at(i).station_type) == stationgroup_codes.end())
+      ret.erase(ret.begin() + i);
+  }
+
+  return ret;
 }
 
 }  // namespace
@@ -332,7 +343,9 @@ Spine::Stations SpatiaLiteCache::getStationsFromSpatiaLite(
         if (!newStations.empty())
         {
           for (const Spine::Station &newStation : newStations)
+          {
             stations.push_back(newStation);
+          }
 
           itsLocationCache.insert(locationCacheKey, newStations);
         }
