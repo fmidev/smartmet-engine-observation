@@ -254,23 +254,38 @@ LocationDataItems read_observations(const Spine::Stations &stations,
         "SELECT data.fmisid AS fmisid, data.data_time AS obstime, "
         "loc.latitude, loc.longitude, loc.elevation, "
         "measurand_id, data_value, data_source "
-        "FROM observation_data data JOIN locations loc ON (data.fmisid = "
-        "loc.fmisid) "
-        "WHERE data.fmisid IN (" +
-        qstations +
-        ") "
-        "AND data.data_time >= '" +
-        Fmi::to_iso_extended_string(settings.starttime) + "' AND data.data_time <= '" +
-        Fmi::to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" +
-        measurand_ids +
-        ") "
-        "AND data.measurand_no = 1 "
-        "AND data.data_quality <= 5 "
-        "GROUP BY data.fmisid, data.data_time, data.measurand_id, "
-        "loc.location_id, "
-        "loc.location_end, "
-        "loc.latitude, loc.longitude, loc.elevation, data.data_value, data.data_source "
-        "ORDER BY fmisid ASC, obstime ASC";
+        "FROM observation_data data, group_members gm, station_groups sg JOIN locations loc ON "
+        "(data.fmisid = loc.fmisid) "
+        "WHERE data.fmisid=gm.fmisid AND gm.group_id=sg.group_id";
+
+    // Add condition for station groups
+    if (!settings.stationgroup_codes.empty())
+    {
+      std::string group_code_condition = " AND (";
+      for (auto group_code : settings.stationgroup_codes)
+      {
+        if (group_code_condition != " AND (")
+          group_code_condition += " OR ";
+        group_code_condition += ("sg.group_code ='" + group_code + "'");
+      }
+      group_code_condition += ")";
+      sql += group_code_condition;
+    }
+
+    sql += " AND data.fmisid IN (" + qstations +
+           ") "
+           "AND data.data_time >= '" +
+           Fmi::to_iso_extended_string(settings.starttime) + "' AND data.data_time <= '" +
+           Fmi::to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" +
+           measurand_ids +
+           ") "
+           "AND data.measurand_no = 1 "
+           "AND data.data_quality <= 5 "
+           "GROUP BY data.fmisid, data.data_time, data.measurand_id, "
+           "loc.location_id, "
+           "loc.location_end, "
+           "loc.latitude, loc.longitude, loc.elevation, data.data_value, data.data_source "
+           "ORDER BY fmisid ASC, obstime ASC";
 
     sqlite3pp::query qry(db, sql.c_str());
 
