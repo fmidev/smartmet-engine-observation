@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.11.26
+Version: 19.12.16
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,22 +15,22 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 19.11.20
-BuildRequires: smartmet-engine-geonames-devel >= 19.11.14
+BuildRequires: smartmet-library-spine-devel >= 19.12.4
+BuildRequires: smartmet-engine-geonames-devel >= 19.12.5
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
-BuildRequires: smartmet-library-locus-devel >= 19.9.26
-BuildRequires: smartmet-library-macgyver-devel >= 19.9.26
+BuildRequires: smartmet-library-locus-devel >= 19.12.4
+BuildRequires: smartmet-library-macgyver-devel >= 19.12.4
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 5.2.0
 Requires: fmt >= 5.2.0
 Requires: libconfig
 Requires: smartmet-server >= 19.10.1
-Requires: smartmet-engine-geonames >= 19.11.14
-Requires: smartmet-library-spine >= 19.11.20
-Requires: smartmet-library-locus >= 19.9.26
-Requires: smartmet-library-macgyver >= 19.9.26
+Requires: smartmet-engine-geonames >= 19.12.5
+Requires: smartmet-library-spine >= 19.12.4
+Requires: smartmet-library-locus >= 19.12.4
+Requires: smartmet-library-macgyver >= 19.12.4
 Requires: libatomic
 Requires: unixODBC
 Requires: libspatialite >= 4.3.0a
@@ -89,6 +89,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Dec 16 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.12.16-1.fmi
+- Reordered spatialite cache columns for efficiency - group primary key columns together
+- Add modified_last index to newly created observation_data caches
+
 * Tue Nov 26 2019  Anssi Reponen <anssi.reponen@fmi.fi> - 19.11.26-1.fmi
 - Station group must be checked when reading stations/observations from cache (BRAINSTORM-1722)
 

@@ -543,22 +543,25 @@ void SpatiaLite::createObservationDataTable()
 {
   try
   {
+    // Note: group primary keys together for best efficiency. In particular, placing
+    // modified_last right after data_time was observed to increase latency 5-10 fold.
+
     // clang-format off
     itsDB.execute(
         "CREATE TABLE IF NOT EXISTS observation_data("
         "fmisid INTEGER NOT NULL, "
         "data_time DATETIME NOT NULL, "
-        "modified_last DATETIME NOT NULL, "
         "measurand_id INTEGER NOT NULL,"
         "producer_id INTEGER NOT NULL,"
         "measurand_no INTEGER NOT NULL,"
         "data_value REAL, "
         "data_quality INTEGER, "
         "data_source INTEGER, "
+        "modified_last DATETIME NOT NULL, "
         "PRIMARY KEY (data_time, fmisid, measurand_id, producer_id, measurand_no))");
 
     itsDB.execute("CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON observation_data(data_time)");
-
+    itsDB.execute("CREATE INDEX IF NOT EXISTS observation_data_modified_last_idx ON observation_data(modified_last)");
   }
   catch (...)
   {
