@@ -623,20 +623,17 @@ void SpatiaLite::createWeatherDataQCTable()
   try
   {
     // No locking needed during initialization phase
-    sqlite3pp::transaction xct(itsDB);
-    sqlite3pp::command cmd(itsDB,
-                           "CREATE TABLE IF NOT EXISTS weather_data_qc ("
-                           "fmisid INTEGER NOT NULL, "
-                           "obstime DATETIME NOT NULL, "
-                           "parameter TEXT NOT NULL, "
-                           "sensor_no INTEGER NOT NULL, "
-                           "value REAL NOT NULL, "
-                           "flag INTEGER NOT NULL, "
-                           "PRIMARY KEY (obstime, fmisid, parameter, sensor_no)); CREATE INDEX IF "
-                           "NOT EXISTS weather_data_qc_obstime_idx ON "
-                           "weather_data_qc(obstime);");
-    cmd.execute();
-    xct.commit();
+    itsDB.execute("CREATE TABLE IF NOT EXISTS weather_data_qc ("
+                  "fmisid INTEGER NOT NULL, "
+                  "obstime DATETIME NOT NULL, "
+                  "parameter TEXT NOT NULL, "
+                  "sensor_no INTEGER NOT NULL, "
+                  "value REAL NOT NULL, "
+                  "flag INTEGER NOT NULL, "
+                  "PRIMARY KEY (obstime, fmisid, parameter, sensor_no)); CREATE INDEX IF "
+                  "NOT EXISTS weather_data_qc_obstime_idx ON "
+                  "weather_data_qc(obstime);");
+    itsDB.execute("CREATE INDEX IF NOT EXISTS weather_data_qc_obstime_idx ON weather_data_qc (obstime);");
   }
   catch (...)
   {
@@ -648,36 +645,33 @@ void SpatiaLite::createFlashDataTable()
 {
   try
   {
-    sqlite3pp::transaction xct(itsDB);
-    sqlite3pp::command cmd(itsDB,
-                           "CREATE TABLE IF NOT EXISTS flash_data("
-                           "stroke_time DATETIME NOT NULL, "
-                           "stroke_time_fraction INTEGER NOT NULL, "
-                           "flash_id INTEGER NOT NULL, "
-                           "multiplicity INTEGER NOT NULL, "
-                           "peak_current INTEGER NOT NULL, "
-                           "sensors INTEGER NOT NULL, "
-                           "freedom_degree INTEGER NOT NULL, "
-                           "ellipse_angle REAL NOT NULL, "
-                           "ellipse_major REAL NOT NULL, "
-                           "ellipse_minor REAL NOT NULL, "
-                           "chi_square REAL NOT NULL, "
-                           "rise_time REAL NOT NULL, "
-                           "ptz_time REAL NOT NULL, "
-                           "cloud_indicator INTEGER NOT NULL, "
-                           "angle_indicator INTEGER NOT NULL, "
-                           "signal_indicator INTEGER NOT NULL, "
-                           "timing_indicator INTEGER NOT NULL, "
-                           "stroke_status INTEGER NOT NULL, "
-                           "data_source INTEGER, "
-                           "created  DATETIME, "
-                           "modified_last DATETIME, "
-                           "modified_by INTEGER, "
-                           "PRIMARY KEY (stroke_time, stroke_time_fraction, flash_id)); CREATE "
-                           "INDEX IF NOT EXISTS flash_data_stroke_time_idx ON "
-                           "flash_data(stroke_time)");
-    cmd.execute();
-    xct.commit();
+    itsDB.execute("CREATE TABLE IF NOT EXISTS flash_data("
+                  "stroke_time DATETIME NOT NULL, "
+                  "stroke_time_fraction INTEGER NOT NULL, "
+                  "flash_id INTEGER NOT NULL, "
+                  "multiplicity INTEGER NOT NULL, "
+                  "peak_current INTEGER NOT NULL, "
+                  "sensors INTEGER NOT NULL, "
+                  "freedom_degree INTEGER NOT NULL, "
+                  "ellipse_angle REAL NOT NULL, "
+                  "ellipse_major REAL NOT NULL, "
+                  "ellipse_minor REAL NOT NULL, "
+                  "chi_square REAL NOT NULL, "
+                  "rise_time REAL NOT NULL, "
+                  "ptz_time REAL NOT NULL, "
+                  "cloud_indicator INTEGER NOT NULL, "
+                  "angle_indicator INTEGER NOT NULL, "
+                  "signal_indicator INTEGER NOT NULL, "
+                  "timing_indicator INTEGER NOT NULL, "
+                  "stroke_status INTEGER NOT NULL, "
+                  "data_source INTEGER, "
+                  "created  DATETIME, "
+                  "modified_last DATETIME, "
+                  "modified_by INTEGER, "
+                  "PRIMARY KEY (stroke_time, stroke_time_fraction, flash_id)); CREATE "
+                  "INDEX IF NOT EXISTS flash_data_stroke_time_idx ON "
+                  "flash_data(stroke_time)");
+    itsDB.execute("CREATE INDEX IF NOT EXISTS flash_data_stroke_time_idx on flash_data(stroke_time);");
 
     try
     {
