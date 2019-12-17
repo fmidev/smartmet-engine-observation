@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.12.16
+Version: 19.12.17
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -89,6 +89,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Dec 17 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.12.17-1.fmi
+- Added default value for modified_last field when cache is created from scratch
+
 * Mon Dec 16 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.12.16-1.fmi
 - Reordered spatialite cache columns for efficiency - group primary key columns together
 - Add modified_last index to newly created observation_data caches
