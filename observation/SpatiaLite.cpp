@@ -506,6 +506,8 @@ void SpatiaLite::createStationGroupsTable()
         "CREATE TABLE IF NOT EXISTS station_groups ("
         "group_id INTEGER NOT NULL PRIMARY KEY, "
         "group_code TEXT)");
+    itsDB.execute(
+        "CREATE INDEX IF NOT EXISTS station_groups_group_code_idx ON station_groups(group_code)");
   }
   catch (...)
   {
@@ -518,20 +520,15 @@ void SpatiaLite::createGroupMembersTable()
   try
   {
     // No locking needed during initialization phase
-    sqlite3pp::transaction xct(itsDB);
-    sqlite3pp::command cmd(
-        itsDB,
+    itsDB.execute(
         "CREATE TABLE IF NOT EXISTS group_members ("
         "group_id INTEGER NOT NULL, "
         "fmisid INTEGER NOT NULL, "
-        "CONSTRAINT fk_station_groups FOREIGN KEY (group_id) "
-        "REFERENCES station_groups "
-        "(group_id), "
-        "CONSTRAINT fk_stations FOREIGN KEY (fmisid) REFERENCES "
-        "stations (fmisid)); CREATE INDEX IF NOT EXISTS gm_sg_idx ON group_members "
-        "(group_id,fmisid);");
-    cmd.execute();
-    xct.commit();
+        "CONSTRAINT fk_station_groups FOREIGN KEY (group_id) REFERENCES station_groups(group_id), "
+        "CONSTRAINT fk_stations FOREIGN KEY (fmisid) REFERENCES stations (fmisid));");
+    // This was added afterwards. Should have had primary keys from the start
+    itsDB.execute(
+        "CREATE INDEX IF NOT EXISTS group_members_idx ON group_members(group_id,fmisid);");
   }
   catch (...)
   {

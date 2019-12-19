@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.12.17
-Release: 2%{?dist}.fmi
+Version: 19.12.19
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -89,6 +89,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Dec 19 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.12.19-1.fmi
+- Added indexes to station_groups and group_members
+
 * Tue Dec 17 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.12.17-2.fmi
 - Add separate observation time indexes to weather_data_qc and flash_data tables for extra speed
 
