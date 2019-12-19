@@ -209,6 +209,7 @@ class SpatiaLite : private boost::noncopyable
       const SmartMet::Spine::Stations &stations,
       const Settings &settings,
       const ParameterMapPtr &parameterMap,
+      const StationInfo &stationInfo,
       const Fmi::TimeZones &timezones);
 
   /**
@@ -300,6 +301,7 @@ class SpatiaLite : private boost::noncopyable
       const SmartMet::Spine::Stations &stations,
       const Settings &settings,
       const ParameterMapPtr &parameterMap,
+      const StationInfo &stationInfo,
       const Fmi::TimeZones &timezones);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedFlashData(
@@ -311,6 +313,7 @@ class SpatiaLite : private boost::noncopyable
       const SmartMet::Spine::Stations &stations,
       const Settings &settings,
       const ParameterMapPtr &parameterMap,
+      const StationInfo &stationInfo,
       const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
 
@@ -318,6 +321,7 @@ class SpatiaLite : private boost::noncopyable
       const SmartMet::Spine::Stations &stations,
       const Settings &settings,
       const ParameterMapPtr &parameterMap,
+      const StationInfo &stationInfo,
       const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
 

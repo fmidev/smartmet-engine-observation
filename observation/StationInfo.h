@@ -81,6 +81,8 @@ class StationInfo
 
   const Spine::Station& getStation(unsigned int fmisid, const std::set<std::string>& groups) const;
 
+  bool belongsToGroup(unsigned int fmisid, const std::set<std::string>& groups) const;
+
  private:
   void update() const;
 

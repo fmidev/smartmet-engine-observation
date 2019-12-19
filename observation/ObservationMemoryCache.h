@@ -4,12 +4,10 @@
 #include "LocationDataItem.h"
 #include "ParameterMap.h"
 #include "Settings.h"
-
 #include <macgyver/TimeZones.h>
 #include <spine/Station.h>
 #include <spine/TimeSeries.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
-
 #include <map>
 #include <unordered_set>
 
@@ -21,6 +19,7 @@ namespace Observation
 {
 struct ObservableProperty;
 struct QueryMapping;
+class StationInfo;
 
 class ObservationMemoryCache
 {
@@ -57,6 +56,7 @@ class ObservationMemoryCache
 
   LocationDataItems read_observations(const Spine::Stations &stations,
                                       const Settings &settings,
+                                      const StationInfo &stationInfo,
                                       const QueryMapping &qmap) const;
 
  private:

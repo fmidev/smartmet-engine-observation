@@ -185,13 +185,16 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = spatialitedb->getCachedWeatherDataQCData(
-            stations, settings, itsParameters.parameterMap, itsTimeZones);
+        ret = spatialitedb->getCachedWeatherDataQCData(stations,
+                                                       settings,
+                                                       itsParameters.parameterMap,
+                                                       *itsParameters.stationInfo,
+                                                       itsTimeZones);
         return ret;
       }
 
-      ret =
-          spatialitedb->getCachedData(stations, settings, itsParameters.parameterMap, itsTimeZones);
+      ret = spatialitedb->getCachedData(
+          stations, settings, itsParameters.parameterMap, *itsParameters.stationInfo, itsTimeZones);
     }
 
     return ret;
@@ -231,13 +234,21 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = spatialitedb->getCachedWeatherDataQCData(
-            stations, settings, itsParameters.parameterMap, timeSeriesOptions, itsTimeZones);
+        ret = spatialitedb->getCachedWeatherDataQCData(stations,
+                                                       settings,
+                                                       itsParameters.parameterMap,
+                                                       *itsParameters.stationInfo,
+                                                       timeSeriesOptions,
+                                                       itsTimeZones);
       }
       else
       {
-        ret = spatialitedb->getCachedData(
-            stations, settings, itsParameters.parameterMap, timeSeriesOptions, itsTimeZones);
+        ret = spatialitedb->getCachedData(stations,
+                                          settings,
+                                          itsParameters.parameterMap,
+                                          *itsParameters.stationInfo,
+                                          timeSeriesOptions,
+                                          itsTimeZones);
       }
     }
 

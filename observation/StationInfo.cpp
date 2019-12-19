@@ -468,6 +468,35 @@ const Spine::Station& StationInfo::getStation(unsigned int fmisid,
 
 // ----------------------------------------------------------------------
 /*!
+ * \brief Return true if the given station is known and belongs to at least one of the given groups
+ */
+// ----------------------------------------------------------------------
+
+bool StationInfo::belongsToGroup(unsigned int fmisid, const std::set<std::string>& groups) const
+{
+  // Check if the station is known
+  const auto pos = fmisidstations.find(fmisid);
+  if (pos == fmisidstations.end())
+    return false;
+
+  // Empty group setting means any group will do
+  if (groups.empty())
+    return true;
+
+  // Require at least one group match
+  const auto& ids = pos->second;
+  for (const auto id : ids)
+  {
+    const auto& station = stations.at(id);
+    if (groups.find(station.station_type) != groups.end())
+      return true;
+  }
+
+  return false;
+}
+
+// ----------------------------------------------------------------------
+/*!
  * \brief Search for stations inside the given bounding box
  */
 // ----------------------------------------------------------------------

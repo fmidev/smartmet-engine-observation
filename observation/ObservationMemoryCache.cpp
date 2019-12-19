@@ -1,7 +1,6 @@
 #include "ObservationMemoryCache.h"
-
 #include "QueryMapping.h"
-
+#include "StationInfo.h"
 #include <boost/atomic.hpp>
 #include <boost/make_shared.hpp>
 #include <spine/Exception.h>
@@ -238,6 +237,7 @@ void ObservationMemoryCache::clean(const boost::posix_time::ptime& newstarttime)
 
 LocationDataItems ObservationMemoryCache::read_observations(const Spine::Stations& stations,
                                                             const Settings& settings,
+                                                            const StationInfo& stationInfo,
                                                             const QueryMapping& qmap) const
 {
   LocationDataItems ret;
@@ -254,6 +254,10 @@ LocationDataItems ObservationMemoryCache::read_observations(const Spine::Station
 
   for (const auto& station : stations)
   {
+    // Accept station only if group condition is satisfied
+    if (!stationInfo.belongsToGroup(station.fmisid, settings.stationgroup_codes))
+      continue;
+
     // Find station specific data
     const auto& pos = cache->find(station.fmisid);
     if (pos == cache->end())

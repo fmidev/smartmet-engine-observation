@@ -142,11 +142,16 @@ StationMap map_query_stations(const Spine::Stations &stations)
 }
 
 // build fmisid1,fmisid2,... list
-std::string build_sql_stationlist(const Spine::Stations &stations)
+std::string build_sql_stationlist(const Spine::Stations &stations,
+                                  const Settings &settings,
+                                  const StationInfo &stationInfo)
 {
   std::string ret;
   for (const Spine::Station &s : stations)
-    ret += Fmi::to_string(s.station_id) + ",";
+  {
+    if (stationInfo.belongsToGroup(s.station_id, settings.stationgroup_codes))
+      ret += Fmi::to_string(s.station_id) + ",";
+  }
   ret = ret.substr(0, ret.length() - 1);
   return ret;
 }
@@ -232,6 +237,7 @@ QueryMapping build_query_mapping(const Spine::Stations &stations,
 
 LocationDataItems read_observations(const Spine::Stations &stations,
                                     const Settings &settings,
+                                    const StationInfo &stationInfo,
                                     const QueryMapping &qmap,
                                     sqlite3pp::database &db)
 {
@@ -248,44 +254,31 @@ LocationDataItems read_observations(const Spine::Stations &stations,
       measurand_ids += Fmi::to_string(id) + ",";
     measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
 
-    auto qstations = build_sql_stationlist(stations);
+    auto qstations = build_sql_stationlist(stations, settings, stationInfo);
+    if (qstations.empty())
+      return ret;
 
     std::string sql =
         "SELECT data.fmisid AS fmisid, data.data_time AS obstime, "
         "loc.latitude, loc.longitude, loc.elevation, "
         "measurand_id, data_value, data_source "
-        "FROM observation_data data, group_members gm, station_groups sg JOIN locations loc ON "
+        "FROM observation_data data JOIN locations loc ON "
         "(data.fmisid = loc.fmisid) "
-        "WHERE data.fmisid=gm.fmisid AND gm.group_id=sg.group_id";
-
-    // Add condition for station groups
-    if (!settings.stationgroup_codes.empty())
-    {
-      std::string group_code_condition = " AND (";
-      for (auto group_code : settings.stationgroup_codes)
-      {
-        if (group_code_condition != " AND (")
-          group_code_condition += " OR ";
-        group_code_condition += ("sg.group_code ='" + group_code + "'");
-      }
-      group_code_condition += ")";
-      sql += group_code_condition;
-    }
-
-    sql += " AND data.fmisid IN (" + qstations +
-           ") "
-           "AND data.data_time >= '" +
-           Fmi::to_iso_extended_string(settings.starttime) + "' AND data.data_time <= '" +
-           Fmi::to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" +
-           measurand_ids +
-           ") "
-           "AND data.measurand_no = 1 "
-           "AND data.data_quality <= 5 "
-           "GROUP BY data.fmisid, data.data_time, data.measurand_id, "
-           "loc.location_id, "
-           "loc.location_end, "
-           "loc.latitude, loc.longitude, loc.elevation, data.data_value, data.data_source "
-           "ORDER BY fmisid ASC, obstime ASC";
+        "WHERE data.fmisid IN (" +
+        qstations +
+        ") "
+        "AND data.data_time >= '" +
+        Fmi::to_iso_extended_string(settings.starttime) + "' AND data.data_time <= '" +
+        Fmi::to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" +
+        measurand_ids +
+        ") "
+        "AND data.measurand_no = 1 "
+        "AND data.data_quality <= 5 "
+        "GROUP BY data.fmisid, data.data_time, data.measurand_id, "
+        "loc.location_id, "
+        "loc.location_end, "
+        "loc.latitude, loc.longitude, loc.elevation, data.data_value, data.data_source "
+        "ORDER BY fmisid ASC, obstime ASC";
 
     sqlite3pp::query qry(db, sql.c_str());
 
@@ -2384,6 +2377,7 @@ Spine::Stations SpatiaLite::findNearestStations(double latitude,
       try
       {
         fmisid = row.get<int>(0);
+
         // Round distances to 100 meter precision
         distance = fmt::format("{:.1f}", Fmi::stod(row.get<string>(1)));
         wmo = row.get<int>(2);
@@ -2438,6 +2432,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     const Spine::Stations &stations,
     const Settings &settings,
     const ParameterMapPtr &parameterMap,
+    const StationInfo & stationInfo,
     const Fmi::TimeZones &timezones)
 {
   Spine::TimeSeriesGeneratorOptions opt;
@@ -2447,13 +2442,14 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
   opt.startTimeUTC = false;
   opt.endTimeUTC = false;
 
-  return getCachedWeatherDataQCData(stations, settings, parameterMap, opt, timezones);
+  return getCachedWeatherDataQCData(stations, settings, parameterMap, stationInfo, opt, timezones);
 }
 
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     const Spine::Stations &stations,
     const Settings &settings,
     const ParameterMapPtr &parameterMap,
+    const StationInfo & stationInfo,
     const Fmi::TimeZones &timezones)
 {
   Spine::TimeSeriesGeneratorOptions opt;
@@ -2463,7 +2459,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
   opt.startTimeUTC = false;
   opt.endTimeUTC = false;
 
-  return getCachedData(stations, settings, parameterMap, opt, timezones);
+  return getCachedData(stations, settings, parameterMap, stationInfo, opt, timezones);
 }
 
 void SpatiaLite::addEmptyValuesToTimeSeries(
@@ -3425,6 +3421,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     const Spine::Stations &stations,
     const Settings &settings,
     const ParameterMapPtr &parameterMap,
+    const StationInfo & stationInfo,
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
@@ -3436,8 +3433,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
     map<int, Spine::Station> fmisid_to_station;
     for (const Spine::Station &s : stations)
     {
-      fmisid_to_station.insert(std::make_pair(s.station_id, s));
-      qstations += Fmi::to_string(s.station_id) + ",";
+      if(stationInfo.belongsToGroup(s.fmisid, settings.stationgroup_codes))
+      {
+        fmisid_to_station.insert(std::make_pair(s.station_id, s));
+        qstations += Fmi::to_string(s.station_id) + ",";
+      }
     }
     qstations = qstations.substr(0, qstations.length() - 1);
 
@@ -3696,6 +3696,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
     const Spine::Stations &stations,
     const Settings &settings,
     const ParameterMapPtr &parameterMap,
+    const StationInfo & stationInfo,
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
@@ -3715,18 +3716,16 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
 
     LocationDataItems observations;
 
-
-    
     if(!itsObservationMemoryCache)
-      observations = read_observations(stations,settings,qmap, itsDB);
+      observations = read_observations(stations, settings, stationInfo, qmap, itsDB);
     else
     {
       auto cache_start_time = itsObservationMemoryCache->getStartTime();
 
       if(!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime)
-        observations = itsObservationMemoryCache->read_observations(stations,settings,qmap);
+        observations = itsObservationMemoryCache->read_observations(stations,settings,stationInfo,qmap);
       else
-        observations = read_observations(stations,settings,qmap, itsDB);
+        observations = read_observations(stations,settings, stationInfo, qmap, itsDB);
     }
     
     ObservationsMap obsmap = map_observations(observations,
