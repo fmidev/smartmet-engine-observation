@@ -102,8 +102,6 @@ else
 endif
 
 LIBS = -L$(libdir) \
-        -lmysqlpp \
-        -L$(libdir)/mysql -lmysqlclient_r -lz \
         -lsmartmet-spine \
         -lsmartmet-macgyver \
         -lsmartmet-locus \
