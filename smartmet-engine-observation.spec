@@ -24,6 +24,7 @@ BuildRequires: smartmet-library-macgyver-devel >= 19.12.4
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 5.2.0
+BuildRequires: gdal-devel
 Requires: fmt >= 5.2.0
 Requires: libconfig
 Requires: smartmet-server >= 19.10.1
@@ -41,6 +42,7 @@ Requires: boost-locale
 Requires: boost-serialization
 Requires: boost-system
 Requires: boost-thread
+Requires: gdal
 Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: make
