@@ -36,6 +36,7 @@ DEFINES = -DUNIX -D_REENTRANT
 
 -include $(HOME)/.smartmet.mk
 GCC_DIAG_COLOR ?= always
+CXX_STD ?= c++11
 
 
 ifeq ($(CXX), clang++)
@@ -43,7 +44,7 @@ ifeq ($(CXX), clang++)
  # TODO: Should remove -Wno-sign-conversion, FlashTools.cpp warns a lot
 
  FLAGS = \
-	-std=c++11 -fPIC -MD \
+	-std=$(CXX_STD) -fPIC -MD \
 	-Weverything \
 	-Wno-c++98-compat \
 	-Wno-float-equal \
@@ -60,7 +61,7 @@ ifeq ($(CXX), clang++)
 
 else
 
- FLAGS = -std=c++11 -fPIC -MD -Wall -W -Wno-unused-parameter -fno-omit-frame-pointer -Wno-unknown-pragmas -fdiagnostics-color=$(GCC_DIAG_COLOR)
+ FLAGS = -std=$(CXX_STD) -fPIC -MD -Wall -W -Wno-unused-parameter -fno-omit-frame-pointer -Wno-unknown-pragmas -fdiagnostics-color=$(GCC_DIAG_COLOR)
 
  FLAGS_DEBUG = \
 	-Wcast-align \
