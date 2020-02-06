@@ -523,7 +523,7 @@ boost::posix_time::ptime PostgreSQL::getTime(const std::string &timeQuery) const
         ret = boost::posix_time::from_time_t(seconds);
         double fractions = (value - floor(value));
         if (fractions > 0.0)
-          ret += milliseconds(fractions * 1000);
+          ret += milliseconds(static_cast<int64_t>(fractions * 1000));
       }
     }
     return ret;
