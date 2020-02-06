@@ -25,6 +25,7 @@ BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 5.2.0
 BuildRequires: gdal-devel
+BuildRequires: zlib-devel
 Requires: fmt >= 5.2.0
 Requires: libconfig
 Requires: smartmet-server >= 19.10.1
