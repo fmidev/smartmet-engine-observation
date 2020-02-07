@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 19.12.19
-Release: 2%{?dist}.fmi
+Version: 20.2.7
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -15,12 +15,12 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 19.12.4
+BuildRequires: smartmet-library-spine-devel >= 20.2.7
 BuildRequires: smartmet-engine-geonames-devel >= 19.12.5
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: smartmet-library-locus-devel >= 19.12.4
-BuildRequires: smartmet-library-macgyver-devel >= 19.12.4
+BuildRequires: smartmet-library-macgyver-devel >= 20.2.5
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 5.2.0
@@ -28,11 +28,11 @@ BuildRequires: gdal-devel
 BuildRequires: zlib-devel
 Requires: fmt >= 5.2.0
 Requires: libconfig
-Requires: smartmet-server >= 19.10.1
+Requires: smartmet-server >= 20.1.15
 Requires: smartmet-engine-geonames >= 19.12.5
-Requires: smartmet-library-spine >= 19.12.4
+Requires: smartmet-library-spine >= 20.2.7
 Requires: smartmet-library-locus >= 19.12.4
-Requires: smartmet-library-macgyver >= 19.12.4
+Requires: smartmet-library-macgyver >= 20.2.5
 Requires: libatomic
 Requires: unixODBC
 Requires: libspatialite >= 4.3.0a
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Feb  7 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.2.7-1.fmi
+- Spine::Station API changed to use default construction
+
 * Thu Dec 19 2019 Mika Heiskanen <mika.heiskanen@fmi.fi> - 19.12.19-2.fmi
 - Preprocess station groups using StationInfo instead of using station_groups etc tables
 
