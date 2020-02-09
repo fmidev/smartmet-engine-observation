@@ -2137,7 +2137,10 @@ void SpatiaLite::updateStations(const Spine::Stations &stations)
                   << "' timezone missing : station discarded" << std::endl;
         continue;
       }
-      
+
+      std::string s_wmo = (station.wmo <= 0 ? std::string("NULL") : fmt::format("{}",station.wmo));
+      std::string s_lpnn = (station.lpnn <= 0 ? std::string("NULL") : fmt::format("{}",station.lpnn));
+
       auto sql = fmt::format(
           "INSERT OR REPLACE INTO stations (fmisid, geoid, wmo, lpnn, station_formal_name, "
           "station_start, station_end, the_geom) VALUES "
@@ -2145,8 +2148,8 @@ void SpatiaLite::updateStations(const Spine::Stations &stations)
           "10f} {:.10f})', {}))",
           station.fmisid,
           station.geoid,
-          station.wmo,
-          station.lpnn,
+          s_wmo,
+          s_lpnn,
           station.longitude_out,
           station.latitude_out,
           srid);
