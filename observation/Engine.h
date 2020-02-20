@@ -54,7 +54,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
 
   /* \brief Test if the given alias name is configured and it has a field for
    * the stationType.
-   * \param[in] alias Alias name of a meteorologal parameter.
+   * \param[in] alias Alias name of a meteorological parameter.
    * \param[in] stationType Station type to use for the alias.
    * \retval true The alias exist and it has configuration for the stationType.
    * \retval false The alias is not configured or there isn't a field for the
@@ -65,7 +65,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   bool isParameter(const std::string &alias, const std::string &stationType = "unknown") const;
 
   /* \brief Test if the given alias name is configured
-   * \param[in] name Alias name of a meteorologal parameter.
+   * \param[in] name Alias name of a meteorological parameter.
    * \retval true The alias exist and it has configuration for the stationType.
    * \retval false The alias is not configured or there isn't a field for the
    * stationType inside of
@@ -83,7 +83,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   bool isSpecialParameter(const std::string& name) const;
 
   /* \brief Get a numerical identity for an given alias name.
-   * \param[in] alias Alias name of a meteorologal parameter (case insensitive).
+   * \param[in] alias Alias name of a meteorological parameter (case insensitive).
    * \param[in] stationType Station type to use for the alias (case
    * insensitive).
    * \return Positive integer in success and zero if there is no a match.
