@@ -3,12 +3,14 @@
 #include "DatabaseDriverFactory.h"
 #include "ObservationCacheFactory.h"
 #include <boost/make_shared.hpp>
+#include <boost/algorithm/string.hpp>
 #include <macgyver/Geometry.h>
 #include <spine/Convenience.h>
 #include <spine/Reactor.h>
 #include <spine/TimeSeriesOutput.h>
 
 namespace ts = SmartMet::Spine::TimeSeries;
+namespace ba = boost::algorithm;
 
 namespace SmartMet
 {
@@ -362,6 +364,11 @@ bool Engine::isParameter(const std::string &alias, const std::string &stationTyp
 bool Engine::isParameterVariant(const std::string &name) const
 {
   return itsEngineParameters->isParameterVariant(name);
+}
+
+bool Engine::isSpecialParameter(const std::string& name) const
+{
+  return itsSpecialParameters.count(ba::to_lower_copy(name)) > 0;
 }
 
 uint64_t Engine::getParameterId(const std::string &alias, const std::string &stationType) const
