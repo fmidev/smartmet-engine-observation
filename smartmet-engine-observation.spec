@@ -15,7 +15,7 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 20.2.7
+BuildRequires: smartmet-library-spine-devel >= 20.2.13
 BuildRequires: smartmet-engine-geonames-devel >= 19.12.5
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
@@ -28,9 +28,9 @@ BuildRequires: gdal-devel
 BuildRequires: zlib-devel
 Requires: fmt >= 5.2.0
 Requires: libconfig
-Requires: smartmet-server >= 20.1.15
+Requires: smartmet-server >= 20.2.13
 Requires: smartmet-engine-geonames >= 19.12.5
-Requires: smartmet-library-spine >= 20.2.7
+Requires: smartmet-library-spine >= 20.2.13
 Requires: smartmet-library-locus >= 19.12.4
 Requires: smartmet-library-macgyver >= 20.2.5
 Requires: libatomic
