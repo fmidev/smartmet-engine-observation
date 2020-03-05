@@ -6,6 +6,7 @@
 #include <boost/algorithm/string.hpp>
 #include <macgyver/Geometry.h>
 #include <spine/Convenience.h>
+#include <spine/ParameterTools.h>
 #include <spine/Reactor.h>
 #include <spine/TimeSeriesOutput.h>
 
@@ -52,47 +53,6 @@ void Engine::init()
                  itsEngineParameters->quiet);
       itsDatabaseDriver->init(this);
     }
-
-    itsSpecialParameters.insert("name");
-    itsSpecialParameters.insert("geoid");
-    itsSpecialParameters.insert("stationname");
-    itsSpecialParameters.insert("distance");
-    itsSpecialParameters.insert("stationary");
-    itsSpecialParameters.insert("stationlongitude");
-    itsSpecialParameters.insert("stationlon");
-    itsSpecialParameters.insert("stationlatitude");
-    itsSpecialParameters.insert("stationlat");
-    itsSpecialParameters.insert("longitude");
-    itsSpecialParameters.insert("lon");
-    itsSpecialParameters.insert("latitude");
-    itsSpecialParameters.insert("lat");
-    itsSpecialParameters.insert("elevation");
-    itsSpecialParameters.insert("wmo");
-    itsSpecialParameters.insert("lpnn");
-    itsSpecialParameters.insert("fmisid");
-    itsSpecialParameters.insert("rwsid");
-    itsSpecialParameters.insert("modtime");
-    itsSpecialParameters.insert("model");
-    itsSpecialParameters.insert("origintime");
-    itsSpecialParameters.insert("timestring");
-    itsSpecialParameters.insert("tz");
-    itsSpecialParameters.insert("place");
-    itsSpecialParameters.insert("region");
-    itsSpecialParameters.insert("iso2");
-    itsSpecialParameters.insert("direction");
-    itsSpecialParameters.insert("country");
-    itsSpecialParameters.insert("time");
-    itsSpecialParameters.insert("sensor_no");
-    itsSpecialParameters.insert("level");
-    itsSpecialParameters.insert("xmltime");
-    itsSpecialParameters.insert("localtime");
-    itsSpecialParameters.insert("utctime");
-    itsSpecialParameters.insert("epochtime");
-    itsSpecialParameters.insert("windcompass8");
-    itsSpecialParameters.insert("windcompass16");
-    itsSpecialParameters.insert("windcompass32");
-    itsSpecialParameters.insert("feelslike");
-    itsSpecialParameters.insert("smartsymbol");
   }
   catch (...)
   {
@@ -351,11 +311,6 @@ void Engine::makeQuery(QueryBase *qb)
   itsDatabaseDriver->makeQuery(qb);
 }
 
-Spine::Parameter Engine::makeParameter(const std::string &name) const
-{
-  return itsEngineParameters->makeParameter(name);
-}
-
 bool Engine::isParameter(const std::string &alias, const std::string &stationType) const
 {
   return itsEngineParameters->isParameter(alias, stationType);
@@ -364,11 +319,6 @@ bool Engine::isParameter(const std::string &alias, const std::string &stationTyp
 bool Engine::isParameterVariant(const std::string &name) const
 {
   return itsEngineParameters->isParameterVariant(name);
-}
-
-bool Engine::isSpecialParameter(const std::string& name) const
-{
-  return itsSpecialParameters.count(ba::to_lower_copy(name)) > 0;
 }
 
 uint64_t Engine::getParameterId(const std::string &alias, const std::string &stationType) const
@@ -460,7 +410,7 @@ Settings Engine::beforeQuery(const Settings &settings,
     const auto &p = settings.parameters.at(i);
     std::string pname = Fmi::ascii_tolower_copy(p.name());
     if (!isParameter(pname, settings.stationtype) &&
-        itsSpecialParameters.find(pname) == itsSpecialParameters.end())
+        !Spine::is_special_parameter(pname))
     {
       unknownParameterIndexes.push_back(i);
       continue;

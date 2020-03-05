@@ -220,47 +220,6 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
   }
 }
 
-Spine::Parameter EngineParameters::makeParameter(const std::string &name) const
-{
-  try
-  {
-    if (name.empty())
-      throw Spine::Exception(BCP, "Empty parameters are not allowed");
-
-    std::string p = boost::algorithm::to_lower_copy(name, std::locale::classic());
-    Spine::Parameter::Type type = Spine::Parameter::Type::Data;
-
-    if (p == "level" || p == "latitude" || p == "longitude" || p == "latlon" || p == "lonlat" ||
-        p == "geoid" || p == "place" || p == "stationname" || p == "name" || p == "iso2" ||
-        p == "region" || p == "country" || p == "elevation" || p == "sunelevation" ||
-        p == "sundeclination" || p == "sunazimuth" || p == "dark" || p == "sunrise" ||
-        p == "sunset" || p == "noon" || p == "sunrisetoday" || p == "sunsettoday" ||
-        p == "moonphase" || p == "model" || p == "time" || p == "localtime" || p == "utctime" ||
-        p == "epochtime" || p == "isotime" || p == "xmltime" || p == "localtz" || p == "tz" ||
-        p == "origintime" || p == "wday" || p == "weekday" || p == "mon" || p == "month" ||
-        p == "hour" || p == "timestring" || p == "station_name" || p == "distance" ||
-        p == "direction" || p == "stationary" || p == "lon" || p == "lat" || p == "stationlon" ||
-        p == "stationlat" || p == "stationlongitude" || p == "stationlatitude" ||
-        p == "station_elevation" || p == "wmo" || p == "lpnn" || p == "fmisid" || p == "rwsid" ||
-        p == "sensor_no")
-    {
-      type = Spine::Parameter::Type::DataIndependent;
-    }
-    else if (p == "windcompass8" || p == "windcompass16" || p == "windcompass32" ||
-             p == "cloudiness8th" || p == "windchill" || p == "weather" || p == "smartsymbol" ||
-             boost::algorithm::ends_with(p, "data_source"))
-    {
-      type = Spine::Parameter::Type::DataDerived;
-    }
-
-    return Spine::Parameter(name, type);
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
-  }
-}
-
 bool EngineParameters::isParameter(const std::string &alias, const std::string &stationType) const
 {
   try

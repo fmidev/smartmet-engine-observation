@@ -34,8 +34,6 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language);
 
-  Spine::Parameter makeParameter(const std::string &name) const;
-
   bool ready() const;
 
   Geonames::Engine *getGeonames() const;
@@ -74,14 +72,6 @@ class Engine : public SmartMet::Spine::SmartMetEngine
 
   bool isParameterVariant(const std::string &name) const;
 
-  /* \brief Test if given spacial parameter name is configured
-   * \param[in] name parameter name to check.
-   * \retval true special parameter with provided name is found
-   * \retval false special parameter with provided name is not found
-   */
-
-  bool isSpecialParameter(const std::string& name) const;
-
   /* \brief Get a numerical identity for an given alias name.
    * \param[in] alias Alias name of a meteorological parameter (case insensitive).
    * \param[in] stationType Station type to use for the alias (case
@@ -118,7 +108,6 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   std::string itsConfigFile;
 
   EngineParametersPtr itsEngineParameters;
-  std::set<std::string> itsSpecialParameters;
 
   std::shared_ptr<DBRegistry> itsDatabaseRegistry;
 
