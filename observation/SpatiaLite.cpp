@@ -12,6 +12,7 @@
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <spine/Convenience.h>
 #include <spine/Exception.h>
+#include <spine/ParameterTools.h>
 #include <spine/Thread.h>
 #include <spine/TimeSeriesOutput.h>
 
@@ -2988,7 +2989,7 @@ void SpatiaLite::addSpecialParameterToTimeSeries(
     else if (paramname == "modtime")
       timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, ""));
 
-    else if (is_time_parameter(paramname))
+    else if (SmartMet::Spine::is_time_parameter(paramname))
       timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, obstime));
 
     else

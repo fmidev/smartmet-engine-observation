@@ -128,8 +128,6 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
 Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(
     const std::vector<SmartMet::Spine::Parameter>& parameters);
 
-bool is_time_parameter(std::string paramname);
-
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
