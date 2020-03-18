@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.3.9
+Version: 20.3.11
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Mar 11 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.3.11-1.fmi
+- Fixed sorting of observations in the memory cache
+
 * Mon Mar  9 2020 Andris Pavēnis <andris.pavenis@fmi.fi> - 20.3.9-1.fmi
 - Remove more functionality now in smartmet-library-spine (is_time_parameter)
 

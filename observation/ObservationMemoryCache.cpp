@@ -134,7 +134,7 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
         auto cmp = [](const DataItem& obs1, const DataItem& obs2) -> bool {
           return (obs1.data_time < obs2.data_time);
         };
-        std::sort(shared_obs->begin(), shared_obs->end(), cmp);
+        std::sort(newobs->begin(), newobs->end(), cmp);
 
         // And store the new station data, no need for atomics since we own this shared_ptr
         shared_obs = newobs;
