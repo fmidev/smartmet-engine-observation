@@ -124,6 +124,8 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
 
         auto newobs = boost::make_shared<StationObservations>(*shared_obs);
 
+        auto newdata_start = newobs->end();
+
         // Indices i...j-1 have the same fmisid
 
         for (std::size_t k = i; k < j; k++)
@@ -134,7 +136,13 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
         auto cmp = [](const DataItem& obs1, const DataItem& obs2) -> bool {
           return (obs1.data_time < obs2.data_time);
         };
+
+        // The two segments are already sorted
+#if 1
+        std::inplace_merge(newobs->begin(), newdata_start, newobs->end(), cmp);
+#else
         std::sort(newobs->begin(), newobs->end(), cmp);
+#endif
 
         // And store the new station data, no need for atomics since we own this shared_ptr
         shared_obs = newobs;
