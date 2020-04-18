@@ -38,6 +38,12 @@ DEFINES = -DUNIX -D_REENTRANT
 GCC_DIAG_COLOR ?= always
 CXX_STD ?= c++11
 
+# Boost 1.69
+
+ifneq "$(wildcard /usr/include/boost169)" ""
+  INCLUDES += -I/usr/include/boost169
+  LIBS += -L/usr/lib64/boost169
+endif
 
 ifeq ($(CXX), clang++)
 
@@ -54,7 +60,7 @@ ifeq ($(CXX), clang++)
 	-Wno-exit-time-destructors \
 	-Wno-sign-conversion
 
- INCLUDES = \
+ INCLUDES += \
 	-isystem $(includedir) \
 	-isystem $(includedir)/smartmet \
 	-isystem $(includedir)/mysql
@@ -68,15 +74,12 @@ else
 	-Winline \
 	-Wno-multichar \
 	-Wno-pmf-conversions \
-	-Woverloaded-virtual  \
 	-Wpointer-arith \
 	-Wcast-qual \
-	-Wredundant-decls \
 	-Wwrite-strings \
-	-Wsign-promo \
-	-Wnon-virtual-dtor
+	-Wsign-promo
 
- INCLUDES = \
+ INCLUDES += \
 	-I$(includedir) \
 	-I$(includedir)/smartmet \
 	-I$(includedir)/mysql
@@ -101,7 +104,7 @@ else
   override CFLAGS += $(CFLAGS_RELEASE)
 endif
 
-LIBS = -L$(libdir) \
+LIBS += -L$(libdir) \
         -lsmartmet-spine \
         -lsmartmet-macgyver \
         -lsmartmet-locus \

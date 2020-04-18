@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.3.18
+Version: 20.4.18
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -14,13 +14,13 @@ BuildRequires: rpm-build
 BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
-BuildRequires: boost-devel
-BuildRequires: smartmet-library-spine-devel >= 20.3.9
-BuildRequires: smartmet-engine-geonames-devel >= 19.12.5
+BuildRequires: boost169-devel
+BuildRequires: smartmet-library-spine-devel >= 20.4.18
+BuildRequires: smartmet-engine-geonames-devel >= 20.4.18
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
-BuildRequires: smartmet-library-locus-devel >= 19.12.4
-BuildRequires: smartmet-library-macgyver-devel >= 20.3.5
+BuildRequires: smartmet-library-locus-devel >= 20.4.18
+BuildRequires: smartmet-library-macgyver-devel >= 20.4.18
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 5.2.0
@@ -28,21 +28,21 @@ BuildRequires: gdal-devel
 BuildRequires: zlib-devel
 Requires: fmt >= 5.2.0
 Requires: libconfig
-Requires: smartmet-server >= 20.2.13
-Requires: smartmet-engine-geonames >= 19.12.5
-Requires: smartmet-library-spine >= 20.3.9
-Requires: smartmet-library-locus >= 19.12.4
-Requires: smartmet-library-macgyver >= 20.3.5
+Requires: smartmet-server >= 20.4.18
+Requires: smartmet-engine-geonames >= 20.4.18
+Requires: smartmet-library-spine >= 20.4.18
+Requires: smartmet-library-locus >= 20.4.18
+Requires: smartmet-library-macgyver >= 20.4.18
 Requires: libatomic
 Requires: unixODBC
 Requires: libspatialite >= 4.3.0a
 Requires: sqlite >= 3.22.0
-Requires: boost-date-time
-Requires: boost-iostreams
-Requires: boost-locale
-Requires: boost-serialization
-Requires: boost-system
-Requires: boost-thread
+Requires: boost169-date-time
+Requires: boost169-iostreams
+Requires: boost169-locale
+Requires: boost169-serialization
+Requires: boost169-system
+Requires: boost169-thread
 Requires: gdal
 Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Sat Apr 18 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.4.18-1.fmi
+- Upgraded to Boost 1.69
+
 * Wed Mar 18 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.3.18-1.fmi
 - Faster sorting of observations in the memory cache
 
