@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "ExternalAndMobileProducerConfig.h"
+#include "SQLDataFilter.h"
 
 namespace SmartMet
 {
@@ -23,7 +24,7 @@ class ExternalAndMobileDBInfo
                         const boost::posix_time::ptime &starttime,
                         const boost::posix_time::ptime &endtime,
                         const std::string &wktAreaFilter,
-                        const std::map<std::string, std::vector<std::string>> &data_filter) const;
+                        const SQLDataFilter &sqlDataFilter) const;
   std::string sqlSelectForCache(const std::string &producer,
                                 const boost::posix_time::ptime &from_data_time,
                                 const boost::posix_time::ptime &from_created_time) const;
@@ -31,7 +32,7 @@ class ExternalAndMobileDBInfo
                                  const boost::posix_time::ptime &starttime,
                                  const boost::posix_time::ptime &endtime,
                                  const std::string &wktAreaFilter,
-                                 const std::map<std::string, std::vector<std::string>> &data_filter,
+                                 const SQLDataFilter &sqlDataFilter,
                                  bool spatialite = false) const;
 
   std::string measurandFieldname(int measurandId) const;

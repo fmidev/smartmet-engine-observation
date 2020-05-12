@@ -21,18 +21,28 @@ class DummyDatabaseDriver : public DatabaseDriverInterface
   Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings);
   Spine::TimeSeries::TimeSeriesVectorPtr values(
       Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
-  boost::shared_ptr<Spine::Table> makeQuery(
-      Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter);
+  Spine::TaggedFMISIDList translateToFMISID(const boost::posix_time::ptime &starttime,
+                                            const boost::posix_time::ptime &endtime,
+                                            const std::string &stationtype,
+                                            const StationSettings &stationSettings) const;
   void makeQuery(QueryBase *) {}
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
-                            const Spine::TaggedLocationList &locations);
-  boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
+                            const Spine::TaggedLocationList &locations) const;
+  boost::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language);
-  void getStations(Spine::Stations &, Settings &) {}
+  void getStations(Spine::Stations &stations, const Settings &settings) const {}
+  virtual void getStationsByArea(Spine::Stations &stations,
+                                 const std::string &stationtype,
+                                 const boost::posix_time::ptime &starttime,
+                                 const boost::posix_time::ptime &endtime,
+                                 const std::string &wkt) const
+  {
+  }
+  void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const {}
 
   void shutdown() {}
-  MetaData metaData(const std::string &) { return MetaData(); }
+  MetaData metaData(const std::string &) const { return MetaData(); }
   std::string id() const { return "dummy"; }
 
  private:

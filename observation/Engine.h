@@ -23,15 +23,12 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   Spine::TimeSeries::TimeSeriesVectorPtr values(
       Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
 
-  boost::shared_ptr<Spine::Table> makeQuery(
-      Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter);
-
   void makeQuery(QueryBase *qb);
 
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
                             const Spine::TaggedLocationList &locations);
-  boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
+  boost::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language);
 
   bool ready() const;
@@ -41,14 +38,13 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   const std::shared_ptr<DBRegistry> dbRegistry() const { return itsDatabaseRegistry; }
   void getStations(Spine::Stations &stations, Settings &settings);
 
-  Spine::Stations getStationsByArea(const Settings &settings, const std::string &areaWkt);
+  void getStationsByArea(Spine::Stations &stations,
+                         const std::string &stationtype,
+                         const boost::posix_time::ptime &starttime,
+                         const boost::posix_time::ptime &endtime,
+                         const std::string &areaWkt);
 
   void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings);
-
-  void getStationsByRadius(Spine::Stations &stations,
-                           const Settings &settings,
-                           double longitude,
-                           double latitude);
 
   /* \brief Test if the given alias name is configured and it has a field for
    * the stationType.
@@ -87,6 +83,12 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   std::set<std::string> getValidStationTypes() const;
 
   MetaData metaData(const std::string &producer) const;
+
+  // Translates WMO,RWID,LPNN,GEOID,Bounding box to FMISID
+  Spine::TaggedFMISIDList translateToFMISID(const boost::posix_time::ptime &starttime,
+                                            const boost::posix_time::ptime &endtime,
+                                            const std::string &stationtype,
+                                            const StationSettings &stationSettings) const;
 
  protected:
   void init();

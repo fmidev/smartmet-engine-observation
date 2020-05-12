@@ -37,33 +37,10 @@ class SpatiaLiteCache : public ObservationCache
   Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(Settings &settings);
   Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(
       Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
-  Spine::Stations getStationsByTaggedLocations(const Spine::TaggedLocationList &taggedLocations,
-                                               const int numberofstations,
-                                               const std::string &stationtype,
-                                               const int maxdistance,
-                                               const std::set<std::string> &stationgroup_codes,
-                                               const boost::posix_time::ptime &starttime,
-                                               const boost::posix_time::ptime &endtime);
 
   bool dataAvailableInCache(const Settings &settings) const;
   bool flashIntervalIsCached(const boost::posix_time::ptime &starttime,
                              const boost::posix_time::ptime &endtime) const;
-  void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const;
-  void updateStationsAndGroups(const StationInfo &info) const;
-
-  Spine::Stations findAllStationsFromGroups(const std::set<std::string> stationgroup_codes,
-                                            const StationInfo &info,
-                                            const boost::posix_time::ptime &starttime,
-                                            const boost::posix_time::ptime &endtime) const;
-  bool getStationById(Spine::Station &station,
-                      int station_id,
-                      const std::set<std::string> &stationgroup_codes,
-                      const boost::posix_time::ptime &starttime,
-                      const boost::posix_time::ptime &endtime) const;
-
-  Spine::Stations findStationsInsideArea(const Settings &settings,
-                                         const std::string &areaWkt,
-                                         const StationInfo &info) const;
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
                             const Spine::TaggedLocationList &locations) const;
@@ -79,7 +56,6 @@ class SpatiaLiteCache : public ObservationCache
   boost::posix_time::ptime getLatestWeatherDataQCTime() const;
   std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const;
   void cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep) const;
-  void fillLocationCache(const LocationItems &locations) const;
 
   // RoadCloud
   bool roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
@@ -101,7 +77,6 @@ class SpatiaLiteCache : public ObservationCache
 
   boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language) const;
-  bool cacheHasStations() const;
 
   void shutdown();
 
@@ -116,7 +91,6 @@ class SpatiaLiteCache : public ObservationCache
   void readConfig(Spine::ConfigBase &cfg);
 
   SpatiaLiteConnectionPool *itsConnectionPool = nullptr;
-  Fmi::Cache::Cache<std::string, std::vector<Spine::Station> > itsLocationCache;
   Fmi::TimeZones itsTimeZones;
 
   SpatiaLiteCacheParameters itsParameters;
@@ -143,10 +117,6 @@ class SpatiaLiteCache : public ObservationCache
   mutable boost::posix_time::ptime itsNetAtmoTimeIntervalStart;
   mutable boost::posix_time::ptime itsNetAtmoTimeIntervalEnd;
 
-  // Cache for station id searches
-  using StationIdCache = Fmi::Cache::Cache<std::size_t, Spine::Station>;
-  mutable StationIdCache itsStationIdCache;
-
   // Caches for last inserted rows to avoid duplicate inserts
   mutable InsertStatus itsDataInsertCache;
   mutable InsertStatus itsWeatherQCInsertCache;
@@ -156,8 +126,6 @@ class SpatiaLiteCache : public ObservationCache
 
   // Memory caches smaller than the spatialite cache itself
   std::unique_ptr<FlashMemoryCache> itsFlashMemoryCache;
-  // ObservationDataMemoryCache itsObservationDataMemoryCache; // UNIMPLEMENTED
-  // WeatherDataQCMemoryCache itsWeatherDataQCMemoryCache; // UNIMPLEMENTED
 };
 
 }  // namespace Observation

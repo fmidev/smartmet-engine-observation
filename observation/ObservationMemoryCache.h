@@ -57,6 +57,7 @@ class ObservationMemoryCache
   LocationDataItems read_observations(const Spine::Stations &stations,
                                       const Settings &settings,
                                       const StationInfo &stationInfo,
+                                      const std::set<std::string> &stationgroup_codes,
                                       const QueryMapping &qmap) const;
 
  private:

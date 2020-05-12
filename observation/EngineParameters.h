@@ -19,6 +19,7 @@ struct EngineParameters
 {
   EngineParameters(Spine::ConfigBase &cfg);
 
+  void readDataQualityConfig(Spine::ConfigBase &cfg);
   void readStationTypeConfig(Spine::ConfigBase &cfg);
   bool isParameter(const std::string &alias, const std::string &stationType) const;
   bool isParameterVariant(const std::string &name) const;
@@ -27,9 +28,7 @@ struct EngineParameters
   uint64_t getParameterId(const std::string &alias, const std::string &stationType) const;
 
   // Cache size settings
-  int locationCacheSize;
 
-  std::size_t stationIdCacheSize = 10000;
   std::size_t queryResultBaseCacheSize = 100;
   std::size_t spatiaLitePoolSize;
 
@@ -37,6 +36,7 @@ struct EngineParameters
   std::string dbRegistryFolderPath;
   std::string spatiaLiteFile;
 
+  std::map<std::string, std::string> dataQualityFilters;  // stationtype
   std::map<std::string, std::string> stationTypeMap;
   StationtypeConfig stationtypeConfig;
   ExternalAndMobileProducerConfig externalAndMobileProducerConfig;
@@ -47,7 +47,6 @@ struct EngineParameters
   std::string dbDriverFile;
 
   boost::shared_ptr<StationInfo> stationInfo;
-  Fmi::Cache::Cache<std::string, std::vector<Spine::Station>> locationCache;
   Fmi::Cache::Cache<std::string, std::shared_ptr<QueryResultBase>> queryResultBaseCache;
 
   bool quiet;

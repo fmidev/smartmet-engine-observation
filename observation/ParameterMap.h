@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/shared_ptr.hpp>
 #include <map>
 #include <string>
 #include <vector>
@@ -19,37 +20,20 @@ class ParameterMap
   using StationParameters = std::map<std::string, std::string>;
   using NameToStationParameterMap = std::map<std::string, StationParameters>;
 
-  std::string getParameter(const std::string& name, const std::string& stationtype) const
-  {
-    if (params.find(name) != params.end())
-    {
-      const StationParameters& stationparams = params.at(name);
-      if (stationparams.find(stationtype) != stationparams.end())
-        return stationparams.at(stationtype);
-    }
-    return std::string();
-  }
-  void addStationParameterMap(const std::string& name,
-                              std::map<std::string, std::string> stationparams)
-  {
-    params.insert(make_pair(name, stationparams));
-  }
-  const StationParameters& at(const std::string& name) const
-  {
-    if (params.find(name) != params.end())
-      return params.at(name);
+  std::string getParameter(const std::string& name, const std::string& stationtype) const;
+  std::string getParameterName(const std::string& id, const std::string& stationtype) const;
 
-    return emptymap;
-  }
-  NameToStationParameterMap::const_iterator find(const std::string& name) const
-  {
-    return params.find(name);
-  }
+  void addStationParameterMap(const std::string& name,
+                              std::map<std::string, std::string> stationparams);
+  const StationParameters& at(const std::string& name) const;
+  NameToStationParameterMap::const_iterator find(const std::string& name) const;
+
   NameToStationParameterMap::const_iterator begin() const { return params.begin(); }
   NameToStationParameterMap::const_iterator end() const { return params.end(); }
 
  private:
   NameToStationParameterMap params;
+  NameToStationParameterMap params_id_map;
   StationParameters emptymap;
 };
 

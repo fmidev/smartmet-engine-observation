@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.4.18
+Version: 20.5.12
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,7 +15,7 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost169-devel
-BuildRequires: smartmet-library-spine-devel >= 20.4.18
+BuildRequires: smartmet-library-spine-devel >= 20.5.12
 BuildRequires: smartmet-engine-geonames-devel >= 20.4.18
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
@@ -30,7 +30,7 @@ Requires: fmt >= 5.2.0
 Requires: libconfig
 Requires: smartmet-server >= 20.4.18
 Requires: smartmet-engine-geonames >= 20.4.18
-Requires: smartmet-library-spine >= 20.4.18
+Requires: smartmet-library-spine >= 20.5.12
 Requires: smartmet-library-locus >= 20.4.18
 Requires: smartmet-library-macgyver >= 20.4.18
 Requires: libatomic
@@ -92,6 +92,16 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue May 12 2020  Anssi Reponen <anssi.reponen@fmi.fi> - 20.5.12-1.fmi
+- Major code refactoring. Big changes in Engine-interface (BRAINSTORM-1678)
+- Stations (FMISIDs) are resolved in a seprate function call before actual observation-query
+- All relevant information of stations is kept in memory, as a result the following tables 
+has been removed from cache: STATIONS, STATION_GROUPS, GROUP_MEMBERS, LOCATIONS
+- Support for sensors added, as a result the related tickets has been fixed (BRAINSTORM-1549)
+- Fixed non-active station bug (BRAINSTORM-1718,BRAINSTORM-568,BRAINSTORM-569)
+- Fixed bug in query with numberofstations-option (BRAINSTORM-1609)
+- Added support for data_quality option (BRAINSTORM-1706)
+
 * Sat Apr 18 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.4.18-1.fmi
 - Upgraded to Boost 1.69
 

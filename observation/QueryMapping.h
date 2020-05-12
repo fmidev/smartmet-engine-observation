@@ -12,12 +12,12 @@ namespace Observation
 {
 struct QueryMapping
 {
-  std::map<int, int> timeseriesPositions;
   std::map<std::string, int> timeseriesPositionsString;
   std::map<std::string, std::string> parameterNameMap;
   std::vector<int> paramVector;
   std::map<std::string, int> specialPositions;
-  std::vector<int> measurandIds;  // all needed measurand ids
+  std::vector<int> measurandIds;                            // all needed measurand ids
+  std::map<int, std::set<int>> sensorNumberToMeasurandIds;  // sensor number -> measurand ids
 };
 
 }  // namespace Observation

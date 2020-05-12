@@ -141,16 +141,20 @@ double rad2deg(double rad)
   return (rad * 180 / PI);
 }
 
-std::string windCompass8(double direction)
+std::string windCompass8(double direction, const std::string& missingValue)
 {
+  if (direction < 0)
+    return missingValue;
   static const std::string names[] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
 
   int i = static_cast<int>((direction + 22.5) / 45) % 8;
   return names[i];
 }
 
-std::string windCompass16(double direction)
+std::string windCompass16(double direction, const std::string& missingValue)
 {
+  if (direction < 0)
+    return missingValue;
   static const std::string names[] = {"N",
                                       "NNE",
                                       "NE",
@@ -172,8 +176,10 @@ std::string windCompass16(double direction)
   return names[i];
 }
 
-std::string windCompass32(double direction)
+std::string windCompass32(double direction, const std::string& missingValue)
 {
+  if (direction < 0)
+    return missingValue;
   static const std::string names[] = {"N", "NbE", "NNE", "NEbN", "NE", "NEbE", "ENE", "EbN",
                                       "E", "EbS", "ESE", "SEbE", "SE", "SEbS", "SSE", "SbE",
                                       "S", "SbW", "SSW", "SWbS", "SW", "SWbW", "WSW", "WbS",
@@ -329,36 +335,6 @@ void logMessage(const std::string& message, bool quiet)
   {
     if (!quiet)
       std::cout << Spine::log_time_str() << ' ' << message << std::endl;
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
-  }
-}
-
-std::string getLocationCacheKey(int geoID,
-                                int numberOfStations,
-                                std::string stationType,
-                                int maxDistance,
-                                const boost::posix_time::ptime& starttime,
-                                const boost::posix_time::ptime& endtime)
-{
-  try
-  {
-    std::string locationCacheKey = "";
-
-    locationCacheKey += Fmi::to_string(geoID);
-    locationCacheKey += "-";
-    locationCacheKey += Fmi::to_string(numberOfStations);
-    locationCacheKey += "-";
-    locationCacheKey += stationType;
-    locationCacheKey += "-";
-    locationCacheKey += Fmi::to_string(maxDistance);
-    locationCacheKey += "-";
-    locationCacheKey += Fmi::to_iso_string(starttime);
-    locationCacheKey += "-";
-    locationCacheKey += Fmi::to_iso_string(endtime);
-    return locationCacheKey;
   }
   catch (...)
   {

@@ -15,49 +15,6 @@ namespace Engine
 {
 namespace Observation
 {
-namespace
-{
-/*!
- * \brief Find stations close to the given coordinate with filtering
- */
-
-Spine::Stations findNearestStations(const StationInfo &info,
-                                    double longitude,
-                                    double latitude,
-                                    double maxdistance,
-                                    int numberofstations,
-                                    const std::set<std::string> &stationgroup_codes,
-                                    const boost::posix_time::ptime &starttime,
-                                    const boost::posix_time::ptime &endtime)
-{
-  return info.findNearestStations(
-      longitude, latitude, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
-}
-
-/*!
- * \brief Find stations close to the given location with filtering
- */
-
-Spine::Stations findNearestStations(const StationInfo &info,
-                                    const Spine::LocationPtr &location,
-                                    double maxdistance,
-                                    int numberofstations,
-                                    const std::set<std::string> &stationgroup_codes,
-                                    const boost::posix_time::ptime &starttime,
-                                    const boost::posix_time::ptime &endtime)
-{
-  return findNearestStations(info,
-                             location->longitude,
-                             location->latitude,
-                             maxdistance,
-                             numberofstations,
-                             stationgroup_codes,
-                             starttime,
-                             endtime);
-}
-
-}  // namespace
-
 void PostgreSQLCache::initializeConnectionPool()
 {
   try
@@ -73,16 +30,6 @@ void PostgreSQLCache::initializeConnectionPool()
     // 3) observation_data
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
     db->createTables();
-
-    // Check first if we already have stations in PostgreSQL db so that we know
-    // if we can use it
-    // before loading station info
-    size_t stationCount = db->getStationCount();
-    if (stationCount > 1)  // Arbitrary number because we cannot know how many
-                           // stations there must be
-    {
-      itsParameters.cacheHasStations = true;
-    }
 
     for (int i = 0; i < itsParameters.connectionPoolSize; i++)
     {
@@ -121,14 +68,14 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    // Get stations
-    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-    Spine::Stations stations = getStationsFromPostgreSQL(settings, db);
-    stations = removeDuplicateStations(stations);
+    SmartMet::Spine::Stations stations =
+        itsParameters.stationInfo->findFmisidStations(settings.taggedFMISIDs);
 
     // Get data if we have stations
     if (!stations.empty())
     {
+      boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
@@ -164,15 +111,14 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    // Get stations
-    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-
-    Spine::Stations stations = getStationsFromPostgreSQL(settings, db);
-    stations = removeDuplicateStations(stations);
+    SmartMet::Spine::Stations stations =
+        itsParameters.stationInfo->findFmisidStations(settings.taggedFMISIDs);
 
     // Get data if we have stations
     if (!stations.empty())
     {
+      boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
@@ -243,164 +189,6 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &s
   }
 }
 
-Spine::Stations PostgreSQLCache::getStationsFromPostgreSQL(Settings &settings,
-                                                           boost::shared_ptr<PostgreSQL> db)
-{
-  try
-  {
-    auto stationstarttime = day_start(settings.starttime);
-    auto stationendtime = day_end(settings.endtime);
-    Spine::Stations stations;
-
-    try
-    {
-      auto stationgroupCodeSet =
-          itsParameters.stationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
-      settings.stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
-    }
-    catch (...)
-    {
-      return stations;
-    }
-
-    auto info = boost::atomic_load(&itsParameters.stationInfo);
-
-    if (settings.allplaces)
-    {
-      Spine::Stations allStationsFromGroups = db->findAllStationsFromGroups(
-          settings.stationgroup_codes, *info, settings.starttime, settings.starttime);
-      return allStationsFromGroups;
-    }
-
-    Spine::Stations tmpIdStations;
-
-    auto taggedStations = getStationsByTaggedLocations(settings.taggedLocations,
-                                                       settings.numberofstations,
-                                                       settings.stationtype,
-                                                       settings.maxdistance,
-                                                       settings.stationgroup_codes,
-                                                       settings.starttime,
-                                                       settings.endtime);
-
-    for (const auto &s : taggedStations)
-      stations.push_back(s);
-
-    for (const Spine::LocationPtr &location : settings.locations)
-    {
-      std::string locationCacheKey =
-          getLocationCacheKey(location->geoid,
-                              settings.numberofstations,
-                              settings.stationtype,
-                              boost::numeric_cast<int>(settings.maxdistance),
-                              stationstarttime,
-                              stationendtime);
-      auto cachedStations = itsLocationCache.find(locationCacheKey);
-      if (cachedStations)
-      {
-        for (const Spine::Station &cachedStation : *cachedStations)
-          stations.push_back(cachedStation);
-      }
-      else
-      {
-        auto newStations = findNearestStations(*info,
-                                               location,
-                                               settings.maxdistance,
-                                               settings.numberofstations,
-                                               settings.stationgroup_codes,
-                                               stationstarttime,
-                                               stationendtime);
-
-        if (!newStations.empty())
-        {
-          for (const Spine::Station &newStation : newStations)
-            stations.push_back(newStation);
-
-          itsLocationCache.insert(locationCacheKey, newStations);
-        }
-      }
-    }
-    // Find station data by using fmisid
-    for (int fmisid : settings.fmisids)
-    {
-      Spine::Station s;
-      if (not db->getStationById(
-              s, fmisid, settings.stationgroup_codes, settings.starttime, settings.endtime))
-        continue;
-
-      tmpIdStations.push_back(s);
-    }
-
-    // Find station data by using geoid
-    for (int geoid : settings.geoids)
-    {
-      Spine::Station s;
-      if (not db->getStationByGeoid(
-              s, geoid, settings.stationgroup_codes, settings.starttime, settings.endtime))
-        continue;
-
-      tmpIdStations.push_back(s);
-    }
-
-    for (const auto &coordinate : settings.coordinates)
-    {
-      auto newStations = findNearestStations(*info,
-                                             coordinate.at("lon"),
-                                             coordinate.at("lat"),
-                                             settings.maxdistance,
-                                             settings.numberofstations,
-                                             settings.stationgroup_codes,
-                                             stationstarttime,
-                                             stationendtime);
-
-      for (const Spine::Station &newStation : newStations)
-        stations.push_back(newStation);
-    }
-
-    if (!settings.wmos.empty())
-    {
-      Spine::Stations tmpStations = db->findStationsByWMO(settings, *info);
-      for (const Spine::Station &s : tmpStations)
-        tmpIdStations.push_back(s);
-    }
-
-    if (!settings.lpnns.empty())
-    {
-      Spine::Stations tmpStations = db->findStationsByLPNN(settings, *info);
-      for (const Spine::Station &s : tmpStations)
-        tmpIdStations.push_back(s);
-    }
-
-    if (!settings.boundingBox.empty())
-    {
-      getStationsByBoundingBox(stations, settings);
-    }
-
-    for (const Spine::Station &s : tmpIdStations)
-    {
-      stations.push_back(s);
-      if (settings.numberofstations > 1)
-      {
-        auto newStations = findNearestStations(*info,
-                                               s.longitude_out,
-                                               s.latitude_out,
-                                               settings.maxdistance,
-                                               settings.numberofstations,
-                                               settings.stationgroup_codes,
-                                               stationstarttime,
-                                               stationendtime);
-
-        for (const Spine::Station &nstation : newStations)
-          stations.push_back(nstation);
-      }
-    }
-    return stations;
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Getting stations from cache failed!");
-  }
-}
-
 bool PostgreSQLCache::timeIntervalIsCached(const boost::posix_time::ptime &starttime,
                                            const boost::posix_time::ptime &endtime) const
 {
@@ -461,120 +249,6 @@ bool PostgreSQLCache::timeIntervalWeatherDataQCIsCached(
   }
 }
 
-Spine::Stations PostgreSQLCache::getStationsByTaggedLocations(
-    const Spine::TaggedLocationList &taggedLocations,
-    const int numberofstations,
-    const std::string &stationtype,
-    const int maxdistance,
-    const std::set<std::string> &stationgroup_codes,
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime)
-{
-  try
-  {
-    Spine::Stations stations;
-
-    auto stationstarttime = day_start(starttime);
-    auto stationendtime = day_end(endtime);
-
-    for (const Spine::TaggedLocation &tloc : taggedLocations)
-    {
-      // BUG? Why is maxdistance int?
-      std::string locationCacheKey = getLocationCacheKey(tloc.loc->geoid,
-                                                         numberofstations,
-                                                         stationtype,
-                                                         maxdistance,
-                                                         stationstarttime,
-                                                         stationendtime);
-      auto cachedStations = itsLocationCache.find(locationCacheKey);
-
-      if (cachedStations)
-      {
-        for (Spine::Station &cachedStation : *cachedStations)
-        {
-          cachedStation.tag = tloc.tag;
-          stations.push_back(cachedStation);
-        }
-      }
-      else
-      {
-        auto info = boost::atomic_load(&itsParameters.stationInfo);
-
-        auto newStations = findNearestStations(*info,
-                                               tloc.loc,
-                                               maxdistance,
-                                               numberofstations,
-                                               stationgroup_codes,
-                                               stationstarttime,
-                                               stationendtime);
-
-        if (!newStations.empty())
-        {
-          for (Spine::Station &s : newStations)
-          {
-            s.tag = tloc.tag;
-            stations.push_back(s);
-          }
-          itsLocationCache.insert(locationCacheKey, newStations);
-        }
-      }
-    }
-    return stations;
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Getting stations by tagged locations failed!");
-  }
-}
-
-void PostgreSQLCache::getStationsByBoundingBox(Spine::Stations &stations,
-                                               const Settings &settings) const
-{
-  try
-  {
-    Settings tempSettings = settings;
-    try
-    {
-      auto stationgroupCodeSet =
-          itsParameters.stationtypeConfig.getGroupCodeSetByStationtype(tempSettings.stationtype);
-      tempSettings.stationgroup_codes.insert(stationgroupCodeSet->begin(),
-                                             stationgroupCodeSet->end());
-    }
-    catch (...)
-    {
-      return;
-    }
-
-    auto info = boost::atomic_load(&itsParameters.stationInfo);
-
-    try
-    {
-#if 1
-      auto stationList = info->findStationsInsideBox(tempSettings.boundingBox.at("minx"),
-                                                     tempSettings.boundingBox.at("miny"),
-                                                     tempSettings.boundingBox.at("maxx"),
-                                                     tempSettings.boundingBox.at("maxy"),
-                                                     tempSettings.stationgroup_codes,
-                                                     tempSettings.starttime,
-                                                     tempSettings.endtime);
-#else
-      boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-      auto stationList = db->findStationsInsideBox(tempSettings, *info);
-#endif
-      for (const auto &station : stationList)
-        stations.push_back(station);
-    }
-    catch (...)
-    {
-      throw Spine::Exception::Trace(BCP, "Getting stations by bounding box failed!");
-    }
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Getting stations by bounding box failed!");
-  }
-}
-
 bool PostgreSQLCache::dataAvailableInCache(const Settings &settings) const
 {
   try
@@ -611,39 +285,6 @@ bool PostgreSQLCache::dataAvailableInCache(const Settings &settings) const
                                   "Checking if data is available in cache for stationtype '" +
                                       settings.stationtype + "' failed!");
   }
-}
-
-void PostgreSQLCache::updateStationsAndGroups(const StationInfo &info) const
-{
-  logMessage("Updating stations to PostgreSQL database...", itsParameters.quiet);
-  itsConnectionPool->getConnection()->updateStationsAndGroups(info);
-}
-
-Spine::Stations PostgreSQLCache::findAllStationsFromGroups(
-    const std::set<std::string> stationgroup_codes,
-    const StationInfo &info,
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime) const
-{
-  return itsConnectionPool->getConnection()->findAllStationsFromGroups(
-      stationgroup_codes, info, starttime, endtime);
-}
-
-bool PostgreSQLCache::getStationById(Spine::Station &station,
-                                     int station_id,
-                                     const std::set<std::string> &stationgroup_codes,
-                                     const boost::posix_time::ptime &starttime,
-                                     const boost::posix_time::ptime &endtime) const
-{
-  return itsConnectionPool->getConnection()->getStationById(
-      station, station_id, stationgroup_codes, starttime, endtime);
-}
-
-Spine::Stations PostgreSQLCache::findStationsInsideArea(const Settings &settings,
-                                                        const std::string &areaWkt,
-                                                        const StationInfo &info) const
-{
-  return itsConnectionPool->getConnection()->findStationsInsideArea(settings, areaWkt, info);
 }
 
 FlashCounts PostgreSQLCache::getFlashCount(const boost::posix_time::ptime &starttime,
@@ -790,11 +431,6 @@ void PostgreSQLCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
   return itsConnectionPool->getConnection()->cleanNetAtmoCache(timetokeep);
 }
 
-void PostgreSQLCache::fillLocationCache(const LocationItems &locations) const
-{
-  return itsConnectionPool->getConnection()->fillLocationCache(locations);
-}
-
 void PostgreSQLCache::shutdown()
 {
   if (itsConnectionPool)
@@ -871,11 +507,6 @@ void PostgreSQLCache::readConfig(Spine::ConfigBase &cfg)
     throw Spine::Exception::Trace(BCP,
                                   "Reading PostgreSQL settings from configuration file failed");
   }
-}
-
-bool PostgreSQLCache::cacheHasStations() const
-{
-  return itsParameters.cacheHasStations;
 }
 
 PostgreSQLCache::~PostgreSQLCache()
