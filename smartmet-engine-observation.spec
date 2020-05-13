@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.5.12
+Version: 20.5.13
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed May 13 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.5.13-1.fmi
+- Removed obsolete tables from the default stations.sqlite database
+- Added sensor_no column to the default stations.sqlite database
+
 * Tue May 12 2020  Anssi Reponen <anssi.reponen@fmi.fi> - 20.5.12-1.fmi
 - Major code refactoring. Big changes in Engine-interface (BRAINSTORM-1678)
 - Stations (FMISIDs) are resolved in a seprate function call before actual observation-query
