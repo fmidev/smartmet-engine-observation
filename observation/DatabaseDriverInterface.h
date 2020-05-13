@@ -4,6 +4,7 @@
 #include "QueryBase.h"
 #include "QueryResultBase.h"
 #include "Settings.h"
+#include "StationSettings.h"
 #include "Utils.h"
 #include <boost/atomic.hpp>
 #include <boost/thread/condition.hpp>
@@ -29,18 +30,29 @@ class DatabaseDriverInterface
   virtual Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings) = 0;
   virtual Spine::TimeSeries::TimeSeriesVectorPtr values(
       Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) = 0;
-  virtual boost::shared_ptr<Spine::Table> makeQuery(
-      Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter) = 0;
+  virtual Spine::TaggedFMISIDList translateToFMISID(
+      const boost::posix_time::ptime &starttime,
+      const boost::posix_time::ptime &endtime,
+      const std::string &stationtype,
+      const StationSettings &stationSettings) const = 0;
   virtual void makeQuery(QueryBase *qb) = 0;
   virtual FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                                     const boost::posix_time::ptime &endtime,
-                                    const Spine::TaggedLocationList &locations) = 0;
-  virtual boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
+                                    const Spine::TaggedLocationList &locations) const = 0;
+  virtual boost::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language) = 0;
 
-  virtual void getStations(Spine::Stations &stations, Settings &settings) = 0;
+  virtual void getStations(Spine::Stations &stations, const Settings &settings) const = 0;
+  virtual void getStationsByArea(Spine::Stations &stations,
+                                 const std::string &stationtype,
+                                 const boost::posix_time::ptime &starttime,
+                                 const boost::posix_time::ptime &endtime,
+                                 const std::string &areaWkt) const = 0;
+  virtual void getStationsByBoundingBox(Spine::Stations &stations,
+                                        const Settings &settings) const = 0;
+
   virtual void shutdown() = 0;
-  virtual MetaData metaData(const std::string &producer) = 0;
+  virtual MetaData metaData(const std::string &producer) const = 0;
   virtual std::string id() const = 0;
 
  protected:

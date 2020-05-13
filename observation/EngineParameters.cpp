@@ -41,14 +41,14 @@ ParameterMapPtr createParameterMapping(Spine::ConfigBase &cfg)
         auto &param = cfg.get_mandatory_config_param<libconfig::Setting &>(paramname);
         cfg.assert_is_group(param);
 
+        const std::string lower_parame_name = Fmi::ascii_tolower_copy(paramname);
+
         std::map<std::string, std::string> p;
         for (int j = 0; j < param.getLength(); ++j)
         {
           std::string name = param[j].getName();
           p.insert(std::make_pair(name, static_cast<const char *>(param[j])));
         }
-
-        const std::string lower_parame_name = Fmi::ascii_tolower_copy(paramname);
 
         if (pm->find(lower_parame_name) != pm->end())
           throw Spine::Exception(
@@ -81,12 +81,8 @@ EngineParameters::EngineParameters(Spine::ConfigBase &cfg)
   {
     quiet = cfg.get_optional_config_param<bool>("quiet", true);
 
-    locationCacheSize = cfg.get_mandatory_config_param<int>("cache.locationCacheSize");
-
     queryResultBaseCacheSize =
         cfg.get_optional_config_param<size_t>("cache.queryResultBaseCacheSize", 1000);
-
-    stationIdCacheSize = cfg.get_optional_config_param<size_t>("cache.stationIdCacheSize", 10000);
 
     serializedStationsFile = cfg.get_mandatory_path("serializedStationsFile");
     dbRegistryFolderPath = cfg.get_mandatory_path("dbRegistryFolderPath");
@@ -98,10 +94,37 @@ EngineParameters::EngineParameters(Spine::ConfigBase &cfg)
 
     parameterMap = createParameterMapping(cfg);
     readStationTypeConfig(cfg);
+    readDataQualityConfig(cfg);
   }
   catch (...)
   {
     throw Spine::Exception::Trace(BCP, "Configuration file read failed!");
+  }
+}
+
+void EngineParameters::readDataQualityConfig(Spine::ConfigBase &cfg)
+{
+  try
+  {
+    // Default filter
+    std::string default_filter =
+        cfg.get_optional_config_param<std::string>("data_quality_filter.default", "le 5");
+
+    std::vector<std::string> stationtypes =
+        cfg.get_mandatory_config_array<std::string>("stationtypes");
+
+    for (const auto &type : stationtypes)
+    {
+      if (type.empty())
+        continue;
+
+      dataQualityFilters[type] = cfg.get_optional_config_param<std::string>(
+          "data_quality_filter.override." + type, default_filter);
+    }
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Reading data quality config failed!");
   }
 }
 

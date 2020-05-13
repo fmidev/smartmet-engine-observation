@@ -108,46 +108,8 @@ class PostgreSQL : private boost::noncopyable
    */
   void createTables();
 
-  /**
-   * @brief Return the number of rows in the stations table
-   */
-  size_t getStationCount();
-
-  void updateStationsAndGroups(const StationInfo &info);
-
-  SmartMet::Spine::Stations findAllStationsFromGroups(
-      const std::set<std::string> stationgroup_codes,
-      const StationInfo &info,
-      const boost::posix_time::ptime &starttime,
-      const boost::posix_time::ptime &endtime);
-
-  // Deprecated methods. These are way too slow, use the respective methods in
-  // Engine instead.
-  SmartMet::Spine::Stations findNearestStations(
-      double latitude,
-      double longitude,
-      const std::map<int, SmartMet::Spine::Station> &stationIndex,
-      int maxdistance,
-      int numberofstations,
-      const std::set<std::string> &stationgroup_codes,
-      const boost::posix_time::ptime &starttime,
-      const boost::posix_time::ptime &endtime);
-
-  SmartMet::Spine::Stations findNearestStations(
-      const SmartMet::Spine::LocationPtr &location,
-      const std::map<int, SmartMet::Spine::Station> &stationIndex,
-      const int maxdistance,
-      const int numberofstations,
-      const std::set<std::string> &stationgroup_codes,
-      const boost::posix_time::ptime &starttime,
-      const boost::posix_time::ptime &endtime);
-
   void setConnectionId(int connectionId) { itsConnectionId = connectionId; }
   int connectionId() { return static_cast<int>(itsConnectionId); }
-  /**
-   * @brief Insert new stations or update old ones in locations table.
-   */
-  void fillLocationCache(const LocationItems &locations);
 
   /**
    * @brief Update observation_data with data from Oracle's
@@ -310,68 +272,6 @@ class PostgreSQL : private boost::noncopyable
       const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::Stations findStationsInsideArea(const Settings &settings,
-                                                   const std::string &areaWkt,
-                                                   const StationInfo &info);
-
-  SmartMet::Spine::Stations findStationsInsideBox(const Settings &settings,
-                                                  const StationInfo &info);
-
-  SmartMet::Spine::Stations findStationsByWMO(const Settings &settings, const StationInfo &info);
-  SmartMet::Spine::Stations findStationsByLPNN(const Settings &settings, const StationInfo &info);
-
-  /**
-   * @brief Fill station_id, fmisid, wmo, geoid, lpnn, longitude_out and
-   * latitude_out into the
-   *        station object if value is missing.
-   *        Some id  (station_id, fmisid, wmo, lpnn or geoid) must be defined in
-   * the Station object.
-   * @param[in,out] s Data is filled to this object if some id is present.
-   * @param[in] stationgroup_codes Station match requires a correct station
-   * group
-   *        If the stationgroup_codes list is empty the station group is not
-   * used.
-   * @return true If the data is filled successfully, false If the data is not filled at all.
-   */
-  bool fillMissing(SmartMet::Spine::Station &s,
-                   const std::set<std::string> &stationgroup_codes,
-                   const boost::posix_time::ptime &starttime,
-                   const boost::posix_time::ptime &endtime);
-
-  /**
-   * @brief Get the station odered by \c station_id.
-   * @param station_id Primary identity of the requested station.
-   *        \c station_id is the same value as the station fmisid value.
-   * @param[in] stationgroup_codes Station match requires a correct station
-   * group
-   *        If the stationgroup_codes list is empty the station group is not
-   * used.
-   * @return true If the station is found and data stored into the given object, false If the
-   * station is no found.
-   */
-  bool getStationById(SmartMet::Spine::Station &station,
-                      int station_id,
-                      const std::set<std::string> &stationgroup_codes,
-                      const boost::posix_time::ptime &starttime,
-                      const boost::posix_time::ptime &endtime);
-
-  /**
-   * @brief Get the station odered by \c geo_id.
-   * @param geo_id Primary identity of the requested station.
-   *        \c geo_id is the same value as the station fmisid value.
-   * @param[in] stationgroup_codes Station match requires a correct station
-   * group
-   *        If the stationgroup_codes list is empty the station group is not
-   * used.
-   * @return true If the station is found and data stored into the given object.
-   * @return false If the station is no found.
-   */
-  bool getStationByGeoid(Spine::Station &station,
-                         int geo_id,
-                         const std::set<std::string> &stationgroup_codes,
-                         const boost::posix_time::ptime &starttime,
-                         const boost::posix_time::ptime &endtime);
-
   void shutdown();
 
   /**
@@ -449,7 +349,8 @@ class PostgreSQL : private boost::noncopyable
       const std::map<std::string, int> &timeseriesPositions,
       const ParameterMapPtr &parameterMap,
       const std::string &stationtype,
-      const SmartMet::Spine::Station &station);
+      const SmartMet::Spine::Station &station,
+      const std::string &missingtext);
 
   void addEmptyValuesToTimeSeries(
       SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
@@ -459,9 +360,6 @@ class PostgreSQL : private boost::noncopyable
       const std::map<std::string, int> &timeseriesPositions,
       const std::string &stationtype,
       const SmartMet::Spine::Station &station);
-
-  void updateStations(const SmartMet::Spine::Stations &stations);
-  void updateStationGroups(const StationInfo &info);
 
   boost::posix_time::ptime getLatestTimeFromTable(std::string tablename, std::string time_field);
   boost::posix_time::ptime getOldestTimeFromTable(std::string tablename, std::string time_field);
@@ -476,9 +374,6 @@ class PostgreSQL : private boost::noncopyable
   void createRoadCloudDataTable();
   void createNetAtmoDataTable();
   void createObservablePropertyTable();
-  Spine::Stations fetchStationsFromDB(const std::string &sqlStmt,
-                                      const Settings &settings,
-                                      const StationInfo &info) const;
   void fetchCachedDataFromDB(const std::string &sqlStmt,
                              struct cached_data &data,
                              bool measurand = false);

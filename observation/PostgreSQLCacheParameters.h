@@ -47,9 +47,8 @@ struct PostgreSQLCacheParameters
   std::size_t netAtmoInsertCacheSize = 0;
 
   bool quiet = true;
-  bool cacheHasStations;
   boost::shared_ptr<boost::posix_time::time_period> flashCachePeriod;
-  boost::shared_ptr<StationInfo> stationInfo;
+  const boost::shared_ptr<StationInfo>& stationInfo;
   const ParameterMapPtr& parameterMap;
   StationtypeConfig& stationtypeConfig;
   const ExternalAndMobileProducerConfig& externalAndMobileProducerConfig;

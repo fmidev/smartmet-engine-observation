@@ -1,4 +1,5 @@
 #include "StationInfo.h"
+#include "Utils.h"
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/archive/binary_iarchive.hpp>
@@ -12,6 +13,7 @@
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/vector.hpp>
+#include <gis/OGR.h>
 #include <macgyver/StringConversion.h>
 #include <spine/Exception.h>
 
@@ -23,6 +25,13 @@ namespace Engine
 {
 namespace Observation
 {
+// Sort based on fmisid
+static bool sort_stations_function(const SmartMet::Spine::Station& s1,
+                                   const SmartMet::Spine::Station& s2)
+{
+  return (s1.fmisid < s2.fmisid);
+}
+
 // ----------------------------------------------------------------------
 /*!
  * \brief Test if the station has any observations for the time period
@@ -230,6 +239,7 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
         Fmi::to_string(std::round(distance * 10) / 10.0);  // round to 100 meter precision
     newstation.requestedLat = latitude;
     newstation.requestedLon = longitude;
+    calculateStationDirection(newstation);
 
     result.push_back(newstation);
   }
@@ -304,6 +314,47 @@ Spine::Stations findStations(const Spine::Stations& stations,
 Spine::Stations StationInfo::findFmisidStations(const std::vector<int>& fmisids) const
 {
   return findStations(stations, fmisids, fmisidstations);
+}
+
+// ----------------------------------------------------------------------
+/*!
+ * \brief Find the given FMISID stations
+ */
+// ----------------------------------------------------------------------
+
+SmartMet::Spine::Stations StationInfo::findFmisidStations(
+    const SmartMet::Spine::TaggedFMISIDList& taggedFMISIDs) const
+{
+  std::vector<int> fmisids;
+  std::map<int, const SmartMet::Spine::TaggedFMISID*> fmisidMap;
+
+  for (const auto& item : taggedFMISIDs)
+  {
+    fmisids.push_back(item.fmisid);
+    fmisidMap.insert(std::make_pair(item.fmisid, &item));
+  }
+
+  SmartMet::Spine::Stations ret = findFmisidStations(fmisids);
+
+  // Set direction, distance, tag
+  for (auto& station : ret)
+  {
+    const SmartMet::Spine::TaggedFMISID* tfmisid = fmisidMap.at(station.fmisid);
+    // Chage to >= 0
+    if (tfmisid->direction > 0)
+      station.stationDirection = tfmisid->direction;
+    else
+      station.stationDirection = -1;
+    if (!tfmisid->distance.empty())
+      station.distance = tfmisid->distance;
+    else
+      station.distance = "";
+
+    if (!tfmisid->tag.empty())
+      station.tag = tfmisid->tag;
+  }
+
+  return ret;
 }
 
 // ----------------------------------------------------------------------
@@ -429,6 +480,52 @@ Spine::Stations StationInfo::findStationsInGroup(const std::set<std::string>& gr
 
 // ----------------------------------------------------------------------
 /*!
+ * \brief Find stations in WKT area
+ */
+// ----------------------------------------------------------------------
+Spine::Stations StationInfo::findStationsInsideArea(const std::set<std::string>& groups,
+                                                    const boost::posix_time::ptime& starttime,
+                                                    const boost::posix_time::ptime& endtime,
+                                                    const std::string& wkt) const
+{
+  try
+  {
+    Spine::Stations stations;
+
+    // Get stations belonging to the requested groups and period
+    SmartMet::Spine::Stations groupStations = findStationsInGroup(groups, starttime, endtime);
+    // Create area geometry from wkt-string
+    OGRGeometry* areaGeometry = Fmi::OGR::createFromWkt(wkt, 4326);
+    // Create spatial refernce to be used below
+    OGRSpatialReference srs;
+    srs.importFromEPSGA(4326);
+
+    // Iterate stations
+    for (auto station : groupStations)
+    {
+      // Create Point geometry from sation coordinates
+      OGRPoint stationLocation(station.longitude_out, station.latitude_out);
+      stationLocation.assignSpatialReference(&srs);
+
+      // If station is inside area accept it
+      if (areaGeometry->Contains(&stationLocation))
+      {
+        stations.push_back(station);
+      }
+    }
+    // Sort in ascending fmisid order
+    std::sort(stations.begin(), stations.end(), sort_stations_function);
+
+    return stations;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "[StationInfo] finding stations inside area failed!");
+  }
+}
+
+// ----------------------------------------------------------------------
+/*!
  * \brief Get the station with the given fmisid
  */
 // ----------------------------------------------------------------------
@@ -438,6 +535,7 @@ const Spine::Station& StationInfo::getStation(unsigned int fmisid,
 {
   std::set<StationID> all_ids;
 
+  //  std::cout << "FMISID: " << fmisid << std::endl;
   const auto& ids = fmisidstations.at(fmisid);
   for (const auto id : ids)
   {
@@ -450,19 +548,19 @@ const Spine::Station& StationInfo::getStation(unsigned int fmisid,
 
   if (all_ids.empty())
     throw Spine::Exception(BCP, "No match found for fmisid=" + Fmi::to_string(fmisid));
-
+  /*
   if (all_ids.size() > 1)
   {
     std::string msg = "Too many matches found for fmisid=" + Fmi::to_string(fmisid) + " :";
     for (const auto id : all_ids)
-      msg += " " + stations.at(id).station_type;
+      msg += " " + stations.at(id).station_type + " " + stations.at(id).station_formal_name;
     msg += ". Requested:";
     for (const auto& name : groups)
       msg += " " + name;
 
     throw Spine::Exception(BCP, msg);
   }
-
+  */
   return stations.at(*ids.begin());
 }
 
@@ -562,8 +660,12 @@ Spine::Stations StationInfo::findStationsInsideBox(double minx,
     const auto& station = stations.at(id);
 
     if (timeok(station, starttime, endtime))
+    {
       if (groups.empty() || groups.find(station.station_type) != groups.end())
+      {
         result.push_back(station);
+      }
+    }
   }
 
   return result;

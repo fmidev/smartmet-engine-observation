@@ -52,9 +52,9 @@ void calculateStationDirection(SmartMet::Spine::Station& station);
 double deg2rad(double deg);
 double rad2deg(double rad);
 
-std::string windCompass8(double direction);
-std::string windCompass16(double direction);
-std::string windCompass32(double direction);
+std::string windCompass8(double direction, const std::string& missingValue);
+std::string windCompass16(double direction, const std::string& missingValue);
+std::string windCompass32(double direction, const std::string& missingValue);
 
 std::string parseParameterName(const std::string& parameter);
 int parseSensorNumber(const std::string& parameter);
@@ -88,19 +88,6 @@ std::string timeToString(const boost::posix_time::ptime& time);
  */
 // ----------------------------------------------------------------------
 void logMessage(const std::string& message, bool quiet);
-
-// ----------------------------------------------------------------------
-/*!
- * \brief Returns location cacahe key
- */
-// ----------------------------------------------------------------------
-
-std::string getLocationCacheKey(int geoID,
-                                int numberOfStations,
-                                std::string stationType,
-                                int maxDistance,
-                                const boost::posix_time::ptime& starttime,
-                                const boost::posix_time::ptime& endtime);
 
 // ----------------------------------------------------------------------
 /*!

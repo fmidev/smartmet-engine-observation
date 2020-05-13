@@ -27,15 +27,18 @@ ts::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings &settings,
   return boost::make_shared<ts::TimeSeriesVector>();
 }
 
-boost::shared_ptr<Spine::Table> DummyDatabaseDriver::makeQuery(
-    Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &)
+Spine::TaggedFMISIDList DummyDatabaseDriver::translateToFMISID(
+    const boost::posix_time::ptime &starttime,
+    const boost::posix_time::ptime &endtime,
+    const std::string &stationtype,
+    const StationSettings &stationSettings) const
 {
-  return boost::make_shared<Spine::Table>();
+  return Spine::TaggedFMISIDList();
 }
 
 FlashCounts DummyDatabaseDriver::getFlashCount(const boost::posix_time::ptime &,
                                                const boost::posix_time::ptime &,
-                                               const Spine::TaggedLocationList &)
+                                               const Spine::TaggedLocationList &) const
 {
   return FlashCounts();
 }

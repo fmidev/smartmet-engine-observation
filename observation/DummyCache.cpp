@@ -32,18 +32,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr DummyCache::valuesFromCache(
   return Spine::TimeSeries::TimeSeriesVectorPtr();
 }
 
-Spine::Stations DummyCache::getStationsByTaggedLocations(
-    const Spine::TaggedLocationList &taggedLocations,
-    const int numberofstations,
-    const std::string &stationtype,
-    const int maxdistance,
-    const std::set<std::string> &stationgroup_codes,
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime)
-{
-  return Spine::Stations();
-}
-
 bool DummyCache::dataAvailableInCache(const Settings &settings) const
 {
   return false;
@@ -53,37 +41,6 @@ bool DummyCache::flashIntervalIsCached(const boost::posix_time::ptime &starttime
                                        const boost::posix_time::ptime &endtime) const
 {
   return false;
-}
-
-void DummyCache::getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const
-{
-}
-
-void DummyCache::updateStationsAndGroups(const StationInfo &info) const {}
-
-Spine::Stations DummyCache::findAllStationsFromGroups(
-    const std::set<std::string> stationgroup_codes,
-    const StationInfo &info,
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime) const
-{
-  return Spine::Stations();
-}
-
-bool DummyCache::getStationById(Spine::Station &station,
-                                int station_id,
-                                const std::set<std::string> &stationgroup_codes,
-                                const boost::posix_time::ptime &starttime,
-                                const boost::posix_time::ptime &endtime) const
-{
-  return false;
-}
-
-Spine::Stations DummyCache::findStationsInsideArea(const Settings &settings,
-                                                   const std::string &areaWkt,
-                                                   const StationInfo &info) const
-{
-  return Spine::Stations();
 }
 
 FlashCounts DummyCache::getFlashCount(const boost::posix_time::ptime &starttime,
@@ -191,17 +148,10 @@ std::size_t DummyCache::fillNetAtmoCache(
 
 void DummyCache::cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const {}
 
-void DummyCache::fillLocationCache(const LocationItems &locations) const {}
-
 boost::shared_ptr<std::vector<ObservableProperty> > DummyCache::observablePropertyQuery(
     std::vector<std::string> &parameters, const std::string language) const
 {
   return boost::shared_ptr<std::vector<ObservableProperty> >();
-}
-
-bool DummyCache::cacheHasStations() const
-{
-  return false;
 }
 
 void DummyCache::shutdown() {}

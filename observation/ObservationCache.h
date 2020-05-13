@@ -5,7 +5,7 @@
 #include "LocationItem.h"
 #include "MobileExternalDataItem.h"
 #include "Settings.h"
-#include "StationInfo.h"
+//#include "StationInfo.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
 
@@ -41,40 +41,10 @@ class ObservationCache
   virtual Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(
       Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) = 0;
 
-  virtual Spine::Stations getStationsByTaggedLocations(
-      const Spine::TaggedLocationList &taggedLocations,
-      const int numberofstations,
-      const std::string &stationtype,
-      const int maxdistance,
-      const std::set<std::string> &stationgroup_codes,
-      const boost::posix_time::ptime &starttime,
-      const boost::posix_time::ptime &endtime) = 0;
-
   virtual bool dataAvailableInCache(const Settings &settings) const = 0;
 
   virtual bool flashIntervalIsCached(const boost::posix_time::ptime &starttime,
                                      const boost::posix_time::ptime &endtime) const = 0;
-
-  virtual void getStationsByBoundingBox(Spine::Stations &stations,
-                                        const Settings &settings) const = 0;
-
-  virtual void updateStationsAndGroups(const StationInfo &info) const = 0;
-
-  virtual Spine::Stations findAllStationsFromGroups(
-      const std::set<std::string> stationgroup_codes,
-      const StationInfo &info,
-      const boost::posix_time::ptime &starttime,
-      const boost::posix_time::ptime &endtime) const = 0;
-
-  virtual bool getStationById(Spine::Station &station,
-                              int station_id,
-                              const std::set<std::string> &stationgroup_codes,
-                              const boost::posix_time::ptime &starttime,
-                              const boost::posix_time::ptime &endtime) const = 0;
-
-  virtual Spine::Stations findStationsInsideArea(const Settings &settings,
-                                                 const std::string &areaWkt,
-                                                 const StationInfo &info) const = 0;
 
   virtual FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                                     const boost::posix_time::ptime &endtime,
@@ -113,11 +83,8 @@ class ObservationCache
       const MobileExternalDataItems &mobileExternalCacheData) const = 0;
   virtual void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const = 0;
 
-  virtual void fillLocationCache(const LocationItems &locations) const = 0;
-
   virtual boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language) const = 0;
-  virtual bool cacheHasStations() const = 0;
   virtual void shutdown() = 0;
 
  protected:

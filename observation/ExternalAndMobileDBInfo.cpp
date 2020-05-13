@@ -17,7 +17,7 @@ void add_where_conditions(std::string &sqlStmt,
                           const boost::posix_time::ptime &starttime,
                           const boost::posix_time::ptime &endtime,
                           const std::string &wktAreaFilter,
-                          const std::map<std::string, std::vector<std::string>> &data_filter)
+                          const SQLDataFilter &sqlDataFilter)
 {
   if (!wktAreaFilter.empty())
   {
@@ -48,20 +48,10 @@ void add_where_conditions(std::string &sqlStmt,
     sqlStmt += " AND obs.data_time<='" + Fmi::to_iso_extended_string(endtime) + "'";
   }
 
-  for (auto f : data_filter)
-  {
-    const std::string &fieldname = f.first;
-    const std::vector<std::string> &fieldvalues = f.second;
-
-    sqlStmt += " AND (";
-    for (unsigned int i = 0; i < fieldvalues.size(); i++)
-    {
-      if (i > 0)
-        sqlStmt += " OR ";
-      sqlStmt += ("obs." + fieldname + "=" + fieldvalues.at(i));
-    }
-    sqlStmt += ")";
-  }
+  if (sqlDataFilter.exist("station_id"))
+    sqlStmt += " AND " + sqlDataFilter.getSqlClause("station_id", "obs.station_id");
+  if (sqlDataFilter.exist("data_quality"))
+    sqlStmt += " AND " + sqlDataFilter.getSqlClause("data_quality", "obs.data_quality");
 
   boost::algorithm::replace_all(sqlStmt, "WHERE AND", "WHERE");
 }
@@ -74,12 +64,11 @@ ExternalAndMobileDBInfo::ExternalAndMobileDBInfo(
 {
 }
 
-std::string ExternalAndMobileDBInfo::sqlSelect(
-    const std::vector<int> &measurandIds,
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime,
-    const std::string &wktAreaFilter,
-    const std::map<std::string, std::vector<std::string>> &data_filter) const
+std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurandIds,
+                                               const boost::posix_time::ptime &starttime,
+                                               const boost::posix_time::ptime &endtime,
+                                               const std::string &wktAreaFilter,
+                                               const SQLDataFilter &sqlDataFilter) const
 {
   std::string sqlStmt;
 
@@ -135,7 +124,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(
                        starttime,
                        endtime,
                        wktAreaFilter,
-                       data_filter);
+                       sqlDataFilter);
 
   if (producerName == ROADCLOUD_PRODUCER)
     sqlStmt +=
@@ -201,13 +190,12 @@ std::string ExternalAndMobileDBInfo::sqlSelectForCache(
   return sqlStmt;
 }
 
-std::string ExternalAndMobileDBInfo::sqlSelectFromCache(
-    const std::vector<int> &measurandIds,
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime,
-    const std::string &wktAreaFilter,
-    const std::map<std::string, std::vector<std::string>> &data_filter,
-    bool spatialite /* = false*/) const
+std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &measurandIds,
+                                                        const boost::posix_time::ptime &starttime,
+                                                        const boost::posix_time::ptime &endtime,
+                                                        const std::string &wktAreaFilter,
+                                                        const SQLDataFilter &sqlDataFilter,
+                                                        bool spatialite /* = false*/) const
 {
   if (!itsProducerMeasurand)
     return "";
@@ -246,7 +234,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(
   sqlStmt += " obs WHERE";
 
   add_where_conditions(
-      sqlStmt, "obs.geom", measurandIds, starttime, endtime, wktAreaFilter, data_filter);
+      sqlStmt, "obs.geom", measurandIds, starttime, endtime, wktAreaFilter, sqlDataFilter);
 
   if (producerName == ROADCLOUD_PRODUCER)
     sqlStmt +=

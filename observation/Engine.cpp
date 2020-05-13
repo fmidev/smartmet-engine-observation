@@ -2,8 +2,8 @@
 #include "DBRegistry.h"
 #include "DatabaseDriverFactory.h"
 #include "ObservationCacheFactory.h"
-#include <boost/make_shared.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/make_shared.hpp>
 #include <macgyver/Geometry.h>
 #include <spine/Convenience.h>
 #include <spine/ParameterTools.h>
@@ -78,9 +78,9 @@ void Engine::unserializeStations()
 
   try
   {
+    boost::shared_ptr<StationInfo> stationinfo = boost::make_shared<StationInfo>();
     if (boost::filesystem::exists(path) && !boost::filesystem::is_empty(path))
     {
-      boost::shared_ptr<StationInfo> stationinfo = boost::make_shared<StationInfo>();
       stationinfo->unserialize(itsEngineParameters->serializedStationsFile);
 
       //  This is atomic
@@ -90,6 +90,7 @@ void Engine::unserializeStations()
     }
     else
     {
+      itsEngineParameters->stationInfo = stationinfo;
       logMessage("[Observation Engine] No serialized station file found from " + path.string(),
                  itsEngineParameters->quiet);
     }
@@ -155,102 +156,24 @@ void Engine::getStations(Spine::Stations &stations, Settings &settings)
   return itsDatabaseDriver->getStations(stations, settings);
 }
 
-Spine::Stations Engine::getStationsByArea(const Settings &settings, const std::string &areaWkt)
+void Engine::getStationsByArea(Spine::Stations &stations,
+                               const std::string &stationtype,
+                               const boost::posix_time::ptime &starttime,
+                               const boost::posix_time::ptime &endtime,
+                               const std::string &areaWkt)
 {
-  try
-  {
-    Spine::Stations stations;
-    Settings tempSettings = settings;
-
-    try
-    {
-      auto stationgroupCodeSet =
-          itsEngineParameters->stationtypeConfig.getGroupCodeSetByStationtype(
-              tempSettings.stationtype);
-      tempSettings.stationgroup_codes.insert(stationgroupCodeSet->begin(),
-                                             stationgroupCodeSet->end());
-    }
-    catch (...)
-    {
-      return stations;
-    }
-
-    if (areaWkt.empty())
-      return stations;
-
-    try
-    {
-      auto info = boost::atomic_load(&itsEngineParameters->stationInfo);
-      return itsEngineParameters->observationCache->findStationsInsideArea(
-          tempSettings, areaWkt, *info);
-    }
-    catch (...)
-    {
-      throw Spine::Exception::Trace(BCP, "Operation failed!");
-    }
-
-    return stations;
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
-  }
+  return itsDatabaseDriver->getStationsByArea(stations, stationtype, starttime, endtime, areaWkt);
 }
 
 void Engine::getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings)
 {
-  itsEngineParameters->observationCache->getStationsByBoundingBox(stations, settings);
-}
-
-void Engine::getStationsByRadius(Spine::Stations &stations,
-                                 const Settings &settings,
-                                 double longitude,
-                                 double latitude)
-{
-  try
-  {
-    // Copy original data atomically so that a reload may simultaneously swap
-    auto info = boost::atomic_load(&itsEngineParameters->stationInfo);
-
-    // std::cout << "NOT USING FAST SEARCH!" << std::endl;
-
-    // Now we can safely use "outdated" data even though the stations may have
-    // simultaneously been
-    // updated
-
-    for (const Spine::Station &station : info->stations)
-    {
-      if (stationHasRightType(station, settings))
-      {
-        double distance = Fmi::Geometry::GeoDistance(
-            longitude, latitude, station.longitude_out, station.latitude_out);
-        if (distance < settings.maxdistance)
-        {
-          stations.push_back(station);
-        }
-      }
-    }
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
-  }
+  return itsDatabaseDriver->getStationsByBoundingBox(stations, settings);
 }
 
 void Engine::initializeCache()
 {
   try
   {
-    if (itsEngineParameters->locationCacheSize)
-    {
-      itsEngineParameters->locationCache.resize(
-          boost::numeric_cast<std::size_t>(itsEngineParameters->locationCacheSize));
-    }
-    else
-    {
-      itsEngineParameters->locationCache.resize(1000);
-    }
-
     itsEngineParameters->queryResultBaseCache.resize(itsEngineParameters->queryResultBaseCacheSize);
   }
   catch (...)
@@ -279,16 +202,10 @@ FlashCounts Engine::getFlashCount(const boost::posix_time::ptime &starttime,
   return itsDatabaseDriver->getFlashCount(starttime, endtime, locations);
 }
 
-boost::shared_ptr<std::vector<ObservableProperty> > Engine::observablePropertyQuery(
+boost::shared_ptr<std::vector<ObservableProperty>> Engine::observablePropertyQuery(
     std::vector<std::string> &parameters, const std::string language)
 {
   return itsDatabaseDriver->observablePropertyQuery(parameters, language);
-}
-
-boost::shared_ptr<Spine::Table> Engine::makeQuery(
-    Settings &settings, boost::shared_ptr<Spine::ValueFormatter> &valueFormatter)
-{
-  return itsDatabaseDriver->makeQuery(settings, valueFormatter);
 }
 
 ts::TimeSeriesVectorPtr Engine::values(Settings &settings)
@@ -397,6 +314,15 @@ MetaData Engine::metaData(const std::string &producer) const
   return itsDatabaseDriver->metaData(producer);
 }
 
+// Translates WMO, RWID,LPNN to FMISID
+Spine::TaggedFMISIDList Engine::translateToFMISID(const boost::posix_time::ptime &starttime,
+                                                  const boost::posix_time::ptime &endtime,
+                                                  const std::string &stationtype,
+                                                  const StationSettings &stationSettings) const
+{
+  return itsDatabaseDriver->translateToFMISID(starttime, endtime, stationtype, stationSettings);
+}
+
 Settings Engine::beforeQuery(const Settings &settings,
                              std::vector<unsigned int> &unknownParameterIndexes) const
 {
@@ -409,8 +335,7 @@ Settings Engine::beforeQuery(const Settings &settings,
   {
     const auto &p = settings.parameters.at(i);
     std::string pname = Fmi::ascii_tolower_copy(p.name());
-    if (!isParameter(pname, settings.stationtype) &&
-        !Spine::is_special_parameter(pname))
+    if (!isParameter(pname, settings.stationtype) && !Spine::is_special_parameter(pname))
     {
       unknownParameterIndexes.push_back(i);
       continue;

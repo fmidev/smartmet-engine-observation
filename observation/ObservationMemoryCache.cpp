@@ -243,10 +243,12 @@ void ObservationMemoryCache::clean(const boost::posix_time::ptime& newstarttime)
 // Read observations from the cache. Each shared part must be loaded atomically
 // to be safe in case write/clean is in progress.
 
-LocationDataItems ObservationMemoryCache::read_observations(const Spine::Stations& stations,
-                                                            const Settings& settings,
-                                                            const StationInfo& stationInfo,
-                                                            const QueryMapping& qmap) const
+LocationDataItems ObservationMemoryCache::read_observations(
+    const Spine::Stations& stations,
+    const Settings& settings,
+    const StationInfo& stationInfo,
+    const std::set<std::string>& stationgroup_codes,
+    const QueryMapping& qmap) const
 {
   LocationDataItems ret;
 
@@ -263,7 +265,7 @@ LocationDataItems ObservationMemoryCache::read_observations(const Spine::Station
   for (const auto& station : stations)
   {
     // Accept station only if group condition is satisfied
-    if (!stationInfo.belongsToGroup(station.fmisid, settings.stationgroup_codes))
+    if (!stationInfo.belongsToGroup(station.fmisid, stationgroup_codes))
       continue;
 
     // Find station specific data

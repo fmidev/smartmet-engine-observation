@@ -163,10 +163,7 @@ void PostgreSQL::createTables()
   try
   {
     // No locking needed during initialization phase
-    createStationTable();
-    createStationGroupsTable();
-    createGroupMembersTable();
-    createLocationsTable();
+    //    createLocationsTable();
     createObservationDataTable();
     createWeatherDataQCTable();
     createFlashDataTable();
@@ -194,6 +191,7 @@ void PostgreSQL::shutdown()
 
 /*
  */
+/*
 void PostgreSQL::createLocationsTable()
 {
   try
@@ -219,43 +217,7 @@ void PostgreSQL::createLocationsTable()
     throw Spine::Exception::Trace(BCP, "Creation of locations table failed!");
   }
 }
-
-void PostgreSQL::createStationGroupsTable()
-{
-  try
-  {
-    itsDB.executeNonTransaction(
-        "CREATE TABLE IF NOT EXISTS station_groups ("
-        "group_id INTEGER NOT NULL PRIMARY KEY, "
-        "group_code TEXT, "
-        "last_modified timestamp default now())");
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Creation of station_groups table failed!");
-  }
-}
-
-void PostgreSQL::createGroupMembersTable()
-{
-  try
-  {
-    itsDB.executeNonTransaction(
-        "CREATE TABLE IF NOT EXISTS group_members ("
-        "group_id INTEGER NOT NULL, "
-        "fmisid INTEGER NOT NULL, "
-        "last_modified timestamp default now(), "
-        "CONSTRAINT fk_station_groups FOREIGN KEY (group_id) "
-        "REFERENCES station_groups "
-        "(group_id)); CREATE INDEX IF NOT EXISTS gm_sg_idx ON group_members "
-        "(group_id,fmisid);");
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Creation of group_members table failed!");
-  }
-}
-
+*/
 void PostgreSQL::createObservationDataTable()
 {
   try
@@ -443,40 +405,6 @@ void PostgreSQL::createNetAtmoDataTable()
   }
 }
 
-void PostgreSQL::createStationTable()
-{
-  try
-  {
-    // No locking needed during initialization phase
-    itsDB.executeNonTransaction(
-        "CREATE TABLE IF NOT EXISTS stations("
-        "fmisid INTEGER NOT NULL, "
-        "wmo INTEGER, "
-        "geoid INTEGER, "
-        "lpnn INTEGER, "
-        "rwsid INTEGER, "
-        "station_start timestamp, "
-        "station_end timestamp, "
-        "station_formal_name TEXT NOT NULL, "
-        "last_modified timestamp default now(), "
-        "PRIMARY KEY (fmisid, geoid, station_start, station_end))");
-
-    pqxx::result result_set =
-        itsDB.executeNonTransaction("SELECT * FROM geometry_columns WHERE f_table_name='stations'");
-    if (result_set.empty())
-    {
-      itsDB.executeNonTransaction(
-          "SELECT AddGeometryColumn('stations', 'the_geom', 4326, 'POINT', 2)");
-      itsDB.executeNonTransaction(
-          "CREATE INDEX IF NOT EXISTS stations_gix ON stations USING GIST (the_geom)");
-    }
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Creation of stations table failed!");
-  }
-}
-
 size_t PostgreSQL::selectCount(const std::string &queryString)
 {
   try
@@ -497,11 +425,6 @@ size_t PostgreSQL::selectCount(const std::string &queryString)
     throw Spine::Exception::Trace(BCP, queryString + " query failed!");
   }
 }  // namespace Observation
-
-size_t PostgreSQL::getStationCount()
-{
-  return selectCount("SELECT COUNT(*) FROM stations");
-}
 
 boost::posix_time::ptime PostgreSQL::getTime(const std::string &timeQuery) const
 {
@@ -683,63 +606,6 @@ boost::posix_time::ptime PostgreSQL::getOldestTimeFromTable(const std::string ta
 {
   std::string stmt = ("SELECT MIN(" + time_field + ") FROM " + tablename);
   return getTime(stmt);
-}
-
-void PostgreSQL::fillLocationCache(const LocationItems &locations)
-{
-  try
-  {
-    Spine::WriteLock lock(locations_write_mutex);
-    std::vector<std::string> values_vector;
-    for (const auto &item : locations)
-    {
-      std::string values = "(";
-      values += Fmi::to_string(item.fmisid) + ",";
-      values += Fmi::to_string(item.location_id) + ",";
-      values += Fmi::to_string(item.country_id) + ",";
-      values += ("'" + Fmi::to_iso_string(item.location_start) + "',");
-      values += ("'" + Fmi::to_iso_string(item.location_end) + "',");
-      values += Fmi::to_string(item.longitude) + ",";
-      values += Fmi::to_string(item.latitude) + ",";
-      values += Fmi::to_string(item.x) + ",";
-      values += Fmi::to_string(item.y) + ",";
-      values += Fmi::to_string(item.elevation) + ",";
-      values += ("$$" + item.time_zone_name + "$$,");
-      values += ("$$" + item.time_zone_abbrev + "$$)");
-      values_vector.push_back(values);
-
-      // Insert itsMaxInsertSize rows at a time, last round (probably) less
-      if ((values_vector.size() % itsMaxInsertSize == 0) || &item == &locations.back())
-      {
-        std::string sqlStmt =
-            "INSERT INTO locations "
-            "(fmisid, location_id, country_id, location_start, location_end, "
-            "longitude, latitude, x, y, "
-            "elevation, time_zone_name, time_zone_abbrev) "
-            "VALUES ";
-        for (const auto &v : values_vector)
-        {
-          sqlStmt += v;
-          if (&v != &values_vector.back())
-            sqlStmt += ",";
-        }
-        sqlStmt +=
-            " ON CONFLICT(fmisid) DO UPDATE SET "
-            "(location_id, country_id, location_start, location_end, "
-            "longitude, latitude, x, y, elevation, time_zone_name, time_zone_abbrev) = "
-            "(EXCLUDED.location_id, EXCLUDED.country_id, EXCLUDED.location_start, "
-            "EXCLUDED.location_end, EXCLUDED.longitude, EXCLUDED.latitude, EXCLUDED.x, "
-            "EXCLUDED.y, EXCLUDED.elevation, EXCLUDED.time_zone_name, EXCLUDED.time_zone_abbrev)";
-        itsDB.executeNonTransaction(sqlStmt);
-        values_vector.clear();
-      }
-    }
-    itsDB.executeNonTransaction("VACUUM ANALYZE locations");
-  }
-  catch (...)
-  {
-    throw Spine::Exception(BCP, "Filling of location cache failed!");
-  }
 }
 
 void PostgreSQL::cleanDataCache(const boost::posix_time::time_duration &timetokeep)
@@ -1682,8 +1548,11 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedMobileAndE
 
     ExternalAndMobileDBInfo dbInfo(&producerMeasurand);
 
-    std::string sqlStmt = dbInfo.sqlSelectFromCache(
-        measurandIds, settings.starttime, settings.endtime, settings.wktArea, settings.dataFilter);
+    std::string sqlStmt = dbInfo.sqlSelectFromCache(measurandIds,
+                                                    settings.starttime,
+                                                    settings.endtime,
+                                                    settings.wktArea,
+                                                    settings.sqlDataFilter);
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -1739,354 +1608,6 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedMobileAndE
   catch (...)
   {
     throw Spine::Exception::Trace(BCP, "Getting mobile data from database failed!");
-  }
-}
-
-void PostgreSQL::updateStationsAndGroups(const StationInfo &info)
-{
-  try
-  {
-    // The stations and the groups must be updated simultaneously,
-    // hence a common lock. Note that the latter call does reads too,
-    // so it would be impossible to create a single transaction of
-    // both updates.
-
-    Spine::WriteLock lock(stations_write_mutex);
-    updateStations(info.stations);
-    updateStationGroups(info);
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Update of stations and groups failed!");
-  }
-}
-
-void PostgreSQL::updateStations(const Spine::Stations &stations)
-{
-  try
-  {
-    Spine::Stations stationsToUpdate = stations;
-
-    while (stationsToUpdate.size() > 0)
-    {
-      // Locking handled by updateStationsAndGroups
-      const auto &last_station = stationsToUpdate.back();
-
-      // Note! Duplicate stations can not be inserted in the same bulk copy command,
-      // so we put duplicates aside and insert them later.
-      // If we try to insert duplicates there is an error:
-      // Execution of SQL statement failed: ERROR:  ON CONFLICT DO
-      // UPDATE command cannot affect row a second time HINT:  Ensure that no rows proposed
-      // for insertion within the same command have duplicate constrained values
-      std::vector<std::string> values_vector;
-      std::set<std::string> key_set;  // to check duplicates
-      Spine::Stations duplicateStations;
-      for (const auto &station : stationsToUpdate)
-      {
-        if (itsShutdownRequested)
-          return;
-
-        std::string key;
-        key += Fmi::to_string(station.fmisid);
-        key += Fmi::to_string(station.geoid);
-        key += Fmi::to_iso_string(station.station_start);
-        key += Fmi::to_iso_string(station.station_end);
-        if (key_set.find(key) != key_set.end())
-        {
-          duplicateStations.push_back(station);
-        }
-        else
-        {
-          key_set.insert(key);
-
-          std::string values = "(";
-          values += Fmi::to_string(station.fmisid) + ",";
-          values += Fmi::to_string(station.wmo) + ",";
-          values += Fmi::to_string(station.geoid) + ",";
-          values += Fmi::to_string(station.lpnn) + ",";
-          values += "$$" + station.station_formal_name + "$$,";
-          values += "'" + Fmi::to_iso_string(station.station_start) + "',";
-          values += "'" + Fmi::to_iso_string(station.station_end) + "',";
-          std::string geom = "ST_GeomFromText('POINT(" +
-                             Fmi::to_string("%.10g", station.longitude_out) + " " +
-                             Fmi::to_string("%.10g", station.latitude_out) + ")', " + srid + ")";
-          values += geom + ")";
-          values_vector.push_back(values);
-        }
-
-        if ((values_vector.size() % itsMaxInsertSize == 0) || &station == &last_station)
-        {
-          std::string sqlStmt =
-              "INSERT INTO stations (fmisid, wmo, geoid, lpnn, station_formal_name, "
-              "station_start, station_end, the_geom) VALUES ";
-
-          for (const auto &v : values_vector)
-          {
-            sqlStmt += v;
-            if (&v != &values_vector.back())
-              sqlStmt += ",";
-          }
-          sqlStmt +=
-              " ON CONFLICT(fmisid, geoid, station_start, station_end) DO "
-              "UPDATE SET "
-              "(wmo, lpnn, station_formal_name, the_geom) = "
-              "(EXCLUDED.wmo, EXCLUDED.lpnn, EXCLUDED.station_formal_name, "
-              "EXCLUDED.the_geom)";
-
-          itsDB.executeNonTransaction(sqlStmt);
-          values_vector.clear();
-        }
-      }
-      stationsToUpdate = duplicateStations;
-    }
-    itsDB.executeNonTransaction("VACUUM ANALYZE stations");
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Stations update failed!");
-  }
-}
-
-void PostgreSQL::updateStationGroups(const StationInfo &info)
-{
-  std::string sqlStmt;
-  try
-  {
-    // Locking handled by updateStationsAndGroups
-    // Station groups at the moment.
-    size_t stationGroupsCount = selectCount("SELECT COUNT(*) FROM station_groups");
-
-    for (const Spine::Station &station : info.stations)
-    {
-      if (itsShutdownRequested)
-        return;
-
-      // Skipping the empty cases.
-      if (station.station_type.empty())
-        continue;
-
-      const std::string groupCodeUpper = Fmi::ascii_toupper_copy(station.station_type);
-
-      // Search the group_id for a group_code.
-      sqlStmt =
-          "SELECT group_id FROM station_groups WHERE group_code = '" + groupCodeUpper + "' LIMIT 1";
-
-      boost::optional<int> group_id;
-
-      pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-
-      if (!result_set.empty())
-      {
-        pqxx::result::const_iterator row = result_set.begin();
-        if (!row[0].is_null())
-          group_id = row[0].as<int>();
-      }
-
-      // Group id not found, so we must add a new one.
-      if (not group_id)
-      {
-        stationGroupsCount++;
-        group_id = stationGroupsCount;
-        sqlStmt = "INSERT INTO station_groups (group_id, group_code) VALUES (" +
-                  Fmi::to_string(stationGroupsCount) + ", '" + groupCodeUpper +
-                  "') "
-                  " ON CONFLICT(group_id) DO "
-                  "UPDATE SET "
-                  "(group_code) = ROW(EXCLUDED.group_code)";
-        itsDB.executeNonTransaction(sqlStmt);
-      }
-
-      // Avoid duplicates.
-      sqlStmt = "SELECT COUNT(*) FROM group_members WHERE group_id=" + Fmi::to_string(*group_id) +
-                " AND fmisid=" + Fmi::to_string(station.fmisid);
-
-      size_t groupCount = selectCount(sqlStmt);
-
-      if (groupCount == 0)
-      {
-        // Insert a group member. Ignore if insertion fail (perhaps group_id or
-        // fmisid is not found from the stations table)
-        sqlStmt = "INSERT INTO group_members (group_id, fmisid) VALUES (" +
-                  Fmi::to_string(*group_id) + ", " + Fmi::to_string(station.fmisid) + ")";
-        itsDB.executeNonTransaction(sqlStmt);
-      }
-    }
-    itsDB.executeNonTransaction("VACUUM ANALYZE station_groups");
-    itsDB.executeNonTransaction("VACUUM ANALYZE group_members");
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Updating station groups failed!");
-  }
-}
-
-Spine::Stations PostgreSQL::findStationsByWMO(const Settings &settings, const StationInfo &info)
-{
-  try
-  {
-    return info.findWmoStations(settings.wmos);
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Searching stations by WMO numbers failed");
-  }
-}
-
-Spine::Stations PostgreSQL::findStationsByLPNN(const Settings &settings, const StationInfo &info)
-{
-  try
-  {
-    return info.findLpnnStations(settings.lpnns);
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Searching stations by LPNN numbers failed");
-  }
-}
-
-Spine::Stations PostgreSQL::findNearestStations(const Spine::LocationPtr &location,
-                                                const map<int, Spine::Station> &stationIndex,
-                                                int maxdistance,
-                                                int numberofstations,
-                                                const std::set<std::string> &stationgroup_codes,
-                                                const boost::posix_time::ptime &starttime,
-                                                const boost::posix_time::ptime &endtime)
-{
-  try
-  {
-    return findNearestStations(location->latitude,
-                               location->longitude,
-                               stationIndex,
-                               maxdistance,
-                               numberofstations,
-                               stationgroup_codes,
-                               starttime,
-                               endtime);
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Finding nearest stations failed!");
-  }
-}
-
-Spine::Stations PostgreSQL::findNearestStations(double latitude,
-                                                double longitude,
-                                                const map<int, Spine::Station> &stationIndex,
-                                                int maxdistance,
-                                                int numberofstations,
-                                                const std::set<std::string> &stationgroup_codes,
-                                                const boost::posix_time::ptime &,
-                                                const boost::posix_time::ptime &)
-{
-  try
-  {
-    Spine::Stations stations;
-
-    std::string sqlStmt =
-        "SELECT DISTINCT s.fmisid, "
-        "COALESCE(ST_Distance(s.the_geom, "
-        "(SELECT ST_GeomFromText('POINT(" +
-        Fmi::to_string("%.10g", longitude) + " " + Fmi::to_string("%.10g", latitude) + ")'," +
-        srid +
-        ")), 1), 0)/1000 dist "  // divide by 1000 to get kilometres
-        ", s.wmo"
-        ", s.geoid"
-        ", s.lpnn"
-        ", ST_X(s.the_geom)"
-        ", ST_Y(s.the_geom)"
-        ", s.station_formal_name "
-        "FROM ";
-
-    if (not stationgroup_codes.empty())
-    {  // Station selection from a station
-       // group or groups.
-      sqlStmt +=
-          "group_members gm "
-          "JOIN station_groups sg ON gm.group_id = sg.group_id "
-          "JOIN stations s oN gm.fmisid = s.fmisid ";
-    }
-    else
-    {
-      // Do not care about station group.
-      sqlStmt += "stations s ";
-    }
-
-    sqlStmt += "WHERE ";
-
-    if (not stationgroup_codes.empty())
-    {
-      auto it = stationgroup_codes.begin();
-      sqlStmt += "( sg.group_code='" + *it + "' ";
-      for (it++; it != stationgroup_codes.end(); it++)
-        sqlStmt += "OR sg.group_code='" + *it + "' ";
-      sqlStmt += ") AND ";
-    }
-
-    sqlStmt += "ST_Distance_Sphere(ST_GeomFromText('POINT(" + Fmi::to_string("%.10g", longitude) +
-               " " + Fmi::to_string("%.10g", latitude) + ")', " + srid +
-               "), s.the_geom) <= " + Fmi::to_string(maxdistance);
-
-    sqlStmt +=
-        " AND (:starttime BETWEEN s.station_start AND s.station_end OR "
-        ":endtime BETWEEN s.station_start AND s.station_end) "
-        "ORDER BY dist ASC, s.fmisid ASC LIMIT " +
-        Fmi::to_string(numberofstations);
-
-    int fmisid = 0;
-    int wmo = -1;
-    int geoid = -1;
-    int lpnn = -1;
-    double longitude_out = std::numeric_limits<double>::max();
-    double latitude_out = std::numeric_limits<double>::max();
-    string distance = "";
-    std::string station_formal_name = "";
-    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-    for (auto row : result_set)
-    {
-      try
-      {
-        fmisid = row[0].as<int>();
-        // Round distances to 100 meter precision
-        distance = fmt::format("{:.1f}", Fmi::stod(row[1].as<string>()));
-        wmo = row[2].as<int>();
-        geoid = row[3].as<int>();
-        lpnn = row[4].as<int>();
-        longitude_out = Fmi::stod(row[5].as<std::string>());
-        latitude_out = Fmi::stod(row[6].as<std::string>());
-        station_formal_name = row[7].as<std::string>();
-
-        auto stationIterator = stationIndex.find(fmisid);
-        if (stationIterator != stationIndex.end())
-        {
-          stations.push_back(stationIterator->second);
-        }
-        else
-        {
-          continue;
-        }
-      }
-      catch (const std::bad_cast &e)
-      {
-        cout << e.what() << endl;
-      }
-      stations.back().distance = distance;
-      stations.back().station_id = fmisid;
-      stations.back().fmisid = fmisid;
-      stations.back().wmo = (wmo == 0 ? -1 : wmo);
-      stations.back().geoid = (geoid == 0 ? -1 : geoid);
-      stations.back().lpnn = (lpnn == 0) ? -1 : lpnn;
-      stations.back().requestedLat = latitude;
-      stations.back().requestedLon = longitude;
-      stations.back().longitude_out = longitude_out;
-      stations.back().latitude_out = latitude_out;
-      stations.back().station_formal_name = station_formal_name;
-      calculateStationDirection(stations.back());
-    }
-    return stations;
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Finding nearest stations failed!");
   }
 }
 
@@ -2216,7 +1737,8 @@ void PostgreSQL::addParameterToTimeSeries(
     const std::map<std::string, int> &timeseriesPositions,
     const ParameterMapPtr &parameterMap,
     const std::string &stationtype,
-    const Spine::Station &station)
+    const Spine::Station &station,
+    const std::string &missingtext)
 {
   try
   {
@@ -2253,13 +1775,13 @@ void PostgreSQL::addParameterToTimeSeries(
         else
         {
           if (special.first == "windcompass8")
-            windCompass = windCompass8(boost::get<double>(data.at(winddirectionpos)));
+            windCompass = windCompass8(boost::get<double>(data.at(winddirectionpos)), missingtext);
 
           else if (special.first == "windcompass16")
-            windCompass = windCompass16(boost::get<double>(data.at(winddirectionpos)));
+            windCompass = windCompass16(boost::get<double>(data.at(winddirectionpos)), missingtext);
 
           else if (special.first == "windcompass32")
-            windCompass = windCompass32(boost::get<double>(data.at(winddirectionpos)));
+            windCompass = windCompass32(boost::get<double>(data.at(winddirectionpos)), missingtext);
 
           ts::Value windCompassValue = ts::Value(windCompass);
           timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, windCompassValue));
@@ -2641,341 +2163,6 @@ void PostgreSQL::addSpecialParameterToTimeSeries(
   }
 }
 
-Spine::Stations PostgreSQL::findAllStationsFromGroups(
-    const std::set<std::string> stationgroup_codes,
-    const StationInfo &info,
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime)
-{
-  try
-  {
-    return info.findStationsInGroup(stationgroup_codes, starttime, endtime);
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Failed to find all stations in the given groups");
-  }
-}
-
-Spine::Stations PostgreSQL::fetchStationsFromDB(const std::string &sqlStmt,
-                                                const Settings &settings,
-                                                const StationInfo &info) const
-{
-  try
-  {
-    Spine::Stations stations;
-    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-    for (auto row : result_set)
-    {
-      try
-      {
-        int geoid = row[0].as<int>();
-        int station_id = row[1].as<int>();
-        Spine::Station station = info.getStation(station_id, settings.stationgroup_codes);
-        station.geoid = geoid;
-        stations.push_back(station);
-      }
-      catch (const std::bad_cast &e)
-      {
-        cout << e.what() << endl;
-        continue;
-      }
-      catch (...)
-      {
-        // Probably badly grouped stations in the database
-        continue;
-      }
-    }
-    return stations;
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Getting stations from database failed!");
-  }
-}
-
-Spine::Stations PostgreSQL::findStationsInsideArea(const Settings &settings,
-                                                   const std::string &areaWkt,
-                                                   const StationInfo &info)
-{
-  try
-  {
-    Spine::Stations stations;
-
-    std::string sqlStmt = "SELECT distinct s.geoid, s.fmisid FROM ";
-
-    if (not settings.stationgroup_codes.empty())
-    {
-      sqlStmt +=
-          "group_members gm "
-          "JOIN station_groups sg ON gm.group_id = sg.group_id "
-          "JOIN stations s ON gm.fmisid = s.fmisid ";
-    }
-    else
-    {
-      sqlStmt += "stations s ";
-    }
-
-    sqlStmt += "WHERE ";
-
-    if (not settings.stationgroup_codes.empty())
-    {
-      auto it = settings.stationgroup_codes.begin();
-      sqlStmt += fmt::format("( sg.group_code='{}' ", *it);
-      for (it++; it != settings.stationgroup_codes.end(); it++)
-        sqlStmt += fmt::format("OR sg.group_code='{}' ", *it);
-      sqlStmt += ") AND ";
-    }
-
-    sqlStmt += fmt::format(
-        "ST_Contains(ST_GeomFromText('{}','{}'), s.the_geom) AND ('{}' BETWEEN "
-        "s.station_start "
-        "AND "
-        "s.station_end OR '{}' BETWEEN s.station_start AND s.station_end)",
-        areaWkt,
-        srid,
-        Fmi::to_iso_extended_string(settings.starttime),
-        Fmi::to_iso_extended_string(settings.endtime));
-
-    return fetchStationsFromDB(sqlStmt, settings, info);
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Finding stations inside area failed!");
-  }
-}
-
-Spine::Stations PostgreSQL::findStationsInsideBox(const Settings &settings, const StationInfo &info)
-{
-  try
-  {
-    Spine::Stations stations;
-
-    std::string sqlStmt = "SELECT distinct s.geoid, s.fmisid FROM ";
-
-    if (not settings.stationgroup_codes.empty())
-    {
-      sqlStmt +=
-          "group_members gm "
-          "JOIN station_groups sg ON gm.group_id = sg.group_id "
-          "JOIN stations s ON gm.fmisid = s.fmisid ";
-    }
-    else
-    {
-      sqlStmt += "stations s ";
-    }
-
-    sqlStmt += "WHERE ";
-
-    if (not settings.stationgroup_codes.empty())
-    {
-      auto it = settings.stationgroup_codes.begin();
-      sqlStmt += fmt::format("( sg.group_code='{}' ", *it);
-      for (it++; it != settings.stationgroup_codes.end(); it++)
-        sqlStmt += fmt::format("OR sg.group_code='{}' ", *it);
-      sqlStmt += ") AND ";
-    }
-
-    sqlStmt += fmt::format(
-        "ST_EnvIntersects(s.the_geom,{:.10f},{:.10f},{:.10f},{:.10f}) AND ('{}' BETWEEN "
-        "s.station_start AND "
-        "s.station_end OR '{}' BETWEEN s.station_start AND s.station_end)",
-        settings.boundingBox.at("minx"),
-        settings.boundingBox.at("miny"),
-        settings.boundingBox.at("maxx"),
-        settings.boundingBox.at("maxy"),
-        Fmi::to_iso_extended_string(settings.starttime),
-        Fmi::to_iso_extended_string(settings.endtime));
-
-    return fetchStationsFromDB(sqlStmt, settings, info);
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Finding stations inside bounding box failed!");
-  }
-}
-
-bool PostgreSQL::fillMissing(Spine::Station &s,
-                             const std::set<std::string> &stationgroup_codes,
-                             const boost::posix_time::ptime &starttime,
-                             const boost::posix_time::ptime &endtime)
-{
-  try
-  {
-    bool missingStationId = (s.station_id == -1 or s.station_id == 0);
-    bool missingFmisId = (s.fmisid == -1 or s.fmisid == 0);
-    bool missingWmoId = (s.wmo == -1);
-    bool missingGeoId = (s.geoid == -1);
-    bool missingLpnnId = (s.lpnn == -1);
-    bool missingLongitude = (s.longitude_out == std::numeric_limits<double>::max());
-    bool missingLatitude = (s.latitude_out == std::numeric_limits<double>::max());
-    bool missingStationFormalName = (s.station_formal_name.empty());
-
-    // Can not fill the missing valus if all are missing.
-    if (missingStationId and missingFmisId and missingWmoId and missingGeoId)
-      return false;
-
-    std::string sqlStmt =
-        "SELECT s.fmisid, s.wmo, s.geoid, s.lpnn, ST_X(s.the_geom) AS lon, ST_Y(s.the_geom) "
-        "AS "
-        "lat, "
-        "s.station_formal_name FROM ";
-
-    if (not stationgroup_codes.empty())
-    {
-      sqlStmt +=
-          "group_members gm "
-          "JOIN station_groups sg ON gm.group_id = sg.group_id "
-          "JOIN stations s ON gm.fmisid = s.fmisid ";
-    }
-    else
-    {
-      sqlStmt += "stations s ";
-    }
-
-    sqlStmt += " WHERE";
-
-    if (not stationgroup_codes.empty())
-    {
-      auto it = stationgroup_codes.begin();
-      sqlStmt += fmt::format("( sg.group_code='{}' ", *it);
-      for (it++; it != stationgroup_codes.end(); it++)
-        sqlStmt += fmt::format("OR sg.group_code='{}' ", *it);
-      sqlStmt += ") AND ";
-    }
-
-    // Use the first id that is not missing.
-    if (not missingStationId)
-      sqlStmt += fmt::format(" s.fmisid={}", s.station_id);
-    else if (not missingFmisId)
-      sqlStmt += fmt::format(" s.fmisid={}", s.fmisid);
-    else if (not missingWmoId)
-      sqlStmt += fmt::format(" s.wmo={}", s.wmo);
-    else if (not missingGeoId)
-      sqlStmt += fmt::format(" s.geoid={}", s.geoid);
-    else if (not missingLpnnId)
-      sqlStmt += fmt::format(" s.lpnn={}", s.lpnn);
-    else
-      return false;
-
-    // Require overlap with station active time
-    sqlStmt += " AND '" + Fmi::to_iso_extended_string(starttime) + "' <= s.station_end AND '" +
-               Fmi::to_iso_extended_string(endtime) + "' >= s.station_start";
-
-    // We need only the latest one (ID values are unique).
-    sqlStmt += " LIMIT 1";
-
-    boost::optional<int> fmisid;
-    boost::optional<int> wmo;
-    boost::optional<int> geoid;
-    boost::optional<int> lpnn;
-    boost::optional<double> longitude_out;
-    boost::optional<double> latitude_out;
-    boost::optional<std::string> station_formal_name;
-
-    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-    if (!result_set.empty())
-    {
-      pqxx::result::const_iterator row = result_set.begin();
-      fmisid = row[0].as<int>();
-      wmo = row[1].as<int>();
-      geoid = row[2].as<int>();
-      lpnn = row[3].as<int>();
-      longitude_out = row[4].as<double>();
-      latitude_out = row[5].as<double>();
-      station_formal_name = row[6].as<std::string>();
-    }
-
-    // Checking the default value of station_id and then data do the data
-    // population.
-    if (fmisid)
-    {
-      if (missingStationId)
-        s.station_id = (fmisid ? fmisid.get() : -1);
-      if (missingFmisId)
-        s.fmisid = (fmisid ? fmisid.get() : -1);
-      if (missingWmoId)
-        s.wmo = (wmo ? wmo.get() : -1);
-      if (missingGeoId)
-        s.geoid = (geoid ? geoid.get() : -1);
-      if (missingLpnnId)
-        s.lpnn = (lpnn ? lpnn.get() : -1);
-      if (missingLongitude)
-        s.longitude_out =
-            (longitude_out ? longitude_out.get() : std::numeric_limits<double>::max());
-      if (missingLatitude)
-        s.latitude_out = (latitude_out ? latitude_out.get() : std::numeric_limits<double>::max());
-      if (missingStationFormalName)
-        s.station_formal_name = (station_formal_name ? station_formal_name.get() : "");
-    }
-    else
-    {
-      return false;
-    }
-
-    return true;
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
-  }
-}
-
-bool PostgreSQL::getStationById(Spine::Station &station,
-                                int station_id,
-                                const std::set<std::string> &stationgroup_codes,
-                                const boost::posix_time::ptime &starttime,
-                                const boost::posix_time::ptime &endtime)
-{
-  try
-  {
-    Spine::Station s;
-    s.station_id = station_id;
-    s.fmisid = -1;
-    s.wmo = -1;
-    s.geoid = -1;
-    s.lpnn = -1;
-    s.longitude_out = std::numeric_limits<double>::max();
-    s.latitude_out = std::numeric_limits<double>::max();
-    if (not fillMissing(s, stationgroup_codes, starttime, endtime))
-      return false;
-    station = s;
-    return true;
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Getting station by id failed!");
-  }
-}
-
-bool PostgreSQL::getStationByGeoid(Spine::Station &station,
-                                   int geo_id,
-                                   const std::set<std::string> &stationgroup_codes,
-                                   const boost::posix_time::ptime &starttime,
-                                   const boost::posix_time::ptime &endtime)
-
-{
-  try
-  {
-    Spine::Station s;
-    s.station_id = -1;
-    s.fmisid = -1;
-    s.wmo = -1;
-    s.geoid = geo_id;
-    s.lpnn = -1;
-    s.longitude_out = std::numeric_limits<double>::max();
-    s.latitude_out = std::numeric_limits<double>::max();
-    if (not fillMissing(s, stationgroup_codes, starttime, endtime))
-      return false;
-    station = s;
-    return true;
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Getting station by geoid failed!");
-  }
-}
-
 FlashCounts PostgreSQL::getFlashCount(const boost::posix_time::ptime &starttime,
                                       const boost::posix_time::ptime &endtime,
                                       const Spine::TaggedLocationList &locations)
@@ -3240,7 +2427,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedWeatherDataQCData(
                                      timeseriesPositions,
                                      parameterMap,
                                      stationtype,
-                                     tmpStations.at(s.fmisid));
+                                     tmpStations.at(s.fmisid),
+                                     settings.missingtext);
           }
           else
           {
@@ -3271,7 +2459,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedWeatherDataQCData(
                                    timeseriesPositions,
                                    parameterMap,
                                    stationtype,
-                                   tmpStations[fmisid]);
+                                   tmpStations[fmisid],
+                                   settings.missingtext);
         }
       }
     }
@@ -3451,7 +2640,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
                                    timeseriesPositionsString,
                                    parameterMap,
                                    stationtype,
-                                   tmpStations[fmisid]);
+                                   tmpStations[fmisid],
+                                   settings.missingtext);
         }
 
         // Add *data_source-fields
@@ -3526,17 +2716,20 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
                   if (special.first == "windcompass8")
                   {
                     windCompass =
-                        windCompass8(boost::get<double>(data[s.fmisid][t][winddirectionpos]));
+                        windCompass8(boost::get<double>(data[s.fmisid][t][winddirectionpos]),
+                                     settings.missingtext);
                   }
                   if (special.first == "windcompass16")
                   {
                     windCompass =
-                        windCompass16(boost::get<double>(data[s.fmisid][t][winddirectionpos]));
+                        windCompass16(boost::get<double>(data[s.fmisid][t][winddirectionpos]),
+                                      settings.missingtext);
                   }
                   if (special.first == "windcompass32")
                   {
                     windCompass =
-                        windCompass32(boost::get<double>(data[s.fmisid][t][winddirectionpos]));
+                        windCompass32(boost::get<double>(data[s.fmisid][t][winddirectionpos]),
+                                      settings.missingtext);
                   }
 
                   ts::Value windCompassValue = ts::Value(windCompass);
@@ -3637,17 +2830,20 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
                     if (special.first == "windcompass8")
                     {
                       windCompass =
-                          windCompass8(boost::get<double>(data[s.fmisid][t][winddirectionpos]));
+                          windCompass8(boost::get<double>(data[s.fmisid][t][winddirectionpos]),
+                                       settings.missingtext);
                     }
                     if (special.first == "windcompass16")
                     {
                       windCompass =
-                          windCompass16(boost::get<double>(data[s.fmisid][t][winddirectionpos]));
+                          windCompass16(boost::get<double>(data[s.fmisid][t][winddirectionpos]),
+                                        settings.missingtext);
                     }
                     if (special.first == "windcompass32")
                     {
                       windCompass =
-                          windCompass32(boost::get<double>(data[s.fmisid][t][winddirectionpos]));
+                          windCompass32(boost::get<double>(data[s.fmisid][t][winddirectionpos]),
+                                        settings.missingtext);
                     }
 
                     ts::Value windCompassValue = ts::Value(windCompass);

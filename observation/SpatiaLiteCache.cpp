@@ -26,60 +26,6 @@ boost::posix_time::ptime round_down_to_cache_clean_interval(const boost::posix_t
   return boost::posix_time::ptime(t.date(), boost::posix_time::seconds(secs));
 }
 
-/*!
- * \brief Find stations close to the given coordinate with filtering
- */
-
-Spine::Stations findNearestStations(const StationInfo &info,
-                                    double longitude,
-                                    double latitude,
-                                    double maxdistance,
-                                    int numberofstations,
-                                    const std::set<std::string> &stationgroup_codes,
-                                    const boost::posix_time::ptime &starttime,
-                                    const boost::posix_time::ptime &endtime)
-{
-  return info.findNearestStations(
-      longitude, latitude, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
-}
-
-/*!
- * \brief Find stations close to the given location with filtering
- */
-
-Spine::Stations findNearestStations(const StationInfo &info,
-                                    const Spine::LocationPtr &location,
-                                    double maxdistance,
-                                    int numberofstations,
-                                    const std::set<std::string> &stationgroup_codes,
-                                    const boost::posix_time::ptime &starttime,
-                                    const boost::posix_time::ptime &endtime)
-{
-  if (numberofstations > 1 || !location->fmisid)
-    return findNearestStations(info,
-                               location->longitude,
-                               location->latitude,
-                               maxdistance,
-                               numberofstations,
-                               stationgroup_codes,
-                               starttime,
-                               endtime);
-
-  std::vector<int> fmisids{*(location->fmisid)};
-
-  Spine::Stations ret = info.findFmisidStations(fmisids, starttime, endtime);
-
-  int number_of_stations = ret.size();
-  for (int i = number_of_stations - 1; i >= 0; i--)
-  {
-    // If station does not belong to the right group, remove it
-    if (stationgroup_codes.find(ret.at(i).station_type) == stationgroup_codes.end())
-      ret.erase(ret.begin() + i);
-  }
-
-  return ret;
-}
-
 }  // namespace
 
 void SpatiaLiteCache::initializeConnectionPool()
@@ -97,16 +43,6 @@ void SpatiaLiteCache::initializeConnectionPool()
     // 3) observation_data
     boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
     spatialitedb->createTables();
-
-    // Check first if we already have stations in SpatiaLite db so that we know
-    // if we can use it
-    // before loading station info
-    size_t stationCount = spatialitedb->getStationCount();
-    if (stationCount > 1)  // Arbitrary number because we cannot know how many
-                           // stations there must be
-    {
-      itsParameters.cacheHasStations = true;
-    }
 
     for (int i = 0; i < itsParameters.connectionPoolSize; i++)
     {
@@ -174,27 +110,25 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    // Get stations
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    Spine::Stations stations = getStationsFromSpatiaLite(settings, spatialitedb);
+    SmartMet::Spine::Stations stations =
+        itsParameters.stationInfo->findFmisidStations(settings.taggedFMISIDs);
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
     if (!stations.empty())
     {
+      boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
+
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = spatialitedb->getCachedWeatherDataQCData(stations,
-                                                       settings,
-                                                       itsParameters.parameterMap,
-                                                       *itsParameters.stationInfo,
-                                                       itsTimeZones);
+        ret = spatialitedb->getCachedWeatherDataQCData(
+            stations, settings, *itsParameters.stationInfo, itsTimeZones);
         return ret;
       }
 
-      ret = spatialitedb->getCachedData(
-          stations, settings, itsParameters.parameterMap, *itsParameters.stationInfo, itsTimeZones);
+      ret =
+          spatialitedb->getCachedData(stations, settings, *itsParameters.stationInfo, itsTimeZones);
     }
 
     return ret;
@@ -222,33 +156,25 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    // Get stations
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-
-    Spine::Stations stations = getStationsFromSpatiaLite(settings, spatialitedb);
+    SmartMet::Spine::Stations stations =
+        itsParameters.stationInfo->findFmisidStations(settings.taggedFMISIDs);
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
     if (!stations.empty())
     {
+      boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
+
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = spatialitedb->getCachedWeatherDataQCData(stations,
-                                                       settings,
-                                                       itsParameters.parameterMap,
-                                                       *itsParameters.stationInfo,
-                                                       timeSeriesOptions,
-                                                       itsTimeZones);
+        ret = spatialitedb->getCachedWeatherDataQCData(
+            stations, settings, *itsParameters.stationInfo, timeSeriesOptions, itsTimeZones);
       }
       else
       {
-        ret = spatialitedb->getCachedData(stations,
-                                          settings,
-                                          itsParameters.parameterMap,
-                                          *itsParameters.stationInfo,
-                                          timeSeriesOptions,
-                                          itsTimeZones);
+        ret = spatialitedb->getCachedData(
+            stations, settings, *itsParameters.stationInfo, timeSeriesOptions, itsTimeZones);
       }
     }
 
@@ -276,173 +202,11 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &set
 
     // Must use disk cache instead
     boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    return spatialitedb->getCachedFlashData(settings, itsParameters.parameterMap, itsTimeZones);
+    return spatialitedb->getCachedFlashData(settings, itsTimeZones);
   }
   catch (...)
   {
     throw Spine::Exception::Trace(BCP, "Getting flash values from cache failed!");
-  }
-}
-
-Spine::Stations SpatiaLiteCache::getStationsFromSpatiaLite(
-    Settings &settings, boost::shared_ptr<SpatiaLite> spatialitedb)
-{
-  try
-  {
-    auto stationstarttime = day_start(settings.starttime);
-    auto stationendtime = day_end(settings.endtime);
-
-    Spine::Stations stations;
-
-    try
-    {
-      auto stationgroupCodeSet =
-          itsParameters.stationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
-      settings.stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
-    }
-    catch (...)
-    {
-      return stations;
-    }
-
-    auto info = boost::atomic_load(&itsParameters.stationInfo);
-
-    if (settings.allplaces)
-    {
-      Spine::Stations allStationsFromGroups = spatialitedb->findAllStationsFromGroups(
-          settings.stationgroup_codes, *info, settings.starttime, settings.starttime);
-      return allStationsFromGroups;
-    }
-
-    Spine::Stations tmpIdStations;
-
-    auto taggedStations = getStationsByTaggedLocations(settings.taggedLocations,
-                                                       settings.numberofstations,
-                                                       settings.stationtype,
-                                                       settings.maxdistance,
-                                                       settings.stationgroup_codes,
-                                                       settings.starttime,
-                                                       settings.endtime);
-    for (const auto &s : taggedStations)
-      stations.push_back(s);
-
-    for (const Spine::LocationPtr &location : settings.locations)
-    {
-      std::string locationCacheKey =
-          getLocationCacheKey(location->geoid,
-                              settings.numberofstations,
-                              settings.stationtype,
-                              boost::numeric_cast<int>(settings.maxdistance),
-                              stationstarttime,
-                              stationendtime);
-      auto cachedStations = itsLocationCache.find(locationCacheKey);
-      if (cachedStations)
-      {
-        for (const Spine::Station &cachedStation : *cachedStations)
-          stations.push_back(cachedStation);
-      }
-      else
-      {
-        auto newStations = findNearestStations(*info,
-                                               location,
-                                               settings.maxdistance,
-                                               settings.numberofstations,
-                                               settings.stationgroup_codes,
-                                               stationstarttime,
-                                               stationendtime);
-
-        if (!newStations.empty())
-        {
-          for (const Spine::Station &newStation : newStations)
-          {
-            stations.push_back(newStation);
-          }
-
-          itsLocationCache.insert(locationCacheKey, newStations);
-        }
-      }
-    }
-
-    // Find station data by using fmisid
-    for (int fmisid : settings.fmisids)
-    {
-      Spine::Station s;
-      if (not spatialitedb->getStationById(
-              s, fmisid, settings.stationgroup_codes, settings.starttime, settings.endtime))
-        continue;
-
-      tmpIdStations.push_back(s);
-    }
-
-    // Find station data by using geoid
-    for (int geoid : settings.geoids)
-    {
-      Spine::Station s;
-      if (not spatialitedb->getStationByGeoid(
-              s, geoid, settings.stationgroup_codes, settings.starttime, settings.endtime))
-        continue;
-
-      tmpIdStations.push_back(s);
-    }
-
-    for (const auto &coordinate : settings.coordinates)
-    {
-      auto newStations = findNearestStations(*info,
-                                             coordinate.at("lon"),
-                                             coordinate.at("lat"),
-                                             settings.maxdistance,
-                                             settings.numberofstations,
-                                             settings.stationgroup_codes,
-                                             stationstarttime,
-                                             stationendtime);
-
-      for (const Spine::Station &newStation : newStations)
-        stations.push_back(newStation);
-    }
-
-    if (!settings.wmos.empty())
-    {
-      Spine::Stations tmpStations = spatialitedb->findStationsByWMO(settings, *info);
-      for (const Spine::Station &s : tmpStations)
-        tmpIdStations.push_back(s);
-    }
-
-    if (!settings.lpnns.empty())
-    {
-      Spine::Stations tmpStations = spatialitedb->findStationsByLPNN(settings, *info);
-      for (const Spine::Station &s : tmpStations)
-        tmpIdStations.push_back(s);
-    }
-
-    if (!settings.boundingBox.empty())
-    {
-      getStationsByBoundingBox(stations, settings);
-    }
-
-    for (const Spine::Station &s : tmpIdStations)
-    {
-      stations.push_back(s);
-      if (settings.numberofstations > 1)
-      {
-        auto newStations = findNearestStations(*info,
-                                               s.longitude_out,
-                                               s.latitude_out,
-                                               settings.maxdistance,
-                                               settings.numberofstations,
-                                               settings.stationgroup_codes,
-                                               stationstarttime,
-                                               stationendtime);
-
-        for (const Spine::Station &nstation : newStations)
-          stations.push_back(nstation);
-      }
-    }
-
-    return stations;
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Getting stations from cache failed!");
   }
 }
 
@@ -500,120 +264,6 @@ bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
   }
 }
 
-Spine::Stations SpatiaLiteCache::getStationsByTaggedLocations(
-    const Spine::TaggedLocationList &taggedLocations,
-    const int numberofstations,
-    const std::string &stationtype,
-    const int maxdistance,
-    const std::set<std::string> &stationgroup_codes,
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime)
-{
-  try
-  {
-    Spine::Stations stations;
-
-    auto stationstarttime = day_start(starttime);
-    auto stationendtime = day_end(endtime);
-
-    for (const Spine::TaggedLocation &tloc : taggedLocations)
-    {
-      // BUG? Why is maxdistance int?
-      std::string locationCacheKey = getLocationCacheKey(tloc.loc->geoid,
-                                                         numberofstations,
-                                                         stationtype,
-                                                         maxdistance,
-                                                         stationstarttime,
-                                                         stationendtime);
-      auto cachedStations = itsLocationCache.find(locationCacheKey);
-
-      if (cachedStations)
-      {
-        for (Spine::Station &cachedStation : *cachedStations)
-        {
-          cachedStation.tag = tloc.tag;
-          stations.push_back(cachedStation);
-        }
-      }
-      else
-      {
-        auto info = boost::atomic_load(&itsParameters.stationInfo);
-
-        auto newStations = findNearestStations(*info,
-                                               tloc.loc,
-                                               maxdistance,
-                                               numberofstations,
-                                               stationgroup_codes,
-                                               stationstarttime,
-                                               stationendtime);
-
-        if (!newStations.empty())
-        {
-          for (Spine::Station &s : newStations)
-          {
-            s.tag = tloc.tag;
-            stations.push_back(s);
-          }
-          itsLocationCache.insert(locationCacheKey, newStations);
-        }
-      }
-    }
-    return stations;
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Getting stations by tagged locations failed!");
-  }
-}
-
-void SpatiaLiteCache::getStationsByBoundingBox(Spine::Stations &stations,
-                                               const Settings &settings) const
-{
-  try
-  {
-    Settings tempSettings = settings;
-    try
-    {
-      auto stationgroupCodeSet =
-          itsParameters.stationtypeConfig.getGroupCodeSetByStationtype(tempSettings.stationtype);
-      tempSettings.stationgroup_codes.insert(stationgroupCodeSet->begin(),
-                                             stationgroupCodeSet->end());
-    }
-    catch (...)
-    {
-      return;
-    }
-
-    auto info = boost::atomic_load(&itsParameters.stationInfo);
-
-    try
-    {
-#if 1
-      auto stationList = info->findStationsInsideBox(tempSettings.boundingBox.at("minx"),
-                                                     tempSettings.boundingBox.at("miny"),
-                                                     tempSettings.boundingBox.at("maxx"),
-                                                     tempSettings.boundingBox.at("maxy"),
-                                                     tempSettings.stationgroup_codes,
-                                                     tempSettings.starttime,
-                                                     tempSettings.endtime);
-#else
-      boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-      auto stationList = spatialitedb->findStationsInsideBox(tempSettings, *info);
-#endif
-      for (const auto &station : stationList)
-        stations.push_back(station);
-    }
-    catch (...)
-    {
-      throw Spine::Exception::Trace(BCP, "Getting stations by bounding box failed!");
-    }
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Getting stations by bounding box failed!");
-  }
-}
-
 bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
 {
   try
@@ -646,82 +296,6 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
   {
     throw Spine::Exception::Trace(BCP, "Checking if data is available in cache failed!");
   }
-}
-
-void SpatiaLiteCache::updateStationsAndGroups(const StationInfo &info) const
-{
-  try
-  {
-    logMessage("Updating stations to SpatiaLite databases...", itsParameters.quiet);
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    spatialitedb->updateStationsAndGroups(info);
-
-    // Clear all cached search results, read new info from sqlite
-    itsStationIdCache.clear();
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Updating stations and groups failed!");
-  }
-}
-
-Spine::Stations SpatiaLiteCache::findAllStationsFromGroups(
-    const std::set<std::string> stationgroup_codes,
-    const StationInfo &info,
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime) const
-{
-  return itsConnectionPool->getConnection()->findAllStationsFromGroups(
-      stationgroup_codes, info, starttime, endtime);
-}
-
-// Station request are cached into memory since asking the data from sqlite
-// wastes a member from the connection pool. In the current sqlite version
-// there can be max 64 spatialite connections, which is not enough during
-// high peak times. Note that updating the Stations table causes the
-// cache to be cleared (itsStationIdCache.clear()).
-
-bool SpatiaLiteCache::getStationById(Spine::Station &station,
-                                     int station_id,
-                                     const std::set<std::string> &stationgroup_codes,
-                                     const boost::posix_time::ptime &starttime,
-                                     const boost::posix_time::ptime &endtime) const
-{
-  try
-  {
-    // Cache key
-    auto key = boost::hash_value(station_id);
-    boost::hash_combine(key, boost::hash_value(stationgroup_codes));
-
-    // Return cached value if it exists
-    auto cached = itsStationIdCache.find(key);
-    if (cached)
-    {
-      station = *cached;
-      return true;
-    }
-
-    // Search the database
-    bool ok = itsConnectionPool->getConnection()->getStationById(
-        station, station_id, stationgroup_codes, starttime, endtime);
-    if (!ok)
-      return false;
-
-    // Cache the result for next searches
-    itsStationIdCache.insert(key, station);
-    return true;
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Getting station by id failed!");
-  }
-}
-
-Spine::Stations SpatiaLiteCache::findStationsInsideArea(const Settings &settings,
-                                                        const std::string &areaWkt,
-                                                        const StationInfo &info) const
-{
-  return itsConnectionPool->getConnection()->findStationsInsideArea(settings, areaWkt, info);
 }
 
 FlashCounts SpatiaLiteCache::getFlashCount(const boost::posix_time::ptime &starttime,
@@ -885,7 +459,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpati
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    ret = spatialitedb->getCachedRoadCloudData(settings, itsParameters.parameterMap, itsTimeZones);
+    ret = spatialitedb->getCachedRoadCloudData(settings, itsTimeZones);
 
     return ret;
   }
@@ -970,7 +544,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaL
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    ret = spatialitedb->getCachedNetAtmoData(settings, itsParameters.parameterMap, itsTimeZones);
+    ret = spatialitedb->getCachedNetAtmoData(settings, itsTimeZones);
 
     return ret;
   }
@@ -1110,11 +684,6 @@ void SpatiaLiteCache::cleanWeatherDataQCCache(
   }
 }
 
-void SpatiaLiteCache::fillLocationCache(const LocationItems &locations) const
-{
-  return itsConnectionPool->getConnection()->fillLocationCache(locations);
-}
-
 void SpatiaLiteCache::shutdown()
 {
   if (itsConnectionPool)
@@ -1123,7 +692,7 @@ void SpatiaLiteCache::shutdown()
 }
 
 SpatiaLiteCache::SpatiaLiteCache(const EngineParametersPtr &p, Spine::ConfigBase &cfg)
-    : itsParameters(p), itsStationIdCache(p->stationIdCacheSize)
+    : itsParameters(p)
 {
   try
   {
@@ -1171,7 +740,7 @@ boost::shared_ptr<std::vector<ObservableProperty> > SpatiaLiteCache::observableP
   {
     std::string stationType("metadata");
     data = itsConnectionPool->getConnection()->getObservableProperties(
-        parameters, language, itsParameters.parameterMap, stationType);
+        parameters, language, stationType);
   }
   catch (...)
   {
@@ -1244,11 +813,6 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
     throw Spine::Exception::Trace(BCP,
                                   "Reading SpatiaLite settings from configuration file failed!");
   }
-}
-
-bool SpatiaLiteCache::cacheHasStations() const
-{
-  return itsParameters.cacheHasStations;
 }
 
 SpatiaLiteCache::~SpatiaLiteCache()

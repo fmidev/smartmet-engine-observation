@@ -1,5 +1,6 @@
 #pragma once
 
+#include "StationLocation.h"
 #include <macgyver/NearTree.h>
 #include <macgyver/NearTreeLatLon.h>
 #include <spine/Station.h>
@@ -34,6 +35,7 @@ class StationInfo
 {
  public:
   SmartMet::Spine::Stations stations;  // all known stations
+  StationLocations stationLocations;   // all station locations
 
   void serialize(const std::string& filename) const;
   void unserialize(const std::string& filename);
@@ -54,6 +56,8 @@ class StationInfo
   SmartMet::Spine::Stations findFmisidStations(const std::vector<int>& fmisids,
                                                const boost::posix_time::ptime& starttime,
                                                const boost::posix_time::ptime& endtime) const;
+  SmartMet::Spine::Stations findFmisidStations(
+      const SmartMet::Spine::TaggedFMISIDList& taggedFMISIDs) const;
 
   SmartMet::Spine::Stations findWmoStations(const std::vector<int>& wmos,
                                             const boost::posix_time::ptime& starttime,
@@ -71,6 +75,11 @@ class StationInfo
                                                 const boost::posix_time::ptime& starttime,
                                                 const boost::posix_time::ptime& endtime) const;
 
+  Spine::Stations findStationsInsideArea(const std::set<std::string>& groups,
+                                         const boost::posix_time::ptime& starttime,
+                                         const boost::posix_time::ptime& endtime,
+                                         const std::string& wkt) const;
+
   SmartMet::Spine::Stations findStationsInsideBox(double minx,
                                                   double miny,
                                                   double maxx,
@@ -85,9 +94,7 @@ class StationInfo
 
  private:
   void update() const;
-
   // Mapping from coordinates to stations
-
   using StationTree =
       Fmi::NearTree<StationNearTreeLatLon, Fmi::NearTreeLatLonDistance<StationNearTreeLatLon>>;
 

@@ -28,24 +28,23 @@ class StationtypeConfig;
 struct SpatiaLiteCacheParameters
 {
   SpatiaLiteCacheParameters(const EngineParametersPtr& p)
-    : stationInfo(p->stationInfo),
-      quiet(p->quiet),
-      stationtypeConfig(p->stationtypeConfig),
-      externalAndMobileProducerConfig(p->externalAndMobileProducerConfig),
-      parameterMap(p->parameterMap)
+      : stationInfo(p->stationInfo),
+        quiet(p->quiet),
+        stationtypeConfig(p->stationtypeConfig),
+        externalAndMobileProducerConfig(p->externalAndMobileProducerConfig),
+        parameterMap(p->parameterMap)
   {
   }
 
   SpatiaLiteOptions sqlite;
-  boost::shared_ptr<StationInfo> stationInfo;
+  const boost::shared_ptr<StationInfo>& stationInfo;
   boost::shared_ptr<boost::posix_time::time_period> flashCachePeriod;
   std::string cacheFile;
   std::size_t maxInsertSize = 5000;
   int connectionPoolSize = 0;
-  bool cacheHasStations = false;
   bool quiet = true;
 
-  StationtypeConfig& stationtypeConfig;
+  const StationtypeConfig& stationtypeConfig;
   const ExternalAndMobileProducerConfig& externalAndMobileProducerConfig;
   const ParameterMapPtr& parameterMap;
 };
