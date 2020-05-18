@@ -47,6 +47,13 @@ void SpatiaLiteCache::initializeConnectionPool()
     for (int i = 0; i < itsParameters.connectionPoolSize; i++)
     {
       boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+      if (i == 0)
+      {
+        auto start = db->getOldestObservationTime();
+        auto end = db->getLatestObservationTime();
+        itsTimeIntervalStart = start;
+        itsTimeIntervalEnd = end;
+      }
     }
 
     logMessage("[Observation Engine] SpatiaLite connection pool ready.", itsParameters.quiet);
@@ -217,10 +224,10 @@ bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &start
   {
     Spine::ReadLock lock(itsTimeIntervalMutex);
 
-    if (itsTimeIntervalStart.is_not_a_date_time())
+    if (itsTimeIntervalStart.is_not_a_date_time() || itsTimeIntervalEnd.is_not_a_date_time())
       return false;
     // We ignore end time intentionally
-    return (starttime >= itsTimeIntervalStart);
+    return (starttime >= itsTimeIntervalStart && endtime <= itsTimeIntervalEnd);
   }
   catch (...)
   {

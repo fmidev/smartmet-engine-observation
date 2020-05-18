@@ -215,26 +215,35 @@ QueryMapping build_query_mapping(const Spine::Stations &stations,
         name_plus_sensor_number += ("_sensornumber_" + sensor_number_string);
         bool isDataSourceField = is_data_source_field(name_plus_sensor_number);
 
-        auto sparam = parameterMap->getParameter(name, stationtype);
-        if (!sparam.empty() && !isDataQualityField)
-        {
-          int nparam =
-              (!weather_data_qc_table
-                   ? Fmi::stoi(sparam)
-                   : boost::hash_value(Fmi::ascii_tolower_copy(sparam + sensor_number_string)));
-
-          ret.timeseriesPositionsString[name_plus_sensor_number] = pos;
-          ret.parameterNameMap[name_plus_sensor_number] = sparam;
-          ret.paramVector.push_back(nparam);
-          if (mids.find(nparam) == mids.end())
-            ret.measurandIds.push_back(nparam);
-          int sensor_number = (p.getSensorNumber() ? *(p.getSensorNumber()) : -1);
-          ret.sensorNumberToMeasurandIds[sensor_number].insert(nparam);
-          mids.insert(nparam);
-        }
-        else if (isDataQualityField || isDataSourceField)
+        if (isDataQualityField || isDataSourceField)
         {
           ret.specialPositions[name_plus_sensor_number] = pos;
+        }
+        else
+        {
+          auto sparam = parameterMap->getParameter(name, stationtype);
+
+          if (!sparam.empty())
+          {
+            int nparam =
+                (!weather_data_qc_table
+                     ? Fmi::stoi(sparam)
+                     : boost::hash_value(Fmi::ascii_tolower_copy(sparam + sensor_number_string)));
+
+            ret.timeseriesPositionsString[name_plus_sensor_number] = pos;
+            ret.parameterNameMap[name_plus_sensor_number] = sparam;
+            ret.paramVector.push_back(nparam);
+            if (mids.find(nparam) == mids.end())
+              ret.measurandIds.push_back(nparam);
+            int sensor_number = (p.getSensorNumber() ? *(p.getSensorNumber()) : -1);
+            ret.sensorNumberToMeasurandIds[sensor_number].insert(nparam);
+            mids.insert(nparam);
+          }
+          else
+          {
+            throw SmartMet::Spine::Exception::Trace(
+                BCP, "Parameter " + name + " for stationtype " + stationtype + " not found!");
+          }
         }
       }
       else
@@ -359,6 +368,9 @@ LocationDataItems read_observations(const Spine::Stations &stations,
     if (qstations.empty())
       return ret;
 
+    std::string starttime = Fmi::to_iso_extended_string(settings.starttime);
+    std::string endtime = Fmi::to_iso_extended_string(settings.endtime);
+
     std::string sql =
         "SELECT data.fmisid AS fmisid, data.sensor_no AS sensor_no, data.data_time AS obstime, "
         "measurand_id, data_value, data_quality, data_source "
@@ -367,8 +379,7 @@ LocationDataItems read_observations(const Spine::Stations &stations,
         qstations +
         ") "
         "AND data.data_time >= '" +
-        Fmi::to_iso_extended_string(settings.starttime) + "' AND data.data_time <= '" +
-        Fmi::to_iso_extended_string(settings.endtime) + "' AND data.measurand_id IN (" +
+        starttime + "' AND data.data_time <= '" + endtime + "' AND data.measurand_id IN (" +
         measurand_ids + ") ";
 
     sql += get_sensor_query_condition(qmap.sensorNumberToMeasurandIds);
@@ -376,6 +387,7 @@ LocationDataItems read_observations(const Spine::Stations &stations,
            " GROUP BY data.fmisid, data.data_time, data.measurand_id, "
            "data.data_value, data.data_source "
            "ORDER BY fmisid ASC, obstime ASC";
+    //    std::cout << "sql\n" << sql << std::endl;
 
     sqlite3pp::query qry(db, sql.c_str());
 
@@ -2108,9 +2120,11 @@ void SpatiaLite::addEmptyValuesToTimeSeries(
     for (const auto &special : specialPositions)
     {
       int pos = special.second;
+
       if (special.first.find("windcompass") != std::string::npos ||
           special.first.find("feelslike") != std::string::npos ||
-          special.first.find("smartsymbol") != std::string::npos)
+          special.first.find("smartsymbol") != std::string::npos  ||
+		  is_data_source_field(special.first) || is_data_quality_field(special.first))
       {
         ts::Value missing = ts::None();
         timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, missing));
@@ -2157,7 +2171,7 @@ ts::Value get_default_sensor_value(const std::map<int, std::map<int, int>>* defa
 
   return ret;
 }
-  
+
 void SpatiaLite::addSpecialFieldsToTimeSeries(const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
 												 const std::map<boost::local_time::local_date_time, std::map<std::string, map<std::string,  Spine::TimeSeries::Value>>>& stationData,
 												 int fmisid,												 
@@ -2174,6 +2188,17 @@ void SpatiaLite::addSpecialFieldsToTimeSeries(const Spine::TimeSeries::TimeSerie
   for (const dataItemWithStringParameterId &item : stationData)
     {
       const auto&  obstime = item.first;
+	  bool timeOK = false;
+	  for(const auto& t : tlist)
+		{
+		  if(obstime == t)
+			{
+			  timeOK = true;
+			  break;
+			}
+		}
+	  if(!timeOK)
+		continue;
 	  // measurand_id -> sensor_no -> value
 	  map<std::string, map<std::string, ts::Value>> data = item.second;
       for (const auto &special : specialPositions)
@@ -3557,6 +3582,18 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_listed_time_
 		initializeResultVector(settings.parameters);
 	  auto tlist = Spine::TimeSeriesGenerator::generate(timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
 
+	  bool addDataQualityField = false;
+	  bool addDataSourceField = false;
+
+	  for (auto const& item  : qmap.specialPositions)
+		{
+		  if(is_data_source_field(item.first))
+			 addDataSourceField = true;
+		  if(is_data_quality_field(item.first))
+			 addDataQualityField = true;
+		}
+
+
 	  for (const Spine::Station &s : stations)
 		{
 		  for (const local_date_time &t : tlist)
@@ -3571,9 +3608,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_listed_time_
 										   qmap.timeseriesPositionsString,
 										   stationtype,
 										   fmisid_to_station.at(s.fmisid));	
-		  
 			}
-		  if(obsmap.dataSourceWithStringParameterId.find(s.fmisid) != obsmap.dataSourceWithStringParameterId.end())
+		  
+		  if(addDataSourceField && obsmap.dataSourceWithStringParameterId.find(s.fmisid) != obsmap.dataSourceWithStringParameterId.end())
 			{
 			  addSpecialFieldsToTimeSeries(timeSeriesColumns,
 										   obsmap.dataSourceWithStringParameterId.at(s.fmisid),
@@ -3583,7 +3620,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::build_timeseries_listed_time_
 										   obsmap.default_sensors,
 										   tlist);
 			}
-		  if(obsmap.dataQualityWithStringParameterId.find(s.fmisid) != obsmap.dataQualityWithStringParameterId.end())
+		  if(addDataQualityField && obsmap.dataQualityWithStringParameterId.find(s.fmisid) != obsmap.dataQualityWithStringParameterId.end())
 			{
 			  addSpecialFieldsToTimeSeries(timeSeriesColumns,
 										   obsmap.dataQualityWithStringParameterId.at(s.fmisid),
