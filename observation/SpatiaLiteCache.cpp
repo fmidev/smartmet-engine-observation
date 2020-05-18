@@ -49,10 +49,35 @@ void SpatiaLiteCache::initializeConnectionPool()
       boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
       if (i == 0)
       {
+        // Observation data
         auto start = db->getOldestObservationTime();
         auto end = db->getLatestObservationTime();
         itsTimeIntervalStart = start;
         itsTimeIntervalEnd = end;
+
+        // WeatherDataQC
+        start = db->getOldestWeatherDataQCTime();
+        end = db->getLatestWeatherDataQCTime();
+        itsWeatherDataQCTimeIntervalStart = start;
+        itsWeatherDataQCTimeIntervalEnd = end;
+
+        // Flash
+        start = db->getOldestFlashTime();
+        end = db->getLatestFlashTime();
+        itsFlashTimeIntervalStart = start;
+        itsFlashTimeIntervalEnd = end;
+
+        // Road cloud
+        start = db->getOldestRoadCloudDataTime();
+        end = db->getLatestRoadCloudDataTime();
+        itsRoadCloudTimeIntervalStart = start;
+        itsRoadCloudTimeIntervalEnd = end;
+
+        // NetAtmo
+        start = db->getOldestNetAtmoDataTime();
+        end = db->getLatestNetAtmoDataTime();
+        itsNetAtmoTimeIntervalStart = start;
+        itsNetAtmoTimeIntervalEnd = end;
       }
     }
 
@@ -227,7 +252,7 @@ bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &start
     if (itsTimeIntervalStart.is_not_a_date_time() || itsTimeIntervalEnd.is_not_a_date_time())
       return false;
     // We ignore end time intentionally
-    return (starttime >= itsTimeIntervalStart && endtime <= itsTimeIntervalEnd);
+    return (starttime >= itsTimeIntervalStart && starttime < itsTimeIntervalEnd);
   }
   catch (...)
   {
@@ -243,10 +268,11 @@ bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &star
     // No need to check memory cache here, it is always supposed to be shorted than the disk cache
 
     Spine::ReadLock lock(itsFlashTimeIntervalMutex);
-    if (itsFlashTimeIntervalStart.is_not_a_date_time())
+    if (itsFlashTimeIntervalStart.is_not_a_date_time() ||
+        itsFlashTimeIntervalEnd.is_not_a_date_time())
       return false;
     // We ignore end time intentionally
-    return (starttime >= itsFlashTimeIntervalStart);
+    return (starttime >= itsFlashTimeIntervalStart && starttime < itsFlashTimeIntervalEnd);
   }
   catch (...)
   {
@@ -260,10 +286,12 @@ bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
   try
   {
     Spine::ReadLock lock(itsWeatherDataQCTimeIntervalMutex);
-    if (itsWeatherDataQCTimeIntervalStart.is_not_a_date_time())
+    if (itsWeatherDataQCTimeIntervalStart.is_not_a_date_time() ||
+        itsWeatherDataQCTimeIntervalEnd.is_not_a_date_time())
       return false;
     // We ignore end time intentionally
-    return (starttime >= itsWeatherDataQCTimeIntervalStart);
+    return (starttime >= itsWeatherDataQCTimeIntervalStart &&
+            starttime < itsWeatherDataQCTimeIntervalEnd);
   }
   catch (...)
   {
@@ -386,11 +414,12 @@ bool SpatiaLiteCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &
   try
   {
     Spine::ReadLock lock(itsRoadCloudTimeIntervalMutex);
-    if (itsRoadCloudTimeIntervalStart.is_not_a_date_time())
+    if (itsRoadCloudTimeIntervalStart.is_not_a_date_time() &&
+        itsRoadCloudTimeIntervalEnd.is_not_a_date_time())
       return false;
 
     // We ignore end time intentionally
-    return (starttime >= itsRoadCloudTimeIntervalStart);
+    return (starttime >= itsRoadCloudTimeIntervalStart && starttime < itsRoadCloudTimeIntervalEnd);
   }
   catch (...)
   {
@@ -482,10 +511,11 @@ bool SpatiaLiteCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &st
   try
   {
     Spine::ReadLock lock(itsNetAtmoTimeIntervalMutex);
-    if (itsNetAtmoTimeIntervalStart.is_not_a_date_time())
+    if (itsNetAtmoTimeIntervalStart.is_not_a_date_time() ||
+        itsNetAtmoTimeIntervalEnd.is_not_a_date_time())
       return false;
     // We ignore end time intentionally
-    return (starttime >= itsNetAtmoTimeIntervalStart);
+    return (starttime >= itsNetAtmoTimeIntervalStart || starttime < itsNetAtmoTimeIntervalEnd);
   }
   catch (...)
   {
