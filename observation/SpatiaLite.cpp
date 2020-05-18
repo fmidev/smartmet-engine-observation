@@ -200,7 +200,6 @@ QueryMapping build_query_mapping(const Spine::Stations &stations,
     for (const Spine::Parameter &p : settings.parameters)
     {
       string name = p.name();
-
       if (not_special(p))
       {
         bool isDataQualityField = removePrefix(name, "qc_");
@@ -388,7 +387,6 @@ LocationDataItems read_observations(const Spine::Stations &stations,
            " GROUP BY data.fmisid, data.data_time, data.measurand_id, "
            "data.data_value, data.data_source "
            "ORDER BY fmisid ASC, obstime ASC";
-
     //    std::cout << "sql\n" << sql << std::endl;
 
     sqlite3pp::query qry(db, sql.c_str());
