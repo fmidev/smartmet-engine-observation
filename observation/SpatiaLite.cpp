@@ -371,8 +371,6 @@ LocationDataItems read_observations(const Spine::Stations &stations,
 
     std::string starttime = Fmi::to_iso_extended_string(settings.starttime);
     std::string endtime = Fmi::to_iso_extended_string(settings.endtime);
-    boost::replace_all(starttime, "T", " ");
-    boost::replace_all(endtime, "T", " ");
 
     std::string sql =
         "SELECT data.fmisid AS fmisid, data.sensor_no AS sensor_no, data.data_time AS obstime, "
