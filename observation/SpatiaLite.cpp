@@ -1100,7 +1100,7 @@ ptime SpatiaLite::getOldestRoadCloudDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest RaodCloud time query failed!");
+    throw Spine::Exception::Trace(BCP, "Oldest RoadCloud time query failed!");
   }
 }
 
@@ -1191,7 +1191,7 @@ ptime SpatiaLite::getLatestTimeFromTable(const std::string& tablename,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest time query failed!");
+    return boost::posix_time::not_a_date_time;
   }
 }
 
@@ -1212,7 +1212,7 @@ ptime SpatiaLite::getOldestTimeFromTable(const std::string& tablename,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest time query failed!");
+    return boost::posix_time::not_a_date_time;
   }
 }
 
