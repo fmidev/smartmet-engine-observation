@@ -262,6 +262,8 @@ LocationDataItems ObservationMemoryCache::read_observations(
   // 3. extract wanted measurand_id's
   // 4. attach latitude, longitude and elevation for each fmisid
 
+  std::map<int, std::map<int, int>> default_sensors;
+
   for (const auto& station : stations)
   {
     // Accept station only if group condition is satisfied
@@ -296,6 +298,11 @@ LocationDataItems ObservationMemoryCache::read_observations(
 
     // Extract wanted parameters.
 
+    // Valid_sensors, -1 is marker of default sensor
+    std::set<int> valid_sensors;
+    for (const auto& item : qmap.sensorNumberToMeasurandIds)
+      valid_sensors.insert(item.first);
+
     for (; obs < obsdata->end(); ++obs)
     {
       // Done if reached desired endtime
@@ -303,8 +310,15 @@ LocationDataItems ObservationMemoryCache::read_observations(
         break;
 
       // Skip unwanted parameters similarly to SpatiaLite.cpp read_observations
+      // Check sensor number and data_quality condition
+      bool sensorOK = false;
+      if ((obs->measurand_no == 1 && valid_sensors.find(-1) != valid_sensors.end()) ||
+          valid_sensors.find(obs->sensor_no) != valid_sensors.end())
+        sensorOK = true;
 
-      if (obs->measurand_no != 1 || obs->data_quality > 5)
+      bool dataQualityOK = settings.sqlDataFilter.valueOK("data_quality", obs->data_quality);
+
+      if (!sensorOK || !dataQualityOK)
         continue;
 
       if (std::find(qmap.measurandIds.begin(), qmap.measurandIds.end(), obs->measurand_id) ==
@@ -314,8 +328,15 @@ LocationDataItems ObservationMemoryCache::read_observations(
       // Construct LocationDataItem from the DataItem
 
       ret.emplace_back(LocationDataItem{*obs, longitude, latitude, elevation});
+
+      if (qmap.isDefaultSensor(obs->sensor_no, obs->measurand_id))
+      {
+        default_sensors[obs->fmisid][obs->measurand_id] = obs->sensor_no;
+      }
     }
   }
+
+  ret.default_sensors = default_sensors;
 
   return ret;
 }

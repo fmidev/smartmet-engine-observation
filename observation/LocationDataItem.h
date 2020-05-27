@@ -23,8 +23,6 @@ struct LocationDataItems : public std::vector<LocationDataItem>
   std::map<int, std::map<int, int>> default_sensors;  // fmisid -> measurand_id -> sensor_number
 };
 
-// using LocationDataItems = std::vector<LocationDataItem>;
-
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

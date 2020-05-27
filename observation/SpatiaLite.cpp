@@ -106,20 +106,6 @@ namespace Engine
 {
 namespace Observation
 {
-bool isDefaultSensor(int sensor_no,
-                     int measurand_id,
-                     const std::map<int, std::set<int>> &sensorNumberToMeasurandIds)
-{
-  bool ret = true;
-  if (sensorNumberToMeasurandIds.find(sensor_no) != sensorNumberToMeasurandIds.end())
-  {
-    const std::set<int> &mids = sensorNumberToMeasurandIds.at(sensor_no);
-    if (mids.find(measurand_id) != mids.end())
-      ret = false;
-  }
-  return ret;
-}
-
 void solveMeasurandIds(const std::vector<std::string> &parameters,
                        const ParameterMapPtr &parameterMap,
                        const std::string &stationType,
@@ -385,12 +371,9 @@ LocationDataItems read_observations(const Spine::Stations &stations,
 
     sql += get_sensor_query_condition(qmap.sensorNumberToMeasurandIds);
     sql += "AND " + settings.sqlDataFilter.getSqlClause("data_quality", "data.data_quality") +
-           " GROUP BY data.fmisid, data.data_time, data.measurand_id, "
-           "data.data_value, data.data_source "
+           " GROUP BY data.fmisid, data.sensor_no, data.data_time, data.measurand_id, "
+           "data.data_value, data.data_quality, data.data_source "
            "ORDER BY fmisid ASC, obstime ASC";
-    //    std::cout << "sql\n" << sql << std::endl;
-
-    //    std::cout << "sql\n" << sql << std::endl;
 
     sqlite3pp::query qry(db, sql.c_str());
 
@@ -425,8 +408,7 @@ LocationDataItems read_observations(const Spine::Stations &stations,
       if ((*iter).column_type(6) != SQLITE_NULL)
         obs.data.data_source = (*iter).get<int>(5);
 
-      if (isDefaultSensor(
-              obs.data.sensor_no, obs.data.measurand_id, qmap.sensorNumberToMeasurandIds))
+      if (qmap.isDefaultSensor(obs.data.sensor_no, obs.data.measurand_id))
       {
         default_sensors[obs.data.fmisid][obs.data.measurand_id] = obs.data.sensor_no;
       }
@@ -615,7 +597,6 @@ void SpatiaLite::createObservationDataTable()
     // Note: it is important that fmisid is first in the primary key, using data_time instead
     // can make the table more than 100 times slower. Putting data_time last had no obvious
     // benefit, putting it second provided the fastest search in a handful of tests.
-
     // clang-format off
     itsDB.execute(
         "CREATE TABLE IF NOT EXISTS observation_data("
@@ -3117,7 +3098,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedWeatherDataQCData(
 		  std::string parameter_id = (*parameter + Fmi::to_string(sensor_number));
 		  Fmi::ascii_tolower(parameter_id);
 		  int parameter = boost::hash_value(parameter_id); // We dont have measurand id in weather_data_qc table, so use temporarily hash value of parameter name + sensor number
-		  if (isDefaultSensor(sensor_number, parameter, qmap.sensorNumberToMeasurandIds))
+		  if (qmap.isDefaultSensor(sensor_number, parameter))
  			{
 			  default_sensors[*fmisid][parameter] = sensor_number;
 			}
@@ -3297,7 +3278,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getCachedData(
       else
         observations = read_observations(stations, settings, stationInfo, qmap, stationgroup_codes, itsDB);
     }
-    
+
     ObservationsMap obsmap = build_observations_map(observations,
                                               settings,
                                               timezones,
@@ -3822,11 +3803,11 @@ void SpatiaLite::initObservationMemoryCache(const boost::posix_time::ptime &star
 	{
   // Read all observations starting from the given time
   std::string sql =
-      "SELECT data_time, modified_last, data_value, fmisid, measurand_id, producer_id, measurand_no, data_quality, data_source "
+      "SELECT data_time, modified_last, data_value, fmisid, sensor_no, measurand_id, producer_id, measurand_no, data_quality, data_source "
       "FROM observation_data "
       "WHERE observation_data.data_time >= '" +
       Fmi::to_iso_extended_string(starttime) +
-      "' GROUP BY fmisid, data_time, measurand_id, data_value, data_source "
+      "' GROUP BY fmisid, sensor_no, data_time, measurand_id, data_value, data_quality, data_source "
       "ORDER BY fmisid ASC, data_time ASC";
 
   sqlite3pp::query qry(itsDB, sql.c_str());
@@ -3845,11 +3826,12 @@ void SpatiaLite::initObservationMemoryCache(const boost::posix_time::ptime &star
     obs.modified_last = parse_sqlite_time((*iter).get<std::string>(1));
     obs.data_value = (*iter).get<double>(2);
     obs.fmisid = (*iter).get<int>(3);
-    obs.measurand_id = (*iter).get<int>(4);
-    obs.producer_id = (*iter).get<int>(5);
-    obs.measurand_no = (*iter).get<int>(6);
-    obs.data_quality = (*iter).get<int>(7);
-    obs.data_source = (*iter).get<int>(8);
+    obs.sensor_no = (*iter).get<int>(4);
+    obs.measurand_id = (*iter).get<int>(5);
+    obs.producer_id = (*iter).get<int>(6);
+    obs.measurand_no = (*iter).get<int>(7);
+    obs.data_quality = (*iter).get<int>(8);
+    obs.data_source = (*iter).get<int>(9);
     observations.emplace_back(obs);
   }
 
