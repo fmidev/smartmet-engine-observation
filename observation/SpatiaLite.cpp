@@ -612,6 +612,10 @@ void SpatiaLite::createObservationDataTable()
 {
   try
   {
+    // Note: it is important that fmisid is first in the primary key, using data_time instead
+    // can make the table more than 100 times slower. Putting data_time last had no obvious
+    // benefit, putting it second provided the fastest search in a handful of tests.
+
     // clang-format off
     itsDB.execute(
         "CREATE TABLE IF NOT EXISTS observation_data("
@@ -625,7 +629,7 @@ void SpatiaLite::createObservationDataTable()
         "data_quality INTEGER, "
         "data_source INTEGER, "
 		"modified_last DATETIME NOT NULL DEFAULT '1970-01-01', "
-        "PRIMARY KEY (data_time, fmisid, measurand_id, producer_id, measurand_no))");
+        "PRIMARY KEY (fmisid, data_time, measurand_id, producer_id, measurand_no))");
 
     itsDB.execute("CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON observation_data(data_time)");
     itsDB.execute("CREATE INDEX IF NOT EXISTS observation_data_modified_last_idx ON observation_data(modified_last)");

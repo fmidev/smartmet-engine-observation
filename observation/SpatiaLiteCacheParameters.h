@@ -28,7 +28,7 @@ class StationtypeConfig;
 struct SpatiaLiteCacheParameters
 {
   SpatiaLiteCacheParameters(const EngineParametersPtr& p)
-      : stationInfo(p->stationInfo),
+      : stationInfo(&p->stationInfo),
         quiet(p->quiet),
         stationtypeConfig(p->stationtypeConfig),
         externalAndMobileProducerConfig(p->externalAndMobileProducerConfig),
@@ -37,7 +37,12 @@ struct SpatiaLiteCacheParameters
   }
 
   SpatiaLiteOptions sqlite;
-  const boost::shared_ptr<StationInfo>& stationInfo;
+
+  // May be modified by the driver in a separate thread. This is intentionally a reference to the
+  // actual stationInfo object in EngineParameters.
+
+  const boost::shared_ptr<StationInfo>* stationInfo = nullptr;
+
   boost::shared_ptr<boost::posix_time::time_period> flashCachePeriod;
   std::string cacheFile;
   std::size_t maxInsertSize = 5000;

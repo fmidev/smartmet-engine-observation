@@ -46,7 +46,11 @@ struct EngineParameters
   std::string cacheDB;
   std::string dbDriverFile;
 
-  boost::shared_ptr<StationInfo> stationInfo;
+  // May be modified by the driver in a separate thread. This is the only copy of the
+  // StationInfo data, other classes should just point to this one instead of copying
+  // the shared pointer.
+  mutable boost::shared_ptr<StationInfo> stationInfo;
+
   Fmi::Cache::Cache<std::string, std::shared_ptr<QueryResultBase>> queryResultBaseCache;
 
   bool quiet;

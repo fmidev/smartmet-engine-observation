@@ -142,8 +142,9 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    SmartMet::Spine::Stations stations =
-        itsParameters.stationInfo->findFmisidStations(settings.taggedFMISIDs);
+    auto sinfo = boost::atomic_load(itsParameters.stationInfo);
+
+    SmartMet::Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
@@ -154,13 +155,11 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = spatialitedb->getCachedWeatherDataQCData(
-            stations, settings, *itsParameters.stationInfo, itsTimeZones);
+        ret = spatialitedb->getCachedWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
         return ret;
       }
 
-      ret =
-          spatialitedb->getCachedData(stations, settings, *itsParameters.stationInfo, itsTimeZones);
+      ret = spatialitedb->getCachedData(stations, settings, *sinfo, itsTimeZones);
     }
 
     return ret;
@@ -188,8 +187,9 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    SmartMet::Spine::Stations stations =
-        itsParameters.stationInfo->findFmisidStations(settings.taggedFMISIDs);
+    auto sinfo = boost::atomic_load(itsParameters.stationInfo);
+
+    SmartMet::Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
@@ -201,12 +201,12 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
         ret = spatialitedb->getCachedWeatherDataQCData(
-            stations, settings, *itsParameters.stationInfo, timeSeriesOptions, itsTimeZones);
+            stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
       else
       {
         ret = spatialitedb->getCachedData(
-            stations, settings, *itsParameters.stationInfo, timeSeriesOptions, itsTimeZones);
+            stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
     }
 

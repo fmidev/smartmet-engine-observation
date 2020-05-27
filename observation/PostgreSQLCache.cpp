@@ -68,8 +68,9 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    SmartMet::Spine::Stations stations =
-        itsParameters.stationInfo->findFmisidStations(settings.taggedFMISIDs);
+    auto sinfo = boost::atomic_load(itsParameters.stationInfo);
+
+    SmartMet::Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
 
     // Get data if we have stations
     if (!stations.empty())
@@ -111,8 +112,9 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    SmartMet::Spine::Stations stations =
-        itsParameters.stationInfo->findFmisidStations(settings.taggedFMISIDs);
+    auto sinfo = boost::atomic_load(itsParameters.stationInfo);
+
+    SmartMet::Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
 
     // Get data if we have stations
     if (!stations.empty())
