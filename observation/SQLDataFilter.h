@@ -22,6 +22,7 @@ class SQLDataFilter
   bool exist(const std::string& name) const;
   bool empty() const;
   void format(std::ostream& out) const;
+  bool valueOK(const std::string& name, int val) const;
 
  private:
   DataFilterType itsDataFilter;

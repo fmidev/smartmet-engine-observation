@@ -21,6 +21,7 @@ std::size_t DataItem::hash_value() const
     boost::hash_combine(hash, boost::hash_value(Fmi::to_iso_string(data_time)));
     boost::hash_combine(hash, boost::hash_value(data_value));
     boost::hash_combine(hash, boost::hash_value(data_quality));
+    boost::hash_combine(hash, boost::hash_value(data_source));
     boost::hash_combine(hash, boost::hash_value(Fmi::to_iso_string(modified_last)));
     return hash;
   }
