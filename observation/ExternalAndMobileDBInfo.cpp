@@ -12,18 +12,19 @@ namespace Observation
 namespace
 {
 void add_where_conditions(std::string &sqlStmt,
-                          const std::string &areaFilterField,
+                          const std::string &producer,
                           const std::vector<int> &measurandIds,
                           const boost::posix_time::ptime &starttime,
                           const boost::posix_time::ptime &endtime,
                           const std::string &wktAreaFilter,
                           const SQLDataFilter &sqlDataFilter)
 {
-  if (!wktAreaFilter.empty())
+  if (!wktAreaFilter.empty() && producer != ITMF_PRODUCER)
   {
     sqlStmt += " AND ST_Contains(ST_GeomFromText('";
     sqlStmt += wktAreaFilter;
-    sqlStmt += ("', 4326), " + areaFilterField + ")");
+    sqlStmt +=
+        ("', 4326), " + std::string(((producer == NETATMO_PRODUCER) ? "stat.geom)" : "obs.geom)")));
   }
 
   std::string mids;
@@ -62,6 +63,67 @@ ExternalAndMobileDBInfo::ExternalAndMobileDBInfo(
     const ExternalAndMobileProducerMeasurand *producerMeasurand /*= nullptr*/)
     : itsProducerMeasurand(producerMeasurand)
 {
+}
+
+std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurandIds,
+                                               const boost::posix_time::ptime &starttime,
+                                               const boost::posix_time::ptime &endtime,
+                                               const std::vector<std::string> &station_ids,
+                                               const SQLDataFilter &sqlDataFilter) const
+{
+  std::string sqlStmt;
+
+  if (!itsProducerMeasurand)
+    return "";
+
+  std::string producerName = itsProducerMeasurand->producerId().name();
+  std::string producerId = itsProducerMeasurand->producerId().asString();
+  if (producerName == ITMF_PRODUCER)
+  {
+    sqlStmt = "SELECT obs.prod_id, obs.station_id, obs.dataset_id, obs.data_level";
+    for (auto mid : measurandIds)
+    {
+      sqlStmt += ", MAX(CASE WHEN obs.mid=";
+      sqlStmt += Fmi::to_string(mid);
+      sqlStmt += " THEN obs.data_value END) AS ";
+      sqlStmt += measurandFieldname(mid);
+    }
+    sqlStmt +=
+        ", obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value_txt, "
+        "obs.data_quality, obs.ctrl_status, MAX(EXTRACT(EPOCH FROM obs.created)) as created, "
+        "stat.station_code FROM ext_obsdata obs, ext_station_v1 stat WHERE "
+        "obs.prod_id=stat.prod_id and "
+        "obs.station_id=stat.station_id and obs.prod_id=";
+    sqlStmt += producerId;
+    if (station_ids.size() > 0)
+    {
+      std::string requested_stations;
+      for (auto const &s : station_ids)
+      {
+        if (!requested_stations.empty())
+          requested_stations += ", ";
+        requested_stations += ("'" + s + "'");
+      }
+
+      sqlStmt += " AND stat.station_code IN (" + requested_stations + ") ";
+    }
+  }
+  else
+  {
+    throw SmartMet::Spine::Exception(BCP, "SQL select not defined for producer " + producerName);
+  }
+
+  add_where_conditions(sqlStmt, producerName, measurandIds, starttime, endtime, "", sqlDataFilter);
+
+  sqlStmt +=
+      " GROUP BY "
+      "obs.prod_id,obs.station_id,obs.dataset_id,obs.data_level,obs.sensor_no,obs.data_time,obs."
+      "data_value_txt,obs.data_quality,obs.ctrl_status,stat."
+      "station_id, stat.station_code ORDER BY obs.data_time, stat.station_id ASC";
+
+  //  std::cout << "SQL: " << sqlStmt << std::endl;
+
+  return sqlStmt;
 }
 
 std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurandIds,
@@ -118,13 +180,8 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
     throw SmartMet::Spine::Exception(BCP, "SQL select not defined for producer " + producerName);
   }
 
-  add_where_conditions(sqlStmt,
-                       (producerName == NETATMO_PRODUCER ? "stat.geom" : "obs.geom"),
-                       measurandIds,
-                       starttime,
-                       endtime,
-                       wktAreaFilter,
-                       sqlDataFilter);
+  add_where_conditions(
+      sqlStmt, producerName, measurandIds, starttime, endtime, wktAreaFilter, sqlDataFilter);
 
   if (producerName == ROADCLOUD_PRODUCER)
     sqlStmt +=
@@ -140,6 +197,16 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
         "data_value_txt,obs.data_quality,obs.ctrl_status,longitude,latitude,stat.altitude,stat."
         "station_id ORDER BY obs.data_time, stat.station_id ASC";
   }
+  else if (producerName == ITMF_PRODUCER)
+  {
+    sqlStmt +=
+        " GROUP BY "
+        "obs.prod_id,obs.station_id,obs.dataset_id,obs.data_level,obs.sensor_no,obs.data_time,obs."
+        "data_value_txt,obs.data_quality,obs.ctrl_status,stat."
+        "station_id, stat.station_code ORDER BY obs.data_time, stat.station_id ASC";
+  }
+
+  //  std::cout << "SQL: " << sqlStmt << std::endl;
 
   return sqlStmt;
 }
@@ -186,6 +253,18 @@ std::string ExternalAndMobileDBInfo::sqlSelectForCache(
   {
     // TBD
   }
+  else if (producer == ITMF_PRODUCER)
+  {
+    // Join ext_obsdata and ext_station_v1 tables
+    sqlStmt =
+        ("select obs.prod_id, obs.station_id, obs.dataset_id, obs.data_level, obs.mid "
+         ",obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value, "
+         "obs.data_value_txt, obs.data_quality, obs.ctrl_status, EXTRACT(EPOCH FROM obs.created) "
+         "as created, ST_X(stat.geom) as longitude, ST_Y(stat.geom) as latitude, "
+         "stat.altitude as altitude FROM ext_obsdata obs, ext_station_v1 stat WHERE obs.prod_id=4 "
+         "AND obs.prod_id=stat.prod_id AND obs.station_id=stat.station_id AND obs.data_time>='" +
+         Fmi::to_iso_extended_string(from_data_time) + "'" + created_stmt);
+  }
 
   return sqlStmt;
 }
@@ -203,24 +282,40 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
   std::string producerName = itsProducerMeasurand->producerId().name();
 
   if (producerName != NETATMO_PRODUCER && producerName != ROADCLOUD_PRODUCER &&
-      producerName != TECONER_PRODUCER)
+      producerName != TECONER_PRODUCER && producerName != ITMF_PRODUCER)
   {
     throw SmartMet::Spine::Exception(BCP, "SQL select not defined for producer " + producerName);
   }
 
   std::string sqlStmt;
 
-  sqlStmt = "SELECT obs.prod_id, obs.station_id, obs.dataset_id, obs.data_level";
-  if (spatialite)
-    sqlStmt +=
-        ", obs.sensor_no, obs.data_time as data_time, obs.data_value_txt, "
-        "obs.data_quality, obs.ctrl_status, MAX(obs.created) as created, "
-        "ST_X(obs.geom) as longitude, ST_Y(obs.geom) as latitude, obs.altitude";
+  if (producerName == ITMF_PRODUCER)
+  {
+    sqlStmt =
+        "SELECT obs.prod_id, obs.station_id, obs.station_code, obs.dataset_id, obs.data_level";
+    if (spatialite)
+      sqlStmt +=
+          ", obs.sensor_no, obs.data_time as data_time, obs.data_value_txt, "
+          "obs.data_quality, obs.ctrl_status, MAX(obs.created) as created ";
+    else
+      sqlStmt +=
+          ", obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value_txt, "
+          "obs.data_quality, obs.ctrl_status, MAX(EXTRACT(EPOCH FROM obs.created)) as created ";
+  }
   else
-    sqlStmt +=
-        ", obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value_txt, "
-        "obs.data_quality, obs.ctrl_status, MAX(EXTRACT(EPOCH FROM obs.created)) as created, "
-        "ST_X(obs.geom) as longitude, ST_Y(obs.geom) as latitude, obs.altitude";
+  {
+    sqlStmt = "SELECT obs.prod_id, obs.station_id, obs.dataset_id, obs.data_level";
+    if (spatialite)
+      sqlStmt +=
+          ", obs.sensor_no, obs.data_time as data_time, obs.data_value_txt, "
+          "obs.data_quality, obs.ctrl_status, MAX(obs.created) as created, "
+          "ST_X(obs.geom) as longitude, ST_Y(obs.geom) as latitude, obs.altitude ";
+    else
+      sqlStmt +=
+          ", obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value_txt, "
+          "obs.data_quality, obs.ctrl_status, MAX(EXTRACT(EPOCH FROM obs.created)) as created, "
+          "ST_X(obs.geom) as longitude, ST_Y(obs.geom) as latitude, obs.altitude ";
+  }
 
   for (auto mid : measurandIds)
   {
@@ -234,7 +329,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
   sqlStmt += " obs WHERE";
 
   add_where_conditions(
-      sqlStmt, "obs.geom", measurandIds, starttime, endtime, wktAreaFilter, sqlDataFilter);
+      sqlStmt, producerName, measurandIds, starttime, endtime, wktAreaFilter, sqlDataFilter);
 
   if (producerName == ROADCLOUD_PRODUCER)
     sqlStmt +=
@@ -250,6 +345,16 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
         "obs.prod_id,obs.station_id,obs.dataset_id,obs.data_level,obs.sensor_no,obs.data_time,"
         "obs."
         "data_value_txt,obs.data_quality,obs.ctrl_status,longitude,latitude,obs.altitude,obs."
+        "station_id ORDER BY obs.data_time, obs.station_id ASC";
+  }
+  else if (producerName == ITMF_PRODUCER)
+  {
+    sqlStmt +=
+        " GROUP BY "
+        "obs.prod_id,obs.station_id,obs.station_code,obs.dataset_id,obs.data_level,obs.sensor_no,"
+        "obs.data_time,"
+        "obs."
+        "data_value_txt,obs.data_quality,obs.ctrl_status,obs."
         "station_id ORDER BY obs.data_time, obs.station_id ASC";
   }
 
@@ -396,6 +501,15 @@ std::string ExternalAndMobileDBInfo::measurandFieldname(int measurandId) const
       break;
     case 45:
       ret = "gust_angle";
+      break;
+    case 49:
+      ret = "relative_humidity";
+      break;
+    case 8164:
+      ret = "pressure";
+      break;
+    case 8165:
+      ret = "temperature";
       break;
     default:
       break;

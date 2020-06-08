@@ -15,6 +15,19 @@ namespace Engine
 {
 namespace Observation
 {
+namespace
+{
+// Round down to HH:MM:00. Deleting an entire hour at once takes too long, and causes a major
+// increase in response times. This should perhaps be made configurable.
+
+boost::posix_time::ptime round_down_to_cache_clean_interval(const boost::posix_time::ptime &t)
+{
+  auto secs = (t.time_of_day().total_seconds() / 60) * 60;
+  return boost::posix_time::ptime(t.date(), boost::posix_time::seconds(secs));
+}
+
+}  // namespace
+
 void PostgreSQLCache::initializeConnectionPool()
 {
   try
@@ -34,6 +47,38 @@ void PostgreSQLCache::initializeConnectionPool()
     for (int i = 0; i < itsParameters.connectionPoolSize; i++)
     {
       boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+      if (i == 0)
+      {
+        // Observation data
+        auto start = db->getOldestObservationTime();
+        auto end = db->getLatestObservationTime();
+        itsTimeIntervalStart = start;
+        itsTimeIntervalEnd = end;
+
+        // WeatherDataQC
+        start = db->getOldestWeatherDataQCTime();
+        end = db->getLatestWeatherDataQCTime();
+        itsWeatherDataQCTimeIntervalStart = start;
+        itsWeatherDataQCTimeIntervalEnd = end;
+
+        // Flash
+        start = db->getOldestFlashTime();
+        end = db->getLatestFlashTime();
+        itsFlashTimeIntervalStart = start;
+        itsFlashTimeIntervalEnd = end;
+
+        // Road cloud
+        start = db->getOldestRoadCloudDataTime();
+        end = db->getLatestRoadCloudDataTime();
+        itsRoadCloudTimeIntervalStart = start;
+        itsRoadCloudTimeIntervalEnd = end;
+
+        // NetAtmo
+        start = db->getOldestNetAtmoDataTime();
+        end = db->getLatestNetAtmoDataTime();
+        itsNetAtmoTimeIntervalStart = start;
+        itsNetAtmoTimeIntervalEnd = end;
+      }
     }
 
     logMessage("[Observation Engine] PostgreSQL connection pool ready.", itsParameters.quiet);
@@ -68,8 +113,9 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    SmartMet::Spine::Stations stations =
-        itsParameters.stationInfo->findFmisidStations(settings.taggedFMISIDs);
+    auto sinfo = boost::atomic_load(itsParameters.stationInfo);
+    SmartMet::Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
+    stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
     if (!stations.empty())
@@ -79,12 +125,10 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = db->getCachedWeatherDataQCData(
-            stations, settings, itsParameters.parameterMap, itsTimeZones);
+        ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
         return ret;
       }
-
-      ret = db->getCachedData(stations, settings, itsParameters.parameterMap, itsTimeZones);
+      ret = db->getObservationData(stations, settings, *sinfo, itsTimeZones);
     }
 
     return ret;
@@ -111,8 +155,9 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    SmartMet::Spine::Stations stations =
-        itsParameters.stationInfo->findFmisidStations(settings.taggedFMISIDs);
+    auto sinfo = boost::atomic_load(itsParameters.stationInfo);
+    SmartMet::Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
+    stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
     if (!stations.empty())
@@ -122,13 +167,11 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = db->getCachedWeatherDataQCData(
-            stations, settings, itsParameters.parameterMap, timeSeriesOptions, itsTimeZones);
+        ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
       else
       {
-        ret = db->getCachedData(
-            stations, settings, itsParameters.parameterMap, timeSeriesOptions, itsTimeZones);
+        ret = db->getData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
     }
     return ret;
@@ -146,7 +189,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(Settings &set
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-    ret = db->getCachedFlashData(settings, itsParameters.parameterMap, itsTimeZones);
+    ret = db->getFlashData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
   }
@@ -162,7 +205,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-    ret = db->getCachedRoadCloudData(settings, itsParameters.parameterMap, itsTimeZones);
+    ret = db->getRoadCloudData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
   }
@@ -179,7 +222,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &s
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-    ret = db->getCachedNetAtmoData(settings, itsParameters.parameterMap, itsTimeZones);
+    ret = db->getNetAtmoData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
   }
@@ -194,14 +237,12 @@ bool PostgreSQLCache::timeIntervalIsCached(const boost::posix_time::ptime &start
 {
   try
   {
-    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-    auto oldest_time = db->getOldestObservationTime();
+    Spine::ReadLock lock(itsTimeIntervalMutex);
 
-    if (oldest_time.is_not_a_date_time())
+    if (itsTimeIntervalStart.is_not_a_date_time() || itsTimeIntervalEnd.is_not_a_date_time())
       return false;
-
-    // we need only the beginning though
-    return (starttime >= oldest_time);
+    // We ignore end time intentionally
+    return (starttime >= itsTimeIntervalStart && starttime < itsTimeIntervalEnd);
   }
   catch (...)
   {
@@ -214,14 +255,12 @@ bool PostgreSQLCache::flashIntervalIsCached(const boost::posix_time::ptime &star
 {
   try
   {
-    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-    auto oldest_time = db->getOldestFlashTime();
-
-    if (oldest_time.is_not_a_date_time())
+    Spine::ReadLock lock(itsFlashTimeIntervalMutex);
+    if (itsFlashTimeIntervalStart.is_not_a_date_time() ||
+        itsFlashTimeIntervalEnd.is_not_a_date_time())
       return false;
-
-    // we need only the beginning though
-    return (starttime >= oldest_time);
+    // We ignore end time intentionally
+    return (starttime >= itsFlashTimeIntervalStart && starttime < itsFlashTimeIntervalEnd);
   }
   catch (...)
   {
@@ -234,18 +273,17 @@ bool PostgreSQLCache::timeIntervalWeatherDataQCIsCached(
 {
   try
   {
-    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-    auto oldest_time = db->getOldestWeatherDataQCTime();
-
-    if (oldest_time.is_not_a_date_time())
+    Spine::ReadLock lock(itsWeatherDataQCTimeIntervalMutex);
+    if (itsWeatherDataQCTimeIntervalStart.is_not_a_date_time() ||
+        itsWeatherDataQCTimeIntervalEnd.is_not_a_date_time())
       return false;
-
-    // we need only the beginning though
-    return (starttime >= oldest_time);
+    // We ignore end time intentionally
+    return (starttime >= itsWeatherDataQCTimeIntervalStart &&
+            starttime < itsWeatherDataQCTimeIntervalEnd);
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Checking if weather data QC is cached  failed!");
+    throw Spine::Exception::Trace(BCP, "Checking if weather data QC is cached failed!");
   }
 }
 
@@ -301,14 +339,58 @@ boost::posix_time::ptime PostgreSQLCache::getLatestFlashTime() const
 
 std::size_t PostgreSQLCache::fillFlashDataCache(const FlashDataItems &flashCacheData) const
 {
-  return itsConnectionPool->getConnection()->fillFlashDataCache(flashCacheData);
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillFlashDataCache(flashCacheData);
+
+    // Update info on what is in the database
+    auto start = conn->getOldestFlashTime();
+    auto end = conn->getLatestFlashTime();
+    Spine::WriteLock lock(itsFlashTimeIntervalMutex);
+    itsFlashTimeIntervalStart = start;
+    itsFlashTimeIntervalEnd = end;
+
+    return sz;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Filling flash data cache failed!");
+  }
 }
 
 void PostgreSQLCache::cleanFlashDataCache(
     const boost::posix_time::time_duration &timetokeep,
     const boost::posix_time::time_duration & /* timetokeep_memory */) const
 {
-  return itsConnectionPool->getConnection()->cleanFlashDataCache(timetokeep);
+  try
+  {
+    auto now = boost::posix_time::second_clock::universal_time();
+
+    // How old observations to keep in the disk cache:
+    auto t = round_down_to_cache_clean_interval(now - timetokeep);
+
+    auto conn = itsConnectionPool->getConnection();
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsFlashTimeIntervalMutex);
+      itsFlashTimeIntervalStart = t;
+    }
+
+    // Clean database
+    conn->cleanFlashDataCache(t);
+
+    // Update info on what is in the database
+    auto start = conn->getOldestFlashTime();
+    auto end = conn->getLatestFlashTime();
+    Spine::WriteLock lock(itsFlashTimeIntervalMutex);
+    itsFlashTimeIntervalStart = start;
+    itsFlashTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning flash data cache failed!");
+  }
 }
 
 boost::posix_time::ptime PostgreSQLCache::getLatestObservationModifiedTime() const
@@ -323,14 +405,54 @@ boost::posix_time::ptime PostgreSQLCache::getLatestObservationTime() const
 
 std::size_t PostgreSQLCache::fillDataCache(const DataItems &cacheData) const
 {
-  return itsConnectionPool->getConnection()->fillDataCache(cacheData);
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillDataCache(cacheData);
+
+    // Update what really now really is in the database
+    auto start = conn->getOldestObservationTime();
+    auto end = conn->getLatestObservationTime();
+    Spine::WriteLock lock(itsTimeIntervalMutex);
+    itsTimeIntervalStart = start;
+    itsTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Filling data cache failed!");
+  }
 }
 
 void PostgreSQLCache::cleanDataCache(
     const boost::posix_time::time_duration &timetokeep,
     const boost::posix_time::time_duration &timetokeep_memory) const
 {
-  return itsConnectionPool->getConnection()->cleanDataCache(timetokeep);
+  try
+  {
+    auto now = boost::posix_time::second_clock::universal_time();
+
+    auto t = round_down_to_cache_clean_interval(now - timetokeep);
+
+    auto conn = itsConnectionPool->getConnection();
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsTimeIntervalMutex);
+      itsTimeIntervalStart = t;
+    }
+    conn->cleanDataCache(t);
+
+    // Update what really remains in the database
+    auto start = conn->getOldestObservationTime();
+    auto end = conn->getLatestObservationTime();
+    Spine::WriteLock lock(itsTimeIntervalMutex);
+    itsTimeIntervalStart = start;
+    itsTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning data cache failed!");
+  }
 }
 
 boost::posix_time::ptime PostgreSQLCache::getLatestWeatherDataQCTime() const
@@ -340,13 +462,52 @@ boost::posix_time::ptime PostgreSQLCache::getLatestWeatherDataQCTime() const
 
 std::size_t PostgreSQLCache::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const
 {
-  return itsConnectionPool->getConnection()->fillWeatherDataQCCache(cacheData);
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillWeatherDataQCCache(cacheData);
+
+    // Update what really now really is in the database
+    auto start = conn->getOldestWeatherDataQCTime();
+    auto end = conn->getLatestWeatherDataQCTime();
+    Spine::WriteLock lock(itsTimeIntervalMutex);
+    itsWeatherDataQCTimeIntervalStart = start;
+    itsWeatherDataQCTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Filling weather data QC cache failed!");
+  }
 }
 
 void PostgreSQLCache::cleanWeatherDataQCCache(
     const boost::posix_time::time_duration &timetokeep) const
 {
-  return itsConnectionPool->getConnection()->cleanWeatherDataQCCache(timetokeep);
+  try
+  {
+    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    t = round_down_to_cache_clean_interval(t);
+
+    auto conn = itsConnectionPool->getConnection();
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsWeatherDataQCTimeIntervalMutex);
+      itsWeatherDataQCTimeIntervalStart = t;
+    }
+    conn->cleanWeatherDataQCCache(t);
+
+    // Update what really remains in the database
+    auto start = conn->getOldestWeatherDataQCTime();
+    auto end = conn->getLatestWeatherDataQCTime();
+    Spine::WriteLock lock(itsTimeIntervalMutex);
+    itsWeatherDataQCTimeIntervalStart = start;
+    itsWeatherDataQCTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning weather data QC cache failed!");
+  }
 }
 
 bool PostgreSQLCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
@@ -354,14 +515,13 @@ bool PostgreSQLCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &
 {
   try
   {
-    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-    auto oldest_time = db->getOldestRoadCloudDataTime();
-
-    if (oldest_time.is_not_a_date_time())
+    Spine::ReadLock lock(itsRoadCloudTimeIntervalMutex);
+    if (itsRoadCloudTimeIntervalStart.is_not_a_date_time() &&
+        itsRoadCloudTimeIntervalEnd.is_not_a_date_time())
       return false;
 
-    // we need only the beginning though
-    return (starttime >= oldest_time);
+    // We ignore end time intentionally
+    return (starttime >= itsRoadCloudTimeIntervalStart && starttime < itsRoadCloudTimeIntervalEnd);
   }
   catch (...)
   {
@@ -382,12 +542,51 @@ boost::posix_time::ptime PostgreSQLCache::getLatestRoadCloudCreatedTime() const
 std::size_t PostgreSQLCache::fillRoadCloudCache(
     const MobileExternalDataItems &mobileExternalCacheData) const
 {
-  return itsConnectionPool->getConnection()->fillRoadCloudCache(mobileExternalCacheData);
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillRoadCloudCache(mobileExternalCacheData);
+
+    // Update what really now really is in the database
+    auto start = conn->getOldestRoadCloudDataTime();
+    auto end = conn->getLatestRoadCloudDataTime();
+    Spine::WriteLock lock(itsRoadCloudTimeIntervalMutex);
+    itsRoadCloudTimeIntervalStart = start;
+    itsRoadCloudTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Filling road cloud cached failed!");
+  }
 }
 
 void PostgreSQLCache::cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const
 {
-  return itsConnectionPool->getConnection()->cleanRoadCloudCache(timetokeep);
+  try
+  {
+    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    t = round_down_to_cache_clean_interval(t);
+
+    auto conn = itsConnectionPool->getConnection();
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsRoadCloudTimeIntervalMutex);
+      itsRoadCloudTimeIntervalStart = t;
+    }
+    conn->cleanRoadCloudCache(t);
+
+    // Update what really remains in the database
+    auto start = conn->getOldestRoadCloudDataTime();
+    auto end = conn->getLatestRoadCloudDataTime();
+    Spine::WriteLock lock(itsRoadCloudTimeIntervalMutex);
+    itsRoadCloudTimeIntervalStart = start;
+    itsRoadCloudTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning road cloud cache failed!");
+  }
 }
 
 bool PostgreSQLCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
@@ -395,14 +594,12 @@ bool PostgreSQLCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &st
 {
   try
   {
-    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-    auto oldest_time = db->getOldestNetAtmoDataTime();
-
-    if (oldest_time.is_not_a_date_time())
+    Spine::ReadLock lock(itsNetAtmoTimeIntervalMutex);
+    if (itsNetAtmoTimeIntervalStart.is_not_a_date_time() ||
+        itsNetAtmoTimeIntervalEnd.is_not_a_date_time())
       return false;
-
-    // we need only the beginning though
-    return (starttime >= oldest_time);
+    // We ignore end time intentionally
+    return (starttime >= itsNetAtmoTimeIntervalStart || starttime < itsNetAtmoTimeIntervalEnd);
   }
   catch (...)
   {
@@ -423,12 +620,51 @@ boost::posix_time::ptime PostgreSQLCache::getLatestNetAtmoCreatedTime() const
 std::size_t PostgreSQLCache::fillNetAtmoCache(
     const MobileExternalDataItems &mobileExternalCacheData) const
 {
-  return itsConnectionPool->getConnection()->fillNetAtmoCache(mobileExternalCacheData);
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillNetAtmoCache(mobileExternalCacheData);
+
+    // Update what really now really is in the database
+    auto start = conn->getOldestNetAtmoDataTime();
+    auto end = conn->getLatestNetAtmoDataTime();
+    Spine::WriteLock lock(itsNetAtmoTimeIntervalMutex);
+    itsNetAtmoTimeIntervalStart = start;
+    itsNetAtmoTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Filling NetAtmo cache failed!");
+  }
 }
 
 void PostgreSQLCache::cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const
 {
-  return itsConnectionPool->getConnection()->cleanNetAtmoCache(timetokeep);
+  try
+  {
+    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    t = round_down_to_cache_clean_interval(t);
+
+    auto conn = itsConnectionPool->getConnection();
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsNetAtmoTimeIntervalMutex);
+      itsNetAtmoTimeIntervalStart = t;
+    }
+    conn->cleanNetAtmoCache(t);
+
+    // Update what really remains in the database
+    auto start = conn->getOldestNetAtmoDataTime();
+    auto end = conn->getLatestNetAtmoDataTime();
+    Spine::WriteLock lock(itsNetAtmoTimeIntervalMutex);
+    itsNetAtmoTimeIntervalStart = start;
+    itsNetAtmoTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning NetAtmo cache failed!");
+  }
 }
 
 void PostgreSQLCache::shutdown()
@@ -438,8 +674,10 @@ void PostgreSQLCache::shutdown()
   itsConnectionPool = nullptr;
 }
 
-PostgreSQLCache::PostgreSQLCache(const EngineParametersPtr &p, Spine::ConfigBase &cfg)
-    : itsParameters(p)
+PostgreSQLCache::PostgreSQLCache(const std::string &name,
+                                 const EngineParametersPtr &p,
+                                 Spine::ConfigBase &cfg)
+    : ObservationCache(name), itsParameters(p)
 {
   try
   {
@@ -473,6 +711,30 @@ void PostgreSQLCache::readConfig(Spine::ConfigBase &cfg)
 {
   try
   {
+    const Engine::Observation::DatabaseDriverInfoItem &driverInfo =
+        itsParameters.databaseDriverInfo.getCacheInfo(itsDriverName);
+
+    itsParameters.postgresql.host = driverInfo.params.at("host");
+    itsParameters.postgresql.port = Fmi::stoi(driverInfo.params.at("port"));
+    itsParameters.postgresql.database = driverInfo.params.at("database");
+    itsParameters.postgresql.username = driverInfo.params.at("username");
+    itsParameters.postgresql.password = driverInfo.params.at("password");
+    itsParameters.postgresql.encoding = driverInfo.params.at("encoding");
+    itsParameters.postgresql.connect_timeout = Fmi::stoi(driverInfo.params.at("connect_timeout"));
+
+    itsParameters.connectionPoolSize = Fmi::stoi(driverInfo.params.at("poolSize"));
+    itsParameters.maxInsertSize = Fmi::stoi(driverInfo.params.at("maxInsertSize"));
+
+    itsParameters.dataInsertCacheSize = Fmi::stoi(driverInfo.params.at("dataInsertCacheSize"));
+    itsParameters.weatherDataQCInsertCacheSize =
+        Fmi::stoi(driverInfo.params.at("weatherDataQCInsertCacheSize"));
+    itsParameters.flashInsertCacheSize = Fmi::stoi(driverInfo.params.at("flashInsertCacheSize"));
+    itsParameters.roadCloudInsertCacheSize =
+        Fmi::stoi(driverInfo.params.at("roadCloudInsertCacheSize"));
+    itsParameters.netAtmoInsertCacheSize =
+        Fmi::stoi(driverInfo.params.at("netAtmoInsertCacheSize"));
+
+#ifdef OLDSTUFF
     itsParameters.postgresql.host = cfg.get_mandatory_config_param<std::string>("postgresql.host");
     itsParameters.postgresql.port = cfg.get_mandatory_config_param<unsigned int>("postgresql.port");
     itsParameters.postgresql.database =
@@ -501,6 +763,7 @@ void PostgreSQLCache::readConfig(Spine::ConfigBase &cfg)
         cfg.get_optional_config_param<std::size_t>("cache.roadCloudInsertCacheSize", 10000);
     itsParameters.netAtmoInsertCacheSize =
         cfg.get_optional_config_param<std::size_t>("cache.netAtmoInsertCacheSize", 10000);
+#endif
   }
   catch (...)
   {

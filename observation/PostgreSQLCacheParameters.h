@@ -28,12 +28,12 @@ class StationtypeConfig;
 struct PostgreSQLCacheParameters
 {
   PostgreSQLCacheParameters(const EngineParametersPtr& p)
-
       : quiet(p->quiet),
-        stationInfo(p->stationInfo),
+        stationInfo(&p->stationInfo),
         parameterMap(p->parameterMap),
         stationtypeConfig(p->stationtypeConfig),
-        externalAndMobileProducerConfig(p->externalAndMobileProducerConfig)
+        externalAndMobileProducerConfig(p->externalAndMobileProducerConfig),
+        databaseDriverInfo(p->databaseDriverInfo)
   {
   }
 
@@ -48,10 +48,12 @@ struct PostgreSQLCacheParameters
 
   bool quiet = true;
   boost::shared_ptr<boost::posix_time::time_period> flashCachePeriod;
-  const boost::shared_ptr<StationInfo>& stationInfo;
+  // Externally owned, may be modified by a different thread. Use atomic_load to use the data!
+  const boost::shared_ptr<StationInfo>* stationInfo;
   const ParameterMapPtr& parameterMap;
   StationtypeConfig& stationtypeConfig;
   const ExternalAndMobileProducerConfig& externalAndMobileProducerConfig;
+  const DatabaseDriverInfo& databaseDriverInfo;
 };
 
 }  // namespace Observation

@@ -95,6 +95,7 @@ EngineParameters::EngineParameters(Spine::ConfigBase &cfg)
     parameterMap = createParameterMapping(cfg);
     readStationTypeConfig(cfg);
     readDataQualityConfig(cfg);
+    databaseDriverInfo.readConfig(cfg);
   }
   catch (...)
   {

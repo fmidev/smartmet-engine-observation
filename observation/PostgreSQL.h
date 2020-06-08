@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CommonDatabaseFunctions.h"
 #include "DataItem.h"
 #include "ExternalAndMobileDBInfo.h"
 #include "ExternalAndMobileProducerConfig.h"
@@ -7,20 +8,10 @@
 #include "InsertStatus.h"
 #include "LocationItem.h"
 #include "MobileExternalDataItem.h"
-#include "Settings.h"
-#include "StationInfo.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
 
 #include <macgyver/PostgreSQLConnection.h>
-#include <macgyver/TimeFormatter.h>
-#include <macgyver/TimeZones.h>
-#include <spine/Location.h>
-#include <spine/Station.h>
-#include <spine/Thread.h>
-#include <spine/TimeSeries.h>
-#include <spine/TimeSeriesGenerator.h>
-#include <spine/TimeSeriesGeneratorOptions.h>
 #include <spine/Value.h>
 #include <string>
 
@@ -50,7 +41,7 @@ struct cached_data
   std::vector<boost::optional<double>> sensor_nosAll;
 };
 
-class PostgreSQL : private boost::noncopyable
+class PostgreSQL : public CommonDatabaseFunctions, private boost::noncopyable
 {
  public:
   PostgreSQL(const PostgreSQLCacheParameters &options);
@@ -148,28 +139,22 @@ class PostgreSQL : private boost::noncopyable
   /**
    * @brief Delete everything from observation_data table which is
    *        older than the given duration
-   * @param[in] timetokeep Keep these in cache
+   * @param[in] newstarttime
    */
-  void cleanDataCache(const boost::posix_time::time_duration &timetokeep);
+  void cleanDataCache(const boost::posix_time::ptime &newstarttime);
 
   /**
    * @brief Delete everything from weather_data_qc table which
    *        is older than given duration
-   * @param[in] timetokeep Keep these in cache
+   * @param[in] newstarttime
    */
-  void cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep);
-
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedWeatherDataQCData(
-      const SmartMet::Spine::Stations &stations,
-      const Settings &settings,
-      const ParameterMapPtr &parameterMap,
-      const Fmi::TimeZones &timezones);
+  void cleanWeatherDataQCCache(const boost::posix_time::ptime &newstarttime);
 
   /**
    * @brief Delete old flash observation data from flash_data table
-   * @param timetokeep Delete everything from flash_data which is older than given duration
+   * @param newstarttime Delete everything from flash_data which is older than given time
    */
-  void cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep);
+  void cleanFlashDataCache(const boost::posix_time::ptime &newstarttime);
 
   /**
    * @brief Get the time of the oldest RoadCloud observation in ext_obsdata table
@@ -194,9 +179,9 @@ class PostgreSQL : private boost::noncopyable
 
   /**
    * @brief Delete old RoadCloud data from ext_obsdata table
-   * @param timetokeep Delete RoadCloud data from ext_obsdata which is older than given duration
+   * @param newstarttime Delete RoadCloud data from ext_obsdata which is older than given time
    */
-  void cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep);
+  void cleanRoadCloudCache(const boost::posix_time::ptime &newstarttime);
 
   /**
    * @brief Insert cached RoadCloud observations into ext_obsdata table
@@ -227,9 +212,9 @@ class PostgreSQL : private boost::noncopyable
 
   /**
    * @brief Delete old NetAtmo data from ext_obsdata table
-   * @param timetokeep Delete NetAtmo data which is older than given duration
+   * @param newstarttime Delete NetAtmo data which is older than given time
    */
-  void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep);
+  void cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime);
 
   /**
    * @brief Insert cached NetAtmo observations into ext_obsdata table
@@ -237,39 +222,31 @@ class PostgreSQL : private boost::noncopyable
    */
   std::size_t fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedRoadCloudData(
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getRoadCloudData(
       const Settings &settings,
       const ParameterMapPtr &parameterMap,
       const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedNetAtmoData(
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getNetAtmoData(
       const Settings &settings,
       const ParameterMapPtr &parameterMap,
       const Fmi::TimeZones &timezones);
-
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedData(
+  /*
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getData(
       const SmartMet::Spine::Stations &stations,
       const Settings &settings,
-      const ParameterMapPtr &parameterMap,
+      const StationInfo &stationInfo,
       const Fmi::TimeZones &timezones);
+  */
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFlashData(const Settings &settings,
+                                                                const ParameterMapPtr &parameterMap,
+                                                                const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedFlashData(
+  virtual Spine::TimeSeries::TimeSeriesVectorPtr getData(
+      const Spine::Stations &stations,
       const Settings &settings,
-      const ParameterMapPtr &parameterMap,
-      const Fmi::TimeZones &timezones);
-
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedWeatherDataQCData(
-      const SmartMet::Spine::Stations &stations,
-      const Settings &settings,
-      const ParameterMapPtr &parameterMap,
-      const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones);
-
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedData(
-      const SmartMet::Spine::Stations &stations,
-      const Settings &settings,
-      const ParameterMapPtr &parameterMap,
-      const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const StationInfo &stationInfo,
+      const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
 
   void shutdown();
@@ -300,11 +277,20 @@ class PostgreSQL : private boost::noncopyable
   static ResultSetRows getResultSetForMobileExternalData(
       const pqxx::result &pgResultSet, const std::map<unsigned int, std::string> &pgDataTypes);
 
+  void fetchWeatherDataQCData(const std::string &sqlStmt,
+                              const StationInfo &stationInfo,
+                              const std::set<std::string> &stationgroup_codes,
+                              const QueryMapping &qmap,
+                              std::map<int, std::map<int, int>> &default_sensors,
+                              WeatherDataQCData &cacheData);
+  std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
+                                             const std::string &params,
+                                             const std::string &station_ids) const;
+
  private:
   // Private members
 
   std::string srid;
-  boost::atomic<bool> itsShutdownRequested;
   std::size_t itsConnectionId;
   std::size_t itsMaxInsertSize;
 
@@ -315,6 +301,7 @@ class PostgreSQL : private boost::noncopyable
   InsertStatus itsNetAtmoInsertCache;
   const ExternalAndMobileProducerConfig &itsExternalAndMobileProducerConfig;
   std::map<unsigned int, std::string> itsPostgreDataTypes;
+  boost::atomic<bool> itsShutdownRequested;
 
   // Private methods
   Fmi::Database::PostgreSQLConnection itsDB;
@@ -384,10 +371,15 @@ class PostgreSQL : private boost::noncopyable
   void dropIndex(const std::string &idx_name, bool transaction = false) const;
 
   boost::posix_time::ptime getTime(const std::string &timeQuery) const;
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedMobileAndExternalData(
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getMobileAndExternalData(
       const Settings &settings,
       const ParameterMapPtr &parameterMap,
       const Fmi::TimeZones &timezones);
+  LocationDataItems readObservations(const Spine::Stations &stations,
+                                     const Settings &settings,
+                                     const StationInfo &stationInfo,
+                                     const QueryMapping &qmap,
+                                     const std::set<std::string> &stationgroup_codes);
 };
 
 }  // namespace Observation

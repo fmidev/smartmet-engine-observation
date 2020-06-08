@@ -22,7 +22,7 @@ class ObservableProperty;
 class PostgreSQLCache : public ObservationCache
 {
  public:
-  PostgreSQLCache(const EngineParametersPtr &p, Spine::ConfigBase &cfg);
+  PostgreSQLCache(const std::string &name, const EngineParametersPtr &p, Spine::ConfigBase &cfg);
   ~PostgreSQLCache();
 
   void initializeConnectionPool();
@@ -91,6 +91,28 @@ class PostgreSQLCache : public ObservationCache
   Spine::TimeSeries::TimeSeriesVectorPtr netAtmoValuesFromPostgreSQL(Settings &settings) const;
 
   PostgreSQLCacheParameters itsParameters;
+
+  // Cache available time interval to avoid unnecessary database requests. The interval
+  // needs to be updated once at initialization, after a write, and before cleaning
+  mutable Spine::MutexType itsTimeIntervalMutex;
+  mutable boost::posix_time::ptime itsTimeIntervalStart;
+  mutable boost::posix_time::ptime itsTimeIntervalEnd;
+
+  mutable Spine::MutexType itsWeatherDataQCTimeIntervalMutex;
+  mutable boost::posix_time::ptime itsWeatherDataQCTimeIntervalStart;
+  mutable boost::posix_time::ptime itsWeatherDataQCTimeIntervalEnd;
+
+  mutable Spine::MutexType itsFlashTimeIntervalMutex;
+  mutable boost::posix_time::ptime itsFlashTimeIntervalStart;
+  mutable boost::posix_time::ptime itsFlashTimeIntervalEnd;
+
+  mutable Spine::MutexType itsRoadCloudTimeIntervalMutex;
+  mutable boost::posix_time::ptime itsRoadCloudTimeIntervalStart;
+  mutable boost::posix_time::ptime itsRoadCloudTimeIntervalEnd;
+
+  mutable Spine::MutexType itsNetAtmoTimeIntervalMutex;
+  mutable boost::posix_time::ptime itsNetAtmoTimeIntervalStart;
+  mutable boost::posix_time::ptime itsNetAtmoTimeIntervalEnd;
 };
 
 }  // namespace Observation

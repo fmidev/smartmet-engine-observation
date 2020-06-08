@@ -142,8 +142,10 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    SmartMet::Spine::Stations stations =
-        itsParameters.stationInfo->findFmisidStations(settings.taggedFMISIDs);
+    auto sinfo = boost::atomic_load(itsParameters.stationInfo);
+
+    SmartMet::Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
+
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
@@ -154,13 +156,12 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = spatialitedb->getCachedWeatherDataQCData(
-            stations, settings, *itsParameters.stationInfo, itsTimeZones);
-        return ret;
+        ret = spatialitedb->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
       }
-
-      ret =
-          spatialitedb->getCachedData(stations, settings, *itsParameters.stationInfo, itsTimeZones);
+      else
+      {
+        ret = spatialitedb->getObservationData(stations, settings, *sinfo, itsTimeZones);
+      }
     }
 
     return ret;
@@ -188,8 +189,8 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    SmartMet::Spine::Stations stations =
-        itsParameters.stationInfo->findFmisidStations(settings.taggedFMISIDs);
+    auto sinfo = boost::atomic_load(itsParameters.stationInfo);
+    SmartMet::Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
@@ -200,13 +201,12 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = spatialitedb->getCachedWeatherDataQCData(
-            stations, settings, *itsParameters.stationInfo, timeSeriesOptions, itsTimeZones);
+        ret = spatialitedb->getWeatherDataQCData(
+            stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
       else
       {
-        ret = spatialitedb->getCachedData(
-            stations, settings, *itsParameters.stationInfo, timeSeriesOptions, itsTimeZones);
+        ret = spatialitedb->getData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
     }
 
@@ -234,7 +234,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &set
 
     // Must use disk cache instead
     boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    return spatialitedb->getCachedFlashData(settings, itsTimeZones);
+    return spatialitedb->getFlashData(settings, itsTimeZones);
   }
   catch (...)
   {
@@ -305,7 +305,6 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
   {
     // If stationtype is cached and if we have requested time interval in
     // SpatiaLite, get all data from there
-
     if (settings.useCommonQueryMethod)
       return timeIntervalIsCached(settings.starttime, settings.endtime);
 
@@ -495,7 +494,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpati
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    ret = spatialitedb->getCachedRoadCloudData(settings, itsTimeZones);
+    ret = spatialitedb->getRoadCloudData(settings, itsTimeZones);
 
     return ret;
   }
@@ -581,7 +580,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaL
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    ret = spatialitedb->getCachedNetAtmoData(settings, itsTimeZones);
+    ret = spatialitedb->getNetAtmoData(settings, itsTimeZones);
 
     return ret;
   }
@@ -728,8 +727,10 @@ void SpatiaLiteCache::shutdown()
   itsConnectionPool = nullptr;
 }
 
-SpatiaLiteCache::SpatiaLiteCache(const EngineParametersPtr &p, Spine::ConfigBase &cfg)
-    : itsParameters(p)
+SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
+                                 const EngineParametersPtr &p,
+                                 Spine::ConfigBase &cfg)
+    : ObservationCache(name), itsParameters(p)
 {
   try
   {
@@ -791,6 +792,35 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
 {
   try
   {
+    const Engine::Observation::DatabaseDriverInfoItem &driverInfo =
+        itsParameters.databaseDriverInfo.getCacheInfo(itsDriverName);
+
+    itsParameters.connectionPoolSize = Fmi::stoi(driverInfo.params.at("poolSize"));
+    itsParameters.cacheFile = driverInfo.params.at("spatialiteFile");
+    itsParameters.maxInsertSize = Fmi::stoi(driverInfo.params.at("maxInsertSize"));
+
+    itsDataInsertCache.resize(Fmi::stoi(driverInfo.params.at("dataInsertCacheSize")));
+    itsWeatherQCInsertCache.resize(Fmi::stoi(driverInfo.params.at("weatherDataQCInsertCacheSize")));
+    itsFlashInsertCache.resize(Fmi::stoi(driverInfo.params.at("flashInsertCacheSize")));
+    itsRoadCloudInsertCache.resize(Fmi::stoi(driverInfo.params.at("roadCloudInsertCacheSize")));
+    itsNetAtmoInsertCache.resize(Fmi::stoi(driverInfo.params.at("netAtmoInsertCacheSize")));
+
+    itsParameters.sqlite.cache_size = Fmi::stoi(driverInfo.params.at("cache_size"));
+    itsParameters.sqlite.threads = Fmi::stoi(driverInfo.params.at("threads"));
+    itsParameters.sqlite.threading_mode = driverInfo.params.at("threading_mode");
+    itsParameters.sqlite.timeout = Fmi::stoi(driverInfo.params.at("timeout"));
+    itsParameters.sqlite.shared_cache = (Fmi::stoi(driverInfo.params.at("shared_cache")) == 1);
+    itsParameters.sqlite.read_uncommitted =
+        (Fmi::stoi(driverInfo.params.at("read_uncommitted")) == 1);
+    itsParameters.sqlite.memstatus = (Fmi::stoi(driverInfo.params.at("memstatus")) == 1);
+    itsParameters.sqlite.synchronous = driverInfo.params.at("synchronous");
+    itsParameters.sqlite.journal_mode = driverInfo.params.at("journal_mode");
+    itsParameters.sqlite.temp_store = driverInfo.params.at("temp_store");
+    itsParameters.sqlite.auto_vacuum = driverInfo.params.at("auto_vacuum");
+    itsParameters.sqlite.mmap_size = Fmi::stoi(driverInfo.params.at("mmap_size"));
+    itsParameters.sqlite.wal_autocheckpoint = Fmi::stoi(driverInfo.params.at("wal_autocheckpoint"));
+
+#ifdef OLDSTUFF
     itsParameters.connectionPoolSize = cfg.get_mandatory_config_param<int>("cache.poolSize");
 
     itsParameters.cacheFile = cfg.get_mandatory_path("spatialiteFile");
@@ -844,6 +874,7 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
 
     itsParameters.sqlite.wal_autocheckpoint =
         cfg.get_optional_config_param<int>("sqlite.wal_autocheckpoint", 1000);
+#endif
   }
   catch (...)
   {

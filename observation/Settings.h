@@ -18,21 +18,6 @@ namespace Engine
 {
 namespace Observation
 {
-/*
-struct FlashArea
-{
-double longitude;  // for flash queries
-double latitude;
-double radius;
-};
-
-
-struct FlashOptions
-{
-std::vector<FlashArea> flash_areas;
-std::map<std::string, double> bbox;
-};
-*/
 class Settings
 {
  public:

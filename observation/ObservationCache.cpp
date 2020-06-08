@@ -6,7 +6,7 @@ namespace Engine
 {
 namespace Observation
 {
-ObservationCache::ObservationCache() {}
+ObservationCache::ObservationCache(const std::string &name) : itsDriverName(name) {}
 
 ObservationCache::~ObservationCache() {}
 

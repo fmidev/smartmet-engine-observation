@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.5.18
+Version: 20.6.8
 Release: 3%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Jun 8 2020  Anssi Reponen <anssi.reponen@fmi.fi> - 20.6.8-1.fmi
+- PostgresSQL-driver for mirrored Oracle data (BRAINSTORM-1783)
+- Support for itmf-producer (INSPIRE-909)
+
 * Mon May 18 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.5.18-3.fmi
 - Fixed getLatest/OldestTime type methods to return not_a_date_time on missing tables
 

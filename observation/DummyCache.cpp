@@ -6,7 +6,10 @@ namespace Engine
 {
 namespace Observation
 {
-DummyCache::DummyCache(const EngineParametersPtr &p) : itsParameters(p) {}
+DummyCache::DummyCache(const std::string &name, const EngineParametersPtr &p)
+    : ObservationCache(name), itsParameters(p)
+{
+}
 
 void DummyCache::initializeConnectionPool()
 {

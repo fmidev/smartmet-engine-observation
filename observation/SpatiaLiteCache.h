@@ -24,7 +24,7 @@ class ObservableProperty;
 class SpatiaLiteCache : public ObservationCache
 {
  public:
-  SpatiaLiteCache(const EngineParametersPtr &p, Spine::ConfigBase &cfg);
+  SpatiaLiteCache(const std::string &name, const EngineParametersPtr &p, Spine::ConfigBase &cfg);
   ~SpatiaLiteCache();
 
   void initializeConnectionPool();

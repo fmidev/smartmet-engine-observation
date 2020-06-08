@@ -88,7 +88,9 @@ class ObservationCache
   virtual void shutdown() = 0;
 
  protected:
-  ObservationCache();
+  ObservationCache(const std::string &name);
+
+  std::string itsDriverName;
 };
 
 }  // namespace Observation

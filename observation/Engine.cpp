@@ -83,14 +83,13 @@ void Engine::unserializeStations()
     {
       stationinfo->unserialize(itsEngineParameters->serializedStationsFile);
 
-      //  This is atomic
-      itsEngineParameters->stationInfo = stationinfo;
+      boost::atomic_store(&itsEngineParameters->stationInfo, stationinfo);
       logMessage("[Observation Engine] Unserialized stations successfully from " + path.string(),
                  itsEngineParameters->quiet);
     }
     else
     {
-      itsEngineParameters->stationInfo = stationinfo;
+      boost::atomic_store(&itsEngineParameters->stationInfo, stationinfo);
       logMessage("[Observation Engine] No serialized station file found from " + path.string(),
                  itsEngineParameters->quiet);
     }

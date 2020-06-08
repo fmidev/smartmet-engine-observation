@@ -19,7 +19,7 @@ class ObservableProperty;
 class DummyCache : public ObservationCache
 {
  public:
-  DummyCache(const EngineParametersPtr &p);
+  DummyCache(const std::string &name, const EngineParametersPtr &p);
 
   void initializeConnectionPool();
   void initializeCaches(int finCacheDuration,
