@@ -212,6 +212,9 @@ ts::TimeSeriesVectorPtr Engine::values(Settings &settings)
   // Drop unknown parameters from parameter list and
   // store their indexes
   std::vector<unsigned int> unknownParameterIndexes;
+  if (settings.debug_options & Settings::DUMP_SETTINGS) {
+    std::cout << "SmartMet::Engine::Observation::Settings:\n" << settings << std::endl;
+  }
   Settings querySettings = beforeQuery(settings, unknownParameterIndexes);
 
   ts::TimeSeriesVectorPtr ret = itsDatabaseDriver->values(querySettings);
@@ -297,6 +300,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr Engine::values(
   // Drop unknown parameters from parameter list and
   // store their indexes
   std::vector<unsigned int> unknownParameterIndexes;
+  if (settings.debug_options & Settings::DUMP_SETTINGS) {
+    std::cout << "SmartMet::Engine::Observation::Settings:\n" << settings << std::endl;
+    std::cout << "SmartMet::Spine::TimeSeriesGeneratorOptions:\n" << timeSeriesOptions << std::endl;
+  }
   Settings querySettings = beforeQuery(settings, unknownParameterIndexes);
 
   Spine::TimeSeries::TimeSeriesVectorPtr ret =

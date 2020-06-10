@@ -37,6 +37,12 @@ std::map<std::string, double> bbox;
 class Settings
 {
  public:
+  enum DebugOptions
+  {
+      DUMP_SETTINGS = 1
+  };
+
+public:
   SmartMet::Spine::TaggedLocationList taggedLocations;
   SmartMet::Spine::TaggedFMISIDList taggedFMISIDs;
   std::vector<SmartMet::Spine::Parameter> parameters;
@@ -73,6 +79,8 @@ class Settings
   bool starttimeGiven = false;
   bool useCommonQueryMethod = false;  // default is false
   bool useDataCache = true;           // default is true
+  // 0 or more bits from DebugOptions to enable debugging features
+  uint32_t debug_options = 0;
 };
 
 std::ostream& operator<<(std::ostream& out, const Settings& settings);
