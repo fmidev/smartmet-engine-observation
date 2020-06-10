@@ -10,6 +10,7 @@
 #include <spine/Station.h>
 #include <spine/ValueFormatter.h>
 #include <locale>
+#include <ostream>
 #include <set>
 
 namespace SmartMet
@@ -73,6 +74,9 @@ class Settings
   bool useCommonQueryMethod = false;  // default is false
   bool useDataCache = true;           // default is true
 };
+
+std::ostream& operator<<(std::ostream& out, const Settings& settings);
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
