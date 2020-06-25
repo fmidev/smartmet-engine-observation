@@ -610,7 +610,7 @@ void SpatiaLite::createObservationDataTable()
         "data_quality INTEGER, "
         "data_source INTEGER, "
 		"modified_last DATETIME NOT NULL DEFAULT '1970-01-01', "
-        "PRIMARY KEY (fmisid, data_time, measurand_id, producer_id, measurand_no))");
+        "PRIMARY KEY (fmisid, data_time, measurand_id, producer_id, measurand_no, sensor_no))");
 
     itsDB.execute("CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON observation_data(data_time)");
     itsDB.execute("CREATE INDEX IF NOT EXISTS observation_data_modified_last_idx ON observation_data(modified_last)");

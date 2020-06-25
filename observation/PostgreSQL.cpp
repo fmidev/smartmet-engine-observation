@@ -235,7 +235,7 @@ void PostgreSQL::createObservationDataTable()
         "data_source INTEGER, "
         "last_modified timestamp NOT NULL DEFAULT now(), "
         "PRIMARY KEY (data_time, fmisid, measurand_id, producer_id, "
-        "measurand_no));"
+        "measurand_no, sensor_no));"
         "CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON observation_data(data_time);"
         "CREATE INDEX IF NOT EXISTS observation_data_last_modified_idx ON "
         "observation_data(last_modified);");

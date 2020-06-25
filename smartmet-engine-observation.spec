@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.6.10
+Version: 20.6.17
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jun 17 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.6.17-1.fmi
+- Fixed observation_data to use sensor_no in the primary key
+
 * Wed Jun 10 2020 Andris Pavēnis <andris.pavenis@fmi.fi> - 20.6.10-1.fmi
 - Add possibility to provide debugging options in calls to obsengine
 
