@@ -1,4 +1,7 @@
 #pragma once
+#include <boost/optional.hpp>
+#include <string>
+#include <vector>
 
 namespace SmartMet
 {
@@ -21,8 +24,21 @@ struct NearestStationSettings
   double maxdistance;
   int numberofstations;
   std::string tag{""};  // This is put in place parameter (station.tag)
+  boost::optional<int> fmisid;
+
   NearestStationSettings(double lon, double lat, double maxd, int nos, const std::string& t)
-      : longitude(lon), latitude(lat), maxdistance(maxd), numberofstations(nos), tag(t)
+      : longitude(lon),
+        latitude(lat),
+        maxdistance(maxd),
+        numberofstations(nos),
+        tag(t),
+        fmisid(boost::none)
+  {
+  }
+
+  NearestStationSettings(
+      double lon, double lat, double maxd, int nos, const std::string& t, boost::optional<int> sid)
+      : longitude(lon), latitude(lat), maxdistance(maxd), numberofstations(nos), tag(t), fmisid(sid)
   {
   }
 };
