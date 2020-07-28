@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.7.21
+Version: 20.7.28
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Jul 28 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.7.28-1.fmi
+- Fixed station number searches to also check the station group is correct
+
 * Tue Jul 21 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.7.21-1.fmi
 - Added optional fmisid information to locations to avoid unnecessary coordinate searches
 

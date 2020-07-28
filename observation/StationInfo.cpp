@@ -51,6 +51,21 @@ bool timeok(const Spine::Station& station,
 
 // ----------------------------------------------------------------------
 /*!
+ * \brief Test if the station belongs to any of the groups
+ */
+// ----------------------------------------------------------------------
+
+bool groupok(const Spine::Station& station, const std::set<std::string> groups)
+{
+  // All groups allowed?
+  if (groups.empty())
+    return true;
+
+  return (groups.find(station.station_type) != groups.end());
+}
+
+// ----------------------------------------------------------------------
+/*!
  * \brief Create the directory for the serialized stations
  */
 // ----------------------------------------------------------------------
@@ -201,8 +216,7 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
     if (!timeok(station, starttime, endtime))
       continue;
 
-    // Check whether the station belongs to the right groups
-    if (groups.find(station.station_type) == groups.end())
+    if (!groupok(station, groups))
       continue;
 
     double distance = StationNearTreeLatLon::SurfaceLength(candidate.first);
@@ -281,6 +295,7 @@ Spine::Stations findStations(const Spine::Stations& stations,
 // ----------------------------------------------------------------------
 
 Spine::Stations findStations(const Spine::Stations& stations,
+                             const std::set<std::string>& groups,
                              const std::vector<int>& numbers,
                              const StationIndex& index,
                              const boost::posix_time::ptime& starttime,
@@ -297,8 +312,15 @@ Spine::Stations findStations(const Spine::Stations& stations,
       {
         const auto& station = stations.at(id);
 
-        if (timeok(station, starttime, endtime))
-          result.push_back(station);
+        // Validate timerange
+        if (!timeok(station, starttime, endtime))
+          continue;
+
+        // Validate group
+        if (!groupok(station, groups))
+          continue;
+
+        result.push_back(station);
       }
     }
   }
@@ -314,6 +336,50 @@ Spine::Stations findStations(const Spine::Stations& stations,
 Spine::Stations StationInfo::findFmisidStations(const std::vector<int>& fmisids) const
 {
   return findStations(stations, fmisids, fmisidstations);
+}
+
+// ----------------------------------------------------------------------
+/*!
+ * \brief Find the given FMISID stations
+ */
+// ----------------------------------------------------------------------
+
+SmartMet::Spine::Stations StationInfo::findFmisidStations(
+    const SmartMet::Spine::TaggedFMISIDList& taggedFMISIDs,
+    const std::set<std::string>& groups,
+    const boost::posix_time::ptime& starttime,
+    const boost::posix_time::ptime& endtime) const
+{
+  std::vector<int> fmisids;
+  std::map<int, const SmartMet::Spine::TaggedFMISID*> fmisidMap;
+
+  for (const auto& item : taggedFMISIDs)
+  {
+    fmisids.push_back(item.fmisid);
+    fmisidMap.insert(std::make_pair(item.fmisid, &item));
+  }
+
+  SmartMet::Spine::Stations ret = findFmisidStations(fmisids, groups, starttime, endtime);
+
+  // Set direction, distance, tag
+  for (auto& station : ret)
+  {
+    const SmartMet::Spine::TaggedFMISID* tfmisid = fmisidMap.at(station.fmisid);
+    // Chage to >= 0
+    if (tfmisid->direction > 0)
+      station.stationDirection = tfmisid->direction;
+    else
+      station.stationDirection = -1;
+    if (!tfmisid->distance.empty())
+      station.distance = tfmisid->distance;
+    else
+      station.distance = "";
+
+    if (!tfmisid->tag.empty())
+      station.tag = tfmisid->tag;
+  }
+
+  return ret;
 }
 
 // ----------------------------------------------------------------------
@@ -364,10 +430,11 @@ SmartMet::Spine::Stations StationInfo::findFmisidStations(
 // ----------------------------------------------------------------------
 
 Spine::Stations StationInfo::findFmisidStations(const std::vector<int>& fmisids,
+                                                const std::set<std::string>& groups,
                                                 const boost::posix_time::ptime& starttime,
                                                 const boost::posix_time::ptime& endtime) const
 {
-  return findStations(stations, fmisids, fmisidstations, starttime, endtime);
+  return findStations(stations, groups, fmisids, fmisidstations, starttime, endtime);
 }
 
 // ----------------------------------------------------------------------
@@ -388,10 +455,11 @@ Spine::Stations StationInfo::findWmoStations(const std::vector<int>& wmos) const
 // ----------------------------------------------------------------------
 
 Spine::Stations StationInfo::findWmoStations(const std::vector<int>& wmos,
+                                             const std::set<std::string>& groups,
                                              const boost::posix_time::ptime& starttime,
                                              const boost::posix_time::ptime& endtime) const
 {
-  return findStations(stations, wmos, wmostations, starttime, endtime);
+  return findStations(stations, groups, wmos, wmostations, starttime, endtime);
 }
 
 // ----------------------------------------------------------------------
@@ -412,10 +480,11 @@ Spine::Stations StationInfo::findLpnnStations(const std::vector<int>& lpnns) con
 // ----------------------------------------------------------------------
 
 Spine::Stations StationInfo::findLpnnStations(const std::vector<int>& lpnns,
+                                              const std::set<std::string>& groups,
                                               const boost::posix_time::ptime& starttime,
                                               const boost::posix_time::ptime& endtime) const
 {
-  return findStations(stations, lpnns, lpnnstations, starttime, endtime);
+  return findStations(stations, groups, lpnns, lpnnstations, starttime, endtime);
 }
 
 // ----------------------------------------------------------------------
@@ -436,10 +505,11 @@ Spine::Stations StationInfo::findRwsidStations(const std::vector<int>& rwsids) c
 // ----------------------------------------------------------------------
 
 Spine::Stations StationInfo::findRwsidStations(const std::vector<int>& rwsids,
+                                               const std::set<std::string>& groups,
                                                const boost::posix_time::ptime& starttime,
                                                const boost::posix_time::ptime& endtime) const
 {
-  return findStations(stations, rwsids, rwsidstations, starttime, endtime);
+  return findStations(stations, groups, rwsids, rwsidstations, starttime, endtime);
 }
 
 // ----------------------------------------------------------------------
@@ -540,10 +610,8 @@ const Spine::Station& StationInfo::getStation(unsigned int fmisid,
   for (const auto id : ids)
   {
     const auto& station = stations.at(id);
-    if (groups.find(station.station_type) != groups.end())
-    {
+    if (groupok(station, groups))
       all_ids.insert(id);
-    }
   }
 
   if (all_ids.empty())
@@ -661,10 +729,8 @@ Spine::Stations StationInfo::findStationsInsideBox(double minx,
 
     if (timeok(station, starttime, endtime))
     {
-      if (groups.empty() || groups.find(station.station_type) != groups.end())
-      {
+      if (groupok(station, groups))
         result.push_back(station);
-      }
     }
   }
 

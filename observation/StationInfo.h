@@ -54,20 +54,30 @@ class StationInfo
   SmartMet::Spine::Stations findRwsidStations(const std::vector<int>& rwsids) const;
 
   SmartMet::Spine::Stations findFmisidStations(const std::vector<int>& fmisids,
+                                               const std::set<std::string>& groups,
                                                const boost::posix_time::ptime& starttime,
                                                const boost::posix_time::ptime& endtime) const;
+  SmartMet::Spine::Stations findFmisidStations(
+      const SmartMet::Spine::TaggedFMISIDList& taggedFMISIDs,
+      const std::set<std::string>& groups,
+      const boost::posix_time::ptime& starttime,
+      const boost::posix_time::ptime& endtime) const;
+
   SmartMet::Spine::Stations findFmisidStations(
       const SmartMet::Spine::TaggedFMISIDList& taggedFMISIDs) const;
 
   SmartMet::Spine::Stations findWmoStations(const std::vector<int>& wmos,
+                                            const std::set<std::string>& groups,
                                             const boost::posix_time::ptime& starttime,
                                             const boost::posix_time::ptime& endtime) const;
 
   SmartMet::Spine::Stations findLpnnStations(const std::vector<int>& lpnns,
+                                             const std::set<std::string>& groups,
                                              const boost::posix_time::ptime& starttime,
                                              const boost::posix_time::ptime& endtime) const;
 
   SmartMet::Spine::Stations findRwsidStations(const std::vector<int>& rwsids,
+                                              const std::set<std::string>& groups,
                                               const boost::posix_time::ptime& starttime,
                                               const boost::posix_time::ptime& endtime) const;
 
