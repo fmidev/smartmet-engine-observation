@@ -355,6 +355,11 @@ LocationDataItems read_observations(const Spine::Stations &stations,
     if (qstations.empty())
       return ret;
 
+    std::list<std::string> producer_id_str_list;
+    for (const auto &prodId : settings.producer_ids)
+      producer_id_str_list.push_back(std::to_string(prodId));
+    std::string producerIds = boost::algorithm::join(producer_id_str_list, ",");
+
     std::string starttime = Fmi::to_iso_extended_string(settings.starttime);
     std::string endtime = Fmi::to_iso_extended_string(settings.endtime);
 
@@ -368,6 +373,9 @@ LocationDataItems read_observations(const Spine::Stations &stations,
         "AND data.data_time >= '" +
         starttime + "' AND data.data_time <= '" + endtime + "' AND data.measurand_id IN (" +
         measurand_ids + ") ";
+
+    if (!producerIds.empty())
+      sql += " AND data.producer_id IN (" + producerIds + ") ";
 
     sql += get_sensor_query_condition(qmap.sensorNumberToMeasurandIds);
     sql += "AND " + settings.sqlDataFilter.getSqlClause("data_quality", "data.data_quality") +

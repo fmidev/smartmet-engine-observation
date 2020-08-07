@@ -2568,6 +2568,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
 
     param = trimCommasFromEnd(param);
 
+    std::list<std::string> producer_id_str_list;
+    for (auto &prodId : settings.producer_ids)
+      producer_id_str_list.push_back(std::to_string(prodId));
+    std::string producerIds = boost::algorithm::join(producer_id_str_list, ",");
+
     std::string sqlStmt =
         "SELECT data.fmisid AS fmisid, EXTRACT(EPOCH FROM data.data_time) AS obstime,"
         " loc.latitude, loc.longitude, loc.elevation, measurand_id, data_value, data_source"
@@ -2577,7 +2582,12 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
         "' AND data.data_time <= '" + Fmi::to_iso_extended_string(settings.endtime) +
         "' AND data.measurand_id IN (" + param +
         ") AND data.measurand_no = 1"
-        " AND data.data_quality <= 5"
+        " AND data.data_quality <= 5";
+
+    if (!producerIds.empty())
+      sqlStmt += " AND data.producer_id IN (" + producerIds + ")";
+
+    sqlStmt +=
         " GROUP BY data.fmisid, data.data_time, data.measurand_id, data.data_value, data_source,"
         " loc.location_id, loc.location_end, loc.latitude, loc.longitude, loc.elevation"
         " ORDER BY fmisid ASC, obstime ASC";
