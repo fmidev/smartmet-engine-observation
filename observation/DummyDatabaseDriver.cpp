@@ -11,10 +11,7 @@ namespace Engine
 {
 namespace Observation
 {
-void DummyDatabaseDriver::init(Engine *obsengine)
-{
-  itsParameters->observationCache->initializeConnectionPool();
-}
+void DummyDatabaseDriver::init(Engine *obsengine) {}
 
 ts::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings &settings)
 {

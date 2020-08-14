@@ -17,8 +17,6 @@ namespace Engine
 {
 namespace Observation
 {
-class ObservableProperty;
-
 class PostgreSQLCache : public ObservationCache
 {
  public:
@@ -72,8 +70,14 @@ class PostgreSQLCache : public ObservationCache
   std::size_t fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData) const;
   void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const;
 
-  boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
-      std::vector<std::string> &parameters, const std::string language) const;
+  // FmiIoT
+  bool fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
+                              const boost::posix_time::ptime &endtime) const;
+  boost::posix_time::ptime getLatestFmiIoTDataTime() const;
+  boost::posix_time::ptime getLatestFmiIoTCreatedTime() const;
+  std::size_t fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData) const;
+  void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const;
+
   void shutdown();
 
  private:
@@ -89,6 +93,7 @@ class PostgreSQLCache : public ObservationCache
   Spine::TimeSeries::TimeSeriesVectorPtr flashValuesFromPostgreSQL(Settings &settings) const;
   Spine::TimeSeries::TimeSeriesVectorPtr roadCloudValuesFromPostgreSQL(Settings &settings) const;
   Spine::TimeSeries::TimeSeriesVectorPtr netAtmoValuesFromPostgreSQL(Settings &settings) const;
+  Spine::TimeSeries::TimeSeriesVectorPtr fmiIoTValuesFromPostgreSQL(Settings &settings) const;
 
   PostgreSQLCacheParameters itsParameters;
 
@@ -113,6 +118,10 @@ class PostgreSQLCache : public ObservationCache
   mutable Spine::MutexType itsNetAtmoTimeIntervalMutex;
   mutable boost::posix_time::ptime itsNetAtmoTimeIntervalStart;
   mutable boost::posix_time::ptime itsNetAtmoTimeIntervalEnd;
+
+  mutable Spine::MutexType itsFmiIoTTimeIntervalMutex;
+  mutable boost::posix_time::ptime itsFmiIoTTimeIntervalStart;
+  mutable boost::posix_time::ptime itsFmiIoTTimeIntervalEnd;
 };
 
 }  // namespace Observation

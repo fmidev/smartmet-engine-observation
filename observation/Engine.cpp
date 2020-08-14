@@ -32,6 +32,8 @@ void Engine::init()
 
     itsEngineParameters.reset(new EngineParameters(cfg));
 
+    std::cout << itsEngineParameters->databaseDriverInfo << std::endl;
+
     itsDatabaseRegistry->loadConfigurations(itsEngineParameters->dbRegistryFolderPath);
 
     // Initialize the caches
@@ -40,7 +42,7 @@ void Engine::init()
     // Read preloaded stations from disk if available
     unserializeStations();
 
-    itsEngineParameters->observationCache.reset(
+    itsEngineParameters->observationCacheProxy.reset(
         ObservationCacheFactory::create(itsEngineParameters, cfg));
 #ifdef TODO_CAUSES_SEGFAULT_AT_EXIT
     itsDatabaseDriver.reset(DatabaseDriverFactory::create(itsEngineParameters, cfg));
@@ -278,6 +280,8 @@ std::set<std::string> Engine::getValidStationTypes() const
     {
       stationTypes.insert(mapEntry.first);
     }
+
+    stationTypes.insert("fmi_iot");
 
     return stationTypes;
   }

@@ -5,6 +5,7 @@
 #include "DatabaseDriverInfo.h"
 #include "ExternalAndMobileProducerConfig.h"
 #include "ObservationCache.h"
+#include "ObservationCacheProxy.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
 #include <macgyver/Cache.h>
@@ -56,7 +57,7 @@ struct EngineParameters
 
   bool quiet;
 
-  boost::shared_ptr<ObservationCache> observationCache;
+  boost::shared_ptr<ObservationCacheProxy> observationCacheProxy;
   Geonames::Engine *geonames = nullptr;
 };
 

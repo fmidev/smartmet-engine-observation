@@ -35,7 +35,6 @@ namespace Engine
 {
 namespace Observation
 {
-class ObservableProperty;
 class SpatiaLiteCacheParameters;
 
 struct ObservationsMap;
@@ -93,7 +92,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    * @brief Create the SpatiaLite tables from scratch
    */
 
-  void createTables();
+  void createTables(const std::set<std::string> &tables);
 
   void setConnectionId(int connectionId) { itsConnectionId = connectionId; }
   int connectionId() { return itsConnectionId; }
@@ -230,19 +229,49 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    */
   void cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime);
 
+  /**
+   * @brief Get the time of the newest FmiIoT observation in ext_obsdata_roadcloud table
+   * @return boost::posix_time::ptime The time of the newest FmiIoT observation
+   */
+
+  boost::posix_time::ptime getLatestFmiIoTDataTime();
+
+  /**
+   * @brief Get the time of the latest FmiIoT creation time in ext_obsdata table
+   * @return boost::posix_time::ptime The latest creation time
+   */
+
+  boost::posix_time::ptime getLatestFmiIoTCreatedTime();
+
+  /**
+   * @brief Get the time of the oldest FmiIoT observation in ext_obsdata_roadcloud table
+
+   * @return boost::posix_time::ptime The time of the oldest FmiIoT observation
+   */
+
+  boost::posix_time::ptime getOldestFmiIoTDataTime();
+
+  /**
+   * @brief Insert cached observations into ext_obsdata_roadcloud table
+   * @param FmiIoT observation data to be inserted into the table
+   */
+  std::size_t fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData,
+                              InsertStatus &insertStatus);
+
+  /**
+   * @brief Delete old FmiIoT observation data from ext_obsdata_roadcloud table
+   * @param timetokeep Delete FmiIoT data which is older than given duration
+   */
+  void cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime);
+
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getRoadCloudData(
       const Settings &settings, const Fmi::TimeZones &timezones);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getNetAtmoData(const Settings &settings,
                                                                   const Fmi::TimeZones &timezones);
 
-  /*
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getData(
-      const SmartMet::Spine::Stations &stations,
-      const Settings &settings,
-      const StationInfo &stationInfo,
-      const Fmi::TimeZones &timezones);
-  */
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFmiIoTData(const Settings &settings,
+                                                                 const Fmi::TimeZones &timezones);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFlashData(const Settings &settings,
                                                                 const Fmi::TimeZones &timezones);
@@ -266,19 +295,6 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
                             const SmartMet::Spine::TaggedLocationList &locations);
-
-  /**
-   * @brief Get observable properties
-   * @param parameters
-   * @param language
-   * @param parameterMap
-   * @param stationType
-   * @retval Shared pointer to vector of observable properties
-   */
-  boost::shared_ptr<std::vector<ObservableProperty>> getObservableProperties(
-      std::vector<std::string> &parameters,
-      const std::string &language,
-      const std::string &stationType);
 
   std::size_t selectCount(const std::string &queryString);
 
@@ -329,9 +345,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   void createFlashDataTable();
   void createRoadCloudDataTable();
   void createNetAtmoDataTable();
-  void createITMFDataTable();
-
-  void createObservablePropertyTable();
+  void createFmiIoTDataTable();
 
   boost::posix_time::ptime parseSqliteTime(sqlite3pp::query::iterator &iter, int column) const;
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getMobileAndExternalData(

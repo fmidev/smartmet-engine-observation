@@ -2,7 +2,6 @@
 
 #include "ExternalAndMobileDBInfo.h"
 #include "Keywords.h"
-#include "ObservableProperty.h"
 #include "ObservationsMap.h"
 #include "QueryMapping.h"
 #include "SpatiaLiteCacheParameters.h"
@@ -262,19 +261,24 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
 
 SpatiaLite::~SpatiaLite() {}
 
-void SpatiaLite::createTables()
+void SpatiaLite::createTables(const std::set<std::string> &tables)
 {
   try
   {
     // No locking needed during initialization phase
     initSpatialMetaData();
-    createObservationDataTable();
-    createWeatherDataQCTable();
-    createFlashDataTable();
-    createObservablePropertyTable();
-    createRoadCloudDataTable();
-    createNetAtmoDataTable();
-    createITMFDataTable();
+    if (tables.find(OBSERVATION_DATA_TABLE) != tables.end())
+      createObservationDataTable();
+    if (tables.find(WEATHER_DATA_QC_TABLE) != tables.end())
+      createWeatherDataQCTable();
+    if (tables.find(FLASH_DATA_TABLE) != tables.end())
+      createFlashDataTable();
+    if (tables.find(ROADCLOUD_DATA_TABLE) != tables.end())
+      createRoadCloudDataTable();
+    if (tables.find(NETATMO_DATA_TABLE) != tables.end())
+      createNetAtmoDataTable();
+    if (tables.find(FMI_IOT_DATA_TABLE) != tables.end())
+      createFmiIoTDataTable();
   }
   catch (...)
   {
@@ -616,13 +620,13 @@ void SpatiaLite::createNetAtmoDataTable()
   }
 }
 
-void SpatiaLite::createITMFDataTable()
+void SpatiaLite::createFmiIoTDataTable()
 {
   try
   {
     sqlite3pp::transaction xct(itsDB);
     sqlite3pp::command cmd(itsDB,
-                           "CREATE TABLE IF NOT EXISTS ext_obsdata_itmf("
+                           "CREATE TABLE IF NOT EXISTS ext_obsdata_fmi_iot("
                            "prod_id INTEGER, "
                            "station_id INTEGER, "
                            "station_code character VARYING(256), "
@@ -644,7 +648,7 @@ void SpatiaLite::createITMFDataTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_netatmo table failed!");
+    throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_fmi_iot table failed!");
   }
 }
 
@@ -894,6 +898,48 @@ boost::posix_time::ptime SpatiaLite::getLatestNetAtmoCreatedTime()
   }
 }
 
+ptime SpatiaLite::getOldestFmiIoTDataTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_fmi_iot";
+    string time_field = "data_time";
+    return getOldestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Oldest FmiIoT data time query failed!");
+  }
+}
+
+ptime SpatiaLite::getLatestFmiIoTDataTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_fmi_iot";
+    string time_field = "data_time";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Latest FmiIoT data time query failed!");
+  }
+}
+
+boost::posix_time::ptime SpatiaLite::getLatestFmiIoTCreatedTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_fmi_iot";
+    string time_field = "created";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Latest FmiIoT created time query failed!");
+  }
+}
+
 ptime SpatiaLite::getLatestTimeFromTable(const std::string& tablename,
                                                             const std::string& time_field)
 {
@@ -1068,6 +1114,34 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getNetAtmoData(
 {
   return getMobileAndExternalData(settings, timezones);
 }
+
+void SpatiaLite::cleanFmiIoTCache(const ptime &newstarttime)
+{
+  try
+  {
+    auto oldest = getOldestFmiIoTDataTime();
+    if (newstarttime <= oldest)
+      return;
+
+    std::string timestring = Fmi::to_iso_extended_string(newstarttime);
+
+    Spine::WriteLock lock(write_mutex);
+    sqlite3pp::command cmd(itsDB, "DELETE FROM ext_obsdata_fmi_iot WHERE data_time < :timestring");
+    cmd.bind(":timestring", timestring, sqlite3pp::nocopy);
+    cmd.execute();
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning of FmiIoT cache failed!");
+  }
+}
+
+SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFmiIoTData(
+    const Settings &settings, const Fmi::TimeZones &timezones)
+{
+  return getMobileAndExternalData(settings, timezones);
+}
+
 
 SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getMobileAndExternalData(
     const Settings &settings, const Fmi::TimeZones &timezones)
@@ -1787,6 +1861,12 @@ std::size_t SpatiaLite::fillNetAtmoCache(
   return 0;
 }
 
+std::size_t SpatiaLite::fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData,
+                            InsertStatus &insertStatus)
+{
+  return 0;
+}
+
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFlashData(
     const Settings &settings, const Fmi::TimeZones &timezones)
 {
@@ -2144,96 +2224,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getData(
   {
     throw Spine::Exception::Trace(BCP, "Getting cached data failed!");
   }
-}
-
-void SpatiaLite::createObservablePropertyTable()
-{
-  try
-  {
-    // No locking needed during initialization phase
-    itsDB.execute(
-        "CREATE TABLE IF NOT EXISTS observable_property ("
-        "measurandId INTEGER,"
-        "language TEXT,"
-        "measurandCode TEXT,"
-        "observablePropertyId TEXT,"
-        "observablePropertyLabel TEXT,"
-        "basePhenomenon TEXT,"
-        "uom TEXT,"
-        "statisticalMeasureId TEXT,"
-        "statisticalFunction TEXT,"
-        "aggregationTimePeriod TEXT,"
-        "gmlId TEXT)");
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Creation of observable_property table failed!");
-  }
-}
-
-boost::shared_ptr<std::vector<ObservableProperty>> SpatiaLite::getObservableProperties(
-    std::vector<std::string> &parameters,
-    const std::string& language,
-    const std::string &stationType)
-{
-  boost::shared_ptr<std::vector<ObservableProperty>> data(new std::vector<ObservableProperty>());
-  try
-  {
-    // Solving measurand id's for valid parameter aliases.
-    std::multimap<int, std::string> parameterIDs;
-    solveMeasurandIds(parameters, itsParameterMap, stationType, parameterIDs);
-    // Return empty list if some parameters are defined and any of those is
-    // valid.
-    if (parameterIDs.empty())
-      return data;
-
-    std::string sqlStmt =
-        "SELECT "
-        "measurandId,"
-        "measurandCode,"
-        "observablePropertyId,"
-        "observablePropertyLabel,"
-        "basePhenomenon,"
-        "uom,"
-        "statisticalMeasureId,"
-        "statisticalFunction,"
-        "aggregationTimePeriod,"
-        "gmlId FROM observable_property WHERE language = '" +
-        language + "'";
-
-    sqlite3pp::query qry(itsDB, sqlStmt.c_str());
-    for (const auto &row : qry)
-    {
-      int measurandId = row.get<int>(0);
-
-      // Multiple parameter name aliases may use a same measurand id (e.g. t2m
-      // and temperature)
-      std::pair<std::multimap<int, std::string>::iterator,
-                std::multimap<int, std::string>::iterator>
-          r = parameterIDs.equal_range(measurandId);
-      for (std::multimap<int, std::string>::iterator it = r.first; it != r.second; ++it)
-      {
-        ObservableProperty op;
-        op.measurandId = Fmi::to_string(measurandId);
-        op.measurandCode = row.get<string>(1);
-        op.observablePropertyId = row.get<string>(2);
-        op.observablePropertyLabel = row.get<string>(3);
-        op.basePhenomenon = row.get<string>(4);
-        op.uom = row.get<string>(5);
-        op.statisticalMeasureId = row.get<string>(6);
-        op.statisticalFunction = row.get<string>(7);
-        op.aggregationTimePeriod = row.get<string>(8);
-        op.gmlId = it->second;
-        data->push_back(op);
-      }
-    }
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Getting observable properties failed!");
-  }
-
-  return data;
 }
 
 ptime SpatiaLite::parseSqliteTime(sqlite3pp::query::iterator &iter,

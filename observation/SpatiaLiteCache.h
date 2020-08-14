@@ -19,8 +19,6 @@ namespace Engine
 {
 namespace Observation
 {
-class ObservableProperty;
-
 class SpatiaLiteCache : public ObservationCache
 {
  public:
@@ -75,8 +73,14 @@ class SpatiaLiteCache : public ObservationCache
   void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const;
   Spine::TimeSeries::TimeSeriesVectorPtr netAtmoValuesFromSpatiaLite(Settings &settings) const;
 
-  boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
-      std::vector<std::string> &parameters, const std::string language) const;
+  // FmiIoT
+  bool fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
+                              const boost::posix_time::ptime &endtime) const;
+  boost::posix_time::ptime getLatestFmiIoTDataTime() const;
+  boost::posix_time::ptime getLatestFmiIoTCreatedTime() const;
+  std::size_t fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData) const;
+  void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const;
+  Spine::TimeSeries::TimeSeriesVectorPtr fmiIoTValuesFromSpatiaLite(Settings &settings) const;
 
   void shutdown();
 
@@ -117,12 +121,17 @@ class SpatiaLiteCache : public ObservationCache
   mutable boost::posix_time::ptime itsNetAtmoTimeIntervalStart;
   mutable boost::posix_time::ptime itsNetAtmoTimeIntervalEnd;
 
+  mutable Spine::MutexType itsFmiIoTTimeIntervalMutex;
+  mutable boost::posix_time::ptime itsFmiIoTTimeIntervalStart;
+  mutable boost::posix_time::ptime itsFmiIoTTimeIntervalEnd;
+
   // Caches for last inserted rows to avoid duplicate inserts
   mutable InsertStatus itsDataInsertCache;
   mutable InsertStatus itsWeatherQCInsertCache;
   mutable InsertStatus itsFlashInsertCache;
   mutable InsertStatus itsRoadCloudInsertCache;
   mutable InsertStatus itsNetAtmoInsertCache;
+  mutable InsertStatus itsFmiIoTInsertCache;
 
   // Memory caches smaller than the spatialite cache itself
   std::unique_ptr<FlashMemoryCache> itsFlashMemoryCache;

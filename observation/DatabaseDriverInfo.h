@@ -1,7 +1,7 @@
 #pragma once
 
+#include "CacheInfoItem.h"
 #include <spine/ConfigBase.h>
-#include <set>
 
 namespace SmartMet
 {
@@ -9,45 +9,47 @@ namespace Engine
 {
 namespace Observation
 {
-/*!
- * \brief Central holder for database related information.
- *
- * We hold the information of connection strings and other
- * database related settings.
- *
- */
-/*
-struct CommonDatabaseDriverInfo
-{
-  std::string serializedStationsFile;
-  size_t poolSize{0};
-  size_t connectionTimeoutSeconds{30};
-  bool timer{false};
-  bool disableAllCacheUpdates{false};
-  size_t finCacheUpdateInterval{0};
-  size_t extCacheUpdateInterval{0};
-  size_t flashCacheUpdateInterval{0};
-  size_t updateExtraInterval{0};
-  int finCacheDuration{0};
-  int finMemoryCacheDuration{0};
-  int extCacheDuration{0};
-  int flashCacheDuration{0};
-  int flashMemoryCacheDuration{0};
-};
-*/
+#define ORACLE_DB "oracle"
+#define POSTGRESQL_DB "postgresql"
+#define OBSERVATION_DATA_TABLE "observation_data"
+#define WEATHER_DATA_QC_TABLE "weather_data_qc"
+#define FLASH_DATA_TABLE "flash_data"
+#define NETATMO_DATA_TABLE "ext_obsdata_netatmo"
+#define ROADCLOUD_DATA_TABLE "ext_obsdata_roadcloud"
+#define FMI_IOT_DATA_TABLE "ext_obsdata_fmi_iot"
+#define EXT_OBSDATA_TABLE "ext_obsdata"
+
 struct DatabaseDriverInfoItem
 {
   DatabaseDriverInfoItem() {}
-  DatabaseDriverInfoItem(const std::string& n, bool a, std::set<std::string> p)
-      : name(n), active(a), producers(p)
+  DatabaseDriverInfoItem(const std::string& n,
+                         bool a,
+                         const std::set<std::string>& t,
+                         const std::set<std::string>& c)
+      : name(n), active(a), tables(t)
   {
+    parseCacheInfo(c);
   }
   std::string name{""};
   bool active{false};
-  std::set<std::string> producers;
+  std::set<std::string> tables;  // Table names
+  std::set<std::string> caches;  // Cache names
   std::map<std::string, std::string> params;
   std::map<std::string, std::vector<std::string>> params_vector;
-  // std::map<std::string, CommonDatabaseDriverInfo> common_params;
+
+  bool parameterExists(const std::string& name) const;
+  bool parameterVectorExists(const std::string& name) const;
+  int getIntParameterValue(const std::string& name, int defaultValue) const;
+  const std::string& getStringParameterValue(const std::string& name,
+                                             const std::string& defaultValue) const;
+  const CacheInfoItem& getCacheInfo(const std::string& name) const;
+  const std::map<std::string, CacheInfoItem>& getCacheInfo() const;
+
+ private:
+  void parseCacheInfo(const std::set<std::string>& cacheinfostring);
+  std::map<std::string, CacheInfoItem> itsCacheInfoItems;
+
+  friend class DatabaseDriverInfo;
 };
 
 class DatabaseDriverInfo
@@ -58,21 +60,35 @@ class DatabaseDriverInfo
   void readConfig(Spine::ConfigBase& cfg);
 
   const DatabaseDriverInfoItem& getDatabaseDriverInfo(const std::string& name) const;
-  const DatabaseDriverInfoItem& getCacheInfo(const std::string& name) const;
   const std::vector<DatabaseDriverInfoItem>& getDatabaseDriverInfo() const;
-  const std::vector<DatabaseDriverInfoItem>& getCacheInfo() const;
 
-  //  const CommonDatabaseDriverInfo& getCommonInfo() const { return itsCommonSettings; }
+  const CacheInfoItem& getAggregateCacheInfo(const std::string& cachename) const;
+
+  const std::map<std::string, CacheInfoItem>& getAggregateCacheInfo() const;
 
  private:
   void readSpatiaLiteConfig(Spine::ConfigBase& cfg, DatabaseDriverInfoItem& infoItem);
-  void readSpatiaLiteConnectInfo(Spine::ConfigBase& cfg, DatabaseDriverInfoItem& infoItem);
-  void readPostgreSQLConnectInfo(Spine::ConfigBase& cfg, DatabaseDriverInfoItem& infoItem);
-  void readOracleConnectInfo(Spine::ConfigBase& cfg, DatabaseDriverInfoItem& infoItem);
-  void readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg, DatabaseDriverInfoItem& infoItem);
-  void readPostgreSQLCommonInfo(Spine::ConfigBase& cfg, DatabaseDriverInfoItem& infoItem);
-  void readPostgreSQLMobileCommonInfo(Spine::ConfigBase& cfg, DatabaseDriverInfoItem& infoItem);
-  void readOracleCommonInfo(Spine::ConfigBase& cfg, DatabaseDriverInfoItem& infoItem);
+  void readSpatiaLiteConnectInfo(Spine::ConfigBase& cfg,
+                                 const std::string& name,
+                                 std::map<std::string, std::string>& params);
+  void readPostgreSQLConnectInfo(Spine::ConfigBase& cfg,
+                                 const std::string& name,
+                                 std::map<std::string, std::string>& params);
+  void readOracleConnectInfo(Spine::ConfigBase& cfg,
+                             const std::string& name,
+                             std::map<std::string, std::vector<std::string>>& params_vector);
+  void readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
+                                const std::string& name,
+                                std::map<std::string, std::string>& params);
+  void readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
+                                const std::string& name,
+                                std::map<std::string, std::string>& params);
+  void readPostgreSQLMobileCommonInfo(Spine::ConfigBase& cfg,
+                                      const std::string& name,
+                                      std::map<std::string, std::string>& params);
+  void readOracleCommonInfo(Spine::ConfigBase& cfg,
+                            const std::string& name,
+                            std::map<std::string, std::string>& params);
 
   void readOracleCommonConfig(Spine::ConfigBase& cfg, DatabaseDriverInfoItem& infoItem);
   const libconfig::Setting& lookupDatabase(const std::string& common_key,
@@ -80,10 +96,11 @@ class DatabaseDriverInfo
                                            const std::string& name,
                                            const std::string& scope,
                                            const libconfig::Config& conf) const;
+  void parseCacheInfo(const std::set<std::string>& cacheinfostring,
+                      std::set<std::string>& cachenames);
 
   std::vector<DatabaseDriverInfoItem> itsDatabaseDriverInfoItems;
-  std::vector<DatabaseDriverInfoItem> itsCacheInfoItems;
-  //  CommonDatabaseDriverSettings itsCommonSettings;
+  std::map<std::string, CacheInfoItem> itsCacheInfoItems;  // Cache name -> cahecinfo
 };
 
 }  // namespace Observation

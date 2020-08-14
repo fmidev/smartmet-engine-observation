@@ -1,7 +1,5 @@
 #include "PostgreSQLCache.h"
 
-#include "ObservableProperty.h"
-
 #include <boost/make_shared.hpp>
 #include <macgyver/StringConversion.h>
 
@@ -32,6 +30,10 @@ void PostgreSQLCache::initializeConnectionPool()
 {
   try
   {
+    // Check if already initialized (one cache can be shared by multiple database drivers)
+    if (itsConnectionPool)
+      return;
+
     logMessage("[Observation Engine] Initializing PostgreSQL cache connection pool...",
                itsParameters.quiet);
 
@@ -42,43 +44,62 @@ void PostgreSQLCache::initializeConnectionPool()
     // 2) locations
     // 3) observation_data
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-    db->createTables();
+    const std::set<std::string> &cacheTables =
+        itsParameters.databaseDriverInfo.getAggregateCacheInfo(itsCacheName).tables;
 
-    for (int i = 0; i < itsParameters.connectionPoolSize; i++)
+    db->createTables(cacheTables);
+
+    if (cacheTables.find(OBSERVATION_DATA_TABLE) != cacheTables.end())
     {
-      boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-      if (i == 0)
-      {
-        // Observation data
-        auto start = db->getOldestObservationTime();
-        auto end = db->getLatestObservationTime();
-        itsTimeIntervalStart = start;
-        itsTimeIntervalEnd = end;
+      auto start = db->getOldestObservationTime();
+      auto end = db->getLatestObservationTime();
+      itsTimeIntervalStart = start;
+      itsTimeIntervalEnd = end;
+    }
 
-        // WeatherDataQC
-        start = db->getOldestWeatherDataQCTime();
-        end = db->getLatestWeatherDataQCTime();
-        itsWeatherDataQCTimeIntervalStart = start;
-        itsWeatherDataQCTimeIntervalEnd = end;
+    // WeatherDataQC
+    if (cacheTables.find(WEATHER_DATA_QC_TABLE) != cacheTables.end())
+    {
+      auto start = db->getOldestWeatherDataQCTime();
+      auto end = db->getLatestWeatherDataQCTime();
+      itsWeatherDataQCTimeIntervalStart = start;
+      itsWeatherDataQCTimeIntervalEnd = end;
+    }
 
-        // Flash
-        start = db->getOldestFlashTime();
-        end = db->getLatestFlashTime();
-        itsFlashTimeIntervalStart = start;
-        itsFlashTimeIntervalEnd = end;
+    // Flash
+    if (cacheTables.find(FLASH_DATA_TABLE) != cacheTables.end())
+    {
+      auto start = db->getOldestFlashTime();
+      auto end = db->getLatestFlashTime();
+      itsFlashTimeIntervalStart = start;
+      itsFlashTimeIntervalEnd = end;
+    }
 
-        // Road cloud
-        start = db->getOldestRoadCloudDataTime();
-        end = db->getLatestRoadCloudDataTime();
-        itsRoadCloudTimeIntervalStart = start;
-        itsRoadCloudTimeIntervalEnd = end;
+    // Road cloud
+    if (cacheTables.find(ROADCLOUD_DATA_TABLE) != cacheTables.end())
+    {
+      auto start = db->getOldestRoadCloudDataTime();
+      auto end = db->getLatestRoadCloudDataTime();
+      itsRoadCloudTimeIntervalStart = start;
+      itsRoadCloudTimeIntervalEnd = end;
+    }
 
-        // NetAtmo
-        start = db->getOldestNetAtmoDataTime();
-        end = db->getLatestNetAtmoDataTime();
-        itsNetAtmoTimeIntervalStart = start;
-        itsNetAtmoTimeIntervalEnd = end;
-      }
+    // NetAtmo
+    if (cacheTables.find(NETATMO_DATA_TABLE) != cacheTables.end())
+    {
+      auto start = db->getOldestNetAtmoDataTime();
+      auto end = db->getLatestNetAtmoDataTime();
+      itsNetAtmoTimeIntervalStart = start;
+      itsNetAtmoTimeIntervalEnd = end;
+    }
+
+    // FmiIoT
+    if (cacheTables.find(FMI_IOT_DATA_TABLE) != cacheTables.end())
+    {
+      auto start = db->getOldestFmiIoTDataTime();
+      auto end = db->getLatestFmiIoTDataTime();
+      itsFmiIoTTimeIntervalStart = start;
+      itsFmiIoTTimeIntervalEnd = end;
     }
 
     logMessage("[Observation Engine] PostgreSQL connection pool ready.", itsParameters.quiet);
@@ -107,6 +128,9 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
 
     if (settings.stationtype == "netatmo")
       return netAtmoValuesFromPostgreSQL(settings);
+
+    if (settings.stationtype == "fmi_iot")
+      return fmiIoTValuesFromPostgreSQL(settings);
 
     if (settings.stationtype == "flash")
       return flashValuesFromPostgreSQL(settings);
@@ -149,6 +173,9 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
 
     if (settings.stationtype == "netatmo")
       return netAtmoValuesFromPostgreSQL(settings);
+
+    if (settings.stationtype == "fmi_iot")
+      return fmiIoTValuesFromPostgreSQL(settings);
 
     if (settings.stationtype == "flash")
       return flashValuesFromPostgreSQL(settings);
@@ -232,6 +259,23 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &s
   }
 }
 
+ts::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(Settings &settings) const
+{
+  try
+  {
+    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+
+    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    ret = db->getFmiIoTData(settings, itsParameters.parameterMap, itsTimeZones);
+
+    return ret;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Getting FmiIoT values from cache failed!");
+  }
+}
+
 bool PostgreSQLCache::timeIntervalIsCached(const boost::posix_time::ptime &starttime,
                                            const boost::posix_time::ptime &endtime) const
 {
@@ -311,6 +355,9 @@ bool PostgreSQLCache::dataAvailableInCache(const Settings &settings) const
 
     else if (settings.stationtype == "netatmo")
       return netAtmoIntervalIsCached(settings.starttime, settings.endtime);
+
+    else if (settings.stationtype == "fmi_iot")
+      return fmiIoTIntervalIsCached(settings.starttime, settings.endtime);
 
     // Either the stationtype is not cached or the requested time interval is
     // not cached
@@ -667,6 +714,84 @@ void PostgreSQLCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
   }
 }
 
+bool PostgreSQLCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                             const boost::posix_time::ptime &) const
+{
+  try
+  {
+    Spine::ReadLock lock(itsFmiIoTTimeIntervalMutex);
+    if (itsFmiIoTTimeIntervalStart.is_not_a_date_time() ||
+        itsFmiIoTTimeIntervalEnd.is_not_a_date_time())
+      return false;
+    // We ignore end time intentionally
+    return (starttime >= itsFmiIoTTimeIntervalStart || starttime < itsFmiIoTTimeIntervalEnd);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Checking if FmiIoT interval is cached failed!");
+  }
+}
+
+boost::posix_time::ptime PostgreSQLCache::getLatestFmiIoTDataTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestFmiIoTDataTime();
+}
+
+boost::posix_time::ptime PostgreSQLCache::getLatestFmiIoTCreatedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestFmiIoTCreatedTime();
+}
+
+std::size_t PostgreSQLCache::fillFmiIoTCache(
+    const MobileExternalDataItems &mobileExternalCacheData) const
+{
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillFmiIoTCache(mobileExternalCacheData);
+
+    // Update what really now really is in the database
+    auto start = conn->getOldestFmiIoTDataTime();
+    auto end = conn->getLatestFmiIoTDataTime();
+    Spine::WriteLock lock(itsFmiIoTTimeIntervalMutex);
+    itsFmiIoTTimeIntervalStart = start;
+    itsFmiIoTTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Filling FmiIoT cache failed!");
+  }
+}
+
+void PostgreSQLCache::cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const
+{
+  try
+  {
+    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    t = round_down_to_cache_clean_interval(t);
+
+    auto conn = itsConnectionPool->getConnection();
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsFmiIoTTimeIntervalMutex);
+      itsFmiIoTTimeIntervalStart = t;
+    }
+    conn->cleanFmiIoTCache(t);
+
+    // Update what really remains in the database
+    auto start = conn->getOldestFmiIoTDataTime();
+    auto end = conn->getLatestFmiIoTDataTime();
+    Spine::WriteLock lock(itsFmiIoTTimeIntervalMutex);
+    itsFmiIoTTimeIntervalStart = start;
+    itsFmiIoTTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning FmiIoT cache failed!");
+  }
+}
+
 void PostgreSQLCache::shutdown()
 {
   if (itsConnectionPool)
@@ -689,81 +814,30 @@ PostgreSQLCache::PostgreSQLCache(const std::string &name,
   }
 }
 
-boost::shared_ptr<std::vector<ObservableProperty> > PostgreSQLCache::observablePropertyQuery(
-    std::vector<std::string> &parameters, const std::string language) const
-{
-  boost::shared_ptr<std::vector<ObservableProperty> > data(new std::vector<ObservableProperty>());
-  try
-  {
-    std::string stationType("metadata");
-    data = itsConnectionPool->getConnection()->getObservableProperties(
-        parameters, language, itsParameters.parameterMap, stationType);
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "PostgreSQLCache::observablePropertyQuery failed");
-  }
-
-  return data;
-}
-
 void PostgreSQLCache::readConfig(Spine::ConfigBase &cfg)
 {
   try
   {
-    const Engine::Observation::DatabaseDriverInfoItem &driverInfo =
-        itsParameters.databaseDriverInfo.getCacheInfo(itsDriverName);
+    const Engine::Observation::CacheInfoItem &cacheInfo =
+        itsParameters.databaseDriverInfo.getAggregateCacheInfo(itsCacheName);
 
-    itsParameters.postgresql.host = driverInfo.params.at("host");
-    itsParameters.postgresql.port = Fmi::stoi(driverInfo.params.at("port"));
-    itsParameters.postgresql.database = driverInfo.params.at("database");
-    itsParameters.postgresql.username = driverInfo.params.at("username");
-    itsParameters.postgresql.password = driverInfo.params.at("password");
-    itsParameters.postgresql.encoding = driverInfo.params.at("encoding");
-    itsParameters.postgresql.connect_timeout = Fmi::stoi(driverInfo.params.at("connect_timeout"));
-
-    itsParameters.connectionPoolSize = Fmi::stoi(driverInfo.params.at("poolSize"));
-    itsParameters.maxInsertSize = Fmi::stoi(driverInfo.params.at("maxInsertSize"));
-
-    itsParameters.dataInsertCacheSize = Fmi::stoi(driverInfo.params.at("dataInsertCacheSize"));
+    itsParameters.postgresql.host = cacheInfo.params.at("host");
+    itsParameters.postgresql.port = Fmi::stoi(cacheInfo.params.at("port"));
+    itsParameters.postgresql.database = cacheInfo.params.at("database");
+    itsParameters.postgresql.username = cacheInfo.params.at("username");
+    itsParameters.postgresql.password = cacheInfo.params.at("password");
+    itsParameters.postgresql.encoding = cacheInfo.params.at("encoding");
+    itsParameters.postgresql.connect_timeout = Fmi::stoi(cacheInfo.params.at("connect_timeout"));
+    itsParameters.connectionPoolSize = Fmi::stoi(cacheInfo.params.at("poolSize"));
+    itsParameters.maxInsertSize = Fmi::stoi(cacheInfo.params.at("maxInsertSize"));
+    itsParameters.dataInsertCacheSize = Fmi::stoi(cacheInfo.params.at("dataInsertCacheSize"));
     itsParameters.weatherDataQCInsertCacheSize =
-        Fmi::stoi(driverInfo.params.at("weatherDataQCInsertCacheSize"));
-    itsParameters.flashInsertCacheSize = Fmi::stoi(driverInfo.params.at("flashInsertCacheSize"));
+        Fmi::stoi(cacheInfo.params.at("weatherDataQCInsertCacheSize"));
+    itsParameters.flashInsertCacheSize = Fmi::stoi(cacheInfo.params.at("flashInsertCacheSize"));
     itsParameters.roadCloudInsertCacheSize =
-        Fmi::stoi(driverInfo.params.at("roadCloudInsertCacheSize"));
-    itsParameters.netAtmoInsertCacheSize =
-        Fmi::stoi(driverInfo.params.at("netAtmoInsertCacheSize"));
-
-#ifdef OLDSTUFF
-    itsParameters.postgresql.host = cfg.get_mandatory_config_param<std::string>("postgresql.host");
-    itsParameters.postgresql.port = cfg.get_mandatory_config_param<unsigned int>("postgresql.port");
-    itsParameters.postgresql.database =
-        cfg.get_mandatory_config_param<std::string>("postgresql.database");
-    itsParameters.postgresql.username =
-        cfg.get_mandatory_config_param<std::string>("postgresql.username");
-    itsParameters.postgresql.password =
-        cfg.get_mandatory_config_param<std::string>("postgresql.password");
-    itsParameters.postgresql.encoding =
-        cfg.get_optional_config_param<std::string>("postgresql.encoding", "UTF8");
-    itsParameters.postgresql.connect_timeout =
-        cfg.get_optional_config_param<unsigned int>("postgresql.connect_timeout", 60);
-
-    itsParameters.connectionPoolSize = cfg.get_mandatory_config_param<int>("cache.poolSize");
-
-    itsParameters.maxInsertSize = cfg.get_optional_config_param<std::size_t>(
-        "cache.maxInsertSize", 99999999);  // default = all at once
-
-    itsParameters.dataInsertCacheSize =
-        cfg.get_optional_config_param<std::size_t>("cache.dataInsertCacheSize", 100000);
-    itsParameters.weatherDataQCInsertCacheSize =
-        cfg.get_optional_config_param<std::size_t>("cache.weatherDataQCInsertCacheSize", 100000);
-    itsParameters.flashInsertCacheSize =
-        cfg.get_optional_config_param<std::size_t>("cache.flashInsertCacheSize", 10000);
-    itsParameters.roadCloudInsertCacheSize =
-        cfg.get_optional_config_param<std::size_t>("cache.roadCloudInsertCacheSize", 10000);
-    itsParameters.netAtmoInsertCacheSize =
-        cfg.get_optional_config_param<std::size_t>("cache.netAtmoInsertCacheSize", 10000);
-#endif
+        Fmi::stoi(cacheInfo.params.at("roadCloudInsertCacheSize"));
+    itsParameters.netAtmoInsertCacheSize = Fmi::stoi(cacheInfo.params.at("netAtmoInsertCacheSize"));
+    itsParameters.fmiIoTInsertCacheSize = Fmi::stoi(cacheInfo.params.at("fmiIoTInsertCacheSize"));
   }
   catch (...)
   {

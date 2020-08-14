@@ -42,6 +42,7 @@ class Settings
   std::string localename = "fi_FI";
   std::string missingtext = "nan";
   std::string stationtype = "fmi";
+  std::string stationtype_specifier = "";  // stationtype 'fmi_iot' may have specifier 'itmf'
   std::string timeformat = "timestamp";
   std::string timestring = "";
   std::string timezone = "localtime";

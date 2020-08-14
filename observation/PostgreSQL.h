@@ -24,7 +24,6 @@ namespace Observation
 using ResultSetRow = std::map<std::string, SmartMet::Spine::TimeSeries::Value>;
 using ResultSetRows = std::vector<ResultSetRow>;
 
-struct ObservableProperty;
 struct PostgreSQLCacheParameters;
 
 struct cached_data
@@ -97,7 +96,7 @@ class PostgreSQL : public CommonDatabaseFunctions, private boost::noncopyable
   /**
    * @brief Create the PostgreSQL tables from scratch
    */
-  void createTables();
+  void createTables(const std::set<std::string> &tables);
 
   void setConnectionId(int connectionId) { itsConnectionId = connectionId; }
   int connectionId() { return static_cast<int>(itsConnectionId); }
@@ -222,6 +221,40 @@ class PostgreSQL : public CommonDatabaseFunctions, private boost::noncopyable
    */
   std::size_t fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData);
 
+  /**
+   * @brief Get the time of the newest FmiIoT observation in ext_obsdata_roadcloud table
+   * @return boost::posix_time::ptime The time of the newest FmiIoT observation
+   */
+
+  boost::posix_time::ptime getLatestFmiIoTDataTime();
+
+  /**
+   * @brief Get the time of the latest FmiIoT creation time in ext_obsdata table
+   * @return boost::posix_time::ptime The latest creation time
+   */
+
+  boost::posix_time::ptime getLatestFmiIoTCreatedTime();
+
+  /**
+   * @brief Get the time of the oldest FmiIoT observation in ext_obsdata_roadcloud table
+
+   * @return boost::posix_time::ptime The time of the oldest FmiIoT observation
+   */
+
+  boost::posix_time::ptime getOldestFmiIoTDataTime();
+
+  /**
+   * @brief Insert cached observations into ext_obsdata_roadcloud table
+   * @param FmiIoT observation data to be inserted into the table
+   */
+  std::size_t fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData);
+
+  /**
+   * @brief Delete old FmiIoT observation data from ext_obsdata_roadcloud table
+   * @param timetokeep Delete FmiIoT data which is older than given duration
+   */
+  void cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime);
+
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getRoadCloudData(
       const Settings &settings,
       const ParameterMapPtr &parameterMap,
@@ -231,13 +264,12 @@ class PostgreSQL : public CommonDatabaseFunctions, private boost::noncopyable
       const Settings &settings,
       const ParameterMapPtr &parameterMap,
       const Fmi::TimeZones &timezones);
-  /*
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getData(
-      const SmartMet::Spine::Stations &stations,
+
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFmiIoTData(
       const Settings &settings,
-      const StationInfo &stationInfo,
+      const ParameterMapPtr &parameterMap,
       const Fmi::TimeZones &timezones);
-  */
+
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFlashData(const Settings &settings,
                                                                 const ParameterMapPtr &parameterMap,
                                                                 const Fmi::TimeZones &timezones);
@@ -261,16 +293,6 @@ class PostgreSQL : public CommonDatabaseFunctions, private boost::noncopyable
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
                             const SmartMet::Spine::TaggedLocationList &locations);
-
-  /**
-   * @brief Get observable properties
-   * @return Shared pointer to vector of observable properties
-   */
-  boost::shared_ptr<std::vector<ObservableProperty>> getObservableProperties(
-      std::vector<std::string> &parameters,
-      const std::string language,
-      const ParameterMapPtr &parameterMap,
-      const std::string &stationType);
 
   size_t selectCount(const std::string &queryString);
 
@@ -299,6 +321,7 @@ class PostgreSQL : public CommonDatabaseFunctions, private boost::noncopyable
   InsertStatus itsFlashInsertCache;
   InsertStatus itsRoadCloudInsertCache;
   InsertStatus itsNetAtmoInsertCache;
+  InsertStatus itsFmiIoTInsertCache;
   const ExternalAndMobileProducerConfig &itsExternalAndMobileProducerConfig;
   std::map<unsigned int, std::string> itsPostgreDataTypes;
   boost::atomic<bool> itsShutdownRequested;
@@ -360,7 +383,7 @@ class PostgreSQL : public CommonDatabaseFunctions, private boost::noncopyable
   void createFlashDataTable();
   void createRoadCloudDataTable();
   void createNetAtmoDataTable();
-  void createObservablePropertyTable();
+  void createFmiIoTDataTable();
   void fetchCachedDataFromDB(const std::string &sqlStmt,
                              struct cached_data &data,
                              bool measurand = false);

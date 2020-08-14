@@ -1,10 +1,8 @@
 #include "SpatiaLiteCache.h"
 
-#include "ObservableProperty.h"
-
+#include <boost/algorithm/string/join.hpp>
 #include <boost/make_shared.hpp>
 #include <macgyver/StringConversion.h>
-
 #include <atomic>
 
 namespace ts = SmartMet::Spine::TimeSeries;
@@ -32,6 +30,13 @@ void SpatiaLiteCache::initializeConnectionPool()
 {
   try
   {
+    // Check if already initialized (one cache can be shared by multiple database drivers)
+    if (itsConnectionPool)
+    {
+      // Cache already initialized
+      return;
+    }
+
     logMessage("[Observation Engine] Initializing SpatiaLite cache connection pool...",
                itsParameters.quiet);
 
@@ -41,44 +46,55 @@ void SpatiaLiteCache::initializeConnectionPool()
     // 1) stations
     // 2) locations
     // 3) observation_data
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    spatialitedb->createTables();
+    boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    const std::set<std::string> &cacheTables =
+        itsParameters.databaseDriverInfo.getAggregateCacheInfo(itsCacheName).tables;
 
-    for (int i = 0; i < itsParameters.connectionPoolSize; i++)
+    db->createTables(cacheTables);
+
+    // Observation data
+    if (cacheTables.find(OBSERVATION_DATA_TABLE) != cacheTables.end())
     {
-      boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
-      if (i == 0)
-      {
-        // Observation data
-        auto start = db->getOldestObservationTime();
-        auto end = db->getLatestObservationTime();
-        itsTimeIntervalStart = start;
-        itsTimeIntervalEnd = end;
+      auto start = db->getOldestObservationTime();
+      auto end = db->getLatestObservationTime();
+      itsTimeIntervalStart = start;
+      itsTimeIntervalEnd = end;
+    }
 
-        // WeatherDataQC
-        start = db->getOldestWeatherDataQCTime();
-        end = db->getLatestWeatherDataQCTime();
-        itsWeatherDataQCTimeIntervalStart = start;
-        itsWeatherDataQCTimeIntervalEnd = end;
+    // WeatherDataQC
+    if (cacheTables.find(WEATHER_DATA_QC_TABLE) != cacheTables.end())
+    {
+      auto start = db->getOldestWeatherDataQCTime();
+      auto end = db->getLatestWeatherDataQCTime();
+      itsWeatherDataQCTimeIntervalStart = start;
+      itsWeatherDataQCTimeIntervalEnd = end;
+    }
 
-        // Flash
-        start = db->getOldestFlashTime();
-        end = db->getLatestFlashTime();
-        itsFlashTimeIntervalStart = start;
-        itsFlashTimeIntervalEnd = end;
+    // Flash
+    if (cacheTables.find(FLASH_DATA_TABLE) != cacheTables.end())
+    {
+      auto start = db->getOldestFlashTime();
+      auto end = db->getLatestFlashTime();
+      itsFlashTimeIntervalStart = start;
+      itsFlashTimeIntervalEnd = end;
+    }
 
-        // Road cloud
-        start = db->getOldestRoadCloudDataTime();
-        end = db->getLatestRoadCloudDataTime();
-        itsRoadCloudTimeIntervalStart = start;
-        itsRoadCloudTimeIntervalEnd = end;
+    // Road cloud
+    if (cacheTables.find(ROADCLOUD_DATA_TABLE) != cacheTables.end())
+    {
+      auto start = db->getOldestRoadCloudDataTime();
+      auto end = db->getLatestRoadCloudDataTime();
+      itsRoadCloudTimeIntervalStart = start;
+      itsRoadCloudTimeIntervalEnd = end;
+    }
 
-        // NetAtmo
-        start = db->getOldestNetAtmoDataTime();
-        end = db->getLatestNetAtmoDataTime();
-        itsNetAtmoTimeIntervalStart = start;
-        itsNetAtmoTimeIntervalEnd = end;
-      }
+    // NetAtmo
+    if (cacheTables.find(NETATMO_DATA_TABLE) != cacheTables.end())
+    {
+      auto start = db->getOldestNetAtmoDataTime();
+      auto end = db->getLatestNetAtmoDataTime();
+      itsNetAtmoTimeIntervalStart = start;
+      itsNetAtmoTimeIntervalEnd = end;
     }
 
     logMessage("[Observation Engine] SpatiaLite connection pool ready.", itsParameters.quiet);
@@ -88,7 +104,7 @@ void SpatiaLiteCache::initializeConnectionPool()
     throw Spine::Exception::Trace(BCP, "Initializing connection pool failed!")
         .addParameter("filename", itsParameters.cacheFile);
   }
-}
+}  // namespace Observation
 
 void SpatiaLiteCache::initializeCaches(int finCacheDuration,
                                        int finMemoryCacheDuration,
@@ -100,7 +116,10 @@ void SpatiaLiteCache::initializeCaches(int finCacheDuration,
   {
     auto now = boost::posix_time::second_clock::universal_time();
 
-    if (flashMemoryCacheDuration > 0)
+    const std::set<std::string> &cacheTables =
+        itsParameters.databaseDriverInfo.getAggregateCacheInfo(itsCacheName).tables;
+
+    if (cacheTables.find(FLASH_DATA_TABLE) != cacheTables.end() && flashMemoryCacheDuration > 0)
     {
       logMessage("[Observation Engine] Initializing SpatiaLite flash memory cache",
                  itsParameters.quiet);
@@ -110,7 +129,7 @@ void SpatiaLiteCache::initializeCaches(int finCacheDuration,
           itsConnectionPool->getConnection()->readFlashCacheData(now - timetokeep_memory);
       itsFlashMemoryCache->fill(flashdata);
     }
-    if (finMemoryCacheDuration > 0)
+    if (cacheTables.find(OBSERVATION_DATA_TABLE) != cacheTables.end() && finMemoryCacheDuration > 0)
     {
       logMessage("[Observation Engine] Initializing SpatiaLite observation memory cache",
                  itsParameters.quiet);
@@ -136,6 +155,9 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
 
     if (settings.stationtype == "netatmo")
       return netAtmoValuesFromSpatiaLite(settings);
+
+    if (settings.stationtype == "fmi_iot")
+      return fmiIoTValuesFromSpatiaLite(settings);
 
     if (settings.stationtype == "flash")
       return flashValuesFromSpatiaLite(settings);
@@ -183,6 +205,9 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
 
     if (settings.stationtype == "netatmo")
       return netAtmoValuesFromSpatiaLite(settings);
+
+    if (settings.stationtype == "fmi_iot")
+      return fmiIoTValuesFromSpatiaLite(settings);
 
     if (settings.stationtype == "flash")
       return flashValuesFromSpatiaLite(settings);
@@ -321,6 +346,9 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
 
     if (s == "netatmo")
       return netAtmoIntervalIsCached(settings.starttime, settings.endtime);
+
+    if (s == "fmi_iot")
+      return fmiIoTIntervalIsCached(settings.starttime, settings.endtime);
 
     // Either the stationtype is not cached or the requested time interval is
     // not cached
@@ -600,6 +628,102 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestNetAtmoCreatedTime() const
   return itsConnectionPool->getConnection()->getLatestNetAtmoCreatedTime();
 }
 
+bool SpatiaLiteCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                             const boost::posix_time::ptime &) const
+{
+  try
+  {
+    Spine::ReadLock lock(itsFmiIoTTimeIntervalMutex);
+    if (itsFmiIoTTimeIntervalStart.is_not_a_date_time() ||
+        itsFmiIoTTimeIntervalEnd.is_not_a_date_time())
+      return false;
+    // We ignore end time intentionally
+    return (starttime >= itsFmiIoTTimeIntervalStart || starttime < itsFmiIoTTimeIntervalEnd);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Checking if FmiIoT interval is cached failed!");
+  }
+}
+
+std::size_t SpatiaLiteCache::fillFmiIoTCache(
+    const MobileExternalDataItems &mobileExternalCacheData) const
+{
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillFmiIoTCache(mobileExternalCacheData, itsFmiIoTInsertCache);
+
+    // Update what really now really is in the database
+    auto start = conn->getOldestFmiIoTDataTime();
+    auto end = conn->getLatestFmiIoTDataTime();
+    Spine::WriteLock lock(itsFmiIoTTimeIntervalMutex);
+    itsFmiIoTTimeIntervalStart = start;
+    itsFmiIoTTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Filling FmiIoT cache failed!");
+  }
+}
+
+void SpatiaLiteCache::cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const
+{
+  try
+  {
+    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    t = round_down_to_cache_clean_interval(t);
+
+    auto conn = itsConnectionPool->getConnection();
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsFmiIoTTimeIntervalMutex);
+      itsFmiIoTTimeIntervalStart = t;
+    }
+    conn->cleanFmiIoTCache(t);
+
+    // Update what really remains in the database
+    auto start = conn->getOldestFmiIoTDataTime();
+    auto end = conn->getLatestFmiIoTDataTime();
+    Spine::WriteLock lock(itsFmiIoTTimeIntervalMutex);
+    itsFmiIoTTimeIntervalStart = start;
+    itsFmiIoTTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning FmiIoT cache failed!");
+  }
+}
+
+Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLite(
+    Settings &settings) const
+{
+  try
+  {
+    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+
+    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
+    ret = spatialitedb->getFmiIoTData(settings, itsTimeZones);
+
+    return ret;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Getting FmiIoT values from cache failed!");
+  }
+}
+
+boost::posix_time::ptime SpatiaLiteCache::getLatestFmiIoTDataTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestFmiIoTDataTime();
+}
+
+boost::posix_time::ptime SpatiaLiteCache::getLatestFmiIoTCreatedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestFmiIoTCreatedTime();
+}
+
 boost::posix_time::ptime SpatiaLiteCache::getLatestObservationModifiedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestObservationModifiedTime();
@@ -770,111 +894,38 @@ SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
   }
 }
 
-boost::shared_ptr<std::vector<ObservableProperty> > SpatiaLiteCache::observablePropertyQuery(
-    std::vector<std::string> &parameters, const std::string language) const
-{
-  boost::shared_ptr<std::vector<ObservableProperty> > data(new std::vector<ObservableProperty>());
-  try
-  {
-    std::string stationType("metadata");
-    data = itsConnectionPool->getConnection()->getObservableProperties(
-        parameters, language, stationType);
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "observablePropertyQuery failed!");
-  }
-
-  return data;
-}
-
 void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
 {
   try
   {
-    const Engine::Observation::DatabaseDriverInfoItem &driverInfo =
-        itsParameters.databaseDriverInfo.getCacheInfo(itsDriverName);
+    const Engine::Observation::CacheInfoItem &cacheInfo =
+        itsParameters.databaseDriverInfo.getAggregateCacheInfo(itsCacheName);
 
-    itsParameters.connectionPoolSize = Fmi::stoi(driverInfo.params.at("poolSize"));
-    itsParameters.cacheFile = driverInfo.params.at("spatialiteFile");
-    itsParameters.maxInsertSize = Fmi::stoi(driverInfo.params.at("maxInsertSize"));
+    itsParameters.connectionPoolSize = Fmi::stoi(cacheInfo.params.at("poolSize"));
+    itsParameters.cacheFile = cacheInfo.params.at("spatialiteFile");
+    itsParameters.maxInsertSize = Fmi::stoi(cacheInfo.params.at("maxInsertSize"));
 
-    itsDataInsertCache.resize(Fmi::stoi(driverInfo.params.at("dataInsertCacheSize")));
-    itsWeatherQCInsertCache.resize(Fmi::stoi(driverInfo.params.at("weatherDataQCInsertCacheSize")));
-    itsFlashInsertCache.resize(Fmi::stoi(driverInfo.params.at("flashInsertCacheSize")));
-    itsRoadCloudInsertCache.resize(Fmi::stoi(driverInfo.params.at("roadCloudInsertCacheSize")));
-    itsNetAtmoInsertCache.resize(Fmi::stoi(driverInfo.params.at("netAtmoInsertCacheSize")));
+    itsDataInsertCache.resize(Fmi::stoi(cacheInfo.params.at("dataInsertCacheSize")));
+    itsWeatherQCInsertCache.resize(Fmi::stoi(cacheInfo.params.at("weatherDataQCInsertCacheSize")));
+    itsFlashInsertCache.resize(Fmi::stoi(cacheInfo.params.at("flashInsertCacheSize")));
+    itsRoadCloudInsertCache.resize(Fmi::stoi(cacheInfo.params.at("roadCloudInsertCacheSize")));
+    itsNetAtmoInsertCache.resize(Fmi::stoi(cacheInfo.params.at("netAtmoInsertCacheSize")));
+    itsFmiIoTInsertCache.resize(Fmi::stoi(cacheInfo.params.at("fmiIoTInsertCacheSize")));
 
-    itsParameters.sqlite.cache_size = Fmi::stoi(driverInfo.params.at("cache_size"));
-    itsParameters.sqlite.threads = Fmi::stoi(driverInfo.params.at("threads"));
-    itsParameters.sqlite.threading_mode = driverInfo.params.at("threading_mode");
-    itsParameters.sqlite.timeout = Fmi::stoi(driverInfo.params.at("timeout"));
-    itsParameters.sqlite.shared_cache = (Fmi::stoi(driverInfo.params.at("shared_cache")) == 1);
+    itsParameters.sqlite.cache_size = Fmi::stoi(cacheInfo.params.at("cache_size"));
+    itsParameters.sqlite.threads = Fmi::stoi(cacheInfo.params.at("threads"));
+    itsParameters.sqlite.threading_mode = cacheInfo.params.at("threading_mode");
+    itsParameters.sqlite.timeout = Fmi::stoi(cacheInfo.params.at("timeout"));
+    itsParameters.sqlite.shared_cache = (Fmi::stoi(cacheInfo.params.at("shared_cache")) == 1);
     itsParameters.sqlite.read_uncommitted =
-        (Fmi::stoi(driverInfo.params.at("read_uncommitted")) == 1);
-    itsParameters.sqlite.memstatus = (Fmi::stoi(driverInfo.params.at("memstatus")) == 1);
-    itsParameters.sqlite.synchronous = driverInfo.params.at("synchronous");
-    itsParameters.sqlite.journal_mode = driverInfo.params.at("journal_mode");
-    itsParameters.sqlite.temp_store = driverInfo.params.at("temp_store");
-    itsParameters.sqlite.auto_vacuum = driverInfo.params.at("auto_vacuum");
-    itsParameters.sqlite.mmap_size = Fmi::stoi(driverInfo.params.at("mmap_size"));
-    itsParameters.sqlite.wal_autocheckpoint = Fmi::stoi(driverInfo.params.at("wal_autocheckpoint"));
-
-#ifdef OLDSTUFF
-    itsParameters.connectionPoolSize = cfg.get_mandatory_config_param<int>("cache.poolSize");
-
-    itsParameters.cacheFile = cfg.get_mandatory_path("spatialiteFile");
-
-    itsParameters.maxInsertSize = cfg.get_optional_config_param<std::size_t>(
-        "cache.maxInsertSize", 99999999);  // default = all at once
-
-    itsDataInsertCache.resize(
-        cfg.get_optional_config_param<std::size_t>("cache.dataInsertCacheSize", 1000000));
-    itsWeatherQCInsertCache.resize(
-        cfg.get_optional_config_param<std::size_t>("cache.weatherDataQCInsertCacheSize", 1000000));
-    itsFlashInsertCache.resize(
-        cfg.get_optional_config_param<std::size_t>("cache.flashInsertCacheSize", 100000));
-    itsRoadCloudInsertCache.resize(
-        cfg.get_optional_config_param<std::size_t>("cache.roadCloudInsertCacheSize", 50000));
-    itsNetAtmoInsertCache.resize(
-        cfg.get_optional_config_param<std::size_t>("cache.netAtmoInsertCacheSize", 50000));
-
-    itsParameters.sqlite.cache_size =
-        cfg.get_optional_config_param<long>("sqlite.cache_size", 0);  // zero = use default value
-
-    itsParameters.sqlite.threads =
-        cfg.get_optional_config_param<int>("sqlite.threads", 0);  // zero = no helper threads
-
-    itsParameters.sqlite.threading_mode =
-        cfg.get_optional_config_param<std::string>("sqlite.threading_mode", "SERIALIZED");
-
-    itsParameters.sqlite.timeout = cfg.get_optional_config_param<size_t>("sqlite.timeout", 30000);
-
-    itsParameters.sqlite.shared_cache =
-        cfg.get_optional_config_param<bool>("sqlite.shared_cache", false);
-
-    itsParameters.sqlite.read_uncommitted =
-        cfg.get_optional_config_param<bool>("sqlite.read_uncommitted", false);
-
-    itsParameters.sqlite.memstatus = cfg.get_optional_config_param<bool>("sqlite.memstatus", false);
-
-    itsParameters.sqlite.synchronous =
-        cfg.get_optional_config_param<std::string>("sqlite.synchronous", "NORMAL");
-
-    itsParameters.sqlite.journal_mode =
-        cfg.get_optional_config_param<std::string>("sqlite.journal_mode", "WAL");
-
-    itsParameters.sqlite.temp_store =
-        cfg.get_optional_config_param<std::string>("sqlite.temp_store", "DEFAULT");
-
-    itsParameters.sqlite.auto_vacuum =
-        cfg.get_optional_config_param<std::string>("sqlite.auto_vacuum", "NONE");
-
-    itsParameters.sqlite.mmap_size = cfg.get_optional_config_param<long>("sqlite.mmap_size", 0);
-
-    itsParameters.sqlite.wal_autocheckpoint =
-        cfg.get_optional_config_param<int>("sqlite.wal_autocheckpoint", 1000);
-#endif
+        (Fmi::stoi(cacheInfo.params.at("read_uncommitted")) == 1);
+    itsParameters.sqlite.memstatus = (Fmi::stoi(cacheInfo.params.at("memstatus")) == 1);
+    itsParameters.sqlite.synchronous = cacheInfo.params.at("synchronous");
+    itsParameters.sqlite.journal_mode = cacheInfo.params.at("journal_mode");
+    itsParameters.sqlite.temp_store = cacheInfo.params.at("temp_store");
+    itsParameters.sqlite.auto_vacuum = cacheInfo.params.at("auto_vacuum");
+    itsParameters.sqlite.mmap_size = Fmi::stoi(cacheInfo.params.at("mmap_size"));
+    itsParameters.sqlite.wal_autocheckpoint = Fmi::stoi(cacheInfo.params.at("wal_autocheckpoint"));
   }
   catch (...)
   {

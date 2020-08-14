@@ -1,6 +1,8 @@
 #include "DatabaseDriverInfo.h"
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <boost/asio/ip/host_name.hpp>
+#include <macgyver/AnsiEscapeCodes.h>
 #include <macgyver/StringConversion.h>
 #include <spine/Exception.h>
 
@@ -10,7 +12,26 @@ namespace Engine
 {
 namespace Observation
 {
-static DatabaseDriverInfoItem emptyInfoItem;
+static DatabaseDriverInfoItem emptyDriverInfoItem;
+static CacheInfoItem emptyCacheInfoItem;
+
+void CacheInfoItem::mergeCacheInfo(const CacheInfoItem& cii_from)
+{
+  // Tables
+  tables.insert(cii_from.tables.begin(), cii_from.tables.end());
+  // Params
+  for (const auto& param_item : cii_from.params)
+  {
+    if (params.find(param_item.first) == params.end())
+      params[param_item.first] = param_item.second;
+  }
+  // Param vectors
+  for (const auto& param_vector_item : cii_from.params_vector)
+  {
+    if (params_vector.find(param_vector_item.first) == params_vector.end())
+      params_vector[param_vector_item.first] = param_vector_item.second;
+  }
+}
 
 void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
 {
@@ -18,89 +39,103 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
   {
     libconfig::Config& lc = cfg.get_config();
 
-    if (!lc.exists("database_driver_info.observation_database"))
-      throw SmartMet::Spine::Exception::Trace(
-          BCP, "database_driver_info.observation_database section missing");
+    if (!lc.exists("database_driver_info"))
+      throw SmartMet::Spine::Exception::Trace(BCP, "database_driver_info section missing");
 
-    const libconfig::Setting& database_drivers =
-        lc.lookup("database_driver_info.observation_database");
-    int count = database_drivers.getLength();
+    const libconfig::Setting& driver_settings = lc.lookup("database_driver_info");
+    int count = driver_settings.getLength();
     for (int i = 0; i < count; ++i)
     {
-      bool active = database_drivers[i]["active"];
-      std::string name = database_drivers[i]["name"];
-      const libconfig::Setting& producers = database_drivers[i]["producers"];
-      int num = producers.getLength();
-      std::set<std::string> producer_set;
+      bool active = driver_settings[i]["active"];
+      if (!active)
+        continue;
+      std::string name = driver_settings[i]["name"];
+      // Tables
+      std::set<std::string> table_set;
+      const libconfig::Setting& tables = driver_settings[i]["tables"];
+      int num = tables.getLength();
       for (int j = 0; j < num; ++j)
       {
-        producer_set.insert(producers[j]);
+        std::string tablename = tables[j];
+        if (!tablename.empty())
+          table_set.insert(tablename);
       }  // for int j
-      itsDatabaseDriverInfoItems.emplace_back(name, active, producer_set);
-    }  // for int i
-
-    if (lc.exists("database_driver_info.observation_cache"))
-    {
-      const libconfig::Setting& database_drivers =
-          lc.lookup("database_driver_info.observation_cache");
-      int count = database_drivers.getLength();
-      for (int i = 0; i < count; ++i)
+      // Caches
+      std::set<std::string> cache_set;
+      const libconfig::Setting& caches = driver_settings[i]["caches"];
+      num = caches.getLength();
+      for (int j = 0; j < num; ++j)
       {
-        bool active = database_drivers[i]["active"];
-        std::string name = database_drivers[i]["name"];
-        const libconfig::Setting& producers = database_drivers[i]["producers"];
-        int num = producers.getLength();
-        std::set<std::string> producer_set;
-        for (int j = 0; j < num; ++j)
-        {
-          producer_set.insert(producers[j]);
-        }  // for int j
-        itsCacheInfoItems.emplace_back(name, active, producer_set);
-      }  // for int i
-    }    // if
+        std::string cachestring = caches[j];
+        if (!cachestring.empty())
+          cache_set.insert(cachestring);
+      }  // for int j
+      itsDatabaseDriverInfoItems.emplace_back(name, active, table_set, cache_set);
+    }  // for int i
 
     for (auto& item : itsDatabaseDriverInfoItems)
     {
-      if (boost::algorithm::starts_with(item.name, "spatialite_"))
+      if (!item.active)
+        continue;
+
+      std::string name = item.name;
+
+      if (!boost::algorithm::ends_with(name, "_observations"))
+        continue;
+
+      if (boost::algorithm::starts_with(name, "spatialite_"))
       {
-        readSpatiaLiteCommonInfo(cfg, item);
-        readSpatiaLiteConnectInfo(cfg, item);
+        readSpatiaLiteCommonInfo(cfg, name, item.params);
+        readSpatiaLiteConnectInfo(cfg, name, item.params);
       }
-      if (boost::algorithm::starts_with(item.name, "postgresql_"))
+      if (boost::algorithm::starts_with(name, "postgresql_"))
       {
-        if (boost::algorithm::ends_with(item.name, "mobile_observations"))
-          readPostgreSQLMobileCommonInfo(cfg, item);
+        if (boost::algorithm::ends_with(name, "mobile_observations"))
+          readPostgreSQLMobileCommonInfo(cfg, name, item.params);
         else
-          readPostgreSQLCommonInfo(cfg, item);
-        readPostgreSQLConnectInfo(cfg, item);
+          readPostgreSQLCommonInfo(cfg, name, item.params);
+        readPostgreSQLConnectInfo(cfg, name, item.params);
       }
-      if (boost::algorithm::starts_with(item.name, "oracle_"))
+      if (boost::algorithm::starts_with(name, "oracle_"))
       {
-        readOracleCommonInfo(cfg, item);
-        readOracleConnectInfo(cfg, item);
+        readOracleCommonInfo(cfg, name, item.params);
+        readOracleConnectInfo(cfg, name, item.params_vector);
+      }
+
+      std::map<std::string, CacheInfoItem>& cii_map = item.itsCacheInfoItems;
+      for (auto& cii : cii_map)
+      {
+        name = cii.first;
+
+        if (!boost::algorithm::ends_with(name, "_cache"))
+          continue;
+
+        if (boost::algorithm::starts_with(name, "spatialite_"))
+        {
+          readSpatiaLiteCommonInfo(cfg, name, cii.second.params);
+          readSpatiaLiteConnectInfo(cfg, name, cii.second.params);
+        }
+        if (boost::algorithm::starts_with(name, "postgresql_"))
+        {
+          if (boost::algorithm::ends_with(name, "mobile_observations"))
+            readPostgreSQLMobileCommonInfo(cfg, name, cii.second.params);
+          else
+            readPostgreSQLCommonInfo(cfg, name, cii.second.params);
+          readPostgreSQLConnectInfo(cfg, name, cii.second.params);
+        }
+        //        cachenames.insert(name);
       }
     }
 
-    for (auto& item : itsCacheInfoItems)
+    // Cache info (with same name) from different drivers are aggregated to one place
+
+    for (auto& ddii : itsDatabaseDriverInfoItems)
     {
-      if (boost::algorithm::starts_with(item.name, "spatialite_"))
-      {
-        readSpatiaLiteCommonInfo(cfg, item);
-        readSpatiaLiteConnectInfo(cfg, item);
-      }
-      if (boost::algorithm::starts_with(item.name, "postgresql_"))
-      {
-        if (boost::algorithm::ends_with(item.name, "mobile_observations"))
-          readPostgreSQLMobileCommonInfo(cfg, item);
+      for (const auto& cii_from : ddii.itsCacheInfoItems)
+        if (itsCacheInfoItems.find(cii_from.first) == itsCacheInfoItems.end())
+          itsCacheInfoItems[cii_from.first] = cii_from.second;
         else
-          readPostgreSQLCommonInfo(cfg, item);
-        readPostgreSQLConnectInfo(cfg, item);
-      }
-      if (boost::algorithm::starts_with(item.name, "oracle_"))
-      {
-        readOracleCommonInfo(cfg, item);
-        readOracleConnectInfo(cfg, item);
-      }
+          itsCacheInfoItems[cii_from.first].mergeCacheInfo(cii_from.second);
     }
   }
   catch (...)
@@ -110,40 +145,39 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
 }
 
 void DatabaseDriverInfo::readSpatiaLiteConnectInfo(Spine::ConfigBase& cfg,
-                                                   DatabaseDriverInfoItem& infoItem)
+                                                   const std::string& name,
+                                                   std::map<std::string, std::string>& params)
 {
-  std::string common_key = ("connect_info." + infoItem.name);
+  std::string common_key = ("connect_info." + name);
 
-  infoItem.params["spatialiteFile"] =
+  params["spatialiteFile"] =
       cfg.get_mandatory_config_param<std::string>(common_key + ".spatialiteFile");
 }
 
 void DatabaseDriverInfo::readPostgreSQLConnectInfo(Spine::ConfigBase& cfg,
-                                                   DatabaseDriverInfoItem& infoItem)
+                                                   const std::string& name,
+                                                   std::map<std::string, std::string>& params)
 {
-  std::string common_key = ("connect_info." + infoItem.name);
+  std::string common_key = ("connect_info." + name);
 
-  infoItem.params["host"] = cfg.get_mandatory_config_param<std::string>(common_key + ".host");
-  infoItem.params["port"] =
-      Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".port"));
-  infoItem.params["database"] =
-      cfg.get_mandatory_config_param<std::string>(common_key + ".database");
-  infoItem.params["username"] =
-      cfg.get_mandatory_config_param<std::string>(common_key + ".username");
-  infoItem.params["password"] =
-      cfg.get_mandatory_config_param<std::string>(common_key + ".password");
-  infoItem.params["encoding"] =
-      cfg.get_mandatory_config_param<std::string>(common_key + ".encoding");
-  infoItem.params["connect_timeout"] =
+  params["host"] = cfg.get_mandatory_config_param<std::string>(common_key + ".host");
+  params["port"] = Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".port"));
+  params["database"] = cfg.get_mandatory_config_param<std::string>(common_key + ".database");
+  params["username"] = cfg.get_mandatory_config_param<std::string>(common_key + ".username");
+  params["password"] = cfg.get_mandatory_config_param<std::string>(common_key + ".password");
+  params["encoding"] = cfg.get_mandatory_config_param<std::string>(common_key + ".encoding");
+  params["connect_timeout"] =
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".connect_timeout"));
 }
 
-void DatabaseDriverInfo::readOracleConnectInfo(Spine::ConfigBase& cfg,
-                                               DatabaseDriverInfoItem& infoItem)
+void DatabaseDriverInfo::readOracleConnectInfo(
+    Spine::ConfigBase& cfg,
+    const std::string& name,
+    std::map<std::string, std::vector<std::string>>& params_vector)
 {
   try
   {
-    std::string common_key = ("connect_info." + infoItem.name);
+    std::string common_key = ("connect_info." + name);
 
     const std::string& name = boost::asio::ip::host_name();
     const std::string& defaultLang = "NLS_LANG=.UTF8";
@@ -156,23 +190,23 @@ void DatabaseDriverInfo::readOracleConnectInfo(Spine::ConfigBase& cfg,
 
     const std::string scope = "override";
 
-    infoItem.params_vector["service"].push_back(
+    params_vector["service"].push_back(
         lookupDatabase(common_key, "service", name, scope, ccfg.get_config()));
-    infoItem.params_vector["username"].push_back(
+    params_vector["username"].push_back(
         lookupDatabase(common_key, "username", name, scope, ccfg.get_config()));
-    infoItem.params_vector["password"].push_back(
+    params_vector["password"].push_back(
         lookupDatabase(common_key, "password", name, scope, ccfg.get_config()));
 
     auto nlsLangSetting = ccfg.get_config().exists("database.nls_lang");
     auto nlsLang = nlsLangSetting
                        ? lookupDatabase(common_key, "nls_lang", name, scope, ccfg.get_config())
                        : defaultLang;
-    infoItem.params_vector["nlsLang"].push_back(nlsLang);
+    params_vector["nlsLang"].push_back(nlsLang);
     auto poolSizeSetting = ccfg.get_config().exists(common_key + ".poolSize");
     auto poolSize = poolSizeSetting
                         ? lookupDatabase(common_key, "poolSize", name, scope, ccfg.get_config())
                         : cfg.get_mandatory_config_param<int>("database_driver.poolSize");
-    infoItem.params_vector["poolSize"].push_back(Fmi::to_string(poolSize));
+    params_vector["poolSize"].push_back(Fmi::to_string(poolSize));
 
     const std::string extra = "extra";
     if (ccfg.get_config().exists(common_key + "." + extra))
@@ -193,20 +227,20 @@ void DatabaseDriverInfo::readOracleConnectInfo(Spine::ConfigBase& cfg,
       }
       if (nameFound)
       {
-        infoItem.params_vector["service"].push_back(
+        params_vector["service"].push_back(
             lookupDatabase(common_key, "service", name, extra, ccfg.get_config()));
-        infoItem.params_vector["username"].push_back(
+        params_vector["username"].push_back(
             lookupDatabase(common_key, "username", name, extra, ccfg.get_config()));
-        infoItem.params_vector["password"].push_back(
+        params_vector["password"].push_back(
             lookupDatabase(common_key, "password", name, extra, ccfg.get_config()));
         auto nlsLangE = nlsLangSetting
                             ? lookupDatabase(common_key, "nls_lang", name, extra, ccfg.get_config())
                             : defaultLang;
-        infoItem.params_vector["nlslang"].push_back(nlsLangE);
+        params_vector["nlslang"].push_back(nlsLangE);
         auto poolSizeE =
             poolSizeSetting ? lookupDatabase(common_key, "poolSize", name, extra, ccfg.get_config())
                             : cfg.get_mandatory_config_param<int>("database_driver.poolSize");
-        infoItem.params_vector["poolsize"].push_back(Fmi::to_string(poolSizeE));
+        params_vector["poolsize"].push_back(Fmi::to_string(poolSizeE));
       }
     }
   }
@@ -218,159 +252,192 @@ void DatabaseDriverInfo::readOracleConnectInfo(Spine::ConfigBase& cfg,
 }
 
 void DatabaseDriverInfo::readOracleCommonInfo(Spine::ConfigBase& cfg,
-                                              DatabaseDriverInfoItem& infoItem)
+                                              const std::string& name,
+                                              std::map<std::string, std::string>& params)
 {
-  std::string common_key = ("common_info." + infoItem.name);
+  std::string common_key = ("common_info." + name);
 
   bool defaultQuiet = cfg.get_optional_config_param<bool>("quiet", false);
 
-  infoItem.params["quiet"] =
+  params["quiet"] =
       Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".quiet", defaultQuiet));
-  infoItem.params["serializedStationsFile"] =
+  params["loadStations"] =
+      Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".loadStations", false));
+  params["serializedStationsFile"] =
       cfg.get_mandatory_config_param<std::string>(common_key + ".serializedStationsFile");
-  infoItem.params["poolSize"] =
+  params["poolSize"] =
       Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".poolSize", 10));
-  infoItem.params["connectionTimeout"] =
+  params["connectionTimeout"] =
       Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".connectionTimeout", 30));
-  infoItem.params["timer"] =
+  params["timer"] =
       Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".timer", false));
-  infoItem.params["disableAllCacheUpdates"] = Fmi::to_string(
+  params["disableAllCacheUpdates"] = Fmi::to_string(
       cfg.get_optional_config_param<bool>(common_key + ".disableAllCacheUpdates", false));
-  infoItem.params["finCacheUpdateInterval"] = Fmi::to_string(
+  params["finCacheUpdateInterval"] = Fmi::to_string(
       cfg.get_optional_config_param<std::size_t>(common_key + ".finCacheUpdateInterval", 0));
-  infoItem.params["extCacheUpdateInterval"] = Fmi::to_string(
+  params["extCacheUpdateInterval"] = Fmi::to_string(
       cfg.get_optional_config_param<std::size_t>(common_key + ".extCacheUpdateInterval", 0));
-  infoItem.params["flashCacheUpdateInterval"] = Fmi::to_string(
+  params["flashCacheUpdateInterval"] = Fmi::to_string(
       cfg.get_optional_config_param<std::size_t>(common_key + ".flashCacheUpdateInterval", 0));
-  infoItem.params["updateExtraInterval"] = Fmi::to_string(
+  params["updateExtraInterval"] = Fmi::to_string(
       cfg.get_optional_config_param<std::size_t>(common_key + ".updateExtraInterval", 10));
-  infoItem.params["finCacheDuration"] =
+  params["finCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finCacheDuration", 0));
-  infoItem.params["finMemoryCacheDuration"] =
+  params["finMemoryCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finMemoryCacheDuration", 0));
-  infoItem.params["extCacheDuration"] =
+  params["extCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extCacheDuration", 0));
-  infoItem.params["flashCacheDuration"] =
+  params["flashCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashCacheDuration", 0));
-  infoItem.params["flashMemoryCacheDuration"] = Fmi::to_string(
+  params["flashMemoryCacheDuration"] = Fmi::to_string(
       cfg.get_optional_config_param<int>(common_key + ".flashMemoryCacheDuration", 0));
 }
 
 void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
-                                                  DatabaseDriverInfoItem& infoItem)
+                                                  const std::string& name,
+                                                  std::map<std::string, std::string>& params)
 {
-  std::string common_key = ("common_info." + infoItem.name);
+  std::string common_key = ("common_info." + name);
 
   bool defaultQuiet = cfg.get_optional_config_param<bool>("quiet", false);
 
-  infoItem.params["quiet"] =
+  params["quiet"] =
       Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".quiet", defaultQuiet));
-  infoItem.params["serializedStationsFile"] =
-      cfg.get_optional_config_param<std::string>(common_key + ".serializedStationsFile", "");
-  infoItem.params["poolSize"] =
+  params["poolSize"] =
       Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".poolSize", 10));
-  infoItem.params["connectionTimeout"] =
-      Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".connectionTimeout", 30));
-  infoItem.params["timer"] =
-      Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".timer", false));
-  infoItem.params["disableAllCacheUpdates"] = Fmi::to_string(
-      cfg.get_optional_config_param<bool>(common_key + ".disableAllCacheUpdates", false));
-  infoItem.params["finCacheUpdateInterval"] = Fmi::to_string(
-      cfg.get_optional_config_param<std::size_t>(common_key + ".finCacheUpdateInterval", 0));
-  infoItem.params["extCacheUpdateInterval"] = Fmi::to_string(
-      cfg.get_optional_config_param<std::size_t>(common_key + ".extCacheUpdateInterval", 0));
-  infoItem.params["flashCacheUpdateInterval"] = Fmi::to_string(
-      cfg.get_optional_config_param<std::size_t>(common_key + ".flashCacheUpdateInterval", 0));
-  infoItem.params["updateExtraInterval"] = Fmi::to_string(
-      cfg.get_optional_config_param<std::size_t>(common_key + ".updateExtraInterval", 10));
-  infoItem.params["finCacheDuration"] =
-      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finCacheDuration", 0));
-  infoItem.params["finMemoryCacheDuration"] =
-      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finMemoryCacheDuration", 0));
-  infoItem.params["extCacheDuration"] =
-      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extCacheDuration", 0));
-  infoItem.params["flashCacheDuration"] =
-      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashCacheDuration", 0));
-  infoItem.params["flashMemoryCacheDuration"] = Fmi::to_string(
-      cfg.get_optional_config_param<int>(common_key + ".flashMemoryCacheDuration", 0));
+
+  if (boost::algorithm::ends_with(name, "_cache"))
+  {
+    params["maxInsertSize"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".maxInsertSize", 0));
+    params["locationCacheSize"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".locationCacheSize", 0));
+    params["dataInsertCacheSize"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".dataInsertCacheSize", 0));
+    params["weatherDataQCInsertCacheSize"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".weatherDataQCInsertCacheSize", 0));
+    params["flashInsertCacheSize"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashInsertCacheSize", 0));
+    params["roadCloudInsertCacheSize"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".roadCloudInsertCacheSize", 0));
+    params["netAtmoInsertCacheSize"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".netAtmoInsertCacheSize", 0));
+    params["fmiIoTInsertCacheSize"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".fmiIoTInsertCacheSize", 0));
+  }
+  else
+  {
+    params["loadStations"] =
+        Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".loadStations", false));
+    params["serializedStationsFile"] =
+        cfg.get_optional_config_param<std::string>(common_key + ".serializedStationsFile", "");
+    params["connectionTimeout"] = Fmi::to_string(
+        cfg.get_optional_config_param<size_t>(common_key + ".connectionTimeout", 30));
+    params["timer"] =
+        Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".timer", false));
+    params["disableAllCacheUpdates"] = Fmi::to_string(
+        cfg.get_optional_config_param<bool>(common_key + ".disableAllCacheUpdates", false));
+    params["finCacheUpdateInterval"] = Fmi::to_string(
+        cfg.get_optional_config_param<std::size_t>(common_key + ".finCacheUpdateInterval", 0));
+    params["extCacheUpdateInterval"] = Fmi::to_string(
+        cfg.get_optional_config_param<std::size_t>(common_key + ".extCacheUpdateInterval", 0));
+    params["flashCacheUpdateInterval"] = Fmi::to_string(
+        cfg.get_optional_config_param<std::size_t>(common_key + ".flashCacheUpdateInterval", 0));
+    params["updateExtraInterval"] = Fmi::to_string(
+        cfg.get_optional_config_param<std::size_t>(common_key + ".updateExtraInterval", 10));
+    params["finCacheDuration"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finCacheDuration", 0));
+    params["finMemoryCacheDuration"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".finMemoryCacheDuration", 0));
+    params["extCacheDuration"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extCacheDuration", 0));
+    params["flashCacheDuration"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashCacheDuration", 0));
+    params["flashMemoryCacheDuration"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".flashMemoryCacheDuration", 0));
+  }
 }
 
 void DatabaseDriverInfo::readPostgreSQLMobileCommonInfo(Spine::ConfigBase& cfg,
-                                                        DatabaseDriverInfoItem& infoItem)
+                                                        const std::string& name,
+                                                        std::map<std::string, std::string>& params)
 {
-  std::string common_key = ("common_info." + infoItem.name);
+  std::string common_key = ("common_info." + name);
 
   bool defaultQuiet = cfg.get_optional_config_param<bool>("quiet", false);
 
-  infoItem.params["quiet"] =
+  params["quiet"] =
       Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".quiet", defaultQuiet));
-  infoItem.params["poolSize"] =
+  params["poolSize"] =
       Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".poolSize", 10));
-  infoItem.params["connectionTimeout"] =
+  params["connectionTimeout"] =
       Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".connectionTimeout", 30));
-  infoItem.params["disableAllCacheUpdates"] = Fmi::to_string(
+  params["disableAllCacheUpdates"] = Fmi::to_string(
       cfg.get_optional_config_param<bool>(common_key + ".disableAllCacheUpdates", false));
-  infoItem.params["roadCloudCacheUpdateInterval"] = Fmi::to_string(
+  params["roadCloudCacheUpdateInterval"] = Fmi::to_string(
       cfg.get_optional_config_param<std::size_t>(common_key + ".roadCloudCacheUpdateInterval", 0));
-  infoItem.params["netAtmoCacheUpdateInterval"] = Fmi::to_string(
+  params["netAtmoCacheUpdateInterval"] = Fmi::to_string(
       cfg.get_optional_config_param<std::size_t>(common_key + ".netAtmoCacheUpdateInterval", 0));
-  infoItem.params["roadCloudCacheDuration"] =
+  params["fmiIoTCacheUpdateInterval"] = Fmi::to_string(
+      cfg.get_optional_config_param<std::size_t>(common_key + ".fmiIoTCacheUpdateInterval", 0));
+  params["roadCloudCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".roadCloudCacheDuration", 0));
-  infoItem.params["netAtmoCacheDuration"] =
+  params["netAtmoCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".netAtmoCacheDuration", 0));
+  params["fmiIoTCacheDuration"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".fmiIoTCacheDuration", 0));
 }
 
 void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
-                                                  DatabaseDriverInfoItem& infoItem)
+                                                  const std::string& name,
+                                                  std::map<std::string, std::string>& params)
 {
-  std::string common_key = ("common_info." + infoItem.name);
+  std::string common_key = ("common_info." + name);
 
   bool defaultQuiet = cfg.get_optional_config_param<bool>("quiet", false);
 
-  infoItem.params["quiet"] =
+  params["quiet"] =
       Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".quiet", defaultQuiet));
-  infoItem.params["threading_mode"] =
+
+  params["threading_mode"] =
       cfg.get_mandatory_config_param<std::string>(common_key + ".threading_mode");
-  infoItem.params["synchronous"] =
-      cfg.get_mandatory_config_param<std::string>(common_key + ".synchronous");
-  infoItem.params["journal_mode"] =
+  params["synchronous"] = cfg.get_mandatory_config_param<std::string>(common_key + ".synchronous");
+  params["journal_mode"] =
       cfg.get_mandatory_config_param<std::string>(common_key + ".journal_mode");
-  infoItem.params["auto_vacuum"] =
-      cfg.get_mandatory_config_param<std::string>(common_key + ".auto_vacuum");
-  infoItem.params["temp_store"] =
-      cfg.get_mandatory_config_param<std::string>(common_key + ".temp_store");
-  infoItem.params["timeout"] =
-      Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".timeout"));
-  infoItem.params["threads"] =
-      Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".threads"));
-  infoItem.params["cache_size"] =
+  params["auto_vacuum"] = cfg.get_mandatory_config_param<std::string>(common_key + ".auto_vacuum");
+  params["temp_store"] = cfg.get_mandatory_config_param<std::string>(common_key + ".temp_store");
+  params["timeout"] = Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".timeout"));
+  params["threads"] = Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".threads"));
+  params["cache_size"] =
       Fmi::to_string(cfg.get_mandatory_config_param<long>(common_key + ".cache_size"));
-  infoItem.params["shared_cache"] =
+  params["shared_cache"] =
       Fmi::to_string(cfg.get_mandatory_config_param<bool>(common_key + ".shared_cache"));
-  infoItem.params["read_uncommitted"] =
+  params["read_uncommitted"] =
       Fmi::to_string(cfg.get_mandatory_config_param<bool>(common_key + ".read_uncommitted"));
-  infoItem.params["memstatus"] =
+  params["memstatus"] =
       Fmi::to_string(cfg.get_mandatory_config_param<bool>(common_key + ".memstatus"));
-  infoItem.params["wal_autocheckpoint"] =
+  params["wal_autocheckpoint"] =
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".wal_autocheckpoint"));
-  infoItem.params["mmap_size"] =
+  params["mmap_size"] =
       Fmi::to_string(cfg.get_mandatory_config_param<long>(common_key + ".mmap_size"));
-  infoItem.params["poolSize"] =
+  params["poolSize"] =
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".poolSize"));
-  infoItem.params["maxInsertSize"] =
+  params["maxInsertSize"] =
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".maxInsertSize"));
-  infoItem.params["locationCacheSize"] =
+  params["locationCacheSize"] =
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".locationCacheSize"));
-  infoItem.params["dataInsertCacheSize"] =
+  params["dataInsertCacheSize"] =
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".dataInsertCacheSize"));
-  infoItem.params["weatherDataQCInsertCacheSize"] = Fmi::to_string(
+  params["weatherDataQCInsertCacheSize"] = Fmi::to_string(
       cfg.get_mandatory_config_param<int>(common_key + ".weatherDataQCInsertCacheSize"));
-  infoItem.params["flashInsertCacheSize"] =
+  params["flashInsertCacheSize"] =
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".flashInsertCacheSize"));
-  infoItem.params["roadCloudInsertCacheSize"] =
+  params["roadCloudInsertCacheSize"] =
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".roadCloudInsertCacheSize"));
-  infoItem.params["netAtmoInsertCacheSize"] =
+  params["netAtmoInsertCacheSize"] =
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".netAtmoInsertCacheSize"));
+  params["fmiIoTInsertCacheSize"] =
+      Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".fmiIoTInsertCacheSize"));
 }
 
 /*!
@@ -419,23 +486,97 @@ const DatabaseDriverInfoItem& DatabaseDriverInfo::getDatabaseDriverInfo(
     if (item.name == name)
       return item;
 
-  return emptyInfoItem;
+  return emptyDriverInfoItem;
 }
 
-const DatabaseDriverInfoItem& DatabaseDriverInfo::getCacheInfo(const std::string& name) const
+const CacheInfoItem& DatabaseDriverInfo::getAggregateCacheInfo(const std::string& cachename) const
 {
-  for (const auto& item : itsCacheInfoItems)
-    if (item.name == name)
-      return item;
+  if (itsCacheInfoItems.find(cachename) != itsCacheInfoItems.end())
+    return itsCacheInfoItems.at(cachename);
 
-  return emptyInfoItem;
+  return emptyCacheInfoItem;
+}
+
+const std::map<std::string, CacheInfoItem>& DatabaseDriverInfo::getAggregateCacheInfo() const
+{
+  return itsCacheInfoItems;  // Cache name -> cahecinfo
 }
 
 const std::vector<DatabaseDriverInfoItem>& DatabaseDriverInfo::getDatabaseDriverInfo() const
 {
   return itsDatabaseDriverInfoItems;
 }
-const std::vector<DatabaseDriverInfoItem>& DatabaseDriverInfo::getCacheInfo() const
+
+bool DatabaseDriverInfoItem::parameterExists(const std::string& name) const
+{
+  return params.find(name) != params.end();
+}
+bool DatabaseDriverInfoItem::parameterVectorExists(const std::string& name) const
+{
+  return params_vector.find(name) != params_vector.end();
+}
+
+int DatabaseDriverInfoItem::getIntParameterValue(const std::string& name, int defaultValue) const
+{
+  if (!parameterExists(name))
+    return defaultValue;
+
+  return Fmi::stoi(params.at(name));
+}
+
+const std::string& DatabaseDriverInfoItem::getStringParameterValue(
+    const std::string& name, const std::string& defaultValue) const
+{
+  if (!parameterExists(name))
+    return defaultValue;
+
+  return params.at(name);
+}
+
+// Cache info stirng format is 'cachename:tablename1,tablename2,...'
+void DatabaseDriverInfoItem::parseCacheInfo(const std::set<std::string>& cacheinfostring)
+{
+  for (const auto& c : cacheinfostring)
+  {
+    std::vector<std::string> parts;
+    boost::algorithm::split(parts, c, boost::algorithm::is_any_of(":"));
+    std::string cachename = parts[0];
+    std::string tablenames = parts[1];
+    std::set<std::string> table_set;
+    boost::algorithm::split(table_set, tablenames, boost::algorithm::is_any_of(","));
+    if (table_set.find("*") != table_set.end())
+    {
+      table_set.clear();
+      table_set.insert(OBSERVATION_DATA_TABLE);
+      table_set.insert(WEATHER_DATA_QC_TABLE);
+      table_set.insert(FLASH_DATA_TABLE);
+      table_set.insert(NETATMO_DATA_TABLE);
+      table_set.insert(ROADCLOUD_DATA_TABLE);
+      table_set.insert(FMI_IOT_DATA_TABLE);
+    }
+    if (itsCacheInfoItems.find(cachename) == itsCacheInfoItems.end())
+    {
+      // Add new table
+      itsCacheInfoItems[cachename] = CacheInfoItem(cachename, true, table_set);
+      caches.insert(cachename);
+    }
+    else
+    {
+      // Merge new info to existsting (same cache used by multiple drivers)
+      itsCacheInfoItems[cachename].mergeCacheInfo(CacheInfoItem(cachename, true, table_set));
+    }
+  }
+}
+
+const CacheInfoItem& DatabaseDriverInfoItem::getCacheInfo(const std::string& name) const
+{
+  if (itsCacheInfoItems.find(name) != itsCacheInfoItems.end())
+    return itsCacheInfoItems.at(name);
+
+  return emptyCacheInfoItem;
+}
+
+const std::map<std::string, CacheInfoItem>& DatabaseDriverInfoItem::getCacheInfo() const
 {
   return itsCacheInfoItems;
 }
@@ -448,37 +589,24 @@ std::ostream& operator<<(std::ostream& out,
                          const SmartMet::Engine::Observation::DatabaseDriverInfo& driverInfo)
 {
   out << "** DatabaseDriverInfo **" << std::endl;
-  /*
-  out << " ** Common settings **" << std::endl;
-  const SmartMet::Engine::Observation::CommonDatabaseDriverSettings& commonSettings =
-      driverInfo.getCommonSettings();
-
-  out << "  serializedStationsFile: " << commonSettings.serializedStationsFile << std::endl;
-  out << "  connectionTimeoutSeconds: " << commonSettings.connectionTimeoutSeconds << std::endl;
-  out << "  timer: " << commonSettings.timer << std::endl;
-  out << "  disableAllCacheUpdates: " << commonSettings.disableAllCacheUpdates << std::endl;
-  out << "  finCacheUpdateInterval: " << commonSettings.finCacheUpdateInterval << std::endl;
-  out << "  extCacheUpdateInterval: " << commonSettings.extCacheUpdateInterval << std::endl;
-  out << "  flashCacheUpdateInterval: " << commonSettings.flashCacheUpdateInterval << std::endl;
-  out << "  updateExtraInterval: " << commonSettings.updateExtraInterval << std::endl;
-  out << "  finCacheDuration: " << commonSettings.finCacheDuration << std::endl;
-  out << "  finMemoryCacheDuration: " << commonSettings.finMemoryCacheDuration << std::endl;
-  out << "  extCacheDuration: " << commonSettings.extCacheDuration << std::endl;
-  out << "  flashCacheDuration: " << commonSettings.flashCacheDuration << std::endl;
-  out << "  flashMemoryCacheDuration: " << commonSettings.flashMemoryCacheDuration << std::endl;
-  */
   out << " ** Driver settings **" << std::endl;
   const std::vector<SmartMet::Engine::Observation::DatabaseDriverInfoItem>& driverInfoItems =
       driverInfo.getDatabaseDriverInfo();
 
   for (const auto& item : driverInfoItems)
   {
-    out << "  \033[4mname: " << item.name << "\033[24m" << std::endl;
+    out << ANSI_FG_GREEN << "  name: " << item.name << ANSI_FG_DEFAULT << std::endl;
     out << "  active: " << item.active << std::endl;
-    out << "  producers: " << std::endl;
-    for (const auto& producer : item.producers)
-      out << "   " << producer << std::endl;
 
+    out << "  tables: " << std::endl;
+    for (const auto& t : item.tables)
+      out << "   " << t << std::endl;
+
+    out << "  caches: " << std::endl;
+    for (const auto& cache : item.caches)
+      out << "   " << cache << std::endl;
+
+    out << "  parameters: " << std::endl;
     if (!item.params.empty())
     {
       for (const auto& param : item.params)
@@ -499,26 +627,65 @@ std::ostream& operator<<(std::ostream& out,
   }
 
   out << " ** Cache settings **" << std::endl;
-  const std::vector<SmartMet::Engine::Observation::DatabaseDriverInfoItem>& cacheInfoItems =
-      driverInfo.getCacheInfo();
 
-  for (const auto& item : cacheInfoItems)
+  const std::vector<SmartMet::Engine::Observation::DatabaseDriverInfoItem>& ddi_vector =
+      driverInfo.getDatabaseDriverInfo();
+
+  for (const auto ddi : ddi_vector)
   {
-    out << "  \033[4mname: " << item.name << "\033[24m" << std::endl;
-    out << "  active: " << item.active << std::endl;
-    out << "  producers: " << std::endl;
-    for (const auto& producer : item.producers)
-      out << "   " << producer << std::endl;
+    const std::map<std::string, SmartMet::Engine::Observation::CacheInfoItem>& cii_map =
+        ddi.getCacheInfo();
 
-    if (!item.params.empty())
+    for (const auto ci : cii_map)
     {
-      for (const auto& param : item.params)
+      out << ANSI_FG_GREEN << "  name: " << ci.second.name << ANSI_FG_DEFAULT << std::endl;
+      out << "  active: " << ci.second.active << std::endl;
+      out << "  tables: " << std::endl;
+      for (const auto& table : ci.second.tables)
+        out << "   " << table << std::endl;
+
+      if (!ci.second.params.empty())
+      {
+        for (const auto& param : ci.second.params)
+          out << "  " << param.first << " -> " << param.second << std::endl;
+      }
+
+      if (!ci.second.params_vector.empty())
+      {
+        for (const auto& param : ci.second.params_vector)
+        {
+          out << "  " << param.first << " -> " << std::endl;
+          for (const auto& param2 : param.second)
+          {
+            out << "   " << param2 << std::endl;
+          }
+        }
+      }
+    }
+  }
+
+  out << " *\n* Aggregate cache settings **" << std::endl;
+
+  const std::map<std::string, SmartMet::Engine::Observation::CacheInfoItem>& aggregateCacheInfo =
+      driverInfo.getAggregateCacheInfo();
+
+  for (auto& item : aggregateCacheInfo)
+  {
+    out << ANSI_FG_GREEN << "  name: " << item.first << ANSI_FG_DEFAULT << std::endl;
+    out << "  active: " << item.second.active << std::endl;
+    out << "  tables: " << std::endl;
+    for (const auto& table : item.second.tables)
+      out << "   " << table << std::endl;
+
+    if (!item.second.params.empty())
+    {
+      for (const auto& param : item.second.params)
         out << "  " << param.first << " -> " << param.second << std::endl;
     }
 
-    if (!item.params_vector.empty())
+    if (!item.second.params_vector.empty())
     {
-      for (const auto& param : item.params_vector)
+      for (const auto& param : item.second.params_vector)
       {
         out << "  " << param.first << " -> " << std::endl;
         for (const auto& param2 : param.second)

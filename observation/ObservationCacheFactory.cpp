@@ -2,6 +2,7 @@
 #include "DummyCache.h"
 #include "PostgreSQLCache.h"
 #include "SpatiaLiteCache.h"
+#include <boost/algorithm/string/join.hpp>
 
 namespace SmartMet
 {
@@ -9,38 +10,47 @@ namespace Engine
 {
 namespace Observation
 {
-ObservationCache* ObservationCacheFactory::create(const EngineParametersPtr& p,
-                                                  Spine::ConfigBase& cfg)
+ObservationCacheProxy* ObservationCacheFactory::create(const EngineParametersPtr& p,
+                                                       Spine::ConfigBase& cfg)
 {
-  const std::vector<Engine::Observation::DatabaseDriverInfoItem>& cacheInfoItems =
-      p->databaseDriverInfo.getCacheInfo();
+  ObservationCacheProxy* cacheProxy = new ObservationCacheProxy();
+  ObservationCaches caches;
+
+  const std::map<std::string, CacheInfoItem>& cacheInfoItems =
+      p->databaseDriverInfo.getAggregateCacheInfo();
+
   for (const auto& item : cacheInfoItems)
   {
-    if (!item.active)
+    if (!item.second.active)
       continue;
 
-    const std::string& driver_id = item.name;
-    if (boost::algorithm::starts_with(driver_id, "postgresql_") &&
-        boost::algorithm::ends_with(driver_id, "_cache"))
+    boost::shared_ptr<ObservationCache> cache;
+    const std::string& cacheName = item.first;
+
+    if (boost::algorithm::starts_with(cacheName, "postgresql_"))
     {
-      return (new PostgreSQLCache(driver_id, p, cfg));
+      cache.reset(new PostgreSQLCache(cacheName, p, cfg));
     }
-    else if (boost::algorithm::starts_with(driver_id, "spatialite_") &&
-             boost::algorithm::ends_with(driver_id, "_cache"))
+    else if (boost::algorithm::starts_with(cacheName, "spatialite_"))
     {
-      return (new SpatiaLiteCache(driver_id, p, cfg));
+      cache.reset(new SpatiaLiteCache(cacheName, p, cfg));
     }
-    else if (boost::algorithm::starts_with(driver_id, "dummy_") &&
-             boost::algorithm::ends_with(driver_id, "_cache"))
+    else if (boost::algorithm::starts_with(cacheName, "dummy_"))
     {
-      return (new DummyCache(driver_id, p));
+      cache.reset(new DummyCache(cacheName, p));
     }
 
-    // Only one cache possible for now, maybe later a cache per producer/group of producers
-    break;
+    if (cache)
+    {
+      for (const auto& tablename : item.second.tables)
+      {
+        // Map table name to cache
+        cacheProxy->addCache(tablename, cache);
+      }
+    }
   }
 
-  return nullptr;
+  return cacheProxy;
 }
 
 }  // namespace Observation

@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.6.8
+Version: 20.8.17
 Release: 3%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Aug 17 2020  Anssi Reponen <anssi.reponen@fmi.fi> - 20.8.17-1.fmi
+- Cache handling added in PostgreSQL-driver (BRAINSTORM-1783)
+- Support for both 'itmf' and 'fmi_iot' producer names (INSPIRE-909)
+
 * Mon Jun 8 2020  Anssi Reponen <anssi.reponen@fmi.fi> - 20.6.8-1.fmi
 - PostgresSQL-driver for mirrored Oracle data (BRAINSTORM-1783)
 - Support for itmf-producer (INSPIRE-909)

@@ -19,7 +19,7 @@ void add_where_conditions(std::string &sqlStmt,
                           const std::string &wktAreaFilter,
                           const SQLDataFilter &sqlDataFilter)
 {
-  if (!wktAreaFilter.empty() && producer != ITMF_PRODUCER)
+  if (!wktAreaFilter.empty() && producer != FMI_IOT_PRODUCER)
   {
     sqlStmt += " AND ST_Contains(ST_GeomFromText('";
     sqlStmt += wktAreaFilter;
@@ -78,7 +78,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
 
   std::string producerName = itsProducerMeasurand->producerId().name();
   std::string producerId = itsProducerMeasurand->producerId().asString();
-  if (producerName == ITMF_PRODUCER)
+  if (producerName == FMI_IOT_PRODUCER)
   {
     sqlStmt = "SELECT obs.prod_id, obs.station_id, obs.dataset_id, obs.data_level";
     for (auto mid : measurandIds)
@@ -197,7 +197,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
         "data_value_txt,obs.data_quality,obs.ctrl_status,longitude,latitude,stat.altitude,stat."
         "station_id ORDER BY obs.data_time, stat.station_id ASC";
   }
-  else if (producerName == ITMF_PRODUCER)
+  else if (producerName == FMI_IOT_PRODUCER)
   {
     sqlStmt +=
         " GROUP BY "
@@ -253,7 +253,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectForCache(
   {
     // TBD
   }
-  else if (producer == ITMF_PRODUCER)
+  else if (producer == FMI_IOT_PRODUCER)
   {
     // Join ext_obsdata and ext_station_v1 tables
     sqlStmt =
@@ -282,14 +282,14 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
   std::string producerName = itsProducerMeasurand->producerId().name();
 
   if (producerName != NETATMO_PRODUCER && producerName != ROADCLOUD_PRODUCER &&
-      producerName != TECONER_PRODUCER && producerName != ITMF_PRODUCER)
+      producerName != TECONER_PRODUCER && producerName != FMI_IOT_PRODUCER)
   {
     throw SmartMet::Spine::Exception(BCP, "SQL select not defined for producer " + producerName);
   }
 
   std::string sqlStmt;
 
-  if (producerName == ITMF_PRODUCER)
+  if (producerName == FMI_IOT_PRODUCER)
   {
     sqlStmt =
         "SELECT obs.prod_id, obs.station_id, obs.station_code, obs.dataset_id, obs.data_level";
@@ -347,7 +347,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
         "data_value_txt,obs.data_quality,obs.ctrl_status,longitude,latitude,obs.altitude,obs."
         "station_id ORDER BY obs.data_time, obs.station_id ASC";
   }
-  else if (producerName == ITMF_PRODUCER)
+  else if (producerName == FMI_IOT_PRODUCER)
   {
     sqlStmt +=
         " GROUP BY "

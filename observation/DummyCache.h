@@ -14,8 +14,6 @@ namespace Engine
 {
 namespace Observation
 {
-class ObservableProperty;
-
 class DummyCache : public ObservationCache
 {
  public:
@@ -68,8 +66,13 @@ class DummyCache : public ObservationCache
   std::size_t fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData) const;
   void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const;
 
-  boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
-      std::vector<std::string> &parameters, const std::string language) const;
+  bool fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
+                              const boost::posix_time::ptime &endtime) const;
+  boost::posix_time::ptime getLatestFmiIoTDataTime() const;
+  boost::posix_time::ptime getLatestFmiIoTCreatedTime() const;
+  std::size_t fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData) const;
+  void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const;
+
   void shutdown();
 
  private:

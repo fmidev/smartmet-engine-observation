@@ -1,6 +1,5 @@
 #include "PostgreSQL.h"
 #include "ExternalAndMobileDBInfo.h"
-#include "ObservableProperty.h"
 #include "PostgreSQLCacheParameters.h"
 #include "QueryMapping.h"
 #include <fmt/format.h>
@@ -63,6 +62,7 @@ static Spine::MutexType weather_data_qc_write_mutex;
 static Spine::MutexType flash_data_write_mutex;
 static Spine::MutexType roadcloud_data_write_mutex;
 static Spine::MutexType netatmo_data_write_mutex;
+static Spine::MutexType fmi_iot_data_write_mutex;
 
 namespace Engine
 {
@@ -120,6 +120,7 @@ PostgreSQL::PostgreSQL(const PostgreSQLCacheParameters &options)
       itsFlashInsertCache(options.flashInsertCacheSize),
       itsRoadCloudInsertCache(options.roadCloudInsertCacheSize),
       itsNetAtmoInsertCache(options.netAtmoInsertCacheSize),
+      itsFmiIoTInsertCache(options.fmiIoTInsertCacheSize),
       itsExternalAndMobileProducerConfig(options.externalAndMobileProducerConfig),
       itsShutdownRequested(false)
 {
@@ -144,17 +145,23 @@ PostgreSQL::PostgreSQL(const PostgreSQLCacheParameters &options)
 
 PostgreSQL::~PostgreSQL() {}
 
-void PostgreSQL::createTables()
+void PostgreSQL::createTables(const std::set<std::string> &tables)
 {
   try
   {
     // No locking needed during initialization phase
-    createObservationDataTable();
-    createWeatherDataQCTable();
-    createFlashDataTable();
-    createObservablePropertyTable();
-    createRoadCloudDataTable();
-    createNetAtmoDataTable();
+    if (tables.find(OBSERVATION_DATA_TABLE) != tables.end())
+      createObservationDataTable();
+    if (tables.find(WEATHER_DATA_QC_TABLE) != tables.end())
+      createWeatherDataQCTable();
+    if (tables.find(FLASH_DATA_TABLE) != tables.end())
+      createFlashDataTable();
+    if (tables.find(ROADCLOUD_DATA_TABLE) != tables.end())
+      createRoadCloudDataTable();
+    if (tables.find(NETATMO_DATA_TABLE) != tables.end())
+      createNetAtmoDataTable();
+    if (tables.find(FMI_IOT_DATA_TABLE) != tables.end())
+      createFmiIoTDataTable();
   }
   catch (...)
   {
@@ -362,6 +369,44 @@ void PostgreSQL::createNetAtmoDataTable()
   }
 }
 
+void PostgreSQL::createFmiIoTDataTable()
+{
+  try
+  {
+    itsDB.executeNonTransaction(
+        "CREATE TABLE IF NOT EXISTS ext_obsdata_fmi_iot("
+        "prod_id INTEGER, "
+        "station_id INTEGER DEFAULT 0, "
+        "dataset_id character VARYING(50) DEFAULT 0, "
+        "data_level INTEGER DEFAULT 0, "
+        "mid INTEGER, "
+        "sensor_no INTEGER DEFAULT 0, "
+        "data_time timestamp without time zone NOT NULL, "
+        "data_value NUMERIC, "
+        "data_value_txt character VARYING(30), "
+        "data_quality INTEGER, "
+        "ctrl_status INTEGER, "
+        "created timestamp without time zone DEFAULT timezone('UTC'::text, now()), "
+        "altitude NUMERIC)");
+    pqxx::result result_set = itsDB.executeNonTransaction(
+        "SELECT * FROM geometry_columns WHERE f_table_name='ext_obsdata_fmi_iot'");
+    if (result_set.empty())
+    {
+      itsDB.executeNonTransaction(
+          "SELECT AddGeometryColumn('ext_obsdata_fmi_iot', 'geom', 4326, 'POINT', 2)");
+      itsDB.executeNonTransaction(
+          "CREATE INDEX IF NOT EXISTS ext_obsdata_fmi_iot_gix ON ext_obsdata_fmi_iot USING GIST "
+          "(geom)");
+      itsDB.executeNonTransaction(
+          "ALTER TABLE ext_obsdata_fmi_iot ADD PRIMARY KEY (prod_id,mid,data_time, geom)");
+    }
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_fmi_iot table failed!");
+  }
+}
+
 size_t PostgreSQL::selectCount(const std::string &queryString)
 {
   try
@@ -551,6 +596,48 @@ boost::posix_time::ptime PostgreSQL::getLatestNetAtmoCreatedTime()
   }
 }
 
+boost::posix_time::ptime PostgreSQL::getOldestFmiIoTDataTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_fmi_iot";
+    string time_field = "data_time";
+    return getOldestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Oldest FmiIoT data time query failed!");
+  }
+}
+
+boost::posix_time::ptime PostgreSQL::getLatestFmiIoTDataTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_fmi_iot";
+    string time_field = "data_time";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Latest FmiIoT data time query failed!");
+  }
+}
+
+boost::posix_time::ptime PostgreSQL::getLatestFmiIoTCreatedTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_fmi_iot";
+    string time_field = "created";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Latest FmiIoT created time query failed!");
+  }
+}
+
 boost::posix_time::ptime PostgreSQL::getLatestTimeFromTable(const std::string tablename,
                                                             const std::string time_field)
 {
@@ -660,7 +747,28 @@ void PostgreSQL::cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of RoadCloud cache failed!");
+    throw Spine::Exception::Trace(BCP, "Cleaning of NetAtmo cache failed!");
+  }
+}
+
+void PostgreSQL::cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime)
+{
+  try
+  {
+    auto oldest = getOldestFmiIoTDataTime();
+
+    if (newstarttime <= oldest)
+      return;
+
+    Spine::WriteLock lock(fmi_iot_data_write_mutex);
+    std::string sqlStmt = ("DELETE FROM ext_obsdata_fmi_iot WHERE data_time < '" +
+                           Fmi::to_iso_extended_string(newstarttime) + "'");
+
+    itsDB.executeNonTransaction(sqlStmt);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning of FmiIoT cache failed!");
   }
 }
 
@@ -1449,6 +1557,11 @@ std::size_t PostgreSQL::fillNetAtmoCache(const MobileExternalDataItems &mobileEx
   }
 }
 
+std::size_t PostgreSQL::fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData)
+{
+  return 0;
+}
+
 SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getRoadCloudData(
     const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
 {
@@ -1456,6 +1569,12 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getRoadCloudData(
 }
 
 SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getNetAtmoData(
+    const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
+{
+  return getMobileAndExternalData(settings, parameterMap, timezones);
+}
+
+SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getFmiIoTData(
     const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, parameterMap, timezones);
@@ -2289,97 +2408,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getData(
   {
     throw Spine::Exception::Trace(BCP, "Getting cached data failed!");
   }
-}
-
-void PostgreSQL::createObservablePropertyTable()
-{
-  try
-  {
-    // No locking needed during initialization phase
-    itsDB.executeNonTransaction(
-        "CREATE TABLE IF NOT EXISTS observable_property ("
-        "measurandId INTEGER,"
-        "language TEXT,"
-        "measurandCode TEXT,"
-        "observablePropertyId TEXT,"
-        "observablePropertyLabel TEXT,"
-        "basePhenomenon TEXT,"
-        "uom TEXT,"
-        "statisticalMeasureId TEXT,"
-        "statisticalFunction TEXT,"
-        "aggregationTimePeriod TEXT,"
-        "gmlId TEXT, "
-        "last_modified timestamp default now())");
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Creation of observable_property table failed!");
-  }
-}
-
-boost::shared_ptr<std::vector<ObservableProperty>> PostgreSQL::getObservableProperties(
-    std::vector<std::string> &parameters,
-    const std::string language,
-    const ParameterMapPtr &parameterMap,
-    const std::string &stationType)
-{
-  boost::shared_ptr<std::vector<ObservableProperty>> data(new std::vector<ObservableProperty>());
-  try
-  {
-    // Solving measurand id's for valid parameter aliases.
-    std::multimap<int, std::string> parameterIDs;
-    solveMeasurandIds(parameters, parameterMap, stationType, parameterIDs);
-    // Return empty list if some parameters are defined and any of those is
-    // valid.
-    if (parameterIDs.empty())
-      return data;
-
-    std::string sqlStmt =
-        "SELECT "
-        "measurandId,"
-        "measurandCode,"
-        "observablePropertyId,"
-        "observablePropertyLabel,"
-        "basePhenomenon,"
-        "uom,"
-        "statisticalMeasureId,"
-        "statisticalFunction,"
-        "aggregationTimePeriod,"
-        "gmlId FROM observable_property WHERE language = '" +
-        language + "'";
-
-    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-    for (auto row : result_set)
-    {
-      int measurandId = row[0].as<int>();
-      // Multiple parameter name aliases may use a same measurand id (e.g. t2m
-      // and temperature)
-      std::pair<std::multimap<int, std::string>::iterator,
-                std::multimap<int, std::string>::iterator>
-          r = parameterIDs.equal_range(measurandId);
-      for (std::multimap<int, std::string>::iterator it = r.first; it != r.second; ++it)
-      {
-        ObservableProperty op;
-        op.measurandId = Fmi::to_string(measurandId);
-        op.measurandCode = row[1].as<std::string>();
-        op.observablePropertyId = row[2].as<std::string>();
-        op.observablePropertyLabel = row[3].as<std::string>();
-        op.basePhenomenon = row[4].as<std::string>();
-        op.uom = row[5].as<std::string>();
-        op.statisticalMeasureId = row[6].as<std::string>();
-        op.statisticalFunction = row[7].as<std::string>();
-        op.aggregationTimePeriod = row[8].as<std::string>();
-        op.gmlId = it->second;
-        data->push_back(op);
-      }
-    }
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
-  }
-
-  return data;
 }
 
 void PostgreSQL::createIndex(const std::string &table,
