@@ -2,6 +2,7 @@
 #include "DummyCache.h"
 #include "PostgreSQLCache.h"
 #include "SpatiaLiteCache.h"
+#include <boost/algorithm/string/join.hpp>
 
 namespace SmartMet
 {
@@ -9,17 +10,47 @@ namespace Engine
 {
 namespace Observation
 {
-ObservationCache* ObservationCacheFactory::create(const EngineParametersPtr& p,
-                                                  Spine::ConfigBase& cfg)
+ObservationCacheProxy* ObservationCacheFactory::create(const EngineParametersPtr& p,
+                                                       Spine::ConfigBase& cfg)
 {
-  if (p->cacheDB == "spatialite")
-    return (new SpatiaLiteCache(p, cfg));
-  else if (p->cacheDB == "postgresql")
-    return (new PostgreSQLCache(p, cfg));
-  else if (p->cacheDB == "dummy")
-    return (new DummyCache(p));
+  ObservationCacheProxy* cacheProxy = new ObservationCacheProxy();
+  ObservationCaches caches;
 
-  return nullptr;
+  const std::map<std::string, CacheInfoItem>& cacheInfoItems =
+      p->databaseDriverInfo.getAggregateCacheInfo();
+
+  for (const auto& item : cacheInfoItems)
+  {
+    if (!item.second.active)
+      continue;
+
+    boost::shared_ptr<ObservationCache> cache;
+    const std::string& cacheName = item.first;
+
+    if (boost::algorithm::starts_with(cacheName, "postgresql_"))
+    {
+      cache.reset(new PostgreSQLCache(cacheName, p, cfg));
+    }
+    else if (boost::algorithm::starts_with(cacheName, "spatialite_"))
+    {
+      cache.reset(new SpatiaLiteCache(cacheName, p, cfg));
+    }
+    else if (boost::algorithm::starts_with(cacheName, "dummy_"))
+    {
+      cache.reset(new DummyCache(cacheName, p));
+    }
+
+    if (cache)
+    {
+      for (const auto& tablename : item.second.tables)
+      {
+        // Map table name to cache
+        cacheProxy->addCache(tablename, cache);
+      }
+    }
+  }
+
+  return cacheProxy;
 }
 
 }  // namespace Observation

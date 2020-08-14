@@ -1,18 +1,14 @@
 #pragma once
 
-#include "DataItem.h"
+#include "CommonDatabaseFunctions.h"
 #include "ExternalAndMobileProducerConfig.h"
 #include "FlashDataItem.h"
 #include "InsertStatus.h"
-#include "LocationDataItem.h"
-#include "LocationItem.h"
 #include "MobileExternalDataItem.h"
 #include "ObservationMemoryCache.h"
-#include "Settings.h"
-#include "SpatiaLiteOptions.h"
-#include "StationtypeConfig.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
+#include <spine/Value.h>
 
 #ifdef __llvm__
 #pragma clang diagnostic push
@@ -33,32 +29,18 @@ namespace sqlite_api
 
 #define DATABASE_VERSION "2"
 
-#include <macgyver/TimeFormatter.h>
-#include <macgyver/TimeZones.h>
-#include <macgyver/DateTimeParser.h>
-#include <spine/Location.h>
-#include <spine/Station.h>
-#include <spine/Thread.h>
-#include <spine/TimeSeries.h>
-#include <spine/TimeSeriesGenerator.h>
-#include <spine/TimeSeriesGeneratorOptions.h>
-#include <spine/Value.h>
-#include <string>
-
 namespace SmartMet
 {
 namespace Engine
 {
 namespace Observation
 {
-class ObservableProperty;
 class SpatiaLiteCacheParameters;
 
 struct ObservationsMap;
 struct QueryMapping;
-using StationMap = std::map<int, Spine::Station>;
 
-class SpatiaLite : private boost::noncopyable
+class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
 {
  public:
   SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheParameters &options);
@@ -110,7 +92,7 @@ class SpatiaLite : private boost::noncopyable
    * @brief Create the SpatiaLite tables from scratch
    */
 
-  void createTables();
+  void createTables(const std::set<std::string> &tables);
 
   void setConnectionId(int connectionId) { itsConnectionId = connectionId; }
   int connectionId() { return itsConnectionId; }
@@ -165,12 +147,13 @@ class SpatiaLite : private boost::noncopyable
    */
   void cleanWeatherDataQCCache(const boost::posix_time::ptime &newstarttime);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedWeatherDataQCData(
+  /*
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getWeatherDataQCData(
       const SmartMet::Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
       const Fmi::TimeZones &timezones);
-
+  */
   /**
    * @brief Delete old flash observation data from flash_data table
    * @param newstarttime Delete everything from flash_data which is older than given time
@@ -246,29 +229,54 @@ class SpatiaLite : private boost::noncopyable
    */
   void cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedRoadCloudData(
+  /**
+   * @brief Get the time of the newest FmiIoT observation in ext_obsdata_roadcloud table
+   * @return boost::posix_time::ptime The time of the newest FmiIoT observation
+   */
+
+  boost::posix_time::ptime getLatestFmiIoTDataTime();
+
+  /**
+   * @brief Get the time of the latest FmiIoT creation time in ext_obsdata table
+   * @return boost::posix_time::ptime The latest creation time
+   */
+
+  boost::posix_time::ptime getLatestFmiIoTCreatedTime();
+
+  /**
+   * @brief Get the time of the oldest FmiIoT observation in ext_obsdata_roadcloud table
+
+   * @return boost::posix_time::ptime The time of the oldest FmiIoT observation
+   */
+
+  boost::posix_time::ptime getOldestFmiIoTDataTime();
+
+  /**
+   * @brief Insert cached observations into ext_obsdata_roadcloud table
+   * @param FmiIoT observation data to be inserted into the table
+   */
+  std::size_t fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData,
+                              InsertStatus &insertStatus);
+
+  /**
+   * @brief Delete old FmiIoT observation data from ext_obsdata_roadcloud table
+   * @param timetokeep Delete FmiIoT data which is older than given duration
+   */
+  void cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime);
+
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getRoadCloudData(
       const Settings &settings, const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedNetAtmoData(
-      const Settings &settings, const Fmi::TimeZones &timezones);
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getNetAtmoData(const Settings &settings,
+                                                                  const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedData(
-      const SmartMet::Spine::Stations &stations,
-      const Settings &settings,
-      const StationInfo &stationInfo,
-      const Fmi::TimeZones &timezones);
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFmiIoTData(const Settings &settings,
+                                                                 const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedFlashData(
-      const Settings &settings, const Fmi::TimeZones &timezones);
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFlashData(const Settings &settings,
+                                                                const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedWeatherDataQCData(
-      const SmartMet::Spine::Stations &stations,
-      const Settings &settings,
-      const StationInfo &stationInfo,
-      const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones);
-
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedData(
+  virtual SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getData(
       const SmartMet::Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
@@ -288,19 +296,6 @@ class SpatiaLite : private boost::noncopyable
                             const boost::posix_time::ptime &endtime,
                             const SmartMet::Spine::TaggedLocationList &locations);
 
-  /**
-   * @brief Get observable properties
-   * @param parameters
-   * @param language
-   * @param parameterMap
-   * @param stationType
-   * @retval Shared pointer to vector of observable properties
-   */
-  boost::shared_ptr<std::vector<ObservableProperty>> getObservableProperties(
-      std::vector<std::string> &parameters,
-      const std::string &language,
-      const std::string &stationType);
-
   std::size_t selectCount(const std::string &queryString);
 
   /**
@@ -318,85 +313,26 @@ class SpatiaLite : private boost::noncopyable
 
   void initObservationMemoryCache(const boost::posix_time::ptime &starttime);
 
+  void fetchWeatherDataQCData(const std::string &sqlStmt,
+                              const StationInfo &stationInfo,
+                              const std::set<std::string> &stationgroup_codes,
+                              const QueryMapping &qmap,
+                              std::map<int, std::map<int, int>> &default_sensors,
+                              WeatherDataQCData &cacheData);
+  std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
+                                             const std::string &params,
+                                             const std::string &station_ids) const;
+
  private:
   // Private members
   sqlite3pp::database itsDB;
   std::string srid;
-  boost::atomic<bool> itsShutdownRequested;
   std::size_t itsConnectionId;
   std::size_t itsMaxInsertSize;
-  std::map<std::string, std::string> stationTypeMap;
-  Fmi::DateTimeParser itsDateTimeParser;
   const ExternalAndMobileProducerConfig &itsExternalAndMobileProducerConfig;
-  const StationtypeConfig &itsStationtypeConfig;
-  const ParameterMapPtr &itsParameterMap;
 
   std::unique_ptr<ObservationMemoryCache> itsObservationMemoryCache;
-
-  // Private methods
-
-  std::string stationType(const std::string &type);
-  std::string stationType(SmartMet::Spine::Station &station);
-
-  void addSmartSymbolToTimeSeries(
-      const int pos,
-      const Spine::Station &s,
-      const boost::local_time::local_date_time &time,
-      const std::string &stationtype,
-      const std::map<std::string, std::map<std::string, SmartMet::Spine::TimeSeries::Value>>
-          &stationData,
-      const std::map<int,
-                     std::map<boost::local_time::local_date_time,
-                              std::map<int, std::map<int, SmartMet::Spine::TimeSeries::Value>>>>
-          &data,
-      int fmisid,
-      const std::map<int, std::map<int, int>> *defaultSensors,
-      const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns) const;
-
-  void addSpecialParameterToTimeSeries(
-      const std::string &paramname,
-      const SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-      const SmartMet::Spine::Station &station,
-      const int pos,
-      const std::string &stationtype,
-      const boost::local_time::local_date_time &obstime) const;
-
-  void addSpecialFieldsToTimeSeries(
-      const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-      const std::map<
-          boost::local_time::local_date_time,
-          std::map<std::string, std::map<std::string, SmartMet::Spine::TimeSeries::Value>>>
-          &stationData,
-      int fmisid,
-      const std::map<std::string, int> &specialPositions,
-      const std::map<std::string, std::string> &parameterNameMap,
-      const std::map<int, std::map<int, int>> *defaultSensors,
-      const std::list<boost::local_time::local_date_time> &tlist) const;
-
-  void addParameterToTimeSeries(
-      const SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-      const std::pair<
-          boost::local_time::local_date_time,
-          std::map<std::string, std::map<std::string, SmartMet::Spine::TimeSeries::Value>>>
-          &dataItem,
-      int fmisid,
-      const std::map<std::string, int> &specialPositions,
-      const std::map<std::string, std::string> &parameterNameMap,
-      const std::map<std::string, int> &timeseriesPositions,
-      const std::map<int, std::set<int>> &sensorNumberToMeasurandIds,
-      const std::map<int, std::map<int, int>> *defaultSensors,  // measurand_id -> sensor_no
-      const std::string &stationtype,
-      const SmartMet::Spine::Station &station,
-      const std::string &missingtext) const;
-
-  void addEmptyValuesToTimeSeries(
-      SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-      const boost::local_time::local_date_time &obstime,
-      const std::map<std::string, int> &specialPositions,
-      const std::map<std::string, std::string> &parameterNameMap,
-      const std::map<std::string, int> &timeseriesPositions,
-      const std::string &stationtype,
-      const SmartMet::Spine::Station &station) const;
+  boost::atomic<bool> itsShutdownRequested;
 
   boost::posix_time::ptime getLatestTimeFromTable(const std::string &tablename,
                                                   const std::string &time_field);
@@ -409,62 +345,17 @@ class SpatiaLite : private boost::noncopyable
   void createFlashDataTable();
   void createRoadCloudDataTable();
   void createNetAtmoDataTable();
-  void createObservablePropertyTable();
+  void createFmiIoTDataTable();
 
   boost::posix_time::ptime parseSqliteTime(sqlite3pp::query::iterator &iter, int column) const;
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getCachedMobileAndExternalData(
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getMobileAndExternalData(
       const Settings &settings, const Fmi::TimeZones &timezones);
 
-  Spine::TimeSeries::TimeSeriesVectorPtr build_timeseries(
-      const Spine::Stations &stations,
-      const Settings &settings,
-      const std::string &stationtype,
-      const StationMap &tmpStations,
-      const LocationDataItems &observations,
-      ObservationsMap &obsmap,
-      const QueryMapping &qmap,
-      const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones) const;
-
-  Spine::TimeSeries::TimeSeriesVectorPtr build_timeseries_all_time_steps(
-      const Spine::Stations &stations,
-      const Settings &settings,
-      const std::string &stationtype,
-      const StationMap &tmpStations,
-      ObservationsMap &obsmap,
-      const QueryMapping &qmap) const;
-
-  Spine::TimeSeries::TimeSeriesVectorPtr build_timeseries_latest_time_step(
-      const Spine::Stations &stations,
-      const Settings &settings,
-      const std::string &stationtype,
-      const StationMap &tmpStations,
-      const LocationDataItems &observations,
-      ObservationsMap &obsmap,
-      const QueryMapping &qmap,
-      const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones) const;
-
-  Spine::TimeSeries::TimeSeriesVectorPtr build_timeseries_listed_time_steps(
-      const Spine::Stations &stations,
-      const Settings &settings,
-      const std::string &stationtype,
-      const StationMap &tmpStations,
-      const LocationDataItems &observations,
-      ObservationsMap &obsmap,
-      const QueryMapping &qmap,
-      const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones) const;
-
-  void append_weather_parameters(const Spine::Station &s,
-                                 const boost::local_time::local_date_time &t,
-                                 const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-                                 const std::string &stationtype,
-                                 const StationMap &tmpStations,
-                                 const LocationDataItems &observations,
-                                 ObservationsMap &obsmap,
-                                 const QueryMapping &qmap,
-                                 const std::string &missingtext) const;
+  LocationDataItems readObservations(const Spine::Stations &stations,
+                                     const Settings &settings,
+                                     const StationInfo &stationInfo,
+                                     const QueryMapping &qmap,
+                                     const std::set<std::string> &stationgroup_codes);
 };
 
 }  // namespace Observation

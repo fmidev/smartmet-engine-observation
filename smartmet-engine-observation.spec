@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.8.7
-Release: 1%{?dist}.fmi
+Version: 20.8.17
+Release: 3%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -92,6 +92,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Aug 17 2020  Anssi Reponen <anssi.reponen@fmi.fi> - 20.8.17-1.fmi
+- Cache handling added in PostgreSQL-driver (BRAINSTORM-1783)
+- Support for both 'itmf' and 'fmi_iot' producer names (INSPIRE-909)
+
 * Fri Aug  7 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.8.7-1.fmi
 - Fixed sqlite and potsgresql caches to require correct producer_id numbers too
 
@@ -109,6 +113,10 @@ rm -rf $RPM_BUILD_ROOT
 
 * Mon Jun  8 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.6.8-1.fmi
 - Upgraded libpqxx
+
+* Mon Jun 8 2020  Anssi Reponen <anssi.reponen@fmi.fi> - 20.6.8-2.fmi
+- PostgresSQL-driver for mirrored Oracle data (BRAINSTORM-1783)
+- Support for itmf-producer (INSPIRE-909)
 
 * Wed May 27 2020 Anssi Reponen <anssi.reponen@fmi.fi> - 20.5.27-2.fmi
 - Fixed sensor queries from memory cache

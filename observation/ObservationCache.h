@@ -1,11 +1,11 @@
 #pragma once
 
+#include "CacheInfoItem.h"
 #include "DataItem.h"
 #include "FlashDataItem.h"
 #include "LocationItem.h"
 #include "MobileExternalDataItem.h"
 #include "Settings.h"
-//#include "StationInfo.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
 
@@ -22,8 +22,6 @@ namespace Engine
 {
 namespace Observation
 {
-struct ObservableProperty;
-
 class ObservationCache
 {
  public:
@@ -83,12 +81,22 @@ class ObservationCache
       const MobileExternalDataItems &mobileExternalCacheData) const = 0;
   virtual void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const = 0;
 
-  virtual boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
-      std::vector<std::string> &parameters, const std::string language) const = 0;
+  virtual bool fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                      const boost::posix_time::ptime &endtime) const = 0;
+  virtual boost::posix_time::ptime getLatestFmiIoTDataTime() const = 0;
+  virtual boost::posix_time::ptime getLatestFmiIoTCreatedTime() const = 0;
+  virtual std::size_t fillFmiIoTCache(
+      const MobileExternalDataItems &mobileExternalCacheData) const = 0;
+  virtual void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const = 0;
+
   virtual void shutdown() = 0;
 
+  const std::string &name() const { return itsCacheName; }
+
  protected:
-  ObservationCache();
+  ObservationCache(const std::string &name);
+
+  std::string itsCacheName;
 };
 
 }  // namespace Observation

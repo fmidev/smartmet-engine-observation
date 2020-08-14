@@ -605,7 +605,6 @@ const Spine::Station& StationInfo::getStation(unsigned int fmisid,
 {
   std::set<StationID> all_ids;
 
-  //  std::cout << "FMISID: " << fmisid << std::endl;
   const auto& ids = fmisidstations.at(fmisid);
   for (const auto id : ids)
   {
@@ -616,19 +615,7 @@ const Spine::Station& StationInfo::getStation(unsigned int fmisid,
 
   if (all_ids.empty())
     throw Spine::Exception(BCP, "No match found for fmisid=" + Fmi::to_string(fmisid));
-  /*
-  if (all_ids.size() > 1)
-  {
-    std::string msg = "Too many matches found for fmisid=" + Fmi::to_string(fmisid) + " :";
-    for (const auto id : all_ids)
-      msg += " " + stations.at(id).station_type + " " + stations.at(id).station_formal_name;
-    msg += ". Requested:";
-    for (const auto& name : groups)
-      msg += " " + name;
 
-    throw Spine::Exception(BCP, msg);
-  }
-  */
   return stations.at(*ids.begin());
 }
 

@@ -17,7 +17,6 @@ namespace Engine
 {
 namespace Observation
 {
-struct ObservableProperty;
 struct QueryMapping;
 class StationInfo;
 

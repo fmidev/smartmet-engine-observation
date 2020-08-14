@@ -6,7 +6,10 @@ namespace Engine
 {
 namespace Observation
 {
-DummyCache::DummyCache(const EngineParametersPtr &p) : itsParameters(p) {}
+DummyCache::DummyCache(const std::string &name, const EngineParametersPtr &p)
+    : ObservationCache(name), itsParameters(p)
+{
+}
 
 void DummyCache::initializeConnectionPool()
 {
@@ -148,11 +151,29 @@ std::size_t DummyCache::fillNetAtmoCache(
 
 void DummyCache::cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const {}
 
-boost::shared_ptr<std::vector<ObservableProperty> > DummyCache::observablePropertyQuery(
-    std::vector<std::string> &parameters, const std::string language) const
+bool DummyCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                        const boost::posix_time::ptime &endtime) const
 {
-  return boost::shared_ptr<std::vector<ObservableProperty> >();
+  return false;
 }
+
+boost::posix_time::ptime DummyCache::getLatestFmiIoTDataTime() const
+{
+  return boost::posix_time::not_a_date_time;
+}
+
+boost::posix_time::ptime DummyCache::getLatestFmiIoTCreatedTime() const
+{
+  return boost::posix_time::not_a_date_time;
+}
+
+std::size_t DummyCache::fillFmiIoTCache(
+    const MobileExternalDataItems &mobileExternalCacheData) const
+{
+  return 0;
+}
+
+void DummyCache::cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const {}
 
 void DummyCache::shutdown() {}
 
