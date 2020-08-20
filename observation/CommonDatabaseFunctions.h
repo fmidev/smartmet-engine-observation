@@ -89,7 +89,8 @@ class CommonDatabaseFunctions
                          const ParameterMapPtr &parameterMap,
                          const std::string &stationType,
                          std::multimap<int, std::string> &parameterIDs) const;
-  StationMap mapQueryStations(const Spine::Stations &stations) const;
+  StationMap mapQueryStations(const Spine::Stations &stations,
+                              const std::set<int> &observed_fmisids) const;
   std::string buildSqlStationList(const Spine::Stations &stations,
                                   const std::set<std::string> &stationgroup_codes,
                                   const StationInfo &stationInfo) const;
@@ -158,7 +159,8 @@ class CommonDatabaseFunctions
       const std::map<std::string, int> &specialPositions,
       const std::map<std::string, std::string> &parameterNameMap,
       const std::map<int, std::map<int, int>> *defaultSensors,
-      const std::list<boost::local_time::local_date_time> &tlist) const;
+      const std::list<boost::local_time::local_date_time> &tlist,
+      bool addDataSourceField) const;
   void addParameterToTimeSeries(
       const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
       const std::pair<boost::local_time::local_date_time,

@@ -5,6 +5,7 @@
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <spine/ParameterTools.h>
 #include <spine/TimeSeriesGenerator.h>
+#include <spine/TimeSeriesOutput.h>
 
 namespace SmartMet
 {
@@ -289,13 +290,18 @@ void CommonDatabaseFunctions::solveMeasurandIds(const std::vector<std::string> &
   }
 }
 
-StationMap CommonDatabaseFunctions::mapQueryStations(const Spine::Stations &stations) const
+StationMap CommonDatabaseFunctions::mapQueryStations(const Spine::Stations &stations,
+                                                     const std::set<int> &observed_fmisids) const
 {
   try
   {
     StationMap ret;
     for (const Spine::Station &s : stations)
+    {
+      if (observed_fmisids.find(s.station_id) == observed_fmisids.end())
+        continue;
       ret.insert(std::make_pair(s.station_id, s));
+    }
     return ret;
   }
   catch (...)
@@ -496,8 +502,22 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesA
 
   try
   {
+    bool addDataQualityField = false;
+    bool addDataSourceField = false;
+
+    for (auto const &item : qmap.specialPositions)
+    {
+      if (isDataSourceField(item.first))
+        addDataSourceField = true;
+      if (isDataQualityField(item.first))
+        addDataQualityField = true;
+    }
+
     for (const Spine::Station &s : stations)
     {
+      if (fmisid_to_station.find(s.fmisid) == fmisid_to_station.end())
+        continue;
+
       int fmisid = s.station_id;
 
       if (obsmap.dataWithStringParameterId.find(fmisid) == obsmap.dataWithStringParameterId.end())
@@ -523,27 +543,41 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesA
                                  fmisid_to_station.at(fmisid),
                                  settings.missingtext);
       }
+      if (addDataSourceField && obsmap.dataSourceWithStringParameterId.find(fmisid) !=
+                                    obsmap.dataSourceWithStringParameterId.end())
+      {
+        std::list<boost::local_time::local_date_time> tlist;
 
-      stationData = obsmap.dataSourceWithStringParameterId.at(fmisid);
+        for (const dataItemWithStringParameterId &item :
+             obsmap.dataSourceWithStringParameterId.at(fmisid))
+          tlist.push_back(item.first);
 
-      std::list<boost::local_time::local_date_time> tlist;
-      addSpecialFieldsToTimeSeries(timeSeriesColumns,
-                                   stationData,
-                                   fmisid,
-                                   qmap.specialPositions,
-                                   qmap.parameterNameMap,
-                                   obsmap.default_sensors,
-                                   tlist);
+        addSpecialFieldsToTimeSeries(timeSeriesColumns,
+                                     obsmap.dataSourceWithStringParameterId.at(fmisid),
+                                     fmisid,
+                                     qmap.specialPositions,
+                                     qmap.parameterNameMap,
+                                     obsmap.default_sensors,
+                                     tlist,
+                                     true);
+      }
+      if (addDataQualityField && obsmap.dataQualityWithStringParameterId.find(s.fmisid) !=
+                                     obsmap.dataQualityWithStringParameterId.end())
+      {
+        std::list<boost::local_time::local_date_time> tlist;
+        for (const dataItemWithStringParameterId &item :
+             obsmap.dataQualityWithStringParameterId.at(fmisid))
+          tlist.push_back(item.first);
 
-      stationData = obsmap.dataQualityWithStringParameterId.at(fmisid);
-
-      addSpecialFieldsToTimeSeries(timeSeriesColumns,
-                                   stationData,
-                                   fmisid,
-                                   qmap.specialPositions,
-                                   qmap.parameterNameMap,
-                                   obsmap.default_sensors,
-                                   tlist);
+        addSpecialFieldsToTimeSeries(timeSeriesColumns,
+                                     obsmap.dataQualityWithStringParameterId.at(fmisid),
+                                     fmisid,
+                                     qmap.specialPositions,
+                                     qmap.parameterNameMap,
+                                     obsmap.default_sensors,
+                                     tlist,
+                                     false);
+      }
     }
   }
   catch (...)
@@ -575,6 +609,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
 
     for (const Spine::Station &s : stations)
     {
+      if (fmisid_to_station.find(s.fmisid) == fmisid_to_station.end())
+        continue;
+
       // Get only the last time step if there is many
       boost::local_time::local_date_time t(boost::local_time::not_a_date_time);
 
@@ -644,6 +681,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
 
     for (const Spine::Station &s : stations)
     {
+      if (fmisid_to_station.find(s.fmisid) == fmisid_to_station.end())
+        continue;
       for (const boost::local_time::local_date_time &t : tlist)
       {
         if (obsmap.dataWithStringParameterId.find(s.fmisid) !=
@@ -676,7 +715,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
                                      qmap.specialPositions,
                                      qmap.parameterNameMap,
                                      obsmap.default_sensors,
-                                     tlist);
+                                     tlist,
+                                     true);
       }
       if (addDataQualityField && obsmap.dataQualityWithStringParameterId.find(s.fmisid) !=
                                      obsmap.dataQualityWithStringParameterId.end())
@@ -687,7 +727,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
                                      qmap.specialPositions,
                                      qmap.parameterNameMap,
                                      obsmap.default_sensors,
-                                     tlist);
+                                     tlist,
+                                     false);
       }
     }
 
@@ -891,7 +932,8 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
     const std::map<std::string, int> &specialPositions,
     const std::map<std::string, std::string> &parameterNameMap,
     const std::map<int, std::map<int, int>> *defaultSensors,
-    const std::list<boost::local_time::local_date_time> &tlist) const
+    const std::list<boost::local_time::local_date_time> &tlist,
+    bool addDataSourceField) const
 {
   // Add *data_source- and data_quality-fields
 
@@ -913,6 +955,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
     }
     if (!timeOK)
       continue;
+
     // measurand_id -> sensor_no -> value
     std::map<std::string, std::map<std::string, Spine::TimeSeries::Value>> data = item.second;
     for (const auto &special : specialPositions)
@@ -921,7 +964,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
 
       int pos = special.second;
       Spine::TimeSeries::Value val = Spine::TimeSeries::None();
-      if (isDataSourceField(fieldname))
+      if (addDataSourceField && isDataSourceField(fieldname))
       {
         auto masterParamName = fieldname.substr(0, fieldname.find("_data_source_sensornumber_"));
         if (!masterParamName.empty())
@@ -952,7 +995,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
         }
         data_source_ts[pos].push_back(Spine::TimeSeries::TimedValue(obstime, val));
       }
-      else if (isDataQualityField(fieldname))
+      else if (!addDataSourceField && isDataQualityField(fieldname))
       {
         // Handle data_quality field
         std::string sensor_number = fieldname.substr(fieldname.rfind("_") + 1);
@@ -1313,8 +1356,12 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
           Spine::TimeSeries::TimedValue(obstime, station.distance));
 
     else if (paramname == "direction")
-      timeSeriesColumns->at(pos).push_back(
-          Spine::TimeSeries::TimedValue(obstime, station.stationDirection));
+    {
+      const Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
+
+      timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(
+          obstime, station.stationDirection >= 0 ? station.stationDirection : missing));
+    }
 
     else if (paramname == "stationary")
       timeSeriesColumns->at(pos).push_back(
@@ -1616,7 +1663,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
                                      qmap.specialPositions,
                                      qmap.parameterNameMap,
                                      &default_sensors,
-                                     tlist);
+                                     tlist,
+                                     false);
       }
     }
     else
@@ -1670,7 +1718,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
                                          qmap.specialPositions,
                                          qmap.parameterNameMap,
                                          &default_sensors,
-                                         tlist);
+                                         tlist,
+                                         false);
           }
         }
       }

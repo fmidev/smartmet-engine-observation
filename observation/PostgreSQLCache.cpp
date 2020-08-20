@@ -123,13 +123,13 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
 {
   try
   {
-    if (settings.stationtype == "roadcloud")
+    if (settings.stationtype == ROADCLOUD_PRODUCER)
       return roadCloudValuesFromPostgreSQL(settings);
 
-    if (settings.stationtype == "netatmo")
+    if (settings.stationtype == NETATMO_PRODUCER)
       return netAtmoValuesFromPostgreSQL(settings);
 
-    if (settings.stationtype == "fmi_iot")
+    if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTValuesFromPostgreSQL(settings);
 
     if (settings.stationtype == "flash")
@@ -169,13 +169,13 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
 {
   try
   {
-    if (settings.stationtype == "roadcloud")
+    if (settings.stationtype == ROADCLOUD_PRODUCER)
       return roadCloudValuesFromPostgreSQL(settings);
 
-    if (settings.stationtype == "netatmo")
+    if (settings.stationtype == NETATMO_PRODUCER)
       return netAtmoValuesFromPostgreSQL(settings);
 
-    if (settings.stationtype == "fmi_iot")
+    if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTValuesFromPostgreSQL(settings);
 
     if (settings.stationtype == "flash")
@@ -352,13 +352,13 @@ bool PostgreSQLCache::dataAvailableInCache(const Settings &settings) const
     else if (settings.stationtype == "flash")
       return flashIntervalIsCached(settings.starttime, settings.endtime);
 
-    else if (settings.stationtype == "roadcloud")
+    else if (settings.stationtype == ROADCLOUD_PRODUCER)
       return roadCloudIntervalIsCached(settings.starttime, settings.endtime);
 
-    else if (settings.stationtype == "netatmo")
+    else if (settings.stationtype == NETATMO_PRODUCER)
       return netAtmoIntervalIsCached(settings.starttime, settings.endtime);
 
-    else if (settings.stationtype == "fmi_iot")
+    else if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTIntervalIsCached(settings.starttime, settings.endtime);
 
     // Either the stationtype is not cached or the requested time interval is

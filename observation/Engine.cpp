@@ -32,7 +32,7 @@ void Engine::init()
 
     itsEngineParameters.reset(new EngineParameters(cfg));
 
-    std::cout << itsEngineParameters->databaseDriverInfo << std::endl;
+    //    std::cout << itsEngineParameters->databaseDriverInfo << std::endl;
 
     itsDatabaseRegistry->loadConfigurations(itsEngineParameters->dbRegistryFolderPath);
 

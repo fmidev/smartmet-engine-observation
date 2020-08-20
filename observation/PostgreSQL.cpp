@@ -2286,6 +2286,11 @@ LocationDataItems PostgreSQL::readObservations(const Spine::Stations &stations,
     if (qstations.empty())
       return ret;
 
+    std::list<std::string> producer_id_str_list;
+    for (auto &prodId : settings.producer_ids)
+      producer_id_str_list.push_back(std::to_string(prodId));
+    std::string producerIds = boost::algorithm::join(producer_id_str_list, ",");
+
     std::string starttime = Fmi::to_iso_extended_string(settings.starttime);
     std::string endtime = Fmi::to_iso_extended_string(settings.endtime);
 
@@ -2300,6 +2305,8 @@ LocationDataItems PostgreSQL::readObservations(const Spine::Stations &stations,
         "AND data.data_time >= '" +
         starttime + "' AND data.data_time <= '" + endtime + "' AND data.measurand_id IN (" +
         measurand_ids + ") ";
+    if (!producerIds.empty())
+      sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
 
     sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
     sqlStmt += "AND " + settings.sqlDataFilter.getSqlClause("data_quality", "data.data_quality") +
@@ -2371,10 +2378,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getData(
 
     std::string stationtype = "observations_fmi";
 
-    // Map fmisid to station information
-
-    StationMap fmisid_to_station = mapQueryStations(stations);
-
     // This maps measurand_id and the parameter position in TimeSeriesVector
 
     auto qmap = buildQueryMapping(stations, settings, itsParameterMap, stationtype, false);
@@ -2387,6 +2390,14 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getData(
 
     LocationDataItems observations =
         readObservations(stations, settings, stationInfo, qmap, stationgroup_codes);
+
+    std::set<int> observed_fmisids;
+    for (auto item : observations)
+      observed_fmisids.insert(item.data.fmisid);
+
+    // Map fmisid to station information
+    Engine::Observation::StationMap fmisid_to_station =
+        mapQueryStations(stations, observed_fmisids);
 
     ObservationsMap obsmap =
         buildObservationsMap(observations, settings, timezones, fmisid_to_station);

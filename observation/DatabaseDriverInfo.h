@@ -103,9 +103,9 @@ class DatabaseDriverInfo
   std::map<std::string, CacheInfoItem> itsCacheInfoItems;  // Cache name -> cahecinfo
 };
 
+std::ostream& operator<<(std::ostream& out,
+                         const SmartMet::Engine::Observation::DatabaseDriverInfo& driverInfo);
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-
-std::ostream& operator<<(std::ostream& out,
-                         const SmartMet::Engine::Observation::DatabaseDriverInfo& driverInfo);

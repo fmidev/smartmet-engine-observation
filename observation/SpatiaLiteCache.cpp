@@ -150,13 +150,13 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
 {
   try
   {
-    if (settings.stationtype == "roadcloud")
+    if (settings.stationtype == ROADCLOUD_PRODUCER)
       return roadCloudValuesFromSpatiaLite(settings);
 
-    if (settings.stationtype == "netatmo")
+    if (settings.stationtype == NETATMO_PRODUCER)
       return netAtmoValuesFromSpatiaLite(settings);
 
-    if (settings.stationtype == "fmi_iot")
+    if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTValuesFromSpatiaLite(settings);
 
     if (settings.stationtype == "flash")
@@ -199,13 +199,13 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
 {
   try
   {
-    if (settings.stationtype == "roadcloud")
+    if (settings.stationtype == ROADCLOUD_PRODUCER)
       return roadCloudValuesFromSpatiaLite(settings);
 
-    if (settings.stationtype == "netatmo")
+    if (settings.stationtype == NETATMO_PRODUCER)
       return netAtmoValuesFromSpatiaLite(settings);
 
-    if (settings.stationtype == "fmi_iot")
+    if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTValuesFromSpatiaLite(settings);
 
     if (settings.stationtype == "flash")
@@ -341,13 +341,13 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
     if (s == "flash")
       return flashIntervalIsCached(settings.starttime, settings.endtime);
 
-    if (s == "roadcloud")
+    if (s == ROADCLOUD_PRODUCER)
       return roadCloudIntervalIsCached(settings.starttime, settings.endtime);
 
-    if (s == "netatmo")
+    if (s == NETATMO_PRODUCER)
       return netAtmoIntervalIsCached(settings.starttime, settings.endtime);
 
-    if (s == "fmi_iot")
+    if (s == FMI_IOT_PRODUCER)
       return fmiIoTIntervalIsCached(settings.starttime, settings.endtime);
 
     // Either the stationtype is not cached or the requested time interval is
