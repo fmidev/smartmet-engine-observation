@@ -148,7 +148,7 @@ void DatabaseDriverInfo::readSpatiaLiteConnectInfo(Spine::ConfigBase& cfg,
                                                    const std::string& name,
                                                    std::map<std::string, std::string>& params)
 {
-  std::string common_key = ("connect_info." + name);
+  std::string common_key = ("database_info.connect_info." + name);
 
   params["spatialiteFile"] =
       cfg.get_mandatory_config_param<std::string>(common_key + ".spatialiteFile");
@@ -158,7 +158,7 @@ void DatabaseDriverInfo::readPostgreSQLConnectInfo(Spine::ConfigBase& cfg,
                                                    const std::string& name,
                                                    std::map<std::string, std::string>& params)
 {
-  std::string common_key = ("connect_info." + name);
+  std::string common_key = ("database_info.connect_info." + name);
 
   params["host"] = cfg.get_mandatory_config_param<std::string>(common_key + ".host");
   params["port"] = Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".port"));
@@ -177,7 +177,7 @@ void DatabaseDriverInfo::readOracleConnectInfo(
 {
   try
   {
-    std::string common_key = ("connect_info." + name);
+    std::string common_key = ("database_info.connect_info." + name);
 
     const std::string& name = boost::asio::ip::host_name();
     const std::string& defaultLang = "NLS_LANG=.UTF8";
@@ -255,7 +255,7 @@ void DatabaseDriverInfo::readOracleCommonInfo(Spine::ConfigBase& cfg,
                                               const std::string& name,
                                               std::map<std::string, std::string>& params)
 {
-  std::string common_key = ("common_info." + name);
+  std::string common_key = ("database_info.common_info." + name);
 
   bool defaultQuiet = cfg.get_optional_config_param<bool>("quiet", false);
 
@@ -297,7 +297,7 @@ void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
                                                   const std::string& name,
                                                   std::map<std::string, std::string>& params)
 {
-  std::string common_key = ("common_info." + name);
+  std::string common_key = ("database_info.common_info." + name);
 
   bool defaultQuiet = cfg.get_optional_config_param<bool>("quiet", false);
 
@@ -362,7 +362,7 @@ void DatabaseDriverInfo::readPostgreSQLMobileCommonInfo(Spine::ConfigBase& cfg,
                                                         const std::string& name,
                                                         std::map<std::string, std::string>& params)
 {
-  std::string common_key = ("common_info." + name);
+  std::string common_key = ("database_info.common_info." + name);
 
   bool defaultQuiet = cfg.get_optional_config_param<bool>("quiet", false);
 
@@ -392,7 +392,7 @@ void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
                                                   const std::string& name,
                                                   std::map<std::string, std::string>& params)
 {
-  std::string common_key = ("common_info." + name);
+  std::string common_key = ("database_info.common_info." + name);
 
   bool defaultQuiet = cfg.get_optional_config_param<bool>("quiet", false);
 
