@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.8.20
+Version: 20.8.28
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Aug 28 2020  Anssi Reponen <anssi.reponen@fmi.fi> - 20.8.28-1.fmi
+- Station info is now read into memory at startup and can ce reloaded either 
+via admin-plugin (what=reloadstations) or database driver can start reload-loop 
+in its own thread (BRAINSTORM-1856)
+
 * Thu Aug 20 2020  Anssi Reponen <anssi.reponen@fmi.fi> - 20.8.20-1.fmi
 - Cache handling added in PostgreSQL-driver (BRAINSTORM-1783)
 - Support for both 'itmf' and 'fmi_iot' producer names (INSPIRE-909)

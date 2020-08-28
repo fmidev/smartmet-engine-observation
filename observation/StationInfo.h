@@ -102,6 +102,13 @@ class StationInfo
 
   bool belongsToGroup(unsigned int fmisid, const std::set<std::string>& groups) const;
 
+  Spine::TaggedFMISIDList translateWMOToFMISID(const std::vector<int>& wmos,
+                                               const boost::posix_time::ptime& t) const;
+  Spine::TaggedFMISIDList translateRWSIDToFMISID(const std::vector<int>& rwsids,
+                                                 const boost::posix_time::ptime& t) const;
+  Spine::TaggedFMISIDList translateLPNNToFMISID(const std::vector<int>& lpnns,
+                                                const boost::posix_time::ptime& t) const;
+
  private:
   void update() const;
   // Mapping from coordinates to stations

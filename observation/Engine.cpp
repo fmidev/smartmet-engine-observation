@@ -372,6 +372,11 @@ void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr tsvPtr,
   }
 }
 
+void Engine::reloadStations()
+{
+  itsDatabaseDriver->reloadStations();
+}
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

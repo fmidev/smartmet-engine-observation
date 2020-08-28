@@ -765,7 +765,7 @@ void StationInfo::update() const
   {
     const auto& station = stations[idx];
     if (station.rwsid > 0)
-      lpnnstations[station.rwsid].insert(idx);
+      rwsidstations[station.rwsid].insert(idx);
   }
 
   // Map groups to sets of stations
@@ -785,6 +785,60 @@ void StationInfo::update() const
   }
 
   stationtree.flush();
+}
+
+Spine::TaggedFMISIDList StationInfo::translateWMOToFMISID(const std::vector<int>& wmos,
+                                                          const boost::posix_time::ptime& t) const
+{
+  Spine::TaggedFMISIDList ret;
+
+  SmartMet::Spine::Stations stations = findWmoStations(wmos);
+
+  std::set<int> processed;
+  for (auto s : stations)
+    if (t >= s.station_start && t <= s.station_end && processed.find(s.wmo) == processed.end())
+    {
+      ret.emplace_back(Fmi::to_string(s.wmo), s.fmisid);
+      processed.insert(s.wmo);
+    }
+
+  return ret;
+}
+
+Spine::TaggedFMISIDList StationInfo::translateRWSIDToFMISID(const std::vector<int>& rwsids,
+                                                            const boost::posix_time::ptime& t) const
+{
+  Spine::TaggedFMISIDList ret;
+
+  SmartMet::Spine::Stations stations = findRwsidStations(rwsids);
+
+  std::set<int> processed;
+  for (auto s : stations)
+    if (t >= s.station_start && t <= s.station_end && processed.find(s.rwsid) == processed.end())
+    {
+      ret.emplace_back(Fmi::to_string(s.rwsid), s.fmisid);
+      processed.insert(s.rwsid);
+    }
+
+  return ret;
+}
+
+Spine::TaggedFMISIDList StationInfo::translateLPNNToFMISID(const std::vector<int>& lpnns,
+                                                           const boost::posix_time::ptime& t) const
+{
+  Spine::TaggedFMISIDList ret;
+
+  SmartMet::Spine::Stations stations = findLpnnStations(lpnns);
+
+  std::set<int> processed;
+  for (auto s : stations)
+    if (t >= s.station_start && t <= s.station_end && processed.find(s.lpnn) == processed.end())
+    {
+      ret.emplace_back(Fmi::to_string(s.lpnn), s.fmisid);
+      processed.insert(s.lpnn);
+    }
+
+  return ret;
 }
 
 }  // namespace Observation
