@@ -31,6 +31,7 @@ class DummyDatabaseDriver : public DatabaseDriverInterface
                             const Spine::TaggedLocationList &locations) const;
   boost::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language);
+  void reloadStations() {}
   void getStations(Spine::Stations &stations, const Settings &settings) const {}
   virtual void getStationsByArea(Spine::Stations &stations,
                                  const std::string &stationtype,

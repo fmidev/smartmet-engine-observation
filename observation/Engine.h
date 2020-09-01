@@ -36,6 +36,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   Geonames::Engine *getGeonames() const;
 
   const std::shared_ptr<DBRegistry> dbRegistry() const { return itsDatabaseRegistry; }
+  void reloadStations();
   void getStations(Spine::Stations &stations, Settings &settings);
 
   void getStationsByArea(Spine::Stations &stations,

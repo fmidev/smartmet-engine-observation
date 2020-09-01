@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 * Tue Sep  1 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.9.1-1.fmi
 - Cache handling added in PostgreSQL-driver (BRAINSTORM-1783)
 - Support for both 'itmf' and 'fmi_iot' producer names (INSPIRE-909)
+- Station info is now read into memory at startup and can ce reloaded either 
+via admin-plugin (what=reloadstations) or database driver can start reload-loop 
+in its own thread (BRAINSTORM-1856)
 
 * Fri Aug 21 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.8.21-1.fmi
 - Upgrade to fmt 6.2

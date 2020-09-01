@@ -127,16 +127,30 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
       }
     }
 
+    unsigned int loadStationsParam = 0;
     // Cache info (with same name) from different drivers are aggregated to one place
-
     for (auto& ddii : itsDatabaseDriverInfoItems)
     {
+      if (ddii.parameterExists("loadStations") && ddii.getIntParameterValue("loadStations", 0) > 0)
+      {
+        loadStationsParam++;
+      }
       for (const auto& cii_from : ddii.itsCacheInfoItems)
         if (itsCacheInfoItems.find(cii_from.first) == itsCacheInfoItems.end())
           itsCacheInfoItems[cii_from.first] = cii_from.second;
         else
           itsCacheInfoItems[cii_from.first].mergeCacheInfo(cii_from.second);
     }
+
+    if (loadStationsParam == 0)
+      throw SmartMet::Spine::Exception::Trace(BCP,
+                                              "Parameter loadStations missing! It must be defined "
+                                              "to be true in exaclty one database driver!");
+    else if (loadStationsParam > 1)
+      throw SmartMet::Spine::Exception::Trace(
+          BCP,
+          "Parameter loadStations defined to be true in more than one database driver. It must be "
+          "be defined to be true in exaclty one database driver!");
   }
   catch (...)
   {
@@ -291,6 +305,8 @@ void DatabaseDriverInfo::readOracleCommonInfo(Spine::ConfigBase& cfg,
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashCacheDuration", 0));
   params["flashMemoryCacheDuration"] = Fmi::to_string(
       cfg.get_optional_config_param<int>(common_key + ".flashMemoryCacheDuration", 0));
+  params["stationsCacheUpdateInterval"] = Fmi::to_string(
+      cfg.get_optional_config_param<std::size_t>(common_key + ".stationsCacheUpdateInterval", 0));
 }
 
 void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
@@ -355,6 +371,8 @@ void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
         Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashCacheDuration", 0));
     params["flashMemoryCacheDuration"] = Fmi::to_string(
         cfg.get_optional_config_param<int>(common_key + ".flashMemoryCacheDuration", 0));
+    params["stationsCacheUpdateInterval"] = Fmi::to_string(
+        cfg.get_optional_config_param<std::size_t>(common_key + ".stationsCacheUpdateInterval", 0));
   }
 }
 
