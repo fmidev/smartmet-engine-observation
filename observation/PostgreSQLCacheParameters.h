@@ -32,7 +32,8 @@ struct PostgreSQLCacheParameters
         stationInfo(&p->stationInfo),
         parameterMap(p->parameterMap),
         stationtypeConfig(p->stationtypeConfig),
-        externalAndMobileProducerConfig(p->externalAndMobileProducerConfig)
+        externalAndMobileProducerConfig(p->externalAndMobileProducerConfig),
+        databaseDriverInfo(p->databaseDriverInfo)
   {
   }
 
@@ -44,6 +45,7 @@ struct PostgreSQLCacheParameters
   std::size_t flashInsertCacheSize = 0;
   std::size_t roadCloudInsertCacheSize = 0;
   std::size_t netAtmoInsertCacheSize = 0;
+  std::size_t fmiIoTInsertCacheSize = 0;
 
   bool quiet = true;
   boost::shared_ptr<boost::posix_time::time_period> flashCachePeriod;
@@ -52,6 +54,7 @@ struct PostgreSQLCacheParameters
   const ParameterMapPtr& parameterMap;
   StationtypeConfig& stationtypeConfig;
   const ExternalAndMobileProducerConfig& externalAndMobileProducerConfig;
+  const DatabaseDriverInfo& databaseDriverInfo;
 };
 
 }  // namespace Observation

@@ -1,13 +1,14 @@
 #include "PostgreSQL.h"
 #include "ExternalAndMobileDBInfo.h"
-#include "ObservableProperty.h"
 #include "PostgreSQLCacheParameters.h"
+#include "QueryMapping.h"
 #include <fmt/format.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeParser.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <spine/Exception.h>
 #include <spine/Thread.h>
+#include <spine/TimeSeriesGenerator.h>
 #include <spine/TimeSeriesOutput.h>
 #include <chrono>
 #include <iostream>
@@ -61,6 +62,7 @@ static Spine::MutexType weather_data_qc_write_mutex;
 static Spine::MutexType flash_data_write_mutex;
 static Spine::MutexType roadcloud_data_write_mutex;
 static Spine::MutexType netatmo_data_write_mutex;
+static Spine::MutexType fmi_iot_data_write_mutex;
 
 namespace Engine
 {
@@ -68,23 +70,6 @@ namespace Observation
 {
 namespace
 {
-// Round down to HH:00:00
-
-boost::posix_time::ptime round_down_to_hour(const boost::posix_time::ptime &t)
-{
-  try
-  {
-    // Empty list means we want all parameters
-    auto hour = t.time_of_day().hours();
-    return boost::posix_time::ptime(t.date(), boost::posix_time::hours(hour));
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(
-        BCP, "Failed to round down to hour the time '" + to_iso_string(t) + "'!");
-  }
-}
-
 void solveMeasurandIds(const std::vector<std::string> &parameters,
                        const ParameterMapPtr &parameterMap,
                        const std::string &stationType,
@@ -128,14 +113,16 @@ void solveMeasurandIds(const std::vector<std::string> &parameters,
 }  // namespace
 
 PostgreSQL::PostgreSQL(const PostgreSQLCacheParameters &options)
-    : itsShutdownRequested(false),
+    : CommonDatabaseFunctions(options.stationtypeConfig, options.parameterMap),
       itsMaxInsertSize(options.maxInsertSize),
       itsDataInsertCache(options.dataInsertCacheSize),
       itsWeatherQCInsertCache(options.weatherDataQCInsertCacheSize),
       itsFlashInsertCache(options.flashInsertCacheSize),
       itsRoadCloudInsertCache(options.roadCloudInsertCacheSize),
       itsNetAtmoInsertCache(options.netAtmoInsertCacheSize),
-      itsExternalAndMobileProducerConfig(options.externalAndMobileProducerConfig)
+      itsFmiIoTInsertCache(options.fmiIoTInsertCacheSize),
+      itsExternalAndMobileProducerConfig(options.externalAndMobileProducerConfig),
+      itsShutdownRequested(false)
 {
   try
   {
@@ -158,18 +145,23 @@ PostgreSQL::PostgreSQL(const PostgreSQLCacheParameters &options)
 
 PostgreSQL::~PostgreSQL() {}
 
-void PostgreSQL::createTables()
+void PostgreSQL::createTables(const std::set<std::string> &tables)
 {
   try
   {
     // No locking needed during initialization phase
-    //    createLocationsTable();
-    createObservationDataTable();
-    createWeatherDataQCTable();
-    createFlashDataTable();
-    createObservablePropertyTable();
-    createRoadCloudDataTable();
-    createNetAtmoDataTable();
+    if (tables.find(OBSERVATION_DATA_TABLE) != tables.end())
+      createObservationDataTable();
+    if (tables.find(WEATHER_DATA_QC_TABLE) != tables.end())
+      createWeatherDataQCTable();
+    if (tables.find(FLASH_DATA_TABLE) != tables.end())
+      createFlashDataTable();
+    if (tables.find(ROADCLOUD_DATA_TABLE) != tables.end())
+      createRoadCloudDataTable();
+    if (tables.find(NETATMO_DATA_TABLE) != tables.end())
+      createNetAtmoDataTable();
+    if (tables.find(FMI_IOT_DATA_TABLE) != tables.end())
+      createFmiIoTDataTable();
   }
   catch (...)
   {
@@ -189,35 +181,6 @@ void PostgreSQL::shutdown()
   itsShutdownRequested = true;
 }
 
-/*
- */
-/*
-void PostgreSQL::createLocationsTable()
-{
-  try
-  {
-    itsDB.executeNonTransaction(
-        "CREATE TABLE IF NOT EXISTS locations("
-        "fmisid INTEGER NOT NULL PRIMARY KEY, "
-        "location_id INTEGER NOT NULL,"
-        "country_id INTEGER NOT NULL,"
-        "location_start timestamp, "
-        "location_end timestamp, "
-        "longitude REAL, "
-        "latitude REAL, "
-        "x REAL, "
-        "y REAL, "
-        "elevation REAL, "
-        "time_zone_name TEXT, "
-        "time_zone_abbrev TEXT, "
-        "last_modified timestamp default now())");
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Creation of locations table failed!");
-  }
-}
-*/
 void PostgreSQL::createObservationDataTable()
 {
   try
@@ -226,6 +189,7 @@ void PostgreSQL::createObservationDataTable()
     itsDB.executeNonTransaction(
         "CREATE TABLE IF NOT EXISTS observation_data("
         "fmisid INTEGER NOT NULL, "
+        "sensor_no INTEGER NOT NULL, "
         "data_time timestamp NOT NULL, "
         "measurand_id INTEGER NOT NULL,"
         "producer_id INTEGER NOT NULL,"
@@ -234,8 +198,7 @@ void PostgreSQL::createObservationDataTable()
         "data_quality INTEGER, "
         "data_source INTEGER, "
         "last_modified timestamp NOT NULL DEFAULT now(), "
-        "PRIMARY KEY (data_time, fmisid, measurand_id, producer_id, "
-        "measurand_no, sensor_no));"
+        "PRIMARY KEY (fmisid, data_time, measurand_id, producer_id, measurand_no, sensor_no));"
         "CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON observation_data(data_time);"
         "CREATE INDEX IF NOT EXISTS observation_data_last_modified_idx ON "
         "observation_data(last_modified);");
@@ -402,6 +365,44 @@ void PostgreSQL::createNetAtmoDataTable()
   catch (...)
   {
     throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_netatmo table failed!");
+  }
+}
+
+void PostgreSQL::createFmiIoTDataTable()
+{
+  try
+  {
+    itsDB.executeNonTransaction(
+        "CREATE TABLE IF NOT EXISTS ext_obsdata_fmi_iot("
+        "prod_id INTEGER, "
+        "station_id INTEGER DEFAULT 0, "
+        "dataset_id character VARYING(50) DEFAULT 0, "
+        "data_level INTEGER DEFAULT 0, "
+        "mid INTEGER, "
+        "sensor_no INTEGER DEFAULT 0, "
+        "data_time timestamp without time zone NOT NULL, "
+        "data_value NUMERIC, "
+        "data_value_txt character VARYING(30), "
+        "data_quality INTEGER, "
+        "ctrl_status INTEGER, "
+        "created timestamp without time zone DEFAULT timezone('UTC'::text, now()), "
+        "altitude NUMERIC)");
+    pqxx::result result_set = itsDB.executeNonTransaction(
+        "SELECT * FROM geometry_columns WHERE f_table_name='ext_obsdata_fmi_iot'");
+    if (result_set.empty())
+    {
+      itsDB.executeNonTransaction(
+          "SELECT AddGeometryColumn('ext_obsdata_fmi_iot', 'geom', 4326, 'POINT', 2)");
+      itsDB.executeNonTransaction(
+          "CREATE INDEX IF NOT EXISTS ext_obsdata_fmi_iot_gix ON ext_obsdata_fmi_iot USING GIST "
+          "(geom)");
+      itsDB.executeNonTransaction(
+          "ALTER TABLE ext_obsdata_fmi_iot ADD PRIMARY KEY (prod_id,mid,data_time, geom)");
+    }
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_fmi_iot table failed!");
   }
 }
 
@@ -594,6 +595,48 @@ boost::posix_time::ptime PostgreSQL::getLatestNetAtmoCreatedTime()
   }
 }
 
+boost::posix_time::ptime PostgreSQL::getOldestFmiIoTDataTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_fmi_iot";
+    string time_field = "data_time";
+    return getOldestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Oldest FmiIoT data time query failed!");
+  }
+}
+
+boost::posix_time::ptime PostgreSQL::getLatestFmiIoTDataTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_fmi_iot";
+    string time_field = "data_time";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Latest FmiIoT data time query failed!");
+  }
+}
+
+boost::posix_time::ptime PostgreSQL::getLatestFmiIoTCreatedTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_fmi_iot";
+    string time_field = "created";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Latest FmiIoT created time query failed!");
+  }
+}
+
 boost::posix_time::ptime PostgreSQL::getLatestTimeFromTable(const std::string tablename,
                                                             const std::string time_field)
 {
@@ -608,20 +651,17 @@ boost::posix_time::ptime PostgreSQL::getOldestTimeFromTable(const std::string ta
   return getTime(stmt);
 }
 
-void PostgreSQL::cleanDataCache(const boost::posix_time::time_duration &timetokeep)
+void PostgreSQL::cleanDataCache(const boost::posix_time::ptime &newstarttime)
 {
   try
   {
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-    t = round_down_to_hour(t);
-
     auto oldest = getOldestObservationTime();
-    if (t <= oldest)
+    if (newstarttime <= oldest)
       return;
 
     Spine::WriteLock lock(observation_data_write_mutex);
-    std::string sqlStmt =
-        ("DELETE FROM observation_data WHERE data_time < '" + Fmi::to_iso_extended_string(t) + "'");
+    std::string sqlStmt = ("DELETE FROM observation_data WHERE data_time < '" +
+                           Fmi::to_iso_extended_string(newstarttime) + "'");
     itsDB.executeNonTransaction(sqlStmt);
   }
   catch (...)
@@ -630,20 +670,17 @@ void PostgreSQL::cleanDataCache(const boost::posix_time::time_duration &timetoke
   }
 }
 
-void PostgreSQL::cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep)
+void PostgreSQL::cleanWeatherDataQCCache(const boost::posix_time::ptime &newstarttime)
 {
   try
   {
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-    t = round_down_to_hour(t);
-
     auto oldest = getOldestWeatherDataQCTime();
-    if (t <= oldest)
+    if (newstarttime <= oldest)
       return;
 
     Spine::WriteLock lock(weather_data_qc_write_mutex);
-    std::string sqlStmt =
-        ("DELETE FROM weather_data_qc WHERE obstime < '" + Fmi::to_iso_extended_string(t) + "'");
+    std::string sqlStmt = ("DELETE FROM weather_data_qc WHERE obstime < '" +
+                           Fmi::to_iso_extended_string(newstarttime) + "'");
     itsDB.executeNonTransaction(sqlStmt);
   }
   catch (...)
@@ -652,21 +689,18 @@ void PostgreSQL::cleanWeatherDataQCCache(const boost::posix_time::time_duration 
   }
 }
 
-void PostgreSQL::cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep)
+void PostgreSQL::cleanFlashDataCache(const boost::posix_time::ptime &newstarttime)
 {
   try
   {
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-    t = round_down_to_hour(t);
-
     auto oldest = getOldestFlashTime();
 
-    if (t <= oldest)
+    if (newstarttime <= oldest)
       return;
 
     Spine::WriteLock lock(flash_data_write_mutex);
-    std::string sqlStmt =
-        ("DELETE FROM flash_data WHERE stroke_time < '" + Fmi::to_iso_extended_string(t) + "'");
+    std::string sqlStmt = ("DELETE FROM flash_data WHERE stroke_time < '" +
+                           Fmi::to_iso_extended_string(newstarttime) + "'");
     itsDB.executeNonTransaction(sqlStmt);
   }
   catch (...)
@@ -675,21 +709,18 @@ void PostgreSQL::cleanFlashDataCache(const boost::posix_time::time_duration &tim
   }
 }
 
-void PostgreSQL::cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep)
+void PostgreSQL::cleanRoadCloudCache(const boost::posix_time::ptime &newstarttime)
 {
   try
   {
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-    t = round_down_to_hour(t);
-
     auto oldest = getOldestRoadCloudDataTime();
 
-    if (t <= oldest)
+    if (newstarttime <= oldest)
       return;
 
     Spine::WriteLock lock(roadcloud_data_write_mutex);
     std::string sqlStmt = ("DELETE FROM ext_obsdata_roadcloud WHERE data_time < '" +
-                           Fmi::to_iso_extended_string(t) + "'");
+                           Fmi::to_iso_extended_string(newstarttime) + "'");
     itsDB.executeNonTransaction(sqlStmt);
   }
   catch (...)
@@ -698,27 +729,45 @@ void PostgreSQL::cleanRoadCloudCache(const boost::posix_time::time_duration &tim
   }
 }
 
-void PostgreSQL::cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep)
+void PostgreSQL::cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime)
 {
   try
   {
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
-    t = round_down_to_hour(t);
-
     auto oldest = getOldestNetAtmoDataTime();
 
-    if (t <= oldest)
+    if (newstarttime <= oldest)
       return;
 
     Spine::WriteLock lock(netatmo_data_write_mutex);
     std::string sqlStmt = ("DELETE FROM ext_obsdata_netatmo WHERE data_time < '" +
-                           Fmi::to_iso_extended_string(t) + "'");
+                           Fmi::to_iso_extended_string(newstarttime) + "'");
 
     itsDB.executeNonTransaction(sqlStmt);
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of RoadCloud cache failed!");
+    throw Spine::Exception::Trace(BCP, "Cleaning of NetAtmo cache failed!");
+  }
+}
+
+void PostgreSQL::cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime)
+{
+  try
+  {
+    auto oldest = getOldestFmiIoTDataTime();
+
+    if (newstarttime <= oldest)
+      return;
+
+    Spine::WriteLock lock(fmi_iot_data_write_mutex);
+    std::string sqlStmt = ("DELETE FROM ext_obsdata_fmi_iot WHERE data_time < '" +
+                           Fmi::to_iso_extended_string(newstarttime) + "'");
+
+    itsDB.executeNonTransaction(sqlStmt);
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP, "Cleaning of FmiIoT cache failed!");
   }
 }
 
@@ -784,6 +833,7 @@ std::size_t PostgreSQL::fillDataCache(const DataItems &cacheData)
             std::string key = Fmi::to_iso_string(item.data_time);
             //            key += Fmi::to_iso_string(item.modified_last);
             key += Fmi::to_string(item.fmisid);
+            key += Fmi::to_string(item.sensor_no);
             key += Fmi::to_string(item.measurand_id);
             key += Fmi::to_string(item.producer_id);
             key += Fmi::to_string(item.measurand_no);
@@ -796,6 +846,7 @@ std::size_t PostgreSQL::fillDataCache(const DataItems &cacheData)
               key_set.insert(key);
               std::string values = "(";
               values += Fmi::to_string(item.fmisid) + ",";
+              values += Fmi::to_string(item.sensor_no) + ",";
               values += ("'" + Fmi::to_iso_string(item.data_time) + "',");
               values += ("'" + Fmi::to_iso_string(item.modified_last) + "',");
               values += Fmi::to_string(item.measurand_id) + ",";
@@ -815,7 +866,8 @@ std::size_t PostgreSQL::fillDataCache(const DataItems &cacheData)
             {
               std::string sqlStmt =
                   "INSERT INTO observation_data "
-                  "(fmisid, data_time, last_modified, measurand_id, producer_id, measurand_no, "
+                  "(fmisid, sensor_no, data_time, last_modified, measurand_id, producer_id, "
+                  "measurand_no, "
                   "data_value, data_quality, data_source) VALUES ";
 
               for (const auto &v : values_vector)
@@ -825,7 +877,8 @@ std::size_t PostgreSQL::fillDataCache(const DataItems &cacheData)
                   sqlStmt += ",";
               }
               sqlStmt +=
-                  " ON CONFLICT(data_time, fmisid, measurand_id, producer_id, measurand_no) DO "
+                  " ON CONFLICT(data_time, fmisid, sensor_no, measurand_id, producer_id, "
+                  "measurand_no) DO "
                   "UPDATE SET "
                   "(data_value, last_modified, data_quality, data_source) = "
                   "(EXCLUDED.data_value, EXCLUDED.last_modified, EXCLUDED.data_quality, "
@@ -1503,19 +1556,30 @@ std::size_t PostgreSQL::fillNetAtmoCache(const MobileExternalDataItems &mobileEx
   }
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedRoadCloudData(
-    const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
+std::size_t PostgreSQL::fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData)
 {
-  return getCachedMobileAndExternalData(settings, parameterMap, timezones);
+  return 0;
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedNetAtmoData(
+SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getRoadCloudData(
     const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
 {
-  return getCachedMobileAndExternalData(settings, parameterMap, timezones);
+  return getMobileAndExternalData(settings, parameterMap, timezones);
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedMobileAndExternalData(
+SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getNetAtmoData(
+    const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
+{
+  return getMobileAndExternalData(settings, parameterMap, timezones);
+}
+
+SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getFmiIoTData(
+    const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
+{
+  return getMobileAndExternalData(settings, parameterMap, timezones);
+}
+
+SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getMobileAndExternalData(
     const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
 {
   try
@@ -1651,38 +1715,6 @@ void PostgreSQL::fetchCachedDataFromDB(const std::string &sqlStmt,
       data.sensor_nosAll.push_back(sensor_no);
     }
   }
-}
-
-Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedWeatherDataQCData(
-    const Spine::Stations &stations,
-    const Settings &settings,
-    const ParameterMapPtr &parameterMap,
-    const Fmi::TimeZones &timezones)
-{
-  Spine::TimeSeriesGeneratorOptions opt;
-  opt.startTime = settings.starttime;
-  opt.endTime = settings.endtime;
-  opt.timeStep = settings.timestep;
-  opt.startTimeUTC = false;
-  opt.endTimeUTC = false;
-
-  return getCachedWeatherDataQCData(stations, settings, parameterMap, opt, timezones);
-}
-
-Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
-    const Spine::Stations &stations,
-    const Settings &settings,
-    const ParameterMapPtr &parameterMap,
-    const Fmi::TimeZones &timezones)
-{
-  Spine::TimeSeriesGeneratorOptions opt;
-  opt.startTime = settings.starttime;
-  opt.endTime = settings.endtime;
-  opt.timeStep = settings.timestep;
-  opt.startTimeUTC = false;
-  opt.endTimeUTC = false;
-
-  return getCachedData(stations, settings, parameterMap, opt, timezones);
 }
 
 void PostgreSQL::addEmptyValuesToTimeSeries(
@@ -1862,8 +1894,9 @@ void PostgreSQL::addParameterToTimeSeries(
   }
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedFlashData(
-    const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
+Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getFlashData(const Settings &settings,
+                                                                const ParameterMapPtr &parameterMap,
+                                                                const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -2228,801 +2261,163 @@ FlashCounts PostgreSQL::getFlashCount(const boost::posix_time::ptime &starttime,
   }
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedWeatherDataQCData(
-    const Spine::Stations &stations,
-    const Settings &settings,
-    const ParameterMapPtr &parameterMap,
-    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-    const Fmi::TimeZones &timezones)
+LocationDataItems PostgreSQL::readObservations(const Spine::Stations &stations,
+                                               const Settings &settings,
+                                               const StationInfo &stationInfo,
+                                               const QueryMapping &qmap,
+                                               const std::set<std::string> &stationgroup_codes)
 {
   try
   {
-    std::string stationtype = settings.stationtype;
+    LocationDataItems ret;
 
-    boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
-    timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
+    // Safety check
+    if (qmap.measurandIds.empty())
+      return ret;
 
-    std::string qstations;
-    map<int, Spine::Station> tmpStations;
-    for (const Spine::Station &s : stations)
-    {
-      tmpStations.insert(std::make_pair(s.station_id, s));
-      qstations += Fmi::to_string(s.station_id) + ",";
-    }
-    qstations = qstations.substr(0, qstations.length() - 1);
+    std::string measurand_ids;
+    for (const auto &id : qmap.measurandIds)
+      measurand_ids += Fmi::to_string(id) + ",";
 
-    // This maps measurand_id and the parameter position in TimeSeriesVector
-    map<string, int> timeseriesPositions;
-    std::map<std::string, std::string> parameterNameMap;
-    map<string, int> specialPositions;
+    measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
 
-    std::string param;
+    auto qstations = buildSqlStationList(stations, stationgroup_codes, stationInfo);
 
-    unsigned int pos = 0;
-    for (const Spine::Parameter &p : settings.parameters)
-    {
-      if (not_special(p))
-      {
-        std::string nameInRequest = p.name();
-        Fmi::ascii_tolower(nameInRequest);
-        removePrefix(nameInRequest, "qc_");
-
-        std::string shortname = parseParameterName(nameInRequest);
-
-        if (!parameterMap->getParameter(shortname, stationtype).empty())
-        {
-          std::string nameInDatabase = parameterMap->getParameter(shortname, stationtype);
-          timeseriesPositions[nameInRequest] = pos;
-          parameterNameMap[nameInRequest] = nameInDatabase;
-
-          nameInDatabase = parseParameterName(nameInDatabase);
-          Fmi::ascii_toupper(nameInDatabase);
-          param += "'" + nameInDatabase + "',";
-        }
-      }
-      else
-      {
-        string name = p.name();
-        Fmi::ascii_tolower(name);
-
-        if (name.find("windcompass") != std::string::npos)
-        {
-          param += "'" + (parameterMap->getParameter("winddirection", stationtype)) + "',";
-          timeseriesPositions[parameterMap->getParameter("winddirection", stationtype)] = pos;
-          specialPositions[name] = pos;
-        }
-        else if (name.find("feelslike") != std::string::npos)
-        {
-          param += "'" + (parameterMap->getParameter("windspeedms", stationtype)) + "', '" +
-                   (parameterMap->getParameter("relativehumidity", stationtype)) + "', '" +
-                   (parameterMap->getParameter("temperature", stationtype)) + "',";
-          specialPositions[name] = pos;
-        }
-        else if (name.find("smartsymbol") != std::string::npos)
-        {
-          param += "'" + (parameterMap->getParameter("wawa", stationtype)) + "', '" +
-                   (parameterMap->getParameter("totalcloudcover", stationtype)) + "', '" +
-                   (parameterMap->getParameter("temperature", stationtype)) + "',";
-          specialPositions[name] = pos;
-        }
-        else
-        {
-          specialPositions[name] = pos;
-        }
-      }
-      pos++;
-    }
-
-    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-        initializeResultVector(settings.parameters);
-
-    param = trimCommasFromEnd(param);
-
-    std::string sqlStmt;
-    if (settings.latest)
-    {
-      sqlStmt =
-          "SELECT data.fmisid AS fmisid, EXTRACT(EPOCH FROM MAX(data.obstime)) AS obstime, "
-          "loc.latitude, loc.longitude, loc.elevation, "
-          "parameter, value, sensor_no "
-          "FROM weather_data_qc data JOIN locations loc ON (data.fmisid = "
-          "loc.fmisid) "
-          "WHERE data.fmisid IN (" +
-          qstations +
-          ") "
-          "AND data.obstime >= '" +
-          Fmi::to_iso_extended_string(settings.starttime) + "' AND data.obstime <= '" +
-          Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + param +
-          ") "
-          "GROUP BY data.fmisid, data.parameter, data.value, data.sensor_no, "
-          "loc.location_id, "
-          "loc.location_end, "
-          "loc.latitude, loc.longitude, loc.elevation "
-          "ORDER BY fmisid ASC, obstime ASC;";
-    }
-    else
-    {
-      sqlStmt =
-          "SELECT data.fmisid AS fmisid, EXTRACT(EPOCH FROM data.obstime) AS obstime, "
-          "loc.latitude, loc.longitude, loc.elevation, "
-          "parameter, value, sensor_no "
-          "FROM weather_data_qc data JOIN locations loc ON (data.fmisid = "
-          "loc.fmisid) "
-          "WHERE data.fmisid IN (" +
-          qstations +
-          ") "
-          "AND data.obstime >= '" +
-          Fmi::to_iso_extended_string(settings.starttime) + "' AND data.obstime <= '" +
-          Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + param +
-          ") "
-          "GROUP BY data.fmisid, data.obstime, data.parameter, "
-          "data.sensor_no, loc.location_id, "
-          "loc.location_end, loc.latitude, loc.longitude, loc.elevation "
-          "ORDER BY fmisid ASC, obstime ASC;";
-    }
-
-    cached_data cachedData;
-    fetchCachedDataFromDB(sqlStmt, cachedData);
-
-    unsigned int i = 0;
-
-    // Generate data structure which can be transformed to TimeSeriesVector
-    map<int, map<boost::local_time::local_date_time, map<std::string, ts::Value>>> data;
-
-    for (const auto &time : cachedData.obstimesAll)
-    {
-      int fmisid = *cachedData.fmisidsAll[i];
-
-      boost::posix_time::ptime utctime = time;
-      std::string zone(settings.timezone == "localtime" ? tmpStations.at(fmisid).timezone
-                                                        : settings.timezone);
-      auto localtz = timezones.time_zone_from_string(zone);
-      local_date_time obstime = local_date_time(utctime, localtz);
-
-      std::string parameter = *cachedData.parametersAll[i];
-      int sensor_no = static_cast<int>(*cachedData.sensor_nosAll[i]);
-      Fmi::ascii_tolower(parameter);
-      if (sensor_no > 1)
-      {
-        parameter += "_" + Fmi::to_string(sensor_no);
-      }
-
-      ts::Value val;
-      if (cachedData.data_valuesAll[i])
-        val = ts::Value(*cachedData.data_valuesAll[i]);
-
-      data[fmisid][obstime][parameter] = val;
-      if (sensor_no == 1)
-      {
-        parameter += "_1";
-        data[fmisid][obstime][parameter] = val;
-      }
-      i++;
-    }
-
-    typedef std::pair<boost::local_time::local_date_time, map<std::string, ts::Value>> dataItem;
-
-    if (!settings.latest && !timeSeriesOptions.all())
-    {
-      auto tlist = Spine::TimeSeriesGenerator::generate(
-          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
-
-      for (const Spine::Station &s : stations)
-      {
-        if (data.count(s.fmisid) == 0)
-        {
-          continue;
-        }
-        map<boost::local_time::local_date_time, map<std::string, ts::Value>> stationData =
-            data.at(s.fmisid);
-        for (const boost::local_time::local_date_time &t : tlist)
-        {
-          if (stationData.count(t) > 0)
-          {
-            dataItem item = std::make_pair(t, stationData.at(t));
-            addParameterToTimeSeries(timeSeriesColumns,
-                                     item,
-                                     specialPositions,
-                                     parameterNameMap,
-                                     timeseriesPositions,
-                                     parameterMap,
-                                     stationtype,
-                                     tmpStations.at(s.fmisid),
-                                     settings.missingtext);
-          }
-          else
-          {
-            addEmptyValuesToTimeSeries(timeSeriesColumns,
-                                       t,
-                                       specialPositions,
-                                       parameterNameMap,
-                                       timeseriesPositions,
-                                       stationtype,
-                                       tmpStations.at(s.fmisid));
-          }
-        }
-      }
-    }
-    else
-    {
-      for (const Spine::Station &s : stations)
-      {
-        int fmisid = static_cast<int>(s.station_id);
-        map<boost::local_time::local_date_time, map<std::string, ts::Value>> stationData =
-            data[fmisid];
-        for (const auto &item : stationData)
-        {
-          addParameterToTimeSeries(timeSeriesColumns,
-                                   item,
-                                   specialPositions,
-                                   parameterNameMap,
-                                   timeseriesPositions,
-                                   parameterMap,
-                                   stationtype,
-                                   tmpStations[fmisid],
-                                   settings.missingtext);
-        }
-      }
-    }
-
-    return timeSeriesColumns;
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Getting cached weather data QC data failed!");
-  }
-}
-
-Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getCachedData(
-    const Spine::Stations &stations,
-    const Settings &settings,
-    const ParameterMapPtr &parameterMap,
-    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-    const Fmi::TimeZones &timezones)
-{
-  try
-  {
-    std::string stationtype;
-    if (settings.stationtype == "opendata_buoy" || settings.stationtype == "opendata_mareograph")
-    {
-      stationtype = settings.stationtype;
-    }
-    else
-    {
-      stationtype = "opendata";
-    }
-
-    boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
-    timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
-
-    std::string qstations;
-    map<int, Spine::Station> tmpStations;
-    for (const Spine::Station &s : stations)
-    {
-      tmpStations.insert(std::make_pair(s.station_id, s));
-      qstations += Fmi::to_string(s.station_id) + ",";
-    }
-    qstations = qstations.substr(0, qstations.length() - 1);
-
-    // This maps measurand_id and the parameter position in TimeSeriesVector
-    map<int, int> timeseriesPositions;
-    map<std::string, int> timeseriesPositionsString;
-    std::map<std::string, std::string> parameterNameMap;
-    vector<int> paramVector;
-    map<string, int> specialPositions;
-
-    string param;
-    unsigned int pos = 0;
-    for (const Spine::Parameter &p : settings.parameters)
-    {
-      if (not_special(p))
-      {
-        string name = p.name();
-        Fmi::ascii_tolower(name);
-        removePrefix(name, "qc_");
-
-        std::string paramStr = parameterMap->getParameter(name, stationtype);
-        if (!paramStr.empty())
-        {
-          int paramInt = Fmi::stoi(paramStr);
-          timeseriesPositions[paramInt] = pos;
-          timeseriesPositionsString[name] = pos;
-          parameterNameMap[name] = paramStr;
-          paramVector.push_back(paramInt);
-          param += paramStr + ",";
-        }
-      }
-      else
-      {
-        string name = p.name();
-        Fmi::ascii_tolower(name);
-
-        if (name.find("windcompass") != std::string::npos)
-        {
-          std::string paramStr = parameterMap->getParameter("winddirection", stationtype);
-          param += paramStr + ",";
-          timeseriesPositions[Fmi::stoi(paramStr)] = pos;
-          specialPositions[name] = pos;
-        }
-        else if (name.find("feelslike") != std::string::npos)
-        {
-          param += parameterMap->getParameter("windspeedms", stationtype) + "," +
-                   parameterMap->getParameter("relativehumidity", stationtype) + "," +
-                   parameterMap->getParameter("temperature", stationtype) + ",";
-          specialPositions[name] = pos;
-        }
-        else if (name.find("smartsymbol") != std::string::npos)
-        {
-          param += parameterMap->getParameter("wawa", stationtype) + "," +
-                   parameterMap->getParameter("totalcloudcover", stationtype) + "," +
-                   parameterMap->getParameter("temperature", stationtype) + ",";
-          specialPositions[name] = pos;
-        }
-        else
-        {
-          specialPositions[name] = pos;
-        }
-      }
-      pos++;
-    }
-
-    param = trimCommasFromEnd(param);
+    if (qstations.empty())
+      return ret;
 
     std::list<std::string> producer_id_str_list;
     for (auto &prodId : settings.producer_ids)
       producer_id_str_list.push_back(std::to_string(prodId));
     std::string producerIds = boost::algorithm::join(producer_id_str_list, ",");
 
+    std::string starttime = Fmi::to_iso_extended_string(settings.starttime);
+    std::string endtime = Fmi::to_iso_extended_string(settings.endtime);
+
     std::string sqlStmt =
-        "SELECT data.fmisid AS fmisid, EXTRACT(EPOCH FROM data.data_time) AS obstime,"
-        " loc.latitude, loc.longitude, loc.elevation, measurand_id, data_value, data_source"
-        " FROM observation_data data JOIN locations loc ON (data.fmisid ="
-        " loc.fmisid) WHERE data.fmisid IN (" +
-        qstations + ") AND data.data_time >= '" + Fmi::to_iso_extended_string(settings.starttime) +
-        "' AND data.data_time <= '" + Fmi::to_iso_extended_string(settings.endtime) +
-        "' AND data.measurand_id IN (" + param +
-        ") AND data.measurand_no = 1"
-        " AND data.data_quality <= 5";
-
+        "SELECT data.fmisid AS fmisid, data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM "
+        "data.data_time) AS obstime, "
+        "measurand_id, data_value, data_quality, data_source "
+        "FROM observation_data data "
+        "WHERE data.fmisid IN (" +
+        qstations +
+        ") "
+        "AND data.data_time >= '" +
+        starttime + "' AND data.data_time <= '" + endtime + "' AND data.measurand_id IN (" +
+        measurand_ids + ") ";
     if (!producerIds.empty())
-      sqlStmt += " AND data.producer_id IN (" + producerIds + ")";
+      sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
 
-    sqlStmt +=
-        " GROUP BY data.fmisid, data.data_time, data.measurand_id, data.data_value, data_source,"
-        " loc.location_id, loc.location_end, loc.latitude, loc.longitude, loc.elevation"
-        " ORDER BY fmisid ASC, obstime ASC";
+    sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
+    sqlStmt += "AND " + settings.sqlDataFilter.getSqlClause("data_quality", "data.data_quality") +
+               " GROUP BY data.fmisid, data.sensor_no, data.data_time, data.measurand_id, "
+               "data.data_value, data.data_quality, data.data_source "
+               "ORDER BY fmisid ASC, obstime ASC";
 
-    cached_data cachedData;
-    fetchCachedDataFromDB(sqlStmt, cachedData, true);
+    //    std::cout << "sql\n" << sqlStmt << std::endl;
 
-    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-        initializeResultVector(settings.parameters);
+    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
-    unsigned int i = 0;
+    std::map<int, std::map<int, int>> default_sensors;
 
-    // Generate data structure which can be transformed to TimeSeriesVector
-    map<int, map<boost::local_time::local_date_time, map<int, ts::Value>>> data;
-    map<int, map<boost::local_time::local_date_time, map<int, ts::Value>>> data_source;
-    map<int, map<boost::local_time::local_date_time, map<std::string, ts::Value>>>
-        dataWithStringParameterId;
-    map<int, map<boost::local_time::local_date_time, map<std::string, ts::Value>>>
-        dataSourceWithStringParameterId;
-
-    for (const auto &time : cachedData.obstimesAll)
+    for (auto row : result_set)
     {
-      int fmisid = *cachedData.fmisidsAll[i];
-      boost::posix_time::ptime utctime = time;
-      std::string zone(settings.timezone == "localtime" ? tmpStations[fmisid].timezone
-                                                        : settings.timezone);
-      auto localtz = timezones.time_zone_from_string(zone);
-      local_date_time obstime = local_date_time(utctime, localtz);
-
-      int measurand_id = *cachedData.measurand_idsAll[i];
-
-      ts::Value val;
-      if (cachedData.data_valuesAll[i])
-        val = ts::Value(*cachedData.data_valuesAll[i]);
-      ts::Value data_source_val;
-      if (cachedData.data_sourcesAll[i])
-        data_source_val = ts::Value(*cachedData.data_sourcesAll[i]);
-      data[fmisid][obstime][measurand_id] = val;
-      data_source[fmisid][obstime][measurand_id] = data_source_val;
-      dataWithStringParameterId[fmisid][obstime][Fmi::to_string(measurand_id)] = val;
-      dataSourceWithStringParameterId[fmisid][obstime][Fmi::to_string(measurand_id)] =
-          data_source_val;
-      i++;
-    }
-
-    // Accept all time steps
-    if (timeSeriesOptions.all() && !settings.latest)
-    {
-      for (const Spine::Station &s : stations)
+      LocationDataItem obs;
+      obs.data.fmisid = row[0].as<int>();
+      obs.data.sensor_no = row[1].as<int>();
+      obs.data.data_time = boost::posix_time::from_time_t(row[2].as<time_t>());
+      obs.data.measurand_id = row[3].as<int>();
+      if (!row[4].is_null())
+        obs.data.data_value = row[4].as<double>();
+      if (!row[5].is_null())
+        obs.data.data_quality = row[5].as<int>();
+      if (!row[6].is_null())
+        obs.data.data_source = row[6].as<int>();
+      // Get latitude, longitude, elevation from station info
+      const Spine::Station &s = stationInfo.getStation(obs.data.fmisid, stationgroup_codes);
+      obs.latitude = s.latitude_out;
+      obs.longitude = s.longitude_out;
+      obs.elevation = s.station_elevation;
+      const StationLocation &sloc =
+          stationInfo.stationLocations.getLocation(obs.data.fmisid, obs.data.data_time);
+      // Get exact location, elevation
+      if (sloc.location_id != -1)
       {
-        int fmisid = static_cast<int>(s.station_id);
-        map<boost::local_time::local_date_time, map<std::string, ts::Value>> stationData =
-            dataWithStringParameterId[fmisid];
-        for (const auto &item : stationData)
-        {
-          addParameterToTimeSeries(timeSeriesColumns,
-                                   item,
-                                   specialPositions,
-                                   parameterNameMap,
-                                   timeseriesPositionsString,
-                                   parameterMap,
-                                   stationtype,
-                                   tmpStations[fmisid],
-                                   settings.missingtext);
-        }
-
-        // Add *data_source-fields
-        stationData = dataSourceWithStringParameterId[fmisid];
-        for (const auto &item : stationData)
-        {
-          local_date_time obstime = item.first;
-          std::map<std::string, ts::Value> data = item.second;
-          for (const auto &special : specialPositions)
-          {
-            std::string fieldname = special.first;
-            if (boost::algorithm::ends_with(fieldname, "data_source"))
-            {
-              std::string masterParamName = fieldname.substr(0, fieldname.find("data_source"));
-              if (!masterParamName.empty())
-                masterParamName = masterParamName.substr(0, masterParamName.length() - 1);
-              int pos = special.second;
-              std::string nameInDatabase = parameterNameMap.at(masterParamName);
-              ts::Value val = ts::None();
-              if (data.count(nameInDatabase) > 0)
-                val = data.at(nameInDatabase);
-              timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, val));
-            }
-          }
-        }
+        obs.latitude = sloc.latitude;
+        obs.longitude = sloc.longitude;
+        obs.elevation = sloc.elevation;
       }
-    }
-    else
-    {
-      // Accept only generated time series
-      auto tlist = Spine::TimeSeriesGenerator::generate(
-          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+      if (qmap.isDefaultSensor(obs.data.sensor_no, obs.data.measurand_id))
       {
-        for (const Spine::Station &s : stations)
-
-          if (settings.latest)
-          {
-            // Get only the last time step if there is many
-            boost::local_time::local_date_time t(boost::local_time::not_a_date_time);
-            if (!data[s.fmisid].empty())
-            {
-              t = data[s.fmisid].rbegin()->first;
-            }
-            else
-            {
-              continue;
-            }
-
-            // Append weather parameters
-            for (int pos : paramVector)
-            {
-              ts::Value val = data[s.fmisid][t][pos];
-              timeSeriesColumns->at(timeseriesPositions[pos]).push_back(ts::TimedValue(t, val));
-            }
-            // Append special parameters
-            for (const auto &special : specialPositions)
-            {
-              int pos2 = special.second;
-              if (special.first.find("windcompass") != std::string::npos)
-              {
-                // Have to get wind direction first
-                int winddirectionpos =
-                    Fmi::stoi(parameterMap->getParameter("winddirection", stationtype));
-                std::string windCompass;
-                if (!data[s.fmisid][t][winddirectionpos].which())
-                {
-                  ts::Value missing;
-                  timeSeriesColumns->at(pos2).push_back(ts::TimedValue(t, missing));
-                }
-                else
-                {
-                  if (special.first == "windcompass8")
-                  {
-                    windCompass =
-                        windCompass8(boost::get<double>(data[s.fmisid][t][winddirectionpos]),
-                                     settings.missingtext);
-                  }
-                  if (special.first == "windcompass16")
-                  {
-                    windCompass =
-                        windCompass16(boost::get<double>(data[s.fmisid][t][winddirectionpos]),
-                                      settings.missingtext);
-                  }
-                  if (special.first == "windcompass32")
-                  {
-                    windCompass =
-                        windCompass32(boost::get<double>(data[s.fmisid][t][winddirectionpos]),
-                                      settings.missingtext);
-                  }
-
-                  ts::Value windCompassValue = ts::Value(windCompass);
-                  timeSeriesColumns->at(pos2).push_back(ts::TimedValue(t, windCompassValue));
-                }
-              }
-              else if (special.first.find("feelslike") != std::string::npos)
-              {
-                // Feels like - deduction. This ignores radiation, since it is
-                // measured using
-                // dedicated stations
-                // dedicated stations
-                int windpos = Fmi::stoi(parameterMap->getParameter("windspeedms", stationtype));
-                int rhpos = Fmi::stoi(parameterMap->getParameter("relativehumidity", stationtype));
-                int temppos = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
-
-                if (!data[s.fmisid][t][windpos].which() || !data[s.fmisid][t][rhpos].which() ||
-                    !data[s.fmisid][t][temppos].which())
-                {
-                  ts::Value missing;
-                  timeSeriesColumns->at(pos2).push_back(ts::TimedValue(t, missing));
-                }
-                else
-                {
-                  float temp = static_cast<float>(boost::get<double>(data[s.fmisid][t][temppos]));
-                  float rh = static_cast<float>(boost::get<double>(data[s.fmisid][t][rhpos]));
-                  float wind = static_cast<float>(boost::get<double>(data[s.fmisid][t][windpos]));
-
-                  ts::Value feelslike =
-                      ts::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
-                  timeSeriesColumns->at(pos2).push_back(ts::TimedValue(t, feelslike));
-                }
-              }
-              else if (special.first.find("smartsymbol") != std::string::npos)
-              {
-                addSmartSymbolToTimeSeries(
-                    pos, s, t, parameterMap, stationtype, data, timeSeriesColumns);
-              }
-              else
-              {
-                if (boost::algorithm::ends_with(special.first, "data_source"))
-                {
-                  const std::vector<boost::optional<int>> &measurand_idsAll =
-                      cachedData.measurand_idsAll;
-                  if (pos < static_cast<unsigned int>(measurand_idsAll.size()))
-                  {
-                    int measurand_id = *measurand_idsAll[pos];
-                    if (data_source[s.fmisid].find(t) != data_source[s.fmisid].end())
-                    {
-                      ts::Value val = data_source[s.fmisid][t][measurand_id];
-                      timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, val));
-                    }
-                  }
-                  else
-                  {
-                    timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, ts::None()));
-                  }
-                }
-                else
-                {
-                  addSpecialParameterToTimeSeries(
-                      special.first, timeSeriesColumns, tmpStations[s.fmisid], pos, stationtype, t);
-                }
-              }
-            }
-          }
-          else
-          {
-            for (const boost::local_time::local_date_time &t : tlist)
-            {
-              // Append weather parameters
-              for (int pos : paramVector)
-              {
-                ts::Value val;
-                if (!data[s.fmisid][t][pos].empty())
-                {
-                  val = data[s.fmisid][t][pos];
-                }
-                timeSeriesColumns->at(timeseriesPositions[pos]).push_back(ts::TimedValue(t, val));
-              }
-              // Append special parameters
-              for (const auto &special : specialPositions)
-              {
-                int pos = special.second;
-                if (special.first.find("windcompass") != std::string::npos)
-                {
-                  // Have to get wind direction first
-                  int winddirectionpos =
-                      Fmi::stoi(parameterMap->getParameter("winddirection", stationtype));
-                  std::string windCompass;
-                  if (!data[s.fmisid][t][winddirectionpos].which())
-                  {
-                    ts::Value missing;
-                    timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, missing));
-                  }
-                  else
-                  {
-                    if (special.first == "windcompass8")
-                    {
-                      windCompass =
-                          windCompass8(boost::get<double>(data[s.fmisid][t][winddirectionpos]),
-                                       settings.missingtext);
-                    }
-                    if (special.first == "windcompass16")
-                    {
-                      windCompass =
-                          windCompass16(boost::get<double>(data[s.fmisid][t][winddirectionpos]),
-                                        settings.missingtext);
-                    }
-                    if (special.first == "windcompass32")
-                    {
-                      windCompass =
-                          windCompass32(boost::get<double>(data[s.fmisid][t][winddirectionpos]),
-                                        settings.missingtext);
-                    }
-
-                    ts::Value windCompassValue = ts::Value(windCompass);
-                    timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, windCompassValue));
-                  }
-                }
-                else if (special.first.find("feelslike") != std::string::npos)
-                {
-                  // Feels like - deduction. This ignores radiation, since it is
-                  // measured using
-                  // dedicated stations
-                  int windpos = Fmi::stoi(parameterMap->getParameter("windspeedms", stationtype));
-                  int rhpos =
-                      Fmi::stoi(parameterMap->getParameter("relativehumidity", stationtype));
-                  int temppos = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
-
-                  if (!data[s.fmisid][t][windpos].which() || !data[s.fmisid][t][rhpos].which() ||
-                      !data[s.fmisid][t][temppos].which())
-                  {
-                    ts::Value missing;
-                    timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, missing));
-                  }
-                  else
-                  {
-                    float temp = static_cast<float>(boost::get<double>(data[s.fmisid][t][temppos]));
-                    float rh = static_cast<float>(boost::get<double>(data[s.fmisid][t][rhpos]));
-                    float wind = static_cast<float>(boost::get<double>(data[s.fmisid][t][windpos]));
-
-                    ts::Value feelslike =
-                        ts::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
-                    timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, feelslike));
-                  }
-                }
-                else if (special.first.find("smartsymbol") != std::string::npos)
-                {
-                  addSmartSymbolToTimeSeries(
-                      pos, s, t, parameterMap, stationtype, data, timeSeriesColumns);
-                }
-                else
-                {
-                  if (boost::algorithm::ends_with(special.first, "data_source"))
-                  {
-                    if (pos < static_cast<int>(cachedData.measurand_idsAll.size()))
-                    {
-                      int measurand_id = *cachedData.measurand_idsAll[pos];
-                      if (data_source[s.fmisid].find(t) != data_source[s.fmisid].end())
-                      {
-                        ts::Value val = data_source[s.fmisid][t][measurand_id];
-                        timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, val));
-                      }
-                    }
-                    else
-                    {
-                      timeSeriesColumns->at(pos).push_back(ts::TimedValue(t, ts::None()));
-                    }
-                  }
-                  else
-                  {
-                    addSpecialParameterToTimeSeries(special.first,
-                                                    timeSeriesColumns,
-                                                    tmpStations[s.fmisid],
-                                                    pos,
-                                                    stationtype,
-                                                    t);
-                  }
-                }
-              }
-            }
-          }
+        default_sensors[obs.data.fmisid][obs.data.measurand_id] = obs.data.sensor_no;
       }
-    }
 
-    return timeSeriesColumns;
+      ret.emplace_back(obs);
+    }
+    ret.default_sensors = default_sensors;
+
+    return ret;
+  }
+  catch (...)
+  {
+    throw SmartMet::Spine::Exception::Trace(
+        BCP, "Reading observations from PostgreSQL database failed!");
+  }
+}
+
+Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getData(
+    const Spine::Stations &stations,
+    const Settings &settings,
+    const StationInfo &stationInfo,
+    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const Fmi::TimeZones &timezones)
+{
+  try
+  {
+    // Always use FMI parameter numbers for the narrow table cache
+
+    std::string stationtype = "observations_fmi";
+
+    // This maps measurand_id and the parameter position in TimeSeriesVector
+
+    auto qmap = buildQueryMapping(stations, settings, itsParameterMap, stationtype, false);
+
+    // Resolve stationgroup codes
+    std::set<std::string> stationgroup_codes;
+    auto stationgroupCodeSet =
+        itsStationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
+    stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
+
+    LocationDataItems observations =
+        readObservations(stations, settings, stationInfo, qmap, stationgroup_codes);
+
+    std::set<int> observed_fmisids;
+    for (auto item : observations)
+      observed_fmisids.insert(item.data.fmisid);
+
+    // Map fmisid to station information
+    Engine::Observation::StationMap fmisid_to_station =
+        mapQueryStations(stations, observed_fmisids);
+
+    ObservationsMap obsmap =
+        buildObservationsMap(observations, settings, timezones, fmisid_to_station);
+
+    Spine::TimeSeries::TimeSeriesVectorPtr ret;
+
+    return buildTimeseries(stations,
+                           settings,
+                           stationtype,
+                           fmisid_to_station,
+                           observations,
+                           obsmap,
+                           qmap,
+                           timeSeriesOptions,
+                           timezones);
   }
   catch (...)
   {
     throw Spine::Exception::Trace(BCP, "Getting cached data failed!");
   }
-}
-
-void PostgreSQL::createObservablePropertyTable()
-{
-  try
-  {
-    // No locking needed during initialization phase
-    itsDB.executeNonTransaction(
-        "CREATE TABLE IF NOT EXISTS observable_property ("
-        "measurandId INTEGER,"
-        "language TEXT,"
-        "measurandCode TEXT,"
-        "observablePropertyId TEXT,"
-        "observablePropertyLabel TEXT,"
-        "basePhenomenon TEXT,"
-        "uom TEXT,"
-        "statisticalMeasureId TEXT,"
-        "statisticalFunction TEXT,"
-        "aggregationTimePeriod TEXT,"
-        "gmlId TEXT, "
-        "last_modified timestamp default now())");
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Creation of observable_property table failed!");
-  }
-}
-
-boost::shared_ptr<std::vector<ObservableProperty>> PostgreSQL::getObservableProperties(
-    std::vector<std::string> &parameters,
-    const std::string language,
-    const ParameterMapPtr &parameterMap,
-    const std::string &stationType)
-{
-  boost::shared_ptr<std::vector<ObservableProperty>> data(new std::vector<ObservableProperty>());
-  try
-  {
-    // Solving measurand id's for valid parameter aliases.
-    std::multimap<int, std::string> parameterIDs;
-    solveMeasurandIds(parameters, parameterMap, stationType, parameterIDs);
-    // Return empty list if some parameters are defined and any of those is
-    // valid.
-    if (parameterIDs.empty())
-      return data;
-
-    std::string sqlStmt =
-        "SELECT "
-        "measurandId,"
-        "measurandCode,"
-        "observablePropertyId,"
-        "observablePropertyLabel,"
-        "basePhenomenon,"
-        "uom,"
-        "statisticalMeasureId,"
-        "statisticalFunction,"
-        "aggregationTimePeriod,"
-        "gmlId FROM observable_property WHERE language = '" +
-        language + "'";
-
-    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-    for (auto row : result_set)
-    {
-      int measurandId = row[0].as<int>();
-      // Multiple parameter name aliases may use a same measurand id (e.g. t2m
-      // and temperature)
-      std::pair<std::multimap<int, std::string>::iterator,
-                std::multimap<int, std::string>::iterator>
-          r = parameterIDs.equal_range(measurandId);
-      for (std::multimap<int, std::string>::iterator it = r.first; it != r.second; ++it)
-      {
-        ObservableProperty op;
-        op.measurandId = Fmi::to_string(measurandId);
-        op.measurandCode = row[1].as<std::string>();
-        op.observablePropertyId = row[2].as<std::string>();
-        op.observablePropertyLabel = row[3].as<std::string>();
-        op.basePhenomenon = row[4].as<std::string>();
-        op.uom = row[5].as<std::string>();
-        op.statisticalMeasureId = row[6].as<std::string>();
-        op.statisticalFunction = row[7].as<std::string>();
-        op.aggregationTimePeriod = row[8].as<std::string>();
-        op.gmlId = it->second;
-        data->push_back(op);
-      }
-    }
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
-  }
-
-  return data;
 }
 
 void PostgreSQL::createIndex(const std::string &table,
@@ -3130,6 +2525,175 @@ ResultSetRows PostgreSQL::getResultSetForMobileExternalData(
   }
 
   return ret;
+}
+
+void PostgreSQL::fetchWeatherDataQCData(const std::string &sqlStmt,
+                                        const StationInfo &stationInfo,
+                                        const std::set<std::string> &stationgroup_codes,
+                                        const QueryMapping &qmap,
+                                        std::map<int, std::map<int, int>> &default_sensors,
+                                        WeatherDataQCData &cacheData)
+{
+  try
+  {
+    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+    for (auto row : result_set)
+    {
+      boost::optional<int> fmisid = row[0].as<int>();
+      boost::posix_time::ptime obstime = boost::posix_time::from_time_t(row[1].as<time_t>());
+      boost::optional<std::string> parameter = row[2].as<std::string>();
+
+      // Get latitude, longitude, elevation from station info
+      const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes);
+
+      boost::optional<double> latitude = s.latitude_out;
+      boost::optional<double> longitude = s.longitude_out;
+      boost::optional<double> elevation = s.station_elevation;
+
+      const StationLocation &sloc = stationInfo.stationLocations.getLocation(*fmisid, obstime);
+      // Get exact location, elevation
+      if (sloc.location_id != -1)
+      {
+        latitude = sloc.latitude;
+        longitude = sloc.longitude;
+        elevation = sloc.elevation;
+      }
+
+      boost::optional<double> data_value;
+      boost::optional<int> data_quality;
+      boost::optional<int> sensor_no;
+      if (!row[3].is_null())
+        data_value = row[3].as<double>();
+      if (!row[4].is_null())
+        sensor_no = row[4].as<int>();
+      if (!row[5].is_null())
+        data_quality = row[5].as<int>();
+
+      cacheData.fmisidsAll.push_back(fmisid);
+      cacheData.obstimesAll.push_back(obstime);
+      cacheData.latitudesAll.push_back(latitude);
+      cacheData.longitudesAll.push_back(longitude);
+      cacheData.elevationsAll.push_back(elevation);
+      cacheData.parametersAll.push_back(parameter);
+      cacheData.data_valuesAll.push_back(data_value);
+      cacheData.sensor_nosAll.push_back(sensor_no);
+      cacheData.data_qualityAll.push_back(data_quality);
+
+      if (sensor_no)
+      {
+        int sensor_number = *sensor_no;
+        std::string parameter_id = (*parameter + Fmi::to_string(sensor_number));
+        Fmi::ascii_tolower(parameter_id);
+        int parameter = boost::hash_value(parameter_id);  // We dont have measurand id in
+                                                          // weather_data_qc table, so use
+                                                          // temporarily hash value of parameter
+                                                          // name + sensor number
+        if (qmap.isDefaultSensor(sensor_number, parameter))
+        {
+          default_sensors[*fmisid][parameter] = sensor_number;
+        }
+      }
+    }
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP,
+                                  "Fetching data from PostgreSQL WeatherDataQCData cache failed!");
+  }
+}
+
+std::string PostgreSQL::sqlSelectFromWeatherDataQCData(const Settings &settings,
+                                                       const std::string &params,
+                                                       const std::string &station_ids) const
+{
+  try
+  {
+    std::string sqlStmt;
+
+    if (settings.latest)
+    {
+      sqlStmt =
+          "SELECT data.fmisid AS fmisid, EXTRACT(EPOCH FROM MAX(data.obstime)) AS obstime, "
+          "data.parameter, data.value, data.sensor_no, data.flag as data_quality "
+          "FROM weather_data_qc data "
+          "WHERE data.fmisid IN (" +
+          station_ids +
+          ") "
+          "AND data.obstime BETWEEN '" +
+          Fmi::to_iso_extended_string(settings.starttime) + "' AND '" +
+          Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + params +
+          ") "
+          "GROUP BY data.fmisid, data.parameter, data.value, data.sensor_no, data.flag "
+          "ORDER BY fmisid ASC, obstime ASC";
+    }
+    else
+    {
+      sqlStmt =
+          "SELECT data.fmisid AS fmisid, EXTRACT(EPOCH FROM data.obstime) AS obstime, "
+          "data.parameter, data.value, data.sensor_no, data.flag as data_quality "
+          "FROM weather_data_qc data "
+          "WHERE data.fmisid IN (" +
+          station_ids +
+          ") "
+          "AND data.obstime BETWEEN '" +
+          Fmi::to_iso_extended_string(settings.starttime) + "' AND '" +
+          Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + params +
+          ") "
+          "GROUP BY data.fmisid, data.obstime, data.parameter, data.sensor_no "
+          "ORDER BY fmisid ASC, obstime ASC";
+    }
+
+#ifdef LATER
+    if (settings.latest)
+    {
+      sqlStmt =
+          "SELECT data.fmisid AS fmisid, EXTRACT(EPOCH FROM MAX(data.obstime)) AS obstime, "
+          "loc.latitude, loc.longitude, loc.elevation, "
+          "parameter, value, sensor_no "
+          "FROM weather_data_qc data JOIN locations loc ON (data.fmisid = "
+          "loc.fmisid) "
+          "WHERE data.fmisid IN (" +
+          qstations +
+          ") "
+          "AND data.obstime >= '" +
+          Fmi::to_iso_extended_string(settings.starttime) + "' AND data.obstime <= '" +
+          Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + param +
+          ") "
+          "GROUP BY data.fmisid, data.parameter, data.value, data.sensor_no, "
+          "loc.location_id, "
+          "loc.location_end, "
+          "loc.latitude, loc.longitude, loc.elevation "
+          "ORDER BY fmisid ASC, obstime ASC;";
+    }
+    else
+    {
+      sqlStmt =
+          "SELECT data.fmisid AS fmisid, EXTRACT(EPOCH FROM data.obstime) AS obstime, "
+          "loc.latitude, loc.longitude, loc.elevation, "
+          "parameter, value, sensor_no "
+          "FROM weather_data_qc data JOIN locations loc ON (data.fmisid = "
+          "loc.fmisid) "
+          "WHERE data.fmisid IN (" +
+          qstations +
+          ") "
+          "AND data.obstime >= '" +
+          Fmi::to_iso_extended_string(settings.starttime) + "' AND data.obstime <= '" +
+          Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + param +
+          ") "
+          "GROUP BY data.fmisid, data.obstime, data.parameter, "
+          "data.sensor_no, loc.location_id, "
+          "loc.location_end, loc.latitude, loc.longitude, loc.elevation "
+          "ORDER BY fmisid ASC, obstime ASC;";
+    }
+#endif
+
+    return sqlStmt;
+  }
+  catch (...)
+  {
+    throw Spine::Exception::Trace(BCP,
+                                  "Constructing SQL statement for PostgreSQL cache query failed!");
+  }
 }
 
 }  // namespace Observation

@@ -32,7 +32,8 @@ struct SpatiaLiteCacheParameters
         quiet(p->quiet),
         stationtypeConfig(p->stationtypeConfig),
         externalAndMobileProducerConfig(p->externalAndMobileProducerConfig),
-        parameterMap(p->parameterMap)
+        parameterMap(p->parameterMap),
+        databaseDriverInfo(p->databaseDriverInfo)
   {
   }
 
@@ -52,6 +53,7 @@ struct SpatiaLiteCacheParameters
   const StationtypeConfig& stationtypeConfig;
   const ExternalAndMobileProducerConfig& externalAndMobileProducerConfig;
   const ParameterMapPtr& parameterMap;
+  const DatabaseDriverInfo& databaseDriverInfo;
 };
 
 }  // namespace Observation

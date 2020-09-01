@@ -23,6 +23,11 @@ class ExternalAndMobileDBInfo
   std::string sqlSelect(const std::vector<int> &measurandIds,
                         const boost::posix_time::ptime &starttime,
                         const boost::posix_time::ptime &endtime,
+                        const std::vector<std::string> &station_ids,
+                        const SQLDataFilter &sqlDataFilter) const;
+  std::string sqlSelect(const std::vector<int> &measurandIds,
+                        const boost::posix_time::ptime &starttime,
+                        const boost::posix_time::ptime &endtime,
                         const std::string &wktAreaFilter,
                         const SQLDataFilter &sqlDataFilter) const;
   std::string sqlSelectForCache(const std::string &producer,

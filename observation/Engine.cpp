@@ -32,6 +32,8 @@ void Engine::init()
 
     itsEngineParameters.reset(new EngineParameters(cfg));
 
+    //    std::cout << itsEngineParameters->databaseDriverInfo << std::endl;
+
     itsDatabaseRegistry->loadConfigurations(itsEngineParameters->dbRegistryFolderPath);
 
     // Initialize the caches
@@ -40,7 +42,7 @@ void Engine::init()
     // Read preloaded stations from disk if available
     unserializeStations();
 
-    itsEngineParameters->observationCache.reset(
+    itsEngineParameters->observationCacheProxy.reset(
         ObservationCacheFactory::create(itsEngineParameters, cfg));
 #ifdef TODO_CAUSES_SEGFAULT_AT_EXIT
     itsDatabaseDriver.reset(DatabaseDriverFactory::create(itsEngineParameters, cfg));
@@ -212,7 +214,8 @@ ts::TimeSeriesVectorPtr Engine::values(Settings &settings)
   // Drop unknown parameters from parameter list and
   // store their indexes
   std::vector<unsigned int> unknownParameterIndexes;
-  if (settings.debug_options & Settings::DUMP_SETTINGS) {
+  if (settings.debug_options & Settings::DUMP_SETTINGS)
+  {
     std::cout << "SmartMet::Engine::Observation::Settings:\n" << settings << std::endl;
   }
   Settings querySettings = beforeQuery(settings, unknownParameterIndexes);
@@ -300,7 +303,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr Engine::values(
   // Drop unknown parameters from parameter list and
   // store their indexes
   std::vector<unsigned int> unknownParameterIndexes;
-  if (settings.debug_options & Settings::DUMP_SETTINGS) {
+  if (settings.debug_options & Settings::DUMP_SETTINGS)
+  {
     std::cout << "SmartMet::Engine::Observation::Settings:\n" << settings << std::endl;
     std::cout << "SmartMet::Spine::TimeSeriesGeneratorOptions:\n" << timeSeriesOptions << std::endl;
   }

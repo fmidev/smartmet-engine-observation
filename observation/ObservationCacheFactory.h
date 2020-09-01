@@ -2,6 +2,7 @@
 
 #include "EngineParameters.h"
 #include "ObservationCache.h"
+#include "ObservationCacheProxy.h"
 
 namespace SmartMet
 {
@@ -14,7 +15,7 @@ class ObservationCache;
 class ObservationCacheFactory
 {
  public:
-  static ObservationCache* create(const EngineParametersPtr& p, Spine::ConfigBase& cfg);
+  static ObservationCacheProxy* create(const EngineParametersPtr& p, Spine::ConfigBase& cfg);
 };
 
 }  // namespace Observation
