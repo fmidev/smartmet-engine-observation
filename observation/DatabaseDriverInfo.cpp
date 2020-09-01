@@ -277,6 +277,8 @@ void DatabaseDriverInfo::readOracleCommonInfo(Spine::ConfigBase& cfg,
       Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".quiet", defaultQuiet));
   params["loadStations"] =
       Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".loadStations", false));
+  params["serializedStationsFile"] =
+      cfg.get_mandatory_config_param<std::string>(common_key + ".serializedStationsFile");
   params["poolSize"] =
       Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".poolSize", 10));
   params["connectionTimeout"] =
@@ -343,6 +345,8 @@ void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
   {
     params["loadStations"] =
         Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".loadStations", false));
+    params["serializedStationsFile"] =
+        cfg.get_optional_config_param<std::string>(common_key + ".serializedStationsFile", "");
     params["connectionTimeout"] = Fmi::to_string(
         cfg.get_optional_config_param<size_t>(common_key + ".connectionTimeout", 30));
     params["timer"] =
