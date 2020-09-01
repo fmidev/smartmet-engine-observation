@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.8.20
+Version: 20.9.1
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,24 +15,24 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost169-devel
-BuildRequires: smartmet-library-spine-devel >= 20.6.8
-BuildRequires: smartmet-engine-geonames-devel >= 20.6.8
+BuildRequires: smartmet-library-spine-devel >= 20.8.21
+BuildRequires: smartmet-engine-geonames-devel >= 20.8.21
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
-BuildRequires: smartmet-library-locus-devel >= 20.6.8
-BuildRequires: smartmet-library-macgyver-devel >= 20.6.8
+BuildRequires: smartmet-library-locus-devel >= 20.8.21
+BuildRequires: smartmet-library-macgyver-devel >= 20.8.21
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
-BuildRequires: fmt-devel >= 5.2.0
+BuildRequires: fmt-devel >= 6.2.1
 BuildRequires: gdal-devel
 BuildRequires: zlib-devel
-Requires: fmt >= 5.2.0
+Requires: fmt >= 6.2.1
 Requires: libconfig
-Requires: smartmet-server >= 20.4.18
-Requires: smartmet-engine-geonames >= 20.6.8
-Requires: smartmet-library-spine >= 20.6.8
-Requires: smartmet-library-locus >= 20.6.8
-Requires: smartmet-library-macgyver >= 20.6.8
+Requires: smartmet-server >= 20.8.21
+Requires: smartmet-engine-geonames >= 20.8.21
+Requires: smartmet-library-spine >= 20.8.21
+Requires: smartmet-library-locus >= 20.8.21
+Requires: smartmet-library-macgyver >= 20.8.21
 Requires: libatomic
 Requires: unixODBC
 Requires: libspatialite >= 4.3.0a
@@ -92,9 +92,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Thu Aug 20 2020  Anssi Reponen <anssi.reponen@fmi.fi> - 20.8.20-1.fmi
+* Tue Sep  1 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.9.1-1.fmi
 - Cache handling added in PostgreSQL-driver (BRAINSTORM-1783)
 - Support for both 'itmf' and 'fmi_iot' producer names (INSPIRE-909)
+
+* Fri Aug 21 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.8.21-1.fmi
+- Upgrade to fmt 6.2
 
 * Fri Aug  7 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.8.7-1.fmi
 - Fixed sqlite and potsgresql caches to require correct producer_id numbers too
