@@ -45,6 +45,13 @@ ifneq "$(wildcard /usr/include/boost169)" ""
   LIBS += -L/usr/lib64/boost169
 endif
 
+ifneq "$(wildcard /usr/gdal30/include)" ""
+  INCLUDES += -I/usr/gdal30/include
+  LIBS += -L/usr/gdal30/lib
+else
+  INCLUDES += -I/usr/include/gdal
+endif
+
 ifeq ($(CXX), clang++)
 
  # TODO: Should remove -Wno-sign-conversion, FlashTools.cpp warns a lot
