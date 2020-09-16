@@ -41,15 +41,15 @@ CXX_STD ?= c++11
 # Boost 1.69
 
 ifneq "$(wildcard /usr/include/boost169)" ""
-  INCLUDES += -I/usr/include/boost169
+  INCLUDES += -isystem /usr/include/boost169
   LIBS += -L/usr/lib64/boost169
 endif
 
 ifneq "$(wildcard /usr/gdal30/include)" ""
-  INCLUDES += -I/usr/gdal30/include
+  INCLUDES += -isystem /usr/gdal30/include
   LIBS += -L/usr/gdal30/lib
 else
-  INCLUDES += -I/usr/include/gdal
+  INCLUDES += -isystem /usr/include/gdal
 endif
 
 ifeq ($(CXX), clang++)
@@ -68,8 +68,7 @@ ifeq ($(CXX), clang++)
 	-Wno-sign-conversion
 
  INCLUDES += \
-	-isystem $(includedir) \
-	-isystem $(includedir)/smartmet \
+	-I$(includedir)/smartmet \
 	-isystem $(includedir)/mysql
 
 else
@@ -87,9 +86,8 @@ else
 	-Wsign-promo
 
  INCLUDES += \
-	-I$(includedir) \
 	-I$(includedir)/smartmet \
-	-I$(includedir)/mysql
+	-isystem $(includedir)/mysql
 
 endif
 
