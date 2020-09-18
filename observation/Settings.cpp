@@ -6,8 +6,8 @@ namespace Engine
 {
 namespace Observation
 {
-
-namespace {
+namespace
+{
 void print_vector(const std::vector<int>& data, const std::string& header, std::ostream& out)
 {
   if (data.size() == 0)
@@ -17,7 +17,7 @@ void print_vector(const std::vector<int>& data, const std::string& header, std::
   for (auto i : data)
     out << i << std::endl;
 }
-} // anonymous namespace
+}  // anonymous namespace
 
 std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings& settings)
 {
@@ -90,5 +90,5 @@ std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings&
   return out;
 }
 }  // namespace Observation
-}  // namespace Engines
+}  // namespace Engine
 }  // namespace SmartMet

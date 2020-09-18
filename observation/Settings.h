@@ -24,10 +24,10 @@ class Settings
  public:
   enum DebugOptions
   {
-      DUMP_SETTINGS = 1
+    DUMP_SETTINGS = 1
   };
 
-public:
+ public:
   SmartMet::Spine::TaggedLocationList taggedLocations;
   SmartMet::Spine::TaggedFMISIDList taggedFMISIDs;
   std::vector<SmartMet::Spine::Parameter> parameters;
