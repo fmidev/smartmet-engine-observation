@@ -1,6 +1,5 @@
 #include "StationInfo.h"
 #include "Utils.h"
-
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
@@ -16,7 +15,6 @@
 #include <gis/OGR.h>
 #include <macgyver/StringConversion.h>
 #include <spine/Exception.h>
-
 #include <fstream>
 
 namespace SmartMet
@@ -603,20 +601,15 @@ Spine::Stations StationInfo::findStationsInsideArea(const std::set<std::string>&
 const Spine::Station& StationInfo::getStation(unsigned int fmisid,
                                               const std::set<std::string>& groups) const
 {
-  std::set<StationID> all_ids;
-
   const auto& ids = fmisidstations.at(fmisid);
   for (const auto id : ids)
   {
     const auto& station = stations.at(id);
     if (groupok(station, groups))
-      all_ids.insert(id);
+      return stations.at(id);
   }
 
-  if (all_ids.empty())
-    throw Spine::Exception(BCP, "No match found for fmisid=" + Fmi::to_string(fmisid));
-
-  return stations.at(*ids.begin());
+  throw Spine::Exception(BCP, "No match found for fmisid=" + Fmi::to_string(fmisid));
 }
 
 // ----------------------------------------------------------------------
