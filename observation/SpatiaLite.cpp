@@ -12,7 +12,7 @@
 #include <macgyver/TimeParser.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <spine/Convenience.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 #include <spine/ParameterTools.h>
 #include <spine/Thread.h>
 #include <spine/TimeSeriesGenerator.h>
@@ -52,7 +52,7 @@ ptime parse_sqlite_time(std::string timestring)
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception::Trace(
+    throw Fmi::Exception::Trace(
         BCP, "Parsing sqlite time from string '" + timestring + "' failed!");
   }
 }
@@ -187,7 +187,7 @@ LocationDataItems SpatiaLite::readObservations(const Spine::Stations &stations,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception::Trace(BCP,
+    throw Fmi::Exception::Trace(BCP,
                                             "Reading observations from sqlite database failed!");
   }
 }
@@ -262,7 +262,7 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Connecting database '" + spatialiteFile + "' failed!");
+    throw Fmi::Exception::Trace(BCP, "Connecting database '" + spatialiteFile + "' failed!");
   }
 }
 
@@ -289,7 +289,7 @@ void SpatiaLite::createTables(const std::set<std::string> &tables)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of database tables failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of database tables failed!");
   }
 }
 
@@ -332,7 +332,7 @@ void SpatiaLite::createObservationDataTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of observation_data table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of observation_data table failed!");
   }
 
   bool data_source_column_exists = false;
@@ -350,7 +350,7 @@ void SpatiaLite::createObservationDataTable()
   }
   catch (const std::exception &e)
   {
-    throw Spine::Exception::Trace(BCP, "PRAGMA table_info failed!");
+    throw Fmi::Exception::Trace(BCP, "PRAGMA table_info failed!");
   }
 
   try
@@ -360,7 +360,7 @@ void SpatiaLite::createObservationDataTable()
   }
   catch (const std::exception &e)
   {
-    throw Spine::Exception::Trace(BCP,
+    throw Fmi::Exception::Trace(BCP,
                                   "Failed to add data_source column to observation_data TABLE!");
   }
 
@@ -380,7 +380,7 @@ void SpatiaLite::createObservationDataTable()
   }
   catch (const std::exception &e)
   {
-    throw Spine::Exception::Trace(BCP,
+    throw Fmi::Exception::Trace(BCP,
                                   "Failed to add modified_last column to observation_data TABLE!");
   }
 }
@@ -404,7 +404,7 @@ void SpatiaLite::createWeatherDataQCTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of weather_data_qc table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of weather_data_qc table failed!");
   }
 }
 
@@ -471,7 +471,7 @@ void SpatiaLite::createFlashDataTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of flash_data table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of flash_data table failed!");
   }
 
   bool data_source_column_exists = false;
@@ -489,7 +489,7 @@ void SpatiaLite::createFlashDataTable()
   }
   catch (const std::exception &e)
   {
-    throw Spine::Exception::Trace(BCP, "PRAGMA table_info failed!");
+    throw Fmi::Exception::Trace(BCP, "PRAGMA table_info failed!");
   }
 
   if (!data_source_column_exists)
@@ -500,7 +500,7 @@ void SpatiaLite::createFlashDataTable()
     }
     catch (const std::exception &e)
     {
-      throw Spine::Exception::Trace(BCP, "Failed to add data_source_column to flash_data TABLE!");
+      throw Fmi::Exception::Trace(BCP, "Failed to add data_source_column to flash_data TABLE!");
     }
   }
 }
@@ -562,7 +562,7 @@ void SpatiaLite::createRoadCloudDataTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_roadcloud table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of ext_obsdata_roadcloud table failed!");
   }
 }
 
@@ -623,7 +623,7 @@ void SpatiaLite::createNetAtmoDataTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_netatmo table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of ext_obsdata_netatmo table failed!");
   }
 }
 
@@ -655,7 +655,7 @@ void SpatiaLite::createFmiIoTDataTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_fmi_iot table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of ext_obsdata_fmi_iot table failed!");
   }
 }
 
@@ -680,7 +680,7 @@ void SpatiaLite::initSpatialMetaData()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "initSpatialMetaData failed!");
+    throw Fmi::Exception::Trace(BCP, "initSpatialMetaData failed!");
   }
 }
 
@@ -700,7 +700,7 @@ size_t SpatiaLite::selectCount(const std::string &queryString)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "SQL-query failed: " + queryString);
+    throw Fmi::Exception::Trace(BCP, "SQL-query failed: " + queryString);
   }
 }
 
@@ -718,7 +718,7 @@ ptime SpatiaLite::getLatestObservationTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest observation time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest observation time query failed!");
   }
 }
 
@@ -736,7 +736,7 @@ ptime SpatiaLite::getLatestObservationModifiedTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Modified last observation time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Modified last observation time query failed!");
   }
 }
 
@@ -754,7 +754,7 @@ ptime SpatiaLite::getOldestObservationTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest observation time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Oldest observation time query failed!");
   }
 }
 
@@ -771,7 +771,7 @@ ptime SpatiaLite::getLatestWeatherDataQCTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest WeatherDataQCTime query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest WeatherDataQCTime query failed!");
   }
 }
 
@@ -789,7 +789,7 @@ ptime SpatiaLite::getOldestWeatherDataQCTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest WeatherDataQCTime query failed!");
+    throw Fmi::Exception::Trace(BCP, "Oldest WeatherDataQCTime query failed!");
   }
 }
 
@@ -803,7 +803,7 @@ ptime SpatiaLite::getLatestFlashTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest flash time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest flash time query failed!");
   }
 }
 
@@ -817,7 +817,7 @@ ptime SpatiaLite::getOldestFlashTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest flash time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Oldest flash time query failed!");
   }
 }
 
@@ -831,7 +831,7 @@ ptime SpatiaLite::getOldestRoadCloudDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest RoadCloud time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Oldest RoadCloud time query failed!");
   }
 }
 
@@ -845,7 +845,7 @@ ptime SpatiaLite::getLatestRoadCloudDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest RoadCloud data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest RoadCloud data time query failed!");
   }
 }
 
@@ -859,7 +859,7 @@ boost::posix_time::ptime SpatiaLite::getLatestRoadCloudCreatedTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest RoadCloud creaed time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest RoadCloud creaed time query failed!");
   }
 }
 
@@ -873,7 +873,7 @@ ptime SpatiaLite::getOldestNetAtmoDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest NetAtmo data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Oldest NetAtmo data time query failed!");
   }
 }
 
@@ -887,7 +887,7 @@ ptime SpatiaLite::getLatestNetAtmoDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest NetAtmo data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest NetAtmo data time query failed!");
   }
 }
 
@@ -901,7 +901,7 @@ boost::posix_time::ptime SpatiaLite::getLatestNetAtmoCreatedTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest NetAtmo created time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest NetAtmo created time query failed!");
   }
 }
 
@@ -915,7 +915,7 @@ ptime SpatiaLite::getOldestFmiIoTDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest FmiIoT data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Oldest FmiIoT data time query failed!");
   }
 }
 
@@ -929,7 +929,7 @@ ptime SpatiaLite::getLatestFmiIoTDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest FmiIoT data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest FmiIoT data time query failed!");
   }
 }
 
@@ -943,7 +943,7 @@ boost::posix_time::ptime SpatiaLite::getLatestFmiIoTCreatedTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest FmiIoT created time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest FmiIoT created time query failed!");
   }
 }
 
@@ -1006,7 +1006,7 @@ void SpatiaLite::cleanDataCache(const ptime &newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of data cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of data cache failed!");
   }
 }
 
@@ -1019,7 +1019,7 @@ void SpatiaLite::cleanMemoryDataCache(const ptime &newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of memory data cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of memory data cache failed!");
   }
 }
 
@@ -1041,7 +1041,7 @@ void SpatiaLite::cleanWeatherDataQCCache(const ptime &newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of WeatherDataQCCache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of WeatherDataQCCache failed!");
   }
 }
 
@@ -1062,7 +1062,7 @@ void SpatiaLite::cleanFlashDataCache(const ptime &newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of FlashDataCache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of FlashDataCache failed!");
   }
 }
 
@@ -1085,7 +1085,7 @@ void SpatiaLite::cleanRoadCloudCache(const ptime &newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of RoadCloud cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of RoadCloud cache failed!");
   }
 }
 
@@ -1112,7 +1112,7 @@ void SpatiaLite::cleanNetAtmoCache(const ptime &newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of NetAtmno cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of NetAtmno cache failed!");
   }
 }
 
@@ -1139,7 +1139,7 @@ void SpatiaLite::cleanFmiIoTCache(const ptime &newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of FmiIoT cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of FmiIoT cache failed!");
   }
 }
 
@@ -1254,7 +1254,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getMobileAndExterna
 	}
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting mobile and external data from cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting mobile and external data from cache failed!");
   }
 }
 
@@ -1351,7 +1351,7 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling of data cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling of data cache failed!");
   }
 }
 
@@ -1433,7 +1433,7 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling of WeatherDataQCCache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling of WeatherDataQCCache failed!");
   }
 }
 
@@ -1572,7 +1572,7 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &flashCacheData,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Flash data cache update failed!");
+    throw Fmi::Exception::Trace(BCP, "Flash data cache update failed!");
   }
 }
 
@@ -1716,7 +1716,7 @@ std::size_t SpatiaLite::fillRoadCloudCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "RoadCloud cache update failed!");
+    throw Fmi::Exception::Trace(BCP, "RoadCloud cache update failed!");
   }
 
   return 0;
@@ -1862,7 +1862,7 @@ std::size_t SpatiaLite::fillNetAtmoCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "NetAtmo cache update failed!");
+    throw Fmi::Exception::Trace(BCP, "NetAtmo cache update failed!");
   }
 
   return 0;
@@ -2035,7 +2035,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFlashData(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting cached flash data failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting cached flash data failed!");
   }
 }
 
@@ -2104,7 +2104,7 @@ FlashDataItems SpatiaLite::readFlashCacheData(const ptime& starttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Reading flash cache data failed!");
+    throw Fmi::Exception::Trace(BCP, "Reading flash cache data failed!");
   }
 }
 
@@ -2172,7 +2172,7 @@ FlashCounts SpatiaLite::getFlashCount(const ptime &starttime,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting flash count failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting flash count failed!");
   }
 }
 
@@ -2232,7 +2232,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getData(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting cached data failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting cached data failed!");
   }
 }
 
@@ -2243,7 +2243,7 @@ ptime SpatiaLite::parseSqliteTime(sqlite3pp::query::iterator &iter,
   {
   // 1 = INTEGER; 2 = FLOAT, 3 = TEXT, 4 = BLOB, 5 = NULL
   if ((*iter).column_type(column) != SQLITE_TEXT)
-    throw Spine::Exception(BCP, "Invalid time column from sqlite query")
+    throw Fmi::Exception(BCP, "Invalid time column from sqlite query")
         .addParameter("columntype", Fmi::to_string((*iter).column_type(column)));
 
   std::string timestring = (*iter).get<char const *>(column);
@@ -2253,7 +2253,7 @@ ptime SpatiaLite::parseSqliteTime(sqlite3pp::query::iterator &iter,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Parsing sqlite time failed!");
+    throw Fmi::Exception::Trace(BCP, "Parsing sqlite time failed!");
   }
 }
 
@@ -2302,7 +2302,7 @@ void SpatiaLite::initObservationMemoryCache(const boost::posix_time::ptime &star
 	}
   catch (...)
 	{
-	  throw Spine::Exception::Trace(BCP, "Initializing observation memory cache failed!");
+	  throw Fmi::Exception::Trace(BCP, "Initializing observation memory cache failed!");
 	}
 }
 
@@ -2375,7 +2375,7 @@ try
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Fetching data from SpatiaLite WeatherDataQCData cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Fetching data from SpatiaLite WeatherDataQCData cache failed!");
   }
 }
 
@@ -2425,7 +2425,7 @@ std::string SpatiaLite::sqlSelectFromWeatherDataQCData(const Settings &settings,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Constructing SQL statement for SpatiaLite cache query failed!");
+    throw Fmi::Exception::Trace(BCP, "Constructing SQL statement for SpatiaLite cache query failed!");
   }
 }
 

@@ -1,6 +1,6 @@
 #include "MastQueryParams.h"
 #include <macgyver/StringConversion.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 
 namespace SmartMet
 {
@@ -15,7 +15,7 @@ MastQueryParams::MastQueryParams(const std::shared_ptr<DBRegistryConfig> dbrConf
   {
     if (!dbrConfig)
     {
-      Spine::Exception exception(BCP, "Operation processing failed!");
+      Fmi::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail("Database registry configuration is not set.");
       throw exception;
@@ -26,7 +26,7 @@ MastQueryParams::MastQueryParams(const std::shared_ptr<DBRegistryConfig> dbrConf
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -44,7 +44,7 @@ void MastQueryParams::addJoinOnConfig(const std::shared_ptr<DBRegistryConfig> db
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -56,14 +56,14 @@ void MastQueryParams::addJoinOnConfig(const std::shared_ptr<DBRegistryConfig> db
   {
     if (!dbrConfigJoinOn)
     {
-      Spine::Exception exception(BCP, "Operation processing failed!");
+      Fmi::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail("Database registry configuration is not set.");
       throw exception;
     }
     if (joinOnFields.empty())
     {
-      Spine::Exception exception(BCP, "Operation processing failed!");
+      Fmi::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(ObsEngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail("Join fields not set.");
       throw exception;
@@ -85,7 +85,7 @@ void MastQueryParams::addJoinOnConfig(const std::shared_ptr<DBRegistryConfig> db
 
       if (it == map->end() or joinIt == jmap->end())
       {
-        throw Spine::Exception(BCP, "Operation processing failed!")
+        throw Fmi::Exception(BCP, "Operation processing failed!")
             .addDetail(fmt::format(
                 "Joining database views '{}' and '{}' by using field name '{}' is not possible",
                 m_dbrConfig.at(0)->getTableName(),
@@ -99,7 +99,7 @@ void MastQueryParams::addJoinOnConfig(const std::shared_ptr<DBRegistryConfig> db
     TypeOfJoinMapType::const_iterator typeOfJoinMapIt = typeOfJoinMap.find(typeOfJoin);
 
     if (typeOfJoinMapIt == typeOfJoinMap.end())
-      throw Spine::Exception(BCP, "Operation processing failed!")
+      throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("Type of join '{}' is not supported.", typeOfJoin));
 
     m_joinOnListTupleVector.push_back(JoinOnListTupleType(m_dbrConfig.at(0)->getTableName(),
@@ -109,7 +109,7 @@ void MastQueryParams::addJoinOnConfig(const std::shared_ptr<DBRegistryConfig> db
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -140,12 +140,12 @@ void MastQueryParams::addField(const NameType& field, const NameType& alias)
       }
     }
 
-    throw Spine::Exception(BCP, "Invalid parameter value!")
+    throw Fmi::Exception(BCP, "Invalid parameter value!")
         .addDetail(fmt::format("Field name '{}' not found.", field));
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -158,7 +158,7 @@ void MastQueryParams::addOperation(const std::string& groupName,
   {
     // Is the conformance class creted.
     if (not m_conformanceClass)
-      throw Spine::Exception(BCP, "Operation processing failed!")
+      throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(
               fmt::format("MastQueryParams::addOperation operation '{}' not found", operationName));
 
@@ -166,7 +166,7 @@ void MastQueryParams::addOperation(const std::string& groupName,
     std::shared_ptr<const PropertyIsBaseType> op =
         m_conformanceClass->getNewOperationInstance(field, operationName, toWhat);
     if (not op)
-      throw Spine::Exception(BCP, "Operation processing failed!")
+      throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(
               fmt::format("MastQueryParams::addOperation '{}' operation not found", operationName));
 
@@ -215,13 +215,13 @@ void MastQueryParams::addOperation(const std::string& groupName,
       }
     }
 
-    throw Spine::Exception(BCP, "Operation processing failed!")
+    throw Fmi::Exception(BCP, "Operation processing failed!")
         .addDetail(fmt::format(
             "MastQueryParams::addOperation the table not found that has '{}' field.", field));
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -245,7 +245,7 @@ void MastQueryParams::addOrderBy(const NameType& field, const NameType& ascDesc)
     }
 
     if (not validFieldName)
-      throw Spine::Exception(BCP, "Operation processing failed!")
+      throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format(
               "Trying to order SQL query result by using a field name '{}' that is not found from "
               "the configurations.",
@@ -255,14 +255,14 @@ void MastQueryParams::addOrderBy(const NameType& field, const NameType& ascDesc)
          ++it)
     {
       if (it->first == fieldUpper)
-        throw Spine::Exception(BCP, "Operation processing failed!")
+        throw Fmi::Exception(BCP, "Operation processing failed!")
             .addDetail(fmt::format(
                 "Trying to order SQL query result twice by using a field name '{}'.", field));
     }
 
     const std::string ascDescUpper = Fmi::ascii_toupper_copy(ascDesc);
     if (ascDescUpper != "ASC" and ascDescUpper != "DESC")
-      throw Spine::Exception(BCP, "Operation processing failed!")
+      throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(
               fmt::format("Invalid order '{}'. Only 'ASC' and 'DESC' are allowed.", ascDesc));
 
@@ -270,7 +270,7 @@ void MastQueryParams::addOrderBy(const NameType& field, const NameType& ascDesc)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -282,7 +282,7 @@ const std::shared_ptr<MastQueryParams::OperationMapType> MastQueryParams::getOpe
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -294,7 +294,7 @@ const std::shared_ptr<MastQueryParams::OrderByVectorType> MastQueryParams::getOr
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -307,7 +307,7 @@ MastQueryParams::getJoinOnListTupleVector() const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -319,7 +319,7 @@ MastQueryParams::NameType MastQueryParams::getTableName() const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -331,7 +331,7 @@ const std::shared_ptr<MastQueryParams::FieldMapType> MastQueryParams::getFieldMa
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -343,7 +343,7 @@ const std::shared_ptr<MastQueryParams::FieldAliasMapType> MastQueryParams::getFi
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

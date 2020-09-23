@@ -3,7 +3,7 @@
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 #include <macgyver/StringConversion.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 #include <iostream>
 #include <sstream>
 
@@ -26,7 +26,7 @@ void StationtypeConfig::addStationtype(const StationtypeType& stationtype,
 
     if (stationtypeLower.empty())
     {
-      throw Spine::Exception(BCP,
+      throw Fmi::Exception(BCP,
                              "Engine::Observation::StationtypeConfig::addStationtype : Empty "
                              "stationtype name found.");
     }
@@ -34,7 +34,7 @@ void StationtypeConfig::addStationtype(const StationtypeType& stationtype,
     STGroupCodeSetMapType::iterator it = m_stationtypeMap.find(stationtypeLower);
     if (it != m_stationtypeMap.end())
     {
-      throw Spine::Exception(BCP,
+      throw Fmi::Exception(BCP,
                              "Engine::Observation::StationtypeConfig::addStationtype : "
                              "Duplicate stationtype configuration '" +
                                  stationtype + "'.");
@@ -42,7 +42,7 @@ void StationtypeConfig::addStationtype(const StationtypeType& stationtype,
 
     if (stationgroupVector.empty())
     {
-      throw Spine::Exception(BCP,
+      throw Fmi::Exception(BCP,
                              "Engine::Observation::StationtypeConfig::addStationtype : Empty "
                              "group code array found for '" +
                                  stationtype + "' stationtype");
@@ -56,7 +56,7 @@ void StationtypeConfig::addStationtype(const StationtypeType& stationtype,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -68,7 +68,7 @@ StationtypeConfig::getDatabaseTableNameByStationtype(const StationtypeType& stat
     const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
     STDatabaseTableNameMapType::const_iterator it = m_stDatabaseTableNameMap.find(stationtypeLower);
     if (it == m_stDatabaseTableNameMap.end())
-      throw Spine::Exception(BCP, "Invalid parameter value!")
+      throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail(
               fmt::format("Database table name for the stationtype '{}' not found.", stationtype));
 
@@ -76,7 +76,7 @@ StationtypeConfig::getDatabaseTableNameByStationtype(const StationtypeType& stat
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -92,12 +92,12 @@ StationtypeConfig::getGroupCodeSetByStationtype(const StationtypeType& stationty
       return std::make_shared<GroupCodeSetType>(it->second);
     }
     else
-      throw Spine::Exception(BCP, "Invalid parameter value!")
+      throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail(fmt::format("Stationtype '{}' not found.", stationtype));
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -113,12 +113,12 @@ StationtypeConfig::getProducerIdSetByStationtype(const StationtypeType& stationt
       return std::make_shared<ProducerIdSetType>(it->second);
     }
     else
-      throw Spine::Exception(BCP, "Invalid parameter value!")
+      throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail(fmt::format("Producer id list not found for Stationtype '{}'.", stationtype));
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -137,7 +137,7 @@ StationtypeConfig::UseCommonQueryMethodType StationtypeConfig::getUseCommonQuery
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -151,7 +151,7 @@ void StationtypeConfig::setDatabaseTableName(const StationtypeType& stationtype,
     STGroupCodeSetMapType::const_iterator stGroupCodeSetMapIt =
         m_stationtypeMap.find(stationtypeLower);
     if (stGroupCodeSetMapIt == m_stationtypeMap.end())
-      throw Spine::Exception(BCP, "Invalid parameter value!")
+      throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail(fmt::format(
               "Stationtype '{}' not found. Add first the stationtype into the class object.",
               stationtype));
@@ -161,7 +161,7 @@ void StationtypeConfig::setDatabaseTableName(const StationtypeType& stationtype,
         m_stDatabaseTableNameMap.find(stationtypeLower);
 
     if (stDatabaseTableNameMapIt != m_stDatabaseTableNameMap.end())
-      throw Spine::Exception(BCP, "Invalid parameter value!")
+      throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail(fmt::format(
               "There is already added a database table name '{}' for the stationtype '{}'. Table "
               "name '{}' is not added.",
@@ -173,7 +173,7 @@ void StationtypeConfig::setDatabaseTableName(const StationtypeType& stationtype,
 
     // We do not want to store empty values.
     if (tablenameLower.empty())
-      throw Spine::Exception(BCP, "Invalid parameter value!")
+      throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail(fmt::format("The database table name is empty for the stationtype '{}'.",
                                  stationtype));
 
@@ -181,7 +181,7 @@ void StationtypeConfig::setDatabaseTableName(const StationtypeType& stationtype,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -195,7 +195,7 @@ void StationtypeConfig::setUseCommonQueryMethod(const StationtypeType& stationty
     STGroupCodeSetMapType::const_iterator stGroupCodeSetMapIt =
         m_stationtypeMap.find(stationtypeLower);
     if (stGroupCodeSetMapIt == m_stationtypeMap.end())
-      throw Spine::Exception(BCP, "Invalid parameter value!")
+      throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail(fmt::format(
               "Stationtype '{}' not found. Add first the stationtype into the class object.",
               stationtype));
@@ -204,7 +204,7 @@ void StationtypeConfig::setUseCommonQueryMethod(const StationtypeType& stationty
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -222,7 +222,7 @@ void StationtypeConfig::setProducerIds(const StationtypeType& stationtype,
         m_stationtypeMap.find(stationtypeLower);
 
     if (stGroupCodeSetMapIt == m_stationtypeMap.end())
-      throw Spine::Exception(BCP, "Invalid parameter value!")
+      throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail(fmt::format(
               "Stationtype '{}' not found. Add first the stationtype into the class object.",
               stationtype));
@@ -244,7 +244,7 @@ void StationtypeConfig::setProducerIds(const StationtypeType& stationtype,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

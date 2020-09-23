@@ -1,7 +1,7 @@
 #pragma once
 
 #include <macgyver/StringConversion.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 
 namespace SmartMet
 {
@@ -21,7 +21,7 @@ class ProducerId
   ProducerId(const std::string& id)
   {
     if (std::string::npos != id.find_first_not_of("0123456789"))
-      throw SmartMet::Spine::Exception(BCP, "Unsupported producer id: " + id);
+      throw Fmi::Exception(BCP, "Unsupported producer id: " + id);
     init(Fmi::stoi(id));
   }
 
@@ -46,7 +46,7 @@ class ProducerId
     }
     else
     {
-      throw SmartMet::Spine::Exception(BCP, "Unsupported producer id: " + Fmi::to_string(id));
+      throw Fmi::Exception(BCP, "Unsupported producer id: " + Fmi::to_string(id));
     }
     itsIdInt = id;
   }

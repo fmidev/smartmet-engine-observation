@@ -4,7 +4,7 @@
 #include <boost/asio/ip/host_name.hpp>
 #include <macgyver/AnsiEscapeCodes.h>
 #include <macgyver/StringConversion.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 
 namespace SmartMet
 {
@@ -40,7 +40,7 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
     libconfig::Config& lc = cfg.get_config();
 
     if (!lc.exists("database_driver_info"))
-      throw SmartMet::Spine::Exception::Trace(BCP, "database_driver_info section missing");
+      throw Fmi::Exception::Trace(BCP, "database_driver_info section missing");
 
     const libconfig::Setting& driver_settings = lc.lookup("database_driver_info");
     int count = driver_settings.getLength();
@@ -143,18 +143,18 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
     }
 
     if (loadStationsParam == 0)
-      throw SmartMet::Spine::Exception::Trace(BCP,
+      throw Fmi::Exception::Trace(BCP,
                                               "Parameter loadStations missing! It must be defined "
                                               "to be true in exaclty one database driver!");
     else if (loadStationsParam > 1)
-      throw SmartMet::Spine::Exception::Trace(
+      throw Fmi::Exception::Trace(
           BCP,
           "Parameter loadStations defined to be true in more than one database driver. It must be "
           "be defined to be true in exaclty one database driver!");
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception::Trace(BCP, "Error in reading database configuration");
+    throw Fmi::Exception::Trace(BCP, "Error in reading database configuration");
   }
 }
 
@@ -260,7 +260,7 @@ void DatabaseDriverInfo::readOracleConnectInfo(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception::Trace(BCP,
+    throw Fmi::Exception::Trace(BCP,
                                             "Reading Oracle database driver configuration failed!");
   }
 }
@@ -489,7 +489,7 @@ const libconfig::Setting& DatabaseDriverInfo::lookupDatabase(const std::string& 
   }
   catch (libconfig::SettingNotFoundException& ex)
   {
-    throw SmartMet::Spine::Exception::Trace(BCP, "Override configuration error: " + setting);
+    throw Fmi::Exception::Trace(BCP, "Override configuration error: " + setting);
   }
 }
 

@@ -1,7 +1,7 @@
 #include "DBRegistryConfig.h"
 
 #include <macgyver/StringConversion.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 
 #include <iostream>
 #include <locale>
@@ -23,7 +23,7 @@ DBRegistryConfig::DBRegistryConfig(boost::shared_ptr<SmartMet::Spine::ConfigBase
     // Field name restrictions checks.
     if (m_name.empty() or (std::isalpha(m_name[0], std::locale()) == 0))
     {
-      Spine::Exception exception(BCP, "Invalid table name in the config file!", nullptr);
+      Fmi::Exception exception(BCP, "Invalid table name in the config file!", nullptr);
       exception.addParameter("Table", m_name);
       exception.addParameter("Config file", config->get_file_name());
       exception.addDetail("First character of the table name must be an alphabetic character.");
@@ -56,7 +56,7 @@ DBRegistryConfig::DBRegistryConfig(boost::shared_ptr<SmartMet::Spine::ConfigBase
       }
       catch (const std::exception& err)
       {
-        Spine::Exception exception(
+        Fmi::Exception exception(
             BCP, "Error while parsing DBRegistry configuration file!", nullptr);
         exception.addParameter("Config file", config->get_file_name());
         std::ostringstream msg;
@@ -68,7 +68,7 @@ DBRegistryConfig::DBRegistryConfig(boost::shared_ptr<SmartMet::Spine::ConfigBase
       // Field name restrictions checks.
       if (fieldName.empty() or (std::isalpha(fieldName[0], std::locale()) == 0))
       {
-        Spine::Exception exception(
+        Fmi::Exception exception(
             BCP, "Invalid field name '" + fieldName + "' in the configuration file!", nullptr);
         exception.addParameter("Config file", config->get_file_name());
         exception.addDetail("First character of a field name must be an alphabetic character.");
@@ -78,7 +78,7 @@ DBRegistryConfig::DBRegistryConfig(boost::shared_ptr<SmartMet::Spine::ConfigBase
       // Duplicates are not allowed.
       if (m_fieldNameMap.find(fieldName) != m_fieldNameMap.end())
       {
-        Spine::Exception exception(
+        Fmi::Exception exception(
             BCP, "Duplicate field name '" + fieldName + "' in the configuration file!", nullptr);
         exception.addParameter("Config file", config->get_file_name());
         throw exception;
@@ -98,7 +98,7 @@ DBRegistryConfig::DBRegistryConfig(boost::shared_ptr<SmartMet::Spine::ConfigBase
 
     if (m_fieldNameMap.size() == 0)
     {
-      Spine::Exception exception(
+      Fmi::Exception exception(
           BCP, "At least one field must be defined in the configuration file!", nullptr);
       exception.addParameter("Config file", config->get_file_name());
       throw exception;
@@ -106,7 +106,7 @@ DBRegistryConfig::DBRegistryConfig(boost::shared_ptr<SmartMet::Spine::ConfigBase
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -123,7 +123,7 @@ DBRegistryConfig::NameType DBRegistryConfig::getMethod(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -166,7 +166,7 @@ NamesAllowed::NamesAllowed(const std::shared_ptr<DBRegistryConfig> dbrConfig,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -195,7 +195,7 @@ bool NamesAllowed::addName(const std::string& inName)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

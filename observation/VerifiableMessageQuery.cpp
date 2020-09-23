@@ -1,5 +1,5 @@
 #include "VerifiableMessageQuery.h"
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 #include <string>
 
 namespace SmartMet
@@ -80,7 +80,7 @@ std::string VerifiableMessageQuery::getSQLStatement() const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -98,7 +98,7 @@ std::shared_ptr<QueryResult> VerifiableMessageQuery::getQueryResultContainer()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -120,7 +120,7 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
     const VerifiableMessageQueryParams::SelectNameListType *selectNames =
         qParams->getSelectNameList();
     if (selectNames->empty())
-      throw Spine::Exception(BCP, "Invalid SQL statement: Empty select name list");
+      throw Fmi::Exception(BCP, "Invalid SQL statement: Empty select name list");
 
     for (VerifiableMessageQueryParams::SelectNameListType::const_iterator it = selectNames->begin();
          it != selectNames->end();
@@ -141,7 +141,7 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
 
     m_from = qParams->getTableName();
     if (m_from.empty())
-      throw Spine::Exception(BCP, "Invalid SQL statement: Empty table name");
+      throw Fmi::Exception(BCP, "Invalid SQL statement: Empty table name");
 
     m_from.append(" data");
 
@@ -149,7 +149,7 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
         qParams->getStationIdVector();
 
     if (icaoCodes->empty())
-      throw Spine::Exception(BCP, "Empty location list");
+      throw Fmi::Exception(BCP, "Empty location list");
 
     if (m_returnOnlyLatest)
     {  // Station_id list is used in getSQLStatement
@@ -207,7 +207,7 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

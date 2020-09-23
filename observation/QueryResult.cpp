@@ -1,7 +1,7 @@
 #include "QueryResult.h"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <macgyver/StringConversion.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 #include <limits>
 #include <utility>
 
@@ -22,7 +22,7 @@ QueryResult::QueryResult(const size_t& numberOfValueVectors)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -48,7 +48,7 @@ QueryResult::QueryResult(const QueryResult& other)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -63,7 +63,7 @@ QueryResult::ValueVectorType::const_iterator QueryResult::begin(const std::strin
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -76,7 +76,7 @@ QueryResult::ValueVectorType::const_iterator QueryResult::end(const std::string&
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -140,14 +140,14 @@ std::string QueryResult::toString(const ValueVectorType::const_iterator value,
     }
     else
     {
-      throw Spine::Exception(BCP, "Operation processing failed!")
+      throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("warning: QueryResult::toString : Unsupported data type '{}'",
                                  value->type().name()));
     }
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -190,7 +190,7 @@ std::pair<double, double> QueryResult::minMax(const ValueVectorType::const_itera
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -199,7 +199,7 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId, ValueVectorTyp
   try
   {
     if (m_numberOfValueVectors <= valueVectorId)
-      throw Spine::Exception(BCP, "Invalid parameter value!")
+      throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail("QueryResult::set : value vector index is out of range.");
 
     outValueVector.resize(m_valueContainer.at(valueVectorId).size());
@@ -216,7 +216,7 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId, ValueVectorTyp
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -230,7 +230,7 @@ void QueryResult::getValueVectorData(const std::string& valueVectorName,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -244,7 +244,7 @@ void QueryResult::getValueVectorData(const std::string& valueVectorName,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -254,7 +254,7 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
   try
   {
     if (m_numberOfValueVectors <= valueVectorId)
-      throw Spine::Exception(BCP, "Invalid parameter value!")
+      throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail("QueryResult::set : value vector index is out of range.");
 
     outValueVector.resize(m_valueContainer.at(valueVectorId).size());
@@ -333,13 +333,13 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
     }
     catch (const std::bad_cast& e)
     {
-      throw Spine::Exception(BCP, "Operation processing failed!")
+      throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("QueryResult::getValueVectorData : {}", e.what()));
     }
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -354,13 +354,13 @@ size_t QueryResult::getValueVectorId(const std::string& valueVectorName)
         return id;
     }
 
-    throw Spine::Exception(BCP, "Invalid parameter value!")
+    throw Fmi::Exception(BCP, "Invalid parameter value!")
         .addDetail(
             fmt::format("QueryResult::end : value vector name '{}' not found.", valueVectorName));
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -369,14 +369,14 @@ std::string QueryResult::getValueVectorName(const size_t& valueVectorId)
   try
   {
     if (m_numberOfValueVectors <= valueVectorId)
-      throw Spine::Exception(BCP, "Invalid parameter value!")
+      throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail("QueryResult::getValueVectorName : value vector index is out of range.");
 
     return m_valueVectorName.at(valueVectorId);
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -436,7 +436,7 @@ bool QueryResult::set(const std::shared_ptr<QueryResultBase> input)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -445,7 +445,7 @@ void QueryResult::set(const size_t& valueVectorId, const ValueType& value)
   try
   {
     if (m_numberOfValueVectors <= valueVectorId)
-      throw Spine::Exception(BCP, "Invalid parameter value!")
+      throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail("QueryResult::set : value vector index is out of range.");
 
     // Store the first value and compare its type with the following ones.
@@ -457,7 +457,7 @@ void QueryResult::set(const size_t& valueVectorId, const ValueType& value)
     {
       if (m_valueTypeOfVector[valueVectorId].type() != value.type())
       {
-        throw Spine::Exception(BCP, "Invalid parameter value!")
+        throw Fmi::Exception(BCP, "Invalid parameter value!")
             .addDetail(fmt::format("QueryResult::set : wrong data type '{}' with '{}'",
                                    value.type().name(),
                                    m_valueTypeOfVector[valueVectorId].type().name()));
@@ -468,7 +468,7 @@ void QueryResult::set(const size_t& valueVectorId, const ValueType& value)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -478,14 +478,14 @@ void QueryResult::setValueVectorName(const size_t& valueVectorId,
   try
   {
     if (m_numberOfValueVectors <= valueVectorId)
-      throw Spine::Exception(BCP, "Invalid parameter value!")
+      throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail("QueryResult::setValueVectorName : value vector index is out of range.");
 
     m_valueVectorName.at(valueVectorId) = valueVectorName;
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

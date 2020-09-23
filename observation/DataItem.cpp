@@ -1,7 +1,7 @@
 #include "DataItem.h"
 #include <boost/functional/hash.hpp>
 #include <macgyver/StringConversion.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 
 namespace SmartMet
 {
@@ -27,7 +27,7 @@ std::size_t DataItem::hash_value() const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Failed to get hash_value for DataItem!");
+    throw Fmi::Exception::Trace(BCP, "Failed to get hash_value for DataItem!");
   }
 }
 

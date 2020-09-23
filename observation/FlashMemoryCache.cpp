@@ -51,7 +51,7 @@ boost::posix_time::ptime FlashMemoryCache::getStartTime() const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "FlashMemoryCache::getStartTime failed");
+    throw Fmi::Exception::Trace(BCP, "FlashMemoryCache::getStartTime failed");
   }
 }
 
@@ -119,7 +119,7 @@ std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "FlashMemoryCache::fill failed");
+    throw Fmi::Exception::Trace(BCP, "FlashMemoryCache::fill failed");
   }
 }
 
@@ -164,7 +164,7 @@ void FlashMemoryCache::clean(const boost::posix_time::ptime& newstarttime) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "FlashMemoryCache::clean failed");
+    throw Fmi::Exception::Trace(BCP, "FlashMemoryCache::clean failed");
   }
 }
 
@@ -301,7 +301,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr FlashMemoryCache::getData(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "FlashMemoryCache::getData failed");
+    throw Fmi::Exception::Trace(BCP, "FlashMemoryCache::getData failed");
   }
 }
 

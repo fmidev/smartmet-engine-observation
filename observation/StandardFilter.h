@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MinimumStandardFilter.h"
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 
 namespace SmartMet
 {
@@ -73,7 +73,7 @@ class ExtendedStandardFilter : public StandardFilter
     }
     catch (...)
     {
-      throw Spine::Exception(BCP, "Operation processing failed!")
+      throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("ExtendedStandardFilter operation '{}' initialization failed!",
                                  operationName));
     }

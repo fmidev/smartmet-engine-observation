@@ -1,7 +1,7 @@
 #include "Property.h"
 #include <fmt/format.h>
 #include <macgyver/StringConversion.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 
 namespace SmartMet
 {
@@ -25,7 +25,7 @@ Base::Base(const Base& other)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -46,7 +46,7 @@ Base::NameType Base::getExpression(const NameType& viewName) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -97,7 +97,7 @@ Base::NameType Base::toWhatString(const boost::any& value) const
              "','YYYY-MM-DD HH24:MI:SS')";
     }
     else
-      throw Spine::Exception(BCP, "Operation processing failed!")
+      throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format(
               "warning: Engine::Observation::Property::Base::toWhatString : Unsupported data type "
               "'{}'.",
@@ -105,7 +105,7 @@ Base::NameType Base::toWhatString(const boost::any& value) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -160,7 +160,7 @@ Base::NameType Base::getValueTypeString() const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -188,7 +188,7 @@ Base::NameType MinuteValueModuloIsEqualToZero::getExpression(const Base::NameTyp
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -205,7 +205,7 @@ Base::NameType MinuteValueModuloIsEqualToZero::getValueTypeString() const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

@@ -6,7 +6,7 @@
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeParser.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 #include <spine/Thread.h>
 #include <spine/TimeSeriesGenerator.h>
 #include <spine/TimeSeriesOutput.h>
@@ -106,7 +106,7 @@ void solveMeasurandIds(const std::vector<std::string> &parameters,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Solving measurand id failed!");
+    throw Fmi::Exception::Trace(BCP, "Solving measurand id failed!");
   }
 }
 
@@ -139,7 +139,7 @@ PostgreSQL::PostgreSQL(const PostgreSQLCacheParameters &options)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Connecting to database failed!");
+    throw Fmi::Exception::Trace(BCP, "Connecting to database failed!");
   }
 }
 
@@ -165,7 +165,7 @@ void PostgreSQL::createTables(const std::set<std::string> &tables)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of database tables failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of database tables failed!");
   }
 }
 
@@ -205,7 +205,7 @@ void PostgreSQL::createObservationDataTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of observation_data table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of observation_data table failed!");
   }
 }
 
@@ -228,7 +228,7 @@ void PostgreSQL::createWeatherDataQCTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of weather_data_qc table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of weather_data_qc table failed!");
   }
 }
 
@@ -288,7 +288,7 @@ void PostgreSQL::createFlashDataTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of flash_data table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of flash_data table failed!");
   }
 }
 
@@ -326,7 +326,7 @@ void PostgreSQL::createRoadCloudDataTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_roadcloud table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of ext_obsdata_roadcloud table failed!");
   }
 }
 
@@ -364,7 +364,7 @@ void PostgreSQL::createNetAtmoDataTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_netatmo table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of ext_obsdata_netatmo table failed!");
   }
 }
 
@@ -402,7 +402,7 @@ void PostgreSQL::createFmiIoTDataTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_fmi_iot table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of ext_obsdata_fmi_iot table failed!");
   }
 }
 
@@ -423,7 +423,7 @@ size_t PostgreSQL::selectCount(const std::string &queryString)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, queryString + " query failed!");
+    throw Fmi::Exception::Trace(BCP, queryString + " query failed!");
   }
 }  // namespace Observation
 
@@ -454,7 +454,7 @@ boost::posix_time::ptime PostgreSQL::getTime(const std::string &timeQuery) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Query failed: " + timeQuery);
+    throw Fmi::Exception::Trace(BCP, "Query failed: " + timeQuery);
   }
 }
 
@@ -493,7 +493,7 @@ boost::posix_time::ptime PostgreSQL::getLatestFlashTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest flash time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest flash time query failed!");
   }
 }
 
@@ -507,7 +507,7 @@ boost::posix_time::ptime PostgreSQL::getOldestFlashTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest flash time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Oldest flash time query failed!");
   }
 }
 
@@ -521,7 +521,7 @@ boost::posix_time::ptime PostgreSQL::getOldestRoadCloudDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest RoadCloud data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Oldest RoadCloud data time query failed!");
   }
 }
 
@@ -535,7 +535,7 @@ boost::posix_time::ptime PostgreSQL::getLatestRoadCloudCreatedTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest RoadCloud created time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest RoadCloud created time query failed!");
   }
 }
 
@@ -549,7 +549,7 @@ boost::posix_time::ptime PostgreSQL::getLatestRoadCloudDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest RoadCloud data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest RoadCloud data time query failed!");
   }
 }
 
@@ -563,7 +563,7 @@ boost::posix_time::ptime PostgreSQL::getOldestNetAtmoDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest NetAtmo data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Oldest NetAtmo data time query failed!");
   }
 }
 
@@ -577,7 +577,7 @@ boost::posix_time::ptime PostgreSQL::getLatestNetAtmoDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest NetAtmo data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest NetAtmo data time query failed!");
   }
 }
 
@@ -591,7 +591,7 @@ boost::posix_time::ptime PostgreSQL::getLatestNetAtmoCreatedTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest NetAtmo created time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest NetAtmo created time query failed!");
   }
 }
 
@@ -605,7 +605,7 @@ boost::posix_time::ptime PostgreSQL::getOldestFmiIoTDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest FmiIoT data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Oldest FmiIoT data time query failed!");
   }
 }
 
@@ -619,7 +619,7 @@ boost::posix_time::ptime PostgreSQL::getLatestFmiIoTDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest FmiIoT data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest FmiIoT data time query failed!");
   }
 }
 
@@ -633,7 +633,7 @@ boost::posix_time::ptime PostgreSQL::getLatestFmiIoTCreatedTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest FmiIoT created time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest FmiIoT created time query failed!");
   }
 }
 
@@ -666,7 +666,7 @@ void PostgreSQL::cleanDataCache(const boost::posix_time::ptime &newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of data cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of data cache failed!");
   }
 }
 
@@ -685,7 +685,7 @@ void PostgreSQL::cleanWeatherDataQCCache(const boost::posix_time::ptime &newstar
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of WeatherDataQCCache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of WeatherDataQCCache failed!");
   }
 }
 
@@ -705,7 +705,7 @@ void PostgreSQL::cleanFlashDataCache(const boost::posix_time::ptime &newstarttim
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of FlashDataCache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of FlashDataCache failed!");
   }
 }
 
@@ -725,7 +725,7 @@ void PostgreSQL::cleanRoadCloudCache(const boost::posix_time::ptime &newstarttim
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of RoadCloud cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of RoadCloud cache failed!");
   }
 }
 
@@ -746,7 +746,7 @@ void PostgreSQL::cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of NetAtmo cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of NetAtmo cache failed!");
   }
 }
 
@@ -767,7 +767,7 @@ void PostgreSQL::cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of FmiIoT cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of FmiIoT cache failed!");
   }
 }
 
@@ -910,7 +910,7 @@ std::size_t PostgreSQL::fillDataCache(const DataItems &cacheData)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling of data cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling of data cache failed!");
   }
 }  // namespace Observation
 
@@ -1035,7 +1035,7 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling of WeatherDataQCCache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling of WeatherDataQCCache failed!");
   }
 }  // namespace Observation
 
@@ -1198,7 +1198,7 @@ std::size_t PostgreSQL::fillFlashDataCache(const FlashDataItems &flashCacheData)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Flash data cache update failed!");
+    throw Fmi::Exception::Trace(BCP, "Flash data cache update failed!");
   }
 }
 
@@ -1375,7 +1375,7 @@ std::size_t PostgreSQL::fillRoadCloudCache(const MobileExternalDataItems &mobile
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "RoadCloud cache update failed!");
+    throw Fmi::Exception::Trace(BCP, "RoadCloud cache update failed!");
   }
 }
 
@@ -1552,7 +1552,7 @@ std::size_t PostgreSQL::fillNetAtmoCache(const MobileExternalDataItems &mobileEx
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "NetAtmo cache update failed!");
+    throw Fmi::Exception::Trace(BCP, "NetAtmo cache update failed!");
   }
 }
 
@@ -1671,7 +1671,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getMobileAndExterna
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting mobile data from database failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting mobile data from database failed!");
   }
 }
 
@@ -1757,7 +1757,7 @@ void PostgreSQL::addEmptyValuesToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Adding empty values to time series failed!");
+    throw Fmi::Exception::Trace(BCP, "Adding empty values to time series failed!");
   }
 }
 
@@ -1890,7 +1890,7 @@ void PostgreSQL::addParameterToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Adding parameter to time series failed!");
+    throw Fmi::Exception::Trace(BCP, "Adding parameter to time series failed!");
   }
 }
 
@@ -2054,7 +2054,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getFlashData(const Settings &
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting cached flash data failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting cached flash data failed!");
   }
 }
 
@@ -2097,7 +2097,7 @@ void PostgreSQL::addSmartSymbolToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Adding smart symbol to time series failed!");
+    throw Fmi::Exception::Trace(BCP, "Adding smart symbol to time series failed!");
   }
 }
 
@@ -2184,7 +2184,7 @@ void PostgreSQL::addSpecialParameterToTimeSeries(
           "Unsupported special parameter '" +
           paramname + "'";
 
-      Spine::Exception exception(BCP, "Operation processing failed!");
+      Fmi::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg);
       throw exception;
@@ -2192,7 +2192,7 @@ void PostgreSQL::addSpecialParameterToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Adding special parameter to time series failed!");
+    throw Fmi::Exception::Trace(BCP, "Adding special parameter to time series failed!");
   }
 }
 
@@ -2257,7 +2257,7 @@ FlashCounts PostgreSQL::getFlashCount(const boost::posix_time::ptime &starttime,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting flash count failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting flash count failed!");
   }
 }
 
@@ -2360,7 +2360,7 @@ LocationDataItems PostgreSQL::readObservations(const Spine::Stations &stations,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception::Trace(
+    throw Fmi::Exception::Trace(
         BCP, "Reading observations from PostgreSQL database failed!");
   }
 }
@@ -2416,7 +2416,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getData(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting cached data failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting cached data failed!");
   }
 }
 
@@ -2436,7 +2436,7 @@ void PostgreSQL::createIndex(const std::string &table,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creating index " + idx_name + " failed!");
+    throw Fmi::Exception::Trace(BCP, "Creating index " + idx_name + " failed!");
   }
 }
 
@@ -2452,7 +2452,7 @@ void PostgreSQL::dropIndex(const std::string &idx_name, bool transaction /*= fal
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Dropping index " + idx_name + " failed!");
+    throw Fmi::Exception::Trace(BCP, "Dropping index " + idx_name + " failed!");
   }
 }
 #endif
@@ -2521,7 +2521,7 @@ ResultSetRows PostgreSQL::getResultSetForMobileExternalData(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception::Trace(BCP, "Result set handling of mobile data failed!");
+    throw Fmi::Exception::Trace(BCP, "Result set handling of mobile data failed!");
   }
 
   return ret;
@@ -2597,7 +2597,7 @@ void PostgreSQL::fetchWeatherDataQCData(const std::string &sqlStmt,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP,
+    throw Fmi::Exception::Trace(BCP,
                                   "Fetching data from PostgreSQL WeatherDataQCData cache failed!");
   }
 }
@@ -2691,7 +2691,7 @@ std::string PostgreSQL::sqlSelectFromWeatherDataQCData(const Settings &settings,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP,
+    throw Fmi::Exception::Trace(BCP,
                                   "Constructing SQL statement for PostgreSQL cache query failed!");
   }
 }

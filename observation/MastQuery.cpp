@@ -1,5 +1,5 @@
 #include "MastQuery.h"
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 #include <string>
 #include <unordered_map>
 
@@ -37,7 +37,7 @@ std::string MastQuery::getSQLStatement() const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -55,7 +55,7 @@ std::shared_ptr<QueryResult> MastQuery::getQueryResultContainer()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -172,7 +172,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

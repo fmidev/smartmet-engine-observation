@@ -7,7 +7,7 @@
 #include <fmt/format.h>
 #include <macgyver/StringConversion.h>
 #include <spine/ConfigBase.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -66,7 +66,7 @@ class OperationMap
     OperationMapType::const_iterator it = m_ops.find(n);
 
     if (it == m_ops.end())
-      throw Spine::Exception(BCP, "Operation processing failed!")
+      throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("Operation '{}' not found.", name));
     else
       return it->second;

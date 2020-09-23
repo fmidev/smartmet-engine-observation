@@ -1,7 +1,7 @@
 #include "SQLDataFilter.h"
 #include <boost/algorithm/string.hpp>
 #include <macgyver/StringConversion.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 #include <set>
 
 namespace SmartMet
@@ -67,7 +67,7 @@ std::string SQLDataFilter::getSqlClause(const std::string& name, const std::stri
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -175,7 +175,7 @@ bool SQLDataFilter::valueOK(const std::string& name, int val) const
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception::Trace(BCP, "Testing values in SQLDataFilter failed!");
+    throw Fmi::Exception::Trace(BCP, "Testing values in SQLDataFilter failed!");
   }
 }
 

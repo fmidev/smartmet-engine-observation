@@ -33,7 +33,7 @@ DatabaseDriverInterface *DatabaseDriverFactory::create(const EngineParametersPtr
     if (handle == nullptr)
     {
       // Error occurred while opening the dynamic library
-      throw Spine::Exception(BCP, "Unable to load database driver: " + std::string(dlerror()));
+      throw Fmi::Exception(BCP, "Unable to load database driver: " + std::string(dlerror()));
     }
 
     // Load the symbols (pointers to functions in dynamic library)
@@ -44,7 +44,7 @@ DatabaseDriverInterface *DatabaseDriverFactory::create(const EngineParametersPtr
     // Check that pointer to create function is loaded succesfully
     if (driver_create_func == nullptr)
     {
-      throw Spine::Exception(BCP, "Cannot load symbols: " + std::string(dlerror()));
+      throw Fmi::Exception(BCP, "Cannot load symbols: " + std::string(dlerror()));
     }
 
     // Create an instance of the class using the pointer to "create" function
@@ -53,7 +53,7 @@ DatabaseDriverInterface *DatabaseDriverFactory::create(const EngineParametersPtr
 
     if (driver == nullptr)
     {
-      throw Spine::Exception(BCP, "Unable to create a new instance of database driver class");
+      throw Fmi::Exception(BCP, "Unable to create a new instance of database driver class");
     }
 
     driver->itsHandle = handle;
@@ -61,7 +61,7 @@ DatabaseDriverInterface *DatabaseDriverFactory::create(const EngineParametersPtr
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Failed to create database driver!");
+    throw Fmi::Exception::Trace(BCP, "Failed to create database driver!");
   }
 
   // This return would never be executed

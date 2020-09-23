@@ -1,7 +1,7 @@
 #include "MobileExternalDataItem.h"
 #include <boost/functional/hash.hpp>
 #include <macgyver/StringConversion.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 
 namespace SmartMet
 {
@@ -43,7 +43,7 @@ std::size_t MobileExternalDataItem::hash_value() const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Failed to get hash_value for MobileExternalDataItem!");
+    throw Fmi::Exception::Trace(BCP, "Failed to get hash_value for MobileExternalDataItem!");
   }
 }
 

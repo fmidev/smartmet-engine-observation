@@ -110,7 +110,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
   }
   else
   {
-    throw SmartMet::Spine::Exception(BCP, "SQL select not defined for producer " + producerName);
+    throw Fmi::Exception(BCP, "SQL select not defined for producer " + producerName);
   }
 
   add_where_conditions(sqlStmt, producerName, measurandIds, starttime, endtime, "", sqlDataFilter);
@@ -177,7 +177,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
   }
   else
   {
-    throw SmartMet::Spine::Exception(BCP, "SQL select not defined for producer " + producerName);
+    throw Fmi::Exception(BCP, "SQL select not defined for producer " + producerName);
   }
 
   add_where_conditions(
@@ -284,7 +284,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
   if (producerName != NETATMO_PRODUCER && producerName != ROADCLOUD_PRODUCER &&
       producerName != TECONER_PRODUCER && producerName != FMI_IOT_PRODUCER)
   {
-    throw SmartMet::Spine::Exception(BCP, "SQL select not defined for producer " + producerName);
+    throw Fmi::Exception(BCP, "SQL select not defined for producer " + producerName);
   }
 
   std::string sqlStmt;
