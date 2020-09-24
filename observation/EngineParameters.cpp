@@ -33,7 +33,7 @@ ParameterMapPtr createParameterMapping(Spine::ConfigBase &cfg)
       for (const std::string &paramname : param_names)
       {
         if (Fmi::ascii_tolower_copy(paramname).compare(0, 3, "qc_") == 0)
-          throw Spine::Exception(
+          throw Fmi::Exception(
               BCP,
               "Observation error: Parameter aliases with 'qc_' prefix are not allowed. Fix the '" +
                   paramname + "' parameter.");
@@ -51,7 +51,7 @@ ParameterMapPtr createParameterMapping(Spine::ConfigBase &cfg)
         }
 
         if (pm->find(lower_parame_name) != pm->end())
-          throw Spine::Exception(
+          throw Fmi::Exception(
               BCP, "Observation error: Duplicate parameter alias '" + paramname + "' found.");
 
         // All internal comparisons between parameter names are done with lower case names
@@ -69,7 +69,7 @@ ParameterMapPtr createParameterMapping(Spine::ConfigBase &cfg)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -99,7 +99,7 @@ EngineParameters::EngineParameters(Spine::ConfigBase &cfg)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Configuration file read failed!");
+    throw Fmi::Exception::Trace(BCP, "Configuration file read failed!");
   }
 }
 
@@ -125,7 +125,7 @@ void EngineParameters::readDataQualityConfig(Spine::ConfigBase &cfg)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Reading data quality config failed!");
+    throw Fmi::Exception::Trace(BCP, "Reading data quality config failed!");
   }
 }
 
@@ -170,7 +170,7 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
           std::vector<uint> producerIdVector =
               cfg.get_mandatory_config_array<uint>(stationtypeGroup, "producerIds");
           if (producerIdVector.empty())
-            throw Spine::Exception(BCP, "Invalid parameter value!")
+            throw Fmi::Exception(BCP, "Invalid parameter value!")
                 .addDetail(fmt::format(
                     "At least one producer id must be defined into producerIds "
                     "array for the stationtype '{}' if the useCommonQueryMethod value is true.",
@@ -185,7 +185,7 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
           stationtypeConfig.setDatabaseTableName(type, databaseTableName);
         }
         else if (useCommonQueryMethod)
-          throw Spine::Exception(BCP, "Invalid parameter value!")
+          throw Fmi::Exception(BCP, "Invalid parameter value!")
               .addDetail(fmt::format("databaseTableName parameter definition is required for the "
                                      "stationtype '{}' if the useCommonQueryMethod value is true.",
                                      type));
@@ -240,7 +240,7 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Reading Stationtype config failed!");
+    throw Fmi::Exception::Trace(BCP, "Reading Stationtype config failed!");
   }
 }
 
@@ -273,7 +273,7 @@ bool EngineParameters::isParameter(const std::string &alias, const std::string &
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -298,7 +298,7 @@ bool EngineParameters::isParameterVariant(const std::string &name) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -329,7 +329,7 @@ std::string EngineParameters::getParameterIdAsString(const std::string &alias,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -353,7 +353,7 @@ uint64_t EngineParameters::getParameterId(const std::string &alias,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

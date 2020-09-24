@@ -1,6 +1,6 @@
 #include "QueryParamsBase.h"
 #include <fmt/format.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 #include <sstream>
 
 namespace SmartMet
@@ -20,7 +20,7 @@ std::string QueryParamsBase::getBeginTime(const std::string& format) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -34,7 +34,7 @@ std::string QueryParamsBase::getEndTime(const std::string& format) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -43,7 +43,7 @@ void QueryParamsBase::setTimeRange(const pt::ptime& beginTime, const pt::ptime& 
   try
   {
     if (beginTime > endTime)
-      throw Spine::Exception(BCP, "Operation processing failed!")
+      throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("Invalid time interval {} - {}",
                                  pt::to_simple_string(beginTime),
                                  pt::to_simple_string(endTime)));
@@ -54,7 +54,7 @@ void QueryParamsBase::setTimeRange(const pt::ptime& beginTime, const pt::ptime& 
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -80,7 +80,7 @@ void QueryParamsBase::setBoundingBox(const double& xMin,
       msg = fmt::format("yMax '{}' is greater than 90.0000", yMax);
 
     if (!msg.empty())
-      throw Spine::Exception(BCP, "Invalid bounding box!").addDetail(msg);
+      throw Fmi::Exception(BCP, "Invalid bounding box!").addDetail(msg);
 
     m_bbox.xMin = xMin;
     m_bbox.yMin = yMin;
@@ -90,7 +90,7 @@ void QueryParamsBase::setBoundingBox(const double& xMin,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -106,12 +106,12 @@ std::string QueryParamsBase::formattedTime(const pt::ptime& t, const std::string
         return fT;
     }
 
-    throw Spine::Exception(BCP, "Operation processing failed!")
+    throw Fmi::Exception(BCP, "Operation processing failed!")
         .addDetail(fmt::format("Time format conversion failure - '{}'", fT));
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

@@ -32,8 +32,6 @@ void Engine::init()
 
     itsEngineParameters.reset(new EngineParameters(cfg));
 
-    //    std::cout << itsEngineParameters->databaseDriverInfo << std::endl;
-
     itsDatabaseRegistry->loadConfigurations(itsEngineParameters->dbRegistryFolderPath);
 
     // Initialize the caches
@@ -51,14 +49,14 @@ void Engine::init()
 #endif
     if (itsDatabaseDriver != nullptr)
     {
-      logMessage("[Observation Engine] Database driver '" + itsDatabaseDriver->id() + "' created",
+      logMessage("[Observation Engine] Database driver '" + itsDatabaseDriver->name() + "' created",
                  itsEngineParameters->quiet);
       itsDatabaseDriver->init(this);
     }
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Observation-engine initialization failed");
+    throw Fmi::Exception::Trace(BCP, "Observation-engine initialization failed");
   }
 }
 
@@ -98,7 +96,7 @@ void Engine::unserializeStations()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Failed to unserialize station info!")
+    throw Fmi::Exception::Trace(BCP, "Failed to unserialize station info!")
         .addParameter("station file", path.string());
   }
 }
@@ -148,7 +146,7 @@ bool Engine::stationHasRightType(const Spine::Station &station, const Settings &
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -179,7 +177,7 @@ void Engine::initializeCache()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -289,7 +287,7 @@ std::set<std::string> Engine::getValidStationTypes() const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

@@ -3,7 +3,7 @@
 #include <boost/filesystem.hpp>
 #include <spine/ConfigBase.h>
 #include <spine/Convenience.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 #include <exception>
 #include <iostream>
 #include <sstream>
@@ -25,7 +25,7 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
     boost::filesystem::path p(configFolderPath.c_str());
     if (!boost::filesystem::exists(p))
     {
-      Spine::Exception exception(BCP, "Folder path does not exists!");
+      Fmi::Exception exception(BCP, "Folder path does not exists!");
       exception.addParameter("Path", p.c_str());
       std::cerr << exception.getStackTrace();
       throw exception;
@@ -33,7 +33,7 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
 
     if (!boost::filesystem::is_directory(p))
     {
-      Spine::Exception exception(BCP, "Folder path is not a directory!");
+      Fmi::Exception exception(BCP, "Folder path is not a directory!");
       exception.addParameter("Path", p.c_str());
       std::cerr << exception.getStackTrace();
       throw exception;
@@ -63,7 +63,7 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
         }
         catch (const std::exception& err)
         {
-          Spine::Exception exception(BCP, "DBRegistry configuration file reading failed!", nullptr);
+          Fmi::Exception exception(BCP, "DBRegistry configuration file reading failed!", nullptr);
           exception.addParameter("File", entry.string());
           std::cerr << exception.getStackTrace();
         }
@@ -72,7 +72,7 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -92,7 +92,7 @@ const std::shared_ptr<DBRegistryConfig> DBRegistry::dbRegistryConfig(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

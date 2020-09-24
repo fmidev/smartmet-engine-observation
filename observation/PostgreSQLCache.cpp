@@ -106,7 +106,7 @@ void PostgreSQLCache::initializeConnectionPool()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Initializing connection pool failed!");
+    throw Fmi::Exception::Trace(BCP, "Initializing connection pool failed!");
   }
 }
 
@@ -145,22 +145,25 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
     // Get data if we have stations
     if (!stations.empty())
     {
-      boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+      boost::shared_ptr<CommonDatabaseFunctions> db = itsConnectionPool->getConnection();
+      db->setDebug(settings.debug_options);
 
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
         ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
-        return ret;
       }
-      ret = db->getObservationData(stations, settings, *sinfo, itsTimeZones);
+      else
+      {
+        ret = db->getObservationData(stations, settings, *sinfo, itsTimeZones);
+      }
     }
 
     return ret;
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cache initialization failed!");
+    throw Fmi::Exception::Trace(BCP, "Cache initialization failed!");
   }
 }
 
@@ -192,7 +195,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
     if (!stations.empty())
     {
       boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-
+      db->setDebug(settings.debug_options);
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
@@ -200,14 +203,14 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
       }
       else
       {
-        ret = db->getData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
+        ret = db->getObservationData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
     }
     return ret;
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting values from cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting values from cache failed!");
   }
 }
 
@@ -218,13 +221,14 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(Settings &set
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-    ret = db->getFlashData(settings, itsParameters.parameterMap, itsTimeZones);
+    db->setDebug(settings.debug_options);
+    ret = db->getFlashData(settings, itsTimeZones);
 
     return ret;
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting flash values from cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting flash values from cache failed!");
   }
 }
 ts::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings &settings) const
@@ -234,13 +238,14 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
     ret = db->getRoadCloudData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting road cloud values from cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting road cloud values from cache failed!");
   }
 }
 
@@ -251,13 +256,14 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &s
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
     ret = db->getNetAtmoData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting NetAtmo values from cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting NetAtmo values from cache failed!");
   }
 }
 
@@ -268,13 +274,14 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(Settings &se
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
     ret = db->getFmiIoTData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting FmiIoT values from cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting FmiIoT values from cache failed!");
   }
 }
 
@@ -292,7 +299,7 @@ bool PostgreSQLCache::timeIntervalIsCached(const boost::posix_time::ptime &start
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Checking if time interval is cached failed!");
+    throw Fmi::Exception::Trace(BCP, "Checking if time interval is cached failed!");
   }
 }
 
@@ -310,7 +317,7 @@ bool PostgreSQLCache::flashIntervalIsCached(const boost::posix_time::ptime &star
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Checking if flash interval is cached failed!");
+    throw Fmi::Exception::Trace(BCP, "Checking if flash interval is cached failed!");
   }
 }
 
@@ -329,7 +336,7 @@ bool PostgreSQLCache::timeIntervalWeatherDataQCIsCached(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Checking if weather data QC is cached failed!");
+    throw Fmi::Exception::Trace(BCP, "Checking if weather data QC is cached failed!");
   }
 }
 
@@ -368,7 +375,7 @@ bool PostgreSQLCache::dataAvailableInCache(const Settings &settings) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP,
+    throw Fmi::Exception::Trace(BCP,
                                   "Checking if data is available in cache for stationtype '" +
                                       settings.stationtype + "' failed!");
   }
@@ -379,6 +386,11 @@ FlashCounts PostgreSQLCache::getFlashCount(const boost::posix_time::ptime &start
                                            const Spine::TaggedLocationList &locations) const
 {
   return itsConnectionPool->getConnection()->getFlashCount(starttime, endtime, locations);
+}
+
+boost::posix_time::ptime PostgreSQLCache::getLatestFlashModifiedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestFlashModifiedTime();
 }
 
 boost::posix_time::ptime PostgreSQLCache::getLatestFlashTime() const
@@ -404,7 +416,7 @@ std::size_t PostgreSQLCache::fillFlashDataCache(const FlashDataItems &flashCache
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling flash data cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling flash data cache failed!");
   }
 }
 
@@ -438,7 +450,7 @@ void PostgreSQLCache::cleanFlashDataCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning flash data cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning flash data cache failed!");
   }
 }
 
@@ -469,7 +481,7 @@ std::size_t PostgreSQLCache::fillDataCache(const DataItems &cacheData) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling data cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling data cache failed!");
   }
 }
 
@@ -500,13 +512,18 @@ void PostgreSQLCache::cleanDataCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning data cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning data cache failed!");
   }
 }
 
 boost::posix_time::ptime PostgreSQLCache::getLatestWeatherDataQCTime() const
 {
   return itsConnectionPool->getConnection()->getLatestWeatherDataQCTime();
+}
+
+boost::posix_time::ptime PostgreSQLCache::getLatestWeatherDataQCModifiedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestWeatherDataQCModifiedTime();
 }
 
 std::size_t PostgreSQLCache::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const
@@ -526,7 +543,7 @@ std::size_t PostgreSQLCache::fillWeatherDataQCCache(const WeatherDataQCItems &ca
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling weather data QC cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling weather data QC cache failed!");
   }
 }
 
@@ -555,7 +572,7 @@ void PostgreSQLCache::cleanWeatherDataQCCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning weather data QC cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning weather data QC cache failed!");
   }
 }
 
@@ -574,7 +591,7 @@ bool PostgreSQLCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Checking if road cloud interval is cached failed!");
+    throw Fmi::Exception::Trace(BCP, "Checking if road cloud interval is cached failed!");
   }
 }
 
@@ -606,7 +623,7 @@ std::size_t PostgreSQLCache::fillRoadCloudCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling road cloud cached failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling road cloud cached failed!");
   }
 }
 
@@ -634,7 +651,7 @@ void PostgreSQLCache::cleanRoadCloudCache(const boost::posix_time::time_duration
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning road cloud cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning road cloud cache failed!");
   }
 }
 
@@ -652,7 +669,7 @@ bool PostgreSQLCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &st
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Checking if NetAtmo interval is cached failed!");
+    throw Fmi::Exception::Trace(BCP, "Checking if NetAtmo interval is cached failed!");
   }
 }
 
@@ -684,7 +701,7 @@ std::size_t PostgreSQLCache::fillNetAtmoCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling NetAtmo cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling NetAtmo cache failed!");
   }
 }
 
@@ -712,7 +729,7 @@ void PostgreSQLCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning NetAtmo cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning NetAtmo cache failed!");
   }
 }
 
@@ -730,7 +747,7 @@ bool PostgreSQLCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &sta
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Checking if FmiIoT interval is cached failed!");
+    throw Fmi::Exception::Trace(BCP, "Checking if FmiIoT interval is cached failed!");
   }
 }
 
@@ -762,7 +779,7 @@ std::size_t PostgreSQLCache::fillFmiIoTCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling FmiIoT cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling FmiIoT cache failed!");
   }
 }
 
@@ -790,7 +807,7 @@ void PostgreSQLCache::cleanFmiIoTCache(const boost::posix_time::time_duration &t
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning FmiIoT cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning FmiIoT cache failed!");
   }
 }
 
@@ -812,7 +829,7 @@ PostgreSQLCache::PostgreSQLCache(const std::string &name,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Observation-engine initialization failed");
+    throw Fmi::Exception::Trace(BCP, "Observation-engine initialization failed");
   }
 }
 
@@ -843,7 +860,7 @@ void PostgreSQLCache::readConfig(Spine::ConfigBase &cfg)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP,
+    throw Fmi::Exception::Trace(BCP,
                                   "Reading PostgreSQL settings from configuration file failed");
   }
 }

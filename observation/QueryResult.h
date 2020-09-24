@@ -4,7 +4,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <fmt/format.h>
 #include <macgyver/StringConversion.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 #include <algorithm>
 #include <memory>
 #include <vector>
@@ -78,20 +78,20 @@ class QueryResult : public QueryResultBase
       if (value->type() == typeid(double))
         return static_cast<T>(boost::any_cast<double>(*value));
 
-      throw Spine::Exception(BCP, "Operation processing failed!")
+      throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("QueryResult::toString : Unsupported data type '{}'.",
                                  value->type().name()));
     }
     catch (const boost::bad_any_cast& e)
     {
-      throw Spine::Exception(BCP, "Operation processing failed!")
+      throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("QueryResult::castTo : Bad any cast from '{}' type. {}",
                                  value->type().name(),
                                  e.what()));
     }
     catch (const boost::bad_lexical_cast& e)
     {
-      throw Spine::Exception(BCP, "Operation processing failed!")
+      throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("QueryResult::castTo : Bad cast from '{}' to '{}'. {}",
                                  value->type().name(),
                                  typeid(T).name(),

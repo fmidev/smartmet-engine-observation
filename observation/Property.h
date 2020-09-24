@@ -33,7 +33,8 @@ class Base
    * @param viewName Name of a view that has the fied name (property) set into the class object.
    * @return Expression string
    */
-  virtual NameType getExpression(const NameType& viewName) const;
+  virtual NameType getExpression(const NameType& viewName,
+                                 const std::string& database = "oracle") const;
 
   /**
    * @brief Get value type of the \a toWhat input parameter as a string.
@@ -62,7 +63,7 @@ class Base
   inline NameType getProperty() const { return m_property; }
   inline NameType getOperator() const { return m_operator; }
   inline boost::any getToWhat() const { return m_toWhat; }
-  NameType toWhatString(const boost::any& value) const;
+  NameType toWhatString(const boost::any& value, const std::string& database = "oracle") const;
 
   /**
    * @brief Set basic parts of an operation.
@@ -243,7 +244,8 @@ class MinuteValueModuloIsEqualToZero : public Base
     obj->set(property, toWhat, "=");
     return obj;
   }
-  Base::NameType getExpression(const Base::NameType& viewName) const;
+  Base::NameType getExpression(const Base::NameType& viewName,
+                               const std::string& database = "oracle") const;
 
   // Owerrides the base class implementation!
   // return "ptime" for the following types: int16_t, int32_t, int64_t, int64_t, uint16_t, uint32_t,

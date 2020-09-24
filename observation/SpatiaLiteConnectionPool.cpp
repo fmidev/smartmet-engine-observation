@@ -1,6 +1,6 @@
 #include "SpatiaLiteConnectionPool.h"
 #include "SpatiaLiteCacheParameters.h"
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
@@ -27,7 +27,7 @@ struct Releaser
     }
     catch (...)
     {
-      throw Spine::Exception::Trace(BCP, "Operation failed!");
+      throw Fmi::Exception::Trace(BCP, "Operation failed!");
     }
   }
 
@@ -49,7 +49,7 @@ SpatiaLiteConnectionPool::SpatiaLiteConnectionPool(const SpatiaLiteCacheParamete
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -92,7 +92,7 @@ boost::shared_ptr<SpatiaLite> SpatiaLiteConnectionPool::getConnection()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -115,7 +115,7 @@ void SpatiaLiteConnectionPool::releaseConnection(int connectionId)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -139,7 +139,7 @@ void SpatiaLiteConnectionPool::shutdown()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

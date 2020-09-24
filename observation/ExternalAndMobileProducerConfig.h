@@ -1,7 +1,7 @@
 #pragma once
 #include "ExternalAndMobileProducerId.h"
 #include <macgyver/StringConversion.h>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 
 namespace SmartMet
 {

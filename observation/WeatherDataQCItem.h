@@ -20,6 +20,7 @@ class WeatherDataQCItem
   int sensor_no;
   double value;
   int flag;
+  boost::posix_time::ptime modified_last{boost::posix_time::not_a_date_time};
 
   std::size_t hash_value() const;
 };

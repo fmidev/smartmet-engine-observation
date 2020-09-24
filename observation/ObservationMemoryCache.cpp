@@ -3,7 +3,7 @@
 #include "StationInfo.h"
 #include <boost/atomic.hpp>
 #include <boost/make_shared.hpp>
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 
 namespace SmartMet
 {
@@ -27,7 +27,7 @@ boost::posix_time::ptime ObservationMemoryCache::getStartTime() const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "ObservationMemoryCache::getStartTime failed");
+    throw Fmi::Exception::Trace(BCP, "ObservationMemoryCache::getStartTime failed");
   }
 }
 
@@ -175,7 +175,7 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "ObservationMemoryCache::fill failed");
+    throw Fmi::Exception::Trace(BCP, "ObservationMemoryCache::fill failed");
   }
 }
 
@@ -236,7 +236,7 @@ void ObservationMemoryCache::clean(const boost::posix_time::ptime& newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "ObservationMemoryCache::clean failed");
+    throw Fmi::Exception::Trace(BCP, "ObservationMemoryCache::clean failed");
   }
 }
 

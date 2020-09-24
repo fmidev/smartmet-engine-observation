@@ -6,7 +6,7 @@
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeParser.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 #include <spine/Thread.h>
 #include <spine/TimeSeriesGenerator.h>
 #include <spine/TimeSeriesOutput.h>
@@ -106,14 +106,15 @@ void solveMeasurandIds(const std::vector<std::string> &parameters,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Solving measurand id failed!");
+    throw Fmi::Exception::Trace(BCP, "Solving measurand id failed!");
   }
 }
 
 }  // namespace
 
 PostgreSQL::PostgreSQL(const PostgreSQLCacheParameters &options)
-    : CommonDatabaseFunctions(options.stationtypeConfig, options.parameterMap),
+    : CommonPostgreSQLFunctions(
+          options.postgresql, options.stationtypeConfig, options.parameterMap),
       itsMaxInsertSize(options.maxInsertSize),
       itsDataInsertCache(options.dataInsertCacheSize),
       itsWeatherQCInsertCache(options.weatherDataQCInsertCacheSize),
@@ -121,29 +122,11 @@ PostgreSQL::PostgreSQL(const PostgreSQLCacheParameters &options)
       itsRoadCloudInsertCache(options.roadCloudInsertCacheSize),
       itsNetAtmoInsertCache(options.netAtmoInsertCacheSize),
       itsFmiIoTInsertCache(options.fmiIoTInsertCacheSize),
-      itsExternalAndMobileProducerConfig(options.externalAndMobileProducerConfig),
-      itsShutdownRequested(false)
+      itsExternalAndMobileProducerConfig(options.externalAndMobileProducerConfig)
 {
-  try
-  {
-    srid = "4326";
-
-    itsDB.open(options.postgresql);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-    if (itsDB.isConnected())
-    {
-      itsPostgreDataTypes = itsDB.dataTypes();
-    }
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Connecting to database failed!");
-  }
+  srid = "4326";
+  itsIsCacheDatabase = true;
 }
-
-PostgreSQL::~PostgreSQL() {}
 
 void PostgreSQL::createTables(const std::set<std::string> &tables)
 {
@@ -165,7 +148,7 @@ void PostgreSQL::createTables(const std::set<std::string> &tables)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of database tables failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of database tables failed!");
   }
 }
 
@@ -197,15 +180,21 @@ void PostgreSQL::createObservationDataTable()
         "data_value REAL, "
         "data_quality INTEGER, "
         "data_source INTEGER, "
-        "last_modified timestamp NOT NULL DEFAULT now(), "
-        "PRIMARY KEY (fmisid, data_time, measurand_id, producer_id, measurand_no, sensor_no));"
-        "CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON observation_data(data_time);"
-        "CREATE INDEX IF NOT EXISTS observation_data_last_modified_idx ON "
-        "observation_data(last_modified);");
+        "modified_last timestamp NOT NULL DEFAULT now(), "
+        "PRIMARY KEY (fmisid, data_time, measurand_id, producer_id, measurand_no, sensor_no));");
+
+    itsDB.executeNonTransaction(
+        "CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON "
+        "observation_data(data_time);");
+    itsDB.executeNonTransaction(
+        "CREATE INDEX IF NOT EXISTS observation_data_fmisid_idx ON observation_data(fmisid);");
+    itsDB.executeNonTransaction(
+        "CREATE INDEX IF NOT EXISTS observation_data_modified_last_idx ON "
+        "observation_data(modified_last);");
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of observation_data table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of observation_data table failed!");
   }
 }
 
@@ -221,14 +210,19 @@ void PostgreSQL::createWeatherDataQCTable()
         "sensor_no INTEGER NOT NULL, "
         "value REAL NOT NULL, "
         "flag INTEGER NOT NULL, "
-        "last_modified timestamp default now(), "
-        "PRIMARY KEY (obstime, fmisid, parameter, sensor_no)); CREATE INDEX IF "
-        "NOT EXISTS weather_data_qc_obstime_idx ON "
-        "weather_data_qc(obstime)");
+        "modified_last timestamp default NULL, "
+        "PRIMARY KEY (obstime, fmisid, parameter, sensor_no));");
+    itsDB.executeNonTransaction(
+        "CREATE INDEX IF NOT EXISTS weather_data_qc_obstime_idx ON weather_data_qc(obstime);");
+    itsDB.executeNonTransaction(
+        "CREATE INDEX IF NOT EXISTS weather_data_qc_fmisid_idx ON weather_data_qc(fmisid);");
+    itsDB.executeNonTransaction(
+        "CREATE INDEX IF NOT EXISTS weather_data_qc_modified_last_idx ON "
+        "weather_data_qc(modified_last);");
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of weather_data_qc table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of weather_data_qc table failed!");
   }
 }
 
@@ -257,10 +251,15 @@ void PostgreSQL::createFlashDataTable()
         "timing_indicator INTEGER NOT NULL, "
         "stroke_status INTEGER NOT NULL, "
         "data_source INTEGER, "
-        "last_modified timestamp default now(), "
-        "PRIMARY KEY (stroke_time, stroke_time_fraction, flash_id)); CREATE "
-        "INDEX IF NOT EXISTS flash_data_stroke_time_idx ON "
-        "flash_data(stroke_time)");
+        "created  timestamp default now(), "
+        "modified_last timestamp default now(), "
+        "modified_by INTEGER, "
+        "PRIMARY KEY (stroke_time, stroke_time_fraction, flash_id));");
+
+    itsDB.executeNonTransaction(
+        "CREATE INDEX IF NOT EXISTS flash_data_stroke_time_idx on flash_data(stroke_time);");
+    itsDB.executeNonTransaction(
+        "CREATE INDEX IF NOT EXISTS flaash_data_modified_last_idx ON flash_data(modified_last);");
 
     pqxx::result result_set = itsDB.executeNonTransaction(
         "SELECT * FROM geometry_columns WHERE f_table_name='flash_data'");
@@ -288,7 +287,7 @@ void PostgreSQL::createFlashDataTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of flash_data table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of flash_data table failed!");
   }
 }
 
@@ -326,7 +325,7 @@ void PostgreSQL::createRoadCloudDataTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_roadcloud table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of ext_obsdata_roadcloud table failed!");
   }
 }
 
@@ -364,7 +363,7 @@ void PostgreSQL::createNetAtmoDataTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_netatmo table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of ext_obsdata_netatmo table failed!");
   }
 }
 
@@ -402,7 +401,7 @@ void PostgreSQL::createFmiIoTDataTable()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creation of ext_obsdata_fmi_iot table failed!");
+    throw Fmi::Exception::Trace(BCP, "Creation of ext_obsdata_fmi_iot table failed!");
   }
 }
 
@@ -423,7 +422,7 @@ size_t PostgreSQL::selectCount(const std::string &queryString)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, queryString + " query failed!");
+    throw Fmi::Exception::Trace(BCP, queryString + " query failed!");
   }
 }  // namespace Observation
 
@@ -454,7 +453,7 @@ boost::posix_time::ptime PostgreSQL::getTime(const std::string &timeQuery) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Query failed: " + timeQuery);
+    throw Fmi::Exception::Trace(BCP, "Query failed: " + timeQuery);
   }
 }
 
@@ -465,7 +464,7 @@ boost::posix_time::ptime PostgreSQL::getLatestObservationTime()
 
 boost::posix_time::ptime PostgreSQL::getLatestObservationModifiedTime()
 {
-  return getTime("SELECT MAX(last_modified) FROM observation_data");
+  return getTime("SELECT MAX(modified_last) FROM observation_data");
 }
 
 boost::posix_time::ptime PostgreSQL::getOldestObservationTime()
@@ -478,9 +477,28 @@ boost::posix_time::ptime PostgreSQL::getLatestWeatherDataQCTime()
   return getTime("SELECT MAX(obstime) FROM weather_data_qc");
 }
 
+boost::posix_time::ptime PostgreSQL::getLatestWeatherDataQCModifiedTime()
+{
+  return getTime("SELECT MAX(modified_last) FROM weather_data_qc");
+}
+
 boost::posix_time::ptime PostgreSQL::getOldestWeatherDataQCTime()
 {
   return getTime("SELECT MIN(obstime) FROM weather_data_qc");
+}
+
+boost::posix_time::ptime PostgreSQL::getLatestFlashModifiedTime()
+{
+  try
+  {
+    string tablename = "flash_data";
+    string time_field = "modified_last";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Latest flash time query failed!");
+  }
 }
 
 boost::posix_time::ptime PostgreSQL::getLatestFlashTime()
@@ -493,7 +511,7 @@ boost::posix_time::ptime PostgreSQL::getLatestFlashTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest flash time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest flash time query failed!");
   }
 }
 
@@ -507,7 +525,7 @@ boost::posix_time::ptime PostgreSQL::getOldestFlashTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest flash time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Oldest flash time query failed!");
   }
 }
 
@@ -521,7 +539,7 @@ boost::posix_time::ptime PostgreSQL::getOldestRoadCloudDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest RoadCloud data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Oldest RoadCloud data time query failed!");
   }
 }
 
@@ -535,7 +553,7 @@ boost::posix_time::ptime PostgreSQL::getLatestRoadCloudCreatedTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest RoadCloud created time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest RoadCloud created time query failed!");
   }
 }
 
@@ -549,7 +567,7 @@ boost::posix_time::ptime PostgreSQL::getLatestRoadCloudDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest RoadCloud data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest RoadCloud data time query failed!");
   }
 }
 
@@ -563,7 +581,7 @@ boost::posix_time::ptime PostgreSQL::getOldestNetAtmoDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest NetAtmo data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Oldest NetAtmo data time query failed!");
   }
 }
 
@@ -577,7 +595,7 @@ boost::posix_time::ptime PostgreSQL::getLatestNetAtmoDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest NetAtmo data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest NetAtmo data time query failed!");
   }
 }
 
@@ -591,7 +609,7 @@ boost::posix_time::ptime PostgreSQL::getLatestNetAtmoCreatedTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest NetAtmo created time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest NetAtmo created time query failed!");
   }
 }
 
@@ -605,7 +623,7 @@ boost::posix_time::ptime PostgreSQL::getOldestFmiIoTDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Oldest FmiIoT data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Oldest FmiIoT data time query failed!");
   }
 }
 
@@ -619,7 +637,7 @@ boost::posix_time::ptime PostgreSQL::getLatestFmiIoTDataTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest FmiIoT data time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest FmiIoT data time query failed!");
   }
 }
 
@@ -633,7 +651,7 @@ boost::posix_time::ptime PostgreSQL::getLatestFmiIoTCreatedTime()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Latest FmiIoT created time query failed!");
+    throw Fmi::Exception::Trace(BCP, "Latest FmiIoT created time query failed!");
   }
 }
 
@@ -666,7 +684,7 @@ void PostgreSQL::cleanDataCache(const boost::posix_time::ptime &newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of data cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of data cache failed!");
   }
 }
 
@@ -685,7 +703,7 @@ void PostgreSQL::cleanWeatherDataQCCache(const boost::posix_time::ptime &newstar
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of WeatherDataQCCache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of WeatherDataQCCache failed!");
   }
 }
 
@@ -705,7 +723,7 @@ void PostgreSQL::cleanFlashDataCache(const boost::posix_time::ptime &newstarttim
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of FlashDataCache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of FlashDataCache failed!");
   }
 }
 
@@ -725,7 +743,7 @@ void PostgreSQL::cleanRoadCloudCache(const boost::posix_time::ptime &newstarttim
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of RoadCloud cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of RoadCloud cache failed!");
   }
 }
 
@@ -746,7 +764,7 @@ void PostgreSQL::cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of NetAtmo cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of NetAtmo cache failed!");
   }
 }
 
@@ -767,7 +785,7 @@ void PostgreSQL::cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning of FmiIoT cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of FmiIoT cache failed!");
   }
 }
 
@@ -866,7 +884,7 @@ std::size_t PostgreSQL::fillDataCache(const DataItems &cacheData)
             {
               std::string sqlStmt =
                   "INSERT INTO observation_data "
-                  "(fmisid, sensor_no, data_time, last_modified, measurand_id, producer_id, "
+                  "(fmisid, sensor_no, data_time, modified_last, measurand_id, producer_id, "
                   "measurand_no, "
                   "data_value, data_quality, data_source) VALUES ";
 
@@ -880,8 +898,8 @@ std::size_t PostgreSQL::fillDataCache(const DataItems &cacheData)
                   " ON CONFLICT(data_time, fmisid, sensor_no, measurand_id, producer_id, "
                   "measurand_no) DO "
                   "UPDATE SET "
-                  "(data_value, last_modified, data_quality, data_source) = "
-                  "(EXCLUDED.data_value, EXCLUDED.last_modified, EXCLUDED.data_quality, "
+                  "(data_value, modified_last, data_quality, data_source) = "
+                  "(EXCLUDED.data_value, EXCLUDED.modified_last, EXCLUDED.data_quality, "
                   "EXCLUDED.data_source)\n";
               itsDB.executeTransaction(sqlStmt);
               values_vector.clear();
@@ -910,7 +928,7 @@ std::size_t PostgreSQL::fillDataCache(const DataItems &cacheData)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling of data cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling of data cache failed!");
   }
 }  // namespace Observation
 
@@ -1035,7 +1053,7 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling of WeatherDataQCCache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling of WeatherDataQCCache failed!");
   }
 }  // namespace Observation
 
@@ -1097,6 +1115,8 @@ std::size_t PostgreSQL::fillFlashDataCache(const FlashDataItems &flashCacheData)
           {
             const auto &item = flashCacheData[i];
             std::string stroke_time = Fmi::to_iso_string(item.stroke_time);
+            std::string created_time = Fmi::to_iso_string(item.created);
+            std::string modified_last_time = Fmi::to_iso_string(item.modified_last);
             std::string key = stroke_time;
             key += Fmi::to_string(item.stroke_time_fraction);
             key += Fmi::to_string(item.flash_id);
@@ -1133,6 +1153,8 @@ std::size_t PostgreSQL::fillFlashDataCache(const FlashDataItems &flashCacheData)
               values += Fmi::to_string(item.timing_indicator) + ",";
               values += Fmi::to_string(item.stroke_status) + ",";
               values += Fmi::to_string(item.data_source) + ",";
+              values += ("'" + created_time + "',");
+              values += ("'" + modified_last_time + "',");
               values += stroke_location + ")";
               values_vector.push_back(values);
             }
@@ -1145,7 +1167,8 @@ std::size_t PostgreSQL::fillFlashDataCache(const FlashDataItems &flashCacheData)
                   "peak_current, sensors, freedom_degree, ellipse_angle, "
                   "ellipse_major, ellipse_minor, chi_square, rise_time, "
                   "ptz_time, cloud_indicator, angle_indicator, signal_indicator, "
-                  "timing_indicator, stroke_status, data_source, stroke_location) "
+                  "timing_indicator, stroke_status, data_source, created, modified_last, "
+                  "stroke_location) "
                   "VALUES ";
 
               for (const auto &v : values_vector)
@@ -1161,14 +1184,16 @@ std::size_t PostgreSQL::fillFlashDataCache(const FlashDataItems &flashCacheData)
                   "(multiplicity, peak_current, sensors, freedom_degree, ellipse_angle, "
                   "ellipse_major, ellipse_minor, chi_square, rise_time, "
                   "ptz_time, cloud_indicator, angle_indicator, signal_indicator, "
-                  "timing_indicator, stroke_status, data_source, stroke_location) = "
+                  "timing_indicator, stroke_status, data_source, created, modified_last, "
+                  "stroke_location) = "
                   "(EXCLUDED.multiplicity, EXCLUDED.peak_current, EXCLUDED.sensors, "
                   "EXCLUDED.freedom_degree, EXCLUDED.ellipse_angle, EXCLUDED.ellipse_major, "
                   "EXCLUDED.ellipse_minor, EXCLUDED.chi_square, EXCLUDED.rise_time, "
                   "EXCLUDED.ptz_time, EXCLUDED.cloud_indicator, EXCLUDED.angle_indicator, "
                   "EXCLUDED.signal_indicator, EXCLUDED.timing_indicator, "
                   "EXCLUDED.stroke_status, "
-                  "EXCLUDED.data_source, EXCLUDED.stroke_location)";
+                  "EXCLUDED.data_source, EXCLUDED.created, EXCLUDED.modified_last, "
+                  "EXCLUDED.stroke_location)";
 
               itsDB.executeTransaction(sqlStmt);
               values_vector.clear();
@@ -1198,7 +1223,7 @@ std::size_t PostgreSQL::fillFlashDataCache(const FlashDataItems &flashCacheData)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Flash data cache update failed!");
+    throw Fmi::Exception::Trace(BCP, "Flash data cache update failed!");
   }
 }
 
@@ -1375,7 +1400,7 @@ std::size_t PostgreSQL::fillRoadCloudCache(const MobileExternalDataItems &mobile
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "RoadCloud cache update failed!");
+    throw Fmi::Exception::Trace(BCP, "RoadCloud cache update failed!");
   }
 }
 
@@ -1552,7 +1577,7 @@ std::size_t PostgreSQL::fillNetAtmoCache(const MobileExternalDataItems &mobileEx
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "NetAtmo cache update failed!");
+    throw Fmi::Exception::Trace(BCP, "NetAtmo cache update failed!");
   }
 }
 
@@ -1624,8 +1649,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getMobileAndExterna
         SmartMet::Engine::Observation::PostgreSQL::getResultSetForMobileExternalData(
             result_set, itsDB.dataTypes());
 
-    boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
-    timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
+    itsTimeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
 
     for (auto rsr : rsrs)
     {
@@ -1639,7 +1663,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getMobileAndExterna
           boost::local_time::local_date_time dt =
               *(boost::get<boost::local_time::local_date_time>(&rsr[fieldname]));
 
-          std::string fieldValue = timeFormatter->format(dt);
+          std::string fieldValue = itsTimeFormatter->format(dt);
           ret->at(index).push_back(ts::TimedValue(obstime, fieldValue));
         }
         else
@@ -1671,7 +1695,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getMobileAndExterna
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting mobile data from database failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting mobile data from database failed!");
   }
 }
 
@@ -1757,7 +1781,7 @@ void PostgreSQL::addEmptyValuesToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Adding empty values to time series failed!");
+    throw Fmi::Exception::Trace(BCP, "Adding empty values to time series failed!");
   }
 }
 
@@ -1890,171 +1914,7 @@ void PostgreSQL::addParameterToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Adding parameter to time series failed!");
-  }
-}
-
-Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getFlashData(const Settings &settings,
-                                                                const ParameterMapPtr &parameterMap,
-                                                                const Fmi::TimeZones &timezones)
-{
-  try
-  {
-    string stationtype = "flash";
-
-    boost::shared_ptr<Fmi::TimeFormatter> timeFormatter;
-    timeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
-
-    map<string, int> timeseriesPositions;
-    map<string, int> specialPositions;
-
-    string param;
-    unsigned int pos = 0;
-    for (const Spine::Parameter &p : settings.parameters)
-    {
-      std::string name = p.name();
-      boost::to_lower(name, std::locale::classic());
-      if (not_special(p))
-      {
-        if (!parameterMap->getParameter(name, stationtype).empty())
-        {
-          std::string pname = parameterMap->getParameter(name, stationtype);
-          boost::to_lower(pname, std::locale::classic());
-          timeseriesPositions[pname] = pos;
-          param += pname + ",";
-        }
-      }
-      else
-      {
-        specialPositions[name] = pos;
-      }
-      pos++;
-    }
-
-    param = trimCommasFromEnd(param);
-
-    string starttimeString = Fmi::to_iso_extended_string(settings.starttime);
-    boost::replace_all(starttimeString, ",", ".");
-    string endtimeString = Fmi::to_iso_extended_string(settings.endtime);
-    boost::replace_all(endtimeString, ",", ".");
-
-    std::string distancequery;
-
-    std::string sqlStmt =
-        "SELECT stroke_time, "
-        "stroke_time_fraction, flash_id, "
-        "ST_X(stroke_location) AS longitude, "
-        "ST_Y(stroke_location) AS latitude, " +
-        param +
-        " "
-        "FROM flash_data flash "
-        "WHERE flash.stroke_time >= '" +
-        starttimeString +
-        "' "
-        "AND flash.stroke_time <= '" +
-        endtimeString + "' ";
-
-    if (!settings.taggedLocations.empty())
-    {
-      for (auto tloc : settings.taggedLocations)
-      {
-        if (tloc.loc->type == Spine::Location::CoordinatePoint)
-        {
-          std::string lon = Fmi::to_string(tloc.loc->longitude);
-          std::string lat = Fmi::to_string(tloc.loc->latitude);
-          // tloc.loc->radius in kilometers and PtDistWithin uses meters
-          std::string radius = Fmi::to_string(tloc.loc->radius * 1000);
-          sqlStmt += " AND ST_Distance_Sphere(ST_GeomFromText('POINT(" + lon + " " + lat +
-                     ")', 4326), flash.stroke_location) <= " + radius;
-        }
-        if (tloc.loc->type == Spine::Location::BoundingBox)
-        {
-          std::string bboxString = tloc.loc->name;
-          Spine::BoundingBox bbox(bboxString);
-
-          sqlStmt += " AND ST_Within(flash.stroke_location, ST_MakeEnvelope(" +
-                     Fmi::to_string(bbox.xMin) + ", " + Fmi::to_string(bbox.yMin) + ", " +
-                     Fmi::to_string(bbox.xMax) + ", " + Fmi::to_string(bbox.yMax) + ", 4326)) ";
-        }
-      }
-    }
-
-    sqlStmt += "ORDER BY flash.stroke_time ASC, flash.stroke_time_fraction ASC;";
-
-    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-        initializeResultVector(settings.parameters);
-
-    std::string stroke_time;
-    double longitude = std::numeric_limits<double>::max();
-    double latitude = std::numeric_limits<double>::max();
-    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-    for (auto row : result_set)
-    {
-      map<std::string, ts::Value> result;
-      stroke_time = row[0].as<string>();
-      // int stroke_time_fraction = row[1].as<int>();
-      // int flash_id = row[2].as<int>();
-      longitude = Fmi::stod(row[3].as<string>());
-      latitude = Fmi::stod(row[4].as<string>());
-      // Rest of the parameters in requested order
-      for (unsigned int i = 5; i != row.size(); ++i)
-      {
-        pqxx::field fld = row[i];
-        std::string data_type = itsPostgreDataTypes[fld.type()];
-
-        ts::Value temp;
-        if (data_type == "text")
-        {
-          temp = row[i].as<std::string>();
-        }
-        else if (data_type == "float4" || data_type == "float8" || data_type == "_float4" ||
-                 data_type == "_float8")
-        {
-          temp = row[i].as<double>();
-        }
-        else if (data_type == "int2" || data_type == "int4" || data_type == "int8" ||
-                 data_type == "_int2" || data_type == "_int4" || data_type == "_int8")
-        {
-          temp = row[i].as<int>(i);
-        }
-        result[fld.name()] = temp;
-      }
-
-      boost::posix_time::ptime utctime = boost::posix_time::time_from_string(stroke_time);
-      auto localtz = timezones.time_zone_from_string(settings.timezone);
-      local_date_time localtime = local_date_time(utctime, localtz);
-
-      std::pair<string, int> p;
-      for (const auto &p : timeseriesPositions)
-      {
-        std::string name = p.first;
-        int pos = p.second;
-
-        ts::Value val = result[name];
-        timeSeriesColumns->at(pos).push_back(ts::TimedValue(localtime, val));
-      }
-      for (const auto &p : specialPositions)
-      {
-        string name = p.first;
-        int pos = p.second;
-        if (name == "latitude")
-        {
-          ts::Value val = latitude;
-          timeSeriesColumns->at(pos).push_back(ts::TimedValue(localtime, val));
-        }
-        if (name == "longitude")
-        {
-          ts::Value val = longitude;
-          timeSeriesColumns->at(pos).push_back(ts::TimedValue(localtime, val));
-        }
-      }
-    }
-
-    return timeSeriesColumns;
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Getting cached flash data failed!");
+    throw Fmi::Exception::Trace(BCP, "Adding parameter to time series failed!");
   }
 }
 
@@ -2097,7 +1957,7 @@ void PostgreSQL::addSmartSymbolToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Adding smart symbol to time series failed!");
+    throw Fmi::Exception::Trace(BCP, "Adding smart symbol to time series failed!");
   }
 }
 
@@ -2184,7 +2044,7 @@ void PostgreSQL::addSpecialParameterToTimeSeries(
           "Unsupported special parameter '" +
           paramname + "'";
 
-      Spine::Exception exception(BCP, "Operation processing failed!");
+      Fmi::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg);
       throw exception;
@@ -2192,10 +2052,11 @@ void PostgreSQL::addSpecialParameterToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Adding special parameter to time series failed!");
+    throw Fmi::Exception::Trace(BCP, "Adding special parameter to time series failed!");
   }
 }
 
+#ifdef LATER
 FlashCounts PostgreSQL::getFlashCount(const boost::posix_time::ptime &starttime,
                                       const boost::posix_time::ptime &endtime,
                                       const Spine::TaggedLocationList &locations)
@@ -2230,7 +2091,7 @@ FlashCounts PostgreSQL::getFlashCount(const boost::posix_time::ptime &starttime,
           std::string lat = Fmi::to_string(tloc.loc->latitude);
           // tloc.loc->radius in kilometers and PtDistWithin uses meters
           std::string radius = Fmi::to_string(tloc.loc->radius * 1000);
-          sqlStmt += " AND ST_Distance_Sphere(ST_GeomFromText('POINT(" + lon + " " + lat +
+          sqlStmt += " AND ST_DistanceSphere(ST_GeomFromText('POINT(" + lon + " " + lat +
                      ")', 4326), flash.stroke_location) <= " + radius;
         }
         if (tloc.loc->type == Spine::Location::BoundingBox)
@@ -2257,9 +2118,10 @@ FlashCounts PostgreSQL::getFlashCount(const boost::posix_time::ptime &starttime,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting flash count failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting flash count failed!");
   }
 }
+#endif
 
 LocationDataItems PostgreSQL::readObservations(const Spine::Stations &stations,
                                                const Settings &settings,
@@ -2314,7 +2176,8 @@ LocationDataItems PostgreSQL::readObservations(const Spine::Stations &stations,
                "data.data_value, data.data_quality, data.data_source "
                "ORDER BY fmisid ASC, obstime ASC";
 
-    //    std::cout << "sql\n" << sqlStmt << std::endl;
+    if (itsDebug)
+      std::cout << "PostgreSQL(cache): " << sqlStmt << std::endl;
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -2360,63 +2223,8 @@ LocationDataItems PostgreSQL::readObservations(const Spine::Stations &stations,
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception::Trace(
+    throw Fmi::Exception::Trace(
         BCP, "Reading observations from PostgreSQL database failed!");
-  }
-}
-
-Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getData(
-    const Spine::Stations &stations,
-    const Settings &settings,
-    const StationInfo &stationInfo,
-    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-    const Fmi::TimeZones &timezones)
-{
-  try
-  {
-    // Always use FMI parameter numbers for the narrow table cache
-
-    std::string stationtype = "observations_fmi";
-
-    // This maps measurand_id and the parameter position in TimeSeriesVector
-
-    auto qmap = buildQueryMapping(stations, settings, itsParameterMap, stationtype, false);
-
-    // Resolve stationgroup codes
-    std::set<std::string> stationgroup_codes;
-    auto stationgroupCodeSet =
-        itsStationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
-    stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
-
-    LocationDataItems observations =
-        readObservations(stations, settings, stationInfo, qmap, stationgroup_codes);
-
-    std::set<int> observed_fmisids;
-    for (auto item : observations)
-      observed_fmisids.insert(item.data.fmisid);
-
-    // Map fmisid to station information
-    Engine::Observation::StationMap fmisid_to_station =
-        mapQueryStations(stations, observed_fmisids);
-
-    ObservationsMap obsmap =
-        buildObservationsMap(observations, settings, timezones, fmisid_to_station);
-
-    Spine::TimeSeries::TimeSeriesVectorPtr ret;
-
-    return buildTimeseries(stations,
-                           settings,
-                           stationtype,
-                           fmisid_to_station,
-                           observations,
-                           obsmap,
-                           qmap,
-                           timeSeriesOptions,
-                           timezones);
-  }
-  catch (...)
-  {
-    throw Spine::Exception::Trace(BCP, "Getting cached data failed!");
   }
 }
 
@@ -2436,7 +2244,7 @@ void PostgreSQL::createIndex(const std::string &table,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creating index " + idx_name + " failed!");
+    throw Fmi::Exception::Trace(BCP, "Creating index " + idx_name + " failed!");
   }
 }
 
@@ -2452,7 +2260,7 @@ void PostgreSQL::dropIndex(const std::string &idx_name, bool transaction /*= fal
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Dropping index " + idx_name + " failed!");
+    throw Fmi::Exception::Trace(BCP, "Dropping index " + idx_name + " failed!");
   }
 }
 #endif
@@ -2488,9 +2296,7 @@ ResultSetRows PostgreSQL::getResultSetForMobileExternalData(
           {
             if (column_name == "created" || column_name == "data_time")
             {
-              boost::posix_time::ptime pt =
-                  SmartMet::Engine::Observation::ExternalAndMobileDBInfo::epoch2ptime(
-                      row[i].as<double>());
+              boost::posix_time::ptime pt = epoch2ptime(row[i].as<double>());
               boost::local_time::time_zone_ptr zone(new posix_time_zone("UTC"));
               val = boost::local_time::local_date_time(pt, zone);
             }
@@ -2506,9 +2312,7 @@ ResultSetRows PostgreSQL::getResultSetForMobileExternalData(
           }
           else if (data_type == "timestamp")
           {
-            boost::posix_time::ptime pt =
-                SmartMet::Engine::Observation::ExternalAndMobileDBInfo::epoch2ptime(
-                    row[i].as<double>());
+            boost::posix_time::ptime pt = epoch2ptime(row[i].as<double>());
             boost::local_time::time_zone_ptr zone(new posix_time_zone("UTC"));
             val = boost::local_time::local_date_time(pt, zone);
           }
@@ -2521,7 +2325,7 @@ ResultSetRows PostgreSQL::getResultSetForMobileExternalData(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception::Trace(BCP, "Result set handling of mobile data failed!");
+    throw Fmi::Exception::Trace(BCP, "Result set handling of mobile data failed!");
   }
 
   return ret;
@@ -2597,7 +2401,7 @@ void PostgreSQL::fetchWeatherDataQCData(const std::string &sqlStmt,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP,
+    throw Fmi::Exception::Trace(BCP,
                                   "Fetching data from PostgreSQL WeatherDataQCData cache failed!");
   }
 }
@@ -2643,55 +2447,14 @@ std::string PostgreSQL::sqlSelectFromWeatherDataQCData(const Settings &settings,
           "ORDER BY fmisid ASC, obstime ASC";
     }
 
-#ifdef LATER
-    if (settings.latest)
-    {
-      sqlStmt =
-          "SELECT data.fmisid AS fmisid, EXTRACT(EPOCH FROM MAX(data.obstime)) AS obstime, "
-          "loc.latitude, loc.longitude, loc.elevation, "
-          "parameter, value, sensor_no "
-          "FROM weather_data_qc data JOIN locations loc ON (data.fmisid = "
-          "loc.fmisid) "
-          "WHERE data.fmisid IN (" +
-          qstations +
-          ") "
-          "AND data.obstime >= '" +
-          Fmi::to_iso_extended_string(settings.starttime) + "' AND data.obstime <= '" +
-          Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + param +
-          ") "
-          "GROUP BY data.fmisid, data.parameter, data.value, data.sensor_no, "
-          "loc.location_id, "
-          "loc.location_end, "
-          "loc.latitude, loc.longitude, loc.elevation "
-          "ORDER BY fmisid ASC, obstime ASC;";
-    }
-    else
-    {
-      sqlStmt =
-          "SELECT data.fmisid AS fmisid, EXTRACT(EPOCH FROM data.obstime) AS obstime, "
-          "loc.latitude, loc.longitude, loc.elevation, "
-          "parameter, value, sensor_no "
-          "FROM weather_data_qc data JOIN locations loc ON (data.fmisid = "
-          "loc.fmisid) "
-          "WHERE data.fmisid IN (" +
-          qstations +
-          ") "
-          "AND data.obstime >= '" +
-          Fmi::to_iso_extended_string(settings.starttime) + "' AND data.obstime <= '" +
-          Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + param +
-          ") "
-          "GROUP BY data.fmisid, data.obstime, data.parameter, "
-          "data.sensor_no, loc.location_id, "
-          "loc.location_end, loc.latitude, loc.longitude, loc.elevation "
-          "ORDER BY fmisid ASC, obstime ASC;";
-    }
-#endif
+    if (itsDebug)
+      std::cout << "PostgreSQL(cache): " << sqlStmt << std::endl;
 
     return sqlStmt;
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP,
+    throw Fmi::Exception::Trace(BCP,
                                   "Constructing SQL statement for PostgreSQL cache query failed!");
   }
 }

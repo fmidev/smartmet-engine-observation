@@ -1,5 +1,5 @@
 #include "VerifiableMessageQuery.h"
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 #include <string>
 
 namespace SmartMet
@@ -15,7 +15,8 @@ VerifiableMessageQuery::VerifiableMessageQuery()
 
 VerifiableMessageQuery::~VerifiableMessageQuery() {}
 
-std::string VerifiableMessageQuery::getSQLStatement() const
+std::string VerifiableMessageQuery::getSQLStatement(
+    const std::string &database /*= "oracle"*/) const
 {
   try
   {
@@ -28,6 +29,8 @@ std::string VerifiableMessageQuery::getSQLStatement() const
     }
 
     std::string queryStatement;
+
+    std::string where_condition = (database == "oracle" ? m_where : m_wherePostgreSQL);
 
     if (m_returnOnlyLatest)
     {
@@ -56,7 +59,7 @@ std::string VerifiableMessageQuery::getSQLStatement() const
             .append(" FROM ")
             .append(m_from)
             .append(" WHERE ")
-            .append(m_where)
+            .append(where_condition)
             .append(" and data.station_id = '")
             .append(*it)
             .append("'")
@@ -72,15 +75,15 @@ std::string VerifiableMessageQuery::getSQLStatement() const
     }
     else
     {
-      queryStatement =
-          "SELECT " + select + " FROM " + m_from + " WHERE " + m_where + " ORDER BY " + m_orderBy;
+      queryStatement = "SELECT " + select + " FROM " + m_from + " WHERE " + where_condition +
+                       " ORDER BY " + m_orderBy;
     }
 
     return queryStatement;
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -98,7 +101,7 @@ std::shared_ptr<QueryResult> VerifiableMessageQuery::getQueryResultContainer()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -120,7 +123,7 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
     const VerifiableMessageQueryParams::SelectNameListType *selectNames =
         qParams->getSelectNameList();
     if (selectNames->empty())
-      throw Spine::Exception(BCP, "Invalid SQL statement: Empty select name list");
+      throw Fmi::Exception(BCP, "Invalid SQL statement: Empty select name list");
 
     for (VerifiableMessageQueryParams::SelectNameListType::const_iterator it = selectNames->begin();
          it != selectNames->end();
@@ -141,7 +144,7 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
 
     m_from = qParams->getTableName();
     if (m_from.empty())
-      throw Spine::Exception(BCP, "Invalid SQL statement: Empty table name");
+      throw Fmi::Exception(BCP, "Invalid SQL statement: Empty table name");
 
     m_from.append(" data");
 
@@ -149,7 +152,7 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
         qParams->getStationIdVector();
 
     if (icaoCodes->empty())
-      throw Spine::Exception(BCP, "Empty location list");
+      throw Fmi::Exception(BCP, "Empty location list");
 
     if (m_returnOnlyLatest)
     {  // Station_id list is used in getSQLStatement
@@ -175,6 +178,8 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
 
     if (not m_returnOnlyLatest)
       m_where.append(" and ");
+
+    m_wherePostgreSQL = m_where;
     // type 1 = METAR and type 2 = METAR COR
     m_where.append("(data.message_type = 1 or data.message_type = 2) and ")
         .append("data.iwxxm_status is NULL and ")
@@ -186,6 +191,18 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
         .append("data.message_time <= TO_DATE('")
         .append(endTime)
         .append("','YYYY-MM-DD HH24:MI:SS')");
+
+    // type 1 = METAR and type 2 = METAR COR
+    m_wherePostgreSQL.append("(data.message_type = 1 or data.message_type = 2) and ")
+        .append("data.iwxxm_status is NULL and ")
+        .append("(data.iwxxm_errcode is NULL or data.iwxxm_errcode = 0) and ")
+        .append("data.iwxxm_content is not NULL and ")
+        .append("data.message_time >= '")
+        .append(beginTime)
+        .append("' and ")
+        .append("data.message_time <= '")
+        .append(endTime)
+        .append("'");
 
     size_t orderByLength = m_orderBy.size();
 
@@ -207,7 +224,7 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

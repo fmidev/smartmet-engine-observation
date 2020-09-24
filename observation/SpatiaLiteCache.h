@@ -42,6 +42,7 @@ class SpatiaLiteCache : public ObservationCache
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
                             const Spine::TaggedLocationList &locations) const;
+  boost::posix_time::ptime getLatestFlashModifiedTime() const;
   boost::posix_time::ptime getLatestFlashTime() const;
   std::size_t fillFlashDataCache(const FlashDataItems &flashCacheData) const;
   void cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep,
@@ -52,6 +53,7 @@ class SpatiaLiteCache : public ObservationCache
   void cleanDataCache(const boost::posix_time::time_duration &timetokeep,
                       const boost::posix_time::time_duration &timetokeep_memory) const;
   boost::posix_time::ptime getLatestWeatherDataQCTime() const;
+  boost::posix_time::ptime getLatestWeatherDataQCModifiedTime() const;
   std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const;
   void cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep) const;
 

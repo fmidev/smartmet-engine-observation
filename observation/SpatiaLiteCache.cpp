@@ -101,7 +101,7 @@ void SpatiaLiteCache::initializeConnectionPool()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Initializing connection pool failed!")
+    throw Fmi::Exception::Trace(BCP, "Initializing connection pool failed!")
         .addParameter("filename", itsParameters.cacheFile);
   }
 }  // namespace Observation
@@ -141,7 +141,7 @@ void SpatiaLiteCache::initializeCaches(int finCacheDuration,
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cache initialization failed!")
+    throw Fmi::Exception::Trace(BCP, "Cache initialization failed!")
         .addParameter("filename", itsParameters.cacheFile);
   }
 }
@@ -150,6 +150,8 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
 {
   try
   {
+    std::cout << "VALUES FROM CACHE\n";
+
     if (settings.stationtype == ROADCLOUD_PRODUCER)
       return roadCloudValuesFromSpatiaLite(settings);
 
@@ -172,16 +174,17 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
     // Get data if we have stations
     if (!stations.empty())
     {
-      boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
+      boost::shared_ptr<CommonDatabaseFunctions> db = itsConnectionPool->getConnection();
+      db->setDebug(settings.debug_options);
 
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = spatialitedb->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
+        ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
       }
       else
       {
-        ret = spatialitedb->getObservationData(stations, settings, *sinfo, itsTimeZones);
+        ret = db->getObservationData(stations, settings, *sinfo, itsTimeZones);
       }
     }
 
@@ -189,7 +192,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(
+    throw Fmi::Exception::Trace(
         BCP, "Getting values from cache for stationtype '" + settings.stationtype + "' failed!");
   }
 }
@@ -199,6 +202,8 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
 {
   try
   {
+    std::cout << "VALUES FROM CACHE\n";
+
     if (settings.stationtype == ROADCLOUD_PRODUCER)
       return roadCloudValuesFromSpatiaLite(settings);
 
@@ -221,17 +226,17 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
     // Get data if we have stations
     if (!stations.empty())
     {
-      boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
+      boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+      db->setDebug(settings.debug_options);
 
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = spatialitedb->getWeatherDataQCData(
-            stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
+        ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
       else
       {
-        ret = spatialitedb->getData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
+        ret = db->getObservationData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
     }
 
@@ -239,7 +244,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(
+    throw Fmi::Exception::Trace(
         BCP, "Getting values from cache for stationtype '" + settings.stationtype + "' failed!");
   }
 }
@@ -258,12 +263,13 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &set
     }
 
     // Must use disk cache instead
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    return spatialitedb->getFlashData(settings, itsTimeZones);
+    boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
+    return db->getFlashData(settings, itsTimeZones);
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting flash values from cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting flash values from cache failed!");
   }
 }
 
@@ -281,7 +287,7 @@ bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &start
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Checking if time interval is cached failed!");
+    throw Fmi::Exception::Trace(BCP, "Checking if time interval is cached failed!");
   }
 }
 
@@ -293,6 +299,7 @@ bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &star
     // No need to check memory cache here, it is always supposed to be shorted than the disk cache
 
     Spine::ReadLock lock(itsFlashTimeIntervalMutex);
+
     if (itsFlashTimeIntervalStart.is_not_a_date_time() ||
         itsFlashTimeIntervalEnd.is_not_a_date_time())
       return false;
@@ -301,7 +308,7 @@ bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &star
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Checking if flash interval is cached failed!");
+    throw Fmi::Exception::Trace(BCP, "Checking if flash interval is cached failed!");
   }
 }
 
@@ -314,13 +321,14 @@ bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
     if (itsWeatherDataQCTimeIntervalStart.is_not_a_date_time() ||
         itsWeatherDataQCTimeIntervalEnd.is_not_a_date_time())
       return false;
+
     // We ignore end time intentionally
     return (starttime >= itsWeatherDataQCTimeIntervalStart &&
             starttime < itsWeatherDataQCTimeIntervalEnd);
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Checking if weather data QC is cached failed!");
+    throw Fmi::Exception::Trace(BCP, "Checking if weather data QC is cached failed!");
   }
 }
 
@@ -356,7 +364,7 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Checking if data is available in cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Checking if data is available in cache failed!");
   }
 }
 
@@ -365,6 +373,11 @@ FlashCounts SpatiaLiteCache::getFlashCount(const boost::posix_time::ptime &start
                                            const Spine::TaggedLocationList &locations) const
 {
   return itsConnectionPool->getConnection()->getFlashCount(starttime, endtime, locations);
+}
+
+boost::posix_time::ptime SpatiaLiteCache::getLatestFlashModifiedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestFlashModifiedTime();
 }
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestFlashTime() const
@@ -394,7 +407,7 @@ std::size_t SpatiaLiteCache::fillFlashDataCache(const FlashDataItems &flashCache
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling flash data cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling flash data cache failed!");
   }
 }
 
@@ -431,7 +444,7 @@ void SpatiaLiteCache::cleanFlashDataCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning flash data cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning flash data cache failed!");
   }
 }
 
@@ -450,7 +463,7 @@ bool SpatiaLiteCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Checking if road cloud interval is cached failed!");
+    throw Fmi::Exception::Trace(BCP, "Checking if road cloud interval is cached failed!");
   }
 }
 
@@ -482,7 +495,7 @@ std::size_t SpatiaLiteCache::fillRoadCloudCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling road cloud cached failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling road cloud cached failed!");
   }
 }
 
@@ -510,7 +523,7 @@ void SpatiaLiteCache::cleanRoadCloudCache(const boost::posix_time::time_duration
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning road cloud cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning road cloud cache failed!");
   }
 }
 
@@ -521,14 +534,15 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpati
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    ret = spatialitedb->getRoadCloudData(settings, itsTimeZones);
+    boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
+    ret = db->getRoadCloudData(settings, itsTimeZones);
 
     return ret;
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting road cloud values from cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting road cloud values from cache failed!");
   }
 }
 
@@ -546,7 +560,7 @@ bool SpatiaLiteCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &st
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Checking if NetAtmo interval is cached failed!");
+    throw Fmi::Exception::Trace(BCP, "Checking if NetAtmo interval is cached failed!");
   }
 }
 
@@ -568,7 +582,7 @@ std::size_t SpatiaLiteCache::fillNetAtmoCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling NetAtmo cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling NetAtmo cache failed!");
   }
 }
 
@@ -596,7 +610,7 @@ void SpatiaLiteCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning NetAtmo cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning NetAtmo cache failed!");
   }
 }
 
@@ -607,14 +621,15 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaL
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    ret = spatialitedb->getNetAtmoData(settings, itsTimeZones);
+    boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
+    ret = db->getNetAtmoData(settings, itsTimeZones);
 
     return ret;
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting NetAtmo values from cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting NetAtmo values from cache failed!");
   }
 }
 
@@ -642,7 +657,7 @@ bool SpatiaLiteCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &sta
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Checking if FmiIoT interval is cached failed!");
+    throw Fmi::Exception::Trace(BCP, "Checking if FmiIoT interval is cached failed!");
   }
 }
 
@@ -664,7 +679,7 @@ std::size_t SpatiaLiteCache::fillFmiIoTCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling FmiIoT cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling FmiIoT cache failed!");
   }
 }
 
@@ -692,7 +707,7 @@ void SpatiaLiteCache::cleanFmiIoTCache(const boost::posix_time::time_duration &t
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning FmiIoT cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning FmiIoT cache failed!");
   }
 }
 
@@ -703,14 +718,15 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLi
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    ret = spatialitedb->getFmiIoTData(settings, itsTimeZones);
+    boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
+    ret = db->getFmiIoTData(settings, itsTimeZones);
 
     return ret;
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting FmiIoT values from cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting FmiIoT values from cache failed!");
   }
 }
 
@@ -751,7 +767,7 @@ std::size_t SpatiaLiteCache::fillDataCache(const DataItems &cacheData) const
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling data cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling data cache failed!");
   }
 }
 
@@ -785,7 +801,7 @@ void SpatiaLiteCache::cleanDataCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning data cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning data cache failed!");
   }
 }
 
@@ -794,13 +810,17 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCTime() const
   return itsConnectionPool->getConnection()->getLatestWeatherDataQCTime();
 }
 
+boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCModifiedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestWeatherDataQCModifiedTime();
+}
+
 std::size_t SpatiaLiteCache::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const
 {
   try
   {
     auto conn = itsConnectionPool->getConnection();
     auto sz = conn->fillWeatherDataQCCache(cacheData, itsWeatherQCInsertCache);
-
     // Update what really now really is in the database
     auto start = conn->getOldestWeatherDataQCTime();
     auto end = conn->getLatestWeatherDataQCTime();
@@ -811,7 +831,7 @@ std::size_t SpatiaLiteCache::fillWeatherDataQCCache(const WeatherDataQCItems &ca
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Filling weather data QC cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Filling weather data QC cache failed!");
   }
 }
 
@@ -840,7 +860,7 @@ void SpatiaLiteCache::cleanWeatherDataQCCache(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Cleaning weather data QC cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning weather data QC cache failed!");
   }
 }
 
@@ -862,7 +882,7 @@ SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
 
     // Verify multithreading is possible
     if (!sqlite3_threadsafe())
-      throw Spine::Exception(BCP, "Installed sqlite is not thread safe");
+      throw Fmi::Exception(BCP, "Installed sqlite is not thread safe");
 
     // Switch from serialized to multithreaded access
 
@@ -873,11 +893,11 @@ SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
     else if (itsParameters.sqlite.threading_mode == "SERIALIZED")
       err = sqlite3_config(SQLITE_CONFIG_SERIALIZED);
     else
-      throw Spine::Exception(
+      throw Fmi::Exception(
           BCP, "Unknown sqlite threading mode: " + itsParameters.sqlite.threading_mode);
 
     if (err != 0)
-      throw Spine::Exception(BCP,
+      throw Fmi::Exception(BCP,
                              "Failed to set sqlite3 multithread mode to " +
                                  itsParameters.sqlite.threading_mode +
                                  ", exit code = " + Fmi::to_string(err));
@@ -885,12 +905,12 @@ SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
     // Enable or disable memory statistics
     err = sqlite3_config(SQLITE_CONFIG_MEMSTATUS, itsParameters.sqlite.memstatus);
     if (err != 0)
-      throw Spine::Exception(
+      throw Fmi::Exception(
           BCP, "Failed to initialize sqlite3 memstatus mode, exit code " + Fmi::to_string(err));
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Creating SpatiaLite cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Creating SpatiaLite cache failed!");
   }
 }
 
@@ -929,7 +949,7 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP,
+    throw Fmi::Exception::Trace(BCP,
                                   "Reading SpatiaLite settings from configuration file failed!");
   }
 }

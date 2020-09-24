@@ -14,8 +14,8 @@
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/vector.hpp>
 #include <gis/OGR.h>
+#include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
-#include <spine/Exception.h>
 
 #include <fstream>
 
@@ -82,8 +82,8 @@ void createSerializedStationsDirectory(const std::string& filename)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP,
-                                  "Failed to create directory for serialized station information")
+    throw Fmi::Exception::Trace(BCP,
+                                "Failed to create directory for serialized station information")
         .addParameter("stationfile", filename)
         .addParameter("directory", directory.string());
   }
@@ -111,7 +111,7 @@ void StationInfo::serialize(const std::string& filename) const
 
     std::ofstream file(tmpfile);
     if (!file)
-      throw Spine::Exception(BCP, "Failed to open " + tmpfile + " for writing");
+      throw Fmi::Exception(BCP, "Failed to open " + tmpfile + " for writing");
 
     if (boost::algorithm::iends_with(filename, ".txt"))
     {
@@ -136,12 +136,12 @@ void StationInfo::serialize(const std::string& filename) const
     }
     catch (...)
     {
-      throw Spine::Exception::Trace(BCP, "Failed to rename " + tmpfile + " to " + filename);
+      throw Fmi::Exception::Trace(BCP, "Failed to rename " + tmpfile + " to " + filename);
     }
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "StationInfo serialization failed.");
+    throw Fmi::Exception::Trace(BCP, "StationInfo serialization failed.");
   }
 }
 
@@ -189,7 +189,7 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
                                                  const boost::posix_time::ptime& endtime) const
 {
   if (numberofstations < 1)
-    throw Spine::Exception(BCP, "Cannot search for less than 1 nearby stations");
+    throw Fmi::Exception(BCP, "Cannot search for less than 1 nearby stations");
 
   std::size_t maxcount = static_cast<std::size_t>(numberofstations);
 
@@ -256,6 +256,10 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
     calculateStationDirection(newstation);
 
     result.push_back(newstation);
+
+    // Abort if distance has changed and desired count has been reached
+    if (result.size() >= maxcount)
+      break;
   }
 
   return result;
@@ -590,7 +594,7 @@ Spine::Stations StationInfo::findStationsInsideArea(const std::set<std::string>&
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "[StationInfo] finding stations inside area failed!");
+    throw Fmi::Exception::Trace(BCP, "[StationInfo] finding stations inside area failed!");
   }
 }
 
@@ -603,20 +607,15 @@ Spine::Stations StationInfo::findStationsInsideArea(const std::set<std::string>&
 const Spine::Station& StationInfo::getStation(unsigned int fmisid,
                                               const std::set<std::string>& groups) const
 {
-  std::set<StationID> all_ids;
-
   const auto& ids = fmisidstations.at(fmisid);
   for (const auto id : ids)
   {
     const auto& station = stations.at(id);
     if (groupok(station, groups))
-      all_ids.insert(id);
+      return stations.at(id);
   }
 
-  if (all_ids.empty())
-    throw Spine::Exception(BCP, "No match found for fmisid=" + Fmi::to_string(fmisid));
-
-  return stations.at(*ids.begin());
+  throw Fmi::Exception(BCP, "No match found for fmisid=" + Fmi::to_string(fmisid));
 }
 
 // ----------------------------------------------------------------------

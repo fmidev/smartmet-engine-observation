@@ -95,7 +95,7 @@ QueryMapping CommonDatabaseFunctions::buildQueryMapping(const Spine::Stations &s
           }
           else
           {
-            throw SmartMet::Spine::Exception::Trace(
+            throw Fmi::Exception::Trace(
                 BCP, "Parameter " + name + " for stationtype " + stationtype + " not found!");
           }
         }
@@ -151,7 +151,7 @@ QueryMapping CommonDatabaseFunctions::buildQueryMapping(const Spine::Stations &s
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception::Trace(BCP, "Building query mapping failed!");
+    throw Fmi::Exception::Trace(BCP, "Building query mapping failed!");
   }
 }
 
@@ -230,7 +230,7 @@ Spine::TimeSeries::Value CommonDatabaseFunctions::getDefaultSensorValue(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting default sensor value failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting default sensor value failed!");
   }
 }
 
@@ -286,7 +286,7 @@ void CommonDatabaseFunctions::solveMeasurandIds(const std::vector<std::string> &
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Solving measurand id failed!");
+    throw Fmi::Exception::Trace(BCP, "Solving measurand id failed!");
   }
 }
 
@@ -306,7 +306,7 @@ StationMap CommonDatabaseFunctions::mapQueryStations(const Spine::Stations &stat
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception::Trace(BCP, "Mapping stations failed!");
+    throw Fmi::Exception::Trace(BCP, "Mapping stations failed!");
   }
 }
 
@@ -333,10 +333,11 @@ std::string CommonDatabaseFunctions::buildSqlStationList(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception::Trace(BCP, "Building station list failed!");
+    throw Fmi::Exception::Trace(BCP, "Building station list failed!");
   }
 }
 
+#ifdef REMOVE
 std::string CommonDatabaseFunctions::sqlSelectFromObservationData(
     const Spine::Stations &stations,
     const Settings &settings,
@@ -391,15 +392,17 @@ std::string CommonDatabaseFunctions::sqlSelectFromObservationData(
            "data.data_value, data.data_quality, data.data_source "
            "ORDER BY fmisid ASC, obstime ASC";
 
-    //    std::cout << "SQL: " << sql << std::endl;
+    if (itsDebug)
+      std::cout << "SQL: " << sql << std::endl;
 
     return sql;
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception::Trace(BCP, "Reading observations from database failed!");
+    throw Fmi::Exception::Trace(BCP, "Reading observations from database failed!");
   }
 }
+#endif
 
 ObservationsMap CommonDatabaseFunctions::buildObservationsMap(
     const LocationDataItems &observations,
@@ -437,7 +440,7 @@ ObservationsMap CommonDatabaseFunctions::buildObservationsMap(
   }
   catch (...)
   {
-    throw SmartMet::Spine::Exception::Trace(BCP, "Mapping observations failed!");
+    throw Fmi::Exception::Trace(BCP, "Mapping observations failed!");
   }
 
   return ret;
@@ -582,7 +585,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesA
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Building time series with all timesteps failed!");
+    throw Fmi::Exception::Trace(BCP, "Building time series with all timesteps failed!");
   }
 
   return timeSeriesColumns;
@@ -646,7 +649,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Building time series with latest timestep failed!");
+    throw Fmi::Exception::Trace(BCP, "Building time series with latest timestep failed!");
   }
 }
 
@@ -736,7 +739,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Building time series with listed timesteps failed!");
+    throw Fmi::Exception::Trace(BCP, "Building time series with listed timesteps failed!");
   }
 }
 
@@ -919,7 +922,7 @@ void CommonDatabaseFunctions::appendWeatherParameters(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Appending weather parameter failed!");
+    throw Fmi::Exception::Trace(BCP, "Appending weather parameter failed!");
   }
 }
 
@@ -1223,7 +1226,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Adding parameter to time series failed!");
+    throw Fmi::Exception::Trace(BCP, "Adding parameter to time series failed!");
   }
 }
 
@@ -1269,7 +1272,7 @@ void CommonDatabaseFunctions::addEmptyValuesToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Adding empty values to time series failed!");
+    throw Fmi::Exception::Trace(BCP, "Adding empty values to time series failed!");
   }
 }
 
@@ -1323,7 +1326,7 @@ void CommonDatabaseFunctions::addSmartSymbolToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Adding smart symbol to time series failed!");
+    throw Fmi::Exception::Trace(BCP, "Adding smart symbol to time series failed!");
   }
 }
 
@@ -1427,7 +1430,7 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
           "Unsupported special parameter '" +
           paramname + "'";
 
-      Spine::Exception exception(BCP, "Operation processing failed!");
+      Fmi::Exception exception(BCP, "Operation processing failed!");
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail(msg);
       throw exception;
@@ -1435,7 +1438,7 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Adding special parameter to times series failed!");
+    throw Fmi::Exception::Trace(BCP, "Adding special parameter to times series failed!");
   }
 }
 
@@ -1563,8 +1566,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
 
     std::string query = sqlSelectFromWeatherDataQCData(settings, params, qstations);
 
-    //    std::cout << "SQL: " << query << std::endl;
-
     WeatherDataQCData weatherDataQCData;
     std::map<int, std::map<int, int>> default_sensors;
 
@@ -1607,6 +1608,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
       data_quality[fmisid][obstime][parameter][Fmi::to_string(sensor_no)] = val_quality;
       i++;
     }
+
     typedef std::pair<boost::local_time::local_date_time,
                       std::map<std::string, std::map<std::string, Spine::TimeSeries::Value>>>
         dataItem;
@@ -1724,11 +1726,12 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
         }
       }
     }
+
     return timeSeriesColumns;
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Getting weather data qc data failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting weather data qc data failed!");
   }
 }
 
@@ -1745,7 +1748,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getObservationDa
   opt.startTimeUTC = false;
   opt.endTimeUTC = false;
 
-  return getData(stations, settings, stationInfo, opt, timezones);
+  return getObservationData(stations, settings, stationInfo, opt, timezones);
 }
 
 }  // namespace Observation

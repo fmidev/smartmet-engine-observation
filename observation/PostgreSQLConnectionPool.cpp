@@ -1,6 +1,6 @@
 #include "PostgreSQLConnectionPool.h"
 #include "PostgreSQLCacheParameters.h"
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
@@ -27,7 +27,7 @@ struct Releaser
     }
     catch (...)
     {
-      throw Spine::Exception::Trace(BCP, "Operation failed!");
+      throw Fmi::Exception::Trace(BCP, "Operation failed!");
     }
   }
 
@@ -49,7 +49,7 @@ PostgreSQLConnectionPool::PostgreSQLConnectionPool(const PostgreSQLCacheParamete
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -92,7 +92,7 @@ boost::shared_ptr<PostgreSQL> PostgreSQLConnectionPool::getConnection()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -115,7 +115,7 @@ void PostgreSQLConnectionPool::releaseConnection(int connectionId)
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -139,7 +139,7 @@ void PostgreSQLConnectionPool::shutdown()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

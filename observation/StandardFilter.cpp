@@ -1,5 +1,5 @@
 #include "StandardFilter.h"
-#include <spine/Exception.h>
+#include <macgyver/Exception.h>
 
 namespace SmartMet
 {
@@ -21,7 +21,7 @@ StandardFilter::StandardFilter() : MinimumStandardFilter()
     }
     catch (...)
     {
-      Spine::Exception exception(BCP, "Operation processing failed!", nullptr);
+      Fmi::Exception exception(BCP, "Operation processing failed!", nullptr);
       // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
       exception.addDetail("StandardFilter initialization failed.");
       throw exception;
@@ -29,7 +29,7 @@ StandardFilter::StandardFilter() : MinimumStandardFilter()
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -45,14 +45,14 @@ std::shared_ptr<const StandardFilter::PropertyIsBaseType> StandardFilter::getNew
     }
     catch (...)
     {
-      throw Spine::Exception(BCP, "Operation processing failed!")
+      throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(
               fmt::format("StandardFilter operation '{}' initialization failed!", operationName));
     }
   }
   catch (...)
   {
-    throw Spine::Exception::Trace(BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
