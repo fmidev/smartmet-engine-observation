@@ -51,7 +51,7 @@ void Engine::init()
 #endif
     if (itsDatabaseDriver != nullptr)
     {
-      logMessage("[Observation Engine] Database driver '" + itsDatabaseDriver->id() + "' created",
+      logMessage("[Observation Engine] Database driver '" + itsDatabaseDriver->name() + "' created",
                  itsEngineParameters->quiet);
       itsDatabaseDriver->init(this);
     }

@@ -41,14 +41,20 @@ using namespace boost::local_time;
 using boost::local_time::local_date_time;
 using boost::posix_time::ptime;
 
-ptime parse_sqlite_time(std::string timestring)
+ptime parse_sqlite_time(const std::string &timestring)
 {
   try
   {
-    if (timestring.find("T") != std::string::npos)
-      timestring.replace(timestring.find("T"), 1, " ");
+    std::string t = timestring;
+    boost::trim(t);
 
-    return Fmi::TimeParser::parse_sql(timestring);
+    if (t.empty())
+      return boost::posix_time::not_a_date_time;
+
+    if (t.find("T") != std::string::npos)
+      t.replace(t.find("T"), 1, " ");
+
+    return Fmi::TimeParser::parse_sql(t);
   }
   catch (...)
   {
@@ -88,11 +94,12 @@ namespace Observation
 {
 // Results read from the sqlite database
 
-LocationDataItems SpatiaLite::readObservations(const Spine::Stations &stations,
-                                               const Settings &settings,
-                                               const StationInfo &stationInfo,
-                                               const QueryMapping &qmap,
-                                               const std::set<std::string> &stationgroup_codes)
+LocationDataItems SpatiaLite::readObservationDataFromDB(
+    const Spine::Stations &stations,
+    const Settings &settings,
+    const StationInfo &stationInfo,
+    const QueryMapping &qmap,
+    const std::set<std::string> &stationgroup_codes)
 {
   try
   {
@@ -139,7 +146,8 @@ LocationDataItems SpatiaLite::readObservations(const Spine::Stations &stations,
                "data.data_value, data.data_quality, data.data_source "
                "ORDER BY fmisid ASC, obstime ASC";
 
-    //    std::cout << "sql\n" << sql << std::endl;
+    if (itsDebug)
+      std::cout << "SpatiaLite: " << sqlStmt << std::endl;
 
     sqlite3pp::query qry(itsDB, sqlStmt.c_str());
 
@@ -327,8 +335,9 @@ void SpatiaLite::createObservationDataTable()
 		"modified_last DATETIME NOT NULL DEFAULT '1970-01-01', "
         "PRIMARY KEY (fmisid, data_time, measurand_id, producer_id, measurand_no, sensor_no))");
 
-    itsDB.execute("CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON observation_data(data_time)");
-    itsDB.execute("CREATE INDEX IF NOT EXISTS observation_data_modified_last_idx ON observation_data(modified_last)");
+    itsDB.execute("CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON observation_data(data_time);");
+    itsDB.execute("CREATE INDEX IF NOT EXISTS observation_data_fmisid_idx ON observation_data(fmisid);");
+    itsDB.execute("CREATE INDEX IF NOT EXISTS observation_data_modified_last_idx ON observation_data(modified_last);");
   }
   catch (...)
   {
@@ -397,10 +406,11 @@ void SpatiaLite::createWeatherDataQCTable()
                   "sensor_no INTEGER NOT NULL, "
                   "value REAL NOT NULL, "
                   "flag INTEGER NOT NULL, "
-                  "PRIMARY KEY (obstime, fmisid, parameter, sensor_no)); CREATE INDEX IF "
-                  "NOT EXISTS weather_data_qc_obstime_idx ON "
-                  "weather_data_qc(obstime);");
-    itsDB.execute("CREATE INDEX IF NOT EXISTS weather_data_qc_obstime_idx ON weather_data_qc (obstime);");
+                  "modified_last DATETIME, "
+                  "PRIMARY KEY (obstime, fmisid, parameter, sensor_no));");
+    itsDB.execute("CREATE INDEX IF NOT EXISTS weather_data_qc_obstime_idx ON weather_data_qc(obstime);");
+    itsDB.execute("CREATE INDEX IF NOT EXISTS weather_data_qc_fmisid_idx ON weather_data_qc(fmisid);");
+    itsDB.execute("CREATE INDEX IF NOT EXISTS weather_data_qc_modified_last_idx ON weather_data_qc(modified_last);");
   }
   catch (...)
   {
@@ -435,10 +445,9 @@ void SpatiaLite::createFlashDataTable()
                   "created  DATETIME, "
                   "modified_last DATETIME, "
                   "modified_by INTEGER, "
-                  "PRIMARY KEY (stroke_time, stroke_time_fraction, flash_id)); CREATE "
-                  "INDEX IF NOT EXISTS flash_data_stroke_time_idx ON "
-                  "flash_data(stroke_time)");
+                  "PRIMARY KEY (stroke_time, stroke_time_fraction, flash_id))");
     itsDB.execute("CREATE INDEX IF NOT EXISTS flash_data_stroke_time_idx on flash_data(stroke_time);");
+    itsDB.execute("CREATE INDEX IF NOT EXISTS flash_data_modified_last_idx ON flash_data(modified_last);");
 
     try
     {
@@ -775,6 +784,25 @@ ptime SpatiaLite::getLatestWeatherDataQCTime()
   }
 }
 
+ptime SpatiaLite::getLatestWeatherDataQCModifiedTime()
+{
+  try
+  {
+    // Spine::ReadLock lock(write_mutex);
+    sqlite3pp::query qry(itsDB, "SELECT MAX(modified_last) FROM weather_data_qc");
+    sqlite3pp::query::iterator iter = qry.begin();
+    if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
+	  {
+      return boost::posix_time::not_a_date_time;
+	  }
+    return parseSqliteTime(iter, 0);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Modified last WeatherDataQCTime query failed!");
+  }
+}
+
 ptime SpatiaLite::getOldestWeatherDataQCTime()
 {
   try
@@ -790,6 +818,20 @@ ptime SpatiaLite::getOldestWeatherDataQCTime()
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Oldest WeatherDataQCTime query failed!");
+  }
+}
+
+ptime SpatiaLite::getLatestFlashModifiedTime()
+{
+  try
+  {
+    string tablename = "flash_data";
+    string time_field = "modified_last";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Latest flash time query failed!");
   }
 }
 
@@ -1391,8 +1433,8 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
 
     const char *sqltemplate =
         "INSERT OR IGNORE INTO weather_data_qc"
-        "(fmisid, obstime, parameter, sensor_no, value, flag)"
-        "VALUES (:fmisid,:obstime,:parameter,:sensor_no,:value,:flag)";
+        "(fmisid, obstime, parameter, sensor_no, value, flag, modified_last)"
+        "VALUES (:fmisid,:obstime,:parameter,:sensor_no,:value,:flag,:modified_last)";
 
     std::size_t pos1 = 0;
 
@@ -1418,6 +1460,10 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
         cmd.bind(":sensor_no", item.sensor_no);
         cmd.bind(":value", item.value);
         cmd.bind(":flag", item.flag);
+        std::string modified_last_time = "";
+		if(!item.modified_last.is_not_a_date_time())
+		  modified_last_time = Fmi::to_iso_extended_string(item.modified_last);
+        cmd.bind(":modified_last", modified_last_time, sqlite3pp::nocopy);
         cmd.execute();
         cmd.reset();
       }
@@ -1500,7 +1546,7 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &flashCacheData,
             "chi_square, rise_time, ptz_time, cloud_indicator, "
             "angle_indicator, "
             "signal_indicator, timing_indicator, stroke_status, "
-            "data_source, stroke_location) "
+            "data_source, created, modified_last, stroke_location) "
             "VALUES ("
             ":timestring,"
             ":stroke_time_fraction, "
@@ -1520,13 +1566,20 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &flashCacheData,
             ":signal_indicator,"
             ":timing_indicator,"
             ":stroke_status,"
-            ":data_source," +
+            ":data_source,"
+            ":created,"
+            ":modified_last," +
             stroke_location + ");";
+
 
         sqlite3pp::command cmd(itsDB, sqltemplate.c_str());
 
         std::string timestring = Fmi::to_iso_extended_string(item.stroke_time);
         boost::replace_all(timestring, ",", ".");
+        std::string created_timestring = Fmi::to_iso_extended_string(item.created);
+        boost::replace_all(created_timestring, ",", ".");
+        std::string modified_last_timestring = Fmi::to_iso_extended_string(item.modified_last);
+        boost::replace_all(modified_last_timestring, ",", ".");
 
         // @todo There is no simple way to optionally set possible NULL values.
         // Find out later how to do it.
@@ -1552,6 +1605,8 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &flashCacheData,
           cmd.bind(":timing_indicator", item.timing_indicator);
           cmd.bind(":stroke_status", item.stroke_status);
           cmd.bind(":data_source", item.data_source);
+          cmd.bind(":created", created_timestring, sqlite3pp::nocopy);
+          cmd.bind(":modified_last", modified_last_timestring, sqlite3pp::nocopy);
           cmd.execute();
           cmd.reset();
         }
@@ -1958,6 +2013,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFlashData(
 
     query += "ORDER BY flash.stroke_time ASC, flash.stroke_time_fraction ASC;";
 
+	if(itsDebug)
+      std::cout << "SpatiaLite: " << query << std::endl;
+
+
     Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
         initializeResultVector(settings.parameters);
 
@@ -2060,6 +2119,9 @@ FlashDataItems SpatiaLite::readFlashCacheData(const ptime& starttime)
       "WHERE stroke_time >= '" + starttimeString + "'"
       "ORDER BY stroke_time, flash_id";
 
+  if(itsDebug)
+	std::cout << "SpatiaLite: " << sql << std::endl;
+
   FlashDataItems result;
 
   // Spine::ReadLock lock(write_mutex);
@@ -2159,6 +2221,9 @@ FlashCounts SpatiaLite::getFlashCount(const ptime &starttime,
 
     sqltemplate += ";";
 
+	if(itsDebug)
+      std::cout << "SpatiaLite: " << sqltemplate << std::endl;
+
     sqlite3pp::query qry(itsDB, sqltemplate.c_str());
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter != qry.end())
@@ -2177,7 +2242,7 @@ FlashCounts SpatiaLite::getFlashCount(const ptime &starttime,
 }
 
 
-Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getData(
+Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getObservationData(
     const Spine::Stations &stations,
     const Settings &settings,
 	const StationInfo & stationInfo,
@@ -2204,7 +2269,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getData(
 
     if(!itsObservationMemoryCache)
 	  {
-		observations = readObservations(stations, settings, stationInfo, qmap, stationgroup_codes);
+		observations = readObservationDataFromDB(stations, settings, stationInfo, qmap, stationgroup_codes);
 	  }
     else
     {
@@ -2213,7 +2278,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getData(
       if(!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime)
         observations = itsObservationMemoryCache->read_observations(stations, settings, stationInfo, stationgroup_codes, qmap);
       else
-        observations = readObservations(stations, settings, stationInfo, qmap, stationgroup_codes);
+        observations = readObservationDataFromDB(stations, settings, stationInfo, qmap, stationgroup_codes);
     }
 
     std::set<int> observed_fmisids;
@@ -2420,6 +2485,9 @@ std::string SpatiaLite::sqlSelectFromWeatherDataQCData(const Settings &settings,
           "data.sensor_no "
           "ORDER BY fmisid ASC, obstime ASC;";
     }
+
+	if(itsDebug)
+      std::cout << "SpatiaLite: " << sqlStmt << std::endl;
 
 	return sqlStmt;
   }

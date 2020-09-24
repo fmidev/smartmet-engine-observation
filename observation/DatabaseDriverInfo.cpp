@@ -52,11 +52,46 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
       std::string name = driver_settings[i]["name"];
       // Tables
       std::set<std::string> table_set;
+      std::map<std::string, int> table_days;
       const libconfig::Setting& tables = driver_settings[i]["tables"];
       int num = tables.getLength();
       for (int j = 0; j < num; ++j)
       {
         std::string tablename = tables[j];
+        if (tablename.find(":") != std::string::npos)
+        {
+          std::vector<std::string> parts;
+          boost::algorithm::split(parts, tablename, boost::algorithm::is_any_of(":"));
+          tablename = parts.at(0);
+          std::string table_day_string = parts.at(1);
+          table_days[tablename] = Fmi::stoi(table_day_string);
+
+          /*
+  std::vector<std::string> parts;
+  boost::algorithm::split(parts, tablename, boost::algorithm::is_any_of(":"));
+  std::string table_period_string = parts.at(1);
+  if (table_period_string.find("-") == std::string::npos)
+    throw Fmi::Exception::Trace(
+        BCP,
+        "Configuration error '" + tablename +
+            "'. Format is 'tablename:startday-<endday>'!");
+
+  tablename = parts.at(0);
+
+  parts.clear();
+  boost::replace_last(table_period_string, " ", "");  // Remove spaces
+  boost::algorithm::split(parts, table_period_string, boost::algorithm::is_any_of("-"));
+  int min_day = 0;
+  int max_day = INT_MAX;
+  min_day = Fmi::stoi(parts.at(0));
+  if (!parts.at(1).empty())
+    max_day = Fmi::stoi(parts.at(1));
+  table_period[tablename] = std::make_pair(min_day, max_day);
+          */
+        }
+        else
+          table_days[tablename] = INT_MAX;
+
         if (!tablename.empty())
           table_set.insert(tablename);
       }  // for int j
@@ -70,7 +105,7 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
         if (!cachestring.empty())
           cache_set.insert(cachestring);
       }  // for int j
-      itsDatabaseDriverInfoItems.emplace_back(name, active, table_set, cache_set);
+      itsDatabaseDriverInfoItems.emplace_back(name, active, table_set, table_days, cache_set);
     }  // for int i
 
     for (auto& item : itsDatabaseDriverInfoItems)
@@ -614,7 +649,12 @@ std::ostream& operator<<(std::ostream& out,
 
     out << "  tables: " << std::endl;
     for (const auto& t : item.tables)
-      out << "   " << t << std::endl;
+    {
+      if (item.table_days.at(t) == INT_MAX)
+        out << "   " << t << " -> all data available" << std::endl;
+      else
+        out << "   " << t << " -> max " << item.table_days.at(t) << " days" << std::endl;
+    }
 
     out << "  caches: " << std::endl;
     for (const auto& cache : item.caches)

@@ -145,15 +145,18 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
     // Get data if we have stations
     if (!stations.empty())
     {
-      boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+      boost::shared_ptr<CommonDatabaseFunctions> db = itsConnectionPool->getConnection();
+      db->setDebug(settings.debug_options);
 
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
         ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
-        return ret;
       }
-      ret = db->getObservationData(stations, settings, *sinfo, itsTimeZones);
+      else
+      {
+        ret = db->getObservationData(stations, settings, *sinfo, itsTimeZones);
+      }
     }
 
     return ret;
@@ -192,7 +195,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
     if (!stations.empty())
     {
       boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-
+      db->setDebug(settings.debug_options);
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
@@ -200,7 +203,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
       }
       else
       {
-        ret = db->getData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
+        ret = db->getObservationData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
     }
     return ret;
@@ -218,7 +221,8 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(Settings &set
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-    ret = db->getFlashData(settings, itsParameters.parameterMap, itsTimeZones);
+    db->setDebug(settings.debug_options);
+    ret = db->getFlashData(settings, itsTimeZones);
 
     return ret;
   }
@@ -234,6 +238,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
     ret = db->getRoadCloudData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
@@ -251,6 +256,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &s
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
     ret = db->getNetAtmoData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
@@ -268,6 +274,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(Settings &se
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
     ret = db->getFmiIoTData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
@@ -379,6 +386,11 @@ FlashCounts PostgreSQLCache::getFlashCount(const boost::posix_time::ptime &start
                                            const Spine::TaggedLocationList &locations) const
 {
   return itsConnectionPool->getConnection()->getFlashCount(starttime, endtime, locations);
+}
+
+boost::posix_time::ptime PostgreSQLCache::getLatestFlashModifiedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestFlashModifiedTime();
 }
 
 boost::posix_time::ptime PostgreSQLCache::getLatestFlashTime() const
@@ -507,6 +519,11 @@ void PostgreSQLCache::cleanDataCache(
 boost::posix_time::ptime PostgreSQLCache::getLatestWeatherDataQCTime() const
 {
   return itsConnectionPool->getConnection()->getLatestWeatherDataQCTime();
+}
+
+boost::posix_time::ptime PostgreSQLCache::getLatestWeatherDataQCModifiedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestWeatherDataQCModifiedTime();
 }
 
 std::size_t PostgreSQLCache::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const

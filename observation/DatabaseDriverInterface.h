@@ -55,6 +55,7 @@ class DatabaseDriverInterface
   virtual MetaData metaData(const std::string &producer) const = 0;
   virtual void reloadStations() = 0;
   virtual std::string id() const = 0;
+  virtual std::string name() const = 0;
 
  protected:
   DatabaseDriverInterface() {}

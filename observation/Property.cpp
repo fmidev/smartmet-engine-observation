@@ -29,7 +29,8 @@ Base::Base(const Base& other)
   }
 }
 
-Base::NameType Base::getExpression(const NameType& viewName) const
+Base::NameType Base::getExpression(const NameType& viewName,
+                                   const std::string& database /*= "oracle"*/) const
 {
   try
   {
@@ -40,7 +41,7 @@ Base::NameType Base::getExpression(const NameType& viewName) const
         .append(" ")
         .append(m_operator)
         .append(" ")
-        .append(toWhatString(m_toWhat));
+        .append(toWhatString(m_toWhat, database));
 
     return retVal;
   }
@@ -50,7 +51,8 @@ Base::NameType Base::getExpression(const NameType& viewName) const
   }
 }
 
-Base::NameType Base::toWhatString(const boost::any& value) const
+Base::NameType Base::toWhatString(const boost::any& value,
+                                  const std::string& database /*= "oracle"*/) const
 {
   try
   {
@@ -92,9 +94,14 @@ Base::NameType Base::toWhatString(const boost::any& value) const
     }
     else if ((value).type() == typeid(boost::posix_time::ptime))
     {
-      return "TO_DATE('" +
-             boost::posix_time::to_simple_string(boost::any_cast<boost::posix_time::ptime>(value)) +
-             "','YYYY-MM-DD HH24:MI:SS')";
+      if (database == "oracle")
+        return "TO_DATE('" +
+               boost::posix_time::to_simple_string(
+                   boost::any_cast<boost::posix_time::ptime>(value)) +
+               "','YYYY-MM-DD HH24:MI:SS')";
+      else  // PostgreSQL
+        return boost::posix_time::to_simple_string(
+            boost::any_cast<boost::posix_time::ptime>(value));
     }
     else
       throw Fmi::Exception(BCP, "Operation processing failed!")
@@ -164,25 +171,45 @@ Base::NameType Base::getValueTypeString() const
   }
 }
 
-Base::NameType MinuteValueModuloIsEqualToZero::getExpression(const Base::NameType& viewName) const
+Base::NameType MinuteValueModuloIsEqualToZero::getExpression(
+    const Base::NameType& viewName, const std::string& database /* = "oracle"*/) const
 {
   try
   {
     Base::NameType retVal;
-    retVal.append("MOD(60*TO_CHAR(")
-        .append(viewName)
-        .append(".")
-        .append(Base::getProperty())
-        .append(",'HH24') + ")
-        .append("TO_CHAR(")
-        .append(viewName)
-        .append(".")
-        .append(Base::getProperty())
-        .append(",'MI'), ")
-        .append(toWhatString(Base::getToWhat()))
-        .append(") ")
-        .append(Base::getOperator())
-        .append(" 0");
+    if (database == "oracle")
+      retVal.append("MOD(60*TO_CHAR(")
+          .append(viewName)
+          .append(".")
+          .append(Base::getProperty())
+          .append(",'HH24') + ")
+          .append("TO_CHAR(")
+          .append(viewName)
+          .append(".")
+          .append(Base::getProperty())
+          .append(",'MI'), ")
+          .append(toWhatString(Base::getToWhat()))
+          .append(") ")
+          .append(Base::getOperator())
+          .append(" 0");
+    else  // PostgreSQL
+      retVal.append("MOD(60*EXTRACT(HOUR FROM ")
+          .append(viewName)
+          .append(".")
+          .append(Base::getProperty())
+          .append(") + ")
+          .append(" EXTRACT(MINUTE FROM ")
+          .append(viewName)
+          .append(".")
+          .append(Base::getProperty())
+          .append("), ")
+          .append(toWhatString(Base::getToWhat()))
+          .append(") ")
+          .append(Base::getOperator())
+          .append(" 0");
+
+    // (MOD(60*TO_CHAR(OBSERVATION_DATA_V1.DATA_TIME,'HH24') +
+    // TO_CHAR(OBSERVATION_DATA_V1.DATA_TIME,'MI'), 10) = 0)
 
     return retVal;
   }

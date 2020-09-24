@@ -48,6 +48,7 @@ class ObservationCache
                                     const boost::posix_time::ptime &endtime,
                                     const Spine::TaggedLocationList &locations) const = 0;
 
+  virtual boost::posix_time::ptime getLatestFlashModifiedTime() const = 0;
   virtual boost::posix_time::ptime getLatestFlashTime() const = 0;
   virtual std::size_t fillFlashDataCache(const FlashDataItems &flashCacheData) const = 0;
   virtual void cleanFlashDataCache(
@@ -61,6 +62,7 @@ class ObservationCache
                               const boost::posix_time::time_duration &timetokeep_memory) const = 0;
 
   virtual boost::posix_time::ptime getLatestWeatherDataQCTime() const = 0;
+  virtual boost::posix_time::ptime getLatestWeatherDataQCModifiedTime() const = 0;
   virtual std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const = 0;
   virtual void cleanWeatherDataQCCache(
       const boost::posix_time::time_duration &timetokeep) const = 0;

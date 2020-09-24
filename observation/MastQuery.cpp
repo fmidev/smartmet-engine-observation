@@ -13,7 +13,7 @@ MastQuery::MastQuery() : m_selectSize(0) {}
 
 MastQuery::~MastQuery() {}
 
-std::string MastQuery::getSQLStatement() const
+std::string MastQuery::getSQLStatement(const std::string &database /*= "oracle"*/) const
 {
   try
   {
@@ -28,7 +28,7 @@ std::string MastQuery::getSQLStatement() const
     statement.append(" FROM").append(m_from);
 
     if (not m_where.empty())
-      statement.append(" WHERE ").append(m_where);
+      statement.append(" WHERE ").append(database == "oracle" ? m_where : m_wherePostgreSQL);
 
     if (not m_orderBy.empty())
       statement.append(" ORDER BY ").append(m_orderBy);
@@ -67,6 +67,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
     m_select.clear();
     m_from.clear();
     m_where.clear();
+    m_wherePostgreSQL.clear();
     m_orderBy.clear();
     m_distinct.clear();
 
@@ -102,16 +103,23 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
         continue;
 
       if (m_where.size() > 0)
+      {
         m_where.append(" and ");
+        m_wherePostgreSQL.append(" and ");
+      }
 
       m_where.append("(");
+      m_wherePostgreSQL.append("(");
 
       for (OperationMapGroupType::const_iterator it = omIt->second.begin();
            it != omIt->second.end();
            ++it)
       {
         if (it != omIt->second.begin())
+        {
           m_where.append(" or ");
+          m_wherePostgreSQL.append(" or ");
+        }
 
         // e.g. " table.column_name = '60'" where it->second is "table" and
         // it->first is
@@ -119,9 +127,11 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
         // = '60'".
         // m_where.append((*it).second).append(".").append((*it).first->getExpression());
         m_where.append((*it).first->getExpression((*it).second));
+        m_wherePostgreSQL.append((*it).first->getExpression((*it).second, "postgresql"));
       }
 
       m_where.append(")");
+      m_wherePostgreSQL.append(")");
     }
 
     // FROM part of the SQL statement

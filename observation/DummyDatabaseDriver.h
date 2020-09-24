@@ -45,6 +45,7 @@ class DummyDatabaseDriver : public DatabaseDriverInterface
   void shutdown() {}
   MetaData metaData(const std::string &) const { return MetaData(); }
   std::string id() const { return "dummy"; }
+  std::string name() const { return "dummy"; }
 
  private:
   const EngineParametersPtr &itsParameters;

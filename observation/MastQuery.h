@@ -29,7 +29,7 @@ class MastQuery : public QueryBase
    * @brief Get SQL statement constructed in the class.
    * @return SQL statement string of empty string when failure occur.
    */
-  std::string getSQLStatement() const;
+  std::string getSQLStatement(const std::string &database = "oracle") const;
 
   /**
    * @brief Get reference to the result container of
@@ -62,6 +62,7 @@ class MastQuery : public QueryBase
   std::string m_select;
   std::string m_from;
   std::string m_where;
+  std::string m_wherePostgreSQL;
   std::string m_orderBy;
   std::string m_distinct;
 

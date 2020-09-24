@@ -62,11 +62,25 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   boost::posix_time::ptime getLatestObservationTime();
 
   /**
+   * @brief Get the time of the latest modified flash obervation
+   * @retval boost::posix_time::ptime The time of the last modification
+   */
+
+  boost::posix_time::ptime getLatestFlashModifiedTime();
+
+  /**
    * @brief Get the time of the newest flash observation
    * @retval boost::posix_time::ptime The time of the newest observation
    */
 
   boost::posix_time::ptime getLatestFlashTime();
+
+  /**
+   * @brief Get the time of the latest modified observation in weather_data_qc table
+   * @retval boost::posix_time::ptime The time of the last modification
+   */
+
+  boost::posix_time::ptime getLatestWeatherDataQCModifiedTime();
 
   /**
    * @brief Get the time of the newest observation in weather_data_qc table
@@ -276,7 +290,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFlashData(const Settings &settings,
                                                                 const Fmi::TimeZones &timezones);
 
-  virtual SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getData(
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getObservationData(
       const SmartMet::Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
@@ -351,11 +365,11 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getMobileAndExternalData(
       const Settings &settings, const Fmi::TimeZones &timezones);
 
-  LocationDataItems readObservations(const Spine::Stations &stations,
-                                     const Settings &settings,
-                                     const StationInfo &stationInfo,
-                                     const QueryMapping &qmap,
-                                     const std::set<std::string> &stationgroup_codes);
+  LocationDataItems readObservationDataFromDB(const Spine::Stations &stations,
+                                              const Settings &settings,
+                                              const StationInfo &stationInfo,
+                                              const QueryMapping &qmap,
+                                              const std::set<std::string> &stationgroup_codes);
 };
 
 }  // namespace Observation
