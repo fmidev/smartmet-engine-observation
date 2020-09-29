@@ -150,8 +150,6 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
 {
   try
   {
-    std::cout << "VALUES FROM CACHE\n";
-
     if (settings.stationtype == ROADCLOUD_PRODUCER)
       return roadCloudValuesFromSpatiaLite(settings);
 
@@ -202,8 +200,6 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
 {
   try
   {
-    std::cout << "VALUES FROM CACHE\n";
-
     if (settings.stationtype == ROADCLOUD_PRODUCER)
       return roadCloudValuesFromSpatiaLite(settings);
 
