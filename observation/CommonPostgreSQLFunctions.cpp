@@ -478,19 +478,19 @@ FlashCounts CommonPostgreSQLFunctions::getFlashCount(
         {
           std::string bboxString = tloc.loc->name;
           SmartMet::Spine::BoundingBox bbox(bboxString);
-          std::string bboxWkt = "POLYGON(" + Fmi::to_string(bbox.xMin) + " " +
+          std::string bboxWkt = "'POLYGON((" + Fmi::to_string(bbox.xMin) + " " +
                                 Fmi::to_string(bbox.yMin) + ", " + Fmi::to_string(bbox.xMin) + " " +
                                 Fmi::to_string(bbox.yMax) + ", " + Fmi::to_string(bbox.xMax) + " " +
                                 Fmi::to_string(bbox.yMax) + ", " + Fmi::to_string(bbox.xMax) + " " +
                                 Fmi::to_string(bbox.xMin) + ", " + Fmi::to_string(bbox.xMin) + " " +
-                                Fmi::to_string(bbox.yMin) + ")";
+                                Fmi::to_string(bbox.yMin) + "))'";
 
           sqlStmt += " AND ST_Within(flash.stroke_location, ST_GeomFromText(" + bboxWkt + "))";
         }
       }
     }
 
-    if (itsDebug)
+	if (itsDebug)
       std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
                 << std::endl;
 
