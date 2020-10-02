@@ -664,6 +664,15 @@ Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(
   return ret;
 }
 
+boost::posix_time::ptime epoch2ptime(double epoch)
+{
+  boost::posix_time::ptime ret =
+      boost::posix_time::from_time_t(static_cast<std::time_t>(floor(epoch)));
+  ret += boost::posix_time::microseconds(static_cast<long>((epoch - floor(epoch)) * 1000000));
+
+  return ret;
+}
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

@@ -53,6 +53,11 @@ FlashCounts DummyCache::getFlashCount(const boost::posix_time::ptime &starttime,
   return FlashCounts();
 }
 
+boost::posix_time::ptime DummyCache::getLatestFlashModifiedTime() const
+{
+  return boost::posix_time::not_a_date_time;
+}
+
 boost::posix_time::ptime DummyCache::getLatestFlashTime() const
 {
   return boost::posix_time::not_a_date_time;
@@ -90,6 +95,11 @@ void DummyCache::cleanDataCache(const boost::posix_time::time_duration &timetoke
 }
 
 boost::posix_time::ptime DummyCache::getLatestWeatherDataQCTime() const
+{
+  return boost::posix_time::not_a_date_time;
+}
+
+boost::posix_time::ptime DummyCache::getLatestWeatherDataQCModifiedTime() const
 {
   return boost::posix_time::not_a_date_time;
 }

@@ -172,16 +172,17 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
     // Get data if we have stations
     if (!stations.empty())
     {
-      boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
+      boost::shared_ptr<CommonDatabaseFunctions> db = itsConnectionPool->getConnection();
+      db->setDebug(settings.debug_options);
 
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = spatialitedb->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
+        ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
       }
       else
       {
-        ret = spatialitedb->getObservationData(stations, settings, *sinfo, itsTimeZones);
+        ret = db->getObservationData(stations, settings, *sinfo, itsTimeZones);
       }
     }
 
@@ -221,17 +222,17 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
     // Get data if we have stations
     if (!stations.empty())
     {
-      boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
+      boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+      db->setDebug(settings.debug_options);
 
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = spatialitedb->getWeatherDataQCData(
-            stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
+        ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
       else
       {
-        ret = spatialitedb->getData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
+        ret = db->getObservationData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
     }
 
@@ -258,8 +259,9 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &set
     }
 
     // Must use disk cache instead
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    return spatialitedb->getFlashData(settings, itsTimeZones);
+    boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
+    return db->getFlashData(settings, itsTimeZones);
   }
   catch (...)
   {
@@ -293,6 +295,7 @@ bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &star
     // No need to check memory cache here, it is always supposed to be shorted than the disk cache
 
     Spine::ReadLock lock(itsFlashTimeIntervalMutex);
+
     if (itsFlashTimeIntervalStart.is_not_a_date_time() ||
         itsFlashTimeIntervalEnd.is_not_a_date_time())
       return false;
@@ -314,6 +317,7 @@ bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
     if (itsWeatherDataQCTimeIntervalStart.is_not_a_date_time() ||
         itsWeatherDataQCTimeIntervalEnd.is_not_a_date_time())
       return false;
+
     // We ignore end time intentionally
     return (starttime >= itsWeatherDataQCTimeIntervalStart &&
             starttime < itsWeatherDataQCTimeIntervalEnd);
@@ -365,6 +369,11 @@ FlashCounts SpatiaLiteCache::getFlashCount(const boost::posix_time::ptime &start
                                            const Spine::TaggedLocationList &locations) const
 {
   return itsConnectionPool->getConnection()->getFlashCount(starttime, endtime, locations);
+}
+
+boost::posix_time::ptime SpatiaLiteCache::getLatestFlashModifiedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestFlashModifiedTime();
 }
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestFlashTime() const
@@ -521,8 +530,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpati
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    ret = spatialitedb->getRoadCloudData(settings, itsTimeZones);
+    boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
+    ret = db->getRoadCloudData(settings, itsTimeZones);
 
     return ret;
   }
@@ -607,8 +617,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaL
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    ret = spatialitedb->getNetAtmoData(settings, itsTimeZones);
+    boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
+    ret = db->getNetAtmoData(settings, itsTimeZones);
 
     return ret;
   }
@@ -703,8 +714,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLi
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<SpatiaLite> spatialitedb = itsConnectionPool->getConnection();
-    ret = spatialitedb->getFmiIoTData(settings, itsTimeZones);
+    boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
+    ret = db->getFmiIoTData(settings, itsTimeZones);
 
     return ret;
   }
@@ -794,13 +806,17 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCTime() const
   return itsConnectionPool->getConnection()->getLatestWeatherDataQCTime();
 }
 
+boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCModifiedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestWeatherDataQCModifiedTime();
+}
+
 std::size_t SpatiaLiteCache::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const
 {
   try
   {
     auto conn = itsConnectionPool->getConnection();
     auto sz = conn->fillWeatherDataQCCache(cacheData, itsWeatherQCInsertCache);
-
     // Update what really now really is in the database
     auto start = conn->getOldestWeatherDataQCTime();
     auto end = conn->getLatestWeatherDataQCTime();

@@ -19,6 +19,10 @@ std::size_t WeatherDataQCItem::hash_value() const
     boost::hash_combine(hash, boost::hash_value(sensor_no));
     boost::hash_combine(hash, boost::hash_value(value));
     boost::hash_combine(hash, boost::hash_value(flag));
+    if (!modified_last.is_not_a_date_time())
+      boost::hash_combine(hash, boost::hash_value(Fmi::to_iso_string(modified_last)));
+    else
+      boost::hash_combine(hash, boost::hash_value("NULL"));
     return hash;
   }
   catch (...)

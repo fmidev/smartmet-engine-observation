@@ -41,7 +41,6 @@ class ExternalAndMobileDBInfo
                                  bool spatialite = false) const;
 
   std::string measurandFieldname(int measurandId) const;
-  static boost::posix_time::ptime epoch2ptime(double epoch);
 
  private:
   const ExternalAndMobileProducerMeasurand *itsProducerMeasurand{nullptr};

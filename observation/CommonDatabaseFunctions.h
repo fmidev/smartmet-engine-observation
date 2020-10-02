@@ -7,6 +7,7 @@
 #include "Settings.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
+#include "Utils.h"
 #include "WeatherDataQCData.h"
 #include <boost/atomic.hpp>
 #include <macgyver/TimeZones.h>
@@ -35,24 +36,25 @@ class CommonDatabaseFunctions
   virtual std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                                      const std::string &params,
                                                      const std::string &station_ids) const = 0;
-  virtual Spine::TimeSeries::TimeSeriesVectorPtr getData(
+
+  virtual Spine::TimeSeries::TimeSeriesVectorPtr getObservationData(
+      const Spine::Stations &stations,
+      const Settings &settings,
+      const StationInfo &stationInfo,
+      const Fmi::TimeZones &timezones);
+
+  virtual Spine::TimeSeries::TimeSeriesVectorPtr getObservationData(
       const Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
       const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones) = 0;
 
-  virtual void fetchWeatherDataQCData(const std::string &sqlStmt,
-                                      const StationInfo &stationInfo,
-                                      const std::set<std::string> &stationgroup_codes,
-                                      const QueryMapping &qmap,
-                                      std::map<int, std::map<int, int>> &default_sensors,
-                                      WeatherDataQCData &weatherDataQCData) = 0;
-
-  Spine::TimeSeries::TimeSeriesVectorPtr getObservationData(const Spine::Stations &stations,
-                                                            const Settings &settings,
-                                                            const StationInfo &stationInfo,
-                                                            const Fmi::TimeZones &timezones);
+  virtual Spine::TimeSeries::TimeSeriesVectorPtr getFlashData(const Settings &settings,
+                                                              const Fmi::TimeZones &timezones) = 0;
+  virtual FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
+                                    const boost::posix_time::ptime &endtime,
+                                    const SmartMet::Spine::TaggedLocationList &locations) = 0;
 
   Spine::TimeSeries::TimeSeriesVectorPtr getWeatherDataQCData(const Spine::Stations &stations,
                                                               const Settings &settings,
@@ -66,8 +68,17 @@ class CommonDatabaseFunctions
       const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
 
+  virtual void fetchWeatherDataQCData(const std::string &sqlStmt,
+                                      const StationInfo &stationInfo,
+                                      const std::set<std::string> &stationgroup_codes,
+                                      const QueryMapping &qmap,
+                                      std::map<int, std::map<int, int>> &default_sensors,
+                                      WeatherDataQCData &weatherDataQCData) = 0;
+
   const StationtypeConfig &getStationtypeConfig() const { return itsStationtypeConfig; }
   const ParameterMapPtr &getParameterMap() const { return itsParameterMap; }
+  void setDebug(bool state) { itsDebug = state; }
+  bool getDebug() const { return itsDebug; }
 
  protected:
   QueryMapping buildQueryMapping(const Spine::Stations &stations,
@@ -94,12 +105,14 @@ class CommonDatabaseFunctions
   std::string buildSqlStationList(const Spine::Stations &stations,
                                   const std::set<std::string> &stationgroup_codes,
                                   const StationInfo &stationInfo) const;
+  /*
   std::string sqlSelectFromObservationData(const Spine::Stations &stations,
                                            const Settings &settings,
                                            const StationInfo &stationInfo,
                                            const QueryMapping &qmap,
                                            const std::set<std::string> &stationgroup_codes,
                                            const std::string &data_time_string) const;
+  */
   ObservationsMap buildObservationsMap(const LocationDataItems &observations,
                                        const Settings &settings,
                                        const Fmi::TimeZones &timezones,
@@ -204,6 +217,7 @@ class CommonDatabaseFunctions
 
   const StationtypeConfig &itsStationtypeConfig;
   const ParameterMapPtr &itsParameterMap;
+  bool itsDebug{false};
 
  private:
 };  // namespace Observation

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CommonDatabaseFunctions.h"
+#include "CommonPostgreSQLFunctions.h"
 #include "DataItem.h"
 #include "ExternalAndMobileDBInfo.h"
 #include "ExternalAndMobileProducerConfig.h"
@@ -40,11 +40,10 @@ struct cached_data
   std::vector<boost::optional<double>> sensor_nosAll;
 };
 
-class PostgreSQL : public CommonDatabaseFunctions, private boost::noncopyable
+class PostgreSQL : public CommonPostgreSQLFunctions, private boost::noncopyable
 {
  public:
   PostgreSQL(const PostgreSQLCacheParameters &options);
-  ~PostgreSQL();
 
   /**
    * @brief Get the time of the newest observation in observation_data table
@@ -61,6 +60,13 @@ class PostgreSQL : public CommonDatabaseFunctions, private boost::noncopyable
   boost::posix_time::ptime getLatestObservationModifiedTime();
 
   /**
+   * @brief Get the time of the latest modified flash obervation
+   * @retval boost::posix_time::ptime The time of the last modification
+   */
+
+  boost::posix_time::ptime getLatestFlashModifiedTime();
+
+  /**
    * @brief Get the time of the newest observation in flash_data table
    * @return boost::posix_time::ptime The time of the newest observation
    */
@@ -72,6 +78,12 @@ class PostgreSQL : public CommonDatabaseFunctions, private boost::noncopyable
    * @return boost::posix_time::ptime The time of the newest observation
    */
   boost::posix_time::ptime getLatestWeatherDataQCTime();
+
+  /**
+   * @brief Get the time of the newest observation in weather_data_qc table
+   * @return boost::posix_time::ptime The time of the newest observation
+   */
+  boost::posix_time::ptime getLatestWeatherDataQCModifiedTime();
 
   /**
    * @brief Get the time of the oldest observation in observation_data table
@@ -97,9 +109,6 @@ class PostgreSQL : public CommonDatabaseFunctions, private boost::noncopyable
    * @brief Create the PostgreSQL tables from scratch
    */
   void createTables(const std::set<std::string> &tables);
-
-  void setConnectionId(int connectionId) { itsConnectionId = connectionId; }
-  int connectionId() { return static_cast<int>(itsConnectionId); }
 
   /**
    * @brief Update observation_data with data from Oracle's
@@ -270,17 +279,6 @@ class PostgreSQL : public CommonDatabaseFunctions, private boost::noncopyable
       const ParameterMapPtr &parameterMap,
       const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFlashData(const Settings &settings,
-                                                                const ParameterMapPtr &parameterMap,
-                                                                const Fmi::TimeZones &timezones);
-
-  virtual Spine::TimeSeries::TimeSeriesVectorPtr getData(
-      const Spine::Stations &stations,
-      const Settings &settings,
-      const StationInfo &stationInfo,
-      const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones);
-
   void shutdown();
 
   /**
@@ -290,9 +288,11 @@ class PostgreSQL : public CommonDatabaseFunctions, private boost::noncopyable
    * @param locations Locations
    * @return FlashCounts The number of flashes in the interval
    */
+  /*
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
                             const SmartMet::Spine::TaggedLocationList &locations);
+  */
 
   size_t selectCount(const std::string &queryString);
 
@@ -313,7 +313,6 @@ class PostgreSQL : public CommonDatabaseFunctions, private boost::noncopyable
   // Private members
 
   std::string srid;
-  std::size_t itsConnectionId;
   std::size_t itsMaxInsertSize;
 
   InsertStatus itsDataInsertCache;
@@ -323,11 +322,8 @@ class PostgreSQL : public CommonDatabaseFunctions, private boost::noncopyable
   InsertStatus itsNetAtmoInsertCache;
   InsertStatus itsFmiIoTInsertCache;
   const ExternalAndMobileProducerConfig &itsExternalAndMobileProducerConfig;
-  std::map<unsigned int, std::string> itsPostgreDataTypes;
-  boost::atomic<bool> itsShutdownRequested;
 
   // Private methods
-  Fmi::Database::PostgreSQLConnection itsDB;
   std::string stationType(const std::string &type);
   std::string stationType(SmartMet::Spine::Station &station);
 

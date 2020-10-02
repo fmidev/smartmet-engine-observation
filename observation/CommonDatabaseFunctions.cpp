@@ -337,6 +337,7 @@ std::string CommonDatabaseFunctions::buildSqlStationList(
   }
 }
 
+#ifdef REMOVE
 std::string CommonDatabaseFunctions::sqlSelectFromObservationData(
     const Spine::Stations &stations,
     const Settings &settings,
@@ -391,7 +392,8 @@ std::string CommonDatabaseFunctions::sqlSelectFromObservationData(
            "data.data_value, data.data_quality, data.data_source "
            "ORDER BY fmisid ASC, obstime ASC";
 
-    //    std::cout << "SQL: " << sql << std::endl;
+    if (itsDebug)
+      std::cout << "SQL: " << sql << std::endl;
 
     return sql;
   }
@@ -400,6 +402,7 @@ std::string CommonDatabaseFunctions::sqlSelectFromObservationData(
     throw Fmi::Exception::Trace(BCP, "Reading observations from database failed!");
   }
 }
+#endif
 
 ObservationsMap CommonDatabaseFunctions::buildObservationsMap(
     const LocationDataItems &observations,
@@ -1563,8 +1566,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
 
     std::string query = sqlSelectFromWeatherDataQCData(settings, params, qstations);
 
-    //    std::cout << "SQL: " << query << std::endl;
-
     WeatherDataQCData weatherDataQCData;
     std::map<int, std::map<int, int>> default_sensors;
 
@@ -1607,6 +1608,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
       data_quality[fmisid][obstime][parameter][Fmi::to_string(sensor_no)] = val_quality;
       i++;
     }
+
     typedef std::pair<boost::local_time::local_date_time,
                       std::map<std::string, std::map<std::string, Spine::TimeSeries::Value>>>
         dataItem;
@@ -1724,6 +1726,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
         }
       }
     }
+
     return timeSeriesColumns;
   }
   catch (...)
@@ -1745,7 +1748,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getObservationDa
   opt.startTimeUTC = false;
   opt.endTimeUTC = false;
 
-  return getData(stations, settings, stationInfo, opt, timezones);
+  return getObservationData(stations, settings, stationInfo, opt, timezones);
 }
 
 }  // namespace Observation

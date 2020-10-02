@@ -115,6 +115,15 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
 Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(
     const std::vector<SmartMet::Spine::Parameter>& parameters);
 
+// ----------------------------------------------------------------------
+/*!
+ * \brief converts epoch toptime
+ *
+ */
+// ----------------------------------------------------------------------
+
+boost::posix_time::ptime epoch2ptime(double epoch);
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

@@ -25,15 +25,17 @@ struct DatabaseDriverInfoItem
   DatabaseDriverInfoItem(const std::string& n,
                          bool a,
                          const std::set<std::string>& t,
+                         const std::map<std::string, int>& td,
                          const std::set<std::string>& c)
-      : name(n), active(a), tables(t)
+      : name(n), active(a), tables(t), table_days(td)
   {
     parseCacheInfo(c);
   }
   std::string name{""};
   bool active{false};
-  std::set<std::string> tables;  // Table names
-  std::set<std::string> caches;  // Cache names
+  std::set<std::string> tables;           // Table names
+  std::map<std::string, int> table_days;  // Number of day table contains data
+  std::set<std::string> caches;           // Cache names
   std::map<std::string, std::string> params;
   std::map<std::string, std::vector<std::string>> params_vector;
 
@@ -103,9 +105,9 @@ class DatabaseDriverInfo
   std::map<std::string, CacheInfoItem> itsCacheInfoItems;  // Cache name -> cahecinfo
 };
 
-std::ostream& operator<<(std::ostream& out,
-                         const SmartMet::Engine::Observation::DatabaseDriverInfo& driverInfo);
-
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
+
+std::ostream& operator<<(std::ostream& out,
+                         const SmartMet::Engine::Observation::DatabaseDriverInfo& driverInfo);

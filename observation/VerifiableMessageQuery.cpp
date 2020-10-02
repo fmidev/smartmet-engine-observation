@@ -15,7 +15,8 @@ VerifiableMessageQuery::VerifiableMessageQuery()
 
 VerifiableMessageQuery::~VerifiableMessageQuery() {}
 
-std::string VerifiableMessageQuery::getSQLStatement() const
+std::string VerifiableMessageQuery::getSQLStatement(
+    const std::string &database /*= "oracle"*/) const
 {
   try
   {
@@ -28,6 +29,8 @@ std::string VerifiableMessageQuery::getSQLStatement() const
     }
 
     std::string queryStatement;
+
+    std::string where_condition = (database == "oracle" ? m_where : m_wherePostgreSQL);
 
     if (m_returnOnlyLatest)
     {
@@ -56,7 +59,7 @@ std::string VerifiableMessageQuery::getSQLStatement() const
             .append(" FROM ")
             .append(m_from)
             .append(" WHERE ")
-            .append(m_where)
+            .append(where_condition)
             .append(" and data.station_id = '")
             .append(*it)
             .append("'")
@@ -72,8 +75,8 @@ std::string VerifiableMessageQuery::getSQLStatement() const
     }
     else
     {
-      queryStatement =
-          "SELECT " + select + " FROM " + m_from + " WHERE " + m_where + " ORDER BY " + m_orderBy;
+      queryStatement = "SELECT " + select + " FROM " + m_from + " WHERE " + where_condition +
+                       " ORDER BY " + m_orderBy;
     }
 
     return queryStatement;
@@ -175,6 +178,8 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
 
     if (not m_returnOnlyLatest)
       m_where.append(" and ");
+
+    m_wherePostgreSQL = m_where;
     // type 1 = METAR and type 2 = METAR COR
     m_where.append("(data.message_type = 1 or data.message_type = 2) and ")
         .append("data.iwxxm_status is NULL and ")
@@ -186,6 +191,18 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
         .append("data.message_time <= TO_DATE('")
         .append(endTime)
         .append("','YYYY-MM-DD HH24:MI:SS')");
+
+    // type 1 = METAR and type 2 = METAR COR
+    m_wherePostgreSQL.append("(data.message_type = 1 or data.message_type = 2) and ")
+        .append("data.iwxxm_status is NULL and ")
+        .append("(data.iwxxm_errcode is NULL or data.iwxxm_errcode = 0) and ")
+        .append("data.iwxxm_content is not NULL and ")
+        .append("data.message_time >= '")
+        .append(beginTime)
+        .append("' and ")
+        .append("data.message_time <= '")
+        .append(endTime)
+        .append("'");
 
     size_t orderByLength = m_orderBy.size();
 

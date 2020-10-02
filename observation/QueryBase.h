@@ -22,7 +22,7 @@ class QueryBase
    *  @brief Get empty SQL statement.
    *  @return Empty SQL statement.
    */
-  virtual std::string getSQLStatement() const { return ""; }
+  virtual std::string getSQLStatement(const std::string& database = "oracle") const { return ""; }
   /**
    *  @brief Get a reference with null value to a container to store data.
    *  @return Null pointer.
