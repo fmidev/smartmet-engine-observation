@@ -94,6 +94,7 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Mon Oct  5 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.10.5-1.fmi
 - Added modified_last column to weather_data_qc schema
+- Added missing SRID to some flash queries
 
 * Tue Sep 29 2020 Anssi Reponen <anssi.reponen@fmi.fi> - 20.9.29-1.fmi
 - PostgreSQL-database driver completed (BRAINSTORM-1783,BRAINSTORM-1678)
