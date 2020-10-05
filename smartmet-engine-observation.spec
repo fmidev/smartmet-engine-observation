@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.9.29
+Version: 20.10.5
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Oct  5 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.10.5-1.fmi
+- Added modified_last column to weather_data_qc schema
+
 * Tue Sep 29 2020 Anssi Reponen <anssi.reponen@fmi.fi> - 20.9.29-1.fmi
 - PostgreSQL-database driver completed (BRAINSTORM-1783,BRAINSTORM-1678)
 - The source database is resolved at runtime based on producer and requested period
