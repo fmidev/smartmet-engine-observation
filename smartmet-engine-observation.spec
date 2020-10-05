@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 20.10.5
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -92,6 +92,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Oct  5 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.10.5-2.fmi
+- Added created column to flash_data schema
+- Added modified_last index to flash_data schema
+
 * Mon Oct  5 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.10.5-1.fmi
 - Added modified_last column to weather_data_qc schema
 - Added missing SRID to some flash queries
