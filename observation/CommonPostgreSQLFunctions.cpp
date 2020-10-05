@@ -472,7 +472,7 @@ FlashCounts CommonPostgreSQLFunctions::getFlashCount(
           OGRGeometryFactory::destroyGeometry(geom);
           std::string circleWkt = Fmi::OGR::exportToWkt(*circle.get());
 
-          sqlStmt += " AND ST_Within(flash.stroke_location, ST_GeomFromText('" + circleWkt + "'))";
+          sqlStmt += " AND ST_Within(flash.stroke_location, ST_GeomFromText('" + circleWkt + "',4326))";
         }
         else if (tloc.loc->type == SmartMet::Spine::Location::BoundingBox)
         {
@@ -482,10 +482,10 @@ FlashCounts CommonPostgreSQLFunctions::getFlashCount(
                                 Fmi::to_string(bbox.yMin) + ", " + Fmi::to_string(bbox.xMin) + " " +
                                 Fmi::to_string(bbox.yMax) + ", " + Fmi::to_string(bbox.xMax) + " " +
                                 Fmi::to_string(bbox.yMax) + ", " + Fmi::to_string(bbox.xMax) + " " +
-                                Fmi::to_string(bbox.xMin) + ", " + Fmi::to_string(bbox.xMin) + " " +
+                                Fmi::to_string(bbox.yMin) + ", " + Fmi::to_string(bbox.xMin) + " " +
                                 Fmi::to_string(bbox.yMin) + "))";
 
-          sqlStmt += " AND ST_Within(flash.stroke_location, ST_GeomFromText('" + bboxWkt + "'))";
+          sqlStmt += " AND ST_Within(flash.stroke_location, ST_GeomFromText('" + bboxWkt + "',4326))";
         }
       }
     }
