@@ -9,7 +9,7 @@
 #include <fmt/format.h>
 #include <gdal/ogr_geometry.h>
 #include <macgyver/StringConversion.h>
-#include <macgyver/TimeParser.h>
+#include <macgyver/DateTimeParser.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <spine/Convenience.h>
 #include <macgyver/Exception.h>
@@ -41,12 +41,11 @@ using namespace boost::local_time;
 using boost::local_time::local_date_time;
 using boost::posix_time::ptime;
 
-ptime parse_sqlite_time(const std::string &timestring)
+ptime parse_sqlite_time(const Fmi::DateTimeParser& parser, const std::string &timestring)
 {
   try
   {
-    std::string t = timestring;
-    boost::trim(t);
+    auto t = Fmi::trim_copy(timestring);
 
     if (t.empty())
       return boost::posix_time::not_a_date_time;
@@ -54,7 +53,7 @@ ptime parse_sqlite_time(const std::string &timestring)
     if (t.find("T") != std::string::npos)
       t.replace(t.find("T"), 1, " ");
 
-    return Fmi::TimeParser::parse_sql(t);
+    return parser.parse(t,"sql");
   }
   catch (...)
   {
@@ -153,10 +152,12 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
 
     std::map<int, std::map<int, int>> default_sensors;
 
+    Fmi::DateTimeParser parser;
+    
     for (auto iter = qry.begin(); iter != qry.end(); ++iter)
     {
       LocationDataItem obs;
-      obs.data.data_time = parse_sqlite_time((*iter).get<std::string>(2));
+      obs.data.data_time = parse_sqlite_time(parser, (*iter).get<std::string>(2));
       obs.data.fmisid = (*iter).get<int>(0);
       obs.data.sensor_no = (*iter).get<int>(1);
       // Get latitude, longitude, elevation from station info
@@ -723,7 +724,8 @@ ptime SpatiaLite::getLatestObservationTime()
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
-    return parseSqliteTime(iter, 0);
+    Fmi::DateTimeParser parser;
+    return parseSqliteTime(parser, iter, 0);
   }
   catch (...)
   {
@@ -741,7 +743,8 @@ ptime SpatiaLite::getLatestObservationModifiedTime()
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
-    return parseSqliteTime(iter, 0);
+    Fmi::DateTimeParser parser;
+    return parseSqliteTime(parser, iter, 0);
   }
   catch (...)
   {
@@ -759,7 +762,8 @@ ptime SpatiaLite::getOldestObservationTime()
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
-    return parseSqliteTime(iter, 0);
+    Fmi::DateTimeParser parser;
+    return parseSqliteTime(parser, iter, 0);
   }
   catch (...)
   {
@@ -776,7 +780,8 @@ ptime SpatiaLite::getLatestWeatherDataQCTime()
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
-    return parseSqliteTime(iter, 0);
+    Fmi::DateTimeParser parser;
+    return parseSqliteTime(parser, iter, 0);
   }
   catch (...)
   {
@@ -792,10 +797,9 @@ ptime SpatiaLite::getLatestWeatherDataQCModifiedTime()
     sqlite3pp::query qry(itsDB, "SELECT MAX(modified_last) FROM weather_data_qc");
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
-	  {
       return boost::posix_time::not_a_date_time;
-	  }
-    return parseSqliteTime(iter, 0);
+    Fmi::DateTimeParser parser;
+    return parseSqliteTime(parser, iter, 0);
   }
   catch (...)
   {
@@ -813,7 +817,8 @@ ptime SpatiaLite::getOldestWeatherDataQCTime()
     sqlite3pp::query::iterator iter = qry.begin();
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
-    return parseSqliteTime(iter, 0);
+    Fmi::DateTimeParser parser;
+    return parseSqliteTime(parser, iter, 0);
   }
   catch (...)
   {
@@ -1002,7 +1007,8 @@ ptime SpatiaLite::getLatestTimeFromTable(const std::string& tablename,
 
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
-    return parseSqliteTime(iter, 0);
+    Fmi::DateTimeParser parser;
+    return parseSqliteTime(parser, iter, 0);
   }
   catch (...)
   {
@@ -1023,7 +1029,8 @@ ptime SpatiaLite::getOldestTimeFromTable(const std::string& tablename,
 
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return boost::posix_time::not_a_date_time;
-    return parseSqliteTime(iter, 0);
+    Fmi::DateTimeParser parser;
+    return parseSqliteTime(parser, iter, 0);
   }
   catch (...)
   {
@@ -2127,6 +2134,8 @@ FlashDataItems SpatiaLite::readFlashCacheData(const ptime& starttime)
   // Spine::ReadLock lock(write_mutex);
   sqlite3pp::query qry(itsDB, sql.c_str());
 
+  Fmi::DateTimeParser parser;
+  
   for (auto row : qry)
   {
     FlashDataItem f;
@@ -2134,7 +2143,7 @@ FlashDataItems SpatiaLite::readFlashCacheData(const ptime& starttime)
     // Note: For some reason the "created" column present in Oracle flashdata is not
     // present in the cached flash_data.
 
-    f.stroke_time = parse_sqlite_time(row.get<string>(0));
+    f.stroke_time = parse_sqlite_time(parser, row.get<string>(0));
 
     f.flash_id = row.get<int>(1);
     f.multiplicity = row.get<int>(2);
@@ -2154,7 +2163,7 @@ FlashDataItems SpatiaLite::readFlashCacheData(const ptime& starttime)
     f.stroke_status = row.get<int>(16);
     f.data_source = row.get<int>(17);
     // these seem to always be null
-    // f.modified_last = parse_sqlite_time(row.get<string>(18));
+    // f.modified_last = parse_sqlite_time(parser, row.get<string>(18));
     // f.modified_by = row.get<int>(19);
     f.longitude = Fmi::stod(row.get<string>(20));
     f.latitude = Fmi::stod(row.get<string>(21));
@@ -2301,8 +2310,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getObservationData(
   }
 }
 
-ptime SpatiaLite::parseSqliteTime(sqlite3pp::query::iterator &iter,
-                                                     int column) const
+ptime SpatiaLite::parseSqliteTime(const Fmi::DateTimeParser &parser,
+                                  sqlite3pp::query::iterator &iter,
+                                  int column) const
 {
   try
   {
@@ -2313,7 +2323,7 @@ ptime SpatiaLite::parseSqliteTime(sqlite3pp::query::iterator &iter,
 
   std::string timestring = (*iter).get<char const *>(column);
 
-  return parse_sqlite_time(timestring);
+  return parse_sqlite_time(parser, timestring);
 
   }
   catch (...)
@@ -2338,7 +2348,9 @@ void SpatiaLite::initObservationMemoryCache(const boost::posix_time::ptime &star
 	  sqlite3pp::query qry(itsDB, sql.c_str());
 	  
 	  DataItems observations;
-	  
+
+          Fmi::DateTimeParser parser;
+          
 	  for (auto iter = qry.begin(); iter != qry.end(); ++iter)
 		{
 		  if ((*iter).column_type(2) == SQLITE_NULL) // data_value
@@ -2347,8 +2359,8 @@ void SpatiaLite::initObservationMemoryCache(const boost::posix_time::ptime &star
 			continue;
 
 		  DataItem obs;
-		  obs.data_time = parse_sqlite_time((*iter).get<std::string>(0));
-		  obs.modified_last = parse_sqlite_time((*iter).get<std::string>(1));
+		  obs.data_time = parse_sqlite_time(parser, (*iter).get<std::string>(0));
+		  obs.modified_last = parse_sqlite_time(parser, (*iter).get<std::string>(1));
 		  obs.data_value = (*iter).get<double>(2);
 		  obs.fmisid = (*iter).get<int>(3);
 		  obs.sensor_no = (*iter).get<int>(4);
@@ -2385,10 +2397,12 @@ try
     if (qry.begin() == qry.end())
       return;
 
+    Fmi::DateTimeParser parser;
+    
     for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
     {
       boost::optional<int> fmisid = (*iter).get<int>(0);
-      boost::posix_time::ptime obstime = parseSqliteTime(iter, 1);
+      boost::posix_time::ptime obstime = parseSqliteTime(parser, iter, 1);
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes);
 

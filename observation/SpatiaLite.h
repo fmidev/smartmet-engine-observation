@@ -27,6 +27,11 @@ namespace sqlite_api
 }
 // clang-format on
 
+namespace Fmi
+{
+class DateTimeParser;
+}
+
 #define DATABASE_VERSION "2"
 
 namespace SmartMet
@@ -361,7 +366,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   void createNetAtmoDataTable();
   void createFmiIoTDataTable();
 
-  boost::posix_time::ptime parseSqliteTime(sqlite3pp::query::iterator &iter, int column) const;
+  boost::posix_time::ptime parseSqliteTime(const Fmi::DateTimeParser &parser, sqlite3pp::query::iterator &iter, int column) const;
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getMobileAndExternalData(
       const Settings &settings, const Fmi::TimeZones &timezones);
 

@@ -1,6 +1,6 @@
 #include "SQLDataFilter.h"
-#include <boost/algorithm/string.hpp>
 #include <macgyver/StringConversion.h>
+#include <boost/algorithm/string.hpp>
 #include <macgyver/Exception.h>
 #include <set>
 
@@ -16,7 +16,7 @@ int int_value(const std::string& str, size_t pos)
 {
   std::string val = str.substr(pos);
 
-  boost::algorithm::trim(val);
+  Fmi::trim(val);
 
   return Fmi::stoi(val);
 }
@@ -107,8 +107,7 @@ bool SQLDataFilter::valueOK(const std::string& name, int val) const
     std::vector<bool> result_vector;
     for (const auto& condition : conditions)
     {
-      std::string cond = condition;
-      boost::algorithm::trim(cond);
+      std::string cond = Fmi::trim_copy(condition);
 
       if (cond.find_first_not_of("0123456789") == std::string::npos)
       {
