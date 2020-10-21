@@ -2,15 +2,9 @@ SUBNAME = observation
 SPEC = smartmet-engine-$(SUBNAME)
 INCDIR = smartmet//engines/$(SUBNAME)
 
-# Installation directories
+REQUIRES = gdal
 
-processor := $(shell uname -p)
-
-ifeq ($(origin PREFIX), undefined)
-  PREFIX = /usr
-else
-  PREFIX = $(PREFIX)
-endif
+include $(shell echo $${PREFIX-/usr})/share/smartmet/devel/makefile.inc
 
 ifeq ($(origin localstatedir), undefined)
   vardir = /var/smartmet/observation
@@ -18,101 +12,21 @@ else
   vardir = $(localstatedir)/smartmet/observation
 endif
 
-ifeq ($(processor), x86_64)
-  libdir = $(PREFIX)/lib64
-else
-  libdir = $(PREFIX)/lib
-endif
-
-bindir = $(PREFIX)/bin
-includedir = $(PREFIX)/include
-datadir = $(PREFIX)/share
-enginedir = $(datadir)/smartmet/engines
-objdir = obj
-
 # Compiler options
 
 DEFINES = -DUNIX -D_REENTRANT
 
--include $(HOME)/.smartmet.mk
-GCC_DIAG_COLOR ?= always
-CXX_STD ?= c++11
+# TODO: Should remove -Wno-sign-conversion, FlashTools.cpp warns a lot
 
-# Boost 1.69
+#FLAGS += -Wno-sign-conversion
 
-ifneq "$(wildcard /usr/include/boost169)" ""
-  INCLUDES += -isystem /usr/include/boost169
-  LIBS += -L/usr/lib64/boost169
-endif
-
-ifneq "$(wildcard /usr/gdal30/include)" ""
-  INCLUDES += -isystem /usr/gdal30/include
-  LIBS += -L/usr/gdal30/lib
-else
-  INCLUDES += -isystem /usr/include/gdal
-endif
-
-ifeq ($(CXX), clang++)
-
- # TODO: Should remove -Wno-sign-conversion, FlashTools.cpp warns a lot
-
- FLAGS = \
-	-std=$(CXX_STD) -fPIC -MD \
-	-Weverything \
-	-Wno-c++98-compat \
-	-Wno-float-equal \
-	-Wno-padded \
-	-Wno-missing-prototypes \
-	-Wno-global-constructors \
-	-Wno-exit-time-destructors \
-	-Wno-sign-conversion
-
- INCLUDES += \
-	-I$(includedir)/smartmet \
-	-isystem $(includedir)/mysql
-
-else
-
- FLAGS = -std=$(CXX_STD) -fPIC -MD -Wall -W -Wno-unused-parameter -fno-omit-frame-pointer -Wno-unknown-pragmas -fdiagnostics-color=$(GCC_DIAG_COLOR)
-
- FLAGS_DEBUG = \
-	-Wcast-align \
-	-Winline \
-	-Wno-multichar \
-	-Wno-pmf-conversions \
-	-Wpointer-arith \
-	-Wcast-qual \
-	-Wwrite-strings \
-	-Wsign-promo
-
- INCLUDES += \
-	-I$(includedir)/smartmet \
-	-isystem $(includedir)/mysql
-
-endif
-
-ifeq ($(TSAN), yes)
-  FLAGS += -fsanitize=thread
-endif
-ifeq ($(ASAN), yes)
-  FLAGS += -fsanitize=address -fsanitize=pointer-compare -fsanitize=pointer-subtract -fsanitize=undefined -fsanitize-address-use-after-scope
-endif
-
-# Compile options in detault, debug and profile modes
-
-CFLAGS_RELEASE = $(DEFINES) $(FLAGS) $(FLAGS_RELEASE) -DNDEBUG -O2 -g
-CFLAGS_DEBUG   = $(DEFINES) $(FLAGS) $(FLAGS_DEBUG)   -Werror  -O0 -g
-
-ifneq (,$(findstring debug,$(MAKECMDGOALS)))
-  override CFLAGS += $(CFLAGS_DEBUG)
-else
-  override CFLAGS += $(CFLAGS_RELEASE)
-endif
+INCLUDES += -isystem $(includedir)/mysql
 
 LIBS += -L$(libdir) \
         -lsmartmet-spine \
         -lsmartmet-macgyver \
         -lsmartmet-locus \
+	-lsmartmet-gis \
         -lboost_thread \
         -lboost_iostreams \
         -lboost_date_time \
@@ -120,18 +34,14 @@ LIBS += -L$(libdir) \
         -lboost_system \
         -lboost_serialization \
 	-lsqlite3 \
-	`pkg-config --libs spatialite` \
+	$(shell pkg-config --libs spatialite) \
+	$(GDAL_LIBS) \
         -lbz2 -lz \
 	-latomic -lpthread
 
 # What to install
 
 LIBFILE = $(SUBNAME).so
-
-# How to install
-
-INSTALL_PROG = install -p -m 775
-INSTALL_DATA = install -p -m 664
 
 # Compilation directories
 
@@ -156,7 +66,12 @@ release: all
 profile: all
 
 $(LIBFILE): $(OBJS)
-	$(CC) $(LDFLAGS) -shared -rdynamic -o $(LIBFILE) $(OBJS) $(LIBS)
+	$(CXX) $(CFLAGS) -shared -rdynamic -o $(LIBFILE) $(OBJS) $(LIBS)
+	@echo Checking $(LIBFILE) for unresolved references
+	@if ldd -r $(LIBFILE) 2>&1 | c++filt | grep ^undefined\ symbol ; \
+		then rm -v $(LIBFILE); \
+		exit 1; \
+	fi
 
 clean:
 	rm -f $(LIBFILE) *~ $(SUBNAME)/*~
