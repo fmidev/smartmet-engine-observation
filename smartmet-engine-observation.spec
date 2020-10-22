@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.9.29
+Version: 20.10.22
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,16 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Oct 22 2020 Anssi Reponen <anssi.reponen@fmi.fi> - 20.10.22-1.fmi
+- New fetures:
+- SpatiaLite database driver added: reads observations only from cache
+- Fake cache feature added: loads data from Oracle to spatialite file
+- Bugfixes: 
+- WHERE-condition corrected when fetching flash data from Oracle to cache (BRAINSTORM-1943) 
+- Solar and mareograph producers must use its own parameter number (not of observations_fmi) when queried from cache
+- Handling of data_source field NULL-value when fetching data from HAV database
+- Order of stations in result set must be identical whether data is fetched from HAV database or cache
+
 * Tue Sep 29 2020 Anssi Reponen <anssi.reponen@fmi.fi> - 20.9.29-1.fmi
 - PostgreSQL-database driver completed (BRAINSTORM-1783,BRAINSTORM-1678)
 - The source database is resolved at runtime based on producer and requested period

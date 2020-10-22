@@ -180,7 +180,7 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
       if ((*iter).column_type(5) != SQLITE_NULL)
         obs.data.data_quality = (*iter).get<int>(5);
       if ((*iter).column_type(6) != SQLITE_NULL)
-        obs.data.data_source = (*iter).get<int>(5);
+        obs.data.data_source = (*iter).get<int>(6);
 
       if (qmap.isDefaultSensor(obs.data.sensor_no, obs.data.measurand_id))
       {
@@ -1344,9 +1344,7 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
         "data_value, data_quality, data_source) "
         "VALUES "
         "(:fmisid,:sensor_no,:measurand_id,:producer_id,:measurand_no,:data_time, :modified_last, "
-        ":data_value,:data_quality,:"
-        "data_source)"
-        ";";
+	  ":data_value,:data_quality,:data_source);";
 
     std::size_t pos1 = 0;
 
@@ -1377,7 +1375,7 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
         cmd.bind(":modified_last", modified_last_str, sqlite3pp::nocopy);
         cmd.bind(":data_value", item.data_value);
         cmd.bind(":data_quality", item.data_quality);
-        cmd.bind(":data_source", item.data_source);
+		cmd.bind(":data_source", item.data_source);
         cmd.execute();
         cmd.reset();
       }
@@ -1604,7 +1602,7 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &flashCacheData,
           cmd.bind(":signal_indicator", item.signal_indicator);
           cmd.bind(":timing_indicator", item.timing_indicator);
           cmd.bind(":stroke_status", item.stroke_status);
-          cmd.bind(":data_source", item.data_source);
+		  cmd.bind(":data_source", item.data_source);
           cmd.bind(":created", created_timestring, sqlite3pp::nocopy);
           cmd.bind(":modified_last", modified_last_timestring, sqlite3pp::nocopy);
           cmd.execute();
@@ -2152,7 +2150,7 @@ FlashDataItems SpatiaLite::readFlashCacheData(const ptime& starttime)
     f.signal_indicator = row.get<int>(14);
     f.timing_indicator = row.get<int>(15);
     f.stroke_status = row.get<int>(16);
-    f.data_source = row.get<int>(17);
+	f.data_source = row.get<int>(17);
     // these seem to always be null
     // f.modified_last = parse_sqlite_time(row.get<string>(18));
     // f.modified_by = row.get<int>(19);
@@ -2251,9 +2249,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getObservationData(
 {
   try
   {
-    // Always use FMI parameter numbers for the narrow table cache
-
-    std::string stationtype = "observations_fmi";
+    // Always use FMI parameter numbers for the narrow table Cache except for solar and mareograph
+	std::string stationtype = (settings.stationtype == "solar" || settings.stationtype.find("mareograph") != std::string::npos ? settings.stationtype : "observations_fmi");
 
     // This maps measurand_id and the parameter position in TimeSeriesVector
 
@@ -2262,7 +2259,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getObservationData(
 	// Resolve stationgroup codes
 	std::set<std::string> stationgroup_codes;
     auto stationgroupCodeSet =itsStationtypeConfig.getGroupCodeSetByStationtype(
-            settings.stationtype);
+																				settings.stationtype);
     stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());	
 
     LocationDataItems observations;
@@ -2343,7 +2340,7 @@ void SpatiaLite::initObservationMemoryCache(const boost::posix_time::ptime &star
 		{
 		  if ((*iter).column_type(2) == SQLITE_NULL) // data_value
 			continue;
-		  if ((*iter).column_type(8) == SQLITE_NULL) // data_source
+		  if ((*iter).column_type(8) == SQLITE_NULL) // data_quality
 			continue;
 
 		  DataItem obs;
@@ -2355,7 +2352,7 @@ void SpatiaLite::initObservationMemoryCache(const boost::posix_time::ptime &star
 		  obs.measurand_id = (*iter).get<int>(5);
 		  obs.producer_id = (*iter).get<int>(6);
 		  obs.measurand_no = (*iter).get<int>(7);
-		  obs.data_quality = (*iter).get<int>(8);
+		  obs.data_quality = (*iter).get<int>(8);		  
 		  obs.data_source = (*iter).get<int>(9);
 		  observations.emplace_back(obs);
 		}
