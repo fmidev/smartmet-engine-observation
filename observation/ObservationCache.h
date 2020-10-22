@@ -93,12 +93,15 @@ class ObservationCache
 
   virtual void shutdown() = 0;
 
-  const std::string &name() const { return itsCacheName; }
+  const std::string &name() const;
+
+  bool isFakeCache(const std::string& tablename) const;
+  std::vector<std::map<std::string,std::string>> getFakeCacheSettings(const std::string& tablename) const;
 
  protected:
-  ObservationCache(const std::string &name);
+  ObservationCache(const CacheInfoItem& ci);
 
-  std::string itsCacheName;
+  const CacheInfoItem& itsCacheInfo;
 };
 
 }  // namespace Observation

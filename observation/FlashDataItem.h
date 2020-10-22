@@ -34,7 +34,7 @@ class FlashDataItem
   int signal_indicator;
   int timing_indicator;
   int stroke_status;
-  int data_source;
+  int data_source = -1; // -1 indicates NULL value
   int modified_by;
   unsigned int flash_id;
 

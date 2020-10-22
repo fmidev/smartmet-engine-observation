@@ -65,29 +65,6 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
           tablename = parts.at(0);
           std::string table_day_string = parts.at(1);
           table_days[tablename] = Fmi::stoi(table_day_string);
-
-          /*
-  std::vector<std::string> parts;
-  boost::algorithm::split(parts, tablename, boost::algorithm::is_any_of(":"));
-  std::string table_period_string = parts.at(1);
-  if (table_period_string.find("-") == std::string::npos)
-    throw Fmi::Exception::Trace(
-        BCP,
-        "Configuration error '" + tablename +
-            "'. Format is 'tablename:startday-<endday>'!");
-
-  tablename = parts.at(0);
-
-  parts.clear();
-  boost::replace_last(table_period_string, " ", "");  // Remove spaces
-  boost::algorithm::split(parts, table_period_string, boost::algorithm::is_any_of("-"));
-  int min_day = 0;
-  int max_day = INT_MAX;
-  min_day = Fmi::stoi(parts.at(0));
-  if (!parts.at(1).empty())
-    max_day = Fmi::stoi(parts.at(1));
-  table_period[tablename] = std::make_pair(min_day, max_day);
-          */
         }
         else
           table_days[tablename] = INT_MAX;
@@ -120,8 +97,9 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
 
       if (boost::algorithm::starts_with(name, "spatialite_"))
       {
-        readSpatiaLiteCommonInfo(cfg, name, item.params);
-        readSpatiaLiteConnectInfo(cfg, name, item.params);
+		readSpatiaLiteCommonInfo(cfg, name, item.params);
+		if(boost::algorithm::ends_with(name, "_cache"))
+		  readSpatiaLiteConnectInfo(cfg, name, item.params);
       }
       if (boost::algorithm::starts_with(name, "postgresql_"))
       {
@@ -158,7 +136,6 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
             readPostgreSQLCommonInfo(cfg, name, cii.second.params);
           readPostgreSQLConnectInfo(cfg, name, cii.second.params);
         }
-        //        cachenames.insert(name);
       }
     }
 
@@ -177,15 +154,10 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
           itsCacheInfoItems[cii_from.first].mergeCacheInfo(cii_from.second);
     }
 
-    if (loadStationsParam == 0)
-      throw Fmi::Exception::Trace(BCP,
-                                              "Parameter loadStations missing! It must be defined "
-                                              "to be true in exaclty one database driver!");
-    else if (loadStationsParam > 1)
+	if (loadStationsParam > 1)
       throw Fmi::Exception::Trace(
           BCP,
-          "Parameter loadStations defined to be true in more than one database driver. It must be "
-          "be defined to be true in exaclty one database driver!");
+          "Parameter loadStations defined to be true in more than one database driver!");
   }
   catch (...)
   {
@@ -437,6 +409,42 @@ void DatabaseDriverInfo::readPostgreSQLMobileCommonInfo(Spine::ConfigBase& cfg,
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".fmiIoTCacheDuration", 0));
 }
 
+void DatabaseDriverInfo::readFakeCacheInfo(Spine::ConfigBase& cfg,
+										   const std::string& name,
+										   std::map<std::string, std::string>& params)
+{
+  libconfig::Config& lc = cfg.get_config();
+  std::vector<std::string> table_names;
+  table_names.push_back("observation_data");
+  table_names.push_back("weather_data_qc");
+  table_names.push_back("flash_data");
+
+  for(const auto& tablename : table_names)
+	{
+	  std::string id = name + "." + tablename;
+	  if (lc.exists(id))
+		{
+		  std::string settings_str;
+		  const libconfig::Setting& settings = lc.lookup(id);
+		  int count = settings.getLength();
+		  
+		  for (int i = 0; i < count; ++i)
+			{
+			  std::string starttime = settings[i]["starttime"]; 
+			  std::string endtime = settings[i]["endtime"]; 
+			  std::string measurand_id = "";
+			  std::string fmisid = "";
+			  if(settings[i].exists("measurand_id"))
+				measurand_id = (settings[i]["measurand_id"]).c_str();
+			  if(settings[i].exists("fmisid"))
+				fmisid = (settings[i]["fmisid"]).c_str();
+			  settings_str += (starttime+";"+endtime+";"+measurand_id+";"+fmisid+"#");
+			}
+		  params[tablename] = settings_str;
+		}
+	}
+}
+
 void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
                                                   const std::string& name,
                                                   std::map<std::string, std::string>& params)
@@ -448,6 +456,18 @@ void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
   params["quiet"] =
       Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".quiet", defaultQuiet));
 
+  if (boost::algorithm::ends_with(name, "_observations"))
+	{
+	  params["loadStations"] = Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".loadStations", false));
+	  params["connectionTimeout"] = Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".connectionTimeout", 30));
+	  params["timer"] = Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".timer", false));
+	  params["disableAllCacheUpdates"] = Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".disableAllCacheUpdates", false));
+	  return;
+	}
+
+  if (cfg.get_config().exists(common_key + ".fake_cache"))
+	readFakeCacheInfo(cfg, common_key + ".fake_cache", params);
+  
   params["threading_mode"] =
       cfg.get_mandatory_config_param<std::string>(common_key + ".threading_mode");
   params["synchronous"] = cfg.get_mandatory_config_param<std::string>(common_key + ".synchronous");

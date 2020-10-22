@@ -100,6 +100,9 @@ class DatabaseDriverInfo
                                            const libconfig::Config& conf) const;
   void parseCacheInfo(const std::set<std::string>& cacheinfostring,
                       std::set<std::string>& cachenames);
+  void readFakeCacheInfo(Spine::ConfigBase& cfg,
+						 const std::string& name,
+						 std::map<std::string, std::string>& params);
 
   std::vector<DatabaseDriverInfoItem> itsDatabaseDriverInfoItems;
   std::map<std::string, CacheInfoItem> itsCacheInfoItems;  // Cache name -> cahecinfo
