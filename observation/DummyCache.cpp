@@ -7,7 +7,7 @@ namespace Engine
 namespace Observation
 {
 DummyCache::DummyCache(const std::string &name, const EngineParametersPtr &p)
-    : ObservationCache(name), itsParameters(p)
+    : ObservationCache(p->databaseDriverInfo.getAggregateCacheInfo(name)), itsParameters(p)
 {
 }
 

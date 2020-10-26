@@ -58,12 +58,12 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservation
 {
   try
   {
-    // Always use FMI parameter numbers for the narrow table cache
-
-    std::string stationtype = (itsIsCacheDatabase ? "observations_fmi" : settings.stationtype);
+    // Always use FMI parameter numbers for the narrow table Cache except for solar and mareograph
+	std::string stationtype = (itsIsCacheDatabase ? "observations_fmi" :  settings.stationtype);
+	if(itsIsCacheDatabase && (settings.stationtype == "solar" || settings.stationtype.find("mareograph") != std::string::npos))
+	  stationtype = settings.stationtype;	
 
     // This maps measurand_id and the parameter position in TimeSeriesVector
-
     auto qmap = buildQueryMapping(stations, settings, itsParameterMap, stationtype, false);
 
     // Resolve stationgroup codes

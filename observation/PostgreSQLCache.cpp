@@ -44,8 +44,7 @@ void PostgreSQLCache::initializeConnectionPool()
     // 2) locations
     // 3) observation_data
     boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
-    const std::set<std::string> &cacheTables =
-        itsParameters.databaseDriverInfo.getAggregateCacheInfo(itsCacheName).tables;
+    const std::set<std::string> &cacheTables = itsCacheInfo.tables;
 
     db->createTables(cacheTables);
 
@@ -426,6 +425,10 @@ void PostgreSQLCache::cleanFlashDataCache(
 {
   try
   {
+	// Dont clean fake cache
+	if(isFakeCache(FLASH_DATA_TABLE))
+	  return;
+
     auto now = boost::posix_time::second_clock::universal_time();
 
     // How old observations to keep in the disk cache:
@@ -491,6 +494,10 @@ void PostgreSQLCache::cleanDataCache(
 {
   try
   {
+	// Dont clean fake cache
+	if(isFakeCache(OBSERVATION_DATA_TABLE))
+	  return;
+
     auto now = boost::posix_time::second_clock::universal_time();
 
     auto t = round_down_to_cache_clean_interval(now - timetokeep);
@@ -552,6 +559,10 @@ void PostgreSQLCache::cleanWeatherDataQCCache(
 {
   try
   {
+	// Dont clean fake cache
+	if(isFakeCache(WEATHER_DATA_QC_TABLE))
+	  return;
+
     boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
@@ -631,6 +642,10 @@ void PostgreSQLCache::cleanRoadCloudCache(const boost::posix_time::time_duration
 {
   try
   {
+	// Dont clean fake cache
+	if(isFakeCache(ROADCLOUD_DATA_TABLE))
+	  return;
+
     boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
@@ -709,6 +724,10 @@ void PostgreSQLCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
 {
   try
   {
+	// Dont clean fake cache
+	if(isFakeCache(NETATMO_DATA_TABLE))
+	  return;
+
     boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
@@ -787,6 +806,10 @@ void PostgreSQLCache::cleanFmiIoTCache(const boost::posix_time::time_duration &t
 {
   try
   {
+	// Dont clean fake cache
+	if(isFakeCache(FMI_IOT_DATA_TABLE))
+	  return;
+
     boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
@@ -821,7 +844,7 @@ void PostgreSQLCache::shutdown()
 PostgreSQLCache::PostgreSQLCache(const std::string &name,
                                  const EngineParametersPtr &p,
                                  Spine::ConfigBase &cfg)
-    : ObservationCache(name), itsParameters(p)
+    : ObservationCache(p->databaseDriverInfo.getAggregateCacheInfo(name)), itsParameters(p)
 {
   try
   {
@@ -837,26 +860,23 @@ void PostgreSQLCache::readConfig(Spine::ConfigBase &cfg)
 {
   try
   {
-    const Engine::Observation::CacheInfoItem &cacheInfo =
-        itsParameters.databaseDriverInfo.getAggregateCacheInfo(itsCacheName);
-
-    itsParameters.postgresql.host = cacheInfo.params.at("host");
-    itsParameters.postgresql.port = Fmi::stoi(cacheInfo.params.at("port"));
-    itsParameters.postgresql.database = cacheInfo.params.at("database");
-    itsParameters.postgresql.username = cacheInfo.params.at("username");
-    itsParameters.postgresql.password = cacheInfo.params.at("password");
-    itsParameters.postgresql.encoding = cacheInfo.params.at("encoding");
-    itsParameters.postgresql.connect_timeout = Fmi::stoi(cacheInfo.params.at("connect_timeout"));
-    itsParameters.connectionPoolSize = Fmi::stoi(cacheInfo.params.at("poolSize"));
-    itsParameters.maxInsertSize = Fmi::stoi(cacheInfo.params.at("maxInsertSize"));
-    itsParameters.dataInsertCacheSize = Fmi::stoi(cacheInfo.params.at("dataInsertCacheSize"));
+    itsParameters.postgresql.host = itsCacheInfo.params.at("host");
+    itsParameters.postgresql.port = Fmi::stoi(itsCacheInfo.params.at("port"));
+    itsParameters.postgresql.database = itsCacheInfo.params.at("database");
+    itsParameters.postgresql.username = itsCacheInfo.params.at("username");
+    itsParameters.postgresql.password = itsCacheInfo.params.at("password");
+    itsParameters.postgresql.encoding = itsCacheInfo.params.at("encoding");
+    itsParameters.postgresql.connect_timeout = Fmi::stoi(itsCacheInfo.params.at("connect_timeout"));
+    itsParameters.connectionPoolSize = Fmi::stoi(itsCacheInfo.params.at("poolSize"));
+    itsParameters.maxInsertSize = Fmi::stoi(itsCacheInfo.params.at("maxInsertSize"));
+    itsParameters.dataInsertCacheSize = Fmi::stoi(itsCacheInfo.params.at("dataInsertCacheSize"));
     itsParameters.weatherDataQCInsertCacheSize =
-        Fmi::stoi(cacheInfo.params.at("weatherDataQCInsertCacheSize"));
-    itsParameters.flashInsertCacheSize = Fmi::stoi(cacheInfo.params.at("flashInsertCacheSize"));
+        Fmi::stoi(itsCacheInfo.params.at("weatherDataQCInsertCacheSize"));
+    itsParameters.flashInsertCacheSize = Fmi::stoi(itsCacheInfo.params.at("flashInsertCacheSize"));
     itsParameters.roadCloudInsertCacheSize =
-        Fmi::stoi(cacheInfo.params.at("roadCloudInsertCacheSize"));
-    itsParameters.netAtmoInsertCacheSize = Fmi::stoi(cacheInfo.params.at("netAtmoInsertCacheSize"));
-    itsParameters.fmiIoTInsertCacheSize = Fmi::stoi(cacheInfo.params.at("fmiIoTInsertCacheSize"));
+        Fmi::stoi(itsCacheInfo.params.at("roadCloudInsertCacheSize"));
+    itsParameters.netAtmoInsertCacheSize = Fmi::stoi(itsCacheInfo.params.at("netAtmoInsertCacheSize"));
+    itsParameters.fmiIoTInsertCacheSize = Fmi::stoi(itsCacheInfo.params.at("fmiIoTInsertCacheSize"));
   }
   catch (...)
   {

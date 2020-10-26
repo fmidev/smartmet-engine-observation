@@ -42,4 +42,4 @@ std::ostream& operator<<(std::ostream& out, const SmartMet::Engine::Observation:
       << Fmi::to_string(item.measurand_id) << ' ' << Fmi::to_string(item.measurand_no) << ' '
       << Fmi::to_string(item.data_value) << ' ' << Fmi::to_string(item.hash_value());
   return out;
-};
+}
