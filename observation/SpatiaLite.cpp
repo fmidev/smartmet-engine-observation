@@ -1311,39 +1311,15 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
 {
   try
   {
+    std::size_t new_item_count = 0;
+
     if (cacheData.empty())
-      return 0;
+      return new_item_count;
 
     // Update memory cache first
 
     if(itsObservationMemoryCache)
       itsObservationMemoryCache->fill(cacheData);
-
-    // Collect new items before taking a lock - we might avoid one completely
-    std::vector<std::size_t> new_items;
-    std::vector<std::size_t> new_hashes;
-
-    for (std::size_t i = 0; i < cacheData.size(); i++)
-    {
-      const auto &item = cacheData[i];
-      auto hash = item.hash_value();
-
-      if (!insertStatus.exists(hash))
-      {
-        new_items.push_back(i);
-        new_hashes.push_back(hash);
-      }
-    }
-
-    // Abort if so requested
-    if (itsShutdownRequested)
-      return 0;
-
-    // Abort if nothing to do
-    if (new_items.empty())
-      return 0;
-
-    // Insert the new items
 
     const char *sqltemplate =
         "INSERT OR REPLACE INTO observation_data "
@@ -1353,48 +1329,75 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
         "(:fmisid,:sensor_no,:measurand_id,:producer_id,:measurand_no,:data_time, :modified_last, "
 	  ":data_value,:data_quality,:data_source);";
 
-    std::size_t pos1 = 0;
+    // Loop over all observations, inserting only new items in groups to the cache
 
-    // block other writers
-
-    Spine::WriteLock lock(write_mutex);
-
-    while (pos1 < new_items.size())
+    std::vector<std::size_t> new_items;
+    std::vector<std::size_t> new_hashes;
+    
+    for (std::size_t pos = 0; pos < cacheData.size(); ++pos)
     {
+      // Abort if so requested
       if (itsShutdownRequested)
         return 0;
 
-      sqlite3pp::transaction xct(itsDB);
-      sqlite3pp::command cmd(itsDB, sqltemplate);
+      const auto & item = cacheData[pos];
+      const auto hash = item.hash_value();
 
-      std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, new_items.size());
-      for (std::size_t i = pos1; i < pos2; i++)
+      if (!insertStatus.exists(hash))
       {
-        const auto &item = cacheData[new_items[i]];
-        cmd.bind(":fmisid", item.fmisid);
-        cmd.bind(":sensor_no", item.sensor_no);
-        cmd.bind(":measurand_id", item.measurand_id);
-        cmd.bind(":producer_id", item.producer_id);
-        cmd.bind(":measurand_no", item.measurand_no);
-        std::string data_time_str = Fmi::to_iso_extended_string(item.data_time);
-        cmd.bind(":data_time", data_time_str, sqlite3pp::nocopy);
-        std::string modified_last_str = Fmi::to_iso_extended_string(item.modified_last);
-        cmd.bind(":modified_last", modified_last_str, sqlite3pp::nocopy);
-        cmd.bind(":data_value", item.data_value);
-        cmd.bind(":data_quality", item.data_quality);
-		cmd.bind(":data_source", item.data_source);
-        cmd.execute();
-        cmd.reset();
+        new_items.push_back(pos);
+        new_hashes.push_back(hash);
       }
-      xct.commit();
 
-      pos1 = pos2;
+      // Insert a block if necessary
+
+      const bool block_full = (new_items.size() >= itsMaxInsertSize);
+      const bool last_item = (pos == cacheData.size() - 1);
+      
+      if(!new_items.empty() && (block_full || last_item))
+      {
+        const auto insert_size = new_items.size();
+        {
+          Spine::WriteLock lock(write_mutex);
+          
+          sqlite3pp::transaction xct(itsDB);
+          sqlite3pp::command cmd(itsDB, sqltemplate);
+
+          for(std::size_t i = 0; i < insert_size; i++)
+          {
+            const auto & obs = cacheData[new_items[i]];
+            cmd.bind(":fmisid", obs.fmisid);
+            cmd.bind(":sensor_no", obs.sensor_no);
+            cmd.bind(":measurand_id", obs.measurand_id);
+            cmd.bind(":producer_id", obs.producer_id);
+            cmd.bind(":measurand_no", obs.measurand_no);
+            std::string data_time_str = Fmi::to_iso_extended_string(obs.data_time);
+            cmd.bind(":data_time", data_time_str, sqlite3pp::nocopy);
+            std::string modified_last_str = Fmi::to_iso_extended_string(obs.modified_last);
+            cmd.bind(":modified_last", modified_last_str, sqlite3pp::nocopy);
+            cmd.bind(":data_value", obs.data_value);
+            cmd.bind(":data_quality", obs.data_quality);
+            cmd.bind(":data_source", obs.data_source);
+            cmd.execute();
+            cmd.reset();
+          }
+          // Would it be possible to place the writelock here...????
+          xct.commit();
+          // lock is released
+        }
+
+        // Update insert status, giving readers some time to obtain a read lock
+        for(const auto & hash : new_hashes)
+          insertStatus.add(hash);
+
+        new_item_count += insert_size;
+
+        new_items.clear();
+        new_hashes.clear();
+      }
     }
 
-    for (const auto &hash : new_hashes)
-      insertStatus.add(hash);
-
-    return new_items.size();
+    return new_item_count;
   }
   catch (...)
   {
@@ -1407,80 +1410,84 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
 {
   try
   {
+    std::size_t new_item_count = 0;
+
     if (cacheData.empty())
-      return 0;
-
-    // Collect new items before taking a lock - we might avoid one completely
-    std::vector<std::size_t> new_items;
-    std::vector<std::size_t> new_hashes;
-
-    for (std::size_t i = 0; i < cacheData.size(); i++)
-    {
-      const auto &item = cacheData[i];
-      auto hash = item.hash_value();
-
-      if (!insertStatus.exists(hash))
-      {
-        new_items.push_back(i);
-        new_hashes.push_back(hash);
-      }
-    }
-
-    // Abort if so requested
-    if (itsShutdownRequested)
-      return 0;
-
-    // Abort if nothing to do
-    if (new_items.empty())
-      return 0;
-
-    // Insert the new items
+      return new_item_count;
 
     const char *sqltemplate =
         "INSERT OR IGNORE INTO weather_data_qc"
         "(fmisid, obstime, parameter, sensor_no, value, flag, modified_last)"
         "VALUES (:fmisid,:obstime,:parameter,:sensor_no,:value,:flag,:modified_last)";
 
-    std::size_t pos1 = 0;
+    // Loop over all observations, inserting only new items in groups to the cache
 
-    Spine::WriteLock lock(write_mutex);
+    std::vector<std::size_t> new_items;
+    std::vector<std::size_t> new_hashes;
 
-    while (pos1 < new_items.size())
+    for (std::size_t pos = 0; pos < cacheData.size(); ++pos)
     {
+      // Abort if so requested
       if (itsShutdownRequested)
         return 0;
 
-      sqlite3pp::transaction xct(itsDB);
-      sqlite3pp::command cmd(itsDB, sqltemplate);
+      const auto & item = cacheData[pos];
+      const auto hash = item.hash_value();
 
-      std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, new_items.size());
-      for (std::size_t i = pos1; i < pos2; i++)
+      if (!insertStatus.exists(hash))
       {
-        const auto &item = cacheData[new_items[i]];
-
-        cmd.bind(":fmisid", item.fmisid);
-        std::string timestring = Fmi::to_iso_extended_string(item.obstime);
-        cmd.bind(":obstime", timestring, sqlite3pp::nocopy);
-        cmd.bind(":parameter", item.parameter, sqlite3pp::nocopy);
-        cmd.bind(":sensor_no", item.sensor_no);
-        cmd.bind(":value", item.value);
-        cmd.bind(":flag", item.flag);
-        std::string modified_last_time = "";
-		if(!item.modified_last.is_not_a_date_time())
-		  modified_last_time = Fmi::to_iso_extended_string(item.modified_last);
-        cmd.bind(":modified_last", modified_last_time, sqlite3pp::nocopy);
-        cmd.execute();
-        cmd.reset();
+        new_items.push_back(pos);
+        new_hashes.push_back(hash);
       }
-      xct.commit();
 
-      pos1 = pos2;
+      // Insert a block if necessary
+
+      const bool block_full = (new_items.size() >= itsMaxInsertSize);
+      const bool last_item = (pos == cacheData.size() - 1);
+      
+      if(!new_items.empty() && (block_full || last_item))
+      {
+        const auto insert_size = new_items.size();
+        {
+          Spine::WriteLock lock(write_mutex);
+          
+          sqlite3pp::transaction xct(itsDB);
+          sqlite3pp::command cmd(itsDB, sqltemplate);
+
+          for(std::size_t i = 0; i < insert_size; i++)
+          {
+            const auto & obs = cacheData[new_items[i]];
+            cmd.bind(":fmisid", obs.fmisid);
+            std::string timestring = Fmi::to_iso_extended_string(obs.obstime);
+            cmd.bind(":obstime", timestring, sqlite3pp::nocopy);
+            cmd.bind(":parameter", obs.parameter, sqlite3pp::nocopy);
+            cmd.bind(":sensor_no", obs.sensor_no);
+            cmd.bind(":value", obs.value);
+            cmd.bind(":flag", obs.flag);
+            std::string modified_last_time = "";
+            if(!obs.modified_last.is_not_a_date_time())
+              modified_last_time = Fmi::to_iso_extended_string(obs.modified_last);
+            cmd.bind(":modified_last", modified_last_time, sqlite3pp::nocopy);
+            cmd.execute();
+            cmd.reset();
+          }
+          // Would it be possible to place the writelock here...????
+          xct.commit();
+          // lock is released
+        }
+
+        // Update insert status, giving readers some time to obtain a read lock
+        for(const auto & hash : new_hashes)
+          insertStatus.add(hash);
+
+        new_item_count += insert_size;
+
+        new_items.clear();
+        new_hashes.clear();
+      }
     }
 
-    for (const auto &hash : new_hashes)
-      insertStatus.add(hash);
-
-    return new_items.size();
+    return new_item_count;
   }
   catch (...)
   {
@@ -1493,142 +1500,150 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &flashCacheData,
 {
   try
   {
-    if (flashCacheData.empty())
-      return 0;
+    std::size_t new_item_count = 0;
 
-    // Collect new items before taking a lock - we might avoid one completely
+    if (flashCacheData.empty())
+      return new_item_count;
+
+    // Loop over all observations, inserting only new items in groups to the cache
+
     std::vector<std::size_t> new_items;
     std::vector<std::size_t> new_hashes;
 
-    for (std::size_t i = 0; i < flashCacheData.size(); i++)
+    for (std::size_t pos = 0; pos < flashCacheData.size(); ++pos)
     {
-      const auto &item = flashCacheData[i];
-      auto hash = item.hash_value();
-
-      if (!insertStatus.exists(hash))
-      {
-        new_items.push_back(i);
-        new_hashes.push_back(hash);
-      }
-    }
-
-    // Abort if so requested
-    if (itsShutdownRequested)
-      return 0;
-
-    // Abort if nothing to do
-    if (new_items.empty())
-      return 0;
-
-    // Insert the new items
-
-    std::size_t pos1 = 0;
-
-    Spine::WriteLock lock(write_mutex);
-
-    while (pos1 < new_items.size())
-    {
+      // Abort if so requested
       if (itsShutdownRequested)
         return 0;
 
-      sqlite3pp::transaction xct(itsDB);
+      const auto & item = flashCacheData[pos];
+      const auto hash = item.hash_value();
 
-      std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, new_items.size());
-      for (std::size_t i = pos1; i < pos2; i++)
+      if (!insertStatus.exists(hash))
       {
-        const auto &item = flashCacheData[new_items[i]];
-
-        std::string stroke_location = "GeomFromText('POINT(" +
-                                      Fmi::to_string("%.10g", item.longitude) + " " +
-                                      Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
-
-        std::string sqltemplate =
-            "INSERT OR IGNORE INTO flash_data "
-            "(stroke_time, stroke_time_fraction, flash_id, multiplicity, "
-            "peak_current, sensors, freedom_degree, ellipse_angle, "
-            "ellipse_major, "
-            "ellipse_minor, "
-            "chi_square, rise_time, ptz_time, cloud_indicator, "
-            "angle_indicator, "
-            "signal_indicator, timing_indicator, stroke_status, "
-            "data_source, created, modified_last, stroke_location) "
-            "VALUES ("
-            ":timestring,"
-            ":stroke_time_fraction, "
-            ":flash_id,"
-            ":multiplicity,"
-            ":peak_current,"
-            ":sensors,"
-            ":freedom_degree,"
-            ":ellipse_angle,"
-            ":ellipse_major,"
-            ":ellipse_minor,"
-            ":chi_square,"
-            ":rise_time,"
-            ":ptz_time,"
-            ":cloud_indicator,"
-            ":angle_indicator,"
-            ":signal_indicator,"
-            ":timing_indicator,"
-            ":stroke_status,"
-            ":data_source,"
-            ":created,"
-            ":modified_last," +
-            stroke_location + ");";
-
-
-        sqlite3pp::command cmd(itsDB, sqltemplate.c_str());
-
-        std::string timestring = Fmi::to_iso_extended_string(item.stroke_time);
-        boost::replace_all(timestring, ",", ".");
-        std::string created_timestring = Fmi::to_iso_extended_string(item.created);
-        boost::replace_all(created_timestring, ",", ".");
-        std::string modified_last_timestring = Fmi::to_iso_extended_string(item.modified_last);
-        boost::replace_all(modified_last_timestring, ",", ".");
-
-        // @todo There is no simple way to optionally set possible NULL values.
-        // Find out later how to do it.
-
-        try
-        {
-          cmd.bind(":timestring", timestring, sqlite3pp::nocopy);
-          cmd.bind(":stroke_time_fraction", item.stroke_time_fraction);
-          cmd.bind(":flash_id", static_cast<int>(item.flash_id));
-          cmd.bind(":multiplicity", item.multiplicity);
-          cmd.bind(":peak_current", item.peak_current);
-          cmd.bind(":sensors", item.sensors);
-          cmd.bind(":freedom_degree", item.freedom_degree);
-          cmd.bind(":ellipse_angle", item.ellipse_angle);
-          cmd.bind(":ellipse_major", item.ellipse_major);
-          cmd.bind(":ellipse_minor", item.ellipse_minor);
-          cmd.bind(":chi_square", item.chi_square);
-          cmd.bind(":rise_time", item.rise_time);
-          cmd.bind(":ptz_time", item.ptz_time);
-          cmd.bind(":cloud_indicator", item.cloud_indicator);
-          cmd.bind(":angle_indicator", item.angle_indicator);
-          cmd.bind(":signal_indicator", item.signal_indicator);
-          cmd.bind(":timing_indicator", item.timing_indicator);
-          cmd.bind(":stroke_status", item.stroke_status);
-		  cmd.bind(":data_source", item.data_source);
-          cmd.bind(":created", created_timestring, sqlite3pp::nocopy);
-          cmd.bind(":modified_last", modified_last_timestring, sqlite3pp::nocopy);
-          cmd.execute();
-          cmd.reset();
-        }
-        catch (const std::exception &e)
-        {
-          std::cerr << "Problem updating flash data: " << e.what() << std::endl;
-        }
+        new_items.push_back(pos);
+        new_hashes.push_back(hash);
       }
-      xct.commit();
 
-      pos1 = pos2;
+      // Insert a block if necessary
+
+      const bool block_full = (new_items.size() >= itsMaxInsertSize);
+      const bool last_item = (pos == flashCacheData.size() - 1);
+      
+      if(!new_items.empty() && (block_full || last_item))
+      {
+        const auto insert_size = new_items.size();
+        {
+        
+          Spine::WriteLock lock(write_mutex);
+          
+          sqlite3pp::transaction xct(itsDB);
+
+          for(std::size_t i = 0; i < insert_size; i++)
+          {
+            const auto & obs = flashCacheData[new_items[i]];
+
+            std::string timestring = Fmi::to_iso_extended_string(obs.stroke_time);
+            boost::replace_all(timestring, ",", ".");
+
+            std::string created_timestring = Fmi::to_iso_extended_string(obs.created);
+            boost::replace_all(created_timestring, ",", ".");
+
+            std::string modified_last_timestring = Fmi::to_iso_extended_string(obs.modified_last);
+            boost::replace_all(modified_last_timestring, ",", ".");
+
+            std::string stroke_location = "GeomFromText('POINT(" +
+                                          Fmi::to_string("%.10g", obs.longitude) + " " +
+                                          Fmi::to_string("%.10g", obs.latitude) + ")', " + srid + ")";
+            
+            std::string sqltemplate =
+                "INSERT OR IGNORE INTO flash_data "
+                "(stroke_time, stroke_time_fraction, flash_id, multiplicity, "
+                "peak_current, sensors, freedom_degree, ellipse_angle, "
+                "ellipse_major, "
+                "ellipse_minor, "
+                "chi_square, rise_time, ptz_time, cloud_indicator, "
+                "angle_indicator, "
+                "signal_indicator, timing_indicator, stroke_status, "
+                "data_source, created, modified_last, stroke_location) "
+                "VALUES ("
+                ":timestring,"
+                ":stroke_time_fraction, "
+                ":flash_id,"
+                ":multiplicity,"
+                ":peak_current,"
+                ":sensors,"
+                ":freedom_degree,"
+                ":ellipse_angle,"
+                ":ellipse_major,"
+                ":ellipse_minor,"
+                ":chi_square,"
+                ":rise_time,"
+                ":ptz_time,"
+                ":cloud_indicator,"
+                ":angle_indicator,"
+                ":signal_indicator,"
+                ":timing_indicator,"
+                ":stroke_status,"
+                ":data_source,"
+                ":created,"
+                ":modified_last," +
+                stroke_location + ");";
+            
+            sqlite3pp::command cmd(itsDB, sqltemplate.c_str());
+            
+            // @todo There is no simple way to optionally set possible NULL values.
+            // Find out later how to do it.
+            
+            try
+            {
+              cmd.bind(":timestring", timestring, sqlite3pp::nocopy);
+              cmd.bind(":stroke_time_fraction", obs.stroke_time_fraction);
+              cmd.bind(":flash_id", static_cast<int>(obs.flash_id));
+              cmd.bind(":multiplicity", obs.multiplicity);
+              cmd.bind(":peak_current", obs.peak_current);
+              cmd.bind(":sensors", obs.sensors);
+              cmd.bind(":freedom_degree", obs.freedom_degree);
+              cmd.bind(":ellipse_angle", obs.ellipse_angle);
+              cmd.bind(":ellipse_major", obs.ellipse_major);
+              cmd.bind(":ellipse_minor", obs.ellipse_minor);
+              cmd.bind(":chi_square", obs.chi_square);
+              cmd.bind(":rise_time", obs.rise_time);
+              cmd.bind(":ptz_time", obs.ptz_time);
+              cmd.bind(":cloud_indicator", obs.cloud_indicator);
+              cmd.bind(":angle_indicator", obs.angle_indicator);
+              cmd.bind(":signal_indicator", obs.signal_indicator);
+              cmd.bind(":timing_indicator", obs.timing_indicator);
+              cmd.bind(":stroke_status", obs.stroke_status);
+              cmd.bind(":data_source", obs.data_source);
+              cmd.bind(":created", created_timestring, sqlite3pp::nocopy);
+              cmd.bind(":modified_last", modified_last_timestring, sqlite3pp::nocopy);
+              cmd.execute();
+              cmd.reset();
+            }
+            catch (const std::exception &e)
+            {
+              std::cerr << "Problem updating flash data: " << e.what() << std::endl;
+            }
+          }
+          
+          // Would it be possible to place the writelock here...????
+          xct.commit();
+          // lock is released
+        }
+        
+        // Update insert status, giving readers some time to obtain a read lock
+        for(const auto & hash : new_hashes)
+          insertStatus.add(hash);
+
+        new_item_count += insert_size;
+
+        new_items.clear();
+        new_hashes.clear();
+      }
     }
 
-    for (const auto &hash : new_hashes)
-      insertStatus.add(hash);
-
-    return new_items.size();
+    return new_item_count;
   }
   catch (...)
   {

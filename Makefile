@@ -16,9 +16,7 @@ endif
 
 DEFINES = -DUNIX -D_REENTRANT
 
-# TODO: Should remove -Wno-sign-conversion, FlashTools.cpp warns a lot
-
-#FLAGS += -Wno-sign-conversion
+CFLAGS += -Wno-pedantic
 
 INCLUDES += -isystem $(includedir)/mysql
 
