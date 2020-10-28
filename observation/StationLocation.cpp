@@ -74,4 +74,4 @@ std::ostream& operator<<(std::ostream& out,
           << loc.country_id << ", " << loc.time_zone_name << std::endl;
   }
   return out;
-};
+}
