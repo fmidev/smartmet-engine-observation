@@ -1,0 +1,216 @@
+#include "SpatiaLiteDatabaseDriver.h"
+#include <boost/date_time/posix_time/posix_time.hpp>  //include all types plus i/o
+#include <boost/date_time/time_duration.hpp>
+#include <boost/make_shared.hpp>
+#include "ObservationCache.h"
+#include "QueryResult.h"
+#include "StationInfo.h"
+#include "StationtypeConfig.h"
+#include <spine/Convenience.h>
+#include <spine/TimeSeriesOutput.h>
+#include <atomic>
+#include <chrono>
+#include <clocale>
+#include <numeric>
+
+// #define MYDEBUG 1
+
+namespace ts = SmartMet::Spine::TimeSeries;
+
+namespace SmartMet
+{
+namespace Engine
+{
+namespace Observation
+{
+
+SpatiaLiteDatabaseDriver::SpatiaLiteDatabaseDriver(
+    const std::string &name,
+    const EngineParametersPtr &p,
+    Spine::ConfigBase &cfg)
+  : DatabaseDriverBase(name), itsParameters(name, p)
+{
+  setlocale(LC_NUMERIC, "en_US.utf8");
+
+  readConfig(cfg);
+}
+
+void SpatiaLiteDatabaseDriver::init(Engine *obsengine)
+{
+  try
+  {
+    itsDatabaseStations.reset(
+        new DatabaseStations(itsParameters.params, obsengine->getGeonames()));
+
+    boost::shared_ptr<ObservationCacheAdminSpatiaLite> cacheAdmin(
+        new ObservationCacheAdminSpatiaLite(itsParameters,
+                                        obsengine->getGeonames(),
+                                        itsConnectionsOK,
+                                        false));
+    if (!itsShutdownRequested) {
+        boost::atomic_store(&itsObservationCacheAdminSpatiaLite, cacheAdmin);
+        cacheAdmin->init();
+	}
+
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb)
+{
+  try
+  {
+	// Not implemeted
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
+    Settings &settings)
+{
+  if (itsShutdownRequested) return nullptr;
+
+  parameterSanityCheck(
+      settings.stationtype, settings.parameters, *itsParameters.params->parameterMap);
+  updateProducers(itsParameters.params, settings);
+
+  settings.useCommonQueryMethod =
+      itsParameters.params->stationtypeConfig.getUseCommonQueryMethod(settings.stationtype);
+
+  if (!settings.sqlDataFilter.exist("data_quality"))
+    settings.sqlDataFilter.setDataFilter(
+        "data_quality", itsParameters.params->dataQualityFilters.at(settings.stationtype));
+
+  // This driver fetched data only from cache
+  try
+  {
+
+    if (settings.useDataCache)
+    {
+      auto cache = resolveCache(settings.stationtype, itsParameters.params);
+
+      if (cache && cache->dataAvailableInCache(settings))
+      {
+        return cache->valuesFromCache(settings);
+      }
+    }
+    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+	return ret;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Reading data from cache failed!");
+  }
+}
+
+/*
+ * \brief Read values for given times only.
+ */
+
+Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
+    Settings &settings,
+    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
+{
+  if (itsShutdownRequested) return nullptr;
+
+  parameterSanityCheck(
+      settings.stationtype, settings.parameters, *itsParameters.params->parameterMap);
+  updateProducers(itsParameters.params, settings);
+
+  settings.useCommonQueryMethod =
+      itsParameters.params->stationtypeConfig.getUseCommonQueryMethod(settings.stationtype);
+
+  if (!settings.sqlDataFilter.exist("data_quality"))
+    settings.sqlDataFilter.setDataFilter(
+        "data_quality", itsParameters.params->dataQualityFilters.at(settings.stationtype));
+
+  // This driver fetched data only from cache
+  try
+  {
+    if (settings.useDataCache)
+    {
+      auto cache = resolveCache(settings.stationtype, itsParameters.params);
+
+      if (cache && cache->dataAvailableInCache(settings))
+      {
+		return cache->valuesFromCache(settings, timeSeriesOptions);
+      }
+    }
+    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+	return ret;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Reading data from cache failed!");
+  }
+}
+
+FlashCounts SpatiaLiteDatabaseDriver::getFlashCount(
+    const boost::posix_time::ptime &starttime,
+    const boost::posix_time::ptime &endtime,
+    const Spine::TaggedLocationList &locations) const
+{
+  try
+  {
+    Settings settings;
+    settings.stationtype = "flash";
+
+    auto cache = resolveCache(settings.stationtype, itsParameters.params);
+    if (cache && cache->flashIntervalIsCached(starttime, endtime))
+    {
+      return cache->getFlashCount(starttime, endtime, locations);
+    }
+
+	FlashCounts ret;
+	return ret;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Getting flash count failed!");
+  }
+}
+
+boost::shared_ptr<std::vector<ObservableProperty>>
+SpatiaLiteDatabaseDriver::observablePropertyQuery(std::vector<std::string> &parameters,
+                                                            const std::string language)
+{
+  try
+  {
+	// Not implemented
+	boost::shared_ptr<std::vector<ObservableProperty>> ret;
+	return ret;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+void SpatiaLiteDatabaseDriver::readConfig(Spine::ConfigBase &cfg)
+{
+  try
+  {
+	DatabaseDriverBase::readConfig(cfg, itsParameters);
+ }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Reading SpatiaLite configuration failed!");
+  }
+}
+
+std::string SpatiaLiteDatabaseDriver::id() const { return "spatialite"; }
+
+void SpatiaLiteDatabaseDriver::shutdown()
+{
+
+}
+
+}  // namespace Observation
+}  // namespace Engine
+}  // namespace SmartMet
