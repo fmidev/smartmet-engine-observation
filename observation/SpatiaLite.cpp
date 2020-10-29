@@ -1333,6 +1333,8 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
 
     std::vector<std::size_t> new_items;
     std::vector<std::size_t> new_hashes;
+    std::vector<std::string> data_times;
+    std::vector<std::string> modified_last_times;
     
     for (std::size_t pos = 0; pos < cacheData.size(); ++pos)
     {
@@ -1357,6 +1359,18 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
       if(!new_items.empty() && (block_full || last_item))
       {
         const auto insert_size = new_items.size();
+
+        // Prepare strings outside the lock to minimize lock time
+        data_times.reserve(insert_size);
+        modified_last_times.reserve(insert_size);
+        
+        for(std::size_t i = 0; i < insert_size; i++)
+        {
+          const auto & obs = cacheData[new_items[i]];
+          data_times.emplace_back(Fmi::to_iso_extended_string(obs.data_time));
+          modified_last_times.emplace_back(Fmi::to_iso_extended_string(obs.modified_last));
+        }
+        
         {
           Spine::WriteLock lock(write_mutex);
           
@@ -1371,9 +1385,9 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
             cmd.bind(":measurand_id", obs.measurand_id);
             cmd.bind(":producer_id", obs.producer_id);
             cmd.bind(":measurand_no", obs.measurand_no);
-            std::string data_time_str = Fmi::to_iso_extended_string(obs.data_time);
+            std::string data_time_str = data_times[i];
             cmd.bind(":data_time", data_time_str, sqlite3pp::nocopy);
-            std::string modified_last_str = Fmi::to_iso_extended_string(obs.modified_last);
+            std::string modified_last_str = modified_last_times[i];
             cmd.bind(":modified_last", modified_last_str, sqlite3pp::nocopy);
             cmd.bind(":data_value", obs.data_value);
             cmd.bind(":data_quality", obs.data_quality);
@@ -1394,6 +1408,8 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
 
         new_items.clear();
         new_hashes.clear();
+        data_times.clear();
+        modified_last_times.clear();
       }
     }
 
@@ -1424,6 +1440,8 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
 
     std::vector<std::size_t> new_items;
     std::vector<std::size_t> new_hashes;
+    std::vector<std::string> data_times;
+    std::vector<std::string> modified_last_times;
 
     for (std::size_t pos = 0; pos < cacheData.size(); ++pos)
     {
@@ -1448,6 +1466,21 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
       if(!new_items.empty() && (block_full || last_item))
       {
         const auto insert_size = new_items.size();
+
+        // Prepare strings outside the lock to minimize lock time
+        data_times.reserve(insert_size);
+        modified_last_times.reserve(insert_size);
+        
+        for(std::size_t i = 0; i < insert_size; i++)
+        {
+          const auto & obs = cacheData[new_items[i]];
+          data_times.emplace_back(Fmi::to_iso_extended_string(obs.obstime));
+          if(!obs.modified_last.is_not_a_date_time())
+            modified_last_times.emplace_back(Fmi::to_iso_extended_string(obs.modified_last));
+          else
+            modified_last_times.emplace_back(std::string(""));
+        }
+
         {
           Spine::WriteLock lock(write_mutex);
           
@@ -1458,16 +1491,13 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
           {
             const auto & obs = cacheData[new_items[i]];
             cmd.bind(":fmisid", obs.fmisid);
-            std::string timestring = Fmi::to_iso_extended_string(obs.obstime);
+            std::string timestring = data_times[i];
             cmd.bind(":obstime", timestring, sqlite3pp::nocopy);
             cmd.bind(":parameter", obs.parameter, sqlite3pp::nocopy);
             cmd.bind(":sensor_no", obs.sensor_no);
             cmd.bind(":value", obs.value);
             cmd.bind(":flag", obs.flag);
-            std::string modified_last_time = "";
-            if(!obs.modified_last.is_not_a_date_time())
-              modified_last_time = Fmi::to_iso_extended_string(obs.modified_last);
-            cmd.bind(":modified_last", modified_last_time, sqlite3pp::nocopy);
+            cmd.bind(":modified_last", modified_last_times[i], sqlite3pp::nocopy);
             cmd.execute();
             cmd.reset();
           }
@@ -1484,6 +1514,8 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
 
         new_items.clear();
         new_hashes.clear();
+        data_times.clear();
+        modified_last_times.clear();
       }
     }
 
