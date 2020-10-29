@@ -260,8 +260,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectForCache(
         ("select obs.prod_id, obs.station_id, obs.dataset_id, obs.data_level, obs.mid "
          ",obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value, "
          "obs.data_value_txt, obs.data_quality, obs.ctrl_status, EXTRACT(EPOCH FROM obs.created) "
-         "as created, ST_X(stat.geom) as longitude, ST_Y(stat.geom) as latitude, "
-         "stat.altitude as altitude FROM ext_obsdata obs, ext_station_v1 stat WHERE obs.prod_id=4 "
+         "as created, stat.station_code FROM ext_obsdata obs, ext_station_v1 stat WHERE obs.prod_id=4 "
          "AND obs.prod_id=stat.prod_id AND obs.station_id=stat.station_id AND obs.data_time>='" +
          Fmi::to_iso_extended_string(from_data_time) + "'" + created_stmt);
   }

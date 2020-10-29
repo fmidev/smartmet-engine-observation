@@ -1,5 +1,7 @@
 #include "DatabaseDriverFactory.h"
 #include "DummyDatabaseDriver.h"
+#include "SpatiaLiteDatabaseDriverInterface.h"
+
 extern "C"
 {
 #include <dlfcn.h>
@@ -23,10 +25,27 @@ DatabaseDriverInterface *DatabaseDriverFactory::create(const EngineParametersPtr
 {
   try
   {
-    if (p->dbDriverFile.empty() || p->dbDriverFile == "dummy")
+	bool activeDriverFound = false;
+	const std::vector<DatabaseDriverInfoItem> &ddi =
+        p->databaseDriverInfo.getDatabaseDriverInfo();
+    for (const auto &item : ddi)
     {
-      return new DummyDatabaseDriver(p);
-    }
+      if (!item.active) continue;
+	  activeDriverFound = true;
+      const std::string &driver_id = item.name;
+       if (boost::algorithm::starts_with(driver_id, "spatialite_"))
+      {              
+		// Spatialite driver is created in observation engine
+		return (new SpatiaLiteDatabaseDriverInterface(new SpatiaLiteDatabaseDriver(driver_id, p, cfg)));
+	  }
+	}
+
+	// If no active driver found or dbDriverFile is empty or 'dummy' create dummy driver
+    if (!activeDriverFound || p->dbDriverFile.empty() || p->dbDriverFile == "dummy")
+	  {
+		return new DummyDatabaseDriver(p);
+	  }
+
 
     void *handle = dlopen(p->dbDriverFile.c_str(), RTLD_NOW);
 

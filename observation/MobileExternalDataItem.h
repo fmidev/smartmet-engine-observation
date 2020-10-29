@@ -16,6 +16,7 @@ class MobileExternalDataItem
  public:
   int prod_id;
   boost::optional<int> station_id;
+  boost::optional<std::string> station_code;
   boost::optional<std::string> dataset_id;
   boost::optional<int> data_level;
   int mid;
