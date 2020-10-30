@@ -18,7 +18,7 @@ DEFINES = -DUNIX -D_REENTRANT
 
 # TODO: Should remove -Wno-sign-conversion, FlashTools.cpp warns a lot
 
-#FLAGS += -Wno-sign-conversion
+CFLAGS += -Wno-pedantic
 
 INCLUDES += -isystem $(includedir)/mysql
 
@@ -54,8 +54,6 @@ SRCS = $(wildcard $(SUBNAME)/*.cpp)
 HDRS = $(wildcard $(SUBNAME)/*.h) $(wildcard $(SUBNAME)/*.ipp)
 OBJS = $(patsubst %.cpp, obj/%.o, $(notdir $(SRCS)))
 
-INCLUDES := -Iinclude $(INCLUDES)
-
 .PHONY: test rpm
 
 # The rules
@@ -67,11 +65,11 @@ profile: all
 
 $(LIBFILE): $(OBJS)
 	$(CXX) $(CFLAGS) -shared -rdynamic -o $(LIBFILE) $(OBJS) $(LIBS)
-#	@echo Checking $(LIBFILE) for unresolved references
-#	@if ldd -r $(LIBFILE) 2>&1 | c++filt | grep ^undefined\ symbol ; \
-#		then rm -v $(LIBFILE); \
-#		exit 1; \
-#	fi
+	@echo Checking $(LIBFILE) for unresolved references
+	@if ldd -r $(LIBFILE) 2>&1 | c++filt | grep "^undefined symbol" | grep -v SmartMet::Engine::Geonames ; \
+		then rm -v $(LIBFILE); \
+		exit 1; \
+	fi
 
 clean:
 	rm -f $(LIBFILE) *~ $(SUBNAME)/*~
