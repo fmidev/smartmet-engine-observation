@@ -96,6 +96,15 @@ void SpatiaLiteCache::initializeConnectionPool()
       itsNetAtmoTimeIntervalEnd = end;
     }
 
+   // FmiIoT
+    if (cacheTables.find(FMI_IOT_DATA_TABLE) != cacheTables.end())
+    {
+      auto start = db->getOldestFmiIoTDataTime();
+      auto end = db->getLatestFmiIoTDataTime();
+      itsFmiIoTTimeIntervalStart = start;
+      itsFmiIoTTimeIntervalEnd = end;
+    }
+
     logMessage("[Observation Engine] SpatiaLite connection pool ready.", itsParameters.quiet);
   }
   catch (...)
