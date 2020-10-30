@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.10.22
+Version: 20.10.29
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,24 +15,24 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost169-devel
-BuildRequires: smartmet-library-spine-devel >= 20.10.20
-BuildRequires: smartmet-engine-geonames-devel >= 20.10.6
+BuildRequires: smartmet-library-spine-devel >= 20.10.28
+BuildRequires: smartmet-engine-geonames-devel >= 20.10.28
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: smartmet-library-locus-devel >= 20.10.7
-BuildRequires: smartmet-library-macgyver-devel >= 20.10.24
+BuildRequires: smartmet-library-macgyver-devel >= 20.10.28
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
-BuildRequires: fmt-devel >= 6.2.1
+BuildRequires: fmt-devel >= 7.1.0
 BuildRequires: gdal-devel
 BuildRequires: zlib-devel
-Requires: fmt >= 6.2.1
+Requires: fmt >= 7.1.0
 Requires: libconfig
-Requires: smartmet-server >= 20.10.21
-Requires: smartmet-engine-geonames >= 20.10.6
-Requires: smartmet-library-spine >= 20.10.20
+Requires: smartmet-server >= 20.10.28
+Requires: smartmet-engine-geonames >= 20.10.28
+Requires: smartmet-library-spine >= 20.10.28
 Requires: smartmet-library-locus >= 20.10.7
-Requires: smartmet-library-macgyver >= 20.10.24
+Requires: smartmet-library-macgyver >= 20.10.28
 Requires: libatomic
 Requires: unixODBC
 Requires: libspatialite >= 4.3.0a
@@ -92,6 +92,14 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+
+* Thu Oct 29 2020 Anssi Reponen <anssi.reponen@fmi.fi> - 20.10.29-1.fmi
+- Datetime-fields changed to integer in SpatiaLite cache (BRAINSTORM-1950)
+- Recactoring: SpatiaLite code moved from delfoi-library to engine
+- Fixed code, so that it is possible to cache data of fmi_iot producer
+
+* Wed Oct 28 2020 Andris Pavenis <andris.pavenis@fmi.fi> - 20.10.28-1.fmi
+- Rebuild due to fmt upgrade
 
 * Thu Oct 22 2020 Anssi Reponen <anssi.reponen@fmi.fi> - 20.10.22-1.fmi
 - New fetures:
