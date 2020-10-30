@@ -2,11 +2,11 @@
 
 #define PI 3.14159265358979323846
 
+#include "ParameterMap.h"
 #include <spine/ConfigBase.h>
 #include <spine/Parameter.h>
 #include <spine/Station.h>
 #include <spine/TimeSeries.h>
-
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/local_time/local_time.hpp>
 #include <boost/optional.hpp>
@@ -15,20 +15,18 @@
 #include <string>
 #include <vector>
 
-#include "ParameterMap.h"
-
 namespace SmartMet
 {
 namespace Engine
 {
 namespace Observation
 {
-typedef struct FlashCounts
+struct FlashCounts
 {
   int flashcount;
   int strokecount;
   int iccount;
-} FlashCounts;
+};
 
 /** \brief Remove given prefix from an input string.
  * @param[in,out] parameter The string from which the prefix is wanted to remove.
