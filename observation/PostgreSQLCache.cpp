@@ -37,13 +37,13 @@ void PostgreSQLCache::initializeConnectionPool()
     logMessage("[Observation Engine] Initializing PostgreSQL cache connection pool...",
                itsParameters.quiet);
 
-    itsConnectionPool = new PostgreSQLConnectionPool(itsParameters);
+    itsConnectionPool = new PostgreSQLCacheConnectionPool(itsParameters);
 
     // Ensure that necessary tables exists:
     // 1) stations
     // 2) locations
     // 3) observation_data
-    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    boost::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     const std::set<std::string> &cacheTables = itsCacheInfo.tables;
 
     db->createTables(cacheTables);
@@ -193,7 +193,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
     // Get data if we have stations
     if (!stations.empty())
     {
-      boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+      boost::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
       db->setDebug(settings.debug_options);
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
@@ -219,7 +219,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(Settings &set
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    boost::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     ret = db->getFlashData(settings, itsTimeZones);
 
@@ -236,7 +236,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings 
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    boost::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     ret = db->getRoadCloudData(settings, itsParameters.parameterMap, itsTimeZones);
 
@@ -254,7 +254,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &s
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    boost::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     ret = db->getNetAtmoData(settings, itsParameters.parameterMap, itsTimeZones);
 
@@ -272,7 +272,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(Settings &se
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<PostgreSQL> db = itsConnectionPool->getConnection();
+    boost::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     ret = db->getFmiIoTData(settings, itsParameters.parameterMap, itsTimeZones);
 

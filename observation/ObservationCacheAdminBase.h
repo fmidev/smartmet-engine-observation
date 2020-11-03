@@ -85,7 +85,7 @@ class ObservationCacheAdminBase
   Fmi::TimeZones itsTimeZones;
   bool itsStationsCurrentlyLoading{false};
 
- private:
+private:
   void updateObservationFakeCache(boost::shared_ptr<ObservationCache>& cache) const;
   void updateWeatherDataQCFakeCache(boost::shared_ptr<ObservationCache>& cache) const;
   void updateFlashFakeCache(boost::shared_ptr<ObservationCache>& cache) const;
@@ -113,7 +113,6 @@ class ObservationCacheAdminBase
   void addInfoToStation(SmartMet::Spine::Station& station, const std::string& language) const;
   boost::shared_ptr<ObservationCache> getCache(
       const std::string& tablename) const;
-  void logMessage(const std::string& msg) const;
   std::string driverName() const;
 
  std::unique_ptr<Fmi::AsyncTaskGroup> background_tasks;
