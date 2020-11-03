@@ -3,7 +3,7 @@
 #include "EngineParameters.h"
 #include "ObservationCache.h"
 #include "PostgreSQLCacheParameters.h"
-#include "PostgreSQLConnectionPool.h"
+#include "PostgreSQLCacheConnectionPool.h"
 #include "Settings.h"
 #include "StationtypeConfig.h"
 
@@ -83,7 +83,7 @@ class PostgreSQLCache : public ObservationCache
   void shutdown();
 
  private:
-  PostgreSQLConnectionPool *itsConnectionPool = nullptr;
+  PostgreSQLCacheConnectionPool *itsConnectionPool = nullptr;
 
   Fmi::TimeZones itsTimeZones;
 

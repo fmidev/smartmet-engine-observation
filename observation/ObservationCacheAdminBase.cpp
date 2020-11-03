@@ -3,6 +3,7 @@
 #include <macgyver/AnsiEscapeCodes.h>
 #include <spine/Convenience.h>
 
+
 namespace SmartMet
 {
 namespace Engine
@@ -70,7 +71,7 @@ void ObservationCacheAdminBase::init()
     if (cache_tables.size() > 0)
     {
       for (const auto& item : cache_tables)
-        logMessage(" Table '" + item.second + "' is cached in '" + item.first + "'...");
+        logMessage(" Table '" + item.second + "' is cached in '" + item.first + "'...", itsParameters.quiet);
     }
 
     boost::shared_ptr<ObservationCache> observationCache;
@@ -945,11 +946,11 @@ void ObservationCacheAdminBase::updateObservationCacheLoop()
       }
       catch (std::exception& err)
       {
-        logMessage(std::string(": updateObservationCacheLoop(): ") + err.what());
+        logMessage(std::string(": updateObservationCacheLoop(): ") + err.what(), itsParameters.quiet);
       }
       catch (...)
       {
-        logMessage(": updateObservationCacheLoop(): unknown error");
+        logMessage(": updateObservationCacheLoop(): unknown error", itsParameters.quiet);
       }
 
       // Use absolute time to wait, not duration since there may be spurious wakeups.
@@ -977,11 +978,11 @@ void ObservationCacheAdminBase::updateFlashCacheLoop()
       }
       catch (std::exception& err)
       {
-        logMessage(std::string(driverName() + ": updateFlashCache(): ") + err.what());
+        logMessage(std::string(driverName() + ": updateFlashCache(): ") + err.what(), itsParameters.quiet);
       }
       catch (...)
       {
-        logMessage(": updateFlashCache(): unknown error");
+        logMessage(": updateFlashCache(): unknown error", itsParameters.quiet);
       }
 
       int wait_duration = itsParameters.flashCacheUpdateInterval;
@@ -1008,11 +1009,11 @@ void ObservationCacheAdminBase::updateWeatherDataQCCacheLoop()
       }
       catch (std::exception& err)
       {
-        logMessage(std::string(": updateWeatherDataQCCache(): ") + err.what());
+        logMessage(std::string(": updateWeatherDataQCCache(): ") + err.what(), itsParameters.quiet);
       }
       catch (...)
       {
-        logMessage(": updateWeatherDataQCCache(): unknown error");
+        logMessage(": updateWeatherDataQCCache(): unknown error", itsParameters.quiet);
       }
 
       // Use absolute time to wait, not duration since there may be spurious wakeups.
@@ -1040,11 +1041,11 @@ void ObservationCacheAdminBase::updateNetAtmoCacheLoop()
       }
       catch (std::exception& err)
       {
-        logMessage(std::string(": updateNetAtmoCache(): ") + err.what());
+        logMessage(std::string(": updateNetAtmoCache(): ") + err.what(), itsParameters.quiet);
       }
       catch (...)
       {
-        logMessage(": updateNetAtmoCache(): unknown error");
+        logMessage(": updateNetAtmoCache(): unknown error", itsParameters.quiet);
       }
 
       // Use absolute time to wait, not duration since there may be spurious wakeups.
@@ -1072,11 +1073,11 @@ void ObservationCacheAdminBase::updateRoadCloudCacheLoop()
       }
       catch (std::exception& err)
       {
-        logMessage(std::string(": updateRoadCloudCache(): ") + err.what());
+        logMessage(std::string(": updateRoadCloudCache(): ") + err.what(), itsParameters.quiet);
       }
       catch (...)
       {
-        logMessage(": updateRoadCloudCache(): unknown error");
+        logMessage(": updateRoadCloudCache(): unknown error", itsParameters.quiet);
       }
 
       // Use absolute time to wait, not duration since there may be spurious wakeups.
@@ -1104,11 +1105,11 @@ void ObservationCacheAdminBase::updateFmiIoTCacheLoop()
       }
       catch (std::exception& err)
       {
-        logMessage(std::string(": updateFmiIoTCache(): ") + err.what());
+        logMessage(std::string(": updateFmiIoTCache(): ") + err.what(), itsParameters.quiet);
       }
       catch (...)
       {
-        logMessage(": updateFmiIoTCache(): unknown error");
+        logMessage(": updateFmiIoTCache(): unknown error", itsParameters.quiet);
       }
 
       // Use absolute time to wait, not duration since there may be spurious wakeups.
@@ -1139,11 +1140,11 @@ void ObservationCacheAdminBase::updateStationsCacheLoop()
       }
       catch (std::exception& err)
       {
-        logMessage(std::string(": loadStations(): ") + err.what());
+        logMessage(std::string(": loadStations(): ") + err.what(), itsParameters.quiet);
       }
       catch (...)
       {
-        logMessage(": loadStations(): unknown error");
+        logMessage(": loadStations(): unknown error", itsParameters.quiet);
       }
 
       // Use absolute time to wait, not duration since there may be spurious wakeups.
@@ -1367,14 +1368,6 @@ boost::shared_ptr<ObservationCache> ObservationCacheAdminBase::getCache(
     const std::string& tablename) const
 {
   return itsCacheProxy->getCacheByTableName(tablename);
-}
-
-void ObservationCacheAdminBase::logMessage(const std::string& msg) const
-{
-  /*
-  std::string message(driverName() + msg);
-  :logMessage(message, itsParameters.quiet);
-  */
 }
 
 std::string ObservationCacheAdminBase::driverName() const

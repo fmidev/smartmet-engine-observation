@@ -8,8 +8,6 @@ namespace Engine
 {
 namespace Observation
 {
-typedef DatabaseDriverInterface* driver_create_t(const EngineParametersPtr& p,
-                                                 Spine::ConfigBase& cfg);
 
 class DatabaseDriverFactory
 {

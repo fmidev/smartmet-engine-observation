@@ -1,4 +1,4 @@
-#include "PostgreSQLConnectionPool.h"
+#include "PostgreSQLCacheConnectionPool.h"
 #include "PostgreSQLCacheParameters.h"
 #include <macgyver/Exception.h>
 
@@ -18,7 +18,7 @@ namespace
 template <class T>
 struct Releaser
 {
-  Releaser(Engine::Observation::PostgreSQLConnectionPool* pool_handle) : poolHandle(pool_handle) {}
+  Releaser(Engine::Observation::PostgreSQLCacheConnectionPool* pool_handle) : poolHandle(pool_handle) {}
   void operator()(T* t)
   {
     try
@@ -31,11 +31,11 @@ struct Releaser
     }
   }
 
-  Engine::Observation::PostgreSQLConnectionPool* poolHandle;
+  Engine::Observation::PostgreSQLCacheConnectionPool* poolHandle;
 };
 }  // namespace
 
-PostgreSQLConnectionPool::PostgreSQLConnectionPool(const PostgreSQLCacheParameters& options)
+PostgreSQLCacheConnectionPool::PostgreSQLCacheConnectionPool(const PostgreSQLCacheParameters& options)
     : itsOptions(options)
 {
   try
@@ -45,7 +45,7 @@ PostgreSQLConnectionPool::PostgreSQLConnectionPool(const PostgreSQLCacheParamete
 
     // Create all connections in advance, not when needed
     for (std::size_t i = 0; i < itsWorkerList.size(); i++)
-      itsWorkerList[i] = boost::make_shared<PostgreSQL>(itsOptions);
+      itsWorkerList[i] = boost::make_shared<PostgreSQLCacheDB>(itsOptions);
   }
   catch (...)
   {
@@ -53,7 +53,7 @@ PostgreSQLConnectionPool::PostgreSQLConnectionPool(const PostgreSQLCacheParamete
   }
 }
 
-boost::shared_ptr<PostgreSQL> PostgreSQLConnectionPool::getConnection()
+boost::shared_ptr<PostgreSQLCacheDB> PostgreSQLCacheConnectionPool::getConnection()
 {
   try
   {
@@ -79,8 +79,8 @@ boost::shared_ptr<PostgreSQL> PostgreSQLConnectionPool::getConnection()
           {
             itsWorkingList[i] = 1;
             itsWorkerList[i]->setConnectionId(i);
-            return boost::shared_ptr<PostgreSQL>(itsWorkerList[i].get(),
-                                                 Releaser<PostgreSQL>(this));
+            return boost::shared_ptr<PostgreSQLCacheDB>(itsWorkerList[i].get(),
+                                                 Releaser<PostgreSQLCacheDB>(this));
           }
         }
       }
@@ -96,19 +96,19 @@ boost::shared_ptr<PostgreSQL> PostgreSQLConnectionPool::getConnection()
   }
 }
 
-void PostgreSQLConnectionPool::releaseConnection(int connectionId)
+void PostgreSQLCacheConnectionPool::releaseConnection(int connectionId)
 {
   try
   {
     // This mutex is not needed since writing the int is atomic. In fact, if there is a queue to
-    // get connections, releasing a PostgreSQL back to the pool would have to compete against the
+    // get connections, releasing a PostgreSQLCacheDB back to the pool would have to compete against the
     // threads which are trying to get a connection. The more requests are coming, the less
     // chances we have of releasing the connection back to the pool, which may escalate the
     // problem - Mika
 
     // boost::mutex::scoped_lock lock(itsGetMutex);
 
-    // Do "destructor" stuff here, because PostgreSQL instances are never destructed
+    // Do "destructor" stuff here, because PostgreSQLCacheDB instances are never destructed
 
     // Release the worker to the pool
     itsWorkingList[connectionId] = 0;
@@ -125,11 +125,11 @@ void PostgreSQLConnectionPool::releaseConnection(int connectionId)
  */
 // ----------------------------------------------------------------------
 
-void PostgreSQLConnectionPool::shutdown()
+void PostgreSQLCacheConnectionPool::shutdown()
 {
   try
   {
-    std::cout << "  -- Shutdown requested (PostgreSQLConnectionPool)\n";
+    std::cout << "  -- Shutdown requested (PostgreSQLCacheConnectionPool)\n";
     for (unsigned int i = 0; i < itsWorkerList.size(); i++)
     {
       auto sl = itsWorkerList[i].get();

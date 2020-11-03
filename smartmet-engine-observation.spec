@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.10.29
+Version: 20.11.3
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+
+* Tue Nov 3 2020 Anssi Reponen <anssi.reponen@fmi.fi> - 20.11.3-1.fmi
+- PostgreSQL code moved from delfoi-library to engine
 
 * Thu Oct 29 2020 Anssi Reponen <anssi.reponen@fmi.fi> - 20.10.29-1.fmi
 - Datetime-fields changed to integer in SpatiaLite cache (BRAINSTORM-1950)

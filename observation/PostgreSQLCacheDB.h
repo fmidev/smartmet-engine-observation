@@ -40,10 +40,10 @@ struct cached_data
   std::vector<boost::optional<double>> sensor_nosAll;
 };
 
-class PostgreSQL : public CommonPostgreSQLFunctions, private boost::noncopyable
+class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::noncopyable
 {
  public:
-  PostgreSQL(const PostgreSQLCacheParameters &options);
+  PostgreSQLCacheDB(const PostgreSQLCacheParameters &options);
 
   /**
    * @brief Get the time of the newest observation in observation_data table
@@ -106,7 +106,7 @@ class PostgreSQL : public CommonPostgreSQLFunctions, private boost::noncopyable
   boost::posix_time::ptime getOldestWeatherDataQCTime();
 
   /**
-   * @brief Create the PostgreSQL tables from scratch
+   * @brief Create the PostgreSQL cache tables from scratch
    */
   void createTables(const std::set<std::string> &tables);
 
