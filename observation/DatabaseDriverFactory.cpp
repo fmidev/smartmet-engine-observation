@@ -25,16 +25,14 @@ DatabaseDriverInterface *DatabaseDriverFactory::create(const EngineParametersPtr
 		activeDriverFound = true;
 		break;
 	  }
-	
-	// If no active driver found  or dbDriverFile is 'dummy' create dummy driver
-    if (!activeDriverFound || p->dbDriverFile == "dummy")
-	  {
-		return new DummyDatabaseDriver(p);
-	  }
-	
-	// Create proxy driver which distributes requests to appropriate database driver
-	return new DatabaseDriverProxy(p, cfg);
 
+	// Create proxy driver which distributes requests to appropriate database driver
+    if (activeDriverFound)
+	  return new DatabaseDriverProxy(p, cfg);
+	
+	// If no active driver found  create dummy driver
+	return new DummyDatabaseDriver(p);
+	
   }
   catch (...)
   {
