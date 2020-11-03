@@ -1,4 +1,4 @@
-#include "PostgreSQL.h"
+#include "PostgreSQLCacheDB.h"
 #include "ExternalAndMobileDBInfo.h"
 #include "PostgreSQLCacheParameters.h"
 #include "QueryMapping.h"
@@ -112,7 +112,7 @@ void solveMeasurandIds(const std::vector<std::string> &parameters,
 
 }  // namespace
 
-PostgreSQL::PostgreSQL(const PostgreSQLCacheParameters &options)
+PostgreSQLCacheDB::PostgreSQLCacheDB(const PostgreSQLCacheParameters &options)
     : CommonPostgreSQLFunctions(
           options.postgresql, options.stationtypeConfig, options.parameterMap),
       itsMaxInsertSize(options.maxInsertSize),
@@ -128,7 +128,7 @@ PostgreSQL::PostgreSQL(const PostgreSQLCacheParameters &options)
   itsIsCacheDatabase = true;
 }
 
-void PostgreSQL::createTables(const std::set<std::string> &tables)
+void PostgreSQLCacheDB::createTables(const std::set<std::string> &tables)
 {
   try
   {
@@ -158,13 +158,13 @@ void PostgreSQL::createTables(const std::set<std::string> &tables)
  */
 // ----------------------------------------------------------------------
 
-void PostgreSQL::shutdown()
+void PostgreSQLCacheDB::shutdown()
 {
-  std::cout << "  -- Shutdown requested (PostgreSQL)\n";
+  std::cout << "  -- Shutdown requested (PostgreSQLCacheDB)\n";
   itsShutdownRequested = true;
 }
 
-void PostgreSQL::createObservationDataTable()
+void PostgreSQLCacheDB::createObservationDataTable()
 {
   try
   {
@@ -198,7 +198,7 @@ void PostgreSQL::createObservationDataTable()
   }
 }
 
-void PostgreSQL::createWeatherDataQCTable()
+void PostgreSQLCacheDB::createWeatherDataQCTable()
 {
   try
   {
@@ -226,7 +226,7 @@ void PostgreSQL::createWeatherDataQCTable()
   }
 }
 
-void PostgreSQL::createFlashDataTable()
+void PostgreSQLCacheDB::createFlashDataTable()
 {
   try
   {
@@ -291,7 +291,7 @@ void PostgreSQL::createFlashDataTable()
   }
 }
 
-void PostgreSQL::createRoadCloudDataTable()
+void PostgreSQLCacheDB::createRoadCloudDataTable()
 {
   try
   {
@@ -329,7 +329,7 @@ void PostgreSQL::createRoadCloudDataTable()
   }
 }
 
-void PostgreSQL::createNetAtmoDataTable()
+void PostgreSQLCacheDB::createNetAtmoDataTable()
 {
   try
   {
@@ -367,7 +367,7 @@ void PostgreSQL::createNetAtmoDataTable()
   }
 }
 
-void PostgreSQL::createFmiIoTDataTable()
+void PostgreSQLCacheDB::createFmiIoTDataTable()
 {
   try
   {
@@ -405,7 +405,7 @@ void PostgreSQL::createFmiIoTDataTable()
   }
 }
 
-size_t PostgreSQL::selectCount(const std::string &queryString)
+size_t PostgreSQLCacheDB::selectCount(const std::string &queryString)
 {
   try
   {
@@ -426,7 +426,7 @@ size_t PostgreSQL::selectCount(const std::string &queryString)
   }
 }  // namespace Observation
 
-boost::posix_time::ptime PostgreSQL::getTime(const std::string &timeQuery) const
+boost::posix_time::ptime PostgreSQLCacheDB::getTime(const std::string &timeQuery) const
 {
   try
   {
@@ -457,37 +457,37 @@ boost::posix_time::ptime PostgreSQL::getTime(const std::string &timeQuery) const
   }
 }
 
-boost::posix_time::ptime PostgreSQL::getLatestObservationTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getLatestObservationTime()
 {
   return getTime("SELECT MAX(data_time) FROM observation_data");
 }
 
-boost::posix_time::ptime PostgreSQL::getLatestObservationModifiedTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getLatestObservationModifiedTime()
 {
   return getTime("SELECT MAX(modified_last) FROM observation_data");
 }
 
-boost::posix_time::ptime PostgreSQL::getOldestObservationTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getOldestObservationTime()
 {
   return getTime("SELECT MIN(data_time) FROM observation_data");
 }
 
-boost::posix_time::ptime PostgreSQL::getLatestWeatherDataQCTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getLatestWeatherDataQCTime()
 {
   return getTime("SELECT MAX(obstime) FROM weather_data_qc");
 }
 
-boost::posix_time::ptime PostgreSQL::getLatestWeatherDataQCModifiedTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getLatestWeatherDataQCModifiedTime()
 {
   return getTime("SELECT MAX(modified_last) FROM weather_data_qc");
 }
 
-boost::posix_time::ptime PostgreSQL::getOldestWeatherDataQCTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getOldestWeatherDataQCTime()
 {
   return getTime("SELECT MIN(obstime) FROM weather_data_qc");
 }
 
-boost::posix_time::ptime PostgreSQL::getLatestFlashModifiedTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getLatestFlashModifiedTime()
 {
   try
   {
@@ -501,7 +501,7 @@ boost::posix_time::ptime PostgreSQL::getLatestFlashModifiedTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQL::getLatestFlashTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getLatestFlashTime()
 {
   try
   {
@@ -515,7 +515,7 @@ boost::posix_time::ptime PostgreSQL::getLatestFlashTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQL::getOldestFlashTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getOldestFlashTime()
 {
   try
   {
@@ -529,7 +529,7 @@ boost::posix_time::ptime PostgreSQL::getOldestFlashTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQL::getOldestRoadCloudDataTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getOldestRoadCloudDataTime()
 {
   try
   {
@@ -543,7 +543,7 @@ boost::posix_time::ptime PostgreSQL::getOldestRoadCloudDataTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQL::getLatestRoadCloudCreatedTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getLatestRoadCloudCreatedTime()
 {
   try
   {
@@ -557,7 +557,7 @@ boost::posix_time::ptime PostgreSQL::getLatestRoadCloudCreatedTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQL::getLatestRoadCloudDataTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getLatestRoadCloudDataTime()
 {
   try
   {
@@ -571,7 +571,7 @@ boost::posix_time::ptime PostgreSQL::getLatestRoadCloudDataTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQL::getOldestNetAtmoDataTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getOldestNetAtmoDataTime()
 {
   try
   {
@@ -585,7 +585,7 @@ boost::posix_time::ptime PostgreSQL::getOldestNetAtmoDataTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQL::getLatestNetAtmoDataTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getLatestNetAtmoDataTime()
 {
   try
   {
@@ -599,7 +599,7 @@ boost::posix_time::ptime PostgreSQL::getLatestNetAtmoDataTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQL::getLatestNetAtmoCreatedTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getLatestNetAtmoCreatedTime()
 {
   try
   {
@@ -613,7 +613,7 @@ boost::posix_time::ptime PostgreSQL::getLatestNetAtmoCreatedTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQL::getOldestFmiIoTDataTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getOldestFmiIoTDataTime()
 {
   try
   {
@@ -627,7 +627,7 @@ boost::posix_time::ptime PostgreSQL::getOldestFmiIoTDataTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQL::getLatestFmiIoTDataTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getLatestFmiIoTDataTime()
 {
   try
   {
@@ -641,7 +641,7 @@ boost::posix_time::ptime PostgreSQL::getLatestFmiIoTDataTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQL::getLatestFmiIoTCreatedTime()
+boost::posix_time::ptime PostgreSQLCacheDB::getLatestFmiIoTCreatedTime()
 {
   try
   {
@@ -655,21 +655,21 @@ boost::posix_time::ptime PostgreSQL::getLatestFmiIoTCreatedTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQL::getLatestTimeFromTable(const std::string tablename,
+boost::posix_time::ptime PostgreSQLCacheDB::getLatestTimeFromTable(const std::string tablename,
                                                             const std::string time_field)
 {
   std::string stmt = ("SELECT MAX(" + time_field + ") FROM " + tablename);
   return getTime(stmt);
 }
 
-boost::posix_time::ptime PostgreSQL::getOldestTimeFromTable(const std::string tablename,
+boost::posix_time::ptime PostgreSQLCacheDB::getOldestTimeFromTable(const std::string tablename,
                                                             const std::string time_field)
 {
   std::string stmt = ("SELECT MIN(" + time_field + ") FROM " + tablename);
   return getTime(stmt);
 }
 
-void PostgreSQL::cleanDataCache(const boost::posix_time::ptime &newstarttime)
+void PostgreSQLCacheDB::cleanDataCache(const boost::posix_time::ptime &newstarttime)
 {
   try
   {
@@ -688,7 +688,7 @@ void PostgreSQL::cleanDataCache(const boost::posix_time::ptime &newstarttime)
   }
 }
 
-void PostgreSQL::cleanWeatherDataQCCache(const boost::posix_time::ptime &newstarttime)
+void PostgreSQLCacheDB::cleanWeatherDataQCCache(const boost::posix_time::ptime &newstarttime)
 {
   try
   {
@@ -707,7 +707,7 @@ void PostgreSQL::cleanWeatherDataQCCache(const boost::posix_time::ptime &newstar
   }
 }
 
-void PostgreSQL::cleanFlashDataCache(const boost::posix_time::ptime &newstarttime)
+void PostgreSQLCacheDB::cleanFlashDataCache(const boost::posix_time::ptime &newstarttime)
 {
   try
   {
@@ -727,7 +727,7 @@ void PostgreSQL::cleanFlashDataCache(const boost::posix_time::ptime &newstarttim
   }
 }
 
-void PostgreSQL::cleanRoadCloudCache(const boost::posix_time::ptime &newstarttime)
+void PostgreSQLCacheDB::cleanRoadCloudCache(const boost::posix_time::ptime &newstarttime)
 {
   try
   {
@@ -747,7 +747,7 @@ void PostgreSQL::cleanRoadCloudCache(const boost::posix_time::ptime &newstarttim
   }
 }
 
-void PostgreSQL::cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime)
+void PostgreSQLCacheDB::cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime)
 {
   try
   {
@@ -768,7 +768,7 @@ void PostgreSQL::cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime)
   }
 }
 
-void PostgreSQL::cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime)
+void PostgreSQLCacheDB::cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime)
 {
   try
   {
@@ -789,7 +789,7 @@ void PostgreSQL::cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime)
   }
 }
 
-std::size_t PostgreSQL::fillDataCache(const DataItems &cacheData)
+std::size_t PostgreSQLCacheDB::fillDataCache(const DataItems &cacheData)
 {
   try
   {
@@ -932,7 +932,7 @@ std::size_t PostgreSQL::fillDataCache(const DataItems &cacheData)
   }
 }  // namespace Observation
 
-std::size_t PostgreSQL::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData)
+std::size_t PostgreSQLCacheDB::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData)
 {
   try
   {
@@ -1057,7 +1057,7 @@ std::size_t PostgreSQL::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
   }
 }  // namespace Observation
 
-std::size_t PostgreSQL::fillFlashDataCache(const FlashDataItems &flashCacheData)
+std::size_t PostgreSQLCacheDB::fillFlashDataCache(const FlashDataItems &flashCacheData)
 {
   try
   {
@@ -1227,7 +1227,7 @@ std::size_t PostgreSQL::fillFlashDataCache(const FlashDataItems &flashCacheData)
   }
 }
 
-std::size_t PostgreSQL::fillRoadCloudCache(const MobileExternalDataItems &mobileExternalCacheData)
+std::size_t PostgreSQLCacheDB::fillRoadCloudCache(const MobileExternalDataItems &mobileExternalCacheData)
 {
   try
   {
@@ -1404,7 +1404,7 @@ std::size_t PostgreSQL::fillRoadCloudCache(const MobileExternalDataItems &mobile
   }
 }
 
-std::size_t PostgreSQL::fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData)
+std::size_t PostgreSQLCacheDB::fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData)
 {
   try
   {
@@ -1581,30 +1581,30 @@ std::size_t PostgreSQL::fillNetAtmoCache(const MobileExternalDataItems &mobileEx
   }
 }
 
-std::size_t PostgreSQL::fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData)
+std::size_t PostgreSQLCacheDB::fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData)
 {
   return 0;
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getRoadCloudData(
+SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLCacheDB::getRoadCloudData(
     const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, parameterMap, timezones);
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getNetAtmoData(
+SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLCacheDB::getNetAtmoData(
     const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, parameterMap, timezones);
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getFmiIoTData(
+SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLCacheDB::getFmiIoTData(
     const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, parameterMap, timezones);
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getMobileAndExternalData(
+SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
     const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
 {
   try
@@ -1646,7 +1646,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getMobileAndExterna
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
     SmartMet::Engine::Observation::ResultSetRows rsrs =
-        SmartMet::Engine::Observation::PostgreSQL::getResultSetForMobileExternalData(
+        SmartMet::Engine::Observation::PostgreSQLCacheDB::getResultSetForMobileExternalData(
             result_set, itsDB.dataTypes());
 
     itsTimeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
@@ -1699,7 +1699,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQL::getMobileAndExterna
   }
 }
 
-void PostgreSQL::fetchCachedDataFromDB(const std::string &sqlStmt,
+void PostgreSQLCacheDB::fetchCachedDataFromDB(const std::string &sqlStmt,
                                        struct cached_data &data,
                                        bool measurand /*= false*/)
 {
@@ -1741,7 +1741,7 @@ void PostgreSQL::fetchCachedDataFromDB(const std::string &sqlStmt,
   }
 }
 
-void PostgreSQL::addEmptyValuesToTimeSeries(
+void PostgreSQLCacheDB::addEmptyValuesToTimeSeries(
     Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
     const boost::local_time::local_date_time &obstime,
     const std::map<std::string, int> &specialPositions,
@@ -1785,7 +1785,7 @@ void PostgreSQL::addEmptyValuesToTimeSeries(
   }
 }
 
-void PostgreSQL::addParameterToTimeSeries(
+void PostgreSQLCacheDB::addParameterToTimeSeries(
     Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
     const std::pair<boost::local_time::local_date_time, std::map<std::string, ts::Value>> &dataItem,
     const std::map<std::string, int> &specialPositions,
@@ -1918,7 +1918,7 @@ void PostgreSQL::addParameterToTimeSeries(
   }
 }
 
-void PostgreSQL::addSmartSymbolToTimeSeries(
+void PostgreSQLCacheDB::addSmartSymbolToTimeSeries(
     const int pos,
     const Spine::Station &s,
     const boost::local_time::local_date_time &time,
@@ -1961,7 +1961,7 @@ void PostgreSQL::addSmartSymbolToTimeSeries(
   }
 }
 
-void PostgreSQL::addSpecialParameterToTimeSeries(
+void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(
     const std::string &paramname,
     Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
     const Spine::Station &station,
@@ -2040,7 +2040,7 @@ void PostgreSQL::addSpecialParameterToTimeSeries(
     else
     {
       std::string msg =
-          "PostgreSQL::addSpecialParameterToTimeSeries : "
+          "PostgreSQLCacheDB::addSpecialParameterToTimeSeries : "
           "Unsupported special parameter '" +
           paramname + "'";
 
@@ -2057,7 +2057,8 @@ void PostgreSQL::addSpecialParameterToTimeSeries(
 }
 
 #ifdef LATER
-FlashCounts PostgreSQL::getFlashCount(const boost::posix_time::ptime &starttime,
+TODO
+FlashCounts PostgreSQLCacheDB::getFlashCount(const boost::posix_time::ptime &starttime,
                                       const boost::posix_time::ptime &endtime,
                                       const Spine::TaggedLocationList &locations)
 {
@@ -2123,7 +2124,7 @@ FlashCounts PostgreSQL::getFlashCount(const boost::posix_time::ptime &starttime,
 }
 #endif
 
-LocationDataItems PostgreSQL::readObservations(const Spine::Stations &stations,
+LocationDataItems PostgreSQLCacheDB::readObservations(const Spine::Stations &stations,
                                                const Settings &settings,
                                                const StationInfo &stationInfo,
                                                const QueryMapping &qmap,
@@ -2228,7 +2229,7 @@ LocationDataItems PostgreSQL::readObservations(const Spine::Stations &stations,
   }
 }
 
-void PostgreSQL::createIndex(const std::string &table,
+void PostgreSQLCacheDB::createIndex(const std::string &table,
                              const std::string &column,
                              const std::string &idx_name,
                              bool transaction /*= false*/) const
@@ -2249,7 +2250,7 @@ void PostgreSQL::createIndex(const std::string &table,
 }
 
 #if 0
-void PostgreSQL::dropIndex(const std::string &idx_name, bool transaction /*= false*/) const
+void PostgreSQLCacheDB::dropIndex(const std::string &idx_name, bool transaction /*= false*/) const
 {
   try
   {
@@ -2265,7 +2266,7 @@ void PostgreSQL::dropIndex(const std::string &idx_name, bool transaction /*= fal
 }
 #endif
 
-ResultSetRows PostgreSQL::getResultSetForMobileExternalData(
+ResultSetRows PostgreSQLCacheDB::getResultSetForMobileExternalData(
     const pqxx::result &pgResultSet, const std::map<unsigned int, std::string> &pgDataTypes)
 {
   ResultSetRows ret;
@@ -2331,7 +2332,7 @@ ResultSetRows PostgreSQL::getResultSetForMobileExternalData(
   return ret;
 }
 
-void PostgreSQL::fetchWeatherDataQCData(const std::string &sqlStmt,
+void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
                                         const StationInfo &stationInfo,
                                         const std::set<std::string> &stationgroup_codes,
                                         const QueryMapping &qmap,
@@ -2406,7 +2407,7 @@ void PostgreSQL::fetchWeatherDataQCData(const std::string &sqlStmt,
   }
 }
 
-std::string PostgreSQL::sqlSelectFromWeatherDataQCData(const Settings &settings,
+std::string PostgreSQLCacheDB::sqlSelectFromWeatherDataQCData(const Settings &settings,
                                                        const std::string &params,
                                                        const std::string &station_ids) const
 {

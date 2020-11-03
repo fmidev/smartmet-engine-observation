@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PostgreSQL.h"
+#include "PostgreSQLCacheDB.h"
 #include "PostgreSQLCacheParameters.h"
 #include <spine/Thread.h>
 
@@ -10,15 +10,15 @@ namespace Engine
 {
 namespace Observation
 {
-class PostgreSQLConnectionPool
+class PostgreSQLCacheConnectionPool
 {
  public:
-  ~PostgreSQLConnectionPool() {}
-  boost::shared_ptr<PostgreSQL> getConnection();
+  ~PostgreSQLCacheConnectionPool() {}
+  boost::shared_ptr<PostgreSQLCacheDB> getConnection();
 
   void releaseConnection(int connectionId);
 
-  PostgreSQLConnectionPool(const PostgreSQLCacheParameters& options);
+  PostgreSQLCacheConnectionPool(const PostgreSQLCacheParameters& options);
 
   void shutdown();
 
@@ -26,7 +26,7 @@ class PostgreSQLConnectionPool
   PostgreSQLCacheParameters itsOptions;
 
   std::vector<int> itsWorkingList;
-  std::vector<boost::shared_ptr<PostgreSQL> > itsWorkerList;
+  std::vector<boost::shared_ptr<PostgreSQLCacheDB>> itsWorkerList;
 
   SmartMet::Spine::MutexType itsGetMutex;
 };
