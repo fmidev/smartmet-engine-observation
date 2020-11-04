@@ -104,7 +104,7 @@ class DatabaseDriverBase
   Fmi::TimeZones itsTimeZones;
   boost::atomic<bool> itsConnectionsOK{false};
   bool itsQuiet{true};
-  std::unique_ptr<DatabaseStations> itsDatabaseStations;
+  std::unique_ptr<DatabaseStations> itsDatabaseStations{nullptr};
   bool itsLoadStations{false};
 };
 
