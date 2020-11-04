@@ -136,7 +136,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    * @brief Insert cached observations into observation_data table
    * @param cacheData Observation data to be inserted into the table
    */
-  std::size_t fillFlashDataCache(const FlashDataItems &flashCacheData, InsertStatus &insertStatus);
+  std::size_t fillFlashDataCache(const FlashDataItems &cacheData, InsertStatus &insertStatus);
 
   /**
    * @brief Delete old observation data from tablename table using time_column
