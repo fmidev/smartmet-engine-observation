@@ -1050,7 +1050,8 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
             val = sensor_values.at(sensor_no);
           }
         }
-      }
+	  }
+
       timeSeriesColumns->at(timeseriesPositions.at(nameInRequest))
           .push_back(Spine::TimeSeries::TimedValue(obstime, val));
     }
@@ -1369,7 +1370,7 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
     else
     {
       std::string msg =
-          "SpatiaLite::addSpecialParameterToTimeSeries : "
+          "CommonDatabaseFunctions::addSpecialParameterToTimeSeries : "
           "Unsupported special parameter '" +
           paramname + "'";
 
@@ -1497,10 +1498,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
       pos++;
     }
 
-    std::string params;
-    for (auto pname : param_set)
-      params += ("'" + pname + "',");
-    params = trimCommasFromEnd(params);
+    std::string params = getWeatherDataQCParams(param_set);
 
     auto qmap = buildQueryMapping(stations, settings, itsParameterMap, stationtype, true);
 
@@ -1543,9 +1541,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
       std::string parameter = *weatherDataQCData.parametersAll[i];
       int sensor_no = *weatherDataQCData.sensor_nosAll[i];
       Fmi::ascii_tolower(parameter);
+
       Spine::TimeSeries::Value val;
       if (weatherDataQCData.data_valuesAll[i])
-        val = Spine::TimeSeries::Value(*weatherDataQCData.data_valuesAll[i]);
+		val = Spine::TimeSeries::Value(*weatherDataQCData.data_valuesAll[i]);
+
       data[fmisid][obstime][parameter][Fmi::to_string(sensor_no)] = val;
       Spine::TimeSeries::Value val_quality = Spine::TimeSeries::None();
       if (weatherDataQCData.data_qualityAll[i])
@@ -1571,7 +1571,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
 		int fmisid = item.first;
 	  
 		if (fmisid_to_station.find(fmisid) == fmisid_to_station.end())
-		  continue;	  
+			continue;	  
 		
         std::map<boost::local_time::local_date_time,
                  std::map<std::string, std::map<std::string, Spine::TimeSeries::Value>>>
@@ -1705,6 +1705,15 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getObservationDa
   opt.endTimeUTC = false;
 
   return getObservationData(stations, settings, stationInfo, opt, timezones);
+}
+
+std::string CommonDatabaseFunctions::getWeatherDataQCParams(const  std::set<std::string>& param_set) const
+{
+  std::string params;
+  for (auto pname : param_set)
+    params += ("'" + pname + "',");
+  params = trimCommasFromEnd(params);
+  return params;
 }
 
 }  // namespace Observation

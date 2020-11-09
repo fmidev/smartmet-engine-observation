@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.11.4
+Version: 20.11.9
 Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Nov 9 2020 Anssi Reponen <anssi.reponen@fmi.fi> - 20.11.9-1.fmi
+- Data type of paramter-field in weather_data_qc table changed to integer
+- Fixed handling of stroke_location field when inserting data in weather_data_qc table in sqlite cache
+
 * Wed Nov  4 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.11.4-2.fmi
 - Improved cache update locking logic
 

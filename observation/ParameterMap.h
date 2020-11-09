@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "RoadAndForeignIds.h"
+
 namespace SmartMet
 {
 namespace Engine
@@ -30,11 +32,13 @@ class ParameterMap
 
   NameToStationParameterMap::const_iterator begin() const { return params.begin(); }
   NameToStationParameterMap::const_iterator end() const { return params.end(); }
+  const RoadAndForeignIds& getRoadAndForeignIds() const { return road_foregn_ids; }
 
  private:
   NameToStationParameterMap params;
   NameToStationParameterMap params_id_map;
   StationParameters emptymap;
+  RoadAndForeignIds road_foregn_ids;
 };
 
 using ParameterMapPtr = boost::shared_ptr<const ParameterMap>;
