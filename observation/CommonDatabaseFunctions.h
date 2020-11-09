@@ -79,6 +79,7 @@ class CommonDatabaseFunctions
   const ParameterMapPtr &getParameterMap() const { return itsParameterMap; }
   void setDebug(bool state) { itsDebug = state; }
   bool getDebug() const { return itsDebug; }
+  virtual std::string getWeatherDataQCParams(const  std::set<std::string>& param_set) const;
 
  protected:
   QueryMapping buildQueryMapping(const Spine::Stations &stations,
@@ -105,14 +106,6 @@ class CommonDatabaseFunctions
   std::string buildSqlStationList(const Spine::Stations &stations,
                                   const std::set<std::string> &stationgroup_codes,
                                   const StationInfo &stationInfo) const;
-  /*
-  std::string sqlSelectFromObservationData(const Spine::Stations &stations,
-                                           const Settings &settings,
-                                           const StationInfo &stationInfo,
-                                           const QueryMapping &qmap,
-                                           const std::set<std::string> &stationgroup_codes,
-                                           const std::string &data_time_string) const;
-  */
   ObservationsMap buildObservationsMap(const LocationDataItems &observations,
                                        const Settings &settings,
                                        const Fmi::TimeZones &timezones,

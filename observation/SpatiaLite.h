@@ -342,6 +342,8 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
                                              const std::string &params,
                                              const std::string &station_ids) const;
 
+  std::string getWeatherDataQCParams(const  std::set<std::string>& param_set) const;
+
  private:
   // Private members
   sqlite3pp::database itsDB;

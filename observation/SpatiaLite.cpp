@@ -393,7 +393,7 @@ void SpatiaLite::createWeatherDataQCTable()
     itsDB.execute("CREATE TABLE IF NOT EXISTS weather_data_qc ("
                   "fmisid INTEGER NOT NULL, "
                   "obstime INTEGER NOT NULL, "
-                  "parameter TEXT NOT NULL, "
+                  "parameter INTEGER NOT NULL, "
                   "sensor_no INTEGER NOT NULL, "
                   "value REAL NOT NULL, "
                   "flag INTEGER NOT NULL, "
@@ -1481,6 +1481,7 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
     std::vector<std::size_t> new_hashes;
     std::vector<int> data_times;
     std::vector<int> modified_last_times;
+    std::vector<int> parameter_ids;
 
     for (std::size_t pos = 0; pos < cacheData.size(); ++pos)
     {
@@ -1496,7 +1497,7 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
         new_items.push_back(pos);
         new_hashes.push_back(hash);
       }
-
+	  
       // Insert a block if necessary
 
       const bool block_full = (new_items.size() >= itsMaxInsertSize);
@@ -1517,7 +1518,8 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
           if(!item.modified_last.is_not_a_date_time())
             modified_last_times.push_back(0);
           else
-            modified_last_times.emplace_back(to_epoch(obs.modified_last));
+            modified_last_times.emplace_back(to_epoch(obs.modified_last));		  
+		  parameter_ids.emplace_back(itsParameterMap->getRoadAndForeignIds().stringToInteger(obs.parameter));
         }
 
         {
@@ -1532,7 +1534,7 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
 
             cmd.bind(":fmisid", item.fmisid);
             cmd.bind(":obstime", data_times[i]);
-            cmd.bind(":parameter", item.parameter, sqlite3pp::nocopy);
+            cmd.bind(":parameter", parameter_ids[i]);
             cmd.bind(":sensor_no", item.sensor_no);
             cmd.bind(":value", item.value);
             cmd.bind(":flag", item.flag);
@@ -1554,6 +1556,7 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
         new_hashes.clear();
         data_times.clear();
         modified_last_times.clear();
+		parameter_ids.clear();
       }
     }
 
@@ -1609,8 +1612,8 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &cacheData,
         ":data_source,"
         ":created,"
         ":modified_last,"
-        "GeomFromText('POINT(:longitude :latitude)', 4326))";
-    
+	    "GeomFromText(:stroke_point, 4326))";
+
     // Loop over all observations, inserting only new items in groups to the cache
 
     std::vector<std::size_t> new_items;
@@ -1691,9 +1694,9 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &cacheData,
               cmd.bind(":stroke_status", item.stroke_status);
               cmd.bind(":data_source", item.data_source);
               cmd.bind(":created", created_times[i]);
-              cmd.bind(":modified_last", modified_last_times[i]);
-              cmd.bind(":longitude", item.longitude);
-              cmd.bind(":latitude", item.latitude);
+              cmd.bind(":modified_last", modified_last_times[i]);			  
+			  std::string stroke_point = "POINT(" +  Fmi::to_string("%.10g", item.longitude) + " " + Fmi::to_string("%.10g", item.latitude) + ")";
+              cmd.bind(":stroke_point", stroke_point, sqlite3pp::nocopy);
               cmd.execute();
               cmd.reset();
             }
@@ -2612,7 +2615,10 @@ try
         elevation = sloc.elevation;
       }
 
-      boost::optional<std::string> parameter = (*iter).get<std::string>(2);
+      int int_parameter = (*iter).get<int>(2);
+
+	  boost::optional<std::string> string_parameter = itsParameterMap->getRoadAndForeignIds().integerToString(int_parameter);
+
       boost::optional<double> data_value;
       if ((*iter).column_type(3) != SQLITE_NULL)
         data_value = (*iter).get<double>(3);
@@ -2624,7 +2630,7 @@ try
       cacheData.latitudesAll.push_back(latitude);
       cacheData.longitudesAll.push_back(longitude);
       cacheData.elevationsAll.push_back(elevation);
-      cacheData.parametersAll.push_back(parameter);
+      cacheData.parametersAll.push_back(string_parameter);
       cacheData.data_valuesAll.push_back(data_value);
       cacheData.sensor_nosAll.push_back(sensor_no);
       cacheData.data_qualityAll.push_back(data_quality);
@@ -2632,7 +2638,7 @@ try
       if (sensor_no)
       {
         int sensor_number = *sensor_no;
-        std::string parameter_id = (*parameter + Fmi::to_string(sensor_number));
+        std::string parameter_id = (*string_parameter + Fmi::to_string(sensor_number));
         Fmi::ascii_tolower(parameter_id);
         int parameter = boost::hash_value(parameter_id);  // We dont have measurand id in
                                                           // weather_data_qc table, so use
@@ -2705,6 +2711,20 @@ std::string SpatiaLite::sqlSelectFromWeatherDataQCData(const Settings &settings,
   {
     throw Fmi::Exception::Trace(BCP, "Constructing SQL statement for SpatiaLite cache query failed!");
   }
+}
+
+std::string SpatiaLite::getWeatherDataQCParams(const std::set<std::string>& param_set) const
+{
+  // In sqlite cache parameters are stored as integer
+  std::string params;
+  for (auto pname : param_set)
+	{
+	  int int_parameter = itsParameterMap->getRoadAndForeignIds().stringToInteger(pname);
+	  if(!params.empty())
+		params += ",";
+	  params += Fmi::to_string(int_parameter);
+	}
+  return params;
 }
 
 }  // namespace Observation
