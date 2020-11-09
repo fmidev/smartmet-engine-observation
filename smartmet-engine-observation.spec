@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 20.11.9
-Release: 2%{?dist}.fmi
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
