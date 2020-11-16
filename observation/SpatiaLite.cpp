@@ -48,6 +48,9 @@ const ptime ptime_epoch_start = from_time_t(0);
 // should use std::time_t or long here, but sqlitepp does not support it. Luckily intel 64-bit int is 8 bytes
 int to_epoch(const boost::posix_time::ptime pt)
 {
+  if(pt.is_not_a_date_time())
+	return 0;
+
   return (pt - ptime_epoch_start).total_seconds();
 }
 
@@ -1515,7 +1518,7 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
         {
           const auto & obs = cacheData[new_items[i]];
           data_times.emplace_back(to_epoch(obs.obstime));
-          if(!item.modified_last.is_not_a_date_time())
+          if(item.modified_last.is_not_a_date_time())
             modified_last_times.push_back(0);
           else
             modified_last_times.emplace_back(to_epoch(obs.modified_last));		  
@@ -1719,6 +1722,9 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &cacheData,
         
         new_items.clear();
         new_hashes.clear();
+        stroke_times.clear();
+        created_times.clear();
+        modified_last_times.clear();
       }
     }
 
