@@ -33,6 +33,9 @@ using StationNearTreeLatLon = Fmi::NearTreeLatLon<StationID>;
 class StationInfo
 {
  public:
+  StationInfo() = default;
+  StationInfo(const std::string& filename);
+  
   SmartMet::Spine::Stations stations;  // all known stations
   StationLocations stationLocations;   // all station locations
 

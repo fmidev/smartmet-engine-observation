@@ -145,6 +145,17 @@ void StationInfo::serialize(const std::string& filename) const
 
 // ----------------------------------------------------------------------
 /*!
+ * \brief Construct from serialized station information
+ */
+// ----------------------------------------------------------------------
+
+StationInfo::StationInfo(const std::string& filename)
+{
+  unserialize(filename);
+}
+
+// ----------------------------------------------------------------------
+/*!
  * \brief Unserialize station information
  */
 // ----------------------------------------------------------------------
@@ -193,6 +204,7 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
 
   // Find all stations within the distance limit
   StationNearTreeLatLon searchpoint{longitude, latitude};
+
   auto candidates = stationtree.nearestones(
       searchpoint, StationNearTreeLatLon::ChordLength(maxdistance / 1000.0));
 
