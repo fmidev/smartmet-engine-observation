@@ -47,6 +47,13 @@ Requires: gdal
 Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: make
+#TestRequires: libspatialite-devel >= 4.3.0a
+#TestRequires: gcc-c++
+#TestRequires: libpqxx-devel >= 5.0
+#TestRequires: sqlite-devel >= 3.22.0
+#TestRequires: bzip2-devel
+#TestRequires: zlib-devel
+#TestRequires: smartmet-engine-geonames >= 20.10.28
 
 Provides: %{SPECNAME}
 
