@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.11.16
+Version: 20.11.23
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Nov 23 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.11.23-1.fmi
+- Sort nearest stations first by distance and then by station name to get deterministic ordering
+
 * Mon Nov 16 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.11.16-1.fmi
 - Fixed flash cache updates
 

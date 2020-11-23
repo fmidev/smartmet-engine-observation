@@ -240,9 +240,17 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
     distances.push_back(std::make_pair(distance, id));
   }
 
-  // Sort the candidates based on distance and id (lexicographic sort)
+  // The vector is already sorted by distance. We want stations at the same distance to be
+  // in a deterministic order, so we sort again by distance AND name
 
-  std::sort(distances.begin(), distances.end());
+  std::sort(distances.begin(),
+            distances.end(),
+            [this](const StationDistance& lhs, const StationDistance& rhs) {
+              if(lhs.first != rhs.first)
+                return lhs.first < rhs.first;
+              return (this->stations.at(lhs.second).station_formal_name <
+                      this->stations.at(rhs.second).station_formal_name);
+            });
 
   // Accept only max count stations
 

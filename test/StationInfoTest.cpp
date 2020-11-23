@@ -105,6 +105,23 @@ TEST_CASE("Test station and data searches")
       REQUIRE(stations.back().station_formal_name == "kt51 Inkoo R");
       REQUIRE(Fmi::stod(stations.back().distance) < 0.1);
     }
+
+    SECTION("1 station is searched by coordinates, first one alphabetically is chosen")
+    {
+      int numberofstations = 1;
+      auto stations = stationinfo.findNearestStations(25.6116,
+                                                      60.9783,
+                                                      maxdistance,
+                                                      numberofstations,
+                                                      stationgroup_codes,
+                                                      starttime,
+                                                      endtime);
+      REQUIRE(stations.size() == 1);
+      REQUIRE(stations.back().fmisid == 100205);
+      REQUIRE(stations.back().station_formal_name == "vt12 Lahti Opt");
+      REQUIRE(Fmi::stod(stations.back().distance) < 0.2);
+    }
+    
     SECTION("5 stations are searched by coordinates")
     {
       int numberofstations = 5;
@@ -122,7 +139,7 @@ TEST_CASE("Test station and data searches")
       REQUIRE(stations[1].fmisid == 100016);
       REQUIRE(stations[2].fmisid == 100065);
       REQUIRE(stations[3].fmisid == 100039);
-      REQUIRE(stations[4].fmisid == 100015);
+      REQUIRE(stations[4].fmisid == 100063);
     }
 
     SECTION("All EXTRWS stations are searched")
