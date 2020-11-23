@@ -54,6 +54,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
 #TestRequires: smartmet-engine-geonames >= 20.10.28
+#TestRequires: smartmet-test-data
 
 Provides: %{SPECNAME}
 
