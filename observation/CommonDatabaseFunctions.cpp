@@ -1,4 +1,5 @@
 #include "CommonDatabaseFunctions.h"
+#include "SpecialParameters.h"
 #include "Utils.h"
 #include <boost/functional/hash.hpp>
 #include <macgyver/StringConversion.h>
@@ -15,8 +16,6 @@ namespace Observation
 {
 namespace
 {
-const Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
-
 template <typename Container, typename Key>
 bool exists(const Container &container, const Key &key)
 {
@@ -480,7 +479,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesA
                                  obsmap.default_sensors,
                                  stationtype,
                                  fmisid_to_station.at(fmisid),
-                                 settings.missingtext);
+                                 settings);
       }
       if (addDataSourceField && obsmap.dataSourceWithStringParameterId.find(fmisid) !=
                                     obsmap.dataSourceWithStringParameterId.end())
@@ -574,7 +573,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
                                 observations,
                                 obsmap,
                                 qmap,
-                                settings.missingtext);
+								settings);
       else
         addEmptyValuesToTimeSeries(timeSeriesColumns,
                                    t,
@@ -582,7 +581,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
                                    qmap.parameterNameMap,
                                    qmap.timeseriesPositionsString,
                                    stationtype,
-                                   fmisid_to_station.at(fmisid));
+                                   fmisid_to_station.at(fmisid),
+								   settings.timezone);
     }
 
     return timeSeriesColumns;
@@ -643,7 +643,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
                                   observations,
                                   obsmap,
                                   qmap,
-                                  settings.missingtext);
+								  settings);
         else
           addEmptyValuesToTimeSeries(timeSeriesColumns,
                                      t,
@@ -651,7 +651,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
                                      qmap.parameterNameMap,
                                      qmap.timeseriesPositionsString,
                                      stationtype,
-                                     fmisid_to_station.at(fmisid));
+                                     fmisid_to_station.at(fmisid),
+									 settings.timezone);
       }
 
       if (addDataSourceField && obsmap.dataSourceWithStringParameterId.find(fmisid) !=
@@ -697,7 +698,7 @@ void CommonDatabaseFunctions::appendWeatherParameters(
     const LocationDataItems &observations,
     ObservationsMap &obsmap,
     const QueryMapping &qmap,
-    const std::string &missingtext) const
+	const Settings &settings) const
 
 {
   try
@@ -746,6 +747,8 @@ void CommonDatabaseFunctions::appendWeatherParameters(
     {
       int pos = special.second;
 
+      Spine::TimeSeries::Value missing;
+
       const std::map<std::string, std::map<std::string, Spine::TimeSeries::Value>> *data = nullptr;
       if (stationData.find(t) != stationData.end())
         data = &(stationData.at(t));
@@ -782,11 +785,11 @@ void CommonDatabaseFunctions::appendWeatherParameters(
           {
             std::string windCompass;
             if (special.first == "windcompass8")
-              windCompass = windCompass8(boost::get<double>(val), missingtext);
+              windCompass = windCompass8(boost::get<double>(val), settings.missingtext);
             if (special.first == "windcompass16")
-              windCompass = windCompass16(boost::get<double>(val), missingtext);
+              windCompass = windCompass16(boost::get<double>(val), settings.missingtext);
             if (special.first == "windcompass32")
-              windCompass = windCompass32(boost::get<double>(val), missingtext);
+              windCompass = windCompass32(boost::get<double>(val), settings.missingtext);
             Spine::TimeSeries::Value windCompassValue = Spine::TimeSeries::Value(windCompass);
             timeSeriesColumns->at(pos).push_back(
                 Spine::TimeSeries::TimedValue(t, windCompassValue));
@@ -810,6 +813,7 @@ void CommonDatabaseFunctions::appendWeatherParameters(
 
         if (data->count(windpos) == 0 || data->count(rhpos) == 0 || data->count(temppos) == 0)
         {
+          Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
           timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(t, missing));
         }
         else
@@ -857,7 +861,7 @@ void CommonDatabaseFunctions::appendWeatherParameters(
         else
         {
           addSpecialParameterToTimeSeries(
-              fieldname, timeSeriesColumns, fmisid_to_station.at(s.fmisid), pos, stationtype, t);
+										  fieldname, timeSeriesColumns, fmisid_to_station.at(s.fmisid), pos, stationtype, t, settings.timezone);
         }
       }
     }
@@ -969,6 +973,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
     }
   }
   // Add data to result vector + handle missing time steps
+  Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
   for (const auto &item : data_source_ts)
   {
     int pos = item.first;
@@ -1009,7 +1014,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
     const std::map<int, std::map<int, int>> *defaultSensors,  // measurand_id -> sensor_no
     const std::string &stationtype,
     const Spine::Station &station,
-    const std::string &missingtext) const
+    const Settings &settings) const
 {
   try
   {
@@ -1064,6 +1069,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
         std::string mid = itsParameterMap->getParameter("winddirection", stationtype);
         if (dataItem.second.count(mid) == 0)
         {
+          Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
           timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, missing));
         }
         else
@@ -1078,11 +1084,11 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
           {
             std::string windCompass;
             if (special.first == "windcompass8")
-              windCompass = windCompass8(boost::get<double>(val), missingtext);
+              windCompass = windCompass8(boost::get<double>(val), settings.missingtext);
             if (special.first == "windcompass16")
-              windCompass = windCompass16(boost::get<double>(val), missingtext);
+              windCompass = windCompass16(boost::get<double>(val), settings.missingtext);
             if (special.first == "windcompass32")
-              windCompass = windCompass32(boost::get<double>(val), missingtext);
+              windCompass = windCompass32(boost::get<double>(val), settings.missingtext);
             Spine::TimeSeries::Value windCompassValue = Spine::TimeSeries::Value(windCompass);
             timeSeriesColumns->at(pos).push_back(
                 Spine::TimeSeries::TimedValue(obstime, windCompassValue));
@@ -1100,6 +1106,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
 
         if (data.count(windpos) == 0 || data.count(rhpos) == 0 || data.count(temppos) == 0)
         {
+          Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
           timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, missing));
         }
         else
@@ -1127,6 +1134,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
         if (data.count(wawapos) == 0 || data.count(totalcloudcoverpos) == 0 ||
             data.count(temppos) == 0)
         {
+          Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
           timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, missing));
         }
         else
@@ -1158,7 +1166,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
         else
         {
           addSpecialParameterToTimeSeries(
-              fieldname, timeSeriesColumns, station, pos, stationtype, obstime);
+										  fieldname, timeSeriesColumns, station, pos, stationtype, obstime, settings.timezone);
         }
       }
     }
@@ -1176,7 +1184,8 @@ void CommonDatabaseFunctions::addEmptyValuesToTimeSeries(
     const std::map<std::string, std::string> &parameterNameMap,
     const std::map<std::string, int> &timeseriesPositions,
     const std::string &stationtype,
-    const Spine::Station &station) const
+    const Spine::Station &station,
+	const std::string& timezone) const
 {
   try
   {
@@ -1199,12 +1208,13 @@ void CommonDatabaseFunctions::addEmptyValuesToTimeSeries(
           special.first.find("smartsymbol") != std::string::npos ||
           isDataSourceField(special.first) || isDataQualityField(special.first))
       {
+        Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
         timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, missing));
       }
       else
       {
         addSpecialParameterToTimeSeries(
-            special.first, timeSeriesColumns, station, pos, stationtype, obstime);
+										special.first, timeSeriesColumns, station, pos, stationtype, obstime, timezone);
       }
     }
   }
@@ -1240,6 +1250,7 @@ void CommonDatabaseFunctions::addSmartSymbolToTimeSeries(
     if (!exists(dataItem, wawapos_int) || !exists(dataItem, totalcloudcoverpos_int) ||
         !exists(dataItem, temppos_int))
     {
+      Spine::TimeSeries::Value missing;
       timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(time, missing));
     }
     else
@@ -1273,101 +1284,14 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
     const Spine::Station &station,
     const int pos,
     const std::string &stationtype,
-    const boost::local_time::local_date_time &obstime) const
+    const boost::local_time::local_date_time &obstime,
+	const std::string& timezone) const
 {
   try
   {
-    if (paramname == "localtime")
-      timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, obstime));
-
-    else if (paramname == "station_name" || paramname == "stationname")
-      timeSeriesColumns->at(pos).push_back(
-          Spine::TimeSeries::TimedValue(obstime, station.station_formal_name));
-
-    else if (paramname == "fmisid")
-      timeSeriesColumns->at(pos).push_back(
-          Spine::TimeSeries::TimedValue(obstime,
-              station.fmisid > 0 ? station.fmisid : missing));
-
-    else if (paramname == "geoid")
-      timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, station.geoid));
-
-    else if (paramname == "distance")
-      timeSeriesColumns->at(pos).push_back(
-          Spine::TimeSeries::TimedValue(obstime, station.distance));
-
-    else if (paramname == "direction")
-    {
-      timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(
-          obstime, station.stationDirection >= 0 ? station.stationDirection : missing));
-    }
-
-    else if (paramname == "stationary")
-      timeSeriesColumns->at(pos).push_back(
-          Spine::TimeSeries::TimedValue(obstime, station.stationary));
-
-    else if (paramname == "lon" || paramname == "longitude")
-      timeSeriesColumns->at(pos).push_back(
-          Spine::TimeSeries::TimedValue(obstime, station.requestedLon));
-
-    else if (paramname == "lat" || paramname == "latitude")
-      timeSeriesColumns->at(pos).push_back(
-          Spine::TimeSeries::TimedValue(obstime, station.requestedLat));
-
-    else if (paramname == "stationlon" || paramname == "stationlongitude")
-      timeSeriesColumns->at(pos).push_back(
-          Spine::TimeSeries::TimedValue(obstime, station.longitude_out));
-
-    else if (paramname == "stationlat" || paramname == "stationlatitude")
-      timeSeriesColumns->at(pos).push_back(
-          Spine::TimeSeries::TimedValue(obstime, station.latitude_out));
-
-    else if (paramname == "elevation" || paramname == "station_elevation")
-      timeSeriesColumns->at(pos).push_back(
-          Spine::TimeSeries::TimedValue(obstime, station.station_elevation));
-
-    else if (paramname == "wmo")
-    {
-      timeSeriesColumns->at(pos).push_back(
-          Spine::TimeSeries::TimedValue(obstime, station.wmo > 0 ? station.wmo : missing));
-    }
-    else if (paramname == "lpnn")
-    {
-      timeSeriesColumns->at(pos).push_back(
-          Spine::TimeSeries::TimedValue(obstime, station.lpnn > 0 ? station.lpnn : missing));
-    }
-    else if (paramname == "rwsid")
-    {
-      timeSeriesColumns->at(pos).push_back(
-          Spine::TimeSeries::TimedValue(obstime, station.rwsid > 0 ? station.rwsid : missing));
-    }
-    else if (paramname == "sensor_no")
-      timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, 1));
-
-    else if (paramname == "place")
-      timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, station.tag));
-
-    else if (paramname == "model")
-      timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, stationtype));
-
-    else if (paramname == "modtime")
-      timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, ""));
-
-    else if (SmartMet::Spine::is_time_parameter(paramname))
-      timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, obstime));
-
-    else
-    {
-      std::string msg =
-          "CommonDatabaseFunctions::addSpecialParameterToTimeSeries : "
-          "Unsupported special parameter '" +
-          paramname + "'";
-
-      Fmi::Exception exception(BCP, "Operation processing failed!");
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg);
-      throw exception;
-    }
+	boost::local_time::local_date_time now(boost::posix_time::second_clock::universal_time(), obstime.zone());
+	Spine::TimeSeries::TimedValue value = getSpecialParameterValue(station, stationtype, paramname, obstime, now, timezone);
+	timeSeriesColumns->at(pos).push_back(value);
   }
   catch (...)
   {
@@ -1581,7 +1505,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
                                      &default_sensors,
                                      stationtype,
                                      fmisid_to_station.at(fmisid),
-                                     settings.missingtext);
+                                     settings);
           }
           else
           {
@@ -1591,7 +1515,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
                                        parameterNameMap,
                                        timeseriesPositions,
                                        stationtype,
-                                       fmisid_to_station.at(fmisid));
+                                       fmisid_to_station.at(fmisid),
+									   settings.timezone);
           }
         }
         stationData = data_quality.at(fmisid);
@@ -1654,7 +1579,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
                                      &default_sensors,
                                      stationtype,
                                      fmisid_to_station.at(fmisid),
-                                     settings.missingtext);
+                                     settings);
           }
 
 		if (data_quality.find(fmisid) != data_quality.end())

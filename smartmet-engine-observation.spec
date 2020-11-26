@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.11.23
+Version: 20.11.26
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -100,6 +100,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Nov 26 2020 Anssi Reponen <anssi.reponen@fmi.fi> - 20.11.26-1.fmi
+- Stations sorted accodrding to distance (BRAINSTORM-1976)
+- Refactoring: moved special parameter related code from delfoi library to engine
+
 * Mon Nov 23 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.11.23-1.fmi
 - Sort nearest stations first by distance and then by station name to get deterministic ordering
 

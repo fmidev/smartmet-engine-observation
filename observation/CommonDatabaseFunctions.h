@@ -155,7 +155,8 @@ class CommonDatabaseFunctions
                                const LocationDataItems &observations,
                                ObservationsMap &obsmap,
                                const QueryMapping &qmap,
-                               const std::string &missingtext) const;
+							   const Settings &settings) const;
+
   void addSpecialFieldsToTimeSeries(
       const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
       const std::map<boost::local_time::local_date_time,
@@ -180,14 +181,15 @@ class CommonDatabaseFunctions
       const std::map<int, std::map<int, int>> *defaultSensors,  // measurand_id -> sensor_no
       const std::string &stationtype,
       const Spine::Station &station,
-      const std::string &missingtext) const;
+      const Settings &settings) const;
   void addEmptyValuesToTimeSeries(Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
                                   const boost::local_time::local_date_time &obstime,
                                   const std::map<std::string, int> &specialPositions,
                                   const std::map<std::string, std::string> &parameterNameMap,
                                   const std::map<std::string, int> &timeseriesPositions,
                                   const std::string &stationtype,
-                                  const Spine::Station &station) const;
+                                  const Spine::Station &station,
+								  const std::string& timezone) const;
   void addSmartSymbolToTimeSeries(
       const int pos,
       const Spine::Station &s,
@@ -206,7 +208,8 @@ class CommonDatabaseFunctions
       const Spine::Station &station,
       const int pos,
       const std::string &stationtype,
-      const boost::local_time::local_date_time &obstime) const;
+      const boost::local_time::local_date_time &obstime,
+	  const std::string& timezone) const;
 
   const StationtypeConfig &itsStationtypeConfig;
   const ParameterMapPtr &itsParameterMap;

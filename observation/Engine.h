@@ -105,8 +105,8 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   void unserializeStations();
   Settings beforeQuery(const Settings &settings,
                        std::vector<unsigned int> &unknownParameterIndexes) const;
-  void afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr tsvPtr,
-                  const std::vector<unsigned int> &unknownParameterIndexes) const;
+  void afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr& tsvPtr,
+                  const Settings &settings, const std::vector<unsigned int> &unknownParameterIndexes) const;
 
   std::string itsConfigFile;
 

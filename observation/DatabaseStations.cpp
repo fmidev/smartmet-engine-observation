@@ -187,12 +187,12 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
     const std::string &stationtype,
     const StationSettings &stationSettings) const
 {
-  Spine::TaggedFMISIDList ret;
+  Spine::TaggedFMISIDList result;
 
   if (stationtype == NETATMO_PRODUCER ||
       stationtype == ROADCLOUD_PRODUCER ||
       stationtype == FMI_IOT_PRODUCER)
-    return ret;
+    return result;
 
   Spine::TaggedFMISIDList wmos;
   Spine::TaggedFMISIDList lpnns;
@@ -221,16 +221,16 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
 
   if (wmos.size() > 0)
   {
-    ret.insert(ret.end(), wmos.begin(), wmos.end());
+    result.insert(result.end(), wmos.begin(), wmos.end());
   }
 
-  if (lpnns.size() > 0) ret.insert(ret.end(), lpnns.begin(), lpnns.end());
+  if (lpnns.size() > 0) result.insert(result.end(), lpnns.begin(), lpnns.end());
 
-  if (geoids.size() > 0) ret.insert(ret.end(), geoids.begin(), geoids.end());
+  if (geoids.size() > 0) result.insert(result.end(), geoids.begin(), geoids.end());
 
   // FMISIDs need no conversion
   for (auto id : stationSettings.fmisids)
-    ret.emplace_back(Fmi::to_string(id), id);
+    result.emplace_back(Fmi::to_string(id), id);
 
   // Bounding box
   if (stationSettings.bounding_box_settings.size() > 0)
@@ -240,7 +240,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
         stations, starttime, endtime, stationtype, stationSettings.bounding_box_settings);
     std::string bboxTag = DatabaseStations::getTag(stationSettings.bounding_box_settings);
     for (auto s : stations)
-      ret.emplace_back(bboxTag, s.fmisid);
+      result.emplace_back(bboxTag, s.fmisid);
   }
 
   // Find FMISIDs of nearest stations
@@ -255,7 +255,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
         // The geoid is a station, do not bother searching based on distance. We arbitrarily choose
         // direction 0.0 with distance 0.
 
-        ret.emplace_back(nssTag, *nss.fmisid, 0.0, "0");
+        result.emplace_back(nssTag, *nss.fmisid, 0.0, "0");
       }
       else
       {
@@ -274,11 +274,24 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
         if (!stations.empty())
         {
           for (Spine::Station &s : stations)
-            ret.emplace_back(nssTag, s.fmisid, s.stationDirection, s.distance);
+            result.emplace_back(nssTag, s.fmisid, s.stationDirection, s.distance);
         }
       }
     }
   }
+
+  Spine::TaggedFMISIDList ret;
+
+  // Remove duplicates
+  std::set<int> accepted_fmisids;
+  for(const auto& item : result)
+	{
+	  if(accepted_fmisids.find(item.fmisid) != accepted_fmisids.end())
+		continue;
+
+	  ret.push_back(item);
+	  accepted_fmisids.insert(item.fmisid);
+	}
 
   return ret;
 }

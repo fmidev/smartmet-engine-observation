@@ -122,6 +122,17 @@ Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(
 
 boost::posix_time::ptime epoch2ptime(double epoch);
 
+
+// ----------------------------------------------------------------------
+/*!
+ * \brief converts Spine::TimeSeries::Value to string
+ *
+ */
+// ----------------------------------------------------------------------
+
+  std::string getStringValue(const Spine::TimeSeries::Value &tv);
+
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
