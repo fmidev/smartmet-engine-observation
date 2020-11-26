@@ -15,6 +15,8 @@ namespace Observation
 {
 namespace
 {
+const Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
+
 template <typename Container, typename Key>
 bool exists(const Container &container, const Key &key)
 {
@@ -744,8 +746,6 @@ void CommonDatabaseFunctions::appendWeatherParameters(
     {
       int pos = special.second;
 
-      Spine::TimeSeries::Value missing;
-
       const std::map<std::string, std::map<std::string, Spine::TimeSeries::Value>> *data = nullptr;
       if (stationData.find(t) != stationData.end())
         data = &(stationData.at(t));
@@ -810,7 +810,6 @@ void CommonDatabaseFunctions::appendWeatherParameters(
 
         if (data->count(windpos) == 0 || data->count(rhpos) == 0 || data->count(temppos) == 0)
         {
-          Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
           timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(t, missing));
         }
         else
@@ -970,7 +969,6 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
     }
   }
   // Add data to result vector + handle missing time steps
-  Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
   for (const auto &item : data_source_ts)
   {
     int pos = item.first;
@@ -1066,7 +1064,6 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
         std::string mid = itsParameterMap->getParameter("winddirection", stationtype);
         if (dataItem.second.count(mid) == 0)
         {
-          Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
           timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, missing));
         }
         else
@@ -1103,7 +1100,6 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
 
         if (data.count(windpos) == 0 || data.count(rhpos) == 0 || data.count(temppos) == 0)
         {
-          Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
           timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, missing));
         }
         else
@@ -1131,7 +1127,6 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
         if (data.count(wawapos) == 0 || data.count(totalcloudcoverpos) == 0 ||
             data.count(temppos) == 0)
         {
-          Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
           timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, missing));
         }
         else
@@ -1204,7 +1199,6 @@ void CommonDatabaseFunctions::addEmptyValuesToTimeSeries(
           special.first.find("smartsymbol") != std::string::npos ||
           isDataSourceField(special.first) || isDataQualityField(special.first))
       {
-        Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
         timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, missing));
       }
       else
@@ -1246,7 +1240,6 @@ void CommonDatabaseFunctions::addSmartSymbolToTimeSeries(
     if (!exists(dataItem, wawapos_int) || !exists(dataItem, totalcloudcoverpos_int) ||
         !exists(dataItem, temppos_int))
     {
-      Spine::TimeSeries::Value missing;
       timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(time, missing));
     }
     else
@@ -1304,8 +1297,6 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
 
     else if (paramname == "direction")
     {
-      const Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
-
       timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(
           obstime, station.stationDirection >= 0 ? station.stationDirection : missing));
     }
@@ -1336,19 +1327,16 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
 
     else if (paramname == "wmo")
     {
-      const Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
       timeSeriesColumns->at(pos).push_back(
           Spine::TimeSeries::TimedValue(obstime, station.wmo > 0 ? station.wmo : missing));
     }
     else if (paramname == "lpnn")
     {
-      const Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
       timeSeriesColumns->at(pos).push_back(
           Spine::TimeSeries::TimedValue(obstime, station.lpnn > 0 ? station.lpnn : missing));
     }
     else if (paramname == "rwsid")
     {
-      const Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
       timeSeriesColumns->at(pos).push_back(
           Spine::TimeSeries::TimedValue(obstime, station.rwsid > 0 ? station.rwsid : missing));
     }
