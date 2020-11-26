@@ -222,8 +222,9 @@ ts::TimeSeriesVectorPtr Engine::values(Settings &settings)
 
   ts::TimeSeriesVectorPtr ret = itsDatabaseDriver->values(querySettings);
 
-  // Insert missing values for unknown parameters
-  afterQuery(ret, unknownParameterIndexes);
+  // Insert missing values for unknown parameters and 
+  // arrange data order in result set
+  afterQuery(ret, settings, unknownParameterIndexes);  
 
   return ret;
 }
@@ -313,8 +314,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr Engine::values(
   Spine::TimeSeries::TimeSeriesVectorPtr ret =
       itsDatabaseDriver->values(querySettings, timeSeriesOptions);
 
-  // Insert missing values for unknown parameters
-  afterQuery(ret, unknownParameterIndexes);
+  // Insert missing values for unknown parameters and
+  // arrange data order in result set
+  afterQuery(ret, settings, unknownParameterIndexes);
 
   return ret;
 }
@@ -356,7 +358,7 @@ Settings Engine::beforeQuery(const Settings &settings,
   return ret;
 }
 
-void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr tsvPtr,
+void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr& tsvPtr, const Settings &settings,
                         const std::vector<unsigned int> &unknownParameterIndexes) const
 {
   if (tsvPtr->size() > 0 && unknownParameterIndexes.size() > 0)
@@ -370,6 +372,58 @@ void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr tsvPtr,
     for (auto index : unknownParameterIndexes)
       tsvPtr->insert(tsvPtr->begin() + index, ts);
   }
+
+  // Arrange resultset in the right order
+  // Find out FMISID column
+  int fmisid_index = -1;
+  for (unsigned int i = 0; i < settings.parameters.size(); i++)
+	if (settings.parameters[i].name() == "fmisid")
+	  {
+		fmisid_index = i;
+		break;
+	  }
+  
+  if(fmisid_index < 0)
+	return;
+
+  const SmartMet::Spine::TimeSeries::TimeSeries& fmisid_vector = tsvPtr->at(fmisid_index);
+  std::map<std::string, std::vector<int>> fmisid_mapped_indexes;
+  // Sort out data indexes per each FMISID
+  for(unsigned int i = 0; i < fmisid_vector.size(); i++)
+	{
+	  const SmartMet::Spine::TimeSeries::Value& value = fmisid_vector.at(i).value;
+	  std::string fmisid = getStringValue(value);
+	  fmisid_mapped_indexes[fmisid].push_back(i);
+	}
+
+  // Create and initialize data structure for results
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr result =
+	SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr(new SmartMet::Spine::TimeSeries::TimeSeriesVector);
+  for (unsigned int i = 0; i < tsvPtr->size(); i++)
+      result->push_back(ts::TimeSeries());
+
+  // FMISIDs are in right order in settings.taggedFMISIDs list
+  // Iterate the list and copy data from original data structure to result structure
+  for(const auto& id : settings.taggedFMISIDs)
+	{
+	  std::string fmisid = Fmi::to_string(id.fmisid);
+	  if(fmisid_mapped_indexes.find(fmisid) == fmisid_mapped_indexes.end())
+		continue;
+	  const auto& indexes = fmisid_mapped_indexes.at(fmisid);
+	  if(indexes.empty())
+		continue;
+	  unsigned int firstIndex = indexes.front();
+	  unsigned int numberOfRows = indexes.size();
+
+	  for(unsigned int i = 0; i < tsvPtr->size(); i++)
+		{
+		  const SmartMet::Spine::TimeSeries::TimeSeries& ts = tsvPtr->at(i);
+		  SmartMet::Spine::TimeSeries::TimeSeries& resultVector = result->at(i);
+		  resultVector.insert(resultVector.end(), ts.begin() + firstIndex, ts.begin() + firstIndex + numberOfRows);
+		}
+	}
+
+  tsvPtr = result;  
 }
 
 void Engine::reloadStations()
