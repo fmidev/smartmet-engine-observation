@@ -1286,7 +1286,8 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
 
     else if (paramname == "fmisid")
       timeSeriesColumns->at(pos).push_back(
-          Spine::TimeSeries::TimedValue(obstime, station.station_id));
+          Spine::TimeSeries::TimedValue(obstime,
+              station.fmisid > 0 ? station.fmisid : missing));
 
     else if (paramname == "geoid")
       timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, station.geoid));
