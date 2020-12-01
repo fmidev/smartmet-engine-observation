@@ -1,19 +1,19 @@
 #include "QueryExternalAndMobileData.h"
 #include "ExternalAndMobileDBInfo.h"
+#include "PostgreSQLCacheDB.h"
+#include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <spine/TimeSeriesGenerator.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
-#include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
-#include "PostgreSQLCacheDB.h"
 
-//nclude <boost/algorithm/string/join.hpp>
-//nclude <boost/core/demangle.hpp>
-//nclude <boost/foreach.hpp>
-//nclude <boost/format.hpp>
-//nclude "PostgreSQLObsDB.h"
-//nclude "Utils.h"
-//nclude <macgyver/StringConversion.h>
-//nclude <macgyver/Exception.h>
-//nclude <spine/TimeSeriesOutput.h>
+// nclude <boost/algorithm/string/join.hpp>
+// nclude <boost/core/demangle.hpp>
+// nclude <boost/foreach.hpp>
+// nclude <boost/format.hpp>
+// nclude "PostgreSQLObsDB.h"
+// nclude "Utils.h"
+// nclude <macgyver/StringConversion.h>
+// nclude <macgyver/Exception.h>
+// nclude <spine/TimeSeriesOutput.h>
 //#include <string>
 //#include <macgyver/Cache.h>
 //#include <macgyver/DateTimeParser.h>
@@ -32,7 +32,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 namespace ts = SmartMet::Spine::TimeSeries;
 
 using namespace std;
@@ -71,9 +70,7 @@ class my_visitor : public boost::static_visitor<double>
 };
 
 SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
-    PostgreSQLObsDB &db,
-    Settings &settings,
-    const Fmi::TimeZones &timezones)
+    PostgreSQLObsDB &db, Settings &settings, const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -94,9 +91,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
 }
 
 SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::values(
-    PostgreSQLObsDB &db,
-    Settings &settings,
-    const Fmi::TimeZones &timezones)
+    PostgreSQLObsDB &db, Settings &settings, const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -155,14 +150,16 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
     {
       std::vector<const FmiIoTStation *> validStations = itsStations->getStations(settings.wktArea);
 
-      if (!settings.wktArea.empty() && validStations.empty()) return ret;
+      if (!settings.wktArea.empty() && validStations.empty())
+        return ret;
 
       std::vector<std::string> station_ids;
       for (const auto &item : validStations)
       {
         if (settings.stationtype_specifier == "itmf")
         {
-          if (item->target_group_id == 1201) station_ids.push_back(item->station_id);
+          if (item->target_group_id == 1201)
+            station_ids.push_back(item->station_id);
           continue;
         }
 
@@ -181,7 +178,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
                                  settings.sqlDataFilter);
     }
 
-    if (settings.debug_options) std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+    if (settings.debug_options)
+      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
     // Execute SQL statement
     Fmi::Database::PostgreSQLConnection &conn = db.getConnection();
@@ -197,8 +195,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
           timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
     }
     ResultSetRows rsrs =
-        PostgreSQLCacheDB::getResultSetForMobileExternalData(
-            result_set, conn.dataTypes());
+        PostgreSQLCacheDB::getResultSetForMobileExternalData(result_set, conn.dataTypes());
 
     for (auto rsr : rsrs)
     {
@@ -217,7 +214,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
           const FmiIoTStation &s = itsStations->getStation(station_code, obstime.utc_time());
           longitudeValue = s.longitude;
           latitudeValue = s.latitude;
-          if (s.elevation >= 0.0) elevationValue = s.elevation;
+          if (s.elevation >= 0.0)
+            elevationValue = s.elevation;
         }
       }
 
@@ -254,8 +252,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
           ts::Value value;
           if (measurands.find(fieldname) == measurands.end())
           {
-            ParameterMap::NameToStationParameterMap::const_iterator
-                iter = db.getParameterMap()->find(fieldname);
+            ParameterMap::NameToStationParameterMap::const_iterator iter =
+                db.getParameterMap()->find(fieldname);
             if (iter != db.getParameterMap()->end())
             {
               std::string producer = producerMeasurand.producerId().name();
@@ -283,7 +281,6 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
     throw Fmi::Exception::Trace(BCP, "Fetching mobile data from database failed!");
   }
 }
-
 
 }  // namespace Observation
 }  // namespace Engine

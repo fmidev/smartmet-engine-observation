@@ -15,34 +15,34 @@ namespace Engine
 {
 namespace Observation
 {
+typedef DatabaseDriverBase *driver_create_t(const std::string &driver_id,
+                                            const EngineParametersPtr &p,
+                                            Spine::ConfigBase &cfg);
 
-typedef DatabaseDriverBase* driver_create_t(const std::string& driver_id, const EngineParametersPtr& p, Spine::ConfigBase& cfg);
-
-DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p,
-                                         Spine::ConfigBase &cfg)
+DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::ConfigBase &cfg)
     : itsStationtypeConfig(p->stationtypeConfig)
 {
   try
   {
-  //  std::cout << p->databaseDriverInfo << std::endl;
+    //  std::cout << p->databaseDriverInfo << std::endl;
 
     PostgreSQLDatabaseDriverForFmiData *pPostgreSQLFmiDataDriver = nullptr;
 
     // Create all configured active database drivers
     // Each database table is mapped to a driver
-    const std::vector<DatabaseDriverInfoItem> &ddi =
-        p->databaseDriverInfo.getDatabaseDriverInfo();
+    const std::vector<DatabaseDriverInfoItem> &ddi = p->databaseDriverInfo.getDatabaseDriverInfo();
     for (const auto &item : ddi)
     {
-      if (!item.active) continue;
+      if (!item.active)
+        continue;
       const std::string &driver_id = item.name;
       DatabaseDriverBase *dbDriver = nullptr;
 
-     if (boost::algorithm::starts_with(driver_id, "spatialite_"))
-      {              
-		dbDriver = new SpatiaLiteDatabaseDriver(driver_id, p, cfg);
-	  }
- 	  else if (boost::algorithm::starts_with(driver_id, "postgresql_"))
+      if (boost::algorithm::starts_with(driver_id, "spatialite_"))
+      {
+        dbDriver = new SpatiaLiteDatabaseDriver(driver_id, p, cfg);
+      }
+      else if (boost::algorithm::starts_with(driver_id, "postgresql_"))
       {
         if (boost::algorithm::ends_with(driver_id, "mobile_observations"))
         {
@@ -59,7 +59,6 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p,
       else if (boost::algorithm::starts_with(driver_id, "oracle_") &&
                boost::algorithm::ends_with(driver_id, "_observations"))
       {
-		
         itsOracleDriver = createOracleDriver(driver_id, p, cfg);
         dbDriver = itsOracleDriver;
       }
@@ -78,8 +77,8 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p,
       }
     }
 
-	//    if (pPostgreSQLFmiDataDriver && itsOracleDriver)
-	//      pPostgreSQLFmiDataDriver->setOracleDriver(itsOracleDriver);
+    //    if (pPostgreSQLFmiDataDriver && itsOracleDriver)
+    //      pPostgreSQLFmiDataDriver->setOracleDriver(itsOracleDriver);
   }
   catch (...)
   {
@@ -90,34 +89,35 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p,
 DatabaseDriverProxy::~DatabaseDriverProxy()
 {
   for (auto driver : itsDatabaseDriverSet)
-    if (driver != nullptr) delete driver;
+    if (driver != nullptr)
+      delete driver;
 }
 
 void DatabaseDriverProxy::init(Engine *obsengine)
 {
   try
   {
-
-	bool oracleDriverInitialized = false;
-	if (itsOracleDriver && itsPostgreSQLMobileDataDriver)
+    bool oracleDriverInitialized = false;
+    if (itsOracleDriver && itsPostgreSQLMobileDataDriver)
     {
-	  // Let's initialize Oracle-driver first and fetch fmi_iot stations
-	  itsOracleDriver->init(obsengine);
-      boost::shared_ptr<FmiIoTStations> &stations = itsPostgreSQLMobileDataDriver->getFmiIoTStations();
+      // Let's initialize Oracle-driver first and fetch fmi_iot stations
+      itsOracleDriver->init(obsengine);
+      boost::shared_ptr<FmiIoTStations> &stations =
+          itsPostgreSQLMobileDataDriver->getFmiIoTStations();
       itsOracleDriver->getFMIIoTStations(stations);
-	  oracleDriverInitialized = true;
+      oracleDriverInitialized = true;
     }
 
     for (const auto &dbdriver : itsDatabaseDriverSet)
     {
-	  if(oracleDriverInitialized && dbdriver == itsOracleDriver)
-		  continue;
+      if (oracleDriverInitialized && dbdriver == itsOracleDriver)
+        continue;
       dbdriver->init(obsengine);
       if (!itsStationsDriver && dbdriver->responsibleForLoadingStations())
         itsStationsDriver = dbdriver;
-	  // Any driver can handle translateToFMISID
-	  if(!itsTranslateToFMISIDDriver)
-		itsTranslateToFMISIDDriver = dbdriver;
+      // Any driver can handle translateToFMISID
+      if (!itsTranslateToFMISIDDriver)
+        itsTranslateToFMISIDDriver = dbdriver;
     }
   }
   catch (...)
@@ -126,8 +126,7 @@ void DatabaseDriverProxy::init(Engine *obsengine)
   }
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverProxy::values(
-    Settings &settings)
+Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverProxy::values(Settings &settings)
 {
   try
   {
@@ -141,8 +140,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverProxy::values(
 }
 
 Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverProxy::values(
-    Settings &settings,
-    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
+    Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
   try
   {
@@ -164,7 +162,8 @@ Spine::TaggedFMISIDList DatabaseDriverProxy::translateToFMISID(
   try
   {
     if (itsTranslateToFMISIDDriver)
-      return itsTranslateToFMISIDDriver->translateToFMISID(starttime, endtime, stationtype, stationSettings);
+      return itsTranslateToFMISIDDriver->translateToFMISID(
+          starttime, endtime, stationtype, stationSettings);
     else
       throw Fmi::Exception::Trace(BCP, "DatabaseDriverProxy::translateToFMISID function failed!");
   }
@@ -181,10 +180,9 @@ void DatabaseDriverProxy::makeQuery(QueryBase *qb)
   return pDriver->makeQuery(qb);
 }
 
-FlashCounts DatabaseDriverProxy::getFlashCount(
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime,
-    const Spine::TaggedLocationList &locations) const
+FlashCounts DatabaseDriverProxy::getFlashCount(const boost::posix_time::ptime &starttime,
+                                               const boost::posix_time::ptime &endtime,
+                                               const Spine::TaggedLocationList &locations) const
 {
   Settings settings;
   settings.starttime = starttime;
@@ -195,24 +193,23 @@ FlashCounts DatabaseDriverProxy::getFlashCount(
   return pDriver->getFlashCount(starttime, endtime, locations);
 }
 
-boost::shared_ptr<std::vector<ObservableProperty>>
-DatabaseDriverProxy::observablePropertyQuery(std::vector<std::string> &parameters,
-                                             const std::string language)
+boost::shared_ptr<std::vector<ObservableProperty>> DatabaseDriverProxy::observablePropertyQuery(
+    std::vector<std::string> &parameters, const std::string language)
 {
   DatabaseDriverBase *pDriver = resolveDatabaseDriverByTable("measurand");
   return pDriver->observablePropertyQuery(parameters, language);
 }
 
-void DatabaseDriverProxy::getStations(Spine::Stations &stations,
-                                      const Settings &settings) const
+void DatabaseDriverProxy::getStations(Spine::Stations &stations, const Settings &settings) const
 {
   DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
   return pDriver->getStations(stations, settings);
 }
 
-void DatabaseDriverProxy::reloadStations() { 
-  if(itsStationsDriver)
-	itsStationsDriver->reloadStations(); 
+void DatabaseDriverProxy::reloadStations()
+{
+  if (itsStationsDriver)
+    itsStationsDriver->reloadStations();
 }
 
 void DatabaseDriverProxy::getStationsByArea(Spine::Stations &stations,
@@ -225,8 +222,8 @@ void DatabaseDriverProxy::getStationsByArea(Spine::Stations &stations,
   return pDriver->getStationsByArea(stations, stationtype, starttime, endtime, wkt);
 }
 
-void DatabaseDriverProxy::getStationsByBoundingBox(
-    Spine::Stations &stations, const Settings &settings) const
+void DatabaseDriverProxy::getStationsByBoundingBox(Spine::Stations &stations,
+                                                   const Settings &settings) const
 {
   DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
   return pDriver->getStationsByBoundingBox(stations, settings);
@@ -250,7 +247,8 @@ std::string DatabaseDriverProxy::id() const
 
   for (const auto &dbdriver : itsDatabaseDriverSet)
   {
-    if (!ret.empty()) ret += ", ";
+    if (!ret.empty())
+      ret += ", ";
     ret += dbdriver->id();
   }
 
@@ -263,15 +261,15 @@ std::string DatabaseDriverProxy::name() const
 
   for (const auto &dbdriver : itsDatabaseDriverSet)
   {
-    if (!ret.empty()) ret += ", ";
+    if (!ret.empty())
+      ret += ", ";
     ret += dbdriver->name();
   }
 
   return ret;
 }
 
-DatabaseDriverBase *DatabaseDriverProxy::resolveDatabaseDriver(
-    const Settings &settings) const
+DatabaseDriverBase *DatabaseDriverProxy::resolveDatabaseDriver(const Settings &settings) const
 {
   try
   {
@@ -279,12 +277,13 @@ DatabaseDriverBase *DatabaseDriverProxy::resolveDatabaseDriver(
         DatabaseDriverBase::resolveDatabaseTableName(settings.stationtype, itsStationtypeConfig);
 
     if (tablename.empty())
-	  {
-		if(itsOracleDriver)
-		  return itsOracleDriver;
+    {
+      if (itsOracleDriver)
+        return itsOracleDriver;
 
-		throw Fmi::Exception::Trace(BCP, "No database driver found for prodcer '" + settings.stationtype +"'");
-	  }
+      throw Fmi::Exception::Trace(
+          BCP, "No database driver found for prodcer '" + settings.stationtype + "'");
+    }
 
     return itsDatabaseDriverContainer.resolveDriver(
         tablename, settings.starttime, settings.endtime);
@@ -320,9 +319,11 @@ DatabaseDriverBase *DatabaseDriverProxy::resolveDatabaseDriverByTable(
   }
 }
 
-DatabaseDriverBase *DatabaseDriverProxy::createOracleDriver(const std::string &driver_id, const EngineParametersPtr &p, Spine::ConfigBase &cfg) const
+DatabaseDriverBase *DatabaseDriverProxy::createOracleDriver(const std::string &driver_id,
+                                                            const EngineParametersPtr &p,
+                                                            Spine::ConfigBase &cfg) const
 {
- try
+  try
   {
     void *handle = dlopen(p->dbDriverFile.c_str(), RTLD_NOW);
 
@@ -334,7 +335,8 @@ DatabaseDriverBase *DatabaseDriverProxy::createOracleDriver(const std::string &d
 
     // Load the symbols (pointers to functions in dynamic library)
 
-    driver_create_t *driver_create_func = reinterpret_cast<driver_create_t *>(dlsym(handle, "create"));
+    driver_create_t *driver_create_func =
+        reinterpret_cast<driver_create_t *>(dlsym(handle, "create"));
 
     // Check that pointer to create function is loaded succesfully
     if (driver_create_func == nullptr)
@@ -344,14 +346,14 @@ DatabaseDriverBase *DatabaseDriverProxy::createOracleDriver(const std::string &d
 
     // Create an instance of the class using the pointer to "create" function
 
-    DatabaseDriverBase *driver = driver_create_func(driver_id, p, cfg);	
+    DatabaseDriverBase *driver = driver_create_func(driver_id, p, cfg);
 
     if (driver == nullptr)
     {
       throw Fmi::Exception(BCP, "Unable to create a new instance of database driver class");
     }
 
-	return driver;
+    return driver;
   }
   catch (...)
   {
@@ -362,4 +364,3 @@ DatabaseDriverBase *DatabaseDriverProxy::createOracleDriver(const std::string &d
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-

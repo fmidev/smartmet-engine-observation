@@ -2,8 +2,8 @@
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
-#include <macgyver/StringConversion.h>
 #include <macgyver/Exception.h>
+#include <macgyver/StringConversion.h>
 #include <iostream>
 #include <sstream>
 
@@ -27,25 +27,25 @@ void StationtypeConfig::addStationtype(const StationtypeType& stationtype,
     if (stationtypeLower.empty())
     {
       throw Fmi::Exception(BCP,
-                             "Engine::Observation::StationtypeConfig::addStationtype : Empty "
-                             "stationtype name found.");
+                           "Engine::Observation::StationtypeConfig::addStationtype : Empty "
+                           "stationtype name found.");
     }
 
     STGroupCodeSetMapType::iterator it = m_stationtypeMap.find(stationtypeLower);
     if (it != m_stationtypeMap.end())
     {
       throw Fmi::Exception(BCP,
-                             "Engine::Observation::StationtypeConfig::addStationtype : "
-                             "Duplicate stationtype configuration '" +
-                                 stationtype + "'.");
+                           "Engine::Observation::StationtypeConfig::addStationtype : "
+                           "Duplicate stationtype configuration '" +
+                               stationtype + "'.");
     }
 
     if (stationgroupVector.empty())
     {
       throw Fmi::Exception(BCP,
-                             "Engine::Observation::StationtypeConfig::addStationtype : Empty "
-                             "group code array found for '" +
-                                 stationtype + "' stationtype");
+                           "Engine::Observation::StationtypeConfig::addStationtype : Empty "
+                           "group code array found for '" +
+                               stationtype + "' stationtype");
     }
 
     // We do not check the group code values, so e.g. zero length codes are allowed.

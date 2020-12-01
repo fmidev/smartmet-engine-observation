@@ -88,7 +88,8 @@ EngineParameters::EngineParameters(Spine::ConfigBase &cfg)
     dbRegistryFolderPath = cfg.get_mandatory_path("dbRegistryFolderPath");
 
     dbDriverFile = cfg.get_optional_config_param<std::string>(
-        "dbDriverFile", "");  // when  'dummy'-> create dummy drver, otherwise read driver info from configuration, if no driver configured create dummy driver
+        "dbDriverFile", "");  // when  'dummy'-> create dummy drver, otherwise read driver info from
+                              // configuration, if no driver configured create dummy driver
 
     cacheDB = cfg.get_optional_config_param<std::string>("cacheDB", "spatialite");
 

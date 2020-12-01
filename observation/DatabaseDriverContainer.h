@@ -8,7 +8,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 struct DatabaseDriverDays
 {
   DatabaseDriverDays(int max, DatabaseDriverBase *d) : max_days(max), driver(d) {}

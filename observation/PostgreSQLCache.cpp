@@ -375,8 +375,8 @@ bool PostgreSQLCache::dataAvailableInCache(const Settings &settings) const
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP,
-                                  "Checking if data is available in cache for stationtype '" +
-                                      settings.stationtype + "' failed!");
+                                "Checking if data is available in cache for stationtype '" +
+                                    settings.stationtype + "' failed!");
   }
 }
 
@@ -425,9 +425,9 @@ void PostgreSQLCache::cleanFlashDataCache(
 {
   try
   {
-	// Dont clean fake cache
-	if(isFakeCache(FLASH_DATA_TABLE))
-	  return;
+    // Dont clean fake cache
+    if (isFakeCache(FLASH_DATA_TABLE))
+      return;
 
     auto now = boost::posix_time::second_clock::universal_time();
 
@@ -494,9 +494,9 @@ void PostgreSQLCache::cleanDataCache(
 {
   try
   {
-	// Dont clean fake cache
-	if(isFakeCache(OBSERVATION_DATA_TABLE))
-	  return;
+    // Dont clean fake cache
+    if (isFakeCache(OBSERVATION_DATA_TABLE))
+      return;
 
     auto now = boost::posix_time::second_clock::universal_time();
 
@@ -559,9 +559,9 @@ void PostgreSQLCache::cleanWeatherDataQCCache(
 {
   try
   {
-	// Dont clean fake cache
-	if(isFakeCache(WEATHER_DATA_QC_TABLE))
-	  return;
+    // Dont clean fake cache
+    if (isFakeCache(WEATHER_DATA_QC_TABLE))
+      return;
 
     boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
@@ -642,9 +642,9 @@ void PostgreSQLCache::cleanRoadCloudCache(const boost::posix_time::time_duration
 {
   try
   {
-	// Dont clean fake cache
-	if(isFakeCache(ROADCLOUD_DATA_TABLE))
-	  return;
+    // Dont clean fake cache
+    if (isFakeCache(ROADCLOUD_DATA_TABLE))
+      return;
 
     boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
@@ -724,9 +724,9 @@ void PostgreSQLCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
 {
   try
   {
-	// Dont clean fake cache
-	if(isFakeCache(NETATMO_DATA_TABLE))
-	  return;
+    // Dont clean fake cache
+    if (isFakeCache(NETATMO_DATA_TABLE))
+      return;
 
     boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
@@ -806,9 +806,9 @@ void PostgreSQLCache::cleanFmiIoTCache(const boost::posix_time::time_duration &t
 {
   try
   {
-	// Dont clean fake cache
-	if(isFakeCache(FMI_IOT_DATA_TABLE))
-	  return;
+    // Dont clean fake cache
+    if (isFakeCache(FMI_IOT_DATA_TABLE))
+      return;
 
     boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
@@ -875,13 +875,14 @@ void PostgreSQLCache::readConfig(Spine::ConfigBase &cfg)
     itsParameters.flashInsertCacheSize = Fmi::stoi(itsCacheInfo.params.at("flashInsertCacheSize"));
     itsParameters.roadCloudInsertCacheSize =
         Fmi::stoi(itsCacheInfo.params.at("roadCloudInsertCacheSize"));
-    itsParameters.netAtmoInsertCacheSize = Fmi::stoi(itsCacheInfo.params.at("netAtmoInsertCacheSize"));
-    itsParameters.fmiIoTInsertCacheSize = Fmi::stoi(itsCacheInfo.params.at("fmiIoTInsertCacheSize"));
+    itsParameters.netAtmoInsertCacheSize =
+        Fmi::stoi(itsCacheInfo.params.at("netAtmoInsertCacheSize"));
+    itsParameters.fmiIoTInsertCacheSize =
+        Fmi::stoi(itsCacheInfo.params.at("fmiIoTInsertCacheSize"));
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(BCP,
-                                  "Reading PostgreSQL settings from configuration file failed");
+    throw Fmi::Exception::Trace(BCP, "Reading PostgreSQL settings from configuration file failed");
   }
 }
 

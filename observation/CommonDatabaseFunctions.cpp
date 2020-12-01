@@ -360,7 +360,9 @@ ObservationsMap CommonDatabaseFunctions::buildObservationsMap(
 
       Spine::TimeSeries::Value val = Spine::TimeSeries::Value(obs.data.data_value);
 
-      Spine::TimeSeries::Value data_source_val = (obs.data.data_source > -1 ? Spine::TimeSeries::Value(obs.data.data_source) : Spine::TimeSeries::None());
+      Spine::TimeSeries::Value data_source_val =
+          (obs.data.data_source > -1 ? Spine::TimeSeries::Value(obs.data.data_source)
+                                     : Spine::TimeSeries::None());
 
       ret.data[fmisid][obstime][obs.data.measurand_id][obs.data.sensor_no] = val;
       ret.dataWithStringParameterId[fmisid][obstime][Fmi::to_string(obs.data.measurand_id)]
@@ -454,14 +456,14 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesA
     for (const auto &item : obsmap.data)
     {
       int fmisid = item.first;
-	  
+
       if (fmisid_to_station.find(fmisid) == fmisid_to_station.end())
-        continue;	  
+        continue;
 
       if (obsmap.dataWithStringParameterId.find(fmisid) == obsmap.dataWithStringParameterId.end())
         continue;
 
-	  // obstime -> measurand_id -> sensor_no -> value
+      // obstime -> measurand_id -> sensor_no -> value
       // This may create an empty object for stations from which we got no values - which is fine
       std::map<boost::local_time::local_date_time,
                std::map<std::string, std::map<std::string, Spine::TimeSeries::Value>>>
@@ -552,7 +554,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
       if (fmisid_to_station.find(fmisid) == fmisid_to_station.end())
         continue;
 
-	  const Spine::Station& s = fmisid_to_station.at(fmisid);
+      const Spine::Station &s = fmisid_to_station.at(fmisid);
 
       // Get only the last time step if there is many
       boost::local_time::local_date_time t(boost::local_time::not_a_date_time);
@@ -573,7 +575,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
                                 observations,
                                 obsmap,
                                 qmap,
-								settings);
+                                settings);
       else
         addEmptyValuesToTimeSeries(timeSeriesColumns,
                                    t,
@@ -582,7 +584,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
                                    qmap.timeseriesPositionsString,
                                    stationtype,
                                    fmisid_to_station.at(fmisid),
-								   settings.timezone);
+                                   settings.timezone);
     }
 
     return timeSeriesColumns;
@@ -629,12 +631,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
       if (fmisid_to_station.find(fmisid) == fmisid_to_station.end())
         continue;
 
-	  const Spine::Station& s = fmisid_to_station.at(fmisid);
+      const Spine::Station &s = fmisid_to_station.at(fmisid);
 
       for (const boost::local_time::local_date_time &t : tlist)
       {
-        if (obsmap.dataWithStringParameterId.find(fmisid) !=
-            obsmap.dataWithStringParameterId.end())
+        if (obsmap.dataWithStringParameterId.find(fmisid) != obsmap.dataWithStringParameterId.end())
           appendWeatherParameters(s,
                                   t,
                                   timeSeriesColumns,
@@ -643,7 +644,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
                                   observations,
                                   obsmap,
                                   qmap,
-								  settings);
+                                  settings);
         else
           addEmptyValuesToTimeSeries(timeSeriesColumns,
                                      t,
@@ -652,7 +653,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseriesL
                                      qmap.timeseriesPositionsString,
                                      stationtype,
                                      fmisid_to_station.at(fmisid),
-									 settings.timezone);
+                                     settings.timezone);
       }
 
       if (addDataSourceField && obsmap.dataSourceWithStringParameterId.find(fmisid) !=
@@ -698,7 +699,7 @@ void CommonDatabaseFunctions::appendWeatherParameters(
     const LocationDataItems &observations,
     ObservationsMap &obsmap,
     const QueryMapping &qmap,
-	const Settings &settings) const
+    const Settings &settings) const
 
 {
   try
@@ -860,8 +861,13 @@ void CommonDatabaseFunctions::appendWeatherParameters(
         }
         else
         {
-          addSpecialParameterToTimeSeries(
-										  fieldname, timeSeriesColumns, fmisid_to_station.at(s.fmisid), pos, stationtype, t, settings.timezone);
+          addSpecialParameterToTimeSeries(fieldname,
+                                          timeSeriesColumns,
+                                          fmisid_to_station.at(s.fmisid),
+                                          pos,
+                                          stationtype,
+                                          t,
+                                          settings.timezone);
         }
       }
     }
@@ -1053,7 +1059,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
             val = sensor_values.at(sensor_no);
           }
         }
-	  }
+      }
 
       timeSeriesColumns->at(timeseriesPositions.at(nameInRequest))
           .push_back(Spine::TimeSeries::TimedValue(obstime, val));
@@ -1166,7 +1172,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
         else
         {
           addSpecialParameterToTimeSeries(
-										  fieldname, timeSeriesColumns, station, pos, stationtype, obstime, settings.timezone);
+              fieldname, timeSeriesColumns, station, pos, stationtype, obstime, settings.timezone);
         }
       }
     }
@@ -1185,7 +1191,7 @@ void CommonDatabaseFunctions::addEmptyValuesToTimeSeries(
     const std::map<std::string, int> &timeseriesPositions,
     const std::string &stationtype,
     const Spine::Station &station,
-	const std::string& timezone) const
+    const std::string &timezone) const
 {
   try
   {
@@ -1214,7 +1220,7 @@ void CommonDatabaseFunctions::addEmptyValuesToTimeSeries(
       else
       {
         addSpecialParameterToTimeSeries(
-										special.first, timeSeriesColumns, station, pos, stationtype, obstime, timezone);
+            special.first, timeSeriesColumns, station, pos, stationtype, obstime, timezone);
       }
     }
   }
@@ -1285,13 +1291,15 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
     const int pos,
     const std::string &stationtype,
     const boost::local_time::local_date_time &obstime,
-	const std::string& timezone) const
+    const std::string &timezone) const
 {
   try
   {
-	boost::local_time::local_date_time now(boost::posix_time::second_clock::universal_time(), obstime.zone());
-	Spine::TimeSeries::TimedValue value = getSpecialParameterValue(station, stationtype, paramname, obstime, now, timezone);
-	timeSeriesColumns->at(pos).push_back(value);
+    boost::local_time::local_date_time now(boost::posix_time::second_clock::universal_time(),
+                                           obstime.zone());
+    Spine::TimeSeries::TimedValue value =
+        getSpecialParameterValue(station, stationtype, paramname, obstime, now, timezone);
+    timeSeriesColumns->at(pos).push_back(value);
   }
   catch (...)
   {
@@ -1437,7 +1445,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
              std::map<boost::local_time::local_date_time,
                       std::map<std::string, std::map<std::string, Spine::TimeSeries::Value>>>>
         data_quality;
-	std::set<boost::local_time::local_date_time> obstimes;
+    std::set<boost::local_time::local_date_time> obstimes;
 
     for (const auto &time : weatherDataQCData.obstimesAll)
     {
@@ -1449,7 +1457,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
       auto localtz = timezones.time_zone_from_string(zone);
       boost::local_time::local_date_time obstime =
           boost::local_time::local_date_time(utctime, localtz);
-	  obstimes.insert(obstime);
+      obstimes.insert(obstime);
 
       std::string parameter = *weatherDataQCData.parametersAll[i];
       int sensor_no = *weatherDataQCData.sensor_nosAll[i];
@@ -1457,7 +1465,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
 
       Spine::TimeSeries::Value val;
       if (weatherDataQCData.data_valuesAll[i])
-		val = Spine::TimeSeries::Value(*weatherDataQCData.data_valuesAll[i]);
+        val = Spine::TimeSeries::Value(*weatherDataQCData.data_valuesAll[i]);
 
       data[fmisid][obstime][parameter][Fmi::to_string(sensor_no)] = val;
       Spine::TimeSeries::Value val_quality = Spine::TimeSeries::None();
@@ -1474,21 +1482,21 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
     auto tlist = Spine::TimeSeriesGenerator::generate(
         timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
 
-	for(const auto& t : tlist)
-	  obstimes.insert(t);
+    for (const auto &t : tlist)
+      obstimes.insert(t);
 
-	if (!settings.latest && !timeSeriesOptions.all())
+    if (!settings.latest && !timeSeriesOptions.all())
     {
-      for (const auto& item : data)
+      for (const auto &item : data)
       {
-		int fmisid = item.first;
-	  
-		if (fmisid_to_station.find(fmisid) == fmisid_to_station.end())
-			continue;	  
-		
+        int fmisid = item.first;
+
+        if (fmisid_to_station.find(fmisid) == fmisid_to_station.end())
+          continue;
+
         std::map<boost::local_time::local_date_time,
                  std::map<std::string, std::map<std::string, Spine::TimeSeries::Value>>>
-		  stationData = item.second;
+            stationData = item.second;
 
         for (const boost::local_time::local_date_time &t : obstimes)
         {
@@ -1516,7 +1524,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
                                        timeseriesPositions,
                                        stationtype,
                                        fmisid_to_station.at(fmisid),
-									   settings.timezone);
+                                       settings.timezone);
           }
         }
         stationData = data_quality.at(fmisid);
@@ -1533,67 +1541,67 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
     }
     else
     {
-      for (const auto& item : data)
+      for (const auto &item : data)
       {
-		int fmisid = item.first;
-		
-		if (fmisid_to_station.find(fmisid) == fmisid_to_station.end())
-		  continue;	  
-		
+        int fmisid = item.first;
+
+        if (fmisid_to_station.find(fmisid) == fmisid_to_station.end())
+          continue;
+
         std::map<boost::local_time::local_date_time,
                  std::map<std::string, std::map<std::string, Spine::TimeSeries::Value>>>
-		  stationData = item.second;
-		
-		boost::local_time::local_date_time latest_obstime(boost::local_time::not_a_date_time);
-		
-		tlist.clear();
-		std::set<boost::local_time::local_date_time> fmisid_timesteps;
-		for (const dataItem &item : stationData)
-          {
-            if (settings.latest)
-			  {
-				if (latest_obstime.is_not_a_date_time() || latest_obstime < item.first)
-				  latest_obstime = item.first;
-			  }
-            else
-			  {
-				tlist.push_back(item.first);
-				fmisid_timesteps.insert(item.first);
-			  }
-          }
-		if (latest_obstime.is_not_a_date_time())
-		  tlist.push_back(latest_obstime);
-		
-		for (const dataItem &item : stationData)
-          {
-            if (settings.latest && item.first != latest_obstime)
-              continue;
+            stationData = item.second;
 
-            addParameterToTimeSeries(timeSeriesColumns,
-                                     item,
-                                     fmisid,
-                                     qmap.specialPositions,
-                                     qmap.parameterNameMap,
-                                     qmap.timeseriesPositionsString,
-                                     qmap.sensorNumberToMeasurandIds,
-                                     &default_sensors,
-                                     stationtype,
-                                     fmisid_to_station.at(fmisid),
-                                     settings);
-          }
+        boost::local_time::local_date_time latest_obstime(boost::local_time::not_a_date_time);
 
-		if (data_quality.find(fmisid) != data_quality.end())
+        tlist.clear();
+        std::set<boost::local_time::local_date_time> fmisid_timesteps;
+        for (const dataItem &item : stationData)
+        {
+          if (settings.latest)
           {
-            stationData = data_quality.at(fmisid);
-            addSpecialFieldsToTimeSeries(timeSeriesColumns,
-                                         stationData,
-                                         fmisid,
-                                         qmap.specialPositions,
-                                         qmap.parameterNameMap,
-                                         &default_sensors,
-                                         tlist,
-                                         false);
+            if (latest_obstime.is_not_a_date_time() || latest_obstime < item.first)
+              latest_obstime = item.first;
           }
+          else
+          {
+            tlist.push_back(item.first);
+            fmisid_timesteps.insert(item.first);
+          }
+        }
+        if (latest_obstime.is_not_a_date_time())
+          tlist.push_back(latest_obstime);
+
+        for (const dataItem &item : stationData)
+        {
+          if (settings.latest && item.first != latest_obstime)
+            continue;
+
+          addParameterToTimeSeries(timeSeriesColumns,
+                                   item,
+                                   fmisid,
+                                   qmap.specialPositions,
+                                   qmap.parameterNameMap,
+                                   qmap.timeseriesPositionsString,
+                                   qmap.sensorNumberToMeasurandIds,
+                                   &default_sensors,
+                                   stationtype,
+                                   fmisid_to_station.at(fmisid),
+                                   settings);
+        }
+
+        if (data_quality.find(fmisid) != data_quality.end())
+        {
+          stationData = data_quality.at(fmisid);
+          addSpecialFieldsToTimeSeries(timeSeriesColumns,
+                                       stationData,
+                                       fmisid,
+                                       qmap.specialPositions,
+                                       qmap.parameterNameMap,
+                                       &default_sensors,
+                                       tlist,
+                                       false);
+        }
       }
     }
 
@@ -1621,7 +1629,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getObservationDa
   return getObservationData(stations, settings, stationInfo, opt, timezones);
 }
 
-std::string CommonDatabaseFunctions::getWeatherDataQCParams(const  std::set<std::string>& param_set) const
+std::string CommonDatabaseFunctions::getWeatherDataQCParams(
+    const std::set<std::string> &param_set) const
 {
   std::string params;
   for (auto pname : param_set)

@@ -2,11 +2,8 @@
 
 #include "DatabaseDriverParameters.h"
 #include "DatabaseStations.h"
-#include "FmiIoTStation.h"
-#include <boost/atomic.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/thread/condition.hpp>
 #include "Engine.h"
+#include "FmiIoTStation.h"
 #include "MetaData.h"
 #include "ObservableProperty.h"
 #include "ObservationCache.h"
@@ -15,6 +12,9 @@
 #include "Settings.h"
 #include "StationSettings.h"
 #include "Utils.h"
+#include <boost/atomic.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/thread/condition.hpp>
 #include <spine/Station.h>
 #include <spine/TimeSeries.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
@@ -25,7 +25,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 class DatabaseDriverBase
 {
  public:
@@ -37,32 +36,30 @@ class DatabaseDriverBase
 
   virtual void makeQuery(SmartMet::Engine::Observation::QueryBase *qb) = 0;
   virtual Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings) = 0;
-  virtual Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) = 0;
-  Spine::TaggedFMISIDList translateToFMISID(
-      const boost::posix_time::ptime &starttime,
-      const boost::posix_time::ptime &endtime,
-      const std::string &stationtype,
-      const StationSettings &stationSettings) const;
+  virtual Spine::TimeSeries::TimeSeriesVectorPtr values(
+      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) = 0;
+  Spine::TaggedFMISIDList translateToFMISID(const boost::posix_time::ptime &starttime,
+                                            const boost::posix_time::ptime &endtime,
+                                            const std::string &stationtype,
+                                            const StationSettings &stationSettings) const;
   void getStationsByArea(Spine::Stations &stations,
                          const std::string &stationtype,
                          const boost::posix_time::ptime &starttime,
                          const boost::posix_time::ptime &endtime,
                          const std::string &wkt) const;
-  void getStationsByBoundingBox(Spine::Stations &stations,
-                                const Settings &settings) const;
+  void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const;
 
   void getStations(Spine::Stations &stations, const Settings &settings) const;
 
-  virtual FlashCounts getFlashCount(
-      const boost::posix_time::ptime &starttime,
-      const boost::posix_time::ptime &endtime,
-      const Spine::TaggedLocationList &locations) const
+  virtual FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
+                                    const boost::posix_time::ptime &endtime,
+                                    const Spine::TaggedLocationList &locations) const
   {
     return FlashCounts();
   }
 
-  virtual boost::shared_ptr<std::vector<ObservableProperty>>
-  observablePropertyQuery(std::vector<std::string> &parameters, const std::string language) = 0;
+  virtual boost::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
+      std::vector<std::string> &parameters, const std::string language) = 0;
 
   virtual void shutdown() = 0;
 
@@ -73,28 +70,25 @@ class DatabaseDriverBase
 
   bool responsibleForLoadingStations() const { return itsLoadStations; }
   virtual void reloadStations() {}
-  static std::string resolveDatabaseTableName(
-      const std::string &producer, const StationtypeConfig &stationtypeConfig);
+  static std::string resolveDatabaseTableName(const std::string &producer,
+                                              const StationtypeConfig &stationtypeConfig);
 
  protected:
   bool isParameter(const std::string &alias,
                    const std::string &stationType,
                    const ParameterMap &parameterMap) const;
-  bool isParameterVariant(const std::string &name,
-                          const ParameterMap &parameterMap) const;
+  bool isParameterVariant(const std::string &name, const ParameterMap &parameterMap) const;
 
   void parameterSanityCheck(const std::string &stationtype,
                             const std::vector<Spine::Parameter> &parameters,
                             const ParameterMap &parameterMap) const;
-  void updateProducers(const EngineParametersPtr &p,
-                       Settings &settings) const;
+  void updateProducers(const EngineParametersPtr &p, Settings &settings) const;
   void readConfig(Spine::ConfigBase &cfg, DatabaseDriverParameters &parameters);
   void readMetaData(Spine::ConfigBase &cfg);
-  std::string resolveCacheTableName(
-      const std::string &producer,
-      const StationtypeConfig &stationtypeConfig) const;
-  boost::shared_ptr<ObservationCache> resolveCache(
-      const std::string &producer, const EngineParametersPtr &parameters) const;
+  std::string resolveCacheTableName(const std::string &producer,
+                                    const StationtypeConfig &stationtypeConfig) const;
+  boost::shared_ptr<ObservationCache> resolveCache(const std::string &producer,
+                                                   const EngineParametersPtr &parameters) const;
 
   boost::atomic<bool> itsShutdownRequested{false};
   std::set<std::string> itsSupportedProducers;

@@ -1,12 +1,12 @@
 #include "PostgreSQLDatabaseDriverForFmiData.h"
-#include "QueryObservablePropertyPostgreSQL.h"
-#include <boost/date_time/posix_time/posix_time.hpp>  //include all types plus i/o
-#include <boost/date_time/time_duration.hpp>
-#include <boost/make_shared.hpp>
 #include "ObservationCache.h"
+#include "QueryObservablePropertyPostgreSQL.h"
 #include "QueryResult.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
+#include <boost/date_time/posix_time/posix_time.hpp>  //include all types plus i/o
+#include <boost/date_time/time_duration.hpp>
+#include <boost/make_shared.hpp>
 #include <spine/Convenience.h>
 #include <atomic>
 #include <chrono>
@@ -23,11 +23,9 @@ namespace Engine
 {
 namespace Observation
 {
-
-PostgreSQLDatabaseDriverForFmiData::PostgreSQLDatabaseDriverForFmiData(
-    const std::string &name,
-    const EngineParametersPtr &p,
-    Spine::ConfigBase &cfg)
+PostgreSQLDatabaseDriverForFmiData::PostgreSQLDatabaseDriverForFmiData(const std::string &name,
+                                                                       const EngineParametersPtr &p,
+                                                                       Spine::ConfigBase &cfg)
     : PostgreSQLDatabaseDriver(name, p, cfg)
 {
   setlocale(LC_NUMERIC, "en_US.utf8");
@@ -35,8 +33,7 @@ PostgreSQLDatabaseDriverForFmiData::PostgreSQLDatabaseDriverForFmiData(
   readConfig(cfg);
 }
 
-void PostgreSQLDatabaseDriverForFmiData::setSettings(Settings &settings,
-                                                     PostgreSQLObsDB &db)
+void PostgreSQLDatabaseDriverForFmiData::setSettings(Settings &settings, PostgreSQLObsDB &db)
 {
   try
   {
@@ -94,10 +91,10 @@ void PostgreSQLDatabaseDriverForFmiData::init(Engine *obsengine)
   try
   {
     PostgreSQLDatabaseDriver::init(obsengine);
-	/*
-    itsDatabaseStations.reset(
-        new DatabaseStations(itsParameters.params, itsObsEngine->getGeonames()));
-	*/
+    /*
+itsDatabaseStations.reset(
+    new DatabaseStations(itsParameters.params, itsObsEngine->getGeonames()));
+    */
   }
   catch (...)
   {
@@ -109,7 +106,8 @@ void PostgreSQLDatabaseDriverForFmiData::makeQuery(QueryBase *qb)
 {
   try
   {
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
     if (qb == nullptr)
     {
@@ -143,7 +141,8 @@ void PostgreSQLDatabaseDriverForFmiData::makeQuery(QueryBase *qb)
         itsParameters.params->queryResultBaseCache.find(sqlStatement);
     if (cacheResult)
     {
-      if (result->set(cacheResult.get())) return;
+      if (result->set(cacheResult.get()))
+        return;
     }
 
     if (result == nullptr)
@@ -179,10 +178,10 @@ void PostgreSQLDatabaseDriverForFmiData::makeQuery(QueryBase *qb)
   }
 }
 
-ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
-    Settings &settings)
+ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &settings)
 {
-  if (itsShutdownRequested) return nullptr;
+  if (itsShutdownRequested)
+    return nullptr;
 
   parameterSanityCheck(
       settings.stationtype, settings.parameters, *itsParameters.params->parameterMap);
@@ -270,10 +269,10 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
  */
 
 Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
-    Settings &settings,
-    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
+    Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
-  if (itsShutdownRequested) return nullptr;
+  if (itsShutdownRequested)
+    return nullptr;
 
   parameterSanityCheck(
       settings.stationtype, settings.parameters, *itsParameters.params->parameterMap);
@@ -351,8 +350,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::value
   }
 }
 
-void PostgreSQLDatabaseDriverForFmiData::getStations(
-    Spine::Stations &stations, const Settings &settings) const
+void PostgreSQLDatabaseDriverForFmiData::getStations(Spine::Stations &stations,
+                                                     const Settings &settings) const
 {
   itsDatabaseStations->getStations(stations, settings);
 }
@@ -366,8 +365,8 @@ void PostgreSQLDatabaseDriverForFmiData::getStationsByArea(
   itsDatabaseStations->getStationsByArea(stations, stationtype, starttime, endtime, wkt);
 }
 
-void PostgreSQLDatabaseDriverForFmiData::getStationsByBoundingBox(
-    Spine::Stations &stations, const Settings &settings) const
+void PostgreSQLDatabaseDriverForFmiData::getStationsByBoundingBox(Spine::Stations &stations,
+                                                                  const Settings &settings) const
 {
   itsDatabaseStations->getStationsByBoundingBox(stations, settings);
 }
@@ -432,7 +431,10 @@ void PostgreSQLDatabaseDriverForFmiData::readConfig(Spine::ConfigBase &cfg)
   }
 }
 
-std::string PostgreSQLDatabaseDriverForFmiData::id() const { return "postgresql_fmi"; }
+std::string PostgreSQLDatabaseDriverForFmiData::id() const
+{
+  return "postgresql_fmi";
+}
 
 }  // namespace Observation
 }  // namespace Engine

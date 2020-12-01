@@ -1,9 +1,9 @@
 #pragma once
 
+#include "ExternalAndMobileProducerConfig.h"
 #include "FmiIoTStation.h"
 #include "PostgreSQLObsDB.h"
 #include "QueryBase.h"
-#include "ExternalAndMobileProducerConfig.h"
 
 namespace SmartMet
 {
@@ -11,20 +11,17 @@ namespace Engine
 {
 namespace Observation
 {
-
 class QueryExternalAndMobileData : public QueryBase
 {
  public:
-  QueryExternalAndMobileData(
-      const ExternalAndMobileProducerConfig &producerConfig,
-      const boost::shared_ptr<FmiIoTStations> &stations);
+  QueryExternalAndMobileData(const ExternalAndMobileProducerConfig &producerConfig,
+                             const boost::shared_ptr<FmiIoTStations> &stations);
 
   virtual ~QueryExternalAndMobileData();
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr executeQuery(
-      PostgreSQLObsDB &db,
-      Settings &settings,
-      const Fmi::TimeZones &timezones);
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr executeQuery(PostgreSQLObsDB &db,
+                                                                Settings &settings,
+                                                                const Fmi::TimeZones &timezones);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr executeQuery(
       PostgreSQLObsDB &db,
@@ -32,10 +29,9 @@ class QueryExternalAndMobileData : public QueryBase
       const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr values(
-      PostgreSQLObsDB &db,
-      Settings &settings,
-      const Fmi::TimeZones &timezones);
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr values(PostgreSQLObsDB &db,
+                                                          Settings &settings,
+                                                          const Fmi::TimeZones &timezones);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr values(
       PostgreSQLObsDB &db,

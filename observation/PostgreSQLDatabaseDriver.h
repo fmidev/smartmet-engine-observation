@@ -2,9 +2,9 @@
 
 #include "DatabaseDriverBase.h"
 #include "ObservationCacheAdminPostgreSQL.h"
+#include "PostgreSQLDriverParameters.h"
 #include "PostgreSQLObsDB.h"
 #include "PostgreSQLObsDBConnectionPool.h"
-#include "PostgreSQLDriverParameters.h"
 
 #include "Engine.h"
 #include <memory>
@@ -16,7 +16,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 class PostgreSQLDatabaseDriver : public DatabaseDriverBase
 {
  public:

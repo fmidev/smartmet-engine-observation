@@ -1,8 +1,8 @@
 #include "SpecialParameters.h"
-#include <macgyver/StringConversion.h>
 #include <macgyver/Exception.h>
-#include <spine/ValueFormatter.h>
+#include <macgyver/StringConversion.h>
 #include <spine/ParameterTools.h>
+#include <spine/ValueFormatter.h>
 
 namespace SmartMet
 {
@@ -10,18 +10,17 @@ namespace Engine
 {
 namespace Observation
 {
-
 Spine::TimeSeries::TimedValue getSpecialParameterValue(
     const Spine::Station &station,
     const std::string &stationType,
     const std::string &parameter,
     const boost::local_time::local_date_time &obstime,
     const boost::local_time::local_date_time &origintime,
-	const std::string& timeZone)
+    const std::string &timeZone)
 {
   try
   {
-	Spine::TimeSeries::Value value = Spine::TimeSeries::None();
+    Spine::TimeSeries::Value value = Spine::TimeSeries::None();
 
     if (parameter == "name")
     {
@@ -39,11 +38,11 @@ Spine::TimeSeries::TimedValue getSpecialParameterValue(
     else if (parameter == "distance")
     {
       if (!station.distance.empty())
-		{
-		  Spine::ValueFormatterParam vfp;
-		  Spine::ValueFormatter valueFormatter(vfp);
-		  value = valueFormatter.format(Fmi::stod(station.distance), 1);
-		}
+      {
+        Spine::ValueFormatterParam vfp;
+        Spine::ValueFormatter valueFormatter(vfp);
+        value = valueFormatter.format(Fmi::stod(station.distance), 1);
+      }
     }
     else if (parameter == "stationary")
       value = station.stationary;
@@ -69,21 +68,21 @@ Spine::TimeSeries::TimedValue getSpecialParameterValue(
         value = station.wmo;
     }
     else if (parameter == "lpnn")
-	  {
+    {
       if (station.lpnn > 0)
-		value = station.lpnn;
-	  }
+        value = station.lpnn;
+    }
     else if (parameter == "fmisid")
-	  {
-		if(station.fmisid > 0)
-		  value = station.fmisid;
-	  }
+    {
+      if (station.fmisid > 0)
+        value = station.fmisid;
+    }
 
     else if (parameter == "rwsid")
-	  {
-		if(station.rwsid > 0)
-		  value = station.rwsid;
-	  }
+    {
+      if (station.rwsid > 0)
+        value = station.rwsid;
+    }
 
     // modtime is only for timeseries compatibility
     else if (parameter == "modtime")
@@ -118,11 +117,11 @@ Spine::TimeSeries::TimedValue getSpecialParameterValue(
     else if (parameter == "direction")
     {
       if (station.stationDirection >= 0)
-		{
-		  Spine::ValueFormatterParam vfp;
-		  Spine::ValueFormatter valueFormatter(vfp);
-		  value = valueFormatter.format(station.stationDirection, 1);
-		}
+      {
+        Spine::ValueFormatterParam vfp;
+        Spine::ValueFormatter valueFormatter(vfp);
+        value = valueFormatter.format(station.stationDirection, 1);
+      }
     }
     else if (parameter == "country")
       value = station.country;

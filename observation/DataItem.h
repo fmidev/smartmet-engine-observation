@@ -23,7 +23,7 @@ class DataItem
   int producer_id = 0;
   int measurand_no = 0;
   int data_quality = 0;
-  int data_source = -1; // -1 indicates NULL value
+  int data_source = -1;  // -1 indicates NULL value
 
   std::size_t hash_value() const;
 };

@@ -3,8 +3,8 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/asio/ip/host_name.hpp>
 #include <macgyver/AnsiEscapeCodes.h>
-#include <macgyver/StringConversion.h>
 #include <macgyver/Exception.h>
+#include <macgyver/StringConversion.h>
 
 namespace SmartMet
 {
@@ -97,9 +97,9 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
 
       if (boost::algorithm::starts_with(name, "spatialite_"))
       {
-		readSpatiaLiteCommonInfo(cfg, name, item.params);
-		if(boost::algorithm::ends_with(name, "_cache"))
-		  readSpatiaLiteConnectInfo(cfg, name, item.params);
+        readSpatiaLiteCommonInfo(cfg, name, item.params);
+        if (boost::algorithm::ends_with(name, "_cache"))
+          readSpatiaLiteConnectInfo(cfg, name, item.params);
       }
       if (boost::algorithm::starts_with(name, "postgresql_"))
       {
@@ -154,10 +154,9 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
           itsCacheInfoItems[cii_from.first].mergeCacheInfo(cii_from.second);
     }
 
-	if (loadStationsParam > 1)
+    if (loadStationsParam > 1)
       throw Fmi::Exception::Trace(
-          BCP,
-          "Parameter loadStations defined to be true in more than one database driver!");
+          BCP, "Parameter loadStations defined to be true in more than one database driver!");
   }
   catch (...)
   {
@@ -267,8 +266,7 @@ void DatabaseDriverInfo::readOracleConnectInfo(
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(BCP,
-                                            "Reading Oracle database driver configuration failed!");
+    throw Fmi::Exception::Trace(BCP, "Reading Oracle database driver configuration failed!");
   }
 }
 
@@ -410,8 +408,8 @@ void DatabaseDriverInfo::readPostgreSQLMobileCommonInfo(Spine::ConfigBase& cfg,
 }
 
 void DatabaseDriverInfo::readFakeCacheInfo(Spine::ConfigBase& cfg,
-										   const std::string& name,
-										   std::map<std::string, std::string>& params)
+                                           const std::string& name,
+                                           std::map<std::string, std::string>& params)
 {
   libconfig::Config& lc = cfg.get_config();
   std::vector<std::string> table_names;
@@ -419,30 +417,30 @@ void DatabaseDriverInfo::readFakeCacheInfo(Spine::ConfigBase& cfg,
   table_names.push_back("weather_data_qc");
   table_names.push_back("flash_data");
 
-  for(const auto& tablename : table_names)
-	{
-	  std::string id = name + "." + tablename;
-	  if (lc.exists(id))
-		{
-		  std::string settings_str;
-		  const libconfig::Setting& settings = lc.lookup(id);
-		  int count = settings.getLength();
-		  
-		  for (int i = 0; i < count; ++i)
-			{
-			  std::string starttime = settings[i]["starttime"]; 
-			  std::string endtime = settings[i]["endtime"]; 
-			  std::string measurand_id = "";
-			  std::string fmisid = "";
-			  if(settings[i].exists("measurand_id"))
-				measurand_id = (settings[i]["measurand_id"]).c_str();
-			  if(settings[i].exists("fmisid"))
-				fmisid = (settings[i]["fmisid"]).c_str();
-			  settings_str += (starttime+";"+endtime+";"+measurand_id+";"+fmisid+"#");
-			}
-		  params[tablename] = settings_str;
-		}
-	}
+  for (const auto& tablename : table_names)
+  {
+    std::string id = name + "." + tablename;
+    if (lc.exists(id))
+    {
+      std::string settings_str;
+      const libconfig::Setting& settings = lc.lookup(id);
+      int count = settings.getLength();
+
+      for (int i = 0; i < count; ++i)
+      {
+        std::string starttime = settings[i]["starttime"];
+        std::string endtime = settings[i]["endtime"];
+        std::string measurand_id = "";
+        std::string fmisid = "";
+        if (settings[i].exists("measurand_id"))
+          measurand_id = (settings[i]["measurand_id"]).c_str();
+        if (settings[i].exists("fmisid"))
+          fmisid = (settings[i]["fmisid"]).c_str();
+        settings_str += (starttime + ";" + endtime + ";" + measurand_id + ";" + fmisid + "#");
+      }
+      params[tablename] = settings_str;
+    }
+  }
 }
 
 void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
@@ -457,17 +455,21 @@ void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
       Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".quiet", defaultQuiet));
 
   if (boost::algorithm::ends_with(name, "_observations"))
-	{
-	  params["loadStations"] = Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".loadStations", false));
-	  params["connectionTimeout"] = Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".connectionTimeout", 30));
-	  params["timer"] = Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".timer", false));
-	  params["disableAllCacheUpdates"] = Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".disableAllCacheUpdates", false));
-	  return;
-	}
+  {
+    params["loadStations"] =
+        Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".loadStations", false));
+    params["connectionTimeout"] = Fmi::to_string(
+        cfg.get_optional_config_param<size_t>(common_key + ".connectionTimeout", 30));
+    params["timer"] =
+        Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".timer", false));
+    params["disableAllCacheUpdates"] = Fmi::to_string(
+        cfg.get_optional_config_param<bool>(common_key + ".disableAllCacheUpdates", false));
+    return;
+  }
 
   if (cfg.get_config().exists(common_key + ".fake_cache"))
-	readFakeCacheInfo(cfg, common_key + ".fake_cache", params);
-  
+    readFakeCacheInfo(cfg, common_key + ".fake_cache", params);
+
   params["threading_mode"] =
       cfg.get_mandatory_config_param<std::string>(common_key + ".threading_mode");
   params["synchronous"] = cfg.get_mandatory_config_param<std::string>(common_key + ".synchronous");

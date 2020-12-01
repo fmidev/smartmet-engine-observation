@@ -7,7 +7,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 bool sort_function(const DatabaseDriverDays &first, const DatabaseDriverDays &second)
 {
   return (first.max_days < second.max_days);

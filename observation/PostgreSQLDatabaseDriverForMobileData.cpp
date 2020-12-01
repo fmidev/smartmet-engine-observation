@@ -1,13 +1,13 @@
 #include "PostgreSQLDatabaseDriverForMobileData.h"
+#include "ObservationCache.h"
 #include "QueryExternalAndMobileData.h"
 #include "QueryObservableProperty.h"
-#include <boost/date_time/posix_time/posix_time.hpp>  //include all types plus i/o
-#include <boost/date_time/time_duration.hpp>
-#include <boost/make_shared.hpp>
-#include "ObservationCache.h"
 #include "QueryResult.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
+#include <boost/date_time/posix_time/posix_time.hpp>  //include all types plus i/o
+#include <boost/date_time/time_duration.hpp>
+#include <boost/make_shared.hpp>
 #include <spine/Convenience.h>
 #include <atomic>
 #include <chrono>
@@ -24,11 +24,8 @@ namespace Engine
 {
 namespace Observation
 {
-
 PostgreSQLDatabaseDriverForMobileData::PostgreSQLDatabaseDriverForMobileData(
-    const std::string &name,
-    const EngineParametersPtr &p,
-    Spine::ConfigBase &cfg)
+    const std::string &name, const EngineParametersPtr &p, Spine::ConfigBase &cfg)
     : PostgreSQLDatabaseDriver(name, p, cfg)
 {
   setlocale(LC_NUMERIC, "en_US.utf8");
@@ -39,8 +36,7 @@ PostgreSQLDatabaseDriverForMobileData::PostgreSQLDatabaseDriverForMobileData(
     itsSupportedProducers.insert(item.first);
 }
 
-void PostgreSQLDatabaseDriverForMobileData::setSettings(Settings &settings,
-                                                        PostgreSQLObsDB &db)
+void PostgreSQLDatabaseDriverForMobileData::setSettings(Settings &settings, PostgreSQLObsDB &db)
 {
   try
   {
@@ -109,7 +105,8 @@ void PostgreSQLDatabaseDriverForMobileData::makeQuery(QueryBase *qb)
 {
   try
   {
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
     if (qb == nullptr)
     {
@@ -143,7 +140,8 @@ void PostgreSQLDatabaseDriverForMobileData::makeQuery(QueryBase *qb)
         itsParameters.params->queryResultBaseCache.find(sqlStatement);
     if (cacheResult)
     {
-      if (result->set(cacheResult.get())) return;
+      if (result->set(cacheResult.get()))
+        return;
     }
 
     if (result == nullptr)
@@ -169,12 +167,14 @@ void PostgreSQLDatabaseDriverForMobileData::makeQuery(QueryBase *qb)
     {
       db = itsPostgreSQLConnectionPool->getConnection();
 
-      if (db and db->isConnected()) break;
+      if (db and db->isConnected())
+        break;
 
       // ConnectionPool should do this
       db->reConnect();
 
-      if (db->isConnected()) break;
+      if (db->isConnected())
+        break;
 
       if (counter == poolSize)
       {
@@ -205,10 +205,10 @@ void PostgreSQLDatabaseDriverForMobileData::makeQuery(QueryBase *qb)
   }
 }
 
-ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(
-    Settings &settings)
+ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(Settings &settings)
 {
-  if (itsShutdownRequested) return nullptr;
+  if (itsShutdownRequested)
+    return nullptr;
 
   parameterSanityCheck(
       settings.stationtype, settings.parameters, *itsParameters.params->parameterMap);
@@ -226,7 +226,8 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(
     if (settings.useDataCache)
     {
       auto cache = resolveCache(settings.stationtype, itsParameters.params);
-      if (cache && cache->dataAvailableInCache(settings)) return cache->valuesFromCache(settings);
+      if (cache && cache->dataAvailableInCache(settings))
+        return cache->valuesFromCache(settings);
     }
   }
   catch (...)
@@ -269,10 +270,10 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(
  */
 
 Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(
-    Settings &settings,
-    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
+    Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
-  if (itsShutdownRequested) return nullptr;
+  if (itsShutdownRequested)
+    return nullptr;
 
   parameterSanityCheck(
       settings.stationtype, settings.parameters, *itsParameters.params->parameterMap);
@@ -329,8 +330,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::va
   }
 }
 
-void PostgreSQLDatabaseDriverForMobileData::getStations(
-    Spine::Stations &stations, const Settings &settings) const
+void PostgreSQLDatabaseDriverForMobileData::getStations(Spine::Stations &stations,
+                                                        const Settings &settings) const
 {
 }
 void PostgreSQLDatabaseDriverForMobileData::getStationsByArea(
@@ -341,8 +342,8 @@ void PostgreSQLDatabaseDriverForMobileData::getStationsByArea(
     const std::string &wkt) const
 {
 }
-void PostgreSQLDatabaseDriverForMobileData::getStationsByBoundingBox(
-    Spine::Stations &stations, const Settings &settings) const
+void PostgreSQLDatabaseDriverForMobileData::getStationsByBoundingBox(Spine::Stations &stations,
+                                                                     const Settings &settings) const
 {
 }
 
@@ -369,16 +370,20 @@ void PostgreSQLDatabaseDriverForMobileData::readConfig(Spine::ConfigBase &cfg)
     const DatabaseDriverInfoItem &driverInfo =
         itsParameters.params->databaseDriverInfo.getDatabaseDriverInfo(itsDriverName);
 
-    itsParameters.netAtmoCacheUpdateInterval = Fmi::stoi(driverInfo.params.at("netAtmoCacheUpdateInterval"));
-    itsParameters.roadCloudCacheUpdateInterval = Fmi::stoi(driverInfo.params.at("roadCloudCacheUpdateInterval"));
-    itsParameters.fmiIoTCacheUpdateInterval = Fmi::stoi(driverInfo.params.at("fmiIoTCacheUpdateInterval"));
+    itsParameters.netAtmoCacheUpdateInterval =
+        Fmi::stoi(driverInfo.params.at("netAtmoCacheUpdateInterval"));
+    itsParameters.roadCloudCacheUpdateInterval =
+        Fmi::stoi(driverInfo.params.at("roadCloudCacheUpdateInterval"));
+    itsParameters.fmiIoTCacheUpdateInterval =
+        Fmi::stoi(driverInfo.params.at("fmiIoTCacheUpdateInterval"));
 
     if (!itsParameters.disableAllCacheUpdates)
     {
-	  itsParameters.netAtmoCacheDuration = Fmi::stoi(driverInfo.params.at("netAtmoCacheDuration"));
-	  itsParameters.roadCloudCacheDuration = Fmi::stoi(driverInfo.params.at("roadCloudCacheDuration"));
-	  itsParameters.fmiIoTCacheDuration = Fmi::stoi(driverInfo.params.at("fmiIoTCacheDuration"));
-	}
+      itsParameters.netAtmoCacheDuration = Fmi::stoi(driverInfo.params.at("netAtmoCacheDuration"));
+      itsParameters.roadCloudCacheDuration =
+          Fmi::stoi(driverInfo.params.at("roadCloudCacheDuration"));
+      itsParameters.fmiIoTCacheDuration = Fmi::stoi(driverInfo.params.at("fmiIoTCacheDuration"));
+    }
 
     // Read part of config in base class
     PostgreSQLDatabaseDriver::readConfig(cfg);
@@ -389,7 +394,10 @@ void PostgreSQLDatabaseDriverForMobileData::readConfig(Spine::ConfigBase &cfg)
   }
 }
 
-std::string PostgreSQLDatabaseDriverForMobileData::id() const { return "postgresql_mobile"; }
+std::string PostgreSQLDatabaseDriverForMobileData::id() const
+{
+  return "postgresql_mobile";
+}
 
 }  // namespace Observation
 }  // namespace Engine

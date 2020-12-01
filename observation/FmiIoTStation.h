@@ -11,7 +11,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 struct FmiIoTStation
 {
   FmiIoTStation() {}

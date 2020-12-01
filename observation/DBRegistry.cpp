@@ -1,9 +1,9 @@
 #include "DBRegistry.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
+#include <macgyver/Exception.h>
 #include <spine/ConfigBase.h>
 #include <spine/Convenience.h>
-#include <macgyver/Exception.h>
 #include <exception>
 #include <iostream>
 #include <sstream>

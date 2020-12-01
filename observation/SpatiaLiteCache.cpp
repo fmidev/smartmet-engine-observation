@@ -96,7 +96,7 @@ void SpatiaLiteCache::initializeConnectionPool()
       itsNetAtmoTimeIntervalEnd = end;
     }
 
-   // FmiIoT
+    // FmiIoT
     if (cacheTables.find(FMI_IOT_DATA_TABLE) != cacheTables.end())
     {
       auto start = db->getOldestFmiIoTDataTime();
@@ -420,9 +420,9 @@ void SpatiaLiteCache::cleanFlashDataCache(
 {
   try
   {
-	// Dont clean fake cache
-	if(isFakeCache(FLASH_DATA_TABLE))
-	  return;
+    // Dont clean fake cache
+    if (isFakeCache(FLASH_DATA_TABLE))
+      return;
 
     auto now = boost::posix_time::second_clock::universal_time();
 
@@ -510,9 +510,9 @@ void SpatiaLiteCache::cleanRoadCloudCache(const boost::posix_time::time_duration
 {
   try
   {
-	// Dont clean fake cache
-	if(isFakeCache(ROADCLOUD_DATA_TABLE))
-	  return;
+    // Dont clean fake cache
+    if (isFakeCache(ROADCLOUD_DATA_TABLE))
+      return;
 
     boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
@@ -601,9 +601,9 @@ void SpatiaLiteCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
 {
   try
   {
-	// Dont clean fake cache
-	if(isFakeCache(NETATMO_DATA_TABLE))
-	  return;
+    // Dont clean fake cache
+    if (isFakeCache(NETATMO_DATA_TABLE))
+      return;
 
     boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
@@ -702,9 +702,9 @@ void SpatiaLiteCache::cleanFmiIoTCache(const boost::posix_time::time_duration &t
 {
   try
   {
-	// Dont clean fake cache
-	if(isFakeCache(FMI_IOT_DATA_TABLE))
-	  return;
+    // Dont clean fake cache
+    if (isFakeCache(FMI_IOT_DATA_TABLE))
+      return;
 
     boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
@@ -796,9 +796,9 @@ void SpatiaLiteCache::cleanDataCache(
 {
   try
   {
-	// Dont clean fake cache
-	if(isFakeCache(OBSERVATION_DATA_TABLE))
-	  return;
+    // Dont clean fake cache
+    if (isFakeCache(OBSERVATION_DATA_TABLE))
+      return;
 
     auto now = boost::posix_time::second_clock::universal_time();
 
@@ -863,9 +863,9 @@ void SpatiaLiteCache::cleanWeatherDataQCCache(
 {
   try
   {
-	// Dont clean fake cache
-	if(isFakeCache(WEATHER_DATA_QC_TABLE))
-	  return;
+    // Dont clean fake cache
+    if (isFakeCache(WEATHER_DATA_QC_TABLE))
+      return;
 
     boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
@@ -901,7 +901,7 @@ void SpatiaLiteCache::shutdown()
 SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
                                  const EngineParametersPtr &p,
                                  Spine::ConfigBase &cfg)
-  : ObservationCache(p->databaseDriverInfo.getAggregateCacheInfo(name)), itsParameters(p)
+    : ObservationCache(p->databaseDriverInfo.getAggregateCacheInfo(name)), itsParameters(p)
 {
   try
   {
@@ -920,14 +920,14 @@ SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
     else if (itsParameters.sqlite.threading_mode == "SERIALIZED")
       err = sqlite3_config(SQLITE_CONFIG_SERIALIZED);
     else
-      throw Fmi::Exception(
-          BCP, "Unknown sqlite threading mode: " + itsParameters.sqlite.threading_mode);
+      throw Fmi::Exception(BCP,
+                           "Unknown sqlite threading mode: " + itsParameters.sqlite.threading_mode);
 
     if (err != 0)
       throw Fmi::Exception(BCP,
-                             "Failed to set sqlite3 multithread mode to " +
-                                 itsParameters.sqlite.threading_mode +
-                                 ", exit code = " + Fmi::to_string(err));
+                           "Failed to set sqlite3 multithread mode to " +
+                               itsParameters.sqlite.threading_mode +
+                               ", exit code = " + Fmi::to_string(err));
 
     // Enable or disable memory statistics
     err = sqlite3_config(SQLITE_CONFIG_MEMSTATUS, itsParameters.sqlite.memstatus);
@@ -950,7 +950,8 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
     itsParameters.maxInsertSize = Fmi::stoi(itsCacheInfo.params.at("maxInsertSize"));
 
     itsDataInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("dataInsertCacheSize")));
-    itsWeatherQCInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("weatherDataQCInsertCacheSize")));
+    itsWeatherQCInsertCache.resize(
+        Fmi::stoi(itsCacheInfo.params.at("weatherDataQCInsertCacheSize")));
     itsFlashInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("flashInsertCacheSize")));
     itsRoadCloudInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("roadCloudInsertCacheSize")));
     itsNetAtmoInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("netAtmoInsertCacheSize")));
@@ -969,12 +970,12 @@ void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
     itsParameters.sqlite.temp_store = itsCacheInfo.params.at("temp_store");
     itsParameters.sqlite.auto_vacuum = itsCacheInfo.params.at("auto_vacuum");
     itsParameters.sqlite.mmap_size = Fmi::stoi(itsCacheInfo.params.at("mmap_size"));
-    itsParameters.sqlite.wal_autocheckpoint = Fmi::stoi(itsCacheInfo.params.at("wal_autocheckpoint"));
+    itsParameters.sqlite.wal_autocheckpoint =
+        Fmi::stoi(itsCacheInfo.params.at("wal_autocheckpoint"));
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(BCP,
-                                  "Reading SpatiaLite settings from configuration file failed!");
+    throw Fmi::Exception::Trace(BCP, "Reading SpatiaLite settings from configuration file failed!");
   }
 }
 

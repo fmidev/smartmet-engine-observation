@@ -1,6 +1,6 @@
 #include "DatabaseDriverFactory.h"
-#include "DummyDatabaseDriver.h"
 #include "DatabaseDriverProxy.h"
+#include "DummyDatabaseDriver.h"
 
 namespace SmartMet
 {
@@ -8,31 +8,29 @@ namespace Engine
 {
 namespace Observation
 {
-
 DatabaseDriverInterface *DatabaseDriverFactory::create(const EngineParametersPtr &p,
                                                        Spine::ConfigBase &cfg)
 {
   try
   {
-	bool activeDriverFound = false;
-	
-	const std::vector<DatabaseDriverInfoItem> &ddi =
-	  p->databaseDriverInfo.getDatabaseDriverInfo();
-	
-    for (const auto &item : ddi)
-	  {
-		if (!item.active) continue;
-		activeDriverFound = true;
-		break;
-	  }
+    bool activeDriverFound = false;
 
-	// Create proxy driver which distributes requests to appropriate database driver
+    const std::vector<DatabaseDriverInfoItem> &ddi = p->databaseDriverInfo.getDatabaseDriverInfo();
+
+    for (const auto &item : ddi)
+    {
+      if (!item.active)
+        continue;
+      activeDriverFound = true;
+      break;
+    }
+
+    // Create proxy driver which distributes requests to appropriate database driver
     if (activeDriverFound)
-	  return new DatabaseDriverProxy(p, cfg);
-	
-	// If no active driver found  create dummy driver
-	return new DummyDatabaseDriver(p);
-	
+      return new DatabaseDriverProxy(p, cfg);
+
+    // If no active driver found  create dummy driver
+    return new DummyDatabaseDriver(p);
   }
   catch (...)
   {

@@ -14,11 +14,9 @@ namespace Engine
 {
 namespace Observation
 {
-
 struct PostgreSQLDriverParameters : public DatabaseDriverParameters
 {
-  PostgreSQLDriverParameters(const std::string& drivername,
-                             const EngineParametersPtr& p)
+  PostgreSQLDriverParameters(const std::string& drivername, const EngineParametersPtr& p)
       : DatabaseDriverParameters(drivername, p),
         externalAndMobileProducerConfig(params->externalAndMobileProducerConfig)
   {
@@ -26,7 +24,7 @@ struct PostgreSQLDriverParameters : public DatabaseDriverParameters
   }
 
   std::vector<Fmi::Database::PostgreSQLConnectionOptions> connectionOptions;
-  const ExternalAndMobileProducerConfig&  externalAndMobileProducerConfig;
+  const ExternalAndMobileProducerConfig& externalAndMobileProducerConfig;
   boost::shared_ptr<FmiIoTStations> fmiIoTStations;
 };
 

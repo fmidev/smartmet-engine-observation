@@ -10,7 +10,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 DatabaseDriverBase::~DatabaseDriverBase() {}
 
 bool DatabaseDriverBase::isParameter(const std::string &alias,
@@ -22,20 +21,23 @@ bool DatabaseDriverBase::isParameter(const std::string &alias,
     std::string parameterAliasName = Fmi::ascii_tolower_copy(alias);
     removePrefix(parameterAliasName, "qc_");
 
-    if (boost::algorithm::ends_with(parameterAliasName, "data_source")) return true;
+    if (boost::algorithm::ends_with(parameterAliasName, "data_source"))
+      return true;
 
     // Is the alias configured.
     std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
         parameterMap.find(parameterAliasName);
 
-    if (namePtr == parameterMap.end()) return false;
+    if (namePtr == parameterMap.end())
+      return false;
 
     // Is the stationType configured inside configuration block of the alias.
     std::string stationTypeLowerCase = Fmi::ascii_tolower_copy(stationType);
     std::map<std::string, std::string>::const_iterator stationTypeMapPtr =
         namePtr->second.find(stationTypeLowerCase);
 
-    if (stationTypeMapPtr == namePtr->second.end()) return false;
+    if (stationTypeMapPtr == namePtr->second.end())
+      return false;
 
     return true;
   }
@@ -45,8 +47,8 @@ bool DatabaseDriverBase::isParameter(const std::string &alias,
   }
 }
 
-bool DatabaseDriverBase::isParameterVariant(
-    const std::string &name, const ParameterMap &parameterMap) const
+bool DatabaseDriverBase::isParameterVariant(const std::string &name,
+                                            const ParameterMap &parameterMap) const
 {
   try
   {
@@ -56,7 +58,8 @@ bool DatabaseDriverBase::isParameterVariant(
     std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
         parameterMap.find(parameterLowerCase);
 
-    if (namePtr == parameterMap.end()) return false;
+    if (namePtr == parameterMap.end())
+      return false;
 
     return true;
   }
@@ -66,10 +69,9 @@ bool DatabaseDriverBase::isParameterVariant(
   }
 }
 
-void DatabaseDriverBase::parameterSanityCheck(
-    const std::string &stationtype,
-    const std::vector<Spine::Parameter> &parameters,
-    const ParameterMap &parameterMap) const
+void DatabaseDriverBase::parameterSanityCheck(const std::string &stationtype,
+                                              const std::vector<Spine::Parameter> &parameters,
+                                              const ParameterMap &parameterMap) const
 {
   try
   {
@@ -93,8 +95,7 @@ void DatabaseDriverBase::parameterSanityCheck(
   }
 }
 
-void DatabaseDriverBase::updateProducers(const EngineParametersPtr &p,
-                                         Settings &settings) const
+void DatabaseDriverBase::updateProducers(const EngineParametersPtr &p, Settings &settings) const
 {
   try
   {
@@ -173,7 +174,8 @@ void DatabaseDriverBase::readMetaData(Spine::ConfigBase &cfg)
 
   for (const std::string &type : stationtypes)
   {
-    if (type.empty()) continue;
+    if (type.empty())
+      continue;
 
     // bbox
     std::string bbox = cfg.get_optional_config_param<std::string>("meta_data.bbox." + type, "");
@@ -194,16 +196,15 @@ void DatabaseDriverBase::readMetaData(Spine::ConfigBase &cfg)
     std::string last_observation_time =
         cfg.get_optional_config_param<std::string>("meta_data.last_observation." + type, "");
     if (last_observation_time.empty())
-              last_observation_time =
-                  cfg.get_optional_config_param<std::string>("meta_data.last_observation.default",
-                                                             "now");  // default value: 1900.01.01 00:00
+      last_observation_time =
+          cfg.get_optional_config_param<std::string>("meta_data.last_observation.default",
+                                                     "now");  // default value: 1900.01.01 00:00
     bool fixedPeriodEndTime = (last_observation_time != "now");
 
-    boost::posix_time::ptime obs_period_starttime =
-        Fmi::TimeParser::parse(first_observation_time);
+    boost::posix_time::ptime obs_period_starttime = Fmi::TimeParser::parse(first_observation_time);
     boost::posix_time::ptime obs_period_endtime =
         (fixedPeriodEndTime ? Fmi::TimeParser::parse(last_observation_time)
-         : boost::posix_time::second_clock::universal_time());
+                            : boost::posix_time::second_clock::universal_time());
 
     boost::posix_time::time_period time_period(obs_period_starttime, obs_period_endtime);
 
@@ -217,13 +218,12 @@ void DatabaseDriverBase::readMetaData(Spine::ConfigBase &cfg)
 
     MetaData meta(bounding_box, time_period, timestep);
     meta.fixedPeriodEndTime = fixedPeriodEndTime;
-    
+
     itsMetaData.insert(make_pair(type, meta));
   }
 }
 
-MetaData DatabaseDriverBase::metaData(
-    const std::string &producer) const
+MetaData DatabaseDriverBase::metaData(const std::string &producer) const
 {
   MetaData ret;
 
@@ -245,8 +245,7 @@ MetaData DatabaseDriverBase::metaData(
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(
-        BCP, "Reading meta data (PostgreSQL database driver) failed!");
+    throw Fmi::Exception::Trace(BCP, "Reading meta data (PostgreSQL database driver) failed!");
   }
 
   return ret;
@@ -264,8 +263,7 @@ boost::shared_ptr<ObservationCache> DatabaseDriverBase::resolveCache(
 }
 
 std::string DatabaseDriverBase::resolveCacheTableName(
-    const std::string &producer,
-    const StationtypeConfig &stationtypeConfig) const
+    const std::string &producer, const StationtypeConfig &stationtypeConfig) const
 
 {
   std::string tablename;
@@ -331,8 +329,8 @@ void DatabaseDriverBase::getStationsByArea(Spine::Stations &stations,
   }
 }
 
-void DatabaseDriverBase::getStationsByBoundingBox(
-    Spine::Stations &stations, const Settings &settings) const
+void DatabaseDriverBase::getStationsByBoundingBox(Spine::Stations &stations,
+                                                  const Settings &settings) const
 {
   try
   {
@@ -345,8 +343,7 @@ void DatabaseDriverBase::getStationsByBoundingBox(
   }
 }
 
-void DatabaseDriverBase::getStations(Spine::Stations &stations,
-                                     const Settings &settings) const
+void DatabaseDriverBase::getStations(Spine::Stations &stations, const Settings &settings) const
 {
   try
   {
@@ -358,8 +355,8 @@ void DatabaseDriverBase::getStations(Spine::Stations &stations,
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
-std::string DatabaseDriverBase::resolveDatabaseTableName(
-    const std::string &producer, const StationtypeConfig &stationtypeConfig)
+std::string DatabaseDriverBase::resolveDatabaseTableName(const std::string &producer,
+                                                         const StationtypeConfig &stationtypeConfig)
 {
   std::string tablename;
 
@@ -367,8 +364,7 @@ std::string DatabaseDriverBase::resolveDatabaseTableName(
   {
     if (producer == "flash")
       tablename = FLASH_DATA_TABLE;
-    else if (producer == NETATMO_PRODUCER ||
-             producer == ROADCLOUD_PRODUCER ||
+    else if (producer == NETATMO_PRODUCER || producer == ROADCLOUD_PRODUCER ||
              producer == FMI_IOT_PRODUCER)
       tablename = EXT_OBSDATA_TABLE;
     else

@@ -8,11 +8,9 @@ namespace Engine
 {
 namespace Observation
 {
-
-PostgreSQLDatabaseDriver::PostgreSQLDatabaseDriver(
-    const std::string &name,
-    const EngineParametersPtr &p,
-    Spine::ConfigBase &cfg)
+PostgreSQLDatabaseDriver::PostgreSQLDatabaseDriver(const std::string &name,
+                                                   const EngineParametersPtr &p,
+                                                   Spine::ConfigBase &cfg)
     : DatabaseDriverBase(name), itsParameters(name, p)
 {
 }
@@ -84,16 +82,18 @@ void PostgreSQLDatabaseDriver::shutdown()
 {
   try
   {
-	itsShutdownRequested = true;
+    itsShutdownRequested = true;
 
     // Shutting down cache connections
     auto cache_admin = boost::atomic_load(&itsObservationCacheAdmin);
-    if (cache_admin) {
+    if (cache_admin)
+    {
       cache_admin->shutdown();
     }
 
     // Shutting down PostgreSQL connections
-    if (itsPostgreSQLConnectionPool != nullptr) itsPostgreSQLConnectionPool->shutdown();
+    if (itsPostgreSQLConnectionPool != nullptr)
+      itsPostgreSQLConnectionPool->shutdown();
   }
   catch (...)
   {
@@ -105,28 +105,25 @@ void PostgreSQLDatabaseDriver::init(Engine *obsengine)
 {
   try
   {
-    logMessage("[PostgreSQLDatabaseDriver] Initializing connection pool...",
-                                    itsParameters.quiet);
+    logMessage("[PostgreSQLDatabaseDriver] Initializing connection pool...", itsParameters.quiet);
     itsObsEngine = obsengine;
     initializeConnectionPool();
 
     // Caches
-   boost::shared_ptr<ObservationCacheAdminPostgreSQL> cacheAdmin(
-      new ObservationCacheAdminPostgreSQL(itsParameters,
-                                          itsPostgreSQLConnectionPool,
-                                          getGeonames(),
-                                          itsConnectionsOK,
-                                          itsTimer));
+    boost::shared_ptr<ObservationCacheAdminPostgreSQL> cacheAdmin(
+        new ObservationCacheAdminPostgreSQL(
+            itsParameters, itsPostgreSQLConnectionPool, getGeonames(), itsConnectionsOK, itsTimer));
 
-    if (!itsShutdownRequested) {
+    if (!itsShutdownRequested)
+    {
       boost::atomic_store(&itsObservationCacheAdmin, cacheAdmin);
       cacheAdmin->init();
 
-	  itsDatabaseStations.reset(new DatabaseStations(itsParameters.params, obsengine->getGeonames()));
-	}
+      itsDatabaseStations.reset(
+          new DatabaseStations(itsParameters.params, obsengine->getGeonames()));
+    }
 
-    logMessage("[PostgreSQLDatabaseDriver] Connection pool ready.",
-                                    itsParameters.quiet);
+    logMessage("[PostgreSQLDatabaseDriver] Connection pool ready.", itsParameters.quiet);
   }
   catch (...)
   {
@@ -141,9 +138,11 @@ Geonames::Engine *PostgreSQLDatabaseDriver::getGeonames() const
 
 void PostgreSQLDatabaseDriver::reloadStations()
 {
-  if (!itsShutdownRequested && responsibleForLoadingStations()) {
+  if (!itsShutdownRequested && responsibleForLoadingStations())
+  {
     auto cache_admin = boost::atomic_load(&itsObservationCacheAdmin);
-    if (cache_admin) {
+    if (cache_admin)
+    {
       cache_admin->reloadStations();
     }
   }

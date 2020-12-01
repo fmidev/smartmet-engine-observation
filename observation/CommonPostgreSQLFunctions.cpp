@@ -1,9 +1,9 @@
 #include "CommonPostgreSQLFunctions.h"
 #include "Utils.h"
 #include <gis/OGR.h>
+#include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeFormatter.h>
-#include <macgyver/Exception.h>
 #include <spine/Value.h>
 
 namespace SmartMet
@@ -59,9 +59,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservation
   try
   {
     // Always use FMI parameter numbers for the narrow table Cache except for solar and mareograph
-	std::string stationtype = (itsIsCacheDatabase ? "observations_fmi" :  settings.stationtype);
-	if(itsIsCacheDatabase && (settings.stationtype == "solar" || settings.stationtype.find("mareograph") != std::string::npos))
-	  stationtype = settings.stationtype;	
+    std::string stationtype = (itsIsCacheDatabase ? "observations_fmi" : settings.stationtype);
+    if (itsIsCacheDatabase && (settings.stationtype == "solar" ||
+                               settings.stationtype.find("mareograph") != std::string::npos))
+      stationtype = settings.stationtype;
 
     // This maps measurand_id and the parameter position in TimeSeriesVector
     auto qmap = buildQueryMapping(stations, settings, itsParameterMap, stationtype, false);
@@ -231,8 +232,7 @@ Engine::Observation::LocationDataItems CommonPostgreSQLFunctions::readObservatio
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(
-        BCP, "Reading observations from PostgreSQL database failed!");
+    throw Fmi::Exception::Trace(BCP, "Reading observations from PostgreSQL database failed!");
   }
 }
 
@@ -472,7 +472,8 @@ FlashCounts CommonPostgreSQLFunctions::getFlashCount(
           OGRGeometryFactory::destroyGeometry(geom);
           std::string circleWkt = Fmi::OGR::exportToWkt(*circle.get());
 
-          sqlStmt += " AND ST_Within(flash.stroke_location, ST_GeomFromText('" + circleWkt + "',4326))";
+          sqlStmt +=
+              " AND ST_Within(flash.stroke_location, ST_GeomFromText('" + circleWkt + "',4326))";
         }
         else if (tloc.loc->type == SmartMet::Spine::Location::BoundingBox)
         {
@@ -485,12 +486,13 @@ FlashCounts CommonPostgreSQLFunctions::getFlashCount(
                                 Fmi::to_string(bbox.yMin) + ", " + Fmi::to_string(bbox.xMin) + " " +
                                 Fmi::to_string(bbox.yMin) + "))";
 
-          sqlStmt += " AND ST_Within(flash.stroke_location, ST_GeomFromText('" + bboxWkt + "',4326))";
+          sqlStmt +=
+              " AND ST_Within(flash.stroke_location, ST_GeomFromText('" + bboxWkt + "',4326))";
         }
       }
     }
 
-	if (itsDebug)
+    if (itsDebug)
       std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
                 << std::endl;
 

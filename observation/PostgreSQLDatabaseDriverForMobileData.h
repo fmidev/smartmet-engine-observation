@@ -1,8 +1,8 @@
 #pragma once
 
-#include "PostgreSQLObsDB.h"
-#include "PostgreSQLDatabaseDriver.h"
 #include "Engine.h"
+#include "PostgreSQLDatabaseDriver.h"
+#include "PostgreSQLObsDB.h"
 #include <memory>
 #include <string>
 
@@ -12,7 +12,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 class PostgreSQLDatabaseDriverForMobileData : public PostgreSQLDatabaseDriver
 {
  public:
@@ -29,19 +28,17 @@ class PostgreSQLDatabaseDriverForMobileData : public PostgreSQLDatabaseDriver
   Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings);
 
   Spine::TimeSeries::TimeSeriesVectorPtr values(
-      Settings &settings,
-      const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
+      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
 
-  boost::shared_ptr<std::vector<ObservableProperty> >
-  observablePropertyQuery(std::vector<std::string> &parameters, const std::string language);
+  boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
+      std::vector<std::string> &parameters, const std::string language);
   void getStations(Spine::Stations &stations, const Settings &settings) const;
   void getStationsByArea(Spine::Stations &stations,
                          const std::string &stationtype,
                          const boost::posix_time::ptime &starttime,
                          const boost::posix_time::ptime &endtime,
                          const std::string &wkt) const;
-  void getStationsByBoundingBox(Spine::Stations &stations,
-                                const Settings &settings) const;
+  void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const;
 
  private:
   void setSettings(Settings &settings, PostgreSQLObsDB &db);

@@ -1,6 +1,6 @@
 #include "QueryObservablePropertyPostgreSQL.h"
-#include <macgyver/StringConversion.h>
 #include <macgyver/Exception.h>
+#include <macgyver/StringConversion.h>
 
 namespace SmartMet
 {
@@ -8,17 +8,17 @@ namespace Engine
 {
 namespace Observation
 {
-
-boost::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostgreSQL::executeQuery(PostgreSQLObsDB &db,
-																									const std::string &stationType,
-																									const std::vector<std::string> &parameters,
-																									const ParameterMapPtr &parameterMap,
-																									const std::string &language) const
+boost::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostgreSQL::executeQuery(
+    PostgreSQLObsDB &db,
+    const std::string &stationType,
+    const std::vector<std::string> &parameters,
+    const ParameterMapPtr &parameterMap,
+    const std::string &language) const
 {
   try
   {
     boost::shared_ptr<std::vector<ObservableProperty> > observableProperties(
-																			 new std::vector<ObservableProperty>);
+        new std::vector<ObservableProperty>);
 
     // Solving measurand id's for valid parameter aliases.
     ParameterIdMapType parameterIDs;
@@ -26,7 +26,8 @@ boost::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostg
 
     // Return empty list if some parameters are defined and any of those is
     // valid.
-    if (parameterIDs.empty()) return observableProperties;
+    if (parameterIDs.empty())
+      return observableProperties;
 
     std::string sqlStmt =
         "SELECT meas.measurand_id, meas.measurand_code, TRIM( BOTH '-' FROM "
@@ -44,7 +45,8 @@ boost::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostg
 
     boost::replace_all(sqlStmt, "fi", language);
 
-    if (db.getDebug()) std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+    if (db.getDebug())
+      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
     Fmi::Database::PostgreSQLConnection &connection = db.getConnection();
 
@@ -53,7 +55,7 @@ boost::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostg
     for (auto row : result_set)
     {
       int measurandId = -1;
-	  std::string measurandCode = "";
+      std::string measurandCode = "";
       std::string observablePropertyId = "";
       std::string observablePropertyLabel = "";
       std::string basePhenomenon = "";
@@ -62,15 +64,24 @@ boost::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostg
       std::string statisticalFunction = "";
       std::string aggregationTimePeriod = "";
 
-      if (!row[0].is_null()) measurandId = row[0].as<int>();
-      if (!row[1].is_null()) measurandCode = row[1].as<std::string>();
-      if (!row[2].is_null()) observablePropertyId = row[2].as<std::string>();
-      if (!row[3].is_null()) observablePropertyLabel = row[3].as<std::string>();
-      if (!row[4].is_null()) basePhenomenon = row[4].as<std::string>();
-      if (!row[5].is_null()) uom = row[5].as<std::string>();
-      if (!row[6].is_null()) statisticalMeasureId = row[6].as<std::string>();
-      if (!row[7].is_null()) statisticalFunction = row[7].as<std::string>();
-      if (!row[8].is_null()) aggregationTimePeriod = row[8].as<std::string>();
+      if (!row[0].is_null())
+        measurandId = row[0].as<int>();
+      if (!row[1].is_null())
+        measurandCode = row[1].as<std::string>();
+      if (!row[2].is_null())
+        observablePropertyId = row[2].as<std::string>();
+      if (!row[3].is_null())
+        observablePropertyLabel = row[3].as<std::string>();
+      if (!row[4].is_null())
+        basePhenomenon = row[4].as<std::string>();
+      if (!row[5].is_null())
+        uom = row[5].as<std::string>();
+      if (!row[6].is_null())
+        statisticalMeasureId = row[6].as<std::string>();
+      if (!row[7].is_null())
+        statisticalFunction = row[7].as<std::string>();
+      if (!row[8].is_null())
+        aggregationTimePeriod = row[8].as<std::string>();
 
       // Multiple parameter name aliases may use a same measurand id (e.g. t2m
       // and temperature)

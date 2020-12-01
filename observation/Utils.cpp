@@ -7,10 +7,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/serialization/vector.hpp>
 #include <macgyver/Astronomy.h>
+#include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TypeName.h>
 #include <spine/Convenience.h>
-#include <macgyver/Exception.h>
 #include <fstream>
 
 namespace SmartMet
@@ -673,16 +673,19 @@ boost::posix_time::ptime epoch2ptime(double epoch)
   return ret;
 }
 
-std::string getStringValue(const Spine::TimeSeries::Value &tv)
+std::string getStringValue(const Spine::TimeSeries::Value& tv)
 {
   // For some reason different databases/drivers don't simply use int for FMISID.
   // This is workaround code, FMISID should always be int.
 
-  if (const double *dvalue = boost::get<double>(&tv)) return Fmi::to_string(*dvalue);
+  if (const double* dvalue = boost::get<double>(&tv))
+    return Fmi::to_string(*dvalue);
 
-  if (const int *ivalue = boost::get<int>(&tv)) return Fmi::to_string(*ivalue);
+  if (const int* ivalue = boost::get<int>(&tv))
+    return Fmi::to_string(*ivalue);
 
-  if (const std::string *svalue = boost::get<std::string>(&tv)) return *svalue;
+  if (const std::string* svalue = boost::get<std::string>(&tv))
+    return *svalue;
 
   // These are just for getting more informative error messages:
 
@@ -703,10 +706,8 @@ std::string getStringValue(const Spine::TimeSeries::Value &tv)
 
   // All should be handled above, but if someone extends the variant, this handles it too:
 
-  throw Fmi::Exception(BCP,
-                                   "Failed to extract FMISID (double/int/string) from variant");
+  throw Fmi::Exception(BCP, "Failed to extract FMISID (double/int/string) from variant");
 }
-
 
 }  // namespace Observation
 }  // namespace Engine

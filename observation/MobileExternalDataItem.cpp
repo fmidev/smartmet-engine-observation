@@ -1,7 +1,7 @@
 #include "MobileExternalDataItem.h"
 #include <boost/functional/hash.hpp>
-#include <macgyver/StringConversion.h>
 #include <macgyver/Exception.h>
+#include <macgyver/StringConversion.h>
 
 namespace SmartMet
 {

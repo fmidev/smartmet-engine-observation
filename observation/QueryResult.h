@@ -3,8 +3,8 @@
 #include "QueryResultBase.h"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <fmt/format.h>
-#include <macgyver/StringConversion.h>
 #include <macgyver/Exception.h>
+#include <macgyver/StringConversion.h>
 #include <algorithm>
 #include <memory>
 #include <vector>

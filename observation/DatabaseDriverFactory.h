@@ -8,7 +8,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 class DatabaseDriverFactory
 {
  public:

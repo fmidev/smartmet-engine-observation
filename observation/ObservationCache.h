@@ -95,13 +95,14 @@ class ObservationCache
 
   const std::string &name() const;
 
-  bool isFakeCache(const std::string& tablename) const;
-  std::vector<std::map<std::string,std::string>> getFakeCacheSettings(const std::string& tablename) const;
+  bool isFakeCache(const std::string &tablename) const;
+  std::vector<std::map<std::string, std::string>> getFakeCacheSettings(
+      const std::string &tablename) const;
 
  protected:
-  ObservationCache(const CacheInfoItem& ci);
+  ObservationCache(const CacheInfoItem &ci);
 
-  const CacheInfoItem& itsCacheInfo;
+  const CacheInfoItem &itsCacheInfo;
 };
 
 }  // namespace Observation

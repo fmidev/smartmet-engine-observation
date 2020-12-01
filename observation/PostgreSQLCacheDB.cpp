@@ -3,10 +3,10 @@
 #include "PostgreSQLCacheParameters.h"
 #include "QueryMapping.h"
 #include <fmt/format.h>
+#include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeParser.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
-#include <macgyver/Exception.h>
 #include <spine/Thread.h>
 #include <spine/TimeSeriesGenerator.h>
 #include <spine/TimeSeriesOutput.h>
@@ -656,14 +656,14 @@ boost::posix_time::ptime PostgreSQLCacheDB::getLatestFmiIoTCreatedTime()
 }
 
 boost::posix_time::ptime PostgreSQLCacheDB::getLatestTimeFromTable(const std::string tablename,
-                                                            const std::string time_field)
+                                                                   const std::string time_field)
 {
   std::string stmt = ("SELECT MAX(" + time_field + ") FROM " + tablename);
   return getTime(stmt);
 }
 
 boost::posix_time::ptime PostgreSQLCacheDB::getOldestTimeFromTable(const std::string tablename,
-                                                            const std::string time_field)
+                                                                   const std::string time_field)
 {
   std::string stmt = ("SELECT MIN(" + time_field + ") FROM " + tablename);
   return getTime(stmt);
@@ -1227,7 +1227,8 @@ std::size_t PostgreSQLCacheDB::fillFlashDataCache(const FlashDataItems &flashCac
   }
 }
 
-std::size_t PostgreSQLCacheDB::fillRoadCloudCache(const MobileExternalDataItems &mobileExternalCacheData)
+std::size_t PostgreSQLCacheDB::fillRoadCloudCache(
+    const MobileExternalDataItems &mobileExternalCacheData)
 {
   try
   {
@@ -1404,7 +1405,8 @@ std::size_t PostgreSQLCacheDB::fillRoadCloudCache(const MobileExternalDataItems 
   }
 }
 
-std::size_t PostgreSQLCacheDB::fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData)
+std::size_t PostgreSQLCacheDB::fillNetAtmoCache(
+    const MobileExternalDataItems &mobileExternalCacheData)
 {
   try
   {
@@ -1581,7 +1583,8 @@ std::size_t PostgreSQLCacheDB::fillNetAtmoCache(const MobileExternalDataItems &m
   }
 }
 
-std::size_t PostgreSQLCacheDB::fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData)
+std::size_t PostgreSQLCacheDB::fillFmiIoTCache(
+    const MobileExternalDataItems &mobileExternalCacheData)
 {
   return 0;
 }
@@ -1700,8 +1703,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAnd
 }
 
 void PostgreSQLCacheDB::fetchCachedDataFromDB(const std::string &sqlStmt,
-                                       struct cached_data &data,
-                                       bool measurand /*= false*/)
+                                              struct cached_data &data,
+                                              bool measurand /*= false*/)
 {
   pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
   for (auto row : result_set)
@@ -2057,10 +2060,9 @@ void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(
 }
 
 #ifdef LATER
-TODO
-FlashCounts PostgreSQLCacheDB::getFlashCount(const boost::posix_time::ptime &starttime,
-                                      const boost::posix_time::ptime &endtime,
-                                      const Spine::TaggedLocationList &locations)
+TODO FlashCounts PostgreSQLCacheDB::getFlashCount(const boost::posix_time::ptime &starttime,
+                                                  const boost::posix_time::ptime &endtime,
+                                                  const Spine::TaggedLocationList &locations)
 {
   try
   {
@@ -2124,11 +2126,12 @@ FlashCounts PostgreSQLCacheDB::getFlashCount(const boost::posix_time::ptime &sta
 }
 #endif
 
-LocationDataItems PostgreSQLCacheDB::readObservations(const Spine::Stations &stations,
-                                               const Settings &settings,
-                                               const StationInfo &stationInfo,
-                                               const QueryMapping &qmap,
-                                               const std::set<std::string> &stationgroup_codes)
+LocationDataItems PostgreSQLCacheDB::readObservations(
+    const Spine::Stations &stations,
+    const Settings &settings,
+    const StationInfo &stationInfo,
+    const QueryMapping &qmap,
+    const std::set<std::string> &stationgroup_codes)
 {
   try
   {
@@ -2224,15 +2227,14 @@ LocationDataItems PostgreSQLCacheDB::readObservations(const Spine::Stations &sta
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(
-        BCP, "Reading observations from PostgreSQL database failed!");
+    throw Fmi::Exception::Trace(BCP, "Reading observations from PostgreSQL database failed!");
   }
 }
 
 void PostgreSQLCacheDB::createIndex(const std::string &table,
-                             const std::string &column,
-                             const std::string &idx_name,
-                             bool transaction /*= false*/) const
+                                    const std::string &column,
+                                    const std::string &idx_name,
+                                    bool transaction /*= false*/) const
 {
   try
   {
@@ -2333,11 +2335,11 @@ ResultSetRows PostgreSQLCacheDB::getResultSetForMobileExternalData(
 }
 
 void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
-                                        const StationInfo &stationInfo,
-                                        const std::set<std::string> &stationgroup_codes,
-                                        const QueryMapping &qmap,
-                                        std::map<int, std::map<int, int>> &default_sensors,
-                                        WeatherDataQCData &cacheData)
+                                               const StationInfo &stationInfo,
+                                               const std::set<std::string> &stationgroup_codes,
+                                               const QueryMapping &qmap,
+                                               std::map<int, std::map<int, int>> &default_sensors,
+                                               WeatherDataQCData &cacheData)
 {
   try
   {
@@ -2403,13 +2405,13 @@ void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP,
-                                  "Fetching data from PostgreSQL WeatherDataQCData cache failed!");
+                                "Fetching data from PostgreSQL WeatherDataQCData cache failed!");
   }
 }
 
 std::string PostgreSQLCacheDB::sqlSelectFromWeatherDataQCData(const Settings &settings,
-                                                       const std::string &params,
-                                                       const std::string &station_ids) const
+                                                              const std::string &params,
+                                                              const std::string &station_ids) const
 {
   try
   {
@@ -2456,7 +2458,7 @@ std::string PostgreSQLCacheDB::sqlSelectFromWeatherDataQCData(const Settings &se
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP,
-                                  "Constructing SQL statement for PostgreSQL cache query failed!");
+                                "Constructing SQL statement for PostgreSQL cache query failed!");
   }
 }
 

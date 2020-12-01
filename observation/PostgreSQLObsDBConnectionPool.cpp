@@ -10,7 +10,10 @@ namespace
 template <class T>
 struct Releaser
 {
-  Releaser(SmartMet::Engine::Observation::PostgreSQLObsDBConnectionPool* pool_handle) : poolHandle(pool_handle) {}
+  Releaser(SmartMet::Engine::Observation::PostgreSQLObsDBConnectionPool* pool_handle)
+      : poolHandle(pool_handle)
+  {
+  }
   void operator()(T* t) { poolHandle->releaseConnection(t->connectionId()); }
   SmartMet::Engine::Observation::PostgreSQLObsDBConnectionPool* poolHandle;
 };
@@ -22,7 +25,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 PostgreSQLObsDBConnectionPool::PostgreSQLObsDBConnectionPool(PostgreSQLDatabaseDriver* driver) {}
 
 bool PostgreSQLObsDBConnectionPool::addService(
@@ -44,9 +46,8 @@ bool PostgreSQLObsDBConnectionPool::addService(
   return true;
 }
 
-bool PostgreSQLObsDBConnectionPool::initializePool(
-    const StationtypeConfig& stc,
-    const ParameterMapPtr& pm)
+bool PostgreSQLObsDBConnectionPool::initializePool(const StationtypeConfig& stc,
+                                                   const ParameterMapPtr& pm)
 {
   try
   {
@@ -58,8 +59,8 @@ bool PostgreSQLObsDBConnectionPool::initializePool(
       {
         // Logon here
 
-        itsWorkerList[i] =
-            boost::shared_ptr<PostgreSQLObsDB>(new PostgreSQLObsDB(itsConnectionOptions[filled], stc, pm));
+        itsWorkerList[i] = boost::shared_ptr<PostgreSQLObsDB>(
+            new PostgreSQLObsDB(itsConnectionOptions[filled], stc, pm));
         itsWorkingList[i] = 0;
         itsWorkerList[i]->setConnectionId(static_cast<signed>(i));
         if (i == tofill)
@@ -92,7 +93,8 @@ bool PostgreSQLObsDBConnectionPool::initializePool(
   }
 }
 
-boost::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(bool debug /*= false*/)
+boost::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(
+    bool debug /*= false*/)
 {
   try
   {
@@ -121,7 +123,7 @@ boost::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(
             itsWorkerList[i]->setConnectionId(static_cast<signed>(i));
             itsWorkerList[i]->setDebug(debug);
             return boost::shared_ptr<PostgreSQLObsDB>(itsWorkerList[i].get(),
-                                                 Releaser<PostgreSQLObsDB>(this));
+                                                      Releaser<PostgreSQLObsDB>(this));
           }
         }
       }
@@ -163,7 +165,8 @@ void PostgreSQLObsDBConnectionPool::shutdown()
     for (unsigned int i = 0; i < itsWorkerList.size(); i++)
     {
       auto sl = itsWorkerList[i].get();
-      if (sl != nullptr) sl->shutdown();
+      if (sl != nullptr)
+        sl->shutdown();
     }
   }
   catch (...)

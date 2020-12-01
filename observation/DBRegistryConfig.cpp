@@ -1,7 +1,7 @@
 #include "DBRegistryConfig.h"
 
-#include <macgyver/StringConversion.h>
 #include <macgyver/Exception.h>
+#include <macgyver/StringConversion.h>
 
 #include <iostream>
 #include <locale>

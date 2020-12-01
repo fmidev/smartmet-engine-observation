@@ -79,7 +79,7 @@ class CommonDatabaseFunctions
   const ParameterMapPtr &getParameterMap() const { return itsParameterMap; }
   void setDebug(bool state) { itsDebug = state; }
   bool getDebug() const { return itsDebug; }
-  virtual std::string getWeatherDataQCParams(const  std::set<std::string>& param_set) const;
+  virtual std::string getWeatherDataQCParams(const std::set<std::string> &param_set) const;
 
  protected:
   QueryMapping buildQueryMapping(const Spine::Stations &stations,
@@ -155,7 +155,7 @@ class CommonDatabaseFunctions
                                const LocationDataItems &observations,
                                ObservationsMap &obsmap,
                                const QueryMapping &qmap,
-							   const Settings &settings) const;
+                               const Settings &settings) const;
 
   void addSpecialFieldsToTimeSeries(
       const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
@@ -189,7 +189,7 @@ class CommonDatabaseFunctions
                                   const std::map<std::string, int> &timeseriesPositions,
                                   const std::string &stationtype,
                                   const Spine::Station &station,
-								  const std::string& timezone) const;
+                                  const std::string &timezone) const;
   void addSmartSymbolToTimeSeries(
       const int pos,
       const Spine::Station &s,
@@ -209,7 +209,7 @@ class CommonDatabaseFunctions
       const int pos,
       const std::string &stationtype,
       const boost::local_time::local_date_time &obstime,
-	  const std::string& timezone) const;
+      const std::string &timezone) const;
 
   const StationtypeConfig &itsStationtypeConfig;
   const ParameterMapPtr &itsParameterMap;

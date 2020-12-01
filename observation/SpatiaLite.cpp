@@ -8,10 +8,10 @@
 
 #include <fmt/format.h>
 #include <gdal/ogr_geometry.h>
+#include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <spine/Convenience.h>
-#include <macgyver/Exception.h>
 #include <spine/ParameterTools.h>
 #include <spine/Thread.h>
 #include <spine/TimeSeriesGenerator.h>
@@ -42,14 +42,14 @@ using boost::posix_time::ptime;
 
 namespace
 {
-
 const ptime ptime_epoch_start = from_time_t(0);
 
-// should use std::time_t or long here, but sqlitepp does not support it. Luckily intel 64-bit int is 8 bytes
+// should use std::time_t or long here, but sqlitepp does not support it. Luckily intel 64-bit int
+// is 8 bytes
 int to_epoch(const boost::posix_time::ptime pt)
 {
-  if(pt.is_not_a_date_time())
-	return 0;
+  if (pt.is_not_a_date_time())
+    return 0;
 
   return (pt - ptime_epoch_start).total_seconds();
 }
@@ -72,7 +72,7 @@ std::ostream &operator<<(std::ostream &stream,
 #endif
 }
 
-} // namespace anonymous
+}  // namespace
 
 namespace SmartMet
 {
@@ -128,8 +128,8 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
         qstations +
         ") "
         "AND data.data_time >= " +
-	  Fmi::to_string(starttime) + " AND data.data_time <= " + Fmi::to_string(endtime) + " AND data.measurand_id IN (" +
-        measurand_ids + ") ";
+        Fmi::to_string(starttime) + " AND data.data_time <= " + Fmi::to_string(endtime) +
+        " AND data.measurand_id IN (" + measurand_ids + ") ";
     if (!producerIds.empty())
       sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
 
@@ -149,7 +149,7 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
     for (auto iter = qry.begin(); iter != qry.end(); ++iter)
     {
       LocationDataItem obs;
-	  time_t epoch_time = (*iter).get<int>(2);
+      time_t epoch_time = (*iter).get<int>(2);
       obs.data.data_time = boost::posix_time::from_time_t(epoch_time);
       obs.data.fmisid = (*iter).get<int>(0);
       obs.data.sensor_no = (*iter).get<int>(1);
@@ -189,8 +189,7 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(BCP,
-                                            "Reading observations from sqlite database failed!");
+    throw Fmi::Exception::Trace(BCP, "Reading observations from sqlite database failed!");
   }
 }
 

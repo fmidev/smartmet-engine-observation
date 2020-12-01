@@ -3,14 +3,14 @@
 #define PI 3.14159265358979323846
 
 #include "ParameterMap.h"
-#include <spine/ConfigBase.h>
-#include <spine/Parameter.h>
-#include <spine/Station.h>
-#include <spine/TimeSeries.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/local_time/local_time.hpp>
 #include <boost/optional.hpp>
 #include <boost/utility.hpp>
+#include <spine/ConfigBase.h>
+#include <spine/Parameter.h>
+#include <spine/Station.h>
+#include <spine/TimeSeries.h>
 #include <map>
 #include <string>
 #include <vector>
@@ -122,7 +122,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(
 
 boost::posix_time::ptime epoch2ptime(double epoch);
 
-
 // ----------------------------------------------------------------------
 /*!
  * \brief converts Spine::TimeSeries::Value to string
@@ -130,8 +129,7 @@ boost::posix_time::ptime epoch2ptime(double epoch);
  */
 // ----------------------------------------------------------------------
 
-  std::string getStringValue(const Spine::TimeSeries::Value &tv);
-
+std::string getStringValue(const Spine::TimeSeries::Value& tv);
 
 }  // namespace Observation
 }  // namespace Engine

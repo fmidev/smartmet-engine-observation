@@ -1,8 +1,8 @@
-#include <boost/functional/hash.hpp>
+#include "PostgreSQLObsDB.h"
 #include "ExternalAndMobileDBInfo.h"
 #include "PostgreSQLCacheDB.h"
-#include "PostgreSQLObsDB.h"
 #include "Utils.h"
+#include <boost/functional/hash.hpp>
 #include <macgyver/Exception.h>
 // #define MYDEBUG 1
 
@@ -19,17 +19,17 @@ namespace Engine
 {
 namespace Observation
 {
-
-PostgreSQLObsDB::PostgreSQLObsDB(const Fmi::Database::PostgreSQLConnectionOptions &connectionOptions,
-								 const StationtypeConfig &stc,
-								 const ParameterMapPtr &pm)
-  : CommonPostgreSQLFunctions(connectionOptions, stc, pm)
+PostgreSQLObsDB::PostgreSQLObsDB(
+    const Fmi::Database::PostgreSQLConnectionOptions &connectionOptions,
+    const StationtypeConfig &stc,
+    const ParameterMapPtr &pm)
+    : CommonPostgreSQLFunctions(connectionOptions, stc, pm)
 {
 }
 
 void PostgreSQLObsDB::get(const std::string &sqlStatement,
-                     std::shared_ptr<QueryResultBase> qrb,
-                     const Fmi::TimeZones &timezones)
+                          std::shared_ptr<QueryResultBase> qrb,
+                          const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -48,58 +48,67 @@ for (auto row : result_set)
   }
 }
 
-void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(
-    const std::string &producer,
-    vector<MobileExternalDataItem> &cacheData,
-    boost::posix_time::ptime lastTime,
-    boost::posix_time::ptime lastCreatedTime,
-    const Fmi::TimeZones &timezones)
+void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &producer,
+                                                        vector<MobileExternalDataItem> &cacheData,
+                                                        boost::posix_time::ptime lastTime,
+                                                        boost::posix_time::ptime lastCreatedTime,
+                                                        const Fmi::TimeZones &timezones)
 {
   try
   {
     ExternalAndMobileDBInfo dbInfo;
     std::string sqlStmt = dbInfo.sqlSelectForCache(producer, lastTime, lastCreatedTime);
 
-    if (itsDebug) std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+    if (itsDebug)
+      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
     // Execute SQL statement
     Fmi::Database::PostgreSQLConnection &conn = getConnection();
     pqxx::result result_set = conn.executeNonTransaction(sqlStmt);
 
-    ResultSetRows rsrs = PostgreSQLCacheDB::getResultSetForMobileExternalData(
-            result_set, conn.dataTypes());
+    ResultSetRows rsrs =
+        PostgreSQLCacheDB::getResultSetForMobileExternalData(result_set, conn.dataTypes());
 
     SmartMet::Spine::TimeSeries::Value none = SmartMet::Spine::TimeSeries::None();
     for (auto rsr : rsrs)
     {
       MobileExternalDataItem dataItem;
       dataItem.prod_id = boost::get<int>(rsr["prod_id"]);
-      if (rsr["station_id"] != none) dataItem.station_id = boost::get<int>(rsr["station_id"]);
+      if (rsr["station_id"] != none)
+        dataItem.station_id = boost::get<int>(rsr["station_id"]);
       if (rsr["dataset_id"] != none)
         dataItem.dataset_id = boost::get<std::string>(rsr["dataset_id"]);
-      if (rsr["data_level"] != none) dataItem.data_level = boost::get<int>(rsr["data_level"]);
+      if (rsr["data_level"] != none)
+        dataItem.data_level = boost::get<int>(rsr["data_level"]);
       dataItem.mid = boost::get<int>(rsr["mid"]);
-      if (rsr["sensor_no"] != none) dataItem.sensor_no = boost::get<int>(rsr["sensor_no"]);
+      if (rsr["sensor_no"] != none)
+        dataItem.sensor_no = boost::get<int>(rsr["sensor_no"]);
       dataItem.data_time =
           (boost::get<boost::local_time::local_date_time>(rsr["data_time"]).utc_time());
       dataItem.data_value = boost::get<double>(rsr["data_value"]);
       if (rsr["data_value_txt"] != none)
         dataItem.data_value_txt = boost::get<std::string>(rsr["data_value_txt"]);
-      if (rsr["data_quality"] != none) dataItem.data_quality = boost::get<int>(rsr["data_quality"]);
-      if (rsr["ctrl_status"] != none) dataItem.ctrl_status = boost::get<int>(rsr["ctrl_status"]);
+      if (rsr["data_quality"] != none)
+        dataItem.data_quality = boost::get<int>(rsr["data_quality"]);
+      if (rsr["ctrl_status"] != none)
+        dataItem.ctrl_status = boost::get<int>(rsr["ctrl_status"]);
       dataItem.created =
           (boost::get<boost::local_time::local_date_time>(rsr["created"]).utc_time());
-	  if(producer == FMI_IOT_PRODUCER)
-		{
-		  if(rsr["station_code"] != none) dataItem.station_code = boost::get<std::string>(rsr["station_code"]);
-		}
-	  else
-		{
-		  if(rsr["longitude"] != none) dataItem.longitude = boost::get<double>(rsr["longitude"]);
-		  if(rsr["latitude"] != none) dataItem.latitude = boost::get<double>(rsr["latitude"]);
-		  if (rsr["altitude"] != none) dataItem.altitude = boost::get<double>(rsr["altitude"]);
-		}
-	  cacheData.push_back(dataItem);
+      if (producer == FMI_IOT_PRODUCER)
+      {
+        if (rsr["station_code"] != none)
+          dataItem.station_code = boost::get<std::string>(rsr["station_code"]);
+      }
+      else
+      {
+        if (rsr["longitude"] != none)
+          dataItem.longitude = boost::get<double>(rsr["longitude"]);
+        if (rsr["latitude"] != none)
+          dataItem.latitude = boost::get<double>(rsr["latitude"]);
+        if (rsr["altitude"] != none)
+          dataItem.altitude = boost::get<double>(rsr["altitude"]);
+      }
+      cacheData.push_back(dataItem);
     }
   }
   catch (...)
@@ -109,8 +118,8 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(
 }
 
 void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
-										 const std::string& sqlStmt,
-										 const Fmi::TimeZones &timezones)
+                                                  const std::string &sqlStmt,
+                                                  const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -125,9 +134,12 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
       item.producer_id = row[3].as<int>();
       item.measurand_no = row[4].as<int>();
       item.data_time = boost::posix_time::from_time_t(row[5].as<time_t>());
-      if (!row[6].is_null()) item.data_value = row[6].as<double>();
-      if (!row[7].is_null()) item.data_quality = row[7].as<int>();
-      if (!row[8].is_null()) item.data_source = row[8].as<int>();
+      if (!row[6].is_null())
+        item.data_value = row[6].as<double>();
+      if (!row[7].is_null())
+        item.data_quality = row[7].as<int>();
+      if (!row[8].is_null())
+        item.data_source = row[8].as<int>();
       item.modified_last = boost::posix_time::from_time_t(row[9].as<time_t>());
 
       cacheData.emplace_back(item);
@@ -135,54 +147,51 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(
-        BCP, "Operation failed!");
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
-
 void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
-											 const boost::posix_time::time_period &dataPeriod,
-											 const std::string &fmisid,
-											 const std::string &measurandId,
-											 const Fmi::TimeZones &timezones)
+                                                  const boost::posix_time::time_period &dataPeriod,
+                                                  const std::string &fmisid,
+                                                  const std::string &measurandId,
+                                                  const Fmi::TimeZones &timezones)
 {
   try
-	{
-	  std::string sqlStmt =
+  {
+    std::string sqlStmt =
         "SELECT station_id, sensor_no, measurand_id, producer_id, measurand_no, EXTRACT(EPOCH FROM "
         "date_trunc('seconds', data_time)) as data_time, "
         "data_value, data_quality, data_source, EXTRACT(EPOCH FROM date_trunc('seconds', "
-		"modified_last)) as modified_last "
-		"FROM observation_data_v1 data WHERE data_time >= '" +
-		Fmi::to_iso_extended_string(dataPeriod.begin()) + "' AND data_time <= '" +
-		Fmi::to_iso_extended_string(dataPeriod.last()) + ",";
-	  if(!measurandId.empty())
-		sqlStmt += (" AND measurand_id IN (" + measurandId + ")");
-	  if(!fmisid.empty())
-		sqlStmt += (" AND station_id IN (" + fmisid + ")");
-	  sqlStmt += " AND data_value IS NOT NULL ORDER BY station_id ASC, data_time ASC";
-	  
-	  return readCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+        "modified_last)) as modified_last "
+        "FROM observation_data_v1 data WHERE data_time >= '" +
+        Fmi::to_iso_extended_string(dataPeriod.begin()) + "' AND data_time <= '" +
+        Fmi::to_iso_extended_string(dataPeriod.last()) + ",";
+    if (!measurandId.empty())
+      sqlStmt += (" AND measurand_id IN (" + measurandId + ")");
+    if (!fmisid.empty())
+      sqlStmt += (" AND station_id IN (" + fmisid + ")");
+    sqlStmt += " AND data_value IS NOT NULL ORDER BY station_id ASC, data_time ASC";
+
+    return readCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
   }
   catch (...)
-	{
-	  throw Fmi::Exception::Trace(
-								  BCP, "Operation failed!");
-	}
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
-                                             const boost::posix_time::ptime &startTime,
-                                             const boost::posix_time::ptime &lastModifiedTime,
-                                             const Fmi::TimeZones &timezones)
+                                                  const boost::posix_time::ptime &startTime,
+                                                  const boost::posix_time::ptime &lastModifiedTime,
+                                                  const Fmi::TimeZones &timezones)
 {
   try
-	{
-	  const boost::posix_time::ptime now = second_clock::universal_time();
-	  const auto diff = now - lastModifiedTime;
-	  const bool big_request = (diff >= boost::posix_time::hours(24));
-	  
-	  std::string sqlStmt =
+  {
+    const boost::posix_time::ptime now = second_clock::universal_time();
+    const auto diff = now - lastModifiedTime;
+    const bool big_request = (diff >= boost::posix_time::hours(24));
+
+    std::string sqlStmt =
         "SELECT station_id, sensor_no, measurand_id, producer_id, measurand_no, EXTRACT(EPOCH FROM "
         "date_trunc('seconds', data_time)) as data_time, "
         "data_value, data_quality, data_source, EXTRACT(EPOCH FROM date_trunc('seconds', "
@@ -193,185 +202,183 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
         Fmi::to_iso_extended_string(startTime) + "' AND data_time <= '" +
         Fmi::to_iso_extended_string(now) +
         "' AND data_value IS NOT NULL ORDER BY station_id ASC, data_time ASC";
-	  
-	  if (big_request)
-		{
-		  std::cout << "[delfoi] Performing a large cache update starting from " << startTime
-					<< std::endl;
-		}
-	  
-	  if (itsDebug) std::cout << "PostgreSQL: " << sqlStmt << std::endl;
-	  
-	  return readCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
-	}
+
+    if (big_request)
+    {
+      std::cout << "[delfoi] Performing a large cache update starting from " << startTime
+                << std::endl;
+    }
+
+    if (itsDebug)
+      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+
+    return readCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+  }
   catch (...)
-	{
-	  throw Fmi::Exception::Trace(
-								  BCP, "Operation failed!");
-	}
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
-  
-  
-void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
-    std::vector<FlashDataItem> &cacheData,
-	const std::string& sqlStmt,
-    const Fmi::TimeZones &timezones)
+
+void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem> &cacheData,
+                                                       const std::string &sqlStmt,
+                                                       const Fmi::TimeZones &timezones)
 {
   try
-	{
-	  
-	  pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-	  
-	  for (auto row : result_set)
-		{
-		  FlashDataItem item;
-		  
-		  int epoch = row[0].as<int>();
-		  item.stroke_time = epoch2ptime(epoch);
-		  item.stroke_time_fraction = row[1].as<int>();
-		  item.flash_id = row[2].as<int>();
-		  item.multiplicity = row[3].as<int>();
-		  item.peak_current = row[4].as<int>();
-		  item.sensors = row[5].as<int>();
-		  item.freedom_degree = row[6].as<int>();
-		  item.ellipse_angle = row[7].as<double>();
-		  item.ellipse_major = row[8].as<double>();
-		  item.ellipse_minor = row[9].as<double>();
-		  item.chi_square = row[10].as<double>();
-		  item.rise_time = row[11].as<double>();
-		  item.ptz_time = row[12].as<double>();
-		  item.cloud_indicator = row[13].as<int>();
-		  item.angle_indicator = row[14].as<int>();
-		  item.signal_indicator = row[15].as<int>();
-		  item.timing_indicator = row[16].as<int>();
-		  item.stroke_status = row[17].as<int>();
-		  if (!row[18].is_null())
-			item.data_source = row[18].as<int>();
-		  int created = row[19].as<int>();
-		  item.created = epoch2ptime(created);
-		  int modified_last = row[20].as<int>();
-		  item.modified_last = epoch2ptime(modified_last);
-		  if (!row[21].is_null()) item.modified_by = row[21].as<int>();
-		  item.longitude = row[22].as<double>();
-		  item.latitude = row[23].as<double>();
-		  cacheData.push_back(item);
-		}
-	}
+  {
+    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+
+    for (auto row : result_set)
+    {
+      FlashDataItem item;
+
+      int epoch = row[0].as<int>();
+      item.stroke_time = epoch2ptime(epoch);
+      item.stroke_time_fraction = row[1].as<int>();
+      item.flash_id = row[2].as<int>();
+      item.multiplicity = row[3].as<int>();
+      item.peak_current = row[4].as<int>();
+      item.sensors = row[5].as<int>();
+      item.freedom_degree = row[6].as<int>();
+      item.ellipse_angle = row[7].as<double>();
+      item.ellipse_major = row[8].as<double>();
+      item.ellipse_minor = row[9].as<double>();
+      item.chi_square = row[10].as<double>();
+      item.rise_time = row[11].as<double>();
+      item.ptz_time = row[12].as<double>();
+      item.cloud_indicator = row[13].as<int>();
+      item.angle_indicator = row[14].as<int>();
+      item.signal_indicator = row[15].as<int>();
+      item.timing_indicator = row[16].as<int>();
+      item.stroke_status = row[17].as<int>();
+      if (!row[18].is_null())
+        item.data_source = row[18].as<int>();
+      int created = row[19].as<int>();
+      item.created = epoch2ptime(created);
+      int modified_last = row[20].as<int>();
+      item.modified_last = epoch2ptime(modified_last);
+      if (!row[21].is_null())
+        item.modified_by = row[21].as<int>();
+      item.longitude = row[22].as<double>();
+      item.latitude = row[23].as<double>();
+      cacheData.push_back(item);
+    }
+  }
   catch (...)
-	{
-	  throw Fmi::Exception::Trace(BCP, "Operation failed!");
-	}
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
 void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
     std::vector<FlashDataItem> &cacheData,
-	const boost::posix_time::time_period &dataPeriod,
-    const Fmi::TimeZones &timezones)
-{
-  try
-	{
-	  std::string sqlStmt =
-		"SELECT EXTRACT(EPOCH FROM date_trunc('seconds', stroke_time)) as stroke_time, nseconds as "
-		"nanoseconds, flash_id, "
-		"multiplicity, peak_current, "
-		"sensors, freedom_degree, ellipse_angle, ellipse_major, "
-		"ellipse_minor, chi_square, rise_time, ptz_time, cloud_indicator, "
-		"angle_indicator, signal_indicator, timing_indicator, stroke_status, "
-		"data_source,  EXTRACT(EPOCH FROM date_trunc('seconds', created)) as created, EXTRACT(EPOCH "
-		"FROM date_trunc('seconds', modified_last)) as modified_last, modified_by, "
-		"ST_X(stroke_location) longitude, "
-		"ST_Y(stroke_location) AS latitude "
-		"FROM flashdata flash "
-		"WHERE stroke_time BETWEEN '" +
-		Fmi::to_iso_extended_string(dataPeriod.begin()) + "'  AND '" + Fmi::to_iso_extended_string(dataPeriod.last()) +
-		"' ORDER BY stroke_time, flash_id";
-	  
-	  return readFlashCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
-	}
-  catch (...)
-	{
-	  throw Fmi::Exception::Trace(BCP, "Operation failed!");
-	}
-}
-
-void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
-    std::vector<FlashDataItem> &cacheData,
-	  const boost::posix_time::ptime &startTime,
-	  const boost::posix_time::ptime &lastStrokeTime,
-	  const boost::posix_time::ptime& lastModifiedTime,
+    const boost::posix_time::time_period &dataPeriod,
     const Fmi::TimeZones &timezones)
 {
   try
   {
+    std::string sqlStmt =
+        "SELECT EXTRACT(EPOCH FROM date_trunc('seconds', stroke_time)) as stroke_time, nseconds as "
+        "nanoseconds, flash_id, "
+        "multiplicity, peak_current, "
+        "sensors, freedom_degree, ellipse_angle, ellipse_major, "
+        "ellipse_minor, chi_square, rise_time, ptz_time, cloud_indicator, "
+        "angle_indicator, signal_indicator, timing_indicator, stroke_status, "
+        "data_source,  EXTRACT(EPOCH FROM date_trunc('seconds', created)) as created, "
+        "EXTRACT(EPOCH "
+        "FROM date_trunc('seconds', modified_last)) as modified_last, modified_by, "
+        "ST_X(stroke_location) longitude, "
+        "ST_Y(stroke_location) AS latitude "
+        "FROM flashdata flash "
+        "WHERE stroke_time BETWEEN '" +
+        Fmi::to_iso_extended_string(dataPeriod.begin()) + "'  AND '" +
+        Fmi::to_iso_extended_string(dataPeriod.last()) + "' ORDER BY stroke_time, flash_id";
 
-	const boost::posix_time::ptime now = second_clock::universal_time();
-	
-	std::string sqlStmt =
-      "SELECT EXTRACT(EPOCH FROM date_trunc('seconds', stroke_time)) as stroke_time, nseconds as "
-      "nanoseconds, flash_id, "
-      "multiplicity, peak_current, "
-      "sensors, freedom_degree, ellipse_angle, ellipse_major, "
-      "ellipse_minor, chi_square, rise_time, ptz_time, cloud_indicator, "
-      "angle_indicator, signal_indicator, timing_indicator, stroke_status, "
-      "data_source,  EXTRACT(EPOCH FROM date_trunc('seconds', created)) as created, EXTRACT(EPOCH "
-      "FROM date_trunc('seconds', modified_last)) as modified_last, modified_by, "
-      "ST_X(stroke_location) longitude, "
-      "ST_Y(stroke_location) AS latitude "
-      "FROM flashdata flash "
-      "WHERE stroke_time BETWEEN '" +
-      Fmi::to_iso_extended_string(startTime) + "'  AND '" + Fmi::to_iso_extended_string(now) +
-      "' AND modified_last >= '" + Fmi::to_iso_extended_string(lastModifiedTime) +
-      "' ORDER BY stroke_time, flash_id";
-	
-	if (itsDebug)
-	  std::cout << "PostgreSQL: " << sqlStmt << std::endl;
-	
-	return readFlashCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+    return readFlashCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
   }
   catch (...)
-	{
-	  throw Fmi::Exception::Trace(BCP, "Operation failed!");
-	}
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
-void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
-    std::vector<WeatherDataQCItem> &cacheData,
-	const std::string& sqlStmt,
+void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
+    std::vector<FlashDataItem> &cacheData,
+    const boost::posix_time::ptime &startTime,
+    const boost::posix_time::ptime &lastStrokeTime,
+    const boost::posix_time::ptime &lastModifiedTime,
     const Fmi::TimeZones &timezones)
 {
   try
-	{
-	  pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-	  
-	  unsigned int count = 0;
-	  for (auto row : result_set)
-		{
-		  count++;
-		  WeatherDataQCItem item;
-		  
-		  item.fmisid = row[0].as<int>();
-		  item.obstime = boost::posix_time::from_time_t(row[1].as<time_t>());
-		  item.parameter = row[2].as<std::string>();
-		  item.sensor_no = row[3].as<int>();
-		  item.value = row[4].as<double>();
-		  item.flag = row[5].as<int>();
-		  item.modified_last = boost::posix_time::from_time_t(row[6].as<time_t>());
-		  
-		  cacheData.emplace_back(item);
-		}
-	}
-  catch (...)
-	{
-	  throw Fmi::Exception::Trace(BCP, "Operation failed!");
-	}
-}
+  {
+    const boost::posix_time::ptime now = second_clock::universal_time();
 
+    std::string sqlStmt =
+        "SELECT EXTRACT(EPOCH FROM date_trunc('seconds', stroke_time)) as stroke_time, nseconds as "
+        "nanoseconds, flash_id, "
+        "multiplicity, peak_current, "
+        "sensors, freedom_degree, ellipse_angle, ellipse_major, "
+        "ellipse_minor, chi_square, rise_time, ptz_time, cloud_indicator, "
+        "angle_indicator, signal_indicator, timing_indicator, stroke_status, "
+        "data_source,  EXTRACT(EPOCH FROM date_trunc('seconds', created)) as created, "
+        "EXTRACT(EPOCH "
+        "FROM date_trunc('seconds', modified_last)) as modified_last, modified_by, "
+        "ST_X(stroke_location) longitude, "
+        "ST_Y(stroke_location) AS latitude "
+        "FROM flashdata flash "
+        "WHERE stroke_time BETWEEN '" +
+        Fmi::to_iso_extended_string(startTime) + "'  AND '" + Fmi::to_iso_extended_string(now) +
+        "' AND modified_last >= '" + Fmi::to_iso_extended_string(lastModifiedTime) +
+        "' ORDER BY stroke_time, flash_id";
+
+    if (itsDebug)
+      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+
+    return readFlashCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
 
 void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
     std::vector<WeatherDataQCItem> &cacheData,
-	const boost::posix_time::time_period &dataPeriod,
-	const std::string &fmisid,
-	const std::string &measurandId,
+    const std::string &sqlStmt,
+    const Fmi::TimeZones &timezones)
+{
+  try
+  {
+    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+
+    unsigned int count = 0;
+    for (auto row : result_set)
+    {
+      count++;
+      WeatherDataQCItem item;
+
+      item.fmisid = row[0].as<int>();
+      item.obstime = boost::posix_time::from_time_t(row[1].as<time_t>());
+      item.parameter = row[2].as<std::string>();
+      item.sensor_no = row[3].as<int>();
+      item.value = row[4].as<double>();
+      item.flag = row[5].as<int>();
+      item.modified_last = boost::posix_time::from_time_t(row[6].as<time_t>());
+
+      cacheData.emplace_back(item);
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
+    std::vector<WeatherDataQCItem> &cacheData,
+    const boost::posix_time::time_period &dataPeriod,
+    const std::string &fmisid,
+    const std::string &measurandId,
     const Fmi::TimeZones &timezones)
 {
   try
@@ -384,12 +391,12 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
          "weather_data_qc where obstime >= '" +
          Fmi::to_iso_extended_string(dataPeriod.begin()) + "' AND obstime <= '" +
          Fmi::to_iso_extended_string(dataPeriod.last()) + "'  AND value IS NOT NULL");
-	if(!measurandId.empty())
-	  sqlStmt += (" AND parameter IN (" + measurandId + ")");
-	if(!fmisid.empty())
-	  sqlStmt += (" AND fmisid IN (" + fmisid + ")");
+    if (!measurandId.empty())
+      sqlStmt += (" AND parameter IN (" + measurandId + ")");
+    if (!fmisid.empty())
+      sqlStmt += (" AND fmisid IN (" + fmisid + ")");
 
-	return readWeatherDataQCCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+    return readWeatherDataQCCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
   }
   catch (...)
   {
@@ -404,10 +411,10 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
     const Fmi::TimeZones &timezones)
 {
   try
-	{
-	  const boost::posix_time::ptime now = second_clock::universal_time();
-	  
-	  std::string sqlStmt =
+  {
+    const boost::posix_time::ptime now = second_clock::universal_time();
+
+    std::string sqlStmt =
         ("select fmisid, EXTRACT(EPOCH FROM "
          "date_trunc('seconds', obstime)) as obstime, parameter, sensor_no, value, flag, "
          "EXTRACT(EPOCH FROM date_trunc('seconds', "
@@ -416,22 +423,22 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
          Fmi::to_iso_extended_string(lastModifiedTime) + "' AND obstime >= '" +
          Fmi::to_iso_extended_string(lastTime) + "' AND obstime <= '" +
          Fmi::to_iso_extended_string(now) + "'  AND value IS NOT NULL");
-	  
-	  return readWeatherDataQCCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
-	}
+
+    return readWeatherDataQCCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+  }
   catch (...)
-	{
-	  throw Fmi::Exception::Trace(BCP, "Operation failed!");
-	}
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
-  
+
 /*
  * Set time interval for database query.
  */
 
 void PostgreSQLObsDB::setTimeInterval(const ptime &theStartTime,
-                                 const ptime &theEndTime,
-                                 int theTimeStep)
+                                      const ptime &theEndTime,
+                                      int theTimeStep)
 {
   try
   {
@@ -446,19 +453,19 @@ void PostgreSQLObsDB::setTimeInterval(const ptime &theStartTime,
   }
 }
 
-LocationDataItems PostgreSQLObsDB::readObservations(
-    const Spine::Stations &stations,
-    const Settings &settings,
-    const StationInfo &stationInfo,
-    const QueryMapping &qmap,
-    const std::set<std::string> &stationgroup_codes)
+LocationDataItems PostgreSQLObsDB::readObservations(const Spine::Stations &stations,
+                                                    const Settings &settings,
+                                                    const StationInfo &stationInfo,
+                                                    const QueryMapping &qmap,
+                                                    const std::set<std::string> &stationgroup_codes)
 {
   try
   {
     LocationDataItems ret;
 
     // Safety check
-    if (qmap.measurandIds.empty()) return ret;
+    if (qmap.measurandIds.empty())
+      return ret;
 
     std::string measurand_ids;
     for (const auto &id : qmap.measurandIds)
@@ -468,7 +475,8 @@ LocationDataItems PostgreSQLObsDB::readObservations(
 
     auto qstations = buildSqlStationList(stations, stationgroup_codes, stationInfo);
 
-    if (qstations.empty()) return ret;
+    if (qstations.empty())
+      return ret;
 
     std::list<std::string> producer_id_str_list;
     for (auto &prodId : settings.producer_ids)
@@ -489,7 +497,8 @@ LocationDataItems PostgreSQLObsDB::readObservations(
         "AND data.data_time >= '" +
         starttime + "' AND data.data_time <= '" + endtime + "' AND data.measurand_id IN (" +
         measurand_ids + ") ";
-    if (!producerIds.empty()) sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
+    if (!producerIds.empty())
+      sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
 
     sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
     sqlStmt += "AND " + settings.sqlDataFilter.getSqlClause("data_quality", "data.data_quality") +
@@ -497,7 +506,8 @@ LocationDataItems PostgreSQLObsDB::readObservations(
                "data.data_value, data.data_quality, data.data_source "
                "ORDER BY fmisid ASC, obstime ASC";
 
-    if (itsDebug) std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+    if (itsDebug)
+      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -510,9 +520,12 @@ LocationDataItems PostgreSQLObsDB::readObservations(
       obs.data.sensor_no = row[1].as<int>();
       obs.data.data_time = boost::posix_time::from_time_t(row[2].as<time_t>());
       obs.data.measurand_id = row[3].as<int>();
-      if (!row[4].is_null()) obs.data.data_value = row[4].as<double>();
-      if (!row[5].is_null()) obs.data.data_quality = row[5].as<int>();
-      if (!row[6].is_null()) obs.data.data_source = row[6].as<int>();
+      if (!row[4].is_null())
+        obs.data.data_value = row[4].as<double>();
+      if (!row[5].is_null())
+        obs.data.data_quality = row[5].as<int>();
+      if (!row[6].is_null())
+        obs.data.data_source = row[6].as<int>();
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(obs.data.fmisid, stationgroup_codes);
       obs.latitude = s.latitude_out;
@@ -540,17 +553,16 @@ LocationDataItems PostgreSQLObsDB::readObservations(
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(
-        BCP, "Reading observations from PostgreSQL database failed!");
+    throw Fmi::Exception::Trace(BCP, "Reading observations from PostgreSQL database failed!");
   }
 }
 
 void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
-                                        const StationInfo &stationInfo,
-                                        const std::set<std::string> &stationgroup_codes,
-                                        const QueryMapping &qmap,
-                                        std::map<int, std::map<int, int>> &default_sensors,
-                                        WeatherDataQCData &cacheData)
+                                             const StationInfo &stationInfo,
+                                             const std::set<std::string> &stationgroup_codes,
+                                             const QueryMapping &qmap,
+                                             std::map<int, std::map<int, int>> &default_sensors,
+                                             WeatherDataQCData &cacheData)
 {
   try
   {
@@ -568,8 +580,7 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       boost::optional<double> longitude = s.longitude_out;
       boost::optional<double> elevation = s.station_elevation;
 
-      const StationLocation &sloc =
-          stationInfo.stationLocations.getLocation(*fmisid, obstime);
+      const StationLocation &sloc = stationInfo.stationLocations.getLocation(*fmisid, obstime);
       // Get exact location, elevation
       if (sloc.location_id != -1)
       {
@@ -581,9 +592,12 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       boost::optional<double> data_value;
       boost::optional<int> data_quality;
       boost::optional<int> sensor_no;
-      if (!row[3].is_null()) data_value = row[3].as<double>();
-      if (!row[4].is_null()) sensor_no = row[4].as<int>();
-      if (!row[5].is_null()) data_quality = row[5].as<int>();
+      if (!row[3].is_null())
+        data_value = row[3].as<double>();
+      if (!row[4].is_null())
+        sensor_no = row[4].as<int>();
+      if (!row[5].is_null())
+        data_quality = row[5].as<int>();
 
       cacheData.fmisidsAll.push_back(fmisid);
       cacheData.obstimesAll.push_back(obstime);
@@ -614,14 +628,13 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP,
-                                  "Fetching data from PostgreSQL WeatherDataQCData cache failed!");
+                                "Fetching data from PostgreSQL WeatherDataQCData cache failed!");
   }
 }
 
-std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(
-    const Settings &settings,
-    const std::string &params,
-    const std::string &station_ids) const
+std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(const Settings &settings,
+                                                            const std::string &params,
+                                                            const std::string &station_ids) const
 {
   try
   {
@@ -662,14 +675,15 @@ std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(
           "ORDER BY fmisid ASC, obstime ASC";
     }
 
-    if (itsDebug) std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+    if (itsDebug)
+      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
     return sqlStmt;
   }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP,
-                                  "Constructing SQL statement for PostgreSQL cache query failed!");
+                                "Constructing SQL statement for PostgreSQL cache query failed!");
   }
 }
 
@@ -679,9 +693,12 @@ void PostgreSQLObsDB::translateToIdFunction(SmartMet::Spine::Stations &stations,
 
   for (auto &s : stations)
   {
-    if (net_id == 10 && s.lpnn > 0) continue;
-    if (net_id == 20 && s.wmo > 0) continue;
-    if (net_id == 30 && s.rwsid > 0) continue;
+    if (net_id == 10 && s.lpnn > 0)
+      continue;
+    if (net_id == 20 && s.wmo > 0)
+      continue;
+    if (net_id == 30 && s.rwsid > 0)
+      continue;
 
     std::string sqlStmt = (sqlStmtStart + Fmi::to_string(static_cast<int>(s.station_id)));
     // For RWSID dont use date
@@ -792,8 +809,8 @@ void PostgreSQLObsDB::getStations(SmartMet::Spine::Stations &stations) const
         "EXTWATER','EXTWIND','FLASH','HTB','ICE','MAGNET','MAREO','MAST','PREC','RADACT','RADAR','"
         "RESEARCH','RWS','SEA','SHIP','SOLAR','SOUNDING','SYNOP');";
 
-	if (itsDebug) 
-	  std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+    if (itsDebug)
+      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -830,10 +847,14 @@ void PostgreSQLObsDB::getStations(SmartMet::Spine::Stations &stations) const
       s.station_end = boost::posix_time::time_from_string(row[8].as<std::string>());
       s.target_category = row[10].as<int>();
       s.stationary = row[11].as<std::string>();
-      if (!row[12].is_null()) s.lpnn = row[12].as<int>();
-      if (!row[13].is_null()) s.wmo = row[13].as<int>();
-      if (!row[14].is_null()) s.longitude_out = row[14].as<double>();
-      if (!row[15].is_null()) s.latitude_out = row[15].as<double>();
+      if (!row[12].is_null())
+        s.lpnn = row[12].as<int>();
+      if (!row[13].is_null())
+        s.wmo = row[13].as<int>();
+      if (!row[14].is_null())
+        s.longitude_out = row[14].as<double>();
+      if (!row[15].is_null())
+        s.latitude_out = row[15].as<double>();
       s.modified_last = boost::posix_time::time_from_string(row[17].as<std::string>());
       s.modified_by = row[18].as<int>();
 
@@ -842,8 +863,7 @@ void PostgreSQLObsDB::getStations(SmartMet::Spine::Stations &stations) const
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(BCP,
-                                            "Reading stations from PostgreSQL database failed!");
+    throw Fmi::Exception::Trace(BCP, "Reading stations from PostgreSQL database failed!");
   }
 }
 
@@ -859,7 +879,8 @@ void PostgreSQLObsDB::readStationLocations(StationLocations &stationLocations) c
 
     for (auto row : result_set)
     {
-      if (row[5].is_null() || row[6].is_null() || row[7].is_null()) continue;
+      if (row[5].is_null() || row[6].is_null() || row[7].is_null())
+        continue;
       StationLocation item;
       item.location_id = row[0].as<int>();
       item.fmisid = row[1].as<int>();

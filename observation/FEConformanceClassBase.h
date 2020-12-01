@@ -5,9 +5,9 @@
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <fmt/format.h>
+#include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <spine/ConfigBase.h>
-#include <macgyver/Exception.h>
 #include <memory>
 #include <string>
 #include <vector>

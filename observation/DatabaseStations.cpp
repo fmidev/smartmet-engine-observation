@@ -8,7 +8,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 namespace
 {
 // Sort based on fmisid
@@ -88,12 +87,11 @@ void DatabaseStations::getStationsByArea(Spine::Stations &stations,
   }
 }
 
-void DatabaseStations::getStationsByBoundingBox(
-    Spine::Stations &stations,
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime,
-    const std::string &stationtype,
-    const BoundingBoxSettings &bboxSettings) const
+void DatabaseStations::getStationsByBoundingBox(Spine::Stations &stations,
+                                                const boost::posix_time::ptime &starttime,
+                                                const boost::posix_time::ptime &endtime,
+                                                const std::string &stationtype,
+                                                const BoundingBoxSettings &bboxSettings) const
 {
   try
   {
@@ -152,7 +150,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateGeoIdsToFMISID(
 
   for (int geoid : geoidSettings.geoids)
   {
-	auto places = itsGeonames->idSearch(opts, geoid);
+    auto places = itsGeonames->idSearch(opts, geoid);
 
     for (const auto &place : places)
     {
@@ -189,8 +187,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
 {
   Spine::TaggedFMISIDList result;
 
-  if (stationtype == NETATMO_PRODUCER ||
-      stationtype == ROADCLOUD_PRODUCER ||
+  if (stationtype == NETATMO_PRODUCER || stationtype == ROADCLOUD_PRODUCER ||
       stationtype == FMI_IOT_PRODUCER)
     return result;
 
@@ -224,9 +221,11 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
     result.insert(result.end(), wmos.begin(), wmos.end());
   }
 
-  if (lpnns.size() > 0) result.insert(result.end(), lpnns.begin(), lpnns.end());
+  if (lpnns.size() > 0)
+    result.insert(result.end(), lpnns.begin(), lpnns.end());
 
-  if (geoids.size() > 0) result.insert(result.end(), geoids.begin(), geoids.end());
+  if (geoids.size() > 0)
+    result.insert(result.end(), geoids.begin(), geoids.end());
 
   // FMISIDs need no conversion
   for (auto id : stationSettings.fmisids)
@@ -284,14 +283,14 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
 
   // Remove duplicates
   std::set<int> accepted_fmisids;
-  for(const auto& item : result)
-	{
-	  if(accepted_fmisids.find(item.fmisid) != accepted_fmisids.end())
-		continue;
+  for (const auto &item : result)
+  {
+    if (accepted_fmisids.find(item.fmisid) != accepted_fmisids.end())
+      continue;
 
-	  ret.push_back(item);
-	  accepted_fmisids.insert(item.fmisid);
-	}
+    ret.push_back(item);
+    accepted_fmisids.insert(item.fmisid);
+  }
 
   return ret;
 }
@@ -311,8 +310,7 @@ void DatabaseStations::getStationGroups(std::set<std::string> &stationgroup_code
   }
 }
 
-void DatabaseStations::getStations(Spine::Stations &stations,
-                                   const Settings &settings) const
+void DatabaseStations::getStations(Spine::Stations &stations, const Settings &settings) const
 {
   try
   {

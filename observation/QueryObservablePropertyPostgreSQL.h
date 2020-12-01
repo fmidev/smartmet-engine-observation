@@ -9,11 +9,9 @@ namespace Engine
 {
 namespace Observation
 {
-
 class QueryObservablePropertyPostgreSQL : public QueryObservableProperty
 {
  public:
-
   boost::shared_ptr<std::vector<ObservableProperty> > executeQuery(
       PostgreSQLObsDB &db,
       const std::string &stationType,

@@ -18,7 +18,10 @@ namespace
 template <class T>
 struct Releaser
 {
-  Releaser(Engine::Observation::PostgreSQLCacheConnectionPool* pool_handle) : poolHandle(pool_handle) {}
+  Releaser(Engine::Observation::PostgreSQLCacheConnectionPool* pool_handle)
+      : poolHandle(pool_handle)
+  {
+  }
   void operator()(T* t)
   {
     try
@@ -35,7 +38,8 @@ struct Releaser
 };
 }  // namespace
 
-PostgreSQLCacheConnectionPool::PostgreSQLCacheConnectionPool(const PostgreSQLCacheParameters& options)
+PostgreSQLCacheConnectionPool::PostgreSQLCacheConnectionPool(
+    const PostgreSQLCacheParameters& options)
     : itsOptions(options)
 {
   try
@@ -80,7 +84,7 @@ boost::shared_ptr<PostgreSQLCacheDB> PostgreSQLCacheConnectionPool::getConnectio
             itsWorkingList[i] = 1;
             itsWorkerList[i]->setConnectionId(i);
             return boost::shared_ptr<PostgreSQLCacheDB>(itsWorkerList[i].get(),
-                                                 Releaser<PostgreSQLCacheDB>(this));
+                                                        Releaser<PostgreSQLCacheDB>(this));
           }
         }
       }
@@ -101,8 +105,8 @@ void PostgreSQLCacheConnectionPool::releaseConnection(int connectionId)
   try
   {
     // This mutex is not needed since writing the int is atomic. In fact, if there is a queue to
-    // get connections, releasing a PostgreSQLCacheDB back to the pool would have to compete against the
-    // threads which are trying to get a connection. The more requests are coming, the less
+    // get connections, releasing a PostgreSQLCacheDB back to the pool would have to compete against
+    // the threads which are trying to get a connection. The more requests are coming, the less
     // chances we have of releasing the connection back to the pool, which may escalate the
     // problem - Mika
 

@@ -1,9 +1,8 @@
 #pragma once
 
-
-#include "QueryBase.h"
 #include "ObservableProperty.h"
 #include "ParameterMap.h"
+#include "QueryBase.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -14,7 +13,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 class QueryObservableProperty : public QueryBase
 {
  public:
@@ -23,7 +21,7 @@ class QueryObservableProperty : public QueryBase
   virtual ~QueryObservableProperty() {}
 
  protected:
-  typedef std::multimap<int, std::string> ParameterIdMapType; 
+  typedef std::multimap<int, std::string> ParameterIdMapType;
   typedef std::vector<std::string> ParameterVectorType;
   typedef std::string StationTypeType;
 
@@ -31,7 +29,6 @@ class QueryObservableProperty : public QueryBase
                          const ParameterMapPtr &parameterMap,
                          const StationTypeType &stationType,
                          ParameterIdMapType &parameterIds) const;
-
 };
 
 }  // namespace Observation

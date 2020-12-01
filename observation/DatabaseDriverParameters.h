@@ -8,12 +8,10 @@ namespace Engine
 {
 namespace Observation
 {
-
 // Common parameters for all database drivers
 struct DatabaseDriverParameters
 {
-  DatabaseDriverParameters(const std::string& drivername,
-                           const EngineParametersPtr& p)
+  DatabaseDriverParameters(const std::string& drivername, const EngineParametersPtr& p)
       : driverName(drivername), params(p)
   {
   }

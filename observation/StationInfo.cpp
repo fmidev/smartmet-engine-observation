@@ -13,8 +13,8 @@
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/vector.hpp>
 #include <gis/OGR.h>
-#include <macgyver/StringConversion.h>
 #include <macgyver/Exception.h>
+#include <macgyver/StringConversion.h>
 #include <fstream>
 
 namespace SmartMet
@@ -81,7 +81,7 @@ void createSerializedStationsDirectory(const std::string& filename)
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP,
-                                  "Failed to create directory for serialized station information")
+                                "Failed to create directory for serialized station information")
         .addParameter("stationfile", filename)
         .addParameter("directory", directory.string());
   }
@@ -246,7 +246,7 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
   std::sort(distances.begin(),
             distances.end(),
             [this](const StationDistance& lhs, const StationDistance& rhs) {
-              if(lhs.first != rhs.first)
+              if (lhs.first != rhs.first)
                 return lhs.first < rhs.first;
               return (this->stations.at(lhs.second).station_formal_name <
                       this->stations.at(rhs.second).station_formal_name);

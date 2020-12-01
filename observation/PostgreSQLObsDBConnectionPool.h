@@ -22,7 +22,8 @@ class PostgreSQLObsDBConnectionPool
   boost::shared_ptr<PostgreSQLObsDB> getConnection(bool debug = false);
   void releaseConnection(int connectionId);
   PostgreSQLObsDBConnectionPool(PostgreSQLDatabaseDriver* driver);
-  bool addService(const Fmi::Database::PostgreSQLConnectionOptions& connectionOptions, int poolSize);
+  bool addService(const Fmi::Database::PostgreSQLConnectionOptions& connectionOptions,
+                  int poolSize);
 
   /**
    * @brief How long we wait an inactive connection if all the connections are active.

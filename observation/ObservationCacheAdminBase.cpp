@@ -3,25 +3,23 @@
 #include <macgyver/AnsiEscapeCodes.h>
 #include <spine/Convenience.h>
 
-
 namespace SmartMet
 {
 namespace Engine
 {
 namespace Observation
 {
-
 ObservationCacheAdminBase::ObservationCacheAdminBase(const DatabaseDriverParameters& parameters,
                                                      Engine::Geonames::Engine* geonames,
                                                      boost::atomic<bool>& conn_ok,
                                                      bool timer)
-: itsParameters(parameters),
-  itsCacheProxy(parameters.params->observationCacheProxy),
-  itsGeonames(geonames),
-  itsShutdownRequested(false),
-  itsConnectionsOK(conn_ok),
-  itsTimer(timer),
-  background_tasks(new Fmi::AsyncTaskGroup)
+    : itsParameters(parameters),
+      itsCacheProxy(parameters.params->observationCacheProxy),
+      itsGeonames(geonames),
+      itsShutdownRequested(false),
+      itsConnectionsOK(conn_ok),
+      itsTimer(timer),
+      background_tasks(new Fmi::AsyncTaskGroup)
 {
   background_tasks->on_task_error([this](const std::string& task_name) {
     auto err = Fmi::Exception::Trace(BCP, "Operation failed");
@@ -57,13 +55,15 @@ void ObservationCacheAdminBase::init()
     std::set<std::string> tablenames;
     for (const auto& cachename : cachenames)
     {
-      if (cache_tables.find(cachename) == cache_tables.end()) cache_tables[cachename] = "";
+      if (cache_tables.find(cachename) == cache_tables.end())
+        cache_tables[cachename] = "";
 
       const CacheInfoItem& cii = ddi.getCacheInfo(cachename);
       for (auto t : cii.tables)
       {
         tablenames.insert(t);
-        if (!cache_tables.at(cachename).empty()) cache_tables[cachename] += ", ";
+        if (!cache_tables.at(cachename).empty())
+          cache_tables[cachename] += ", ";
         cache_tables[cachename] += t;
       }
     }
@@ -71,7 +71,8 @@ void ObservationCacheAdminBase::init()
     if (cache_tables.size() > 0)
     {
       for (const auto& item : cache_tables)
-        logMessage(" Table '" + item.second + "' is cached in '" + item.first + "'...", itsParameters.quiet);
+        logMessage(" Table '" + item.second + "' is cached in '" + item.first + "'...",
+                   itsParameters.quiet);
     }
 
     boost::shared_ptr<ObservationCache> observationCache;
@@ -136,9 +137,9 @@ void ObservationCacheAdminBase::init()
         // is not done first. We will not start threads for these since sqlite
         // would do them serially anyway.
 
-		observationCache->cleanDataCache(
-										 boost::posix_time::hours(itsParameters.finCacheDuration),
-										 boost::posix_time::hours(itsParameters.finMemoryCacheDuration));
+        observationCache->cleanDataCache(
+            boost::posix_time::hours(itsParameters.finCacheDuration),
+            boost::posix_time::hours(itsParameters.finMemoryCacheDuration));
 
         // Oracle reads can be parallelized. The writes will be done
         // in practise serially, even though the threads will give
@@ -151,10 +152,10 @@ void ObservationCacheAdminBase::init()
 
       if (weatherDataQCCache)
       {
-		weatherDataQCCache->cleanWeatherDataQCCache(
-													boost::posix_time::hours(itsParameters.extCacheDuration));
+        weatherDataQCCache->cleanWeatherDataQCCache(
+            boost::posix_time::hours(itsParameters.extCacheDuration));
 
-		if (itsParameters.extCacheUpdateInterval > 0)
+        if (itsParameters.extCacheUpdateInterval > 0)
         {
           background_tasks->add("Init weather data QC cache",
                                 [this]() { updateWeatherDataQCCache(); });
@@ -163,9 +164,9 @@ void ObservationCacheAdminBase::init()
 
       if (flashCache)
       {
-		flashCache->cleanFlashDataCache(
-										boost::posix_time::hours(itsParameters.flashCacheDuration),
-										boost::posix_time::hours(itsParameters.flashMemoryCacheDuration));
+        flashCache->cleanFlashDataCache(
+            boost::posix_time::hours(itsParameters.flashCacheDuration),
+            boost::posix_time::hours(itsParameters.flashMemoryCacheDuration));
 
         if (itsParameters.flashCacheUpdateInterval > 0)
         {
@@ -174,10 +175,10 @@ void ObservationCacheAdminBase::init()
       }
       if (netatmoCache)
       {
-		netatmoCache->cleanNetAtmoCache(
-										boost::posix_time::hours(itsParameters.netAtmoCacheDuration));
+        netatmoCache->cleanNetAtmoCache(
+            boost::posix_time::hours(itsParameters.netAtmoCacheDuration));
 
-       if (itsParameters.netAtmoCacheUpdateInterval > 0)
+        if (itsParameters.netAtmoCacheUpdateInterval > 0)
         {
           background_tasks->add("Init Netatmo cache", [this]() { updateNetAtmoCache(); });
         }
@@ -185,10 +186,10 @@ void ObservationCacheAdminBase::init()
 
       if (roadcloudCache)
       {
-		roadcloudCache->cleanRoadCloudCache(
-											boost::posix_time::hours(itsParameters.roadCloudCacheDuration));
+        roadcloudCache->cleanRoadCloudCache(
+            boost::posix_time::hours(itsParameters.roadCloudCacheDuration));
 
-       if (itsParameters.roadCloudCacheUpdateInterval > 0)
+        if (itsParameters.roadCloudCacheUpdateInterval > 0)
         {
           background_tasks->add("Init roadcloud cache", [this]() { updateRoadCloudCache(); });
         }
@@ -196,9 +197,9 @@ void ObservationCacheAdminBase::init()
 
       if (fmiIoTCache)
       {
-		fmiIoTCache->cleanFmiIoTCache(boost::posix_time::hours(itsParameters.fmiIoTCacheDuration));
+        fmiIoTCache->cleanFmiIoTCache(boost::posix_time::hours(itsParameters.fmiIoTCacheDuration));
 
-       if (itsParameters.fmiIoTCacheUpdateInterval > 0)
+        if (itsParameters.fmiIoTCacheUpdateInterval > 0)
         {
           background_tasks->add("Init fmi_iot cache", [this]() { updateFmiIoTCache(); });
         }
@@ -209,9 +210,9 @@ void ObservationCacheAdminBase::init()
       {
         std::cout << Spine::log_time_str() << driverName()
                   << " Stations info missing, loading from database! " << std::endl;
-		background_tasks->add("Load station data", [this]() { loadStations(); });
+        background_tasks->add("Load station data", [this]() { loadStations(); });
       }
-	  background_tasks->wait();
+      background_tasks->wait();
     }
 
     startCacheUpdateThreads(tablenames);
@@ -226,64 +227,63 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
 {
   try
   {
-    if (itsShutdownRequested || (tables.empty() && !itsParameters.loadStations)) return;
+    if (itsShutdownRequested || (tables.empty() && !itsParameters.loadStations))
+      return;
 
     // Updates are disabled for example in regression tests and sometimes when
     // profiling
     if (itsParameters.disableAllCacheUpdates)
-	  {
-		std::cout << Spine::log_time_str() << ANSI_FG_GREEN
-				  << " Note! Observation cache updates disabled for tables "
-				  << boost::algorithm::join(tables, ", ") << "! " << ANSI_FG_DEFAULT << std::endl;
-		return;
-	  }
-	
-	for(const auto& tablename : tables)
-	  {
-		// Dont start update loop for fake cache
-		if(getCache(tablename)->isFakeCache(tablename))
-		  return;
-	  }
+    {
+      std::cout << Spine::log_time_str() << ANSI_FG_GREEN
+                << " Note! Observation cache updates disabled for tables "
+                << boost::algorithm::join(tables, ", ") << "! " << ANSI_FG_DEFAULT << std::endl;
+      return;
+    }
+
+    for (const auto& tablename : tables)
+    {
+      // Dont start update loop for fake cache
+      if (getCache(tablename)->isFakeCache(tablename))
+        return;
+    }
 
     if (tables.find(OBSERVATION_DATA_TABLE) != tables.end() &&
         itsParameters.finCacheUpdateInterval > 0)
-	  {
-		background_tasks->add("observation cache update loop",
-							  [this]() { updateObservationCacheLoop(); });
-	  }
-	
+    {
+      background_tasks->add("observation cache update loop",
+                            [this]() { updateObservationCacheLoop(); });
+    }
+
     if (tables.find(WEATHER_DATA_QC_TABLE) != tables.end() &&
         itsParameters.extCacheUpdateInterval > 0)
-	  {
-		background_tasks->add("weather data QC cache update loop",
-							  [this]() { updateWeatherDataQCCacheLoop(); });
-	  }
+    {
+      background_tasks->add("weather data QC cache update loop",
+                            [this]() { updateWeatherDataQCCacheLoop(); });
+    }
 
     if (tables.find(FLASH_DATA_TABLE) != tables.end() && itsParameters.flashCacheUpdateInterval > 0)
-	  {
-		background_tasks->add("flash data cache update loop", [this]() { updateFlashCacheLoop(); });
-	  }
+    {
+      background_tasks->add("flash data cache update loop", [this]() { updateFlashCacheLoop(); });
+    }
 
     if (tables.find(NETATMO_DATA_TABLE) != tables.end() &&
         itsParameters.netAtmoCacheUpdateInterval > 0)
     {
-	  background_tasks->add("netatmo cache update loop", [this]() { updateNetAtmoCacheLoop(); });
+      background_tasks->add("netatmo cache update loop", [this]() { updateNetAtmoCacheLoop(); });
     }
 
     if (tables.find(ROADCLOUD_DATA_TABLE) != tables.end() &&
         itsParameters.roadCloudCacheUpdateInterval > 0)
     {
-	  background_tasks->add("road cloud cache update loop",
-							[this]() { updateRoadCloudCacheLoop(); });
+      background_tasks->add("road cloud cache update loop",
+                            [this]() { updateRoadCloudCacheLoop(); });
     }
 
     if (tables.find(FMI_IOT_DATA_TABLE) != tables.end() &&
         itsParameters.fmiIoTCacheUpdateInterval > 0)
     {
-	  background_tasks->add("fmi_iot cache update loop",
-							[this]() { updateFmiIoTCacheLoop(); });
+      background_tasks->add("fmi_iot cache update loop", [this]() { updateFmiIoTCacheLoop(); });
     }
-
 
     if (itsParameters.loadStations)
     {
@@ -296,85 +296,93 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
   }
 }
 
-void ObservationCacheAdminBase::updateFlashFakeCache(boost::shared_ptr<ObservationCache>& cache) const
+void ObservationCacheAdminBase::updateFlashFakeCache(
+    boost::shared_ptr<ObservationCache>& cache) const
 {
-   std::vector<std::map<std::string,std::string>> settings = cache->getFakeCacheSettings(FLASH_DATA_TABLE);
+  std::vector<std::map<std::string, std::string>> settings =
+      cache->getFakeCacheSettings(FLASH_DATA_TABLE);
 
-   for(const auto& setting : settings)
-	 {
-	   std::vector<FlashDataItem> cacheData;
-	   boost::posix_time::ptime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
-	   boost::posix_time::ptime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
-	   boost::posix_time::time_period dataPeriod(starttime, endtime);
+  for (const auto& setting : settings)
+  {
+    std::vector<FlashDataItem> cacheData;
+    boost::posix_time::ptime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
+    boost::posix_time::ptime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
+    boost::posix_time::time_period dataPeriod(starttime, endtime);
 
-	   auto begin1 = std::chrono::high_resolution_clock::now();
-	   readFlashCacheData(cacheData, dataPeriod, itsTimeZones);
-	   auto end1 = std::chrono::high_resolution_clock::now();
-	   std::cout << Spine::log_time_str() << driverName() << " database driver read "
-				 << cacheData.size() << " FLASH observations between " << starttime << "..." << endtime
-				 << " finished in "
-				 << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - begin1).count()
-				 << " ms" << std::endl;
+    auto begin1 = std::chrono::high_resolution_clock::now();
+    readFlashCacheData(cacheData, dataPeriod, itsTimeZones);
+    auto end1 = std::chrono::high_resolution_clock::now();
+    std::cout << Spine::log_time_str() << driverName() << " database driver read "
+              << cacheData.size() << " FLASH observations between " << starttime << "..." << endtime
+              << " finished in "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - begin1).count()
+              << " ms" << std::endl;
 
-	   auto begin2 = std::chrono::high_resolution_clock::now();
-	   auto count = cache->fillFlashDataCache(cacheData);
-	   auto end2 = std::chrono::high_resolution_clock::now();
-	   std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
-				 << " FLASH observations between " << starttime << "..." << endtime << " finished in "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(end2 - begin2).count()
-                  << " ms" << std::endl;
-	 }
-
+    auto begin2 = std::chrono::high_resolution_clock::now();
+    auto count = cache->fillFlashDataCache(cacheData);
+    auto end2 = std::chrono::high_resolution_clock::now();
+    std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
+              << " FLASH observations between " << starttime << "..." << endtime << " finished in "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end2 - begin2).count()
+              << " ms" << std::endl;
+  }
 }
 
 void ObservationCacheAdminBase::updateFlashCache() const
 {
   try
   {
-	if(itsParameters.disableAllCacheUpdates)
-	  return;
+    if (itsParameters.disableAllCacheUpdates)
+      return;
 
-    boost::shared_ptr<ObservationCache> flashCache =
-        getCache(FLASH_DATA_TABLE);
+    boost::shared_ptr<ObservationCache> flashCache = getCache(FLASH_DATA_TABLE);
 
-	if(flashCache->isFakeCache(FLASH_DATA_TABLE))
-	  return updateFlashFakeCache(flashCache);
+    if (flashCache->isFakeCache(FLASH_DATA_TABLE))
+      return updateFlashFakeCache(flashCache);
 
     std::vector<FlashDataItem> flashCacheData;
 
-    std::map<std::string, boost::posix_time::ptime> last_times =
-        getLatestFlashTime(flashCache);
+    std::map<std::string, boost::posix_time::ptime> last_times = getLatestFlashTime(flashCache);
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
 
-	  readFlashCacheData(flashCacheData, last_times.at("start_time"), last_times.at("last_stroke_time"), last_times.at("last_modified_time"), itsTimeZones);
-	
+      readFlashCacheData(flashCacheData,
+                         last_times.at("start_time"),
+                         last_times.at("last_stroke_time"),
+                         last_times.at("last_modified_time"),
+                         itsTimeZones);
+
       auto end = std::chrono::high_resolution_clock::now();
 
-	  if (itsTimer)
+      if (itsTimer)
         std::cout << Spine::log_time_str() << driverName() << " database driver read "
                   << flashCacheData.size() << " FLASH observations starting from "
-                  << last_times.at("start_time") << " when stroke_time >= " << last_times.at("last_stroke_time") << " and last_modified >= " << last_times.at("last_modified_time")
-				  << " finished in "
+                  << last_times.at("start_time")
+                  << " when stroke_time >= " << last_times.at("last_stroke_time")
+                  << " and last_modified >= " << last_times.at("last_modified_time")
+                  << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
       auto count = flashCache->fillFlashDataCache(flashCacheData);
       auto end = std::chrono::high_resolution_clock::now();
 
-	  if (itsTimer)
+      if (itsTimer)
         std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
-                  << " FLASH observations starting from " << last_times.at("start_time") << " finished in "
+                  << " FLASH observations starting from " << last_times.at("start_time")
+                  << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
                   << " ms" << std::endl;
     }
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
     // Delete too old flashes from the Cache database
     {
@@ -384,7 +392,7 @@ void ObservationCacheAdminBase::updateFlashCache() const
           boost::posix_time::hours(itsParameters.flashMemoryCacheDuration));
       auto end = std::chrono::high_resolution_clock::now();
 
-	  if (itsTimer)
+      if (itsTimer)
         std::cout << Spine::log_time_str() << driverName()
                   << " database driver FLASH cache cleaner finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
@@ -397,48 +405,51 @@ void ObservationCacheAdminBase::updateFlashCache() const
   }
 }
 
-void ObservationCacheAdminBase::updateObservationFakeCache(boost::shared_ptr<ObservationCache>& cache) const
+void ObservationCacheAdminBase::updateObservationFakeCache(
+    boost::shared_ptr<ObservationCache>& cache) const
 {
-   std::vector<std::map<std::string,std::string>> settings = cache->getFakeCacheSettings(OBSERVATION_DATA_TABLE);
+  std::vector<std::map<std::string, std::string>> settings =
+      cache->getFakeCacheSettings(OBSERVATION_DATA_TABLE);
 
-   for(const auto& setting : settings)
-	 {
-	   std::vector<DataItem> cacheData;
-	   boost::posix_time::ptime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
-	   boost::posix_time::ptime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
-	   boost::posix_time::time_period dataPeriod(starttime, endtime);
+  for (const auto& setting : settings)
+  {
+    std::vector<DataItem> cacheData;
+    boost::posix_time::ptime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
+    boost::posix_time::ptime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
+    boost::posix_time::time_period dataPeriod(starttime, endtime);
 
-	   auto begin1 = std::chrono::high_resolution_clock::now();
-	   readObservationCacheData(cacheData, dataPeriod, setting.at("fmisid"), setting.at("measurand_id"), itsTimeZones);
-	   auto end1 = std::chrono::high_resolution_clock::now();
-	   std::cout << Spine::log_time_str() << driverName() << " database driver read "
-				 << cacheData.size() << " FIN observations between " << starttime << "..." << endtime
-				 << " finished in "
-				 << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - begin1).count()
-				 << " ms" << std::endl;
+    auto begin1 = std::chrono::high_resolution_clock::now();
+    readObservationCacheData(
+        cacheData, dataPeriod, setting.at("fmisid"), setting.at("measurand_id"), itsTimeZones);
+    auto end1 = std::chrono::high_resolution_clock::now();
+    std::cout << Spine::log_time_str() << driverName() << " database driver read "
+              << cacheData.size() << " FIN observations between " << starttime << "..." << endtime
+              << " finished in "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - begin1).count()
+              << " ms" << std::endl;
 
-	   auto begin2 = std::chrono::high_resolution_clock::now();
-	   auto count = cache->fillDataCache(cacheData);
-	   auto end2 = std::chrono::high_resolution_clock::now();
-	   std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
-				 << " FIN observations between " << starttime << "..." << endtime << " finished in "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(end2 - begin2).count()
-                  << " ms" << std::endl;
-	 }
+    auto begin2 = std::chrono::high_resolution_clock::now();
+    auto count = cache->fillDataCache(cacheData);
+    auto end2 = std::chrono::high_resolution_clock::now();
+    std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
+              << " FIN observations between " << starttime << "..." << endtime << " finished in "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end2 - begin2).count()
+              << " ms" << std::endl;
+  }
 }
 
 void ObservationCacheAdminBase::updateObservationCache() const
 {
   try
   {
-    if (itsShutdownRequested || itsParameters.disableAllCacheUpdates) return;
+    if (itsShutdownRequested || itsParameters.disableAllCacheUpdates)
+      return;
 
     // The time of the last observation in the cache
-    boost::shared_ptr<ObservationCache> observationCache =
-        getCache(OBSERVATION_DATA_TABLE);
+    boost::shared_ptr<ObservationCache> observationCache = getCache(OBSERVATION_DATA_TABLE);
 
-	if(observationCache->isFakeCache(OBSERVATION_DATA_TABLE))
-	  return updateObservationFakeCache(observationCache);
+    if (observationCache->isFakeCache(OBSERVATION_DATA_TABLE))
+      return updateObservationFakeCache(observationCache);
 
     std::vector<DataItem> cacheData;
 
@@ -454,7 +465,8 @@ void ObservationCacheAdminBase::updateObservationCache() const
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
-	  readObservationCacheData(cacheData, last_time_pair.first, last_time_pair.second, itsTimeZones);
+      readObservationCacheData(
+          cacheData, last_time_pair.first, last_time_pair.second, itsTimeZones);
 
       auto end = std::chrono::high_resolution_clock::now();
 
@@ -466,7 +478,8 @@ void ObservationCacheAdminBase::updateObservationCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
@@ -480,20 +493,21 @@ void ObservationCacheAdminBase::updateObservationCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
     // Delete too old observations from the Cache database
-      auto begin = std::chrono::high_resolution_clock::now();
-      observationCache->cleanDataCache(
-          boost::posix_time::hours(itsParameters.finCacheDuration),
-          boost::posix_time::hours(itsParameters.finMemoryCacheDuration));
-      auto end = std::chrono::high_resolution_clock::now();
+    auto begin = std::chrono::high_resolution_clock::now();
+    observationCache->cleanDataCache(
+        boost::posix_time::hours(itsParameters.finCacheDuration),
+        boost::posix_time::hours(itsParameters.finMemoryCacheDuration));
+    auto end = std::chrono::high_resolution_clock::now();
 
-      if (itsTimer)
-        std::cout << Spine::log_time_str() << driverName()
-                  << " database driver FIN cache cleaner finished in "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+    if (itsTimer)
+      std::cout << Spine::log_time_str() << driverName()
+                << " database driver FIN cache cleaner finished in "
+                << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
+                << " ms" << std::endl;
   }
   catch (...)
   {
@@ -501,59 +515,61 @@ void ObservationCacheAdminBase::updateObservationCache() const
   }
 }
 
-
-void ObservationCacheAdminBase::updateWeatherDataQCFakeCache(boost::shared_ptr<ObservationCache>& cache) const
+void ObservationCacheAdminBase::updateWeatherDataQCFakeCache(
+    boost::shared_ptr<ObservationCache>& cache) const
 {
-   std::vector<std::map<std::string,std::string>> settings = cache->getFakeCacheSettings(WEATHER_DATA_QC_TABLE);
+  std::vector<std::map<std::string, std::string>> settings =
+      cache->getFakeCacheSettings(WEATHER_DATA_QC_TABLE);
 
-   for(const auto& setting : settings)
-	 {
-       std::vector<WeatherDataQCItem> cacheData;
-	   boost::posix_time::ptime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
-	   boost::posix_time::ptime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
-	   boost::posix_time::time_period dataPeriod(starttime, endtime);
+  for (const auto& setting : settings)
+  {
+    std::vector<WeatherDataQCItem> cacheData;
+    boost::posix_time::ptime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
+    boost::posix_time::ptime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
+    boost::posix_time::time_period dataPeriod(starttime, endtime);
 
-	   auto begin1 = std::chrono::high_resolution_clock::now();
-	   readWeatherDataQCCacheData(cacheData, dataPeriod, setting.at("fmisid"), setting.at("measurand_id"), itsTimeZones);
-	   auto end1 = std::chrono::high_resolution_clock::now();
-	   std::cout << Spine::log_time_str() << driverName() << " database driver read "
-				 << cacheData.size() << " EXT observations between " << starttime << "..." << endtime
-				 << " finished in "
-				 << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - begin1).count()
-				 << " ms" << std::endl;
+    auto begin1 = std::chrono::high_resolution_clock::now();
+    readWeatherDataQCCacheData(
+        cacheData, dataPeriod, setting.at("fmisid"), setting.at("measurand_id"), itsTimeZones);
+    auto end1 = std::chrono::high_resolution_clock::now();
+    std::cout << Spine::log_time_str() << driverName() << " database driver read "
+              << cacheData.size() << " EXT observations between " << starttime << "..." << endtime
+              << " finished in "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - begin1).count()
+              << " ms" << std::endl;
 
-	   auto begin2 = std::chrono::high_resolution_clock::now();
-	   auto count = cache->fillWeatherDataQCCache(cacheData);
-	   auto end2 = std::chrono::high_resolution_clock::now();
-	   std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
-				 << " EXT observations between " << starttime << "..." << endtime << " finished in "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(end2 - begin2).count()
-                  << " ms" << std::endl;
-	 }
+    auto begin2 = std::chrono::high_resolution_clock::now();
+    auto count = cache->fillWeatherDataQCCache(cacheData);
+    auto end2 = std::chrono::high_resolution_clock::now();
+    std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
+              << " EXT observations between " << starttime << "..." << endtime << " finished in "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end2 - begin2).count()
+              << " ms" << std::endl;
+  }
 }
 
 void ObservationCacheAdminBase::updateWeatherDataQCCache() const
 {
   try
-	{
-  if (itsShutdownRequested ||	itsParameters.disableAllCacheUpdates)
-	return;
-  
-  boost::shared_ptr<ObservationCache> weatherDataQCCache =
-	  getCache(WEATHER_DATA_QC_TABLE);
-  
-  if(weatherDataQCCache->isFakeCache(WEATHER_DATA_QC_TABLE))
-	return updateWeatherDataQCFakeCache(weatherDataQCCache);
+  {
+    if (itsShutdownRequested || itsParameters.disableAllCacheUpdates)
+      return;
 
-  std::vector<WeatherDataQCItem> cacheData;
+    boost::shared_ptr<ObservationCache> weatherDataQCCache = getCache(WEATHER_DATA_QC_TABLE);
 
-  std::pair<boost::posix_time::ptime, boost::posix_time::ptime> last_time_pair =
+    if (weatherDataQCCache->isFakeCache(WEATHER_DATA_QC_TABLE))
+      return updateWeatherDataQCFakeCache(weatherDataQCCache);
+
+    std::vector<WeatherDataQCItem> cacheData;
+
+    std::pair<boost::posix_time::ptime, boost::posix_time::ptime> last_time_pair =
         getLatestWeatherDataQCTime(weatherDataQCCache);
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
 
-	  readWeatherDataQCCacheData(cacheData, last_time_pair.first, last_time_pair.second, itsTimeZones);
+      readWeatherDataQCCacheData(
+          cacheData, last_time_pair.first, last_time_pair.second, itsTimeZones);
 
       auto end = std::chrono::high_resolution_clock::now();
 
@@ -565,7 +581,8 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
@@ -579,7 +596,8 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
     // Delete too old observations from the Cache database
     {
@@ -605,10 +623,10 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
 {
   try
   {
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
-    boost::shared_ptr<ObservationCache> netatmoCache =
-        getCache(NETATMO_DATA_TABLE);
+    boost::shared_ptr<ObservationCache> netatmoCache = getCache(NETATMO_DATA_TABLE);
 
     std::vector<MobileExternalDataItem> cacheData;
 
@@ -617,7 +635,8 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
 
     // Make sure the time is not in the future
     boost::posix_time::ptime now = boost::posix_time::second_clock::universal_time();
-    if (!last_time.is_not_a_date_time() && last_time > now) last_time = now;
+    if (!last_time.is_not_a_date_time() && last_time > now)
+      last_time = now;
 
     // Making sure that we do not request more data than we actually store into
     // the cache.
@@ -656,23 +675,20 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
     {
       auto begin = std::chrono::high_resolution_clock::now();
 
-      readMobileCacheData(NETATMO_PRODUCER,
-                          cacheData,
-                          last_time,
-                          last_created_time,
-                          itsTimeZones);
+      readMobileCacheData(NETATMO_PRODUCER, cacheData, last_time, last_created_time, itsTimeZones);
 
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
         std::cout << Spine::log_time_str() << driverName() << " database driver read "
-                  << cacheData.size() << NETATMO_PRODUCER
-                  << " observations starting from " << last_time << " finished in "
+                  << cacheData.size() << NETATMO_PRODUCER << " observations starting from "
+                  << last_time << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
@@ -681,13 +697,14 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
 
       if (itsTimer)
         std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
-                  << NETATMO_PRODUCER << " observations starting from "
-                  << last_time << " finished in "
+                  << NETATMO_PRODUCER << " observations starting from " << last_time
+                  << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
     // Delete too old observations from the Cache database
 
@@ -706,8 +723,8 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(
-        BCP, ("Updating " + std::string(NETATMO_PRODUCER) + " cache failed!"));
+    throw Fmi::Exception::Trace(BCP,
+                                ("Updating " + std::string(NETATMO_PRODUCER) + " cache failed!"));
   }
 }
 
@@ -715,10 +732,10 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
 {
   try
   {
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
-    boost::shared_ptr<ObservationCache> roadcloudCache =
-        getCache(ROADCLOUD_DATA_TABLE);
+    boost::shared_ptr<ObservationCache> roadcloudCache = getCache(ROADCLOUD_DATA_TABLE);
 
     std::vector<MobileExternalDataItem> cacheData;
 
@@ -727,7 +744,8 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
 
     // Make sure the time is not in the future
     boost::posix_time::ptime now = boost::posix_time::second_clock::universal_time();
-    if (!last_time.is_not_a_date_time() && last_time > now) last_time = now;
+    if (!last_time.is_not_a_date_time() && last_time > now)
+      last_time = now;
 
     // Making sure that we do not request more data than we actually store into
     // the cache.
@@ -766,23 +784,21 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
     {
       auto begin = std::chrono::high_resolution_clock::now();
 
-      readMobileCacheData(ROADCLOUD_PRODUCER,
-                          cacheData,
-                          last_time,
-                          last_created_time,
-                          itsTimeZones);
+      readMobileCacheData(
+          ROADCLOUD_PRODUCER, cacheData, last_time, last_created_time, itsTimeZones);
 
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
         std::cout << Spine::log_time_str() << driverName() << " database driver read "
-                  << cacheData.size() << ROADCLOUD_PRODUCER
-                  << " observations starting from " << last_time << " finished in "
+                  << cacheData.size() << ROADCLOUD_PRODUCER << " observations starting from "
+                  << last_time << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
@@ -791,13 +807,14 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
 
       if (itsTimer)
         std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
-                  << ROADCLOUD_PRODUCER << " observations starting from "
-                  << last_time << " finished in "
+                  << ROADCLOUD_PRODUCER << " observations starting from " << last_time
+                  << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
     // Delete too old observations from the Cache database
 
@@ -816,9 +833,8 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(
-        BCP,
-        ("Updating " + std::string(ROADCLOUD_PRODUCER) + " cache failed!"));
+    throw Fmi::Exception::Trace(BCP,
+                                ("Updating " + std::string(ROADCLOUD_PRODUCER) + " cache failed!"));
   }
 }
 
@@ -826,10 +842,10 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
 {
   try
   {
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
-    boost::shared_ptr<ObservationCache> fmiIoTCache =
-        getCache(FMI_IOT_DATA_TABLE);
+    boost::shared_ptr<ObservationCache> fmiIoTCache = getCache(FMI_IOT_DATA_TABLE);
 
     std::vector<MobileExternalDataItem> cacheData;
 
@@ -838,7 +854,8 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
 
     // Make sure the time is not in the future
     boost::posix_time::ptime now = boost::posix_time::second_clock::universal_time();
-    if (!last_time.is_not_a_date_time() && last_time > now) last_time = now;
+    if (!last_time.is_not_a_date_time() && last_time > now)
+      last_time = now;
 
     // Making sure that we do not request more data than we actually store into
     // the cache.
@@ -877,23 +894,20 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
     {
       auto begin = std::chrono::high_resolution_clock::now();
 
-      readMobileCacheData(FMI_IOT_PRODUCER,
-                          cacheData,
-                          last_time,
-                          last_created_time,
-                          itsTimeZones);
+      readMobileCacheData(FMI_IOT_PRODUCER, cacheData, last_time, last_created_time, itsTimeZones);
 
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
         std::cout << Spine::log_time_str() << driverName() << " database driver read "
-                  << cacheData.size() << FMI_IOT_PRODUCER
-                  << " observations starting from " << last_time << " finished in "
+                  << cacheData.size() << FMI_IOT_PRODUCER << " observations starting from "
+                  << last_time << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
@@ -902,20 +916,20 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
 
       if (itsTimer)
         std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
-                  << FMI_IOT_PRODUCER << " observations starting from "
-                  << last_time << " finished in "
+                  << FMI_IOT_PRODUCER << " observations starting from " << last_time
+                  << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested) return;
+    if (itsShutdownRequested)
+      return;
 
     // Delete too old observations from the Cache database
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
-      fmiIoTCache->cleanFmiIoTCache(
-          boost::posix_time::hours(itsParameters.fmiIoTCacheDuration));
+      fmiIoTCache->cleanFmiIoTCache(boost::posix_time::hours(itsParameters.fmiIoTCacheDuration));
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
@@ -927,9 +941,8 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(
-        BCP,
-        ("Updating " + std::string(FMI_IOT_PRODUCER) + " cache failed!"));
+    throw Fmi::Exception::Trace(BCP,
+                                ("Updating " + std::string(FMI_IOT_PRODUCER) + " cache failed!"));
   }
 }
 
@@ -946,7 +959,8 @@ void ObservationCacheAdminBase::updateObservationCacheLoop()
       }
       catch (std::exception& err)
       {
-        logMessage(std::string(": updateObservationCacheLoop(): ") + err.what(), itsParameters.quiet);
+        logMessage(std::string(": updateObservationCacheLoop(): ") + err.what(),
+                   itsParameters.quiet);
       }
       catch (...)
       {
@@ -978,7 +992,8 @@ void ObservationCacheAdminBase::updateFlashCacheLoop()
       }
       catch (std::exception& err)
       {
-        logMessage(std::string(driverName() + ": updateFlashCache(): ") + err.what(), itsParameters.quiet);
+        logMessage(std::string(driverName() + ": updateFlashCache(): ") + err.what(),
+                   itsParameters.quiet);
       }
       catch (...)
       {
@@ -1136,7 +1151,8 @@ void ObservationCacheAdminBase::updateStationsCacheLoop()
         loadStations();
 
         // Update only once if an interval has not been set
-        if (itsParameters.stationsCacheUpdateInterval == 0) return;
+        if (itsParameters.stationsCacheUpdateInterval == 0)
+          return;
       }
       catch (std::exception& err)
       {
@@ -1185,7 +1201,8 @@ void ObservationCacheAdminBase::addInfoToStations(SmartMet::Spine::Stations& sta
   std::map<int, SmartMet::Spine::LocationPtr> locations;
 
   for (auto loc : locationList)
-    if (loc->fmisid) locations[*loc->fmisid] = loc;
+    if (loc->fmisid)
+      locations[*loc->fmisid] = loc;
 
   for (Spine::Station& station : stations)
   {

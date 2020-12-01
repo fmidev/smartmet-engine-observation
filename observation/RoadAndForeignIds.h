@@ -8,7 +8,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 class RoadAndForeignIds
 {
  public:
@@ -17,14 +16,11 @@ class RoadAndForeignIds
   const std::string& integerToString(int value) const;
   int stringToInteger(const std::string& string_value) const;
 
-private:
+ private:
   std::map<std::string, int> itsStringToInteger;
   std::map<int, std::string> itsIntegerToString;
 };
 
-
-
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-

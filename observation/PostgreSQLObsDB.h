@@ -1,6 +1,5 @@
 #pragma once
 
-#include <boost/atomic.hpp>
 #include "CommonPostgreSQLFunctions.h"
 #include "DataItem.h"
 #include "FlashDataItem.h"
@@ -10,6 +9,7 @@
 #include "Settings.h"
 #include "StationtypeConfig.h"
 #include "WeatherDataQCItem.h"
+#include <boost/atomic.hpp>
 #include <macgyver/PostgreSQLConnection.h>
 #include <macgyver/TimeZones.h>
 #include <spine/Station.h>
@@ -22,15 +22,14 @@ namespace Engine
 {
 namespace Observation
 {
-
 class PostgreSQLDatabaseDriver;
 
 class PostgreSQLObsDB : public CommonPostgreSQLFunctions, private boost::noncopyable
 {
  public:
   PostgreSQLObsDB(const Fmi::Database::PostgreSQLConnectionOptions &connectionOptions,
-             const StationtypeConfig &stc,
-             const ParameterMapPtr &pm);
+                  const StationtypeConfig &stc,
+                  const ParameterMapPtr &pm);
 
   /**
    *  @brief Execute SQL statement and get the result.
@@ -43,44 +42,39 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions, private boost::noncopy
            std::shared_ptr<QueryResultBase> qrb,
            const Fmi::TimeZones &timezones);
 
-  void readMobileCacheDataFromPostgreSQL(
-      const std::string &producer,
-      std::vector<MobileExternalDataItem> &cacheData,
-      boost::posix_time::ptime lastTime,
-      boost::posix_time::ptime lastCreatedTime,
-      const Fmi::TimeZones &timezones);
-  
-  void readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
-								   const boost::posix_time::time_period &dataPeriod,
-								   const std::string &fmisid,
-								   const std::string &measurandId,
-								   const Fmi::TimeZones &timezones);
-  void readFlashCacheDataFromPostgreSQL(
-      std::vector<FlashDataItem> &flashCacheData,
-	  const boost::posix_time::time_period &dataPeriod,
-      const Fmi::TimeZones &timezones);
-  void readWeatherDataQCCacheDataFromPostgreSQL(
-      std::vector<WeatherDataQCItem> &cacheData,
-	  const boost::posix_time::time_period &dataPeriod,
-	  const std::string &fmisid,
-	  const std::string &measurandId,
-      const Fmi::TimeZones &timezones);
+  void readMobileCacheDataFromPostgreSQL(const std::string &producer,
+                                         std::vector<MobileExternalDataItem> &cacheData,
+                                         boost::posix_time::ptime lastTime,
+                                         boost::posix_time::ptime lastCreatedTime,
+                                         const Fmi::TimeZones &timezones);
 
   void readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
-								   const boost::posix_time::ptime &startTime,
-								   const boost::posix_time::ptime &lastModifiedTime,
-								   const Fmi::TimeZones &timezones);
-  void readFlashCacheDataFromPostgreSQL(
-      std::vector<FlashDataItem> &flashCacheData,
-	  const boost::posix_time::ptime &startTime,
-	  const boost::posix_time::ptime &lastStrokeTime,
-	  const boost::posix_time::ptime& lastModifiedTime,
-      const Fmi::TimeZones &timezones);
-  void readWeatherDataQCCacheDataFromPostgreSQL(
-      std::vector<WeatherDataQCItem> &cacheData,
-      boost::posix_time::ptime lastTime,
-      boost::posix_time::ptime lastModifiedTime,
-      const Fmi::TimeZones &timezones);
+                                   const boost::posix_time::time_period &dataPeriod,
+                                   const std::string &fmisid,
+                                   const std::string &measurandId,
+                                   const Fmi::TimeZones &timezones);
+  void readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem> &flashCacheData,
+                                        const boost::posix_time::time_period &dataPeriod,
+                                        const Fmi::TimeZones &timezones);
+  void readWeatherDataQCCacheDataFromPostgreSQL(std::vector<WeatherDataQCItem> &cacheData,
+                                                const boost::posix_time::time_period &dataPeriod,
+                                                const std::string &fmisid,
+                                                const std::string &measurandId,
+                                                const Fmi::TimeZones &timezones);
+
+  void readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
+                                   const boost::posix_time::ptime &startTime,
+                                   const boost::posix_time::ptime &lastModifiedTime,
+                                   const Fmi::TimeZones &timezones);
+  void readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem> &flashCacheData,
+                                        const boost::posix_time::ptime &startTime,
+                                        const boost::posix_time::ptime &lastStrokeTime,
+                                        const boost::posix_time::ptime &lastModifiedTime,
+                                        const Fmi::TimeZones &timezones);
+  void readWeatherDataQCCacheDataFromPostgreSQL(std::vector<WeatherDataQCItem> &cacheData,
+                                                boost::posix_time::ptime lastTime,
+                                                boost::posix_time::ptime lastModifiedTime,
+                                                const Fmi::TimeZones &timezones);
 
   boost::posix_time::ptime startTime;
   boost::posix_time::ptime endTime;
@@ -117,25 +111,21 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions, private boost::noncopy
 
  private:
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr itsTimeSeriesColumns;
-  LocationDataItems readObservations(
-      const Spine::Stations &stations,
-      const Settings &settings,
-      const StationInfo &stationInfo,
-      const QueryMapping &qmap,
-      const std::set<std::string> &stationgroup_codes);
+  LocationDataItems readObservations(const Spine::Stations &stations,
+                                     const Settings &settings,
+                                     const StationInfo &stationInfo,
+                                     const QueryMapping &qmap,
+                                     const std::set<std::string> &stationgroup_codes);
 
   void readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
-								   const std::string& sqlStmt,
+                                   const std::string &sqlStmt,
                                    const Fmi::TimeZones &timezones);
-  void readWeatherDataQCCacheDataFromPostgreSQL(
-    std::vector<WeatherDataQCItem> &cacheData,
-	const std::string& sqlStmt,
-    const Fmi::TimeZones &timezones);
-  void readFlashCacheDataFromPostgreSQL(
-    std::vector<FlashDataItem> &flashCacheData,
-	const std::string& sqlStmt,
-    const Fmi::TimeZones &timezones);
-
+  void readWeatherDataQCCacheDataFromPostgreSQL(std::vector<WeatherDataQCItem> &cacheData,
+                                                const std::string &sqlStmt,
+                                                const Fmi::TimeZones &timezones);
+  void readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem> &flashCacheData,
+                                        const std::string &sqlStmt,
+                                        const Fmi::TimeZones &timezones);
 };
 
 }  // namespace Observation

@@ -1,11 +1,11 @@
 #include "SpatiaLiteDatabaseDriver.h"
-#include <boost/date_time/posix_time/posix_time.hpp>  //include all types plus i/o
-#include <boost/date_time/time_duration.hpp>
-#include <boost/make_shared.hpp>
 #include "ObservationCache.h"
 #include "QueryResult.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
+#include <boost/date_time/posix_time/posix_time.hpp>  //include all types plus i/o
+#include <boost/date_time/time_duration.hpp>
+#include <boost/make_shared.hpp>
 #include <spine/Convenience.h>
 #include <spine/TimeSeriesOutput.h>
 #include <atomic>
@@ -23,12 +23,10 @@ namespace Engine
 {
 namespace Observation
 {
-
-SpatiaLiteDatabaseDriver::SpatiaLiteDatabaseDriver(
-    const std::string &name,
-    const EngineParametersPtr &p,
-    Spine::ConfigBase &cfg)
-  : DatabaseDriverBase(name), itsParameters(name, p)
+SpatiaLiteDatabaseDriver::SpatiaLiteDatabaseDriver(const std::string &name,
+                                                   const EngineParametersPtr &p,
+                                                   Spine::ConfigBase &cfg)
+    : DatabaseDriverBase(name), itsParameters(name, p)
 {
   setlocale(LC_NUMERIC, "en_US.utf8");
 
@@ -39,19 +37,16 @@ void SpatiaLiteDatabaseDriver::init(Engine *obsengine)
 {
   try
   {
-    itsDatabaseStations.reset(
-        new DatabaseStations(itsParameters.params, obsengine->getGeonames()));
+    itsDatabaseStations.reset(new DatabaseStations(itsParameters.params, obsengine->getGeonames()));
 
     boost::shared_ptr<ObservationCacheAdminSpatiaLite> cacheAdmin(
-        new ObservationCacheAdminSpatiaLite(itsParameters,
-                                        obsengine->getGeonames(),
-                                        itsConnectionsOK,
-                                        false));
-    if (!itsShutdownRequested) {
-        boost::atomic_store(&itsObservationCacheAdminSpatiaLite, cacheAdmin);
-        cacheAdmin->init();
-	}
-
+        new ObservationCacheAdminSpatiaLite(
+            itsParameters, obsengine->getGeonames(), itsConnectionsOK, false));
+    if (!itsShutdownRequested)
+    {
+      boost::atomic_store(&itsObservationCacheAdminSpatiaLite, cacheAdmin);
+      cacheAdmin->init();
+    }
   }
   catch (...)
   {
@@ -63,7 +58,7 @@ void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb)
 {
   try
   {
-	// Not implemeted
+    // Not implemeted
   }
   catch (...)
   {
@@ -71,10 +66,10 @@ void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb)
   }
 }
 
-ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
-    Settings &settings)
+ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
 {
-  if (itsShutdownRequested) return nullptr;
+  if (itsShutdownRequested)
+    return nullptr;
 
   parameterSanityCheck(
       settings.stationtype, settings.parameters, *itsParameters.params->parameterMap);
@@ -90,7 +85,6 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
   // This driver fetched data only from cache
   try
   {
-
     if (settings.useDataCache)
     {
       auto cache = resolveCache(settings.stationtype, itsParameters.params);
@@ -101,7 +95,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
       }
     }
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
-	return ret;
+    return ret;
   }
   catch (...)
   {
@@ -114,10 +108,10 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
  */
 
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
-    Settings &settings,
-    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
+    Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
-  if (itsShutdownRequested) return nullptr;
+  if (itsShutdownRequested)
+    return nullptr;
 
   parameterSanityCheck(
       settings.stationtype, settings.parameters, *itsParameters.params->parameterMap);
@@ -139,11 +133,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
 
       if (cache && cache->dataAvailableInCache(settings))
       {
-		return cache->valuesFromCache(settings, timeSeriesOptions);
+        return cache->valuesFromCache(settings, timeSeriesOptions);
       }
     }
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
-	return ret;
+    return ret;
   }
   catch (...)
   {
@@ -167,8 +161,8 @@ FlashCounts SpatiaLiteDatabaseDriver::getFlashCount(
       return cache->getFlashCount(starttime, endtime, locations);
     }
 
-	FlashCounts ret;
-	return ret;
+    FlashCounts ret;
+    return ret;
   }
   catch (...)
   {
@@ -178,13 +172,13 @@ FlashCounts SpatiaLiteDatabaseDriver::getFlashCount(
 
 boost::shared_ptr<std::vector<ObservableProperty>>
 SpatiaLiteDatabaseDriver::observablePropertyQuery(std::vector<std::string> &parameters,
-                                                            const std::string language)
+                                                  const std::string language)
 {
   try
   {
-	// Not implemented
-	boost::shared_ptr<std::vector<ObservableProperty>> ret;
-	return ret;
+    // Not implemented
+    boost::shared_ptr<std::vector<ObservableProperty>> ret;
+    return ret;
   }
   catch (...)
   {
@@ -196,20 +190,20 @@ void SpatiaLiteDatabaseDriver::readConfig(Spine::ConfigBase &cfg)
 {
   try
   {
-	DatabaseDriverBase::readConfig(cfg, itsParameters);
- }
+    DatabaseDriverBase::readConfig(cfg, itsParameters);
+  }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Reading SpatiaLite configuration failed!");
   }
 }
 
-std::string SpatiaLiteDatabaseDriver::id() const { return "spatialite"; }
-
-void SpatiaLiteDatabaseDriver::shutdown()
+std::string SpatiaLiteDatabaseDriver::id() const
 {
-
+  return "spatialite";
 }
+
+void SpatiaLiteDatabaseDriver::shutdown() {}
 
 }  // namespace Observation
 }  // namespace Engine
