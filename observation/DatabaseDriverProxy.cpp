@@ -282,7 +282,7 @@ DatabaseDriverBase *DatabaseDriverProxy::resolveDatabaseDriver(const Settings &s
         return itsOracleDriver;
 
       throw Fmi::Exception::Trace(
-          BCP, "No database driver found for prodcer '" + settings.stationtype + "'");
+          BCP, "No database driver found for producer '" + settings.stationtype + "'");
     }
 
     return itsDatabaseDriverContainer.resolveDriver(
