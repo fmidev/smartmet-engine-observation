@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 20.12.7
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -100,8 +100,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Mon Dec  7 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.12.7-1.fmi
+* Mon Dec  7 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.12.7-2.fmi
 - Minor fixes to silence CodeChecker warnings
+
+* Mon Dec  7 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.12.7-1.fmi
+- Fixed afterQuery not to throw if the query result is empty
 
 * Thu Nov 26 2020 Anssi Reponen <anssi.reponen@fmi.fi> - 20.11.26-1.fmi
 - Stations sorted accodrding to distance (BRAINSTORM-1976)

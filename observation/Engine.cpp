@@ -360,7 +360,10 @@ void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr &tsvPtr,
                         const Settings &settings,
                         const std::vector<unsigned int> &unknownParameterIndexes) const
 {
-  if (tsvPtr->size() > 0 && unknownParameterIndexes.size() > 0)
+  if (tsvPtr->empty())
+    return;
+
+  if (!unknownParameterIndexes.empty())
   {
     // Take copy of the first time series
     Spine::TimeSeries::TimeSeries ts = tsvPtr->at(0);
