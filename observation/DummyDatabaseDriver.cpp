@@ -40,10 +40,10 @@ FlashCounts DummyDatabaseDriver::getFlashCount(const boost::posix_time::ptime &,
   return FlashCounts();
 }
 
-boost::shared_ptr<std::vector<ObservableProperty>> DummyDatabaseDriver::observablePropertyQuery(
+std::shared_ptr<std::vector<ObservableProperty>> DummyDatabaseDriver::observablePropertyQuery(
     std::vector<std::string> &, const std::string)
 {
-  return boost::make_shared<std::vector<ObservableProperty>>();
+  return std::make_shared<std::vector<ObservableProperty>>();
 }
 
 }  // namespace Observation

@@ -36,8 +36,8 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
   void setConnectionId(int connectionId) { itsConnectionId = connectionId; }
   int connectionId() { return static_cast<int>(itsConnectionId); }
   Fmi::Database::PostgreSQLConnection &getConnection() { return itsDB; }
-  const boost::shared_ptr<Fmi::TimeFormatter> &getTimeFormatter() const { return itsTimeFormatter; }
-  const boost::shared_ptr<Fmi::TimeFormatter> &resetTimeFormatter(const std::string &format);
+  const std::shared_ptr<Fmi::TimeFormatter> &getTimeFormatter() const { return itsTimeFormatter; }
+  const std::shared_ptr<Fmi::TimeFormatter> &resetTimeFormatter(const std::string &format);
 
  protected:
   Fmi::Database::PostgreSQLConnection itsDB;
@@ -47,7 +47,7 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
   std::atomic<bool> itsShutdownRequested{false};
   bool itsIsCacheDatabase{false};
 
-  boost::shared_ptr<Fmi::TimeFormatter> itsTimeFormatter;
+  std::shared_ptr<Fmi::TimeFormatter> itsTimeFormatter;
 
  private:
   SmartMet::Engine::Observation::LocationDataItems readObservationDataFromDB(

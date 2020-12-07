@@ -10,7 +10,7 @@ namespace Observation
 {
 QueryObservablePropertyPostgreSQL::~QueryObservablePropertyPostgreSQL() = default;
 
-boost::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostgreSQL::executeQuery(
+std::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostgreSQL::executeQuery(
     PostgreSQLObsDB &db,
     const std::string &stationType,
     const std::vector<std::string> &parameters,
@@ -19,7 +19,7 @@ boost::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostg
 {
   try
   {
-    boost::shared_ptr<std::vector<ObservableProperty> > observableProperties(
+    std::shared_ptr<std::vector<ObservableProperty> > observableProperties(
         new std::vector<ObservableProperty>);
 
     // Solving measurand id's for valid parameter aliases.

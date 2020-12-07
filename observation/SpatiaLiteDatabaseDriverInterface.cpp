@@ -48,7 +48,7 @@ FlashCounts SpatiaLiteDatabaseDriverInterface::getFlashCount(
   return itsDatabaseDriver->getFlashCount(starttime, endtime, locations);
 }
 
-boost::shared_ptr<std::vector<ObservableProperty>>
+std::shared_ptr<std::vector<ObservableProperty>>
 SpatiaLiteDatabaseDriverInterface::observablePropertyQuery(std::vector<std::string> &parameters,
                                                            const std::string language)
 {

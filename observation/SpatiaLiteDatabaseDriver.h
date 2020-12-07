@@ -30,7 +30,7 @@ class SpatiaLiteDatabaseDriver : public DatabaseDriverBase
   Spine::TimeSeries::TimeSeriesVectorPtr values(
       Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
 
-  boost::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
+  std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language);
 
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,

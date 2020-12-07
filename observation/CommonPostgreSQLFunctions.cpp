@@ -537,7 +537,7 @@ void CommonPostgreSQLFunctions::reConnect()
   }
 }
 
-const boost::shared_ptr<Fmi::TimeFormatter> &CommonPostgreSQLFunctions::resetTimeFormatter(
+const std::shared_ptr<Fmi::TimeFormatter> &CommonPostgreSQLFunctions::resetTimeFormatter(
     const std::string &format)
 {
   try

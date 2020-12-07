@@ -42,7 +42,7 @@ class VerifiableMessageQueryParams : public QueryParamsBase
   typedef std::list<SelectNameType> SelectNameListType;
   typedef DBRegistryConfig::NameType TableNameType;
 
-  explicit VerifiableMessageQueryParams(const boost::shared_ptr<DBRegistryConfig> dbrConfig);
+  explicit VerifiableMessageQueryParams(const std::shared_ptr<DBRegistryConfig> dbrConfig);
 
   ~VerifiableMessageQueryParams();
 
@@ -102,7 +102,7 @@ class VerifiableMessageQueryParams : public QueryParamsBase
   VerifiableMessageQueryParams &operator=(const VerifiableMessageQueryParams &other);
   VerifiableMessageQueryParams(const VerifiableMessageQueryParams &other);
 
-  boost::shared_ptr<DBRegistryConfig> m_dbrConfig;
+  std::shared_ptr<DBRegistryConfig> m_dbrConfig;
 
   StationIdVectorType *m_stationIdVector;
   NamesAllowed *m_namesAllowed;

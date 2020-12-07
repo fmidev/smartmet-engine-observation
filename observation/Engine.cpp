@@ -79,7 +79,7 @@ void Engine::unserializeStations()
 
   try
   {
-    boost::shared_ptr<StationInfo> stationinfo = boost::make_shared<StationInfo>();
+    auto stationinfo = boost::make_shared<StationInfo>();
     if (boost::filesystem::exists(path) && !boost::filesystem::is_empty(path))
     {
       stationinfo->unserialize(itsEngineParameters->serializedStationsFile);
@@ -201,7 +201,7 @@ FlashCounts Engine::getFlashCount(const boost::posix_time::ptime &starttime,
   return itsDatabaseDriver->getFlashCount(starttime, endtime, locations);
 }
 
-boost::shared_ptr<std::vector<ObservableProperty>> Engine::observablePropertyQuery(
+std::shared_ptr<std::vector<ObservableProperty>> Engine::observablePropertyQuery(
     std::vector<std::string> &parameters, const std::string language)
 {
   return itsDatabaseDriver->observablePropertyQuery(parameters, language);

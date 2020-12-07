@@ -37,7 +37,7 @@ class MastQuery : public QueryBase
    * @return Reference to the result container or NULL if
    *         SQL statement produce an empty result.
    */
-  boost::shared_ptr<QueryResult> getQueryResultContainer();
+  std::shared_ptr<QueryResult> getQueryResultContainer();
 
   /**
    * \brief Set query params used in SQL statement formation.
@@ -66,7 +66,7 @@ class MastQuery : public QueryBase
   std::string m_orderBy;
   std::string m_distinct;
 
-  boost::shared_ptr<QueryResult> m_queryResult;
+  std::shared_ptr<QueryResult> m_queryResult;
 };
 
 }  // namespace Observation

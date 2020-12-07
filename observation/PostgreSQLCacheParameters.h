@@ -48,7 +48,7 @@ struct PostgreSQLCacheParameters
   std::size_t fmiIoTInsertCacheSize = 0;
 
   bool quiet = true;
-  boost::shared_ptr<boost::posix_time::time_period> flashCachePeriod;
+  std::shared_ptr<boost::posix_time::time_period> flashCachePeriod;
   // Externally owned, may be modified by a different thread. Use atomic_load to use the data!
   const boost::shared_ptr<StationInfo>* stationInfo;
   const ParameterMapPtr& parameterMap;

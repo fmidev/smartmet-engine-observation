@@ -10,10 +10,10 @@ namespace Engine
 {
 namespace Observation
 {
-boost::shared_ptr<ObservationCacheProxy> ObservationCacheFactory::create(const EngineParametersPtr& p,
+std::shared_ptr<ObservationCacheProxy> ObservationCacheFactory::create(const EngineParametersPtr& p,
                                                                        const Spine::ConfigBase& cfg)
 {
-  boost::shared_ptr<ObservationCacheProxy> cacheProxy(new ObservationCacheProxy());
+  std::shared_ptr<ObservationCacheProxy> cacheProxy(new ObservationCacheProxy());
   ObservationCaches caches;
 
   const std::map<std::string, CacheInfoItem>& cacheInfoItems =
@@ -24,7 +24,7 @@ boost::shared_ptr<ObservationCacheProxy> ObservationCacheFactory::create(const E
     if (!item.second.active)
       continue;
 
-    boost::shared_ptr<ObservationCache> cache;
+    std::shared_ptr<ObservationCache> cache;
     const std::string& cacheName = item.first;
 
     if (boost::algorithm::starts_with(cacheName, "postgresql_"))

@@ -27,7 +27,7 @@ class OperationMap
   typedef std::string NameType;
   typedef int IdType;
   typedef boost::
-      function2<boost::shared_ptr<const Property::Base>, const NameType&, const boost::any&>
+      function2<std::shared_ptr<const Property::Base>, const NameType&, const boost::any&>
           OperationMapValueType;
   typedef std::map<NameType, OperationMapValueType> OperationMapType;
 
@@ -96,7 +96,7 @@ class FEConformanceClassBase : public OperationMap
    * @param toWhat The value witch database values are compared.
    * @return Operation object or empty object (if no match with the \a operationName).
    */
-  virtual boost::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
+  virtual std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
       const std::string& field, const std::string& operationName, const boost::any& toWhat) = 0;
 
  private:

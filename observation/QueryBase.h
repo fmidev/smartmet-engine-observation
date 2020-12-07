@@ -28,9 +28,9 @@ class QueryBase
    *  @brief Get a reference with null value to a container to store data.
    *  @return Null pointer.
    */
-  virtual boost::shared_ptr<QueryResult> getQueryResultContainer()
+  virtual std::shared_ptr<QueryResult> getQueryResultContainer()
   {
-    return boost::shared_ptr<QueryResult>();
+    return std::shared_ptr<QueryResult>();
   }
 
  private:

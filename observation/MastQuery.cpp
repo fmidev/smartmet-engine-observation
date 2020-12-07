@@ -41,7 +41,7 @@ std::string MastQuery::getSQLStatement(const std::string &database /*= "oracle"*
   }
 }
 
-boost::shared_ptr<QueryResult> MastQuery::getQueryResultContainer()
+std::shared_ptr<QueryResult> MastQuery::getQueryResultContainer()
 {
   try
   {
@@ -76,7 +76,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
 
     // SELECT part of a SQL statement
     typedef MastQueryParams::FieldMapType FieldMapType;
-    const boost::shared_ptr<FieldMapType> fv = qParams->getFieldMap();
+    const std::shared_ptr<FieldMapType> fv = qParams->getFieldMap();
     m_selectSize = fv->size();
     for (FieldMapType::const_iterator it = fv->begin(); it != fv->end(); ++it)
     {
@@ -86,7 +86,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
       // "column_name"
       m_select.append(" ").append(it->second).append(".").append(it->first);
       typedef MastQueryParams::FieldAliasMapType FieldAliasMapType;
-      const boost::shared_ptr<FieldAliasMapType> fam = qParams->getFieldAliasMap();
+      const std::shared_ptr<FieldAliasMapType> fam = qParams->getFieldAliasMap();
       FieldAliasMapType::const_iterator famIt = fam->find(it->first);
       if (famIt != fam->end() and not famIt->second.empty())
         m_select.append(" as ").append(famIt->second);
@@ -95,7 +95,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
     // WHERE part of the SQL statement
     using OperationMapType = MastQueryParams::OperationMapType;
 
-    const boost::shared_ptr<OperationMapType> om = qParams->getOperationMap();
+    const std::shared_ptr<OperationMapType> om = qParams->getOperationMap();
     for (auto omIt = om->begin(); omIt != om->end(); ++omIt)
     {
       if (omIt->second.size() == 0)
@@ -133,7 +133,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
 
     // FROM part of the SQL statement
     typedef MastQueryParams::JoinOnListTupleVectorType JoinOnListTupleVectorType;
-    const boost::shared_ptr<JoinOnListTupleVectorType> joinOnListTupleVector =
+    const std::shared_ptr<JoinOnListTupleVectorType> joinOnListTupleVector =
         qParams->getJoinOnListTupleVector();
     m_from.append(" ").append(qParams->getTableName()).append(" ").append(qParams->getTableName());
 
@@ -168,7 +168,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
 
     // ORDER BY part of the SQL statement
     typedef MastQueryParams::OrderByVectorType OrderByVectorType;
-    const boost::shared_ptr<OrderByVectorType> orderVector = qParams->getOrderByVector();
+    const std::shared_ptr<OrderByVectorType> orderVector = qParams->getOrderByVector();
     for (OrderByVectorType::const_iterator it = orderVector->begin(); it != orderVector->end();
          ++it)
     {

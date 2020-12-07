@@ -22,7 +22,7 @@ class PostgreSQLDatabaseDriver : public DatabaseDriverBase
   void shutdown();
   virtual void init(Engine *obsengine);
   Geonames::Engine *getGeonames() const;
-  boost::shared_ptr<FmiIoTStations> &getFmiIoTStations() { return itsParameters.fmiIoTStations; }
+  std::shared_ptr<FmiIoTStations> &getFmiIoTStations() { return itsParameters.fmiIoTStations; }
   //  void setOracleDriver(DatabaseDriverBase *dbDriver) { itsOracleDriver = dbDriver; }
   void reloadStations();
 

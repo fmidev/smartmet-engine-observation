@@ -26,7 +26,7 @@ PostgreSQLObsDB::PostgreSQLObsDB(
 }
 
 void PostgreSQLObsDB::get(const std::string &sqlStatement,
-                          boost::shared_ptr<QueryResultBase> qrb,
+                          std::shared_ptr<QueryResultBase> qrb,
                           const Fmi::TimeZones &timezones)
 {
   try

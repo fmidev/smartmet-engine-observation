@@ -79,7 +79,7 @@ class StationtypeConfig
    * stationtype.
    * @return Reference to the database table nane.
    */
-  boost::shared_ptr<const DatabaseTableNameType> getDatabaseTableNameByStationtype(
+  std::shared_ptr<const DatabaseTableNameType> getDatabaseTableNameByStationtype(
       const StationtypeType& stationtype) const;
 
   /**
@@ -89,7 +89,7 @@ class StationtypeConfig
    * stationtype.
    * @return Reference to the group code list match with the stationtype.
    */
-  boost::shared_ptr<const GroupCodeSetType> getGroupCodeSetByStationtype(
+  std::shared_ptr<const GroupCodeSetType> getGroupCodeSetByStationtype(
       const StationtypeType& stationtype) const;
 
   /**
@@ -99,7 +99,7 @@ class StationtypeConfig
    * stationtype.
    * @return Reference to the producer id set match with the stationtype.
    */
-  boost::shared_ptr<const ProducerIdSetType> getProducerIdSetByStationtype(
+  std::shared_ptr<const ProducerIdSetType> getProducerIdSetByStationtype(
       const StationtypeType& stationtype) const;
 
   /**

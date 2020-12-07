@@ -102,7 +102,7 @@ void DatabaseDriverProxy::init(Engine *obsengine)
     {
       // Let's initialize Oracle-driver first and fetch fmi_iot stations
       itsOracleDriver->init(obsengine);
-      boost::shared_ptr<FmiIoTStations> &stations =
+      std::shared_ptr<FmiIoTStations> &stations =
           itsPostgreSQLMobileDataDriver->getFmiIoTStations();
       itsOracleDriver->getFMIIoTStations(stations);
       oracleDriverInitialized = true;
@@ -193,7 +193,7 @@ FlashCounts DatabaseDriverProxy::getFlashCount(const boost::posix_time::ptime &s
   return pDriver->getFlashCount(starttime, endtime, locations);
 }
 
-boost::shared_ptr<std::vector<ObservableProperty>> DatabaseDriverProxy::observablePropertyQuery(
+std::shared_ptr<std::vector<ObservableProperty>> DatabaseDriverProxy::observablePropertyQuery(
     std::vector<std::string> &parameters, const std::string language)
 {
   DatabaseDriverBase *pDriver = resolveDatabaseDriverByTable("measurand");

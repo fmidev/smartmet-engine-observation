@@ -133,10 +133,10 @@ void PostgreSQLDatabaseDriverForMobileData::makeQuery(QueryBase *qb)
       throw exception;
     }
 
-    boost::shared_ptr<QueryResultBase> result = qb->getQueryResultContainer();
+    std::shared_ptr<QueryResultBase> result = qb->getQueryResultContainer();
 
     // Try cache first
-    boost::optional<boost::shared_ptr<QueryResultBase> > cacheResult =
+    boost::optional<std::shared_ptr<QueryResultBase> > cacheResult =
         itsParameters.params->queryResultBaseCache.find(sqlStatement);
     if (cacheResult)
     {
@@ -155,7 +155,7 @@ void PostgreSQLDatabaseDriverForMobileData::makeQuery(QueryBase *qb)
       throw exception;
     }
 
-    boost::shared_ptr<PostgreSQLObsDB> db;
+    std::shared_ptr<PostgreSQLObsDB> db;
 
     // Select an active connection in a very rude way.
     // If connection is not connected, reconnec it.
@@ -249,7 +249,7 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(Settings &
       return ret;
     }
 
-    boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
     setSettings(settings, *db);
 
     QueryExternalAndMobileData extdata(itsParameters.externalAndMobileProducerConfig,
@@ -314,7 +314,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::va
       return ret;
     }
 
-    boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
     setSettings(settings, *db);
 
     QueryExternalAndMobileData extdata(itsParameters.externalAndMobileProducerConfig,
@@ -347,13 +347,13 @@ void PostgreSQLDatabaseDriverForMobileData::getStationsByBoundingBox(Spine::Stat
 {
 }
 
-boost::shared_ptr<std::vector<ObservableProperty> >
+std::shared_ptr<std::vector<ObservableProperty> >
 PostgreSQLDatabaseDriverForMobileData::observablePropertyQuery(std::vector<std::string> &parameters,
                                                                const std::string language)
 {
   try
   {
-    boost::shared_ptr<std::vector<ObservableProperty> > data;
+    std::shared_ptr<std::vector<ObservableProperty> > data;
 
     return data;
   }

@@ -12,7 +12,7 @@ namespace Engine
 {
 namespace Observation
 {
-DBRegistryConfig::DBRegistryConfig(boost::shared_ptr<SmartMet::Spine::ConfigBase> config)
+DBRegistryConfig::DBRegistryConfig(std::shared_ptr<SmartMet::Spine::ConfigBase> config)
 {
   try
   {
@@ -127,7 +127,7 @@ DBRegistryConfig::NameType DBRegistryConfig::getMethod(
   }
 }
 
-NamesAllowed::NamesAllowed(const boost::shared_ptr<DBRegistryConfig> dbrConfig,
+NamesAllowed::NamesAllowed(const std::shared_ptr<DBRegistryConfig> dbrConfig,
                            const bool caseSensitiveNames)
     : m_caseSensitiveNames(caseSensitiveNames)
 {
@@ -140,7 +140,7 @@ NamesAllowed::NamesAllowed(const boost::shared_ptr<DBRegistryConfig> dbrConfig,
       return;
     }
 
-    const boost::shared_ptr<NameMapType> nameMap = dbrConfig->getFieldNameMap();
+    const std::shared_ptr<NameMapType> nameMap = dbrConfig->getFieldNameMap();
     if (not nameMap)
     {
       std::cerr << "warning : Engine::Observation::NamesAllowed class object use an "

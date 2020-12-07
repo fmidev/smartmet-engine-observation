@@ -15,7 +15,7 @@ class QueryExternalAndMobileData : public QueryBase
 {
  public:
   QueryExternalAndMobileData(const ExternalAndMobileProducerConfig &producerConfig,
-                             const boost::shared_ptr<FmiIoTStations> &stations);
+                             const std::shared_ptr<FmiIoTStations> &stations);
 
   virtual ~QueryExternalAndMobileData();
 
@@ -41,7 +41,7 @@ class QueryExternalAndMobileData : public QueryBase
 
  private:
   const ExternalAndMobileProducerConfig &itsProducerConfig;  // producer -> id map
-  const boost::shared_ptr<FmiIoTStations> &itsStations;
+  const std::shared_ptr<FmiIoTStations> &itsStations;
 };
 
 }  // namespace Observation

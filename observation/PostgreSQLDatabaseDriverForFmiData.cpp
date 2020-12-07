@@ -134,10 +134,10 @@ void PostgreSQLDatabaseDriverForFmiData::makeQuery(QueryBase *qb)
       throw exception;
     }
 
-    boost::shared_ptr<QueryResultBase> result = qb->getQueryResultContainer();
+    std::shared_ptr<QueryResultBase> result = qb->getQueryResultContainer();
 
     // Try cache first
-    boost::optional<boost::shared_ptr<QueryResultBase>> cacheResult =
+    boost::optional<std::shared_ptr<QueryResultBase>> cacheResult =
         itsParameters.params->queryResultBaseCache.find(sqlStatement);
     if (cacheResult)
     {
@@ -158,7 +158,7 @@ void PostgreSQLDatabaseDriverForFmiData::makeQuery(QueryBase *qb)
 
     try
     {
-      boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+      std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
       db->get(sqlStatement, result, itsTimeZones);
 
       if (not cacheResult)
@@ -240,7 +240,7 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
     timeSeriesOptions.startTimeUTC = false;
     timeSeriesOptions.endTimeUTC = false;
 
-    boost::shared_ptr<PostgreSQLObsDB> db =
+    std::shared_ptr<PostgreSQLObsDB> db =
         itsPostgreSQLConnectionPool->getConnection(settings.debug_options);
     setSettings(settings, *db);
 
@@ -324,7 +324,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::value
 
     Spine::Stations stations;
     getStations(stations, settings);
-    boost::shared_ptr<PostgreSQLObsDB> db =
+    std::shared_ptr<PostgreSQLObsDB> db =
         itsPostgreSQLConnectionPool->getConnection(settings.debug_options);
     setSettings(settings, *db);
 
@@ -387,7 +387,7 @@ FlashCounts PostgreSQLDatabaseDriverForFmiData::getFlashCount(
       return cache->getFlashCount(starttime, endtime, locations);
     }
 
-    boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
     return db->getFlashCount(starttime, endtime, locations);
   }
   catch (...)
@@ -396,7 +396,7 @@ FlashCounts PostgreSQLDatabaseDriverForFmiData::getFlashCount(
   }
 }
 
-boost::shared_ptr<std::vector<ObservableProperty>>
+std::shared_ptr<std::vector<ObservableProperty>>
 PostgreSQLDatabaseDriverForFmiData::observablePropertyQuery(std::vector<std::string> &parameters,
                                                             const std::string language)
 {
@@ -404,7 +404,7 @@ PostgreSQLDatabaseDriverForFmiData::observablePropertyQuery(std::vector<std::str
   {
     QueryObservablePropertyPostgreSQL qop;
 
-    boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
 
     return qop.executeQuery(
         *db, "metadata", parameters, itsParameters.params->parameterMap, language);

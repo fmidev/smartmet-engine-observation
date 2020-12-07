@@ -36,7 +36,7 @@ StandardFilter::StandardFilter() : MinimumStandardFilter()
   }
 }
 
-boost::shared_ptr<const StandardFilter::PropertyIsBaseType> StandardFilter::getNewOperationInstance(
+std::shared_ptr<const StandardFilter::PropertyIsBaseType> StandardFilter::getNewOperationInstance(
     const NameType& field, const NameType& operationName, const boost::any& toWhat)
 {
   try
@@ -44,7 +44,7 @@ boost::shared_ptr<const StandardFilter::PropertyIsBaseType> StandardFilter::getN
     try
     {
       OperationMapValueType op = FEConformanceClassBase::get(operationName);
-      return boost::shared_ptr<const PropertyIsBaseType>(op(field, toWhat));
+      return std::shared_ptr<const PropertyIsBaseType>(op(field, toWhat));
     }
     catch (...)
     {

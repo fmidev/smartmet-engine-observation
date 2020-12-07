@@ -19,7 +19,7 @@ class PostgreSQLObsDBConnectionPool
 
   bool initializePool(const StationtypeConfig& stc, const ParameterMapPtr& pm);
 
-  boost::shared_ptr<PostgreSQLObsDB> getConnection(bool debug = false);
+  std::shared_ptr<PostgreSQLObsDB> getConnection(bool debug = false);
   void releaseConnection(int connectionId);
   PostgreSQLObsDBConnectionPool(PostgreSQLDatabaseDriver* driver);
   bool addService(const Fmi::Database::PostgreSQLConnectionOptions& connectionOptions,
@@ -35,7 +35,7 @@ class PostgreSQLObsDBConnectionPool
 
  private:
   std::vector<int> itsWorkingList;
-  std::vector<boost::shared_ptr<PostgreSQLObsDB> > itsWorkerList;
+  std::vector<std::shared_ptr<PostgreSQLObsDB> > itsWorkerList;
   SmartMet::Spine::MutexType itsGetMutex;
   std::vector<Fmi::Database::PostgreSQLConnectionOptions> itsConnectionOptions;
   std::vector<size_t> itsServicePool;

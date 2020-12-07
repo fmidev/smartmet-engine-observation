@@ -14,7 +14,7 @@ class PostgreSQLCacheConnectionPool
 {
  public:
   ~PostgreSQLCacheConnectionPool() {}
-  boost::shared_ptr<PostgreSQLCacheDB> getConnection();
+  std::shared_ptr<PostgreSQLCacheDB> getConnection();
 
   void releaseConnection(int connectionId);
 
@@ -26,7 +26,7 @@ class PostgreSQLCacheConnectionPool
   PostgreSQLCacheParameters itsOptions;
 
   std::vector<int> itsWorkingList;
-  std::vector<boost::shared_ptr<PostgreSQLCacheDB>> itsWorkerList;
+  std::vector<std::shared_ptr<PostgreSQLCacheDB>> itsWorkerList;
 
   SmartMet::Spine::MutexType itsGetMutex;
 };

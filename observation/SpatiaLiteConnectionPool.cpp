@@ -45,7 +45,7 @@ SpatiaLiteConnectionPool::SpatiaLiteConnectionPool(const SpatiaLiteCacheParamete
 
     // Create all connections in advance, not when needed
     for (std::size_t i = 0; i < itsWorkerList.size(); i++)
-      itsWorkerList[i] = boost::make_shared<SpatiaLite>(itsSpatialiteFile, itsOptions);
+      itsWorkerList[i] = std::make_shared<SpatiaLite>(itsSpatialiteFile, itsOptions);
   }
   catch (...)
   {
@@ -53,7 +53,7 @@ SpatiaLiteConnectionPool::SpatiaLiteConnectionPool(const SpatiaLiteCacheParamete
   }
 }
 
-boost::shared_ptr<SpatiaLite> SpatiaLiteConnectionPool::getConnection()
+std::shared_ptr<SpatiaLite> SpatiaLiteConnectionPool::getConnection()
 {
   try
   {
@@ -79,8 +79,7 @@ boost::shared_ptr<SpatiaLite> SpatiaLiteConnectionPool::getConnection()
           {
             itsWorkingList[i] = 1;
             itsWorkerList[i]->setConnectionId(i);
-            return boost::shared_ptr<SpatiaLite>(itsWorkerList[i].get(),
-                                                 Releaser<SpatiaLite>(this));
+            return std::shared_ptr<SpatiaLite>(itsWorkerList[i].get(), Releaser<SpatiaLite>(this));
           }
         }
       }

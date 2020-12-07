@@ -33,7 +33,7 @@ MinimumStandardFilter::MinimumStandardFilter() : FEConformanceClassBase()
   }
 }
 
-boost::shared_ptr<const MinimumStandardFilter::PropertyIsBaseType>
+std::shared_ptr<const MinimumStandardFilter::PropertyIsBaseType>
 MinimumStandardFilter::getNewOperationInstance(const NameType& field,
                                                const NameType& operationName,
                                                const boost::any& toWhat)
@@ -43,7 +43,7 @@ MinimumStandardFilter::getNewOperationInstance(const NameType& field,
     try
     {
       OperationMapValueType op = FEConformanceClassBase::get(operationName);
-      return boost::shared_ptr<const PropertyIsBaseType>(op(field, toWhat));
+      return std::shared_ptr<const PropertyIsBaseType>(op(field, toWhat));
     }
     catch (...)
     {

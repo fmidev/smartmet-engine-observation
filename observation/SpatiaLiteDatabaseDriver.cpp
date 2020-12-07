@@ -39,9 +39,8 @@ void SpatiaLiteDatabaseDriver::init(Engine *obsengine)
   {
     itsDatabaseStations.reset(new DatabaseStations(itsParameters.params, obsengine->getGeonames()));
 
-    boost::shared_ptr<ObservationCacheAdminSpatiaLite> cacheAdmin(
-        new ObservationCacheAdminSpatiaLite(
-            itsParameters, obsengine->getGeonames(), itsConnectionsOK, false));
+    auto cacheAdmin = boost::make_shared<ObservationCacheAdminSpatiaLite>(
+        itsParameters, obsengine->getGeonames(), itsConnectionsOK, false);
     if (!itsShutdownRequested)
     {
       boost::atomic_store(&itsObservationCacheAdminSpatiaLite, cacheAdmin);
@@ -170,14 +169,13 @@ FlashCounts SpatiaLiteDatabaseDriver::getFlashCount(
   }
 }
 
-boost::shared_ptr<std::vector<ObservableProperty>>
-SpatiaLiteDatabaseDriver::observablePropertyQuery(std::vector<std::string> &parameters,
-                                                  const std::string language)
+std::shared_ptr<std::vector<ObservableProperty>> SpatiaLiteDatabaseDriver::observablePropertyQuery(
+    std::vector<std::string> &parameters, const std::string language)
 {
   try
   {
     // Not implemented
-    boost::shared_ptr<std::vector<ObservableProperty>> ret;
+    std::shared_ptr<std::vector<ObservableProperty>> ret;
     return ret;
   }
   catch (...)

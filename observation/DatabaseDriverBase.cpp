@@ -248,7 +248,7 @@ MetaData DatabaseDriverBase::metaData(const std::string &producer) const
   return ret;
 }
 
-boost::shared_ptr<ObservationCache> DatabaseDriverBase::resolveCache(
+std::shared_ptr<ObservationCache> DatabaseDriverBase::resolveCache(
     const std::string &producer, const EngineParametersPtr &parameters) const
 {
   std::string tablename = resolveCacheTableName(producer, parameters->stationtypeConfig);

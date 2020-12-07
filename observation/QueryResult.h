@@ -126,7 +126,7 @@ class QueryResult : public QueryResultBase
 
   std::string getValueVectorName(const size_t& valueVectorId);
 
-  bool set(const boost::shared_ptr<QueryResultBase> other);
+  bool set(const std::shared_ptr<QueryResultBase> other);
 
   // The method follow the guidelines of the base class.
   void set(const size_t& valueVectorId, const ValueType& value);

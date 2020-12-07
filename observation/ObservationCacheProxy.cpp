@@ -8,10 +8,10 @@ namespace Observation
 {
 namespace
 {
-const boost::shared_ptr<ObservationCache> emptyObservationCache;
+const std::shared_ptr<ObservationCache> emptyObservationCache;
 }
 
-boost::shared_ptr<ObservationCache> ObservationCacheProxy::getCacheByTableName(
+std::shared_ptr<ObservationCache> ObservationCacheProxy::getCacheByTableName(
     const std::string& tablename) const
 {
   if (itsCachesByTableName.find(tablename) != itsCachesByTableName.end())
@@ -20,7 +20,7 @@ boost::shared_ptr<ObservationCache> ObservationCacheProxy::getCacheByTableName(
   return emptyObservationCache;
 }
 
-boost::shared_ptr<ObservationCache> ObservationCacheProxy::getCacheByName(
+std::shared_ptr<ObservationCache> ObservationCacheProxy::getCacheByName(
     const std::string& cachename) const
 {
   if (itsCachesByName.find(cachename) != itsCachesByName.end())
@@ -30,7 +30,7 @@ boost::shared_ptr<ObservationCache> ObservationCacheProxy::getCacheByName(
 }
 
 void ObservationCacheProxy::addCache(const std::string& tablename,
-                                     const boost::shared_ptr<ObservationCache>& cache)
+                                     const std::shared_ptr<ObservationCache>& cache)
 {
   itsCachesByTableName.insert(std::make_pair(tablename, cache));
   itsCachesByName.insert(std::make_pair(cache->name(), cache));

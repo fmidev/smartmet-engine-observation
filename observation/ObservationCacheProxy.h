@@ -12,14 +12,14 @@ namespace Engine
 namespace Observation
 {
 using ObservationCaches =
-    std::map<std::string, boost::shared_ptr<ObservationCache>>;  // tablename/cache name -> cache
+    std::map<std::string, std::shared_ptr<ObservationCache>>;  // tablename/cache name -> cache
 
 class ObservationCacheProxy
 {
  public:
-  boost::shared_ptr<ObservationCache> getCacheByTableName(const std::string& tablename) const;
-  boost::shared_ptr<ObservationCache> getCacheByName(const std::string& cachename) const;
-  void addCache(const std::string& tablename, const boost::shared_ptr<ObservationCache>& cache);
+  std::shared_ptr<ObservationCache> getCacheByTableName(const std::string& tablename) const;
+  std::shared_ptr<ObservationCache> getCacheByName(const std::string& cachename) const;
+  void addCache(const std::string& tablename, const std::shared_ptr<ObservationCache>& cache);
 
   void shutdown();
 

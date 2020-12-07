@@ -39,7 +39,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions, private boost::noncopy
    *  @exception Obs_EngineException::INVALID_PARAMETER_VALUE
    */
   void get(const std::string &sqlStatement,
-           boost::shared_ptr<QueryResultBase> qrb,
+           std::shared_ptr<QueryResultBase> qrb,
            const Fmi::TimeZones &timezones);
 
   void readMobileCacheDataFromPostgreSQL(const std::string &producer,

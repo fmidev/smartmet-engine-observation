@@ -90,7 +90,7 @@ class SpatiaLiteCache : public ObservationCache
 
  private:
   Spine::Stations getStationsFromSpatiaLite(Settings &settings,
-                                            boost::shared_ptr<SpatiaLite> spatialitedb);
+                                            std::shared_ptr<SpatiaLite> spatialitedb);
   bool timeIntervalIsCached(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime) const;
   bool timeIntervalWeatherDataQCIsCached(const boost::posix_time::ptime &starttime,

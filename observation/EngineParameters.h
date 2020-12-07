@@ -53,15 +53,15 @@ struct EngineParameters
   // StationInfo data, other classes should just point to this one instead of copying
   // the shared pointer.
   mutable boost::shared_ptr<StationInfo> stationInfo;
-  Fmi::Cache::Cache<std::string, boost::shared_ptr<QueryResultBase>> queryResultBaseCache;
+  Fmi::Cache::Cache<std::string, std::shared_ptr<QueryResultBase>> queryResultBaseCache;
 
   bool quiet;
 
-  boost::shared_ptr<ObservationCacheProxy> observationCacheProxy;
+  std::shared_ptr<ObservationCacheProxy> observationCacheProxy;
   Geonames::Engine *geonames = nullptr;
 };
 
-using EngineParametersPtr = boost::shared_ptr<EngineParameters>;
+using EngineParametersPtr = std::shared_ptr<EngineParameters>;
 
 }  // namespace Observation
 }  // namespace Engine

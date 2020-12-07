@@ -41,7 +41,7 @@ class ParameterMap
   RoadAndForeignIds road_foregn_ids;
 };
 
-using ParameterMapPtr = boost::shared_ptr<const ParameterMap>;
+using ParameterMapPtr = std::shared_ptr<const ParameterMap>;
 
 }  // namespace Observation
 }  // namespace Engine

@@ -30,7 +30,7 @@ class PostgreSQLDatabaseDriverForMobileData : public PostgreSQLDatabaseDriver
   Spine::TimeSeries::TimeSeriesVectorPtr values(
       Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
 
-  boost::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
+  std::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language);
   void getStations(Spine::Stations &stations, const Settings &settings) const;
   void getStationsByArea(Spine::Stations &stations,

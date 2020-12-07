@@ -29,7 +29,7 @@ class DummyDatabaseDriver : public DatabaseDriverInterface
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
                             const Spine::TaggedLocationList &locations) const;
-  boost::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
+  std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language);
   void reloadStations() {}
   void getStations(Spine::Stations &stations, const Settings &settings) const {}

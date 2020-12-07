@@ -14,7 +14,7 @@ namespace Observation
 class DBRegistry
 {
  public:
-  typedef std::vector<boost::shared_ptr<DBRegistryConfig> > DBRegistryConfigVectorType;
+  typedef std::vector<std::shared_ptr<DBRegistryConfig> > DBRegistryConfigVectorType;
   explicit DBRegistry();
 
   ~DBRegistry();
@@ -25,7 +25,7 @@ class DBRegistry
    *  @brief Pointer to the configuration that match with the given tableName.
    *  @return Pointer to the configuration will be returend if there is a match and otherwise NULL.
    */
-  boost::shared_ptr<DBRegistryConfig> dbRegistryConfig(const std::string& tableName) const;
+  std::shared_ptr<DBRegistryConfig> dbRegistryConfig(const std::string& tableName) const;
 
  private:
   DBRegistry(const DBRegistry& other);

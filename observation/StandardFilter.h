@@ -33,7 +33,7 @@ class StandardFilter : public MinimumStandardFilter
   explicit StandardFilter();
   ~StandardFilter();
 
-  virtual boost::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
+  virtual std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
       const NameType& field, const NameType& operationName, const boost::any& toWhat);
 
  private:
@@ -65,14 +65,14 @@ class ExtendedStandardFilter : public StandardFilter
                                 Property::MinuteValueModuloIsEqualToZero());
   }
 
-  boost::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(const NameType& field,
-                                                                      const NameType& operationName,
-                                                                      const boost::any& toWhat)
+  std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(const NameType& field,
+                                                                    const NameType& operationName,
+                                                                    const boost::any& toWhat)
   {
     try
     {
       OperationMapValueType op = FEConformanceClassBase::get(operationName);
-      return boost::shared_ptr<const PropertyIsBaseType>(op(field, toWhat));
+      return std::shared_ptr<const PropertyIsBaseType>(op(field, toWhat));
     }
     catch (...)
     {

@@ -14,7 +14,7 @@ class SpatiaLiteConnectionPool
 {
  public:
   ~SpatiaLiteConnectionPool() {}  //{ delete itsInstance; }
-  boost::shared_ptr<SpatiaLite> getConnection();
+  std::shared_ptr<SpatiaLite> getConnection();
 
   void releaseConnection(int connectionId);
 
@@ -27,7 +27,7 @@ class SpatiaLiteConnectionPool
   SpatiaLiteCacheParameters itsOptions;
 
   std::vector<int> itsWorkingList;
-  std::vector<boost::shared_ptr<SpatiaLite> > itsWorkerList;
+  std::vector<std::shared_ptr<SpatiaLite> > itsWorkerList;
 
   SmartMet::Spine::MutexType itsGetMutex;
 };

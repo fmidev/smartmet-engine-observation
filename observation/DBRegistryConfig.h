@@ -32,16 +32,16 @@ class DBRegistryConfig
   //                      and other strings are replaced with empty string)
   typedef std::map<NameType, NameType> FieldValueTypeMapType;
 
-  DBRegistryConfig(boost::shared_ptr<SmartMet::Spine::ConfigBase> config);
+  DBRegistryConfig(std::shared_ptr<SmartMet::Spine::ConfigBase> config);
 
   /**
    * @brief Get the table (view) name.
    * @return Name of the table.
    */
   NameType getTableName() const { return m_name; }
-  const boost::shared_ptr<FieldNameMapType> getFieldNameMap() const
+  const std::shared_ptr<FieldNameMapType> getFieldNameMap() const
   {
-    return boost::make_shared<FieldNameMapType>(m_fieldNameMap);
+    return std::make_shared<FieldNameMapType>(m_fieldNameMap);
   }
 
   /**
@@ -86,7 +86,7 @@ class NamesAllowed
    *  @param caseSensitiveNames Names are handled case sensitively (default) unless the param value
    * is false.
    */
-  NamesAllowed(const boost::shared_ptr<DBRegistryConfig> dbrConfig,
+  NamesAllowed(const std::shared_ptr<DBRegistryConfig> dbrConfig,
                const bool caseSensitiveNames = true);
 
   ~NamesAllowed();

@@ -41,7 +41,7 @@ using namespace boost::local_time;
 
 QueryExternalAndMobileData::QueryExternalAndMobileData(
     const ExternalAndMobileProducerConfig &producerConfig,
-    const boost::shared_ptr<FmiIoTStations> &stations)
+    const std::shared_ptr<FmiIoTStations> &stations)
     : itsProducerConfig(producerConfig), itsStations(stations)
 {
 }

@@ -46,7 +46,7 @@ void SpatiaLiteCache::initializeConnectionPool()
     // 1) stations
     // 2) locations
     // 3) observation_data
-    boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     const std::set<std::string> &cacheTables = itsCacheInfo.tables;
 
     db->createTables(cacheTables);
@@ -179,7 +179,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
     // Get data if we have stations
     if (!stations.empty())
     {
-      boost::shared_ptr<CommonDatabaseFunctions> db = itsConnectionPool->getConnection();
+      std::shared_ptr<CommonDatabaseFunctions> db = itsConnectionPool->getConnection();
       db->setDebug(settings.debug_options);
 
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
@@ -229,7 +229,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
     // Get data if we have stations
     if (!stations.empty())
     {
-      boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+      std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
       db->setDebug(settings.debug_options);
 
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
@@ -266,7 +266,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &set
     }
 
     // Must use disk cache instead
-    boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     return db->getFlashData(settings, itsTimeZones);
   }
@@ -545,7 +545,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpati
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     ret = db->getRoadCloudData(settings, itsTimeZones);
 
@@ -636,7 +636,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaL
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     ret = db->getNetAtmoData(settings, itsTimeZones);
 
@@ -737,7 +737,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLi
   {
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    boost::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     ret = db->getFmiIoTData(settings, itsTimeZones);
 

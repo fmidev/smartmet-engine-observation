@@ -54,11 +54,11 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
           !boost::algorithm::starts_with(fileName, "#") and
           boost::algorithm::ends_with(fileName, ".conf"))
       {
-        boost::shared_ptr<Spine::ConfigBase> cBase(
+        std::shared_ptr<Spine::ConfigBase> cBase(
             new Spine::ConfigBase(entry.string(), "DBRegisty configuration"));
         try
         {
-          boost::shared_ptr<DBRegistryConfig> registryConfig(new DBRegistryConfig(cBase));
+          std::shared_ptr<DBRegistryConfig> registryConfig(new DBRegistryConfig(cBase));
           m_configVector.push_back(std::move(registryConfig));
         }
         catch (const std::exception& err)
@@ -76,7 +76,7 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
   }
 }
 
-boost::shared_ptr<DBRegistryConfig> DBRegistry::dbRegistryConfig(const std::string& tableName) const
+std::shared_ptr<DBRegistryConfig> DBRegistry::dbRegistryConfig(const std::string& tableName) const
 {
   try
   {
@@ -86,7 +86,7 @@ boost::shared_ptr<DBRegistryConfig> DBRegistry::dbRegistryConfig(const std::stri
         return config;
     }
 
-    return boost::shared_ptr<DBRegistryConfig>();
+    return std::shared_ptr<DBRegistryConfig>();
   }
   catch (...)
   {

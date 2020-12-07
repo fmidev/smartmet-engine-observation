@@ -39,7 +39,7 @@ class DatabaseDriverInterface
   virtual FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                                     const boost::posix_time::ptime &endtime,
                                     const Spine::TaggedLocationList &locations) const = 0;
-  virtual boost::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
+  virtual std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language) = 0;
 
   virtual void getStations(Spine::Stations &stations, const Settings &settings) const = 0;

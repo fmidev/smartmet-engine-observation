@@ -367,7 +367,7 @@ std::string QueryResult::getValueVectorName(const size_t& valueVectorId)
   }
 }
 
-bool QueryResult::set(const boost::shared_ptr<QueryResultBase> input)
+bool QueryResult::set(const std::shared_ptr<QueryResultBase> input)
 {
   try
   {
@@ -376,7 +376,7 @@ bool QueryResult::set(const boost::shared_ptr<QueryResultBase> input)
     try
     {
       // Must be a QueryResult object
-      const boost::shared_ptr<QueryResult> other = boost::dynamic_pointer_cast<QueryResult>(input);
+      const std::shared_ptr<QueryResult> other = std::dynamic_pointer_cast<QueryResult>(input);
       if (not other)
       {
         std::cerr << "QueryResult::set : dynamic cast failed\n";

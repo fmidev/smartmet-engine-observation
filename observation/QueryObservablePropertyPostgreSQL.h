@@ -14,7 +14,7 @@ class QueryObservablePropertyPostgreSQL : public QueryObservableProperty
  public:
   ~QueryObservablePropertyPostgreSQL();
 
-  boost::shared_ptr<std::vector<ObservableProperty> > executeQuery(
+  std::shared_ptr<std::vector<ObservableProperty> > executeQuery(
       PostgreSQLObsDB &db,
       const std::string &stationType,
       const std::vector<std::string> &parameters,

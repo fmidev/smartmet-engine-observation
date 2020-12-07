@@ -49,7 +49,7 @@ PostgreSQLCacheConnectionPool::PostgreSQLCacheConnectionPool(
 
     // Create all connections in advance, not when needed
     for (std::size_t i = 0; i < itsWorkerList.size(); i++)
-      itsWorkerList[i] = boost::make_shared<PostgreSQLCacheDB>(itsOptions);
+      itsWorkerList[i] = std::make_shared<PostgreSQLCacheDB>(itsOptions);
   }
   catch (...)
   {
@@ -57,7 +57,7 @@ PostgreSQLCacheConnectionPool::PostgreSQLCacheConnectionPool(
   }
 }
 
-boost::shared_ptr<PostgreSQLCacheDB> PostgreSQLCacheConnectionPool::getConnection()
+std::shared_ptr<PostgreSQLCacheDB> PostgreSQLCacheConnectionPool::getConnection()
 {
   try
   {
@@ -83,8 +83,8 @@ boost::shared_ptr<PostgreSQLCacheDB> PostgreSQLCacheConnectionPool::getConnectio
           {
             itsWorkingList[i] = 1;
             itsWorkerList[i]->setConnectionId(i);
-            return boost::shared_ptr<PostgreSQLCacheDB>(itsWorkerList[i].get(),
-                                                        Releaser<PostgreSQLCacheDB>(this));
+            return std::shared_ptr<PostgreSQLCacheDB>(itsWorkerList[i].get(),
+                                                      Releaser<PostgreSQLCacheDB>(this));
           }
         }
       }

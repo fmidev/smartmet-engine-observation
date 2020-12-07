@@ -47,11 +47,11 @@ class ObservationCacheAdminPostgreSQL : public ObservationCacheAdminBase
                           const boost::posix_time::ptime& lastModifiedTime,
                           const Fmi::TimeZones& timezones) const;
   std::pair<boost::posix_time::ptime, boost::posix_time::ptime> getLatestWeatherDataQCTime(
-      const boost::shared_ptr<ObservationCache>& cache) const;
+      const std::shared_ptr<ObservationCache>& cache) const;
   std::pair<boost::posix_time::ptime, boost::posix_time::ptime> getLatestObservationTime(
-      const boost::shared_ptr<ObservationCache>& cache) const;
+      const std::shared_ptr<ObservationCache>& cache) const;
   std::map<std::string, boost::posix_time::ptime> getLatestFlashTime(
-      const boost::shared_ptr<ObservationCache>&) const;
+      const std::shared_ptr<ObservationCache>&) const;
   void readMobileCacheData(const std::string& producer,
                            std::vector<MobileExternalDataItem>& cacheData,
                            boost::posix_time::ptime lastTime,

@@ -43,11 +43,11 @@ class ObservationCacheAdminBase
                                           const Fmi::TimeZones& timezones) const = 0;
   // Get start time from obstime and last_modified
   virtual std::pair<boost::posix_time::ptime, boost::posix_time::ptime> getLatestWeatherDataQCTime(
-      const boost::shared_ptr<ObservationCache>&) const = 0;
+      const std::shared_ptr<ObservationCache>&) const = 0;
   virtual std::pair<boost::posix_time::ptime, boost::posix_time::ptime> getLatestObservationTime(
-      const boost::shared_ptr<ObservationCache>&) const = 0;
+      const std::shared_ptr<ObservationCache>&) const = 0;
   virtual std::map<std::string, boost::posix_time::ptime> getLatestFlashTime(
-      const boost::shared_ptr<ObservationCache>&) const = 0;
+      const std::shared_ptr<ObservationCache>&) const = 0;
   virtual void readMobileCacheData(const std::string& producer,
                                    std::vector<MobileExternalDataItem>& cacheData,
                                    boost::posix_time::ptime lastTime,
@@ -73,7 +73,7 @@ class ObservationCacheAdminBase
   void addInfoToStations(SmartMet::Spine::Stations& stations, const std::string& language) const;
 
   const DatabaseDriverParameters& itsParameters;
-  const boost::shared_ptr<ObservationCacheProxy>& itsCacheProxy;
+  const std::shared_ptr<ObservationCacheProxy>& itsCacheProxy;
   SmartMet::Engine::Geonames::Engine* itsGeonames;
   std::atomic<bool> itsShutdownRequested;
   std::atomic<bool>& itsConnectionsOK;
@@ -82,9 +82,9 @@ class ObservationCacheAdminBase
   bool itsStationsCurrentlyLoading{false};
 
  private:
-  void updateObservationFakeCache(boost::shared_ptr<ObservationCache>& cache) const;
-  void updateWeatherDataQCFakeCache(boost::shared_ptr<ObservationCache>& cache) const;
-  void updateFlashFakeCache(boost::shared_ptr<ObservationCache>& cache) const;
+  void updateObservationFakeCache(std::shared_ptr<ObservationCache>& cache) const;
+  void updateWeatherDataQCFakeCache(std::shared_ptr<ObservationCache>& cache) const;
+  void updateFlashFakeCache(std::shared_ptr<ObservationCache>& cache) const;
 
   void startCacheUpdateThreads(const std::set<std::string>& tables);
 
@@ -106,10 +106,10 @@ class ObservationCacheAdminBase
 
   void calculateStationDirection(SmartMet::Spine::Station& station) const;
   void addInfoToStation(SmartMet::Spine::Station& station, const std::string& language) const;
-  boost::shared_ptr<ObservationCache> getCache(const std::string& tablename) const;
+  std::shared_ptr<ObservationCache> getCache(const std::string& tablename) const;
   std::string driverName() const;
 
-  boost::shared_ptr<Fmi::AsyncTaskGroup> itsBackgroundTasks;
+  std::shared_ptr<Fmi::AsyncTaskGroup> itsBackgroundTasks;
 };
 
 }  // namespace Observation

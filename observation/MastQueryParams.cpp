@@ -8,7 +8,7 @@ namespace Engine
 {
 namespace Observation
 {
-MastQueryParams::MastQueryParams(const boost::shared_ptr<DBRegistryConfig> dbrConfig)
+MastQueryParams::MastQueryParams(const std::shared_ptr<DBRegistryConfig> dbrConfig)
     : m_distinct(false)
 {
   try
@@ -22,7 +22,7 @@ MastQueryParams::MastQueryParams(const boost::shared_ptr<DBRegistryConfig> dbrCo
     }
 
     m_dbrConfig.push_back(dbrConfig);
-    m_conformanceClass = boost::shared_ptr<ExtendedStandardFilter>(new ExtendedStandardFilter());
+    m_conformanceClass = std::shared_ptr<ExtendedStandardFilter>(new ExtendedStandardFilter());
   }
   catch (...)
   {
@@ -32,7 +32,7 @@ MastQueryParams::MastQueryParams(const boost::shared_ptr<DBRegistryConfig> dbrCo
 
 MastQueryParams::~MastQueryParams() = default;
 
-void MastQueryParams::addJoinOnConfig(const boost::shared_ptr<DBRegistryConfig> dbrConfigJoinOn,
+void MastQueryParams::addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfigJoinOn,
                                       const NameType& joinOnField,
                                       const int& typeOfJoin)
 {
@@ -48,7 +48,7 @@ void MastQueryParams::addJoinOnConfig(const boost::shared_ptr<DBRegistryConfig> 
   }
 }
 
-void MastQueryParams::addJoinOnConfig(const boost::shared_ptr<DBRegistryConfig> dbrConfigJoinOn,
+void MastQueryParams::addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfigJoinOn,
                                       const std::list<NameType>& joinOnFields,
                                       const int& typeOfJoin)
 {
@@ -73,11 +73,11 @@ void MastQueryParams::addJoinOnConfig(const boost::shared_ptr<DBRegistryConfig> 
     {
       // Try to find the joinOnField from the first registry config. Fail if not found.
       const std::string joinOnFieldUpperCase = Fmi::ascii_toupper_copy(*joinOnField);
-      const boost::shared_ptr<DBRegistryConfig::FieldNameMapType> map =
+      const std::shared_ptr<DBRegistryConfig::FieldNameMapType> map =
           m_dbrConfig.at(0)->getFieldNameMap();
       DBRegistryConfig::FieldNameMapType::const_iterator it = map->find(joinOnFieldUpperCase);
 
-      const boost::shared_ptr<DBRegistryConfig::FieldNameMapType> jmap =
+      const std::shared_ptr<DBRegistryConfig::FieldNameMapType> jmap =
           dbrConfigJoinOn->getFieldNameMap();
       DBRegistryConfig::FieldNameMapType::const_iterator joinIt = jmap->find(joinOnFieldUpperCase);
 
@@ -119,7 +119,7 @@ void MastQueryParams::addField(const NameType& field, const NameType& alias)
     DBRegistryConfigVectorType::const_iterator configIt = m_dbrConfig.begin();
     for (; configIt != m_dbrConfig.end(); ++configIt)
     {
-      const boost::shared_ptr<DBRegistryConfig::FieldNameMapType> fieldNameMap =
+      const std::shared_ptr<DBRegistryConfig::FieldNameMapType> fieldNameMap =
           (*configIt)->getFieldNameMap();
       const std::string upperCase = Fmi::ascii_toupper_copy(field);
       DBRegistryConfig::FieldNameMapType::const_iterator it = fieldNameMap->find(upperCase);
@@ -161,7 +161,7 @@ void MastQueryParams::addOperation(const std::string& groupName,
               fmt::format("MastQueryParams::addOperation operation '{}' not found", operationName));
 
     // is the operation
-    boost::shared_ptr<const PropertyIsBaseType> op =
+    std::shared_ptr<const PropertyIsBaseType> op =
         m_conformanceClass->getNewOperationInstance(field, operationName, toWhat);
     if (not op)
       throw Fmi::Exception(BCP, "Operation processing failed!")
@@ -172,7 +172,7 @@ void MastQueryParams::addOperation(const std::string& groupName,
     DBRegistryConfigVectorType::const_iterator configIt = m_dbrConfig.begin();
     for (; configIt != m_dbrConfig.end(); ++configIt)
     {
-      const boost::shared_ptr<DBRegistryConfig::FieldNameMapType> fieldNameMap =
+      const std::shared_ptr<DBRegistryConfig::FieldNameMapType> fieldNameMap =
           (*configIt)->getFieldNameMap();
       const std::string upperCase = Fmi::ascii_toupper_copy(field);
       DBRegistryConfig::FieldNameMapType::const_iterator it = fieldNameMap->find(upperCase);
@@ -199,13 +199,13 @@ void MastQueryParams::addOperation(const std::string& groupName,
         auto omIt = m_operationMap.find(groupName);
         if (omIt != m_operationMap.end())
         {
-          omIt->second.insert(std::pair<boost::shared_ptr<const PropertyIsBaseType>, NameType>(
+          omIt->second.insert(std::pair<std::shared_ptr<const PropertyIsBaseType>, NameType>(
               op, (*configIt)->getTableName()));
         }
         else
         {
           OperationMapGroupType omg;
-          omg.insert(std::pair<boost::shared_ptr<const PropertyIsBaseType>, NameType>(
+          omg.insert(std::pair<std::shared_ptr<const PropertyIsBaseType>, NameType>(
               op, (*configIt)->getTableName()));
           m_operationMap.insert(std::pair<NameType, OperationMapGroupType>(groupName, omg));
         }
@@ -232,7 +232,7 @@ void MastQueryParams::addOrderBy(const NameType& field, const NameType& ascDesc)
     DBRegistryConfigVectorType::const_iterator configIt = m_dbrConfig.begin();
     for (; configIt != m_dbrConfig.end(); ++configIt)
     {
-      const boost::shared_ptr<DBRegistryConfig::FieldNameMapType> fieldNameMap =
+      const std::shared_ptr<DBRegistryConfig::FieldNameMapType> fieldNameMap =
           (*configIt)->getFieldNameMap();
       DBRegistryConfig::FieldNameMapType::const_iterator it = fieldNameMap->find(fieldUpper);
       if (it != fieldNameMap->end())
@@ -271,11 +271,11 @@ void MastQueryParams::addOrderBy(const NameType& field, const NameType& ascDesc)
   }
 }
 
-const boost::shared_ptr<MastQueryParams::OperationMapType> MastQueryParams::getOperationMap() const
+const std::shared_ptr<MastQueryParams::OperationMapType> MastQueryParams::getOperationMap() const
 {
   try
   {
-    return boost::make_shared<MastQueryParams::OperationMapType>(m_operationMap);
+    return std::make_shared<MastQueryParams::OperationMapType>(m_operationMap);
   }
   catch (...)
   {
@@ -283,11 +283,11 @@ const boost::shared_ptr<MastQueryParams::OperationMapType> MastQueryParams::getO
   }
 }
 
-const boost::shared_ptr<MastQueryParams::OrderByVectorType> MastQueryParams::getOrderByVector() const
+const std::shared_ptr<MastQueryParams::OrderByVectorType> MastQueryParams::getOrderByVector() const
 {
   try
   {
-    return boost::make_shared<MastQueryParams::OrderByVectorType>(m_orderByVector);
+    return std::make_shared<MastQueryParams::OrderByVectorType>(m_orderByVector);
   }
   catch (...)
   {
@@ -295,12 +295,12 @@ const boost::shared_ptr<MastQueryParams::OrderByVectorType> MastQueryParams::get
   }
 }
 
-const boost::shared_ptr<MastQueryParams::JoinOnListTupleVectorType>
+const std::shared_ptr<MastQueryParams::JoinOnListTupleVectorType>
 MastQueryParams::getJoinOnListTupleVector() const
 {
   try
   {
-    return boost::make_shared<MastQueryParams::JoinOnListTupleVectorType>(m_joinOnListTupleVector);
+    return std::make_shared<MastQueryParams::JoinOnListTupleVectorType>(m_joinOnListTupleVector);
   }
   catch (...)
   {
@@ -320,11 +320,11 @@ MastQueryParams::NameType MastQueryParams::getTableName() const
   }
 }
 
-const boost::shared_ptr<MastQueryParams::FieldMapType> MastQueryParams::getFieldMap() const
+const std::shared_ptr<MastQueryParams::FieldMapType> MastQueryParams::getFieldMap() const
 {
   try
   {
-    return boost::make_shared<MastQueryParams::FieldMapType>(m_fields);
+    return std::make_shared<MastQueryParams::FieldMapType>(m_fields);
   }
   catch (...)
   {
@@ -332,11 +332,11 @@ const boost::shared_ptr<MastQueryParams::FieldMapType> MastQueryParams::getField
   }
 }
 
-const boost::shared_ptr<MastQueryParams::FieldAliasMapType> MastQueryParams::getFieldAliasMap() const
+const std::shared_ptr<MastQueryParams::FieldAliasMapType> MastQueryParams::getFieldAliasMap() const
 {
   try
   {
-    return boost::make_shared<MastQueryParams::FieldAliasMapType>(m_fieldAliases);
+    return std::make_shared<MastQueryParams::FieldAliasMapType>(m_fieldAliases);
   }
   catch (...)
   {

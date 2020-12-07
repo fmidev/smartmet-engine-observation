@@ -58,13 +58,13 @@ class DatabaseDriverBase
     return FlashCounts();
   }
 
-  virtual boost::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
+  virtual std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language) = 0;
 
   virtual void shutdown() = 0;
 
   const std::set<std::string> &supportedProducers() const { return itsSupportedProducers; }
-  virtual void getFMIIoTStations(boost::shared_ptr<FmiIoTStations> &stations) const {}
+  virtual void getFMIIoTStations(std::shared_ptr<FmiIoTStations> &stations) const {}
   MetaData metaData(const std::string &producer) const;
   const std::string &name() const { return itsDriverName; }
 
@@ -87,8 +87,8 @@ class DatabaseDriverBase
   void readMetaData(Spine::ConfigBase &cfg);
   std::string resolveCacheTableName(const std::string &producer,
                                     const StationtypeConfig &stationtypeConfig) const;
-  boost::shared_ptr<ObservationCache> resolveCache(const std::string &producer,
-                                                   const EngineParametersPtr &parameters) const;
+  std::shared_ptr<ObservationCache> resolveCache(const std::string &producer,
+                                                 const EngineParametersPtr &parameters) const;
 
   std::atomic<bool> itsShutdownRequested{false};
   std::set<std::string> itsSupportedProducers;

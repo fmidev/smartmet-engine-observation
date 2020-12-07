@@ -85,7 +85,7 @@ std::string VerifiableMessageQuery::getSQLStatement(
   }
 }
 
-boost::shared_ptr<QueryResult> VerifiableMessageQuery::getQueryResultContainer()
+std::shared_ptr<QueryResult> VerifiableMessageQuery::getQueryResultContainer()
 {
   try
   {

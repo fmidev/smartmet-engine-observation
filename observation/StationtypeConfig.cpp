@@ -60,7 +60,7 @@ void StationtypeConfig::addStationtype(const StationtypeType& stationtype,
   }
 }
 
-boost::shared_ptr<const StationtypeConfig::DatabaseTableNameType>
+std::shared_ptr<const StationtypeConfig::DatabaseTableNameType>
 StationtypeConfig::getDatabaseTableNameByStationtype(const StationtypeType& stationtype) const
 {
   try
@@ -72,7 +72,7 @@ StationtypeConfig::getDatabaseTableNameByStationtype(const StationtypeType& stat
           .addDetail(
               fmt::format("Database table name for the stationtype '{}' not found.", stationtype));
 
-    return boost::make_shared<DatabaseTableNameType>(it->second);
+    return std::make_shared<DatabaseTableNameType>(it->second);
   }
   catch (...)
   {
@@ -80,7 +80,7 @@ StationtypeConfig::getDatabaseTableNameByStationtype(const StationtypeType& stat
   }
 }
 
-boost::shared_ptr<const StationtypeConfig::GroupCodeSetType>
+std::shared_ptr<const StationtypeConfig::GroupCodeSetType>
 StationtypeConfig::getGroupCodeSetByStationtype(const StationtypeType& stationtype) const
 {
   try
@@ -88,7 +88,7 @@ StationtypeConfig::getGroupCodeSetByStationtype(const StationtypeType& stationty
     const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
     const auto it = m_stationtypeMap.find(stationtypeLower);
     if (it != m_stationtypeMap.end())
-      return boost::make_shared<GroupCodeSetType>(it->second);
+      return std::make_shared<GroupCodeSetType>(it->second);
 
     throw Fmi::Exception(BCP, "Invalid parameter value!")
         .addDetail(fmt::format("Stationtype '{}' not found.", stationtype));
@@ -99,7 +99,7 @@ StationtypeConfig::getGroupCodeSetByStationtype(const StationtypeType& stationty
   }
 }
 
-boost::shared_ptr<const StationtypeConfig::ProducerIdSetType>
+std::shared_ptr<const StationtypeConfig::ProducerIdSetType>
 StationtypeConfig::getProducerIdSetByStationtype(const StationtypeType& stationtype) const
 {
   try
@@ -107,7 +107,7 @@ StationtypeConfig::getProducerIdSetByStationtype(const StationtypeType& stationt
     const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
     const auto it = m_stProducerIdSetMap.find(stationtypeLower);
     if (it != m_stProducerIdSetMap.end())
-      return boost::make_shared<ProducerIdSetType>(it->second);
+      return std::make_shared<ProducerIdSetType>(it->second);
 
     throw Fmi::Exception(BCP, "Invalid parameter value!")
         .addDetail(fmt::format("Producer id list not found for Stationtype '{}'.", stationtype));

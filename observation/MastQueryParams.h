@@ -27,13 +27,13 @@ class MastQueryParams : public QueryParamsBase
   // alias name
   typedef FEConformanceClassBase::PropertyIsBaseType PropertyIsBaseType;
 
-  typedef std::map<boost::shared_ptr<const PropertyIsBaseType>, NameType> OperationMapGroupType;
+  typedef std::map<std::shared_ptr<const PropertyIsBaseType>, NameType> OperationMapGroupType;
   typedef std::map<NameType, OperationMapGroupType> OperationMapType;  //!< first: group name,
   //! second: (first: operation
   //! object, second: Table
   //! name)
 
-  typedef std::vector<boost::shared_ptr<DBRegistryConfig> > DBRegistryConfigVectorType;
+  typedef std::vector<std::shared_ptr<DBRegistryConfig> > DBRegistryConfigVectorType;
   typedef std::tuple<NameType, NameType, NameType, NameType>
       JoinOnTupleType;  //!< 1: table name, 2: table name, 3: field name, 4: typeOfJoin
   typedef std::tuple<NameType, NameType, std::list<NameType>, NameType>
@@ -54,7 +54,7 @@ class MastQueryParams : public QueryParamsBase
    * @exception Obs_EngineException::OPERATION_PROCESSING_FAILED DB registry configuration is not
    * set.
    */
-  explicit MastQueryParams(const boost::shared_ptr<DBRegistryConfig> dbrConfig);
+  explicit MastQueryParams(const std::shared_ptr<DBRegistryConfig> dbrConfig);
 
   ~MastQueryParams();
 
@@ -65,10 +65,10 @@ class MastQueryParams : public QueryParamsBase
    * @param typeOfJoin A type of join operation (default is "INNER JOIN").
    * @exception Obs_EngineException::OPERATION_PROCESSING_FAILED If joining is not possible.
    */
-  void addJoinOnConfig(const boost::shared_ptr<DBRegistryConfig> dbrConfig,
+  void addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfig,
                        const NameType& field,
                        const int& typeOfJoin = 0);
-  void addJoinOnConfig(const boost::shared_ptr<DBRegistryConfig> dbrConfig,
+  void addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfig,
                        const std::list<NameType>& fields,
                        const int& typeOfJoin = 0);
 
@@ -121,19 +121,19 @@ class MastQueryParams : public QueryParamsBase
    * @brief Access to the operation map of this object.
    * @return Reference to the object or empty shared_ptr.
    */
-  const boost::shared_ptr<OperationMapType> getOperationMap() const;
+  const std::shared_ptr<OperationMapType> getOperationMap() const;
 
   /**
    * @brief Access to the order by map of this object.
    * @return Reference to the object or empty shared_ptr.
    */
-  const boost::shared_ptr<OrderByVectorType> getOrderByVector() const;
+  const std::shared_ptr<OrderByVectorType> getOrderByVector() const;
 
   /**
    * @brief Access to the join on tuple vector of this object.
    * @return Reference to the object or empty shared_ptr.
    */
-  const boost::shared_ptr<JoinOnListTupleVectorType> getJoinOnListTupleVector() const;
+  const std::shared_ptr<JoinOnListTupleVectorType> getJoinOnListTupleVector() const;
 
   /**
    * @brief Get the table name of primary DBRegistryConfig (constructor input config).
@@ -145,13 +145,13 @@ class MastQueryParams : public QueryParamsBase
    * @brief Access to the field name map of this object.
    * @return Reference to the object or empty shared_ptr.
    */
-  const boost::shared_ptr<FieldMapType> getFieldMap() const;
+  const std::shared_ptr<FieldMapType> getFieldMap() const;
 
   /**
    * @brief Access to the field name alias map of this object.
    * @return Reference to the object or empty shared_ptr.
    */
-  const boost::shared_ptr<FieldAliasMapType> getFieldAliasMap() const;
+  const std::shared_ptr<FieldAliasMapType> getFieldAliasMap() const;
 
  private:
   MastQueryParams& operator=(const MastQueryParams& other);
@@ -162,7 +162,7 @@ class MastQueryParams : public QueryParamsBase
   FieldAliasMapType m_fieldAliases;
   // Operations added into the class by using addOperation method.
   OperationMapType m_operationMap;
-  boost::shared_ptr<FEConformanceClassBase> m_conformanceClass;
+  std::shared_ptr<FEConformanceClassBase> m_conformanceClass;
   JoinOnListTupleVectorType m_joinOnListTupleVector;
   OrderByVectorType m_orderByVector;
   bool m_distinct;

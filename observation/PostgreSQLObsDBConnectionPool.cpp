@@ -59,7 +59,7 @@ bool PostgreSQLObsDBConnectionPool::initializePool(const StationtypeConfig& stc,
       {
         // Logon here
 
-        itsWorkerList[i] = boost::shared_ptr<PostgreSQLObsDB>(
+        itsWorkerList[i] = std::shared_ptr<PostgreSQLObsDB>(
             new PostgreSQLObsDB(itsConnectionOptions[filled], stc, pm));
         itsWorkingList[i] = 0;
         itsWorkerList[i]->setConnectionId(static_cast<signed>(i));
@@ -93,7 +93,7 @@ bool PostgreSQLObsDBConnectionPool::initializePool(const StationtypeConfig& stc,
   }
 }
 
-boost::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(
+std::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(
     bool debug /*= false*/)
 {
   try
@@ -122,8 +122,8 @@ boost::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(
             // itsWorkerList[i]->beginSession(tryNumber); // this is very slow
             itsWorkerList[i]->setConnectionId(static_cast<signed>(i));
             itsWorkerList[i]->setDebug(debug);
-            return boost::shared_ptr<PostgreSQLObsDB>(itsWorkerList[i].get(),
-                                                      Releaser<PostgreSQLObsDB>(this));
+            return std::shared_ptr<PostgreSQLObsDB>(itsWorkerList[i].get(),
+                                                    Releaser<PostgreSQLObsDB>(this));
           }
         }
       }

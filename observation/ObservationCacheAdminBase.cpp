@@ -75,12 +75,12 @@ void ObservationCacheAdminBase::init()
                    itsParameters.quiet);
     }
 
-    boost::shared_ptr<ObservationCache> observationCache;
-    boost::shared_ptr<ObservationCache> weatherDataQCCache;
-    boost::shared_ptr<ObservationCache> flashCache;
-    boost::shared_ptr<ObservationCache> netatmoCache;
-    boost::shared_ptr<ObservationCache> roadcloudCache;
-    boost::shared_ptr<ObservationCache> fmiIoTCache;
+    std::shared_ptr<ObservationCache> observationCache;
+    std::shared_ptr<ObservationCache> weatherDataQCCache;
+    std::shared_ptr<ObservationCache> flashCache;
+    std::shared_ptr<ObservationCache> netatmoCache;
+    std::shared_ptr<ObservationCache> roadcloudCache;
+    std::shared_ptr<ObservationCache> fmiIoTCache;
     std::set<ObservationCache*> cache_set;
 
     for (const auto& tablename : tablenames)
@@ -296,8 +296,7 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
   }
 }
 
-void ObservationCacheAdminBase::updateFlashFakeCache(
-    boost::shared_ptr<ObservationCache>& cache) const
+void ObservationCacheAdminBase::updateFlashFakeCache(std::shared_ptr<ObservationCache>& cache) const
 {
   std::vector<std::map<std::string, std::string>> settings =
       cache->getFakeCacheSettings(FLASH_DATA_TABLE);
@@ -335,7 +334,7 @@ void ObservationCacheAdminBase::updateFlashCache() const
     if (itsParameters.disableAllCacheUpdates)
       return;
 
-    boost::shared_ptr<ObservationCache> flashCache = getCache(FLASH_DATA_TABLE);
+    std::shared_ptr<ObservationCache> flashCache = getCache(FLASH_DATA_TABLE);
 
     if (flashCache->isFakeCache(FLASH_DATA_TABLE))
       return updateFlashFakeCache(flashCache);
@@ -406,7 +405,7 @@ void ObservationCacheAdminBase::updateFlashCache() const
 }
 
 void ObservationCacheAdminBase::updateObservationFakeCache(
-    boost::shared_ptr<ObservationCache>& cache) const
+    std::shared_ptr<ObservationCache>& cache) const
 {
   std::vector<std::map<std::string, std::string>> settings =
       cache->getFakeCacheSettings(OBSERVATION_DATA_TABLE);
@@ -446,7 +445,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
       return;
 
     // The time of the last observation in the cache
-    boost::shared_ptr<ObservationCache> observationCache = getCache(OBSERVATION_DATA_TABLE);
+    std::shared_ptr<ObservationCache> observationCache = getCache(OBSERVATION_DATA_TABLE);
 
     if (observationCache->isFakeCache(OBSERVATION_DATA_TABLE))
       return updateObservationFakeCache(observationCache);
@@ -516,7 +515,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
 }
 
 void ObservationCacheAdminBase::updateWeatherDataQCFakeCache(
-    boost::shared_ptr<ObservationCache>& cache) const
+    std::shared_ptr<ObservationCache>& cache) const
 {
   std::vector<std::map<std::string, std::string>> settings =
       cache->getFakeCacheSettings(WEATHER_DATA_QC_TABLE);
@@ -555,7 +554,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
     if (itsShutdownRequested || itsParameters.disableAllCacheUpdates)
       return;
 
-    boost::shared_ptr<ObservationCache> weatherDataQCCache = getCache(WEATHER_DATA_QC_TABLE);
+    std::shared_ptr<ObservationCache> weatherDataQCCache = getCache(WEATHER_DATA_QC_TABLE);
 
     if (weatherDataQCCache->isFakeCache(WEATHER_DATA_QC_TABLE))
       return updateWeatherDataQCFakeCache(weatherDataQCCache);
@@ -626,7 +625,7 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
     if (itsShutdownRequested)
       return;
 
-    boost::shared_ptr<ObservationCache> netatmoCache = getCache(NETATMO_DATA_TABLE);
+    std::shared_ptr<ObservationCache> netatmoCache = getCache(NETATMO_DATA_TABLE);
 
     std::vector<MobileExternalDataItem> cacheData;
 
@@ -735,7 +734,7 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
     if (itsShutdownRequested)
       return;
 
-    boost::shared_ptr<ObservationCache> roadcloudCache = getCache(ROADCLOUD_DATA_TABLE);
+    std::shared_ptr<ObservationCache> roadcloudCache = getCache(ROADCLOUD_DATA_TABLE);
 
     std::vector<MobileExternalDataItem> cacheData;
 
@@ -845,7 +844,7 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
     if (itsShutdownRequested)
       return;
 
-    boost::shared_ptr<ObservationCache> fmiIoTCache = getCache(FMI_IOT_DATA_TABLE);
+    std::shared_ptr<ObservationCache> fmiIoTCache = getCache(FMI_IOT_DATA_TABLE);
 
     std::vector<MobileExternalDataItem> cacheData;
 
@@ -1378,7 +1377,7 @@ void ObservationCacheAdminBase::addInfoToStation(SmartMet::Spine::Station& stati
   }
 }
 
-boost::shared_ptr<ObservationCache> ObservationCacheAdminBase::getCache(
+std::shared_ptr<ObservationCache> ObservationCacheAdminBase::getCache(
     const std::string& tablename) const
 {
   return itsCacheProxy->getCacheByTableName(tablename);

@@ -19,12 +19,12 @@ struct PostgreSQLDriverParameters : public DatabaseDriverParameters
       : DatabaseDriverParameters(drivername, p),
         externalAndMobileProducerConfig(params->externalAndMobileProducerConfig)
   {
-    fmiIoTStations = boost::make_shared<FmiIoTStations>();
+    fmiIoTStations = std::make_shared<FmiIoTStations>();
   }
 
   std::vector<Fmi::Database::PostgreSQLConnectionOptions> connectionOptions;
   const ExternalAndMobileProducerConfig& externalAndMobileProducerConfig;
-  boost::shared_ptr<FmiIoTStations> fmiIoTStations;
+  std::shared_ptr<FmiIoTStations> fmiIoTStations;
 };
 
 }  // namespace Observation

@@ -28,14 +28,14 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
                             const Spine::TaggedLocationList &locations);
-  boost::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
+  std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language);
 
   bool ready() const;
 
   Geonames::Engine *getGeonames() const;
 
-  const boost::shared_ptr<DBRegistry> dbRegistry() const { return itsDatabaseRegistry; }
+  const std::shared_ptr<DBRegistry> dbRegistry() const { return itsDatabaseRegistry; }
   void reloadStations();
   void getStations(Spine::Stations &stations, Settings &settings);
 
@@ -113,7 +113,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
 
   EngineParametersPtr itsEngineParameters;
 
-  boost::shared_ptr<DBRegistry> itsDatabaseRegistry;
+  std::shared_ptr<DBRegistry> itsDatabaseRegistry;
 
 #ifdef TODO_CAUSES_SEGFAULT_AT_EXIT
   std::unique_ptr<DatabaseDriverInterface> itsDatabaseDriver;

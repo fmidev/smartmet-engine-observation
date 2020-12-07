@@ -22,7 +22,7 @@ ObservationCacheAdminPostgreSQL::ObservationCacheAdminPostgreSQL(
     logMessage("[PostgeSQLDatabaseDriver] Loading locations from PostgreSQL database...",
                itsParameters.quiet);
 
-    boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
     // This is called by init() and is hence thread safe to modify stationInfo
     db->readStationLocations(itsParameters.params->stationInfo->stationLocations);
 
@@ -38,7 +38,7 @@ void ObservationCacheAdminPostgreSQL::readObservationCacheData(
     const std::string& measurandId,
     const Fmi::TimeZones& timezones) const
 {
-  boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
   db->readCacheDataFromPostgreSQL(cacheData, dataPeriod, fmisid, measurandId, itsTimeZones);
 }
 
@@ -47,7 +47,7 @@ void ObservationCacheAdminPostgreSQL::readFlashCacheData(
     const boost::posix_time::time_period& dataPeriod,
     const Fmi::TimeZones& timezones) const
 {
-  boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
   db->readFlashCacheDataFromPostgreSQL(cacheData, dataPeriod, itsTimeZones);
 }
 
@@ -58,7 +58,7 @@ void ObservationCacheAdminPostgreSQL::readWeatherDataQCCacheData(
     const std::string& measurandId,
     const Fmi::TimeZones& timezones) const
 {
-  boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
   db->readWeatherDataQCCacheDataFromPostgreSQL(
       cacheData, dataPeriod, fmisid, measurandId, itsTimeZones);
 }
@@ -69,7 +69,7 @@ void ObservationCacheAdminPostgreSQL::readObservationCacheData(
     const boost::posix_time::ptime& lastModifiedTime,
     const Fmi::TimeZones& timezones) const
 {
-  boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
   db->readCacheDataFromPostgreSQL(cacheData, startTime, lastModifiedTime, itsTimeZones);
 }
 
@@ -80,7 +80,7 @@ void ObservationCacheAdminPostgreSQL::readFlashCacheData(
     const boost::posix_time::ptime& lastModifiedTime,
     const Fmi::TimeZones& timezones) const
 {
-  boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
   db->readFlashCacheDataFromPostgreSQL(
       cacheData, startTime, lastStrokeTime, lastModifiedTime, itsTimeZones);
 }
@@ -91,7 +91,7 @@ void ObservationCacheAdminPostgreSQL::readWeatherDataQCCacheData(
     const boost::posix_time::ptime& lastModifiedTime,
     const Fmi::TimeZones& timezones) const
 {
-  boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
   db->readWeatherDataQCCacheDataFromPostgreSQL(
       cacheData, startTime, lastModifiedTime, itsTimeZones);
 }
@@ -103,7 +103,7 @@ void ObservationCacheAdminPostgreSQL::readMobileCacheData(
     boost::posix_time::ptime lastCreatedTime,
     const Fmi::TimeZones& timeZones) const
 {
-  boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
   db->readMobileCacheDataFromPostgreSQL(producer, cacheData, lastTime, lastCreatedTime, timeZones);
   if (producer == FMI_IOT_PRODUCER)
   {
@@ -141,7 +141,7 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
     if (itsShutdownRequested)
       return;
 
-    boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
     const std::string place = "Helsinki";
     const std::string lang = "fi";
     Spine::LocationPtr loc = itsGeonames->nameSearch(place, lang);
@@ -223,7 +223,7 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
 
 std::pair<boost::posix_time::ptime, boost::posix_time::ptime>
 ObservationCacheAdminPostgreSQL::getLatestWeatherDataQCTime(
-    const boost::shared_ptr<ObservationCache>& cache) const
+    const std::shared_ptr<ObservationCache>& cache) const
 {
   boost::posix_time::ptime last_time = boost::posix_time::second_clock::universal_time() -
                                        boost::posix_time::hours(itsParameters.extCacheDuration);
@@ -239,7 +239,7 @@ ObservationCacheAdminPostgreSQL::getLatestWeatherDataQCTime(
 
 std::pair<boost::posix_time::ptime, boost::posix_time::ptime>
 ObservationCacheAdminPostgreSQL::getLatestObservationTime(
-    const boost::shared_ptr<ObservationCache>& cache) const
+    const std::shared_ptr<ObservationCache>& cache) const
 {
   boost::posix_time::ptime last_time = boost::posix_time::second_clock::universal_time() -
                                        boost::posix_time::hours(itsParameters.finCacheDuration);
@@ -254,7 +254,7 @@ ObservationCacheAdminPostgreSQL::getLatestObservationTime(
 }
 
 std::map<std::string, boost::posix_time::ptime> ObservationCacheAdminPostgreSQL::getLatestFlashTime(
-    const boost::shared_ptr<ObservationCache>& cache) const
+    const std::shared_ptr<ObservationCache>& cache) const
 {
   std::map<std::string, boost::posix_time::ptime> ret;
 
