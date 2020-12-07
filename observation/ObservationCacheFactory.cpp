@@ -10,10 +10,10 @@ namespace Engine
 {
 namespace Observation
 {
-ObservationCacheProxy* ObservationCacheFactory::create(const EngineParametersPtr& p,
-                                                       Spine::ConfigBase& cfg)
+boost::shared_ptr<ObservationCacheProxy> ObservationCacheFactory::create(const EngineParametersPtr& p,
+                                                                       const Spine::ConfigBase& cfg)
 {
-  ObservationCacheProxy* cacheProxy = new ObservationCacheProxy();
+  boost::shared_ptr<ObservationCacheProxy> cacheProxy(new ObservationCacheProxy());
   ObservationCaches caches;
 
   const std::map<std::string, CacheInfoItem>& cacheInfoItems =

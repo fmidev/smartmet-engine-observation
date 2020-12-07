@@ -55,63 +55,22 @@ namespace SmartMet
 // Mutex for write operations - otherwise you get table locked errors
 // in MULTITHREAD-mode.
 
-static Spine::MutexType stations_write_mutex;
-static Spine::MutexType locations_write_mutex;
-static Spine::MutexType observation_data_write_mutex;
-static Spine::MutexType weather_data_qc_write_mutex;
-static Spine::MutexType flash_data_write_mutex;
-static Spine::MutexType roadcloud_data_write_mutex;
-static Spine::MutexType netatmo_data_write_mutex;
-static Spine::MutexType fmi_iot_data_write_mutex;
+namespace
+{
+Spine::MutexType stations_write_mutex;
+Spine::MutexType locations_write_mutex;
+Spine::MutexType observation_data_write_mutex;
+Spine::MutexType weather_data_qc_write_mutex;
+Spine::MutexType flash_data_write_mutex;
+Spine::MutexType roadcloud_data_write_mutex;
+Spine::MutexType netatmo_data_write_mutex;
+Spine::MutexType fmi_iot_data_write_mutex;
+}  // namespace
 
 namespace Engine
 {
 namespace Observation
 {
-namespace
-{
-void solveMeasurandIds(const std::vector<std::string> &parameters,
-                       const ParameterMapPtr &parameterMap,
-                       const std::string &stationType,
-                       std::multimap<int, std::string> &parameterIDs)
-{
-  try
-  {
-    // Empty list means we want all parameters
-    const bool findOnlyGiven = (not parameters.empty());
-
-    for (auto params = parameterMap->begin(); params != parameterMap->end(); ++params)
-    {
-      if (findOnlyGiven &&
-          find(parameters.begin(), parameters.end(), params->first) == parameters.end())
-        continue;
-
-      auto gid = params->second.find(stationType);
-      if (gid == params->second.end())
-        continue;
-
-      int id;
-      try
-      {
-        id = std::stoi(gid->second);
-      }
-      catch (std::exception &)
-      {
-        // gid is either too large or not convertible (ie. something is wrong)
-        continue;
-      }
-
-      parameterIDs.emplace(id, params->first);
-    }
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Solving measurand id failed!");
-  }
-}
-
-}  // namespace
-
 PostgreSQLCacheDB::PostgreSQLCacheDB(const PostgreSQLCacheParameters &options)
     : CommonPostgreSQLFunctions(
           options.postgresql, options.stationtypeConfig, options.parameterMap),
@@ -441,7 +400,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getTime(const std::string &timeQuery
       pqxx::result::const_iterator row = result_set.begin();
       if (!row[0].is_null())
       {
-        double value = row[0].as<double>();
+        auto value = row[0].as<double>();
         time_t seconds = floor(value);
         ret = boost::posix_time::from_time_t(seconds);
         double fractions = (value - floor(value));
@@ -816,7 +775,7 @@ std::size_t PostgreSQLCacheDB::fillDataCache(const DataItems &cacheData)
       new_items.reserve(itsMaxInsertSize);
       new_hashes.reserve(itsMaxInsertSize);
 
-      std::size_t pos2;
+      std::size_t pos2 = 0;
       for (pos2 = pos1; new_hashes.size() < itsMaxInsertSize && pos2 < cacheData.size(); ++pos2)
       {
         const auto &item = cacheData[pos2];
@@ -960,7 +919,7 @@ std::size_t PostgreSQLCacheDB::fillWeatherDataQCCache(const WeatherDataQCItems &
       new_items.reserve(itsMaxInsertSize);
       new_hashes.reserve(itsMaxInsertSize);
 
-      std::size_t pos2;
+      std::size_t pos2 = 0;
       for (pos2 = pos1; new_hashes.size() < itsMaxInsertSize && pos2 < cacheData.size(); ++pos2)
       {
         const auto &item = cacheData[pos2];
@@ -1083,7 +1042,7 @@ std::size_t PostgreSQLCacheDB::fillFlashDataCache(const FlashDataItems &flashCac
       new_items.reserve(itsMaxInsertSize);
       new_hashes.reserve(itsMaxInsertSize);
 
-      std::size_t pos2;
+      std::size_t pos2 = 0;
       for (pos2 = pos1; new_hashes.size() < itsMaxInsertSize && pos2 < flashCacheData.size();
            ++pos2)
       {
@@ -1252,7 +1211,7 @@ std::size_t PostgreSQLCacheDB::fillRoadCloudCache(
       new_items.reserve(itsMaxInsertSize);
       new_hashes.reserve(itsMaxInsertSize);
 
-      std::size_t pos2;
+      std::size_t pos2 = 0;
       for (pos2 = pos1;
            new_hashes.size() < itsMaxInsertSize && pos2 < mobileExternalCacheData.size();
            ++pos2)
@@ -1430,7 +1389,7 @@ std::size_t PostgreSQLCacheDB::fillNetAtmoCache(
       new_items.reserve(itsMaxInsertSize);
       new_hashes.reserve(itsMaxInsertSize);
 
-      std::size_t pos2;
+      std::size_t pos2 = 0;
       for (pos2 = pos1;
            new_hashes.size() < itsMaxInsertSize && pos2 < mobileExternalCacheData.size();
            ++pos2)
@@ -1673,8 +1632,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAnd
         {
           if (measurands.find(fieldname) == measurands.end())
           {
-            SmartMet::Engine::Observation::ParameterMap::NameToStationParameterMap::const_iterator
-                iter = parameterMap->find(fieldname);
+            const auto iter = parameterMap->find(fieldname);
             if (iter != parameterMap->end())
             {
               std::string producer = producerMeasurand.producerId().name();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/algorithm/string.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/shared_ptr.hpp>
 #include <macgyver/StringConversion.h>
 #include <spine/ConfigBase.h>
@@ -38,9 +39,9 @@ class DBRegistryConfig
    * @return Name of the table.
    */
   NameType getTableName() const { return m_name; }
-  const std::shared_ptr<FieldNameMapType> getFieldNameMap() const
+  const boost::shared_ptr<FieldNameMapType> getFieldNameMap() const
   {
-    return std::make_shared<FieldNameMapType>(m_fieldNameMap);
+    return boost::make_shared<FieldNameMapType>(m_fieldNameMap);
   }
 
   /**
@@ -85,7 +86,7 @@ class NamesAllowed
    *  @param caseSensitiveNames Names are handled case sensitively (default) unless the param value
    * is false.
    */
-  NamesAllowed(const std::shared_ptr<DBRegistryConfig> dbrConfig,
+  NamesAllowed(const boost::shared_ptr<DBRegistryConfig> dbrConfig,
                const bool caseSensitiveNames = true);
 
   ~NamesAllowed();

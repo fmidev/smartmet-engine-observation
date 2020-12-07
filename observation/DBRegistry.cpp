@@ -14,9 +14,9 @@ namespace Engine
 {
 namespace Observation
 {
-DBRegistry::DBRegistry() {}
+DBRegistry::DBRegistry() = default;
 
-DBRegistry::~DBRegistry() {}
+DBRegistry::~DBRegistry() = default;
 
 void DBRegistry::loadConfigurations(const std::string& configFolderPath)
 {
@@ -58,7 +58,7 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
             new Spine::ConfigBase(entry.string(), "DBRegisty configuration"));
         try
         {
-          std::shared_ptr<DBRegistryConfig> registryConfig(new DBRegistryConfig(cBase));
+          boost::shared_ptr<DBRegistryConfig> registryConfig(new DBRegistryConfig(cBase));
           m_configVector.push_back(std::move(registryConfig));
         }
         catch (const std::exception& err)
@@ -76,19 +76,17 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
   }
 }
 
-const std::shared_ptr<DBRegistryConfig> DBRegistry::dbRegistryConfig(
-    const std::string& tableName) const
+boost::shared_ptr<DBRegistryConfig> DBRegistry::dbRegistryConfig(const std::string& tableName) const
 {
   try
   {
-    DBRegistryConfigVectorType::const_iterator it = m_configVector.begin();
-    for (; it != m_configVector.end(); ++it)
+    for (const auto& config : m_configVector)
     {
-      if ((*it)->getTableName() == tableName)
-        return *it;
+      if (config->getTableName() == tableName)
+        return config;
     }
 
-    return std::shared_ptr<DBRegistryConfig>();
+    return boost::shared_ptr<DBRegistryConfig>();
   }
   catch (...)
   {

@@ -6,8 +6,8 @@ namespace Engine
 {
 namespace Observation
 {
-FEConformanceClassBase::FEConformanceClassBase() {}
-FEConformanceClassBase::~FEConformanceClassBase() {}
+FEConformanceClassBase::FEConformanceClassBase() = default;
+FEConformanceClassBase::~FEConformanceClassBase() = default;
 
 }  // namespace Observation
 }  // namespace Engine

@@ -12,8 +12,11 @@ namespace Engine
 {
 namespace Observation
 {
-static DatabaseDriverInfoItem emptyDriverInfoItem;
-static CacheInfoItem emptyCacheInfoItem;
+namespace
+{
+const DatabaseDriverInfoItem emptyDriverInfoItem;
+const CacheInfoItem emptyCacheInfoItem;
+}  // namespace
 
 void CacheInfoItem::mergeCacheInfo(const CacheInfoItem& cii_from)
 {
@@ -412,10 +415,7 @@ void DatabaseDriverInfo::readFakeCacheInfo(Spine::ConfigBase& cfg,
                                            std::map<std::string, std::string>& params)
 {
   libconfig::Config& lc = cfg.get_config();
-  std::vector<std::string> table_names;
-  table_names.push_back("observation_data");
-  table_names.push_back("weather_data_qc");
-  table_names.push_back("flash_data");
+  std::vector<std::string> table_names{"observation_data", "weather_data_qc", "flash_data"};
 
   for (const auto& tablename : table_names)
   {
@@ -707,12 +707,12 @@ std::ostream& operator<<(std::ostream& out,
   const std::vector<SmartMet::Engine::Observation::DatabaseDriverInfoItem>& ddi_vector =
       driverInfo.getDatabaseDriverInfo();
 
-  for (const auto ddi : ddi_vector)
+  for (const auto& ddi : ddi_vector)
   {
     const std::map<std::string, SmartMet::Engine::Observation::CacheInfoItem>& cii_map =
         ddi.getCacheInfo();
 
-    for (const auto ci : cii_map)
+    for (const auto& ci : cii_map)
     {
       out << ANSI_FG_GREEN << "  name: " << ci.second.name << ANSI_FG_DEFAULT << std::endl;
       out << "  active: " << ci.second.active << std::endl;

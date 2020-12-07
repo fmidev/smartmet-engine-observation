@@ -24,8 +24,8 @@ namespace Property
 class Base
 {
  public:
-  typedef std::string NameType;
-  typedef std::string OperatorType;
+  using NameType = std::string;
+  using OperatorType = std::string;
   explicit Base();
   virtual ~Base();
   /**
@@ -84,7 +84,7 @@ class Base
    * @toWhat A value to compared with the values behind \a property name.
    * @return Operation object
    */
-  virtual std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat) = 0;
+  virtual boost::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat) = 0;
 
  private:
   Base& operator=(const Base& other);
@@ -96,10 +96,11 @@ class Base
 class IsEqualTo : public Base
 {
  public:
+  ~IsEqualTo();
   IsEqualTo() : Base() {}
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  boost::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
-    std::shared_ptr<IsEqualTo> obj(new IsEqualTo);
+    boost::shared_ptr<IsEqualTo> obj(new IsEqualTo);
     obj->set(property, toWhat, "=");
     return obj;
   }
@@ -108,10 +109,11 @@ class IsEqualTo : public Base
 class IsNotEqualTo : public Base
 {
  public:
+  ~IsNotEqualTo();
   IsNotEqualTo() : Base() {}
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  boost::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
-    std::shared_ptr<IsNotEqualTo> obj(new IsNotEqualTo);
+    boost::shared_ptr<IsNotEqualTo> obj(new IsNotEqualTo);
     obj->set(property, toWhat, "!=");
     return obj;
   }
@@ -120,10 +122,11 @@ class IsNotEqualTo : public Base
 class IsLessThan : public Base
 {
  public:
+  ~IsLessThan();
   IsLessThan() : Base() {}
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  boost::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
-    std::shared_ptr<IsLessThan> obj(new IsLessThan);
+    boost::shared_ptr<IsLessThan> obj(new IsLessThan);
     obj->set(property, toWhat, "<");
     return obj;
   }
@@ -132,10 +135,11 @@ class IsLessThan : public Base
 class IsLessThanOrEqualTo : public Base
 {
  public:
+  ~IsLessThanOrEqualTo();
   IsLessThanOrEqualTo() : Base() {}
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  boost::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
-    std::shared_ptr<IsLessThanOrEqualTo> obj(new IsLessThanOrEqualTo);
+    boost::shared_ptr<IsLessThanOrEqualTo> obj(new IsLessThanOrEqualTo);
     obj->set(property, toWhat, "<=");
     return obj;
   }
@@ -144,10 +148,11 @@ class IsLessThanOrEqualTo : public Base
 class IsGreaterThan : public Base
 {
  public:
+  ~IsGreaterThan();
   IsGreaterThan() : Base() {}
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  boost::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
-    std::shared_ptr<IsGreaterThan> obj(new IsGreaterThan);
+    boost::shared_ptr<IsGreaterThan> obj(new IsGreaterThan);
     obj->set(property, toWhat, ">");
     return obj;
   }
@@ -156,10 +161,11 @@ class IsGreaterThan : public Base
 class IsGreaterThanOrEqualTo : public Base
 {
  public:
+  ~IsGreaterThanOrEqualTo();
   IsGreaterThanOrEqualTo() : Base() {}
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  boost::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
-    std::shared_ptr<IsGreaterThanOrEqualTo> obj(new IsGreaterThanOrEqualTo);
+    boost::shared_ptr<IsGreaterThanOrEqualTo> obj(new IsGreaterThanOrEqualTo);
     obj->set(property, toWhat, ">=");
     return obj;
   }
@@ -168,10 +174,11 @@ class IsGreaterThanOrEqualTo : public Base
 class IsNull : public Base
 {
  public:
+  ~IsNull();
   IsNull() : Base() {}
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  boost::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
-    std::shared_ptr<IsNull> obj(new IsNull);
+    boost::shared_ptr<IsNull> obj(new IsNull);
     obj->set(property, boost::any(std::string("NULL")), "");
     return obj;
   }
@@ -180,10 +187,11 @@ class IsNull : public Base
 class IsNotNull : public Base
 {
  public:
+  ~IsNotNull();
   IsNotNull() : Base() {}
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  boost::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
-    std::shared_ptr<IsNotNull> obj(new IsNotNull);
+    boost::shared_ptr<IsNotNull> obj(new IsNotNull);
     obj->set(property, boost::any(std::string("NULL")), "NOT");
     return obj;
   }
@@ -192,10 +200,11 @@ class IsNotNull : public Base
 class IsNil : public Base
 {
  public:
+  ~IsNil();
   IsNil() : Base() {}
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  boost::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
-    std::shared_ptr<IsNil> obj(new IsNil);
+    boost::shared_ptr<IsNil> obj(new IsNil);
     obj->set(property, boost::any(std::string("EMPTY")), "is");
     return obj;
   }
@@ -204,10 +213,11 @@ class IsNil : public Base
 class IsLike : public Base
 {
  public:
+  ~IsLike();
   IsLike() : Base() {}
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  boost::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
-    std::shared_ptr<IsLike> obj(new IsLike);
+    boost::shared_ptr<IsLike> obj(new IsLike);
     std::string val;
     // Special case when the type is string. (boost::posix_time::ptime is also a problem).
     // toWhatString method is catenating apostrophes (') around a string.
@@ -224,10 +234,11 @@ class IsLike : public Base
 class IsBetween : public Base
 {
  public:
+  ~IsBetween();
   IsBetween() : Base() {}
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  boost::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
-    std::shared_ptr<IsBetween> obj(new IsBetween);
+    boost::shared_ptr<IsBetween> obj(new IsBetween);
     obj->set(property, toWhat, "BETWEEN");
     return obj;
   }
@@ -237,10 +248,11 @@ class IsBetween : public Base
 class MinuteValueModuloIsEqualToZero : public Base
 {
  public:
+  ~MinuteValueModuloIsEqualToZero();
   MinuteValueModuloIsEqualToZero() : Base() {}
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  boost::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
-    std::shared_ptr<MinuteValueModuloIsEqualToZero> obj(new MinuteValueModuloIsEqualToZero);
+    boost::shared_ptr<MinuteValueModuloIsEqualToZero> obj(new MinuteValueModuloIsEqualToZero);
     obj->set(property, toWhat, "=");
     return obj;
   }

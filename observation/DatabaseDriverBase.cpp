@@ -10,7 +10,7 @@ namespace Engine
 {
 namespace Observation
 {
-DatabaseDriverBase::~DatabaseDriverBase() {}
+DatabaseDriverBase::~DatabaseDriverBase() = default;
 
 bool DatabaseDriverBase::isParameter(const std::string &alias,
                                      const std::string &stationType,
@@ -25,16 +25,14 @@ bool DatabaseDriverBase::isParameter(const std::string &alias,
       return true;
 
     // Is the alias configured.
-    std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
-        parameterMap.find(parameterAliasName);
+    const auto namePtr = parameterMap.find(parameterAliasName);
 
     if (namePtr == parameterMap.end())
       return false;
 
     // Is the stationType configured inside configuration block of the alias.
-    std::string stationTypeLowerCase = Fmi::ascii_tolower_copy(stationType);
-    std::map<std::string, std::string>::const_iterator stationTypeMapPtr =
-        namePtr->second.find(stationTypeLowerCase);
+    auto stationTypeLowerCase = Fmi::ascii_tolower_copy(stationType);
+    const auto stationTypeMapPtr = namePtr->second.find(stationTypeLowerCase);
 
     if (stationTypeMapPtr == namePtr->second.end())
       return false;
@@ -52,11 +50,10 @@ bool DatabaseDriverBase::isParameterVariant(const std::string &name,
 {
   try
   {
-    std::string parameterLowerCase = Fmi::ascii_tolower_copy(name);
+    auto parameterLowerCase = Fmi::ascii_tolower_copy(name);
     removePrefix(parameterLowerCase, "qc_");
     // Is the alias configured.
-    std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
-        parameterMap.find(parameterLowerCase);
+    const auto namePtr = parameterMap.find(parameterLowerCase);
 
     if (namePtr == parameterMap.end())
       return false;

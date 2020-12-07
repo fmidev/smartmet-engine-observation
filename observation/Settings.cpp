@@ -25,7 +25,7 @@ std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings&
   {
     out << "taggedLocations:" << std::endl;
     unsigned int i = 0;
-    for (auto l : settings.taggedLocations)
+    for (const auto& l : settings.taggedLocations)
     {
       out << "taggedLocation #" << i++ << std::endl;
       out << "tag: " << l.tag << std::endl;
@@ -49,7 +49,7 @@ std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings&
   if (settings.boundingBox.size() > 0)
   {
     out << "boundingBox:" << std::endl;
-    for (auto item : settings.boundingBox)
+    for (const auto& item : settings.boundingBox)
       out << item.first << " -> " << item.second << std::endl;
   }
 

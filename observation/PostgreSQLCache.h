@@ -20,7 +20,9 @@ namespace Observation
 class PostgreSQLCache : public ObservationCache
 {
  public:
-  PostgreSQLCache(const std::string &name, const EngineParametersPtr &p, Spine::ConfigBase &cfg);
+  PostgreSQLCache(const std::string &name,
+                  const EngineParametersPtr &p,
+                  const Spine::ConfigBase &cfg);
   ~PostgreSQLCache();
 
   void initializeConnectionPool();
@@ -83,11 +85,11 @@ class PostgreSQLCache : public ObservationCache
   void shutdown();
 
  private:
-  PostgreSQLCacheConnectionPool *itsConnectionPool = nullptr;
+  std::unique_ptr<PostgreSQLCacheConnectionPool> itsConnectionPool;
 
   Fmi::TimeZones itsTimeZones;
 
-  void readConfig(Spine::ConfigBase &cfg);
+  void readConfig(const Spine::ConfigBase &cfg);
   bool timeIntervalIsCached(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime) const;
   bool timeIntervalWeatherDataQCIsCached(const boost::posix_time::ptime &starttime,

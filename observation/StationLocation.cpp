@@ -6,8 +6,11 @@ namespace Engine
 {
 namespace Observation
 {
-static StationLocation emptyLocation = StationLocation();
-static StationLocationVector emptyLocationVector = StationLocationVector();
+namespace
+{
+const StationLocation emptyLocation = StationLocation();
+const StationLocationVector emptyLocationVector = StationLocationVector();
+}  // namespace
 
 const StationLocation& StationLocations::getLocation(int fmisid,
                                                      const boost::posix_time::ptime& t) const

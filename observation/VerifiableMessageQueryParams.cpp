@@ -8,7 +8,7 @@ namespace Engine
 namespace Observation
 {
 VerifiableMessageQueryParams::VerifiableMessageQueryParams(
-    const std::shared_ptr<DBRegistryConfig> dbrConfig)
+    const boost::shared_ptr<DBRegistryConfig> dbrConfig)
     : m_dbrConfig(dbrConfig)
 {
   try
@@ -110,8 +110,7 @@ bool VerifiableMessageQueryParams::isRestriction(int id) const
     std::unordered_map<int, bool>::const_iterator it = m_restrictionMap.find(id);
     if (it != m_restrictionMap.end())
       return (*it).second;
-    else
-      return false;
+    return false;
   }
   catch (...)
   {

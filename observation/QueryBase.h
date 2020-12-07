@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/shared_ptr.hpp>
 #include <memory>
 #include <string>
 
@@ -27,9 +28,9 @@ class QueryBase
    *  @brief Get a reference with null value to a container to store data.
    *  @return Null pointer.
    */
-  virtual std::shared_ptr<QueryResult> getQueryResultContainer()
+  virtual boost::shared_ptr<QueryResult> getQueryResultContainer()
   {
-    return std::shared_ptr<QueryResult>();
+    return boost::shared_ptr<QueryResult>();
   }
 
  private:

@@ -115,7 +115,7 @@ DBRegistryConfig::NameType DBRegistryConfig::getMethod(
 {
   try
   {
-    FieldMethodMapType::const_iterator it = m_fieldMethodMap.find(fieldName);
+    const auto it = m_fieldMethodMap.find(fieldName);
     if (it != m_fieldMethodMap.end())
       return it->second;
 
@@ -127,7 +127,7 @@ DBRegistryConfig::NameType DBRegistryConfig::getMethod(
   }
 }
 
-NamesAllowed::NamesAllowed(const std::shared_ptr<DBRegistryConfig> dbrConfig,
+NamesAllowed::NamesAllowed(const boost::shared_ptr<DBRegistryConfig> dbrConfig,
                            const bool caseSensitiveNames)
     : m_caseSensitiveNames(caseSensitiveNames)
 {
@@ -140,7 +140,7 @@ NamesAllowed::NamesAllowed(const std::shared_ptr<DBRegistryConfig> dbrConfig,
       return;
     }
 
-    const std::shared_ptr<NameMapType> nameMap = dbrConfig->getFieldNameMap();
+    const boost::shared_ptr<NameMapType> nameMap = dbrConfig->getFieldNameMap();
     if (not nameMap)
     {
       std::cerr << "warning : Engine::Observation::NamesAllowed class object use an "
@@ -170,7 +170,7 @@ NamesAllowed::NamesAllowed(const std::shared_ptr<DBRegistryConfig> dbrConfig,
   }
 }
 
-NamesAllowed::~NamesAllowed() {}
+NamesAllowed::~NamesAllowed() = default;
 
 bool NamesAllowed::addName(const std::string& inName)
 {

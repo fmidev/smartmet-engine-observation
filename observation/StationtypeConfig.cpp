@@ -1,6 +1,6 @@
 #include "StationtypeConfig.h"
-
 #include <boost/algorithm/string.hpp>
+#include <boost/make_shared.hpp>
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
@@ -13,9 +13,9 @@ namespace Engine
 {
 namespace Observation
 {
-StationtypeConfig::StationtypeConfig() {}
+StationtypeConfig::StationtypeConfig() = default;
 
-StationtypeConfig::~StationtypeConfig() {}
+StationtypeConfig::~StationtypeConfig() = default;
 
 void StationtypeConfig::addStationtype(const StationtypeType& stationtype,
                                        const GroupCodeVectorType& stationgroupVector)
@@ -31,7 +31,7 @@ void StationtypeConfig::addStationtype(const StationtypeType& stationtype,
                            "stationtype name found.");
     }
 
-    STGroupCodeSetMapType::iterator it = m_stationtypeMap.find(stationtypeLower);
+    auto it = m_stationtypeMap.find(stationtypeLower);
     if (it != m_stationtypeMap.end())
     {
       throw Fmi::Exception(BCP,
@@ -60,19 +60,19 @@ void StationtypeConfig::addStationtype(const StationtypeType& stationtype,
   }
 }
 
-std::shared_ptr<const StationtypeConfig::DatabaseTableNameType>
+boost::shared_ptr<const StationtypeConfig::DatabaseTableNameType>
 StationtypeConfig::getDatabaseTableNameByStationtype(const StationtypeType& stationtype) const
 {
   try
   {
     const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
-    STDatabaseTableNameMapType::const_iterator it = m_stDatabaseTableNameMap.find(stationtypeLower);
+    const auto it = m_stDatabaseTableNameMap.find(stationtypeLower);
     if (it == m_stDatabaseTableNameMap.end())
       throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail(
               fmt::format("Database table name for the stationtype '{}' not found.", stationtype));
 
-    return std::make_shared<DatabaseTableNameType>(it->second);
+    return boost::make_shared<DatabaseTableNameType>(it->second);
   }
   catch (...)
   {
@@ -80,20 +80,18 @@ StationtypeConfig::getDatabaseTableNameByStationtype(const StationtypeType& stat
   }
 }
 
-std::shared_ptr<const StationtypeConfig::GroupCodeSetType>
+boost::shared_ptr<const StationtypeConfig::GroupCodeSetType>
 StationtypeConfig::getGroupCodeSetByStationtype(const StationtypeType& stationtype) const
 {
   try
   {
     const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
-    STGroupCodeSetMapType::const_iterator it = m_stationtypeMap.find(stationtypeLower);
+    const auto it = m_stationtypeMap.find(stationtypeLower);
     if (it != m_stationtypeMap.end())
-    {
-      return std::make_shared<GroupCodeSetType>(it->second);
-    }
-    else
-      throw Fmi::Exception(BCP, "Invalid parameter value!")
-          .addDetail(fmt::format("Stationtype '{}' not found.", stationtype));
+      return boost::make_shared<GroupCodeSetType>(it->second);
+
+    throw Fmi::Exception(BCP, "Invalid parameter value!")
+        .addDetail(fmt::format("Stationtype '{}' not found.", stationtype));
   }
   catch (...)
   {
@@ -101,20 +99,18 @@ StationtypeConfig::getGroupCodeSetByStationtype(const StationtypeType& stationty
   }
 }
 
-std::shared_ptr<const StationtypeConfig::ProducerIdSetType>
+boost::shared_ptr<const StationtypeConfig::ProducerIdSetType>
 StationtypeConfig::getProducerIdSetByStationtype(const StationtypeType& stationtype) const
 {
   try
   {
     const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
-    STProducerIdSetMapType::const_iterator it = m_stProducerIdSetMap.find(stationtypeLower);
+    const auto it = m_stProducerIdSetMap.find(stationtypeLower);
     if (it != m_stProducerIdSetMap.end())
-    {
-      return std::make_shared<ProducerIdSetType>(it->second);
-    }
-    else
-      throw Fmi::Exception(BCP, "Invalid parameter value!")
-          .addDetail(fmt::format("Producer id list not found for Stationtype '{}'.", stationtype));
+      return boost::make_shared<ProducerIdSetType>(it->second);
+
+    throw Fmi::Exception(BCP, "Invalid parameter value!")
+        .addDetail(fmt::format("Producer id list not found for Stationtype '{}'.", stationtype));
   }
   catch (...)
   {
@@ -128,12 +124,10 @@ StationtypeConfig::UseCommonQueryMethodType StationtypeConfig::getUseCommonQuery
   try
   {
     const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
-    STUseCommonQueryMethodMapType::const_iterator it =
-        m_stUseCommonQueryMethodMap.find(stationtypeLower);
+    const auto it = m_stUseCommonQueryMethodMap.find(stationtypeLower);
     if (it != m_stUseCommonQueryMethodMap.end())
       return it->second;
-    else
-      return false;
+    return false;
   }
   catch (...)
   {
@@ -227,8 +221,7 @@ void StationtypeConfig::setProducerIds(const StationtypeType& stationtype,
               "Stationtype '{}' not found. Add first the stationtype into the class object.",
               stationtype));
 
-    STProducerIdSetMapType::iterator stProducerIdSetMapIt =
-        m_stProducerIdSetMap.find(stationtypeLower);
+    auto stProducerIdSetMapIt = m_stProducerIdSetMap.find(stationtypeLower);
 
     // Create a producer set for the station type or clear the old values.
     if (stProducerIdSetMapIt == m_stProducerIdSetMap.end())

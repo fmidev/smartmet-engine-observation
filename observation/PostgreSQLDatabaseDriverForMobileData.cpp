@@ -32,7 +32,7 @@ PostgreSQLDatabaseDriverForMobileData::PostgreSQLDatabaseDriverForMobileData(
 
   readConfig(cfg);
 
-  for (auto item : p->externalAndMobileProducerConfig)
+  for (const auto &item : p->externalAndMobileProducerConfig)
     itsSupportedProducers.insert(item.first);
 }
 
@@ -133,10 +133,10 @@ void PostgreSQLDatabaseDriverForMobileData::makeQuery(QueryBase *qb)
       throw exception;
     }
 
-    std::shared_ptr<QueryResultBase> result = qb->getQueryResultContainer();
+    boost::shared_ptr<QueryResultBase> result = qb->getQueryResultContainer();
 
     // Try cache first
-    boost::optional<std::shared_ptr<QueryResultBase> > cacheResult =
+    boost::optional<boost::shared_ptr<QueryResultBase> > cacheResult =
         itsParameters.params->queryResultBaseCache.find(sqlStatement);
     if (cacheResult)
     {

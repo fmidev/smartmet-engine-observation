@@ -50,7 +50,7 @@ bool ObservationCache::isFakeCache(const std::string& tablename) const
   return (itsCacheInfo.params.find(tablename) != itsCacheInfo.params.end());
 }
 
-ObservationCache::~ObservationCache() {}
+ObservationCache::~ObservationCache() = default;
 
 }  // namespace Observation
 }  // namespace Engine

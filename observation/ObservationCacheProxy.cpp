@@ -6,7 +6,10 @@ namespace Engine
 {
 namespace Observation
 {
-static boost::shared_ptr<ObservationCache> emptyObservationCache;
+namespace
+{
+const boost::shared_ptr<ObservationCache> emptyObservationCache;
+}
 
 boost::shared_ptr<ObservationCache> ObservationCacheProxy::getCacheByTableName(
     const std::string& tablename) const
@@ -35,7 +38,7 @@ void ObservationCacheProxy::addCache(const std::string& tablename,
 
 void ObservationCacheProxy::shutdown()
 {
-  for (auto item : itsCachesByName)
+  for (const auto& item : itsCachesByName)
     item.second->shutdown();
 }
 

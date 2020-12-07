@@ -65,7 +65,7 @@ class ObservationCacheAdminBase
  protected:
   ObservationCacheAdminBase(const DatabaseDriverParameters& parameters,
                             SmartMet::Engine::Geonames::Engine* geonames,
-                            boost::atomic<bool>& conn_ok,
+                            std::atomic<bool>& conn_ok,
                             bool timer);
 
   virtual ~ObservationCacheAdminBase();
@@ -75,8 +75,8 @@ class ObservationCacheAdminBase
   const DatabaseDriverParameters& itsParameters;
   const boost::shared_ptr<ObservationCacheProxy>& itsCacheProxy;
   SmartMet::Engine::Geonames::Engine* itsGeonames;
-  boost::atomic<bool> itsShutdownRequested;
-  boost::atomic<bool>& itsConnectionsOK;
+  std::atomic<bool> itsShutdownRequested;
+  std::atomic<bool>& itsConnectionsOK;
   bool itsTimer{false};
   Fmi::TimeZones itsTimeZones;
   bool itsStationsCurrentlyLoading{false};
@@ -109,7 +109,7 @@ class ObservationCacheAdminBase
   boost::shared_ptr<ObservationCache> getCache(const std::string& tablename) const;
   std::string driverName() const;
 
-  std::unique_ptr<Fmi::AsyncTaskGroup> background_tasks;
+  boost::shared_ptr<Fmi::AsyncTaskGroup> itsBackgroundTasks;
 };
 
 }  // namespace Observation

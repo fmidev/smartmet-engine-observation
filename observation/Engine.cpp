@@ -11,7 +11,6 @@
 #include <spine/TimeSeriesOutput.h>
 
 namespace ts = SmartMet::Spine::TimeSeries;
-namespace ba = boost::algorithm;
 
 namespace SmartMet
 {
@@ -42,8 +41,8 @@ void Engine::init()
     // Read preloaded stations from disk if available
     unserializeStations();
 
-    itsEngineParameters->observationCacheProxy.reset(
-        ObservationCacheFactory::create(itsEngineParameters, cfg));
+    itsEngineParameters->observationCacheProxy =
+        ObservationCacheFactory::create(itsEngineParameters, cfg);
 #ifdef TODO_CAUSES_SEGFAULT_AT_EXIT
     itsDatabaseDriver.reset(DatabaseDriverFactory::create(itsEngineParameters, cfg));
 #else
@@ -116,30 +115,29 @@ bool Engine::stationHasRightType(const Spine::Station &station, const Settings &
     {
       return true;
     }
-    else if (settings.stationtype == "foreign")
+    if (settings.stationtype == "foreign")
     {
       return true;
     }
-    else if (settings.stationtype == "road" && station.isRoadStation)
+    if (settings.stationtype == "road" && station.isRoadStation)
     {
       return true;
     }
-    else if ((settings.stationtype == "mareograph" ||
-              settings.stationtype == "opendata_mareograph") &&
-             station.isMareographStation)
+    if ((settings.stationtype == "mareograph" || settings.stationtype == "opendata_mareograph") &&
+        station.isMareographStation)
     {
       return true;
     }
-    else if ((settings.stationtype == "buoy" || settings.stationtype == "opendata_buoy") &&
-             station.isBuoyStation)
+    if ((settings.stationtype == "buoy" || settings.stationtype == "opendata_buoy") &&
+        station.isBuoyStation)
     {
       return true;
     }
-    else if (settings.stationtype == "syke" && station.isSYKEStation)
+    if (settings.stationtype == "syke" && station.isSYKEStation)
     {
       return true;
     }
-    else if (settings.stationtype == "MAST")
+    if (settings.stationtype == "MAST")
     {
       return true;
     }

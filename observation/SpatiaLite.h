@@ -353,7 +353,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   const ExternalAndMobileProducerConfig &itsExternalAndMobileProducerConfig;
 
   std::unique_ptr<ObservationMemoryCache> itsObservationMemoryCache;
-  boost::atomic<bool> itsShutdownRequested;
+  std::atomic<bool> itsShutdownRequested;
 
   boost::posix_time::ptime getLatestTimeFromTable(const std::string &tablename,
                                                   const std::string &time_field);

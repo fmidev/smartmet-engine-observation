@@ -315,7 +315,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getF
 
     if (!settings.taggedLocations.empty())
     {
-      for (auto tloc : settings.taggedLocations)
+      for (const auto &tloc : settings.taggedLocations)
       {
         if (tloc.loc->type == Spine::Location::CoordinatePoint)
         {
@@ -458,7 +458,7 @@ FlashCounts CommonPostgreSQLFunctions::getFlashCount(
 
     if (!locations.empty())
     {
-      for (auto tloc : locations)
+      for (const auto &tloc : locations)
       {
         if (tloc.loc->type == SmartMet::Spine::Location::CoordinatePoint)
         {

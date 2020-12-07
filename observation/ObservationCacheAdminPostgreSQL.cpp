@@ -12,7 +12,7 @@ ObservationCacheAdminPostgreSQL::ObservationCacheAdminPostgreSQL(
     const PostgreSQLDriverParameters& p,
     const std::unique_ptr<PostgreSQLObsDBConnectionPool>& pcp,
     Geonames::Engine* geonames,
-    boost::atomic<bool>& conn_ok,
+    std::atomic<bool>& conn_ok,
     bool timer)
     : ObservationCacheAdminBase(p, geonames, conn_ok, timer), itsPostgreSQLConnectionPool(pcp)
 {
@@ -107,8 +107,7 @@ void ObservationCacheAdminPostgreSQL::readMobileCacheData(
   db->readMobileCacheDataFromPostgreSQL(producer, cacheData, lastTime, lastCreatedTime, timeZones);
   if (producer == FMI_IOT_PRODUCER)
   {
-    const PostgreSQLDriverParameters& p =
-        static_cast<const PostgreSQLDriverParameters&>(itsParameters);
+    const auto& p = static_cast<const PostgreSQLDriverParameters&>(itsParameters);
 
     // Add station location info
     for (auto& item : cacheData)

@@ -200,7 +200,7 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
   if (numberofstations < 1)
     throw Fmi::Exception(BCP, "Cannot search for less than 1 nearby stations");
 
-  std::size_t maxcount = static_cast<std::size_t>(numberofstations);
+  auto maxcount = static_cast<std::size_t>(numberofstations);
 
   // Find all stations within the distance limit
   StationNearTreeLatLon searchpoint{longitude, latitude};
@@ -237,7 +237,7 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
 
     previous_distance = distance;
 
-    distances.push_back(std::make_pair(distance, id));
+    distances.emplace_back(std::make_pair(distance, id));
   }
 
   // The vector is already sorted by distance. We want stations at the same distance to be
@@ -589,7 +589,7 @@ Spine::Stations StationInfo::findStationsInsideArea(const std::set<std::string>&
     srs.importFromEPSGA(4326);
 
     // Iterate stations
-    for (auto station : groupStations)
+    for (const auto& station : groupStations)
     {
       // Create Point geometry from sation coordinates
       OGRPoint stationLocation(station.longitude_out, station.latitude_out);
@@ -808,7 +808,7 @@ Spine::TaggedFMISIDList StationInfo::translateWMOToFMISID(const std::vector<int>
   SmartMet::Spine::Stations stations = findWmoStations(wmos);
 
   std::set<int> processed;
-  for (auto s : stations)
+  for (const auto& s : stations)
     if (t >= s.station_start && t <= s.station_end && processed.find(s.wmo) == processed.end())
     {
       ret.emplace_back(Fmi::to_string(s.wmo), s.fmisid);
@@ -826,7 +826,7 @@ Spine::TaggedFMISIDList StationInfo::translateRWSIDToFMISID(const std::vector<in
   SmartMet::Spine::Stations stations = findRwsidStations(rwsids);
 
   std::set<int> processed;
-  for (auto s : stations)
+  for (const auto& s : stations)
     if (t >= s.station_start && t <= s.station_end && processed.find(s.rwsid) == processed.end())
     {
       ret.emplace_back(Fmi::to_string(s.rwsid), s.fmisid);
@@ -844,7 +844,7 @@ Spine::TaggedFMISIDList StationInfo::translateLPNNToFMISID(const std::vector<int
   SmartMet::Spine::Stations stations = findLpnnStations(lpnns);
 
   std::set<int> processed;
-  for (auto s : stations)
+  for (const auto& s : stations)
     if (t >= s.station_start && t <= s.station_end && processed.find(s.lpnn) == processed.end())
     {
       ret.emplace_back(Fmi::to_string(s.lpnn), s.fmisid);

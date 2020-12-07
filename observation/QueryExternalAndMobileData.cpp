@@ -46,12 +46,12 @@ QueryExternalAndMobileData::QueryExternalAndMobileData(
 {
 }
 
-QueryExternalAndMobileData::~QueryExternalAndMobileData() {}
+QueryExternalAndMobileData::~QueryExternalAndMobileData() = default;
 
 class my_visitor : public boost::static_visitor<double>
 {
  public:
-  my_visitor() {}
+  my_visitor() = default;
   double operator()(SmartMet::Spine::TimeSeries::None none)
   {
     return static_cast<double>(kFloatMissing);
@@ -252,8 +252,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
           ts::Value value;
           if (measurands.find(fieldname) == measurands.end())
           {
-            ParameterMap::NameToStationParameterMap::const_iterator iter =
-                db.getParameterMap()->find(fieldname);
+            const auto iter = db.getParameterMap()->find(fieldname);
             if (iter != db.getParameterMap()->end())
             {
               std::string producer = producerMeasurand.producerId().name();

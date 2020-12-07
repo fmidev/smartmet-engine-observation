@@ -37,7 +37,7 @@ void PostgreSQLCache::initializeConnectionPool()
     logMessage("[Observation Engine] Initializing PostgreSQL cache connection pool...",
                itsParameters.quiet);
 
-    itsConnectionPool = new PostgreSQLCacheConnectionPool(itsParameters);
+    itsConnectionPool.reset(new PostgreSQLCacheConnectionPool(itsParameters));
 
     // Ensure that necessary tables exists:
     // 1) stations
@@ -843,7 +843,7 @@ void PostgreSQLCache::shutdown()
 
 PostgreSQLCache::PostgreSQLCache(const std::string &name,
                                  const EngineParametersPtr &p,
-                                 Spine::ConfigBase &cfg)
+                                 const Spine::ConfigBase &cfg)
     : ObservationCache(p->databaseDriverInfo.getAggregateCacheInfo(name)), itsParameters(p)
 {
   try
@@ -856,7 +856,7 @@ PostgreSQLCache::PostgreSQLCache(const std::string &name,
   }
 }
 
-void PostgreSQLCache::readConfig(Spine::ConfigBase &cfg)
+void PostgreSQLCache::readConfig(const Spine::ConfigBase &cfg)
 {
   try
   {

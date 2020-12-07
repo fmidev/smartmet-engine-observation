@@ -7,6 +7,9 @@ namespace Engine
 {
 namespace Observation
 {
+StandardFilter::~StandardFilter() = default;
+ExtendedStandardFilter::~ExtendedStandardFilter() = default;
+
 StandardFilter::StandardFilter() : MinimumStandardFilter()
 {
   try
@@ -33,7 +36,7 @@ StandardFilter::StandardFilter() : MinimumStandardFilter()
   }
 }
 
-std::shared_ptr<const StandardFilter::PropertyIsBaseType> StandardFilter::getNewOperationInstance(
+boost::shared_ptr<const StandardFilter::PropertyIsBaseType> StandardFilter::getNewOperationInstance(
     const NameType& field, const NameType& operationName, const boost::any& toWhat)
 {
   try
@@ -41,7 +44,7 @@ std::shared_ptr<const StandardFilter::PropertyIsBaseType> StandardFilter::getNew
     try
     {
       OperationMapValueType op = FEConformanceClassBase::get(operationName);
-      return std::shared_ptr<const PropertyIsBaseType>(op(field, toWhat));
+      return boost::shared_ptr<const PropertyIsBaseType>(op(field, toWhat));
     }
     catch (...)
     {

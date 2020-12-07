@@ -88,7 +88,7 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
 
 DatabaseDriverProxy::~DatabaseDriverProxy()
 {
-  for (auto driver : itsDatabaseDriverSet)
+  for (auto *driver : itsDatabaseDriverSet)
     if (driver != nullptr)
       delete driver;
 }

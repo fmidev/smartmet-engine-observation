@@ -39,7 +39,7 @@ class VerifiableMessageQuery : public QueryBase
    * @return Reference to the result container or NULL if
    *         SQL statement produce an empty result.
    */
-  std::shared_ptr<QueryResult> getQueryResultContainer();
+  boost::shared_ptr<QueryResult> getQueryResultContainer();
 
   /**
    * \brief Set query params used in SQL statement formation.
@@ -70,7 +70,7 @@ class VerifiableMessageQuery : public QueryBase
   // use in getSQLStatement method.
   std::vector<std::string> m_stationIDs;
 
-  std::shared_ptr<QueryResult> m_queryResult;
+  boost::shared_ptr<QueryResult> m_queryResult;
 
   // If the param is set to "true", result will be orderd
   // by message time in descending order. Only the first

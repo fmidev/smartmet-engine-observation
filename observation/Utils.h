@@ -75,13 +75,6 @@ boost::posix_time::ptime day_end(const boost::posix_time::ptime& t);
 
 // ----------------------------------------------------------------------
 /*!
- * \brief Convert ptime to string
- */
-// ----------------------------------------------------------------------
-std::string timeToString(const boost::posix_time::ptime& time);
-
-// ----------------------------------------------------------------------
-/*!
  * \brief Write message to std::cout if quiet flag is false
  */
 // ----------------------------------------------------------------------

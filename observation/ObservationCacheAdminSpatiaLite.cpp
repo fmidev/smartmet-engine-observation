@@ -9,7 +9,7 @@ namespace Observation
 ObservationCacheAdminSpatiaLite::ObservationCacheAdminSpatiaLite(
     const DatabaseDriverParameters& p,
     SmartMet::Engine::Geonames::Engine* geonames,
-    boost::atomic<bool>& conn_ok,
+    std::atomic<bool>& conn_ok,
     bool timer)
     : ObservationCacheAdminBase(p, geonames, conn_ok, timer)
 {

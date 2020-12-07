@@ -90,13 +90,13 @@ class DatabaseDriverBase
   boost::shared_ptr<ObservationCache> resolveCache(const std::string &producer,
                                                    const EngineParametersPtr &parameters) const;
 
-  boost::atomic<bool> itsShutdownRequested{false};
+  std::atomic<bool> itsShutdownRequested{false};
   std::set<std::string> itsSupportedProducers;
   std::string itsDriverName;
   std::map<std::string, MetaData> itsMetaData;
   bool itsTimer{false};
   Fmi::TimeZones itsTimeZones;
-  boost::atomic<bool> itsConnectionsOK{false};
+  std::atomic<bool> itsConnectionsOK{false};
   bool itsQuiet{true};
   std::unique_ptr<DatabaseStations> itsDatabaseStations;
   bool itsLoadStations{false};

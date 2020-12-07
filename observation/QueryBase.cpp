@@ -8,9 +8,9 @@ namespace Observation
 {
 using namespace std;
 
-QueryBase::QueryBase() {}
+QueryBase::QueryBase() = default;
 
-QueryBase::~QueryBase() {}
+QueryBase::~QueryBase() = default;
 
 }  // namespace Observation
 }  // namespace Engine

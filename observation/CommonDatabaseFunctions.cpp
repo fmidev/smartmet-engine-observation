@@ -33,10 +33,6 @@ bool is_data_quality_field(const std::string &fieldname)
            fieldname.find("_data_quality_sensornumber_") != std::string::npos));
 }
 
-bool is_data_source_or_data_quality_field(const std::string &fieldname)
-{
-  return (is_data_source_field(fieldname) || is_data_quality_field(fieldname));
-}
 }  // namespace
 
 QueryMapping CommonDatabaseFunctions::buildQueryMapping(const Spine::Stations &stations,
@@ -271,18 +267,16 @@ void CommonDatabaseFunctions::solveMeasurandIds(const std::vector<std::string> &
       if (gid == params->second.end())
         continue;
 
-      int id;
       try
       {
-        id = std::stoi(gid->second);
+        int id = std::stoi(gid->second);
+        parameterIDs.emplace(id, params->first);
       }
       catch (const std::exception &)
       {
         // gid is either too large or not convertible (ie. something is wrong)
         continue;
       }
-
-      parameterIDs.emplace(id, params->first);
     }
   }
   catch (...)
@@ -712,7 +706,7 @@ void CommonDatabaseFunctions::appendWeatherParameters(
                    std::map<std::string, std::map<std::string, Spine::TimeSeries::Value>>>
         &stationData = obsmap.dataWithStringParameterId.at(s.fmisid);
 
-    for (auto item : qmap.parameterNameMap)
+    for (const auto &item : qmap.parameterNameMap)
     {
       std::string param_name = item.first;
       std::string sensor_number = "default";
@@ -926,7 +920,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
           masterParamName = masterParamName.substr(0, masterParamName.length());
         std::string sensor_number = fieldname.substr(fieldname.rfind("_") + 1);
         bool default_sensor = (sensor_number == "default");
-        for (auto item : parameterNameMap)
+        for (const auto &item : parameterNameMap)
         {
           if (boost::algorithm::starts_with(item.first, masterParamName + "_sensornumber_"))
           {
@@ -956,7 +950,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
         std::string sensor_number = fieldname.substr(fieldname.rfind("_") + 1);
         bool default_sensor = (sensor_number == "default");
 
-        for (auto pn : parameterNameMap)
+        for (const auto &pn : parameterNameMap)
         {
           const auto &nameInDatabase = Fmi::ascii_tolower_copy(pn.second);
 
@@ -1633,7 +1627,7 @@ std::string CommonDatabaseFunctions::getWeatherDataQCParams(
     const std::set<std::string> &param_set) const
 {
   std::string params;
-  for (auto pname : param_set)
+  for (const auto &pname : param_set)
     params += ("'" + pname + "',");
   params = trimCommasFromEnd(params);
   return params;

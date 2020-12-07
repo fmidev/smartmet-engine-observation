@@ -16,7 +16,7 @@ class QueryParamsBase
 {
  public:
   explicit QueryParamsBase() : m_usingTimeRange(false) {}
-  virtual ~QueryParamsBase() {}
+  virtual ~QueryParamsBase();
   /**
    *  \brief Get formatted time string.
    *

@@ -134,10 +134,10 @@ void PostgreSQLDatabaseDriverForFmiData::makeQuery(QueryBase *qb)
       throw exception;
     }
 
-    std::shared_ptr<QueryResultBase> result = qb->getQueryResultContainer();
+    boost::shared_ptr<QueryResultBase> result = qb->getQueryResultContainer();
 
     // Try cache first
-    boost::optional<std::shared_ptr<QueryResultBase>> cacheResult =
+    boost::optional<boost::shared_ptr<QueryResultBase>> cacheResult =
         itsParameters.params->queryResultBaseCache.find(sqlStatement);
     if (cacheResult)
     {
@@ -251,9 +251,9 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
 
     if (tablename == OBSERVATION_DATA_TABLE)
       return db->getObservationData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
-    else if (tablename == WEATHER_DATA_QC_TABLE)
+    if (tablename == WEATHER_DATA_QC_TABLE)
       return db->getWeatherDataQCData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
-    else if (tablename == FLASH_DATA_TABLE)
+    if (tablename == FLASH_DATA_TABLE)
       return db->getFlashData(settings, itsTimeZones);
 
     return ret;
@@ -386,12 +386,9 @@ FlashCounts PostgreSQLDatabaseDriverForFmiData::getFlashCount(
     {
       return cache->getFlashCount(starttime, endtime, locations);
     }
-    else
-    {
-      boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
 
-      return db->getFlashCount(starttime, endtime, locations);
-    }
+    boost::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+    return db->getFlashCount(starttime, endtime, locations);
   }
   catch (...)
   {

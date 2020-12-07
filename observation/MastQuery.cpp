@@ -11,7 +11,7 @@ namespace Observation
 {
 MastQuery::MastQuery() : m_selectSize(0) {}
 
-MastQuery::~MastQuery() {}
+MastQuery::~MastQuery() = default;
 
 std::string MastQuery::getSQLStatement(const std::string &database /*= "oracle"*/) const
 {
@@ -41,11 +41,11 @@ std::string MastQuery::getSQLStatement(const std::string &database /*= "oracle"*
   }
 }
 
-std::shared_ptr<QueryResult> MastQuery::getQueryResultContainer()
+boost::shared_ptr<QueryResult> MastQuery::getQueryResultContainer()
 {
   try
   {
-    if (not m_queryResult)
+    if (!m_queryResult)
     {
       if (m_selectSize > 0)
         m_queryResult.reset(new QueryResult(m_selectSize));
@@ -76,7 +76,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
 
     // SELECT part of a SQL statement
     typedef MastQueryParams::FieldMapType FieldMapType;
-    const std::shared_ptr<FieldMapType> fv = qParams->getFieldMap();
+    const boost::shared_ptr<FieldMapType> fv = qParams->getFieldMap();
     m_selectSize = fv->size();
     for (FieldMapType::const_iterator it = fv->begin(); it != fv->end(); ++it)
     {
@@ -86,18 +86,17 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
       // "column_name"
       m_select.append(" ").append(it->second).append(".").append(it->first);
       typedef MastQueryParams::FieldAliasMapType FieldAliasMapType;
-      const std::shared_ptr<FieldAliasMapType> fam = qParams->getFieldAliasMap();
+      const boost::shared_ptr<FieldAliasMapType> fam = qParams->getFieldAliasMap();
       FieldAliasMapType::const_iterator famIt = fam->find(it->first);
       if (famIt != fam->end() and not famIt->second.empty())
         m_select.append(" as ").append(famIt->second);
     }
 
     // WHERE part of the SQL statement
-    typedef MastQueryParams::OperationMapType OperationMapType;
-    typedef MastQueryParams::OperationMapGroupType OperationMapGroupType;
+    using OperationMapType = MastQueryParams::OperationMapType;
 
-    const std::shared_ptr<OperationMapType> om = qParams->getOperationMap();
-    for (OperationMapType::const_iterator omIt = om->begin(); omIt != om->end(); ++omIt)
+    const boost::shared_ptr<OperationMapType> om = qParams->getOperationMap();
+    for (auto omIt = om->begin(); omIt != om->end(); ++omIt)
     {
       if (omIt->second.size() == 0)
         continue;
@@ -111,9 +110,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
       m_where.append("(");
       m_wherePostgreSQL.append("(");
 
-      for (OperationMapGroupType::const_iterator it = omIt->second.begin();
-           it != omIt->second.end();
-           ++it)
+      for (auto it = omIt->second.begin(); it != omIt->second.end(); ++it)
       {
         if (it != omIt->second.begin())
         {
@@ -136,7 +133,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
 
     // FROM part of the SQL statement
     typedef MastQueryParams::JoinOnListTupleVectorType JoinOnListTupleVectorType;
-    const std::shared_ptr<JoinOnListTupleVectorType> joinOnListTupleVector =
+    const boost::shared_ptr<JoinOnListTupleVectorType> joinOnListTupleVector =
         qParams->getJoinOnListTupleVector();
     m_from.append(" ").append(qParams->getTableName()).append(" ").append(qParams->getTableName());
 
@@ -171,7 +168,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
 
     // ORDER BY part of the SQL statement
     typedef MastQueryParams::OrderByVectorType OrderByVectorType;
-    const std::shared_ptr<OrderByVectorType> orderVector = qParams->getOrderByVector();
+    const boost::shared_ptr<OrderByVectorType> orderVector = qParams->getOrderByVector();
     for (OrderByVectorType::const_iterator it = orderVector->begin(); it != orderVector->end();
          ++it)
     {

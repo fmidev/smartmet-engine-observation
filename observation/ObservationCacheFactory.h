@@ -10,14 +10,11 @@ namespace Engine
 {
 namespace Observation
 {
-class ObservationCache;
-
-class ObservationCacheFactory
+namespace ObservationCacheFactory
 {
- public:
-  static ObservationCacheProxy* create(const EngineParametersPtr& p, Spine::ConfigBase& cfg);
-};
-
+boost::shared_ptr<ObservationCacheProxy> create(const EngineParametersPtr& p,
+                                              const Spine::ConfigBase& cfg);
+}  // namespace ObservationCacheFactory
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

@@ -1,11 +1,9 @@
 #include "SpatiaLite.h"
-
 #include "ExternalAndMobileDBInfo.h"
 #include "Keywords.h"
 #include "ObservationsMap.h"
 #include "QueryMapping.h"
 #include "SpatiaLiteCacheParameters.h"
-
 #include <fmt/format.h>
 #include <gdal/ogr_geometry.h>
 #include <macgyver/Exception.h>
@@ -17,7 +15,6 @@
 #include <spine/TimeSeriesGenerator.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
 #include <spine/TimeSeriesOutput.h>
-
 #include <chrono>
 #include <iostream>
 
@@ -29,7 +26,6 @@
 #pragma clang diagnostic ignored "-Wc++98-compat-pedantic"
 #endif
 
-namespace BO = SmartMet::Engine::Observation;
 namespace ts = SmartMet::Spine::TimeSeries;
 
 using namespace std;
@@ -79,7 +75,10 @@ namespace SmartMet
 // Mutex for write operations - otherwise you get table locked errors
 // in MULTITHREAD-mode.
 
+namespace
+{
 Spine::MutexType write_mutex;
+}
 
 namespace Engine
 {
@@ -267,7 +266,7 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
   }
 }
 
-SpatiaLite::~SpatiaLite() {}
+SpatiaLite::~SpatiaLite() = default;
 
 void SpatiaLite::createTables(const std::set<std::string> &tables)
 {
@@ -1334,12 +1333,12 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getMobileAndExterna
 		 }
 
 	   unsigned int index = 0;
-	   for(auto paramname : queryfields)
-		 {			 
-		   ts::Value val = result[paramname];
-		   ret->at(index).push_back(ts::TimedValue(timestep, val));
-		   index++;
-		 }
+	   for(const auto& paramname : queryfields)
+           {			 
+             ts::Value val = result[paramname];
+             ret->at(index).push_back(ts::TimedValue(timestep, val));
+             index++;
+           }
 	 }
 
     return ret;
@@ -2224,7 +2223,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFlashData(
 
     if (!settings.taggedLocations.empty())
     {
-      for (auto tloc : settings.taggedLocations)
+      for (const auto& tloc : settings.taggedLocations)
       {
         if (tloc.loc->type == Spine::Location::CoordinatePoint)
         {
@@ -2256,7 +2255,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFlashData(
     Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
         initializeResultVector(settings.parameters);
 
-    int stroke_time;
+    int stroke_time = 0;
     double longitude = std::numeric_limits<double>::max();
     double latitude = std::numeric_limits<double>::max();
 
@@ -2430,7 +2429,7 @@ FlashCounts SpatiaLite::getFlashCount(const ptime &starttime,
 
     if (!locations.empty())
     {
-      for (auto tloc : locations)
+      for (const auto& tloc : locations)
       {
         if (tloc.loc->type == Spine::Location::CoordinatePoint)
         {
@@ -2722,13 +2721,13 @@ std::string SpatiaLite::getWeatherDataQCParams(const std::set<std::string>& para
 {
   // In sqlite cache parameters are stored as integer
   std::string params;
-  for (auto pname : param_set)
-	{
-	  int int_parameter = itsParameterMap->getRoadAndForeignIds().stringToInteger(pname);
-	  if(!params.empty())
-		params += ",";
-	  params += Fmi::to_string(int_parameter);
-	}
+  for (const auto& pname : param_set)
+  {
+    int int_parameter = itsParameterMap->getRoadAndForeignIds().stringToInteger(pname);
+    if(!params.empty())
+      params += ",";
+    params += Fmi::to_string(int_parameter);
+  }
   return params;
 }
 

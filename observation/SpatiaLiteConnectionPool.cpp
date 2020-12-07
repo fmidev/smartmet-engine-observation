@@ -132,7 +132,7 @@ void SpatiaLiteConnectionPool::shutdown()
     std::cout << "  -- Shutdown requested (SpatiaLiteConnectionPool)\n";
     for (unsigned int i = 0; i < itsWorkerList.size(); i++)
     {
-      auto sl = itsWorkerList[i].get();
+      auto* sl = itsWorkerList[i].get();
       if (sl != nullptr)
         sl->shutdown();
     }

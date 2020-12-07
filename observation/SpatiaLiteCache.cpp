@@ -40,7 +40,7 @@ void SpatiaLiteCache::initializeConnectionPool()
     logMessage("[Observation Engine] Initializing SpatiaLite cache connection pool...",
                itsParameters.quiet);
 
-    itsConnectionPool = new SpatiaLiteConnectionPool(itsParameters);
+    itsConnectionPool.reset(new SpatiaLiteConnectionPool(itsParameters));
 
     // Ensure that necessary tables exists:
     // 1) stations
@@ -900,7 +900,7 @@ void SpatiaLiteCache::shutdown()
 
 SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
                                  const EngineParametersPtr &p,
-                                 Spine::ConfigBase &cfg)
+                                 const Spine::ConfigBase &cfg)
     : ObservationCache(p->databaseDriverInfo.getAggregateCacheInfo(name)), itsParameters(p)
 {
   try
@@ -913,7 +913,7 @@ SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
 
     // Switch from serialized to multithreaded access
 
-    int err;
+    int err = 0;
 
     if (itsParameters.sqlite.threading_mode == "MULTITHREAD")
       err = sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
@@ -941,7 +941,7 @@ SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
   }
 }
 
-void SpatiaLiteCache::readConfig(Spine::ConfigBase &cfg)
+void SpatiaLiteCache::readConfig(const Spine::ConfigBase &cfg)
 {
   try
   {

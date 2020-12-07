@@ -22,7 +22,9 @@ namespace Observation
 class SpatiaLiteCache : public ObservationCache
 {
  public:
-  SpatiaLiteCache(const std::string &name, const EngineParametersPtr &p, Spine::ConfigBase &cfg);
+  SpatiaLiteCache(const std::string &name,
+                  const EngineParametersPtr &p,
+                  const Spine::ConfigBase &cfg);
   ~SpatiaLiteCache();
 
   void initializeConnectionPool();
@@ -94,9 +96,9 @@ class SpatiaLiteCache : public ObservationCache
   bool timeIntervalWeatherDataQCIsCached(const boost::posix_time::ptime &starttime,
                                          const boost::posix_time::ptime &endtime) const;
   Spine::TimeSeries::TimeSeriesVectorPtr flashValuesFromSpatiaLite(Settings &settings) const;
-  void readConfig(Spine::ConfigBase &cfg);
+  void readConfig(const Spine::ConfigBase &cfg);
 
-  SpatiaLiteConnectionPool *itsConnectionPool = nullptr;
+  std::unique_ptr<SpatiaLiteConnectionPool> itsConnectionPool;
   Fmi::TimeZones itsTimeZones;
 
   SpatiaLiteCacheParameters itsParameters;

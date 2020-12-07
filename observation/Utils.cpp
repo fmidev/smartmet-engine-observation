@@ -91,8 +91,7 @@ std::string translateParameter(const std::string& paramname,
     std::string ret = parameterMap.getParameter(p, stationType);
     if (!ret.empty())
       return ret;
-    else
-      return p;
+    return p;
   }
   catch (...)
   {
@@ -105,7 +104,6 @@ void calculateStationDirection(Spine::Station& station)
 {
   try
   {
-    double direction;
     double lon1 = deg2rad(station.requestedLon);
     double lat1 = deg2rad(station.requestedLat);
     double lon2 = deg2rad(station.longitude_out);
@@ -113,13 +111,11 @@ void calculateStationDirection(Spine::Station& station)
 
     double dlon = lon2 - lon1;
 
-    direction = rad2deg(
+    double direction = rad2deg(
         atan2(sin(dlon) * cos(lat2), cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dlon)));
 
     if (direction < 0)
-    {
       direction += 360.0;
-    }
 
     station.stationDirection = std::round(10.0 * direction) / 10.0;
   }
@@ -145,7 +141,7 @@ std::string windCompass8(double direction, const std::string& missingValue)
 {
   if (direction < 0)
     return missingValue;
-  static const std::string names[] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
+  std::array<std::string, 8> names{"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
 
   int i = static_cast<int>((direction + 22.5) / 45) % 8;
   return names[i];
@@ -155,22 +151,22 @@ std::string windCompass16(double direction, const std::string& missingValue)
 {
   if (direction < 0)
     return missingValue;
-  static const std::string names[] = {"N",
-                                      "NNE",
-                                      "NE",
-                                      "ENE",
-                                      "E",
-                                      "ESE",
-                                      "SE",
-                                      "SSE",
-                                      "S",
-                                      "SSW",
-                                      "SW",
-                                      "WSW",
-                                      "W",
-                                      "WNW",
-                                      "NW",
-                                      "NNW"};
+  std::array<std::string, 16> names{"N",
+                                    "NNE",
+                                    "NE",
+                                    "ENE",
+                                    "E",
+                                    "ESE",
+                                    "SE",
+                                    "SSE",
+                                    "S",
+                                    "SSW",
+                                    "SW",
+                                    "WSW",
+                                    "W",
+                                    "WNW",
+                                    "NW",
+                                    "NNW"};
 
   int i = static_cast<int>((direction + 11.25) / 22.5) % 16;
   return names[i];
@@ -180,10 +176,10 @@ std::string windCompass32(double direction, const std::string& missingValue)
 {
   if (direction < 0)
     return missingValue;
-  static const std::string names[] = {"N", "NbE", "NNE", "NEbN", "NE", "NEbE", "ENE", "EbN",
-                                      "E", "EbS", "ESE", "SEbE", "SE", "SEbS", "SSE", "SbE",
-                                      "S", "SbW", "SSW", "SWbS", "SW", "SWbW", "WSW", "WbS",
-                                      "W", "WbN", "WNW", "NWbW", "NW", "NWbN", "NNW", "NbW"};
+  std::array<std::string, 32> names{"N", "NbE", "NNE", "NEbN", "NE", "NEbE", "ENE", "EbN",
+                                    "E", "EbS", "ESE", "SEbE", "SE", "SEbS", "SSE", "SbE",
+                                    "S", "SbW", "SSW", "SWbS", "SW", "SWbW", "WSW", "WbS",
+                                    "W", "WbN", "WNW", "NWbW", "NW", "NWbN", "NNW", "NbW"};
 
   int i = static_cast<int>((direction + 5.625) / 11.25) % 32;
   return names[i];
@@ -228,11 +224,10 @@ int parseSensorNumber(const std::string& parameter)
 {
   try
   {
-    size_t startpos, endpos;
     int defaultSensorNumber = 1;
     std::string sensorNumber;
-    startpos = parameter.find_last_of("_");
-    endpos = parameter.length();
+    std::size_t startpos = parameter.find_last_of("_");
+    std::size_t endpos = parameter.length();
     int length = boost::numeric_cast<int>(endpos - startpos - 1);
 
     // If sensor number is given, for example KELI_1, return requested number
@@ -308,27 +303,6 @@ boost::posix_time::ptime day_end(const boost::posix_time::ptime& t)
   return tmp;
 }
 
-std::string timeToString(const boost::posix_time::ptime& time)
-{
-  try
-  {
-    char timestamp[100];
-    sprintf(timestamp,
-            "%d%02d%02d%02d%02d",
-            static_cast<unsigned int>(time.date().year()),
-            static_cast<unsigned int>(time.date().month()),
-            static_cast<unsigned int>(time.date().day()),
-            static_cast<unsigned int>(time.time_of_day().hours()),
-            static_cast<unsigned int>(time.time_of_day().minutes()));
-
-    return timestamp;
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Operation failed!");
-  }
-}
-
 void logMessage(const std::string& message, bool quiet)
 {
   try
@@ -351,8 +325,8 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
 {
   boost::optional<int> smartsymbol = {};
 
-  const int wawa_group1[] = {0, 4, 5, 10, 20, 21, 22, 23, 24, 25};
-  const int wawa_group2[] = {30, 31, 32, 33, 34};
+  const std::array<int, 10> wawa_group1{0, 4, 5, 10, 20, 21, 22, 23, 24, 25};
+  const std::array<int, 5> wawa_group2{30, 31, 32, 33, 34};
 
   const int cloudiness_limit1 = 0;
   const int cloudiness_limit2 = 1;

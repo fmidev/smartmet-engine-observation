@@ -8,6 +8,8 @@ namespace Engine
 {
 namespace Observation
 {
+QueryObservablePropertyPostgreSQL::~QueryObservablePropertyPostgreSQL() = default;
+
 boost::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostgreSQL::executeQuery(
     PostgreSQLObsDB &db,
     const std::string &stationType,
@@ -85,8 +87,7 @@ boost::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostg
 
       // Multiple parameter name aliases may use a same measurand id (e.g. t2m
       // and temperature)
-      std::pair<ParameterIdMapType::iterator, ParameterIdMapType::iterator> r =
-          parameterIDs.equal_range(measurandId);
+      auto r = parameterIDs.equal_range(measurandId);
       for (ParameterIdMapType::iterator it = r.first; it != r.second; ++it)
       {
         ObservableProperty property;

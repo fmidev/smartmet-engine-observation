@@ -52,7 +52,7 @@ QueryResult::QueryResult(const QueryResult& other)
   }
 }
 
-QueryResult::~QueryResult() {}
+QueryResult::~QueryResult() = default;
 
 QueryResult::ValueVectorType::const_iterator QueryResult::begin(const std::string& valueVectorName)
 {
@@ -99,51 +99,38 @@ std::string QueryResult::toString(const ValueVectorType::const_iterator value,
   try
   {
     if (value->type() == typeid(int32_t))
-    {
       return Fmi::to_string(boost::any_cast<int32_t>(*value));
-    }
-    else if (value->type() == typeid(uint32_t))
-    {
+
+    if (value->type() == typeid(uint32_t))
       return Fmi::to_string(boost::any_cast<uint32_t>(*value));
-    }
-    else if (value->type() == typeid(int64_t))
-    {
+
+    if (value->type() == typeid(int64_t))
       return Fmi::to_string(boost::any_cast<int64_t>(*value));
-    }
-    else if (value->type() == typeid(uint64_t))
-    {
+
+    if (value->type() == typeid(uint64_t))
       return Fmi::to_string(boost::any_cast<uint64_t>(*value));
-    }
-    else if (value->type() == typeid(int16_t))
-    {
+
+    if (value->type() == typeid(int16_t))
       return Fmi::to_string(boost::any_cast<int16_t>(*value));
-    }
-    else if (value->type() == typeid(uint16_t))
-    {
+
+    if (value->type() == typeid(uint16_t))
       return Fmi::to_string(static_cast<unsigned long>(boost::any_cast<uint16_t>(*value)));
-    }
-    else if (value->type() == typeid(float))
-    {
+
+    if (value->type() == typeid(float))
       return fmt::format("{:.{}f}", boost::any_cast<float>(*value), precision);
-    }
-    else if (value->type() == typeid(double))
-    {
+
+    if (value->type() == typeid(double))
       return fmt::format("{:.{}f}", boost::any_cast<double>(*value), precision);
-    }
-    else if (value->type() == typeid(std::string))
-    {
+
+    if (value->type() == typeid(std::string))
       return boost::any_cast<std::string>(*value);
-    }
-    else if (value->type() == typeid(boost::posix_time::ptime))
-    {
+
+    if (value->type() == typeid(boost::posix_time::ptime))
       return Fmi::to_iso_extended_string(boost::any_cast<boost::posix_time::ptime>(*value)) + "Z";
-    }
-    else
-    {
-      throw Fmi::Exception(BCP, "Operation processing failed!")
-          .addDetail(fmt::format("warning: QueryResult::toString : Unsupported data type '{}'",
-                                 value->type().name()));
-    }
+
+    throw Fmi::Exception(BCP, "Operation processing failed!")
+        .addDetail(fmt::format("warning: QueryResult::toString : Unsupported data type '{}'",
+                               value->type().name()));
   }
   catch (...)
   {
@@ -167,7 +154,7 @@ std::pair<double, double> QueryResult::minMax(const ValueVectorType::const_itera
     {
       for (; it != endIt; ++it)
       {
-        float val = boost::any_cast<float>(*it);
+        auto val = boost::any_cast<float>(*it);
         if (val < min)
           min = static_cast<double>(val);
         if (val > max)
@@ -178,7 +165,7 @@ std::pair<double, double> QueryResult::minMax(const ValueVectorType::const_itera
     {
       for (; it != endIt; ++it)
       {
-        double val = boost::any_cast<double>(*it);
+        auto val = boost::any_cast<double>(*it);
         if (val < min)
           min = val;
         if (val > max)
@@ -205,9 +192,9 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId, ValueVectorTyp
     outValueVector.resize(m_valueContainer.at(valueVectorId).size());
 
     // Take a copy.
-    ValueVectorType::iterator first = m_valueContainer.at(valueVectorId).begin();
-    ValueVectorType::iterator last = m_valueContainer.at(valueVectorId).end();
-    ValueVectorType::iterator oFirst = outValueVector.begin();
+    auto first = m_valueContainer.at(valueVectorId).begin();
+    auto last = m_valueContainer.at(valueVectorId).end();
+    auto oFirst = outValueVector.begin();
 
     while (first != last)
     {
@@ -260,9 +247,9 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
     outValueVector.resize(m_valueContainer.at(valueVectorId).size());
 
     // Take a copy.
-    ValueVectorType::iterator first = m_valueContainer.at(valueVectorId).begin();
-    ValueVectorType::iterator last = m_valueContainer.at(valueVectorId).end();
-    std::vector<std::string>::iterator oFirst = outValueVector.begin();
+    auto first = m_valueContainer.at(valueVectorId).begin();
+    auto last = m_valueContainer.at(valueVectorId).end();
+    auto oFirst = outValueVector.begin();
 
     try
     {
@@ -380,7 +367,7 @@ std::string QueryResult::getValueVectorName(const size_t& valueVectorId)
   }
 }
 
-bool QueryResult::set(const std::shared_ptr<QueryResultBase> input)
+bool QueryResult::set(const boost::shared_ptr<QueryResultBase> input)
 {
   try
   {
@@ -389,7 +376,7 @@ bool QueryResult::set(const std::shared_ptr<QueryResultBase> input)
     try
     {
       // Must be a QueryResult object
-      const std::shared_ptr<QueryResult> other = std::dynamic_pointer_cast<QueryResult>(input);
+      const boost::shared_ptr<QueryResult> other = boost::dynamic_pointer_cast<QueryResult>(input);
       if (not other)
       {
         std::cerr << "QueryResult::set : dynamic cast failed\n";

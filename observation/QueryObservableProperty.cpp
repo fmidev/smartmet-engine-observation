@@ -8,6 +8,8 @@ namespace Engine
 {
 namespace Observation
 {
+QueryObservableProperty::~QueryObservableProperty() = default;
+
 void QueryObservableProperty::solveMeasurandIds(
     const QueryObservableProperty::ParameterVectorType &parameters,
     const ParameterMapPtr &parameterMap,
@@ -33,18 +35,16 @@ void QueryObservableProperty::solveMeasurandIds(
         continue;
       }
 
-      int id;
       try
       {
-        id = std::stoi(gid->second);
+        int id = std::stoi(gid->second);
+        parameterIDs.emplace(id, params->first);
       }
       catch (std::exception &)
       {
         // gid is either too large or not convertible (ie. something is wrong)
         continue;
       }
-
-      parameterIDs.emplace(id, params->first);
     }
   }
   catch (...)

@@ -32,7 +32,7 @@ struct EngineParameters
   // Cache size settings
 
   std::size_t queryResultBaseCacheSize = 100;
-  std::size_t spatiaLitePoolSize;
+  std::size_t spatiaLitePoolSize = 0;
 
   std::string serializedStationsFile;
   std::string dbRegistryFolderPath;
@@ -53,7 +53,7 @@ struct EngineParameters
   // StationInfo data, other classes should just point to this one instead of copying
   // the shared pointer.
   mutable boost::shared_ptr<StationInfo> stationInfo;
-  Fmi::Cache::Cache<std::string, std::shared_ptr<QueryResultBase>> queryResultBaseCache;
+  Fmi::Cache::Cache<std::string, boost::shared_ptr<QueryResultBase>> queryResultBaseCache;
 
   bool quiet;
 

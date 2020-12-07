@@ -13,7 +13,7 @@ VerifiableMessageQuery::VerifiableMessageQuery()
   m_returnOnlyLatest = false;
 }
 
-VerifiableMessageQuery::~VerifiableMessageQuery() {}
+VerifiableMessageQuery::~VerifiableMessageQuery() = default;
 
 std::string VerifiableMessageQuery::getSQLStatement(
     const std::string &database /*= "oracle"*/) const
@@ -49,9 +49,7 @@ std::string VerifiableMessageQuery::getSQLStatement(
       // Make union from all the select statements. Each of the statements are
       // identical but the
       // station_id differs.
-      for (std::vector<std::string>::const_iterator it = m_stationIDs.begin();
-           it != m_stationIDs.end();
-           ++it)
+      for (auto it = m_stationIDs.begin(); it != m_stationIDs.end(); ++it)
       {
         queryStatement.append(" (SELECT * FROM (")
             .append(" SELECT ")
@@ -87,7 +85,7 @@ std::string VerifiableMessageQuery::getSQLStatement(
   }
 }
 
-std::shared_ptr<QueryResult> VerifiableMessageQuery::getQueryResultContainer()
+boost::shared_ptr<QueryResult> VerifiableMessageQuery::getQueryResultContainer()
 {
   try
   {
@@ -120,25 +118,22 @@ void VerifiableMessageQuery::setQueryParams(const VerifiableMessageQueryParams *
     m_returnOnlyLatest =
         qParams->isRestriction(VerifiableMessageQueryParams::Restriction::RETURN_ONLY_LATEST);
 
-    const VerifiableMessageQueryParams::SelectNameListType *selectNames =
-        qParams->getSelectNameList();
+    const auto *selectNames = qParams->getSelectNameList();
     if (selectNames->empty())
       throw Fmi::Exception(BCP, "Invalid SQL statement: Empty select name list");
 
-    for (VerifiableMessageQueryParams::SelectNameListType::const_iterator it = selectNames->begin();
-         it != selectNames->end();
-         ++it)
+    for (const auto &name : *selectNames)
     {
-      std::string sname = "data." + (*it);
-      std::string fieldMethod = qParams->getSelectNameMethod(*it);
+      std::string sname = "data." + name;
+      std::string fieldMethod = qParams->getSelectNameMethod(name);
       if (not fieldMethod.empty())
         sname.append(".").append(fieldMethod);
-      sname.append(" as ").append(*it);
+      sname.append(" as ").append(name);
       m_select.push_back(sname);
 
-      if ((*it) == "MESSAGE_TIME" or m_returnOnlyLatest)
+      if (name == "MESSAGE_TIME" || m_returnOnlyLatest)
         orderByMessageTime = true;
-      if ((*it) == "STATION_ID")
+      if (name == "STATION_ID")
         orderByStationId = true;
     }
 

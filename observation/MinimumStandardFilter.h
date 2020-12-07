@@ -31,7 +31,7 @@ class MinimumStandardFilter : public FEConformanceClassBase
    */
   explicit MinimumStandardFilter();
 
-  virtual std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
+  virtual boost::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
       const NameType& field, const NameType& operationName, const boost::any& toWhat);
 
  private:

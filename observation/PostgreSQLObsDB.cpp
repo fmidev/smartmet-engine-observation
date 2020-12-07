@@ -6,8 +6,6 @@
 #include <macgyver/Exception.h>
 // #define MYDEBUG 1
 
-namespace ts = SmartMet::Spine::TimeSeries;
-
 using namespace std;
 using namespace boost::gregorian;
 using namespace boost::posix_time;
@@ -28,7 +26,7 @@ PostgreSQLObsDB::PostgreSQLObsDB(
 }
 
 void PostgreSQLObsDB::get(const std::string &sqlStatement,
-                          std::shared_ptr<QueryResultBase> qrb,
+                          boost::shared_ptr<QueryResultBase> qrb,
                           const Fmi::TimeZones &timezones)
 {
   try

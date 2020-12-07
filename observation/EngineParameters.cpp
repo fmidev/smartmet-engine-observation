@@ -16,8 +16,7 @@ ParameterMapPtr createParameterMapping(Spine::ConfigBase &cfg)
   try
   {
     ParameterMapPtr ret;
-    ParameterMap *pm = new ParameterMap();
-    namespace ba = boost::algorithm;
+    auto *pm = new ParameterMap();
 
     try
     {
@@ -109,7 +108,7 @@ void EngineParameters::readDataQualityConfig(Spine::ConfigBase &cfg)
   try
   {
     // Default filter
-    std::string default_filter =
+    auto default_filter =
         cfg.get_optional_config_param<std::string>("data_quality_filter.default", "le 5");
 
     std::vector<std::string> stationtypes =
@@ -137,7 +136,7 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
     // Oracle stationtypes
     std::vector<std::string> stationtypes =
         cfg.get_mandatory_config_array<std::string>("stationtypes");
-    libconfig::Setting &stationtypelistGroup =
+    auto &stationtypelistGroup =
         cfg.get_mandatory_config_param<libconfig::Setting &>("oracle_stationtypelist");
     cfg.assert_is_group(stationtypelistGroup);
 
@@ -151,7 +150,7 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
       {
         stationTypeMap[type] = cfg.get_mandatory_config_param<std::string>(stationtype_param);
 
-        libconfig::Setting &stationtypeGroup =
+        auto &stationtypeGroup =
             cfg.get_mandatory_config_param<libconfig::Setting &>("oracle_stationtypelist." + type);
         cfg.assert_is_group(stationtypeGroup);
 
@@ -256,16 +255,14 @@ bool EngineParameters::isParameter(const std::string &alias, const std::string &
       return true;
 
     // Is the alias configured.
-    ParameterMap::NameToStationParameterMap::const_iterator namePtr =
-        parameterMap->find(parameterAliasName);
+    const auto namePtr = parameterMap->find(parameterAliasName);
 
     if (namePtr == parameterMap->end())
       return false;
 
     // Is the stationType configured inside configuration block of the alias.
     std::string stationTypeLowerCase = Fmi::ascii_tolower_copy(stationType);
-    std::map<std::string, std::string>::const_iterator stationTypeMapPtr =
-        namePtr->second.find(stationTypeLowerCase);
+    const auto stationTypeMapPtr = namePtr->second.find(stationTypeLowerCase);
 
     if (stationTypeMapPtr == namePtr->second.end())
       return false;
@@ -289,8 +286,7 @@ bool EngineParameters::isParameterVariant(const std::string &name) const
       return true;
 
     // Is the alias configured.
-    std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
-        parameterMap->find(parameterLowerCase);
+    const auto namePtr = parameterMap->find(parameterLowerCase);
 
     if (namePtr == parameterMap->end())
       return false;
@@ -312,8 +308,7 @@ std::string EngineParameters::getParameterIdAsString(const std::string &alias,
     Engine::Observation::removePrefix(parameterAliasName, "qc_");
 
     // Is the alias configured.
-    std::map<std::string, std::map<std::string, std::string> >::const_iterator namePtr =
-        parameterMap->find(parameterAliasName);
+    const auto namePtr = parameterMap->find(parameterAliasName);
 
     if (namePtr == parameterMap->end())
       return "";

@@ -40,7 +40,7 @@ class QueryResultBase
 #endif
   explicit QueryResultBase(const size_t& numberOfValueVectors) {}
   explicit QueryResultBase(const QueryResultBase& other) {}
-  virtual ~QueryResultBase() {}
+  virtual ~QueryResultBase();
 #ifdef __llvm__
 #pragma clang diagnostic pop
 #endif
@@ -66,7 +66,7 @@ class QueryResultBase
    */
   virtual std::string getValueVectorName(const size_t& valueVectorId) = 0;
 
-  virtual bool set(const std::shared_ptr<QueryResultBase> result) = 0;
+  virtual bool set(const boost::shared_ptr<QueryResultBase> result) = 0;
 
   /**
    *  @brief Set a value in a value vector.

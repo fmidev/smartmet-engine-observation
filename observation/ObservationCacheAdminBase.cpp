@@ -11,7 +11,7 @@ namespace Observation
 {
 ObservationCacheAdminBase::ObservationCacheAdminBase(const DatabaseDriverParameters& parameters,
                                                      Engine::Geonames::Engine* geonames,
-                                                     boost::atomic<bool>& conn_ok,
+                                                     std::atomic<bool>& conn_ok,
                                                      bool timer)
     : itsParameters(parameters),
       itsCacheProxy(parameters.params->observationCacheProxy),
@@ -19,9 +19,9 @@ ObservationCacheAdminBase::ObservationCacheAdminBase(const DatabaseDriverParamet
       itsShutdownRequested(false),
       itsConnectionsOK(conn_ok),
       itsTimer(timer),
-      background_tasks(new Fmi::AsyncTaskGroup)
+      itsBackgroundTasks(new Fmi::AsyncTaskGroup)
 {
-  background_tasks->on_task_error([this](const std::string& task_name) {
+  itsBackgroundTasks->on_task_error([](const std::string& task_name) {
     auto err = Fmi::Exception::Trace(BCP, "Operation failed");
     err.addParameter("Task", task_name);
     throw err;
@@ -37,7 +37,7 @@ ObservationCacheAdminBase::~ObservationCacheAdminBase()
 void ObservationCacheAdminBase::shutdown()
 {
   itsShutdownRequested = true;
-  background_tasks->stop();
+  itsBackgroundTasks->stop();
   itsCacheProxy->shutdown();
 }
 
@@ -59,7 +59,7 @@ void ObservationCacheAdminBase::init()
         cache_tables[cachename] = "";
 
       const CacheInfoItem& cii = ddi.getCacheInfo(cachename);
-      for (auto t : cii.tables)
+      for (const auto& t : cii.tables)
       {
         tablenames.insert(t);
         if (!cache_tables.at(cachename).empty())
@@ -117,7 +117,7 @@ void ObservationCacheAdminBase::init()
       }
     }
 
-    for (auto cache : cache_set)
+    for (auto* cache : cache_set)
     {
       cache->initializeConnectionPool();
       cache->initializeCaches(itsParameters.finCacheDuration,
@@ -146,7 +146,7 @@ void ObservationCacheAdminBase::init()
         // each other some timeslices.
         if (itsParameters.finCacheUpdateInterval > 0)
         {
-          background_tasks->add("Init observation cache", [this]() { updateObservationCache(); });
+          itsBackgroundTasks->add("Init observation cache", [this]() { updateObservationCache(); });
         }
       }
 
@@ -157,8 +157,8 @@ void ObservationCacheAdminBase::init()
 
         if (itsParameters.extCacheUpdateInterval > 0)
         {
-          background_tasks->add("Init weather data QC cache",
-                                [this]() { updateWeatherDataQCCache(); });
+          itsBackgroundTasks->add("Init weather data QC cache",
+                                  [this]() { updateWeatherDataQCCache(); });
         }
       }
 
@@ -170,7 +170,7 @@ void ObservationCacheAdminBase::init()
 
         if (itsParameters.flashCacheUpdateInterval > 0)
         {
-          background_tasks->add("Init flash cache", [this]() { updateFlashCache(); });
+          itsBackgroundTasks->add("Init flash cache", [this]() { updateFlashCache(); });
         }
       }
       if (netatmoCache)
@@ -180,7 +180,7 @@ void ObservationCacheAdminBase::init()
 
         if (itsParameters.netAtmoCacheUpdateInterval > 0)
         {
-          background_tasks->add("Init Netatmo cache", [this]() { updateNetAtmoCache(); });
+          itsBackgroundTasks->add("Init Netatmo cache", [this]() { updateNetAtmoCache(); });
         }
       }
 
@@ -191,7 +191,7 @@ void ObservationCacheAdminBase::init()
 
         if (itsParameters.roadCloudCacheUpdateInterval > 0)
         {
-          background_tasks->add("Init roadcloud cache", [this]() { updateRoadCloudCache(); });
+          itsBackgroundTasks->add("Init roadcloud cache", [this]() { updateRoadCloudCache(); });
         }
       }
 
@@ -201,7 +201,7 @@ void ObservationCacheAdminBase::init()
 
         if (itsParameters.fmiIoTCacheUpdateInterval > 0)
         {
-          background_tasks->add("Init fmi_iot cache", [this]() { updateFmiIoTCache(); });
+          itsBackgroundTasks->add("Init fmi_iot cache", [this]() { updateFmiIoTCache(); });
         }
       }
 
@@ -210,9 +210,9 @@ void ObservationCacheAdminBase::init()
       {
         std::cout << Spine::log_time_str() << driverName()
                   << " Stations info missing, loading from database! " << std::endl;
-        background_tasks->add("Load station data", [this]() { loadStations(); });
+        itsBackgroundTasks->add("Load station data", [this]() { loadStations(); });
       }
-      background_tasks->wait();
+      itsBackgroundTasks->wait();
     }
 
     startCacheUpdateThreads(tablenames);
@@ -250,44 +250,44 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
     if (tables.find(OBSERVATION_DATA_TABLE) != tables.end() &&
         itsParameters.finCacheUpdateInterval > 0)
     {
-      background_tasks->add("observation cache update loop",
-                            [this]() { updateObservationCacheLoop(); });
+      itsBackgroundTasks->add("observation cache update loop",
+                              [this]() { updateObservationCacheLoop(); });
     }
 
     if (tables.find(WEATHER_DATA_QC_TABLE) != tables.end() &&
         itsParameters.extCacheUpdateInterval > 0)
     {
-      background_tasks->add("weather data QC cache update loop",
-                            [this]() { updateWeatherDataQCCacheLoop(); });
+      itsBackgroundTasks->add("weather data QC cache update loop",
+                              [this]() { updateWeatherDataQCCacheLoop(); });
     }
 
     if (tables.find(FLASH_DATA_TABLE) != tables.end() && itsParameters.flashCacheUpdateInterval > 0)
     {
-      background_tasks->add("flash data cache update loop", [this]() { updateFlashCacheLoop(); });
+      itsBackgroundTasks->add("flash data cache update loop", [this]() { updateFlashCacheLoop(); });
     }
 
     if (tables.find(NETATMO_DATA_TABLE) != tables.end() &&
         itsParameters.netAtmoCacheUpdateInterval > 0)
     {
-      background_tasks->add("netatmo cache update loop", [this]() { updateNetAtmoCacheLoop(); });
+      itsBackgroundTasks->add("netatmo cache update loop", [this]() { updateNetAtmoCacheLoop(); });
     }
 
     if (tables.find(ROADCLOUD_DATA_TABLE) != tables.end() &&
         itsParameters.roadCloudCacheUpdateInterval > 0)
     {
-      background_tasks->add("road cloud cache update loop",
-                            [this]() { updateRoadCloudCacheLoop(); });
+      itsBackgroundTasks->add("road cloud cache update loop",
+                              [this]() { updateRoadCloudCacheLoop(); });
     }
 
     if (tables.find(FMI_IOT_DATA_TABLE) != tables.end() &&
         itsParameters.fmiIoTCacheUpdateInterval > 0)
     {
-      background_tasks->add("fmi_iot cache update loop", [this]() { updateFmiIoTCacheLoop(); });
+      itsBackgroundTasks->add("fmi_iot cache update loop", [this]() { updateFmiIoTCacheLoop(); });
     }
 
     if (itsParameters.loadStations)
     {
-      background_tasks->add("station cache update loop", [this]() { updateStationsCacheLoop(); });
+      itsBackgroundTasks->add("station cache update loop", [this]() { updateStationsCacheLoop(); });
     }
   }
   catch (...)
@@ -1200,7 +1200,7 @@ void ObservationCacheAdminBase::addInfoToStations(SmartMet::Spine::Stations& sta
 
   std::map<int, SmartMet::Spine::LocationPtr> locations;
 
-  for (auto loc : locationList)
+  for (const auto& loc : locationList)
     if (loc->fmisid)
       locations[*loc->fmisid] = loc;
 
@@ -1271,7 +1271,6 @@ void ObservationCacheAdminBase::calculateStationDirection(SmartMet::Spine::Stati
 {
   try
   {
-    double direction;
     double lon1 = deg2rad(station.requestedLon);
     double lat1 = deg2rad(station.requestedLat);
     double lon2 = deg2rad(station.longitude_out);
@@ -1279,13 +1278,11 @@ void ObservationCacheAdminBase::calculateStationDirection(SmartMet::Spine::Stati
 
     double dlon = lon2 - lon1;
 
-    direction = rad2deg(
+    double direction = rad2deg(
         atan2(sin(dlon) * cos(lat2), cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dlon)));
 
     if (direction < 0)
-    {
       direction += 360.0;
-    }
 
     station.stationDirection = std::round(10.0 * direction) / 10.0;
   }

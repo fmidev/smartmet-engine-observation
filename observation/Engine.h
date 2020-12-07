@@ -35,7 +35,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
 
   Geonames::Engine *getGeonames() const;
 
-  const std::shared_ptr<DBRegistry> dbRegistry() const { return itsDatabaseRegistry; }
+  const boost::shared_ptr<DBRegistry> dbRegistry() const { return itsDatabaseRegistry; }
   void reloadStations();
   void getStations(Spine::Stations &stations, Settings &settings);
 
@@ -113,7 +113,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
 
   EngineParametersPtr itsEngineParameters;
 
-  std::shared_ptr<DBRegistry> itsDatabaseRegistry;
+  boost::shared_ptr<DBRegistry> itsDatabaseRegistry;
 
 #ifdef TODO_CAUSES_SEGFAULT_AT_EXIT
   std::unique_ptr<DatabaseDriverInterface> itsDatabaseDriver;

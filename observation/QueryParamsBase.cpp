@@ -9,6 +9,8 @@ namespace Engine
 {
 namespace Observation
 {
+QueryParamsBase::~QueryParamsBase() = default;
+
 std::string QueryParamsBase::getBeginTime(const std::string& format) const
 {
   try

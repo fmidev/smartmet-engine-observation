@@ -11,9 +11,20 @@ namespace Observation
 {
 namespace Property
 {
-Base::Base() {}
-
-Base::~Base() {}
+Base::Base() = default;
+Base::~Base() = default;
+IsEqualTo::~IsEqualTo() = default;
+IsLessThan::~IsLessThan() = default;
+IsNotEqualTo::~IsNotEqualTo() = default;
+IsLessThanOrEqualTo::~IsLessThanOrEqualTo() = default;
+IsGreaterThan::~IsGreaterThan() = default;
+IsGreaterThanOrEqualTo::~IsGreaterThanOrEqualTo() = default;
+IsNull::~IsNull() = default;
+IsNotNull::~IsNotNull() = default;
+IsNil::~IsNil() = default;
+IsLike::~IsLike() = default;
+IsBetween::~IsBetween() = default;
+MinuteValueModuloIsEqualToZero::~MinuteValueModuloIsEqualToZero() = default;
 
 Base::Base(const Base& other)
 {
@@ -57,42 +68,33 @@ Base::NameType Base::toWhatString(const boost::any& value,
   try
   {
     if ((value).type() == typeid(int32_t))
-    {
       return Fmi::to_string(boost::any_cast<int32_t>(value));
-    }
-    else if ((value).type() == typeid(uint32_t))
-    {
+
+    if ((value).type() == typeid(uint32_t))
       return Fmi::to_string(boost::any_cast<uint32_t>(value));
-    }
-    else if ((value).type() == typeid(int64_t))
-    {
+
+    if ((value).type() == typeid(int64_t))
       return Fmi::to_string(boost::any_cast<int64_t>(value));
-    }
-    else if ((value).type() == typeid(uint64_t))
-    {
+
+    if ((value).type() == typeid(uint64_t))
       return Fmi::to_string(boost::any_cast<uint64_t>(value));
-    }
-    else if ((value).type() == typeid(int16_t))
-    {
+
+    if ((value).type() == typeid(int16_t))
       return Fmi::to_string(boost::any_cast<int16_t>(value));
-    }
-    else if ((value).type() == typeid(uint16_t))
-    {
+
+    if ((value).type() == typeid(uint16_t))
       return Fmi::to_string(static_cast<unsigned long>(boost::any_cast<uint16_t>(value)));
-    }
-    else if ((value).type() == typeid(float))
-    {
+
+    if ((value).type() == typeid(float))
       return Fmi::to_string(boost::any_cast<float>(value));
-    }
-    else if ((value).type() == typeid(double))
-    {
+
+    if ((value).type() == typeid(double))
       return Fmi::to_string(boost::any_cast<double>(value));
-    }
-    else if ((value).type() == typeid(std::string))
-    {
+
+    if ((value).type() == typeid(std::string))
       return "'" + boost::any_cast<std::string>(value) + "'";
-    }
-    else if ((value).type() == typeid(boost::posix_time::ptime))
+
+    if ((value).type() == typeid(boost::posix_time::ptime))
     {
       if (database == "oracle")
         return "TO_DATE('" +
@@ -103,12 +105,12 @@ Base::NameType Base::toWhatString(const boost::any& value,
         return boost::posix_time::to_simple_string(
             boost::any_cast<boost::posix_time::ptime>(value));
     }
-    else
-      throw Fmi::Exception(BCP, "Operation processing failed!")
-          .addDetail(fmt::format(
-              "warning: Engine::Observation::Property::Base::toWhatString : Unsupported data type "
-              "'{}'.",
-              (value).type().name()));
+
+    throw Fmi::Exception(BCP, "Operation processing failed!")
+        .addDetail(fmt::format(
+            "warning: Engine::Observation::Property::Base::toWhatString : Unsupported data type "
+            "'{}'.",
+            (value).type().name()));
   }
   catch (...)
   {

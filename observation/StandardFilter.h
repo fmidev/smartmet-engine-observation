@@ -23,16 +23,17 @@ namespace Observation
 class StandardFilter : public MinimumStandardFilter
 {
  public:
-  typedef FEConformanceClassBase::NameType NameType;
-  typedef FEConformanceClassBase::PropertyIsBaseType PropertyIsBaseType;
+  using NameType = FEConformanceClassBase::NameType;
+  using PropertyIsBaseType = FEConformanceClassBase::PropertyIsBaseType;
 
   /**
    * @exception Obs_EngineException::OPERATION_PROCESSING_FAILED StandardFilter initialization
    * failed.
    */
   explicit StandardFilter();
+  ~StandardFilter();
 
-  virtual std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
+  virtual boost::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
       const NameType& field, const NameType& operationName, const boost::any& toWhat);
 
  private:
@@ -52,8 +53,10 @@ class StandardFilter : public MinimumStandardFilter
 class ExtendedStandardFilter : public StandardFilter
 {
  public:
-  typedef FEConformanceClassBase::NameType NameType;
-  typedef FEConformanceClassBase::PropertyIsBaseType PropertyIsBaseType;
+  using NameType = FEConformanceClassBase::NameType;
+  using PropertyIsBaseType = FEConformanceClassBase::PropertyIsBaseType;
+
+  ~ExtendedStandardFilter();
 
   explicit ExtendedStandardFilter() : StandardFilter()
   {
@@ -62,14 +65,14 @@ class ExtendedStandardFilter : public StandardFilter
                                 Property::MinuteValueModuloIsEqualToZero());
   }
 
-  std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(const NameType& field,
-                                                                    const NameType& operationName,
-                                                                    const boost::any& toWhat)
+  boost::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(const NameType& field,
+                                                                      const NameType& operationName,
+                                                                      const boost::any& toWhat)
   {
     try
     {
       OperationMapValueType op = FEConformanceClassBase::get(operationName);
-      return std::shared_ptr<const PropertyIsBaseType>(op(field, toWhat));
+      return boost::shared_ptr<const PropertyIsBaseType>(op(field, toWhat));
     }
     catch (...)
     {

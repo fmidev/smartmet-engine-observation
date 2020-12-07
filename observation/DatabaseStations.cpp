@@ -238,7 +238,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
     getStationsByBoundingBox(
         stations, starttime, endtime, stationtype, stationSettings.bounding_box_settings);
     std::string bboxTag = DatabaseStations::getTag(stationSettings.bounding_box_settings);
-    for (auto s : stations)
+    for (const auto &s : stations)
       result.emplace_back(bboxTag, s.fmisid);
   }
 

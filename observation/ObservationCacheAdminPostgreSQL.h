@@ -16,7 +16,7 @@ class ObservationCacheAdminPostgreSQL : public ObservationCacheAdminBase
   ObservationCacheAdminPostgreSQL(const PostgreSQLDriverParameters& p,
                                   const std::unique_ptr<PostgreSQLObsDBConnectionPool>& pcp,
                                   Geonames::Engine* geonames,
-                                  boost::atomic<bool>& conn_ok,
+                                  std::atomic<bool>& conn_ok,
                                   bool timer);
 
   void readObservationCacheData(std::vector<DataItem>& cacheData,

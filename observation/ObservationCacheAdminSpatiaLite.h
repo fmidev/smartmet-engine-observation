@@ -13,7 +13,7 @@ class ObservationCacheAdminSpatiaLite : public ObservationCacheAdminBase
  public:
   ObservationCacheAdminSpatiaLite(const DatabaseDriverParameters& p,
                                   SmartMet::Engine::Geonames::Engine* geonames,
-                                  boost::atomic<bool>& conn_ok,
+                                  std::atomic<bool>& conn_ok,
                                   bool timer);
   void readObservationCacheData(std::vector<DataItem>& cacheData,
                                 const boost::posix_time::time_period& dataPeriod,

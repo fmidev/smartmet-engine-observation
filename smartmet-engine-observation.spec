@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.11.26
+Version: 20.12.7
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -15,12 +15,12 @@ BuildRequires: gcc-c++
 BuildRequires: make
 BuildRequires: libconfig-devel
 BuildRequires: boost169-devel
-BuildRequires: smartmet-library-spine-devel >= 20.10.28
-BuildRequires: smartmet-engine-geonames-devel >= 20.10.28
+BuildRequires: smartmet-library-spine-devel >= 20.12.4
+BuildRequires: smartmet-engine-geonames-devel >= 20.12.4
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: sqlite-devel >= 3.22.0
-BuildRequires: smartmet-library-locus-devel >= 20.10.7
-BuildRequires: smartmet-library-macgyver-devel >= 20.10.28
+BuildRequires: smartmet-library-locus-devel >= 20.12.3
+BuildRequires: smartmet-library-macgyver-devel >= 20.11.24
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 7.1.0
@@ -29,10 +29,10 @@ BuildRequires: zlib-devel
 Requires: fmt >= 7.1.0
 Requires: libconfig
 Requires: smartmet-server >= 20.10.28
-Requires: smartmet-engine-geonames >= 20.10.28
-Requires: smartmet-library-spine >= 20.10.28
-Requires: smartmet-library-locus >= 20.10.7
-Requires: smartmet-library-macgyver >= 20.10.28
+Requires: smartmet-engine-geonames >= 20.12.4
+Requires: smartmet-library-spine >= 20.12.4
+Requires: smartmet-library-locus >= 20.12.3
+Requires: smartmet-library-macgyver >= 20.11.24
 Requires: libatomic
 Requires: unixODBC
 Requires: libspatialite >= 4.3.0a
@@ -53,7 +53,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 20.10.28
+#TestRequires: smartmet-engine-geonames >= 20.12.4
 #TestRequires: smartmet-test-data
 
 Provides: %{SPECNAME}
@@ -100,6 +100,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Dec  7 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.12.7-1.fmi
+- Minor fixes to silence CodeChecker warnings
+
 * Thu Nov 26 2020 Anssi Reponen <anssi.reponen@fmi.fi> - 20.11.26-1.fmi
 - Stations sorted accodrding to distance (BRAINSTORM-1976)
 - Refactoring: moved special parameter related code from delfoi library to engine

@@ -18,7 +18,7 @@ class QueryObservableProperty : public QueryBase
  public:
   QueryObservableProperty() {}
 
-  virtual ~QueryObservableProperty() {}
+  virtual ~QueryObservableProperty();
 
  protected:
   typedef std::multimap<int, std::string> ParameterIdMapType;

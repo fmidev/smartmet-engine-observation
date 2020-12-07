@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/shared_ptr.hpp>
 #include <map>
 #include <memory>
 #include <set>
@@ -78,7 +79,7 @@ class StationtypeConfig
    * stationtype.
    * @return Reference to the database table nane.
    */
-  std::shared_ptr<const DatabaseTableNameType> getDatabaseTableNameByStationtype(
+  boost::shared_ptr<const DatabaseTableNameType> getDatabaseTableNameByStationtype(
       const StationtypeType& stationtype) const;
 
   /**
@@ -88,7 +89,7 @@ class StationtypeConfig
    * stationtype.
    * @return Reference to the group code list match with the stationtype.
    */
-  std::shared_ptr<const GroupCodeSetType> getGroupCodeSetByStationtype(
+  boost::shared_ptr<const GroupCodeSetType> getGroupCodeSetByStationtype(
       const StationtypeType& stationtype) const;
 
   /**
@@ -98,7 +99,7 @@ class StationtypeConfig
    * stationtype.
    * @return Reference to the producer id set match with the stationtype.
    */
-  std::shared_ptr<const ProducerIdSetType> getProducerIdSetByStationtype(
+  boost::shared_ptr<const ProducerIdSetType> getProducerIdSetByStationtype(
       const StationtypeType& stationtype) const;
 
   /**
