@@ -10,6 +10,16 @@ Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
 Source0: %{name}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+%if 0%{rhel} >= 8
+BuildRequires: gdal32-devel
+Requires: gdal32-libs
+#TestRequires: gdal32-devel
+%else
+BuildRequires: gdal-devel
+Requires: gdal-libs
+#TestRequires: gdal-devel
+%endif
+
 BuildRequires: rpm-build
 BuildRequires: gcc-c++
 BuildRequires: make
@@ -24,7 +34,6 @@ BuildRequires: smartmet-library-macgyver-devel >= 20.11.24
 BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 7.1.0
-BuildRequires: gdal-devel
 BuildRequires: zlib-devel
 Requires: fmt >= 7.1.0
 Requires: libconfig
@@ -43,7 +52,6 @@ Requires: boost169-locale
 Requires: boost169-serialization
 Requires: boost169-system
 Requires: boost169-thread
-Requires: gdal
 Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: make
