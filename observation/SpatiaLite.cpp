@@ -5,7 +5,7 @@
 #include "QueryMapping.h"
 #include "SpatiaLiteCacheParameters.h"
 #include <fmt/format.h>
-#include <gdal/ogr_geometry.h>
+#include <ogr_geometry.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
