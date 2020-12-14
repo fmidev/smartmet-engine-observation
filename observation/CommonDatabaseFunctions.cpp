@@ -7,6 +7,7 @@
 #include <spine/ParameterTools.h>
 #include <spine/TimeSeriesGenerator.h>
 #include <spine/TimeSeriesOutput.h>
+#include <numeric>
 
 namespace SmartMet
 {
