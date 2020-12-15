@@ -3,66 +3,64 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.12.7
-Release: 2%{?dist}.fmi
+Version: 20.12.15
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
 Source0: %{name}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-%if 0%{rhel} >= 8
-BuildRequires: gdal32-devel
-Requires: gdal32-libs
-#TestRequires: gdal32-devel
-%else
-BuildRequires: gdal-devel
-Requires: gdal-libs
-#TestRequires: gdal-devel
-%endif
-
-BuildRequires: rpm-build
-BuildRequires: gcc-c++
-BuildRequires: make
-BuildRequires: libconfig-devel
 BuildRequires: boost169-devel
-BuildRequires: smartmet-library-spine-devel >= 20.12.4
-BuildRequires: smartmet-engine-geonames-devel >= 20.12.4
-BuildRequires: libspatialite-devel >= 4.3.0a
-BuildRequires: sqlite-devel >= 3.22.0
-BuildRequires: smartmet-library-locus-devel >= 20.12.3
-BuildRequires: smartmet-library-macgyver-devel >= 20.11.24
-BuildRequires: libatomic
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 7.1.0
+BuildRequires: gcc-c++
+BuildRequires: gdal32-devel
+BuildRequires: libatomic
+BuildRequires: libconfig-devel
+BuildRequires: libspatialite-devel >= 4.3.0a
+BuildRequires: make
+BuildRequires: rpm-build
+BuildRequires: smartmet-engine-geonames-devel >= 20.12.15
+BuildRequires: smartmet-library-locus-devel >= 20.12.15
+BuildRequires: smartmet-library-macgyver-devel >= 20.12.15
+BuildRequires: smartmet-library-spine-devel >= 20.12.15
+BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
-Requires: fmt >= 7.1.0
-Requires: libconfig
-Requires: smartmet-server >= 20.10.28
-Requires: smartmet-engine-geonames >= 20.12.4
-Requires: smartmet-library-spine >= 20.12.4
-Requires: smartmet-library-locus >= 20.12.3
-Requires: smartmet-library-macgyver >= 20.11.24
-Requires: libatomic
-Requires: unixODBC
-Requires: libspatialite >= 4.3.0a
-Requires: sqlite >= 3.22.0
 Requires: boost169-date-time
 Requires: boost169-iostreams
 Requires: boost169-locale
 Requires: boost169-serialization
 Requires: boost169-system
 Requires: boost169-thread
+Requires: fmt >= 7.1.0
+Requires: gdal32-libs
+Requires: libatomic
+Requires: libconfig
+Requires: libspatialite >= 4.3.0a
+Requires: smartmet-engine-geonames >= 20.12.15
+Requires: smartmet-library-locus >= 20.12.15
+Requires: smartmet-library-macgyver >= 20.12.15
+Requires: smartmet-library-spine >= 20.12.15
+Requires: smartmet-server >= 20.10.28
+Requires: sqlite >= 3.22.0
+Requires: unixODBC
 Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: make
 #TestRequires: libspatialite-devel >= 4.3.0a
 #TestRequires: gcc-c++
-#TestRequires: libpqxx-devel >= 5.0
+#TestRequires: gdal32-devel
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 20.12.4
+#TestRequires: smartmet-engine-geonames >= 20.12.15
 #TestRequires: smartmet-test-data
+
+%if 0%{rhel} >= 8
+#TestRequires: libpqxx-devel >= 1:7.0
+%else
+#TestRequires: libpqxx-devel < 1:6.0
+%endif
 
 Provides: %{SPECNAME}
 
@@ -108,6 +106,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Dec 15 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.12.15-1.fmi
+- Upgrade to pgdg12
+
 * Mon Dec  7 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.12.7-2.fmi
 - Minor fixes to silence CodeChecker warnings
 
