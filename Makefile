@@ -5,7 +5,12 @@ INCDIR = smartmet//engines/$(SUBNAME)
 REQUIRES = gdal
 
 # Since we're using CC instead of CXX in linking, we must use -std=c++11 on RHEL7
-CXX_STD=c++11
+
+$(eval $(shell grep VERSION_ID /etc/os-release | sed -e 's/\.[0-9]*//g'))
+
+ifeq ($VERSION_ID, 7)
+  CXX_STD=c++11
+endif
 
 include $(shell echo $${PREFIX-/usr})/share/smartmet/devel/makefile.inc
 
