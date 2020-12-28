@@ -4,6 +4,9 @@ INCDIR = smartmet//engines/$(SUBNAME)
 
 REQUIRES = gdal
 
+# Since we're using CC instead of CXX in linking, we must use -std=c++11 on RHEL7
+CXX_STD=c++11
+
 include $(shell echo $${PREFIX-/usr})/share/smartmet/devel/makefile.inc
 
 ifeq ($(origin localstatedir), undefined)
