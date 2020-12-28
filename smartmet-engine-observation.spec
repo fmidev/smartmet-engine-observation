@@ -55,12 +55,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: zlib-devel
 #TestRequires: smartmet-engine-geonames >= 20.12.15
 #TestRequires: smartmet-test-data
-
-%if 0%{rhel} >= 8
-#TestRequires: libpqxx-devel >= 1:7.0
-%else
-#TestRequires: libpqxx-devel < 1:6.0
-%endif
+#TestRequires: libpqxx-devel < 1:7.0
 
 Provides: %{SPECNAME}
 
