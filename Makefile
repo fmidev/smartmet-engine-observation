@@ -34,10 +34,11 @@ LIBS += -L$(libdir) \
         -lboost_system \
         -lboost_serialization \
 	-lsqlite3 \
+	-latomic \
 	$(shell pkg-config --libs spatialite) \
 	$(GDAL_LIBS) \
         -lbz2 -lz \
-	-latomic -lpthread
+	-lpthread
 
 # What to install
 
