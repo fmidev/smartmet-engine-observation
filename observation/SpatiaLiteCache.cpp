@@ -3,6 +3,7 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/make_shared.hpp>
 #include <macgyver/StringConversion.h>
+#include <spine/Convenience.h>
 #include <atomic>
 
 namespace ts = SmartMet::Spine::TimeSeries;
@@ -924,16 +925,16 @@ SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
                            "Unknown sqlite threading mode: " + itsParameters.sqlite.threading_mode);
 
     if (err != 0)
-      throw Fmi::Exception(BCP,
-                           "Failed to set sqlite3 multithread mode to " +
-                               itsParameters.sqlite.threading_mode +
-                               ", exit code = " + Fmi::to_string(err));
+      std::cout << Spine::log_time_str()
+                << " [SpatiaLiteCache] failed to set sqlite3 multithread mode to "
+                << itsParameters.sqlite.threading_mode << ", exit code = " << err << std::endl;
 
     // Enable or disable memory statistics
     err = sqlite3_config(SQLITE_CONFIG_MEMSTATUS, itsParameters.sqlite.memstatus);
     if (err != 0)
-      throw Fmi::Exception(
-          BCP, "Failed to initialize sqlite3 memstatus mode, exit code " + Fmi::to_string(err));
+      std::cout << Spine::log_time_str()
+                << " [SpatiaLiteCache] failed to initialize sqlite3 memstatus mode, exit code "
+                << err << std::endl;
   }
   catch (...)
   {
