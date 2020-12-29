@@ -4,14 +4,6 @@ INCDIR = smartmet//engines/$(SUBNAME)
 
 REQUIRES = gdal
 
-# Since we're using CC instead of CXX in linking, we must use -std=c++11 on RHEL7
-
-$(eval $(shell grep VERSION_ID /etc/os-release | sed -e 's/\.[0-9]*//g'))
-
-ifeq ($VERSION_ID, 7)
-  CXX_STD=c++11
-endif
-
 include $(shell echo $${PREFIX-/usr})/share/smartmet/devel/makefile.inc
 
 ifeq ($(origin localstatedir), undefined)
@@ -27,6 +19,9 @@ DEFINES = -DUNIX -D_REENTRANT
 # TODO: Should remove -Wno-sign-conversion, FlashTools.cpp warns a lot
 
 CFLAGS += -Wno-pedantic
+
+# Older GCC won't accept newer standards in linker options, and we're using CC due to -latomic issues
+LFLAGS = $(filter-out -std=c++%, $(CFLAGS))
 
 INCLUDES += -isystem $(includedir)/mysql
 
@@ -75,7 +70,7 @@ profile: all
 # Note: CC instead of CXX since clang++ does not find -latomic
 
 $(LIBFILE): $(OBJS)
-	$(CC) $(CFLAGS) -shared -rdynamic -o $(LIBFILE) $(OBJS) $(LIBS)
+	$(CC) $(LFLAGS) -shared -rdynamic -o $(LIBFILE) $(OBJS) $(LIBS)
 	@echo Checking $(LIBFILE) for unresolved references
 	@if ldd -r $(LIBFILE) 2>&1 | c++filt | grep "^undefined symbol" | grep -v SmartMet::Engine::Geonames ; \
 		then rm -v $(LIBFILE); \
