@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 20.12.29
+Version: 21.1.5
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -12,7 +12,7 @@ Source0: %{name}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: boost169-devel
 BuildRequires: bzip2-devel
-BuildRequires: fmt-devel >= 7.1.0
+BuildRequires: fmt-devel >= 7.1.3
 BuildRequires: gcc-c++
 BuildRequires: gdal32-devel
 BuildRequires: libatomic
@@ -20,10 +20,10 @@ BuildRequires: libconfig-devel
 BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 20.12.15
+BuildRequires: smartmet-engine-geonames-devel >= 21.1.5
 BuildRequires: smartmet-library-locus-devel >= 20.12.15
-BuildRequires: smartmet-library-macgyver-devel >= 20.12.15
-BuildRequires: smartmet-library-spine-devel >= 20.12.15
+BuildRequires: smartmet-library-macgyver-devel >= 21.1.5
+BuildRequires: smartmet-library-spine-devel >= 21.1.5
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -32,15 +32,15 @@ Requires: boost169-locale
 Requires: boost169-serialization
 Requires: boost169-system
 Requires: boost169-thread
-Requires: fmt >= 7.1.0
+Requires: fmt >= 7.1.3
 Requires: gdal32-libs
 Requires: libatomic
 Requires: libconfig
 Requires: libspatialite >= 4.3.0a
-Requires: smartmet-engine-geonames >= 20.12.15
+Requires: smartmet-engine-geonames >= 21.1.5
 Requires: smartmet-library-locus >= 20.12.15
-Requires: smartmet-library-macgyver >= 20.12.15
-Requires: smartmet-library-spine >= 20.12.15
+Requires: smartmet-library-macgyver >= 21.1.5
+Requires: smartmet-library-spine >= 21.1.5
 Requires: smartmet-server >= 20.10.28
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
@@ -53,7 +53,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 20.12.15
+#TestRequires: smartmet-engine-geonames >= 21.1.5
 #TestRequires: smartmet-test-data
 #TestRequires: libpqxx-devel < 1:7.0
 
@@ -101,6 +101,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Jan  5 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.1.5-1.fmi
+- Upgrade to fmt 7.1.3
+
 * Tue Dec 29 2020 Mika Heiskanen <mika.heiskanen@fmi.fi> - 20.12.29-1.fmi
 - Enabled immutable read only databases for test purposes
 
