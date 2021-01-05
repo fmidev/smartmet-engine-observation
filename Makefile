@@ -23,6 +23,18 @@ CFLAGS += -Wno-pedantic
 # Older GCC won't accept newer standards in linker options, and we're using CC due to -latomic issues
 LFLAGS = $(filter-out -std=c++%, $(CFLAGS))
 
+ifneq ($(wildcard /usr/libspatialite50/include/spatialite.h),)
+    INCLUDES += -isystem /usr/libspatialite50/include
+    SPATIALITE_LIBS = -L /usr/libspatialite50/lib -lspatialite
+else
+ifneq ($(wildcard /usr/libspatialite43/include/spatialite.h),)
+    INCLUDES += -isystem /usr/libspatialite43/include
+    SPATIALITE_LIBS = -L /usr/libspatialite43/lib -lspatialite
+else
+    SPATIALITE_LIBS = -lspatialite
+endif
+endif
+
 INCLUDES += -isystem $(includedir)/mysql
 
 LIBS += -L$(libdir) \
@@ -38,7 +50,7 @@ LIBS += -L$(libdir) \
         -lboost_serialization \
 	-lsqlite3 \
 	-latomic \
-	$(shell pkg-config --libs spatialite) \
+	$(SPATIALITE_LIBS) \
 	$(GDAL_LIBS) \
         -lbz2 -lz \
 	-lpthread

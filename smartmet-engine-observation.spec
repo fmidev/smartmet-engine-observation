@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 21.1.5
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -17,7 +17,6 @@ BuildRequires: gcc-c++
 BuildRequires: gdal32-devel
 BuildRequires: libatomic
 BuildRequires: libconfig-devel
-BuildRequires: libspatialite-devel >= 4.3.0a
 BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 21.1.5
@@ -36,7 +35,6 @@ Requires: fmt >= 7.1.3
 Requires: gdal32-libs
 Requires: libatomic
 Requires: libconfig
-Requires: libspatialite >= 4.3.0a
 Requires: smartmet-engine-geonames >= 21.1.5
 Requires: smartmet-library-locus >= 20.12.15
 Requires: smartmet-library-macgyver >= 21.1.5
@@ -47,7 +45,6 @@ Requires: unixODBC
 Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: make
-#TestRequires: libspatialite-devel >= 4.3.0a
 #TestRequires: gcc-c++
 #TestRequires: gdal32-devel
 #TestRequires: sqlite-devel >= 3.22.0
@@ -56,6 +53,16 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: smartmet-engine-geonames >= 21.1.5
 #TestRequires: smartmet-test-data
 #TestRequires: libpqxx-devel < 1:7.0
+
+%if 0%{rhel} >= 8
+Requires: libspatialite50
+BuildRequires: libspatialite50-devel
+#TestRequires: libspatialite50-devel
+%else
+Requires: libspatialite43
+BuildRequires: libspatialite43-devel
+#TestRequires: libspatialite43-devel
+%endif
 
 Provides: %{SPECNAME}
 
@@ -101,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Jan  5 2021 Andris Pavenis <andris.pavenis@fmi.fi> - 21.1.5-2.fmi
+- Use libspatialite from pgdg repo
+
 * Tue Jan  5 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.1.5-1.fmi
 - Upgrade to fmt 7.1.3
 

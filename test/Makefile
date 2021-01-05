@@ -1,50 +1,34 @@
 PROG = $(patsubst %.cpp,%,$(wildcard *Test.cpp))
 
-MAINFLAGS = -std=c++11 -Wall -W -Wno-unused-parameter -Wno-unknown-pragmas
+REQUIRES = gdal
 
-EXTRAFLAGS = -Werror -pedantic -Wpointer-arith -Wcast-qual \
-	-Wcast-align -Wwrite-strings -Wconversion -Winline \
-	-Wctor-dtor-privacy -Wnon-virtual-dtor -Wno-pmf-conversions \
-	-Wsign-promo -Wchar-subscripts -Wold-style-cast \
-	-Wshadow -Woverloaded-virtual
-
-DIFFICULTFLAGS = -Weffc++ -Wunreachable-code -Wredundant-decls
-
-CC = g++
-CFLAGS = -DUNIX -O0 -ggdb3 $(MAINFLAGS)
+include $(shell echo $${PREFIX-/usr})/share/smartmet/devel/makefile.inc
 
 SOURCES = /usr/share/smartmet/engines/geonames.so \
 	../observation.so
 
-# Boost 1.69
-
-ifneq "$(wildcard /usr/include/boost169)" ""
-  INCLUDES += -I/usr/include/boost169
-  LIBS += -L/usr/lib64/boost169
-endif
-
-ifneq "$(wildcard /usr/gdal30/include)" ""
-  INCLUDES += -isystem /usr/gdal30/include
-  LIBS += -L/usr/gdal30/lib
+ifneq ($(wildcard /usr/libspatialite50/include/spatialite.h),)
+    INCLUDES += -isystem /usr/libspatialite50/include
+    SPATIALITE_LIBS = -L /usr/libspatialite50/lib -lspatialite
 else
-  INCLUDES += -isystem /usr/include/gdal
+ifneq ($(wildcard /usr/libspatialite43/include/spatialite.h),)
+    INCLUDES += -isystem /usr/libspatialite43/include
+    SPATIALITE_LIBS = -L /usr/libspatialite43/lib -lspatialite
+else
+    SPATIALITE_LIBS = -lspatialite
+endif
 endif
 
 INCLUDES += \
 	-I../observation \
 	-I/usr/include/smartmet \
-	-I/usr/include/oracle/11.2/client64 \
-	`pkg-config --cflags libconfig++`
-
-#	-I usr/include/soci \
+	-I/usr/include/oracle/11.2/client64
 
 LIBS += \
 	-lsmartmet-spine \
 	-lsmartmet-macgyver \
 	-lsmartmet-locus \
 	-lsmartmet-newbase \
-	`pkg-config --libs libconfig++` \
-	-lpqxx \
 	-lboost_date_time \
 	-lboost_thread \
 	-lboost_filesystem \
@@ -52,11 +36,9 @@ LIBS += \
 	-lboost_regex \
 	-lboost_iostreams \
 	-lboost_system \
+	$(SPATIALITE_LIBS) \
 	-lsqlite3 \
-	`pkg-config --libs spatialite` \
 	-lbz2 -lz -lpthread
-
-#	-lsoci_core -lsoci_sqlite3 \
 
 all: 	$(PROG)
 clean:
@@ -69,4 +51,4 @@ test: $(PROG)
 	done
 
 $(PROG) : % : %.cpp ../observation.so /usr/share/smartmet/engines/geonames.so
-	$(CC) $(CFLAGS) $(SOURCES) -o $@ $@.cpp $(INCLUDES) $(LIBS)
+	$(CXX) $(CFLAGS) $(SOURCES) -o $@ $@.cpp $(INCLUDES) $(LIBS)
