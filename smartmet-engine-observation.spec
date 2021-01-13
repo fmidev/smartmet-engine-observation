@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.1.12
+Version: 21.1.13
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -20,7 +20,7 @@ BuildRequires: libconfig-devel
 BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 21.1.5
-BuildRequires: smartmet-library-locus-devel >= 20.12.15
+BuildRequires: smartmet-library-locus-devel >= 21.1.5
 BuildRequires: smartmet-library-macgyver-devel >= 21.1.5
 BuildRequires: smartmet-library-spine-devel >= 21.1.5
 BuildRequires: sqlite-devel >= 3.22.0
@@ -36,10 +36,10 @@ Requires: gdal32-libs
 Requires: libatomic
 Requires: libconfig
 Requires: smartmet-engine-geonames >= 21.1.5
-Requires: smartmet-library-locus >= 20.12.15
+Requires: smartmet-library-locus >= 21.1.5
 Requires: smartmet-library-macgyver >= 21.1.5
 Requires: smartmet-library-spine >= 21.1.5
-Requires: smartmet-server >= 20.10.28
+Requires: smartmet-server >= 21.1.5
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
 Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jan 13 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.1.13-1.fmi
+- Updated to latest dependencies
+
 * Tue Jan 12 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.1.12-1.fmi
 - Fixed spatialite dependency
 
