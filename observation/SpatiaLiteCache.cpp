@@ -287,7 +287,7 @@ bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &start
     if (itsTimeIntervalStart.is_not_a_date_time() || itsTimeIntervalEnd.is_not_a_date_time())
       return false;
     // We ignore end time intentionally
-    return (starttime >= itsTimeIntervalStart && starttime < itsTimeIntervalEnd);
+    return (starttime >= itsTimeIntervalStart);
   }
   catch (...)
   {
@@ -308,7 +308,7 @@ bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &star
         itsFlashTimeIntervalEnd.is_not_a_date_time())
       return false;
     // We ignore end time intentionally
-    return (starttime >= itsFlashTimeIntervalStart && starttime < itsFlashTimeIntervalEnd);
+    return (starttime >= itsFlashTimeIntervalStart);
   }
   catch (...)
   {
@@ -327,8 +327,7 @@ bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
       return false;
 
     // We ignore end time intentionally
-    return (starttime >= itsWeatherDataQCTimeIntervalStart &&
-            starttime < itsWeatherDataQCTimeIntervalEnd);
+    return (starttime >= itsWeatherDataQCTimeIntervalStart);
   }
   catch (...)
   {
@@ -467,7 +466,7 @@ bool SpatiaLiteCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &
       return false;
 
     // We ignore end time intentionally
-    return (starttime >= itsRoadCloudTimeIntervalStart && starttime < itsRoadCloudTimeIntervalEnd);
+    return (starttime >= itsRoadCloudTimeIntervalStart);
   }
   catch (...)
   {
@@ -568,7 +567,7 @@ bool SpatiaLiteCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &st
         itsNetAtmoTimeIntervalEnd.is_not_a_date_time())
       return false;
     // We ignore end time intentionally
-    return (starttime >= itsNetAtmoTimeIntervalStart || starttime < itsNetAtmoTimeIntervalEnd);
+    return (starttime >= itsNetAtmoTimeIntervalStart);
   }
   catch (...)
   {
@@ -669,7 +668,7 @@ bool SpatiaLiteCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &sta
         itsFmiIoTTimeIntervalEnd.is_not_a_date_time())
       return false;
     // We ignore end time intentionally
-    return (starttime >= itsFmiIoTTimeIntervalStart || starttime < itsFmiIoTTimeIntervalEnd);
+    return (starttime >= itsFmiIoTTimeIntervalStart);
   }
   catch (...)
   {
