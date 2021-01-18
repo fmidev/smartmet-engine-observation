@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.1.14
-Release: 2%{?dist}.fmi
+Version: 21.1.18
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -21,7 +21,7 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 21.1.14
 BuildRequires: smartmet-library-locus-devel >= 21.1.14
-BuildRequires: smartmet-library-macgyver-devel >= 21.1.14
+BuildRequires: smartmet-library-macgyver-devel >= 21.1.18
 BuildRequires: smartmet-library-spine-devel >= 21.1.14
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
@@ -37,7 +37,7 @@ Requires: libatomic
 Requires: libconfig
 Requires: smartmet-engine-geonames >= 21.1.14
 Requires: smartmet-library-locus >= 21.1.14
-Requires: smartmet-library-macgyver >= 21.1.14
+Requires: smartmet-library-macgyver >= 21.1.18
 Requires: smartmet-library-spine >= 21.1.14
 Requires: smartmet-server >= 21.1.14
 Requires: sqlite >= 3.22.0
@@ -108,6 +108,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+
+* Mon Jan 18 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.1.18-1.fmi
+- Report more info about producers, data, parameters (BRAINSTORM-1981)
+
 * Thu Jan 14 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.1.14-2.fmi
 - Fixed caches to ignore the end time of the cache, otherwise flash queries go to the database in the winter
 

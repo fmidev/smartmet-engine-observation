@@ -109,6 +109,13 @@ class StationtypeConfig
   const STGroupCodeSetMapType& getGroupCodeSetMap() const { return m_stationtypeMap; }
 
   /**
+   * @brief Get information if group codes found for stationtype.
+   * @param[in] stationtype Stationtype keyword to search producer id set.
+   * @return true if group codes found for stationtype, false otherwise
+   */
+  bool hasGroupCodes(const StationtypeType& stationtype) const;
+  
+  /**
    * @brief Get database table name map
    * @return Database table name map
    */
@@ -131,6 +138,13 @@ class StationtypeConfig
    * @return Producer id set map
    */
   const STProducerIdSetMapType& getProducerIdSetMap() const { return m_stProducerIdSetMap; }
+
+  /**
+   * @brief Get information if producer ids found for stationtype.
+   * @param[in] stationtype Stationtype keyword to search producer id set.
+   * @return true if producer ids found for stationtype, false otherwise
+   */
+  bool hasProducerIds(const StationtypeType& stationtype) const;
 
  private:
   StationtypeConfig& operator=(const StationtypeConfig& other);

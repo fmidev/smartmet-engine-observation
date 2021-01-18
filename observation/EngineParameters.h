@@ -28,6 +28,7 @@ struct EngineParameters
   std::string getParameterIdAsString(const std::string &alias,
                                      const std::string &stationType) const;
   uint64_t getParameterId(const std::string &alias, const std::string &stationType) const;
+  bool isExternalOrMobileProducer(const std::string &stationType) const;
 
   // Cache size settings
 
