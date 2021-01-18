@@ -4,6 +4,7 @@
 #include "EngineParameters.h"
 #include "ObservationCache.h"
 #include <spine/Value.h>
+#include <spine/Table.h>
 
 namespace SmartMet
 {
@@ -11,6 +12,8 @@ namespace Engine
 {
 namespace Observation
 {
+using ContentTable = std::pair<boost::shared_ptr<Spine::Table>, Spine::TableFormatter::Names>;
+
 class DBRegistry;
 class QueryBase;
 
@@ -78,10 +81,33 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   uint64_t getParameterId(const std::string &alias,
                           const std::string &stationType = "unknown") const;
 
+  /* \brief Get parameter id as string for an given alias name.
+   * \param[in] alias Alias name of a meteorological parameter (case insensitive).
+   * \param[in] stationType Station type to use for the alias (case
+   * insensitive).
+   * \return String
+   */
+
   std::string getParameterIdAsString(const std::string &alias,
                                      const std::string &stationType = "unknown") const;
 
+  /* \brief Get valid parameter names
+   * \return Set of parameter names
+   */
+
   std::set<std::string> getValidStationTypes() const;
+
+  /* \brief Get detailed info of producer(s)
+   * \param[in] producer If producer is given return info only of that producer, otherwise of all producers
+   * \return Info of producer(s)
+   */
+  ContentTable getProducerInfo(boost::optional<std::string> producer) const;
+
+  /* \brief Get parameter info of producer(s)
+   * \param[in] producer If producer is given return info only of that producer, otherwise of all producers
+   * \return Parameter info of producer(s)
+   */
+  ContentTable getParameterInfo(boost::optional<std::string> producer) const;
 
   MetaData metaData(const std::string &producer) const;
 

@@ -4,6 +4,7 @@
 #include "ObservationCacheFactory.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <macgyver/Geometry.h>
 #include <spine/Convenience.h>
 #include <spine/ParameterTools.h>
@@ -433,6 +434,144 @@ void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr &tsvPtr,
 void Engine::reloadStations()
 {
   itsDatabaseDriver->reloadStations();
+}
+
+ContentTable Engine::getProducerInfo(boost::optional<std::string> producer) const
+{ 
+  boost::shared_ptr<Spine::Table> resultTable(new Spine::Table);
+
+  std::set<std::string> station_types = getValidStationTypes();
+
+  if(producer)
+	{
+	  if(station_types.find(*producer) == station_types.end())
+		return std::make_pair(resultTable,  Spine::TableFormatter::Names());
+
+	  station_types.clear();
+	  station_types.insert(*producer);
+	}
+
+  static Spine::TableFormatter::Names headers{"#","Producer","ProducerId","StationGroups"};
+
+  unsigned int row = 0;
+  for(const auto& t : station_types)
+	{
+      if (t.empty())
+        continue;
+	  
+	  std::string producer_ids;
+	  std::string group_codes;
+
+	  if(itsEngineParameters->isExternalOrMobileProducer(t))
+		{
+		  producer_ids = Fmi::to_string(itsEngineParameters->externalAndMobileProducerConfig.at(t).producerId().asInt());
+		}
+	  else
+		{
+		  if(itsEngineParameters->stationtypeConfig.hasProducerIds(t))
+			{
+			  std::shared_ptr<const std::set<uint>> producers = itsEngineParameters->stationtypeConfig.getProducerIdSetByStationtype(t);
+			  std::list<std::string> producer_id_list;
+			  for(auto id : *producers)
+				producer_id_list.push_back(Fmi::to_string(id));
+			  producer_ids =  boost::algorithm::join(producer_id_list, ",");
+			}
+		  if(itsEngineParameters->stationtypeConfig.hasGroupCodes(t))
+			{
+			  std::shared_ptr<const std::set<std::string>> group_code_set = itsEngineParameters->stationtypeConfig.getGroupCodeSetByStationtype(t);
+			  group_codes = boost::algorithm::join(*group_code_set, ",");
+			}
+		}
+
+	  int column = 0;
+
+	  // Row number
+	  resultTable->set(column, row, Fmi::to_string(row+1));
+	  ++column;
+	  
+	  // Producer
+	  resultTable->set(column, row,  t);
+	  ++column;
+	  
+	  // Producer ids
+	  resultTable->set(column, row, producer_ids);
+	  ++column;
+	  
+	  // Station groups
+	  resultTable->set(column, row,  group_codes);
+	  
+	  row++;
+	}
+
+  return std::make_pair(resultTable, headers);
+}
+
+ContentTable Engine::getParameterInfo(boost::optional<std::string> producer) const
+{ 
+  boost::shared_ptr<Spine::Table> resultTable(new Spine::Table);
+  
+  if(producer)
+	{
+	  std::set<std::string> station_types = getValidStationTypes();
+	  if(station_types.find(*producer) == station_types.end())
+		return std::make_pair(resultTable,  Spine::TableFormatter::Names());
+	}
+
+  std::set<std::string> newbase_parameters;
+  NFmiEnumConverter converter;
+  for(int i = kFmiBadParameter; i < kFmiLastParameter; i++)
+	{
+	  std::string param_name = converter.ToString(i);
+	  if(param_name.empty())
+		continue;
+
+	  newbase_parameters.insert(Fmi::ascii_tolower_copy(param_name));
+	}
+
+  static Spine::TableFormatter::Names headers{"#","Parameter","Producer","ParameterId"};
+  
+  unsigned int row = 0;
+  unsigned int param_counter = 1;  
+  for(const auto& param : *itsEngineParameters->parameterMap)
+	{
+	  unsigned int column = 0;	
+
+  	  // Param counter
+	   resultTable->set(column, row, Fmi::to_string(param_counter));
+	   ++column;
+
+	   // Parameter
+	   resultTable->set(column, row,  param.first);
+	   ++column;
+
+	   unsigned int subrow = row;
+	   for(const auto& producer_param : param.second)
+		 {
+		   if(!producer || (*producer == producer_param.first))
+			 {
+			   // Producer
+			   resultTable->set(column, subrow,  producer_param.first);
+			   // Parameter id
+			   resultTable->set(column+1, subrow,  producer_param.second);		  
+			   subrow++;
+			 }
+		 }
+	   // No producer for parameter
+	   if(row == subrow)
+		 continue;
+
+	   row++;
+	   while(row < subrow)
+		 {
+		   // Parameter id
+		   resultTable->set(0, row, "-");
+		   resultTable->set(1, row, "-");
+		   row++;
+		 }
+	   param_counter++;
+	}
+
+  return std::make_pair(resultTable, headers);
 }
 
 }  // namespace Observation

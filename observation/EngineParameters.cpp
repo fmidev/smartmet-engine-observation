@@ -353,6 +353,12 @@ uint64_t EngineParameters::getParameterId(const std::string &alias,
   }
 }
 
+bool EngineParameters::isExternalOrMobileProducer(const std::string &stationType) const
+{
+  return (externalAndMobileProducerConfig.find(stationType) != externalAndMobileProducerConfig.end());
+}
+
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
