@@ -2,6 +2,8 @@
 
 #include <boost/date_time/gregorian/formatters.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
+#include <boost/optional.hpp>
+#include <macgyver/StringConversion.h>
 #include <vector>
 
 namespace SmartMet
@@ -16,7 +18,7 @@ class DataItem
   // If you add new data members don't forget to change hash_value()
   boost::posix_time::ptime data_time;
   boost::posix_time::ptime modified_last;
-  double data_value = 0;
+  boost::optional<double> data_value;
   int fmisid = 0;
   int sensor_no = 0;
   int measurand_id = 0;
@@ -26,6 +28,8 @@ class DataItem
   int data_source = -1;  // -1 indicates NULL value
 
   std::size_t hash_value() const;
+  std::string get_value() const;
+  std::string get_data_source() const;
 };
 
 using DataItems = std::vector<DataItem>;

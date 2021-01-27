@@ -353,7 +353,9 @@ ObservationsMap CommonDatabaseFunctions::buildObservationsMap(
       boost::local_time::local_date_time obstime =
           boost::local_time::local_date_time(obs.data.data_time, localtz);
 
-      Spine::TimeSeries::Value val = Spine::TimeSeries::Value(obs.data.data_value);
+      Spine::TimeSeries::Value val =
+          (obs.data.data_value ? Spine::TimeSeries::Value(*obs.data.data_value)
+                               : Spine::TimeSeries::None());
 
       Spine::TimeSeries::Value data_source_val =
           (obs.data.data_source > -1 ? Spine::TimeSeries::Value(obs.data.data_source)

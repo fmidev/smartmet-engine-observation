@@ -829,12 +829,9 @@ std::size_t PostgreSQLCacheDB::fillDataCache(const DataItems &cacheData)
               values += Fmi::to_string(item.measurand_id) + ",";
               values += Fmi::to_string(item.producer_id) + ",";
               values += Fmi::to_string(item.measurand_no) + ",";
-              values += Fmi::to_string(item.data_value) + ",";
+              values += item.get_value() + ",";
               values += Fmi::to_string(item.data_quality) + ",";
-              if (item.data_source)
-                values += Fmi::to_string(item.data_source) + ")";
-              else
-                values += "NULL)";
+              values += item.get_data_source() + ")";
 
               values_vector.push_back(values);
             }
