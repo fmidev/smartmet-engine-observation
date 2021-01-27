@@ -1,7 +1,7 @@
 #include "SpatiaLite.h"
 #include "ExternalAndMobileDBInfo.h"
 #include "Keywords.h"
-#include "ObservationsMap.h"
+#include "DataWithQuality.h"
 #include "QueryMapping.h"
 #include "SpatiaLiteCacheParameters.h"
 #include <fmt/format.h>
@@ -124,7 +124,7 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
 
     std::string sqlStmt =
         "SELECT data.fmisid AS fmisid, data.sensor_no AS sensor_no, data.data_time AS obstime, "
-        "measurand_id, data_value, data_quality, data_source FROM observation_data data "
+        "measurand_id, measurand_no, data_value, data_quality, data_source FROM observation_data data "
         "WHERE data.fmisid IN (" +
         qstations +
         ") "
@@ -144,8 +144,6 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
       std::cout << "SpatiaLite: " << sqlStmt << std::endl;
 
     sqlite3pp::query qry(itsDB, sqlStmt.c_str());
-
-    std::map<int, std::map<int, int>> default_sensors;
 
     for (auto iter = qry.begin(); iter != qry.end(); ++iter)
     {
@@ -170,21 +168,16 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
       }
 
       obs.data.measurand_id = (*iter).get<int>(3);
-      if ((*iter).column_type(4) != SQLITE_NULL)
-        obs.data.data_value = (*iter).get<double>(4);
+      obs.data.measurand_no = (*iter).get<int>(4);
       if ((*iter).column_type(5) != SQLITE_NULL)
-        obs.data.data_quality = (*iter).get<int>(5);
+        obs.data.data_value = (*iter).get<double>(5);
       if ((*iter).column_type(6) != SQLITE_NULL)
-        obs.data.data_source = (*iter).get<int>(6);
-
-      if (qmap.isDefaultSensor(obs.data.sensor_no, obs.data.measurand_id))
-      {
-        default_sensors[obs.data.fmisid][obs.data.measurand_id] = obs.data.sensor_no;
-      }
+        obs.data.data_quality = (*iter).get<int>(6);
+      if ((*iter).column_type(7) != SQLITE_NULL)
+        obs.data.data_source = (*iter).get<int>(7);
 
       ret.emplace_back(obs);
     }
-    ret.default_sensors = default_sensors;
 
     return ret;
   }
@@ -208,7 +201,7 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
     // https://manski.net/2012/10/sqlite-performance/
     // However, for a single shared db it may be better to share:
     // https://github.com/mapnik/mapnik/issues/797
-
+	/*
     itsReadOnly = (access(spatialiteFile.c_str(), W_OK) != 0);
 
     if (itsReadOnly)
@@ -221,6 +214,7 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
           SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_PRIVATECACHE | SQLITE_OPEN_NOMUTEX);
     }
     else
+	*/
     {
       itsDB.connect(spatialiteFile.c_str(),
                     SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_PRIVATECACHE |
@@ -2569,15 +2563,13 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getObservationData(
     Engine::Observation::StationMap fmisid_to_station =
         mapQueryStations(stations, observed_fmisids);
 
-    ObservationsMap obsmap =
-        buildObservationsMap(observations, settings, timezones, fmisid_to_station);
+	StationTimedMeasurandData station_data = buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
 
     return buildTimeseries(stations,
                            settings,
                            stationtype,
                            fmisid_to_station,
-                           observations,
-                           obsmap,
+                           station_data,
                            qmap,
                            timeSeriesOptions,
                            timezones);
@@ -2645,7 +2637,6 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
                                         const StationInfo &stationInfo,
                                         const std::set<std::string> &stationgroup_codes,
                                         const QueryMapping &qmap,
-                                        std::map<int, std::map<int, int>> &default_sensors,
                                         WeatherDataQCData &cacheData)
 {
   try
@@ -2676,11 +2667,7 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
         elevation = sloc.elevation;
       }
 
-      int int_parameter = (*iter).get<int>(2);
-
-      boost::optional<std::string> string_parameter =
-          itsParameterMap->getRoadAndForeignIds().integerToString(int_parameter);
-
+      int parameter = (*iter).get<int>(2);
       boost::optional<double> data_value;
       if ((*iter).column_type(3) != SQLITE_NULL)
         data_value = (*iter).get<double>(3);
@@ -2692,25 +2679,10 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
       cacheData.latitudesAll.push_back(latitude);
       cacheData.longitudesAll.push_back(longitude);
       cacheData.elevationsAll.push_back(elevation);
-      cacheData.parametersAll.push_back(string_parameter);
+      cacheData.parametersAll.push_back(parameter);
       cacheData.data_valuesAll.push_back(data_value);
       cacheData.sensor_nosAll.push_back(sensor_no);
       cacheData.data_qualityAll.push_back(data_quality);
-
-      if (sensor_no)
-      {
-        int sensor_number = *sensor_no;
-        std::string parameter_id = (*string_parameter + Fmi::to_string(sensor_number));
-        Fmi::ascii_tolower(parameter_id);
-        int parameter = boost::hash_value(parameter_id);  // We dont have measurand id in
-                                                          // weather_data_qc table, so use
-                                                          // temporarily hash value of parameter
-                                                          // name + sensor number
-        if (qmap.isDefaultSensor(sensor_number, parameter))
-        {
-          default_sensors[*fmisid][parameter] = sensor_number;
-        }
-      }
     }
   }
   catch (...)

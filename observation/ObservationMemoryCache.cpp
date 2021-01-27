@@ -262,8 +262,6 @@ LocationDataItems ObservationMemoryCache::read_observations(
   // 3. extract wanted measurand_id's
   // 4. attach latitude, longitude and elevation for each fmisid
 
-  std::map<int, std::map<int, int>> default_sensors;
-
   for (const auto& station : stations)
   {
     // Accept station only if group condition is satisfied
@@ -328,15 +326,8 @@ LocationDataItems ObservationMemoryCache::read_observations(
       // Construct LocationDataItem from the DataItem
 
       ret.emplace_back(LocationDataItem{*obs, longitude, latitude, elevation});
-
-      if (qmap.isDefaultSensor(obs->sensor_no, obs->measurand_id))
-      {
-        default_sensors[obs->fmisid][obs->measurand_id] = obs->sensor_no;
-      }
     }
   }
-
-  ret.default_sensors = default_sensors;
 
   return ret;
 }

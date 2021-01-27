@@ -33,11 +33,6 @@ void PostgreSQLObsDB::get(const std::string &sqlStatement,
   {
     /*
       // makeQuery -> get(): Not implemented in PostgreSQLObsDB
-pqxx::result result_set = itsDB.executeNonTransaction(sqlStatement);
-
-for (auto row : result_set)
-{
-}
     */
   }
   catch (...)
@@ -509,8 +504,6 @@ LocationDataItems PostgreSQLObsDB::readObservations(const Spine::Stations &stati
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
-    std::map<int, std::map<int, int>> default_sensors;
-
     for (auto row : result_set)
     {
       LocationDataItem obs;
@@ -538,14 +531,9 @@ LocationDataItems PostgreSQLObsDB::readObservations(const Spine::Stations &stati
         obs.longitude = sloc.longitude;
         obs.elevation = sloc.elevation;
       }
-      if (qmap.isDefaultSensor(obs.data.sensor_no, obs.data.measurand_id))
-      {
-        default_sensors[obs.data.fmisid][obs.data.measurand_id] = obs.data.sensor_no;
-      }
 
       ret.emplace_back(obs);
     }
-    ret.default_sensors = default_sensors;
 
     return ret;
   }
@@ -559,7 +547,6 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
                                              const StationInfo &stationInfo,
                                              const std::set<std::string> &stationgroup_codes,
                                              const QueryMapping &qmap,
-                                             std::map<int, std::map<int, int>> &default_sensors,
                                              WeatherDataQCData &cacheData)
 {
   try
@@ -570,6 +557,7 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       boost::optional<int> fmisid = row[0].as<int>();
       boost::posix_time::ptime obstime = boost::posix_time::from_time_t(row[1].as<time_t>());
       boost::optional<std::string> parameter = row[2].as<std::string>();
+      int int_parameter = itsParameterMap->getRoadAndForeignIds().stringToInteger(*parameter);
 
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes);
@@ -602,25 +590,10 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       cacheData.latitudesAll.push_back(latitude);
       cacheData.longitudesAll.push_back(longitude);
       cacheData.elevationsAll.push_back(elevation);
-      cacheData.parametersAll.push_back(parameter);
+      cacheData.parametersAll.push_back(int_parameter);
       cacheData.data_valuesAll.push_back(data_value);
       cacheData.sensor_nosAll.push_back(sensor_no);
       cacheData.data_qualityAll.push_back(data_quality);
-
-      if (sensor_no)
-      {
-        int sensor_number = *sensor_no;
-        std::string parameter_id = (*parameter + Fmi::to_string(sensor_number));
-        Fmi::ascii_tolower(parameter_id);
-        int parameter = boost::hash_value(parameter_id);  // We dont have measurand id in
-                                                          // weather_data_qc table, so use
-                                                          // temporarily hash value of parameter
-                                                          // name + sensor number
-        if (qmap.isDefaultSensor(sensor_number, parameter))
-        {
-          default_sensors[*fmisid][parameter] = sensor_number;
-        }
-      }
     }
   }
   catch (...)

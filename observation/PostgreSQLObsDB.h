@@ -94,7 +94,6 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions, private boost::noncopy
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
                               const QueryMapping &qmap,
-                              std::map<int, std::map<int, int>> &default_sensors,
                               WeatherDataQCData &weatherDataQCData);
   std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,
