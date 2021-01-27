@@ -303,7 +303,6 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
                               const QueryMapping &qmap,
-                              std::map<int, std::map<int, int>> &default_sensors,
                               WeatherDataQCData &cacheData);
   std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,
@@ -327,17 +326,6 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
   std::string stationType(const std::string &type);
   std::string stationType(SmartMet::Spine::Station &station);
 
-  void addSmartSymbolToTimeSeries(
-      const int pos,
-      const Spine::Station &s,
-      const boost::local_time::local_date_time &time,
-      const ParameterMapPtr &parameterMap,
-      const std::string &stationtype,
-      const std::map<int,
-                     std::map<boost::local_time::local_date_time,
-                              std::map<int, SmartMet::Spine::TimeSeries::Value>>> &data,
-      const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns);
-
   void addSpecialParameterToTimeSeries(
       const std::string &paramname,
       SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
@@ -358,15 +346,6 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
       const SmartMet::Spine::Station &station,
       const std::string &missingtext);
 
-  void addEmptyValuesToTimeSeries(
-      SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-      const boost::local_time::local_date_time &obstime,
-      const std::map<std::string, int> &specialPositions,
-      const std::map<std::string, std::string> &parameterNameMap,
-      const std::map<std::string, int> &timeseriesPositions,
-      const std::string &stationtype,
-      const SmartMet::Spine::Station &station);
-
   boost::posix_time::ptime getLatestTimeFromTable(std::string tablename, std::string time_field);
   boost::posix_time::ptime getOldestTimeFromTable(std::string tablename, std::string time_field);
 
@@ -380,9 +359,6 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
   void createRoadCloudDataTable();
   void createNetAtmoDataTable();
   void createFmiIoTDataTable();
-  void fetchCachedDataFromDB(const std::string &sqlStmt,
-                             struct cached_data &data,
-                             bool measurand = false);
   void createIndex(const std::string &table,
                    const std::string &column,
                    const std::string &idx_name,

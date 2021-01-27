@@ -42,7 +42,6 @@ namespace Observation
 {
 class SpatiaLiteCacheParameters;
 
-struct ObservationsMap;
 struct QueryMapping;
 
 class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
@@ -336,7 +335,6 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
                               const QueryMapping &qmap,
-                              std::map<int, std::map<int, int>> &default_sensors,
                               WeatherDataQCData &cacheData);
   std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,

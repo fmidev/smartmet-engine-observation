@@ -1,7 +1,7 @@
 #pragma once
 
 #include "LocationDataItem.h"
-#include "ObservationsMap.h"
+#include "DataWithQuality.h"
 #include "ParameterMap.h"
 #include "QueryMapping.h"
 #include "Settings.h"
@@ -72,7 +72,6 @@ class CommonDatabaseFunctions
                                       const StationInfo &stationInfo,
                                       const std::set<std::string> &stationgroup_codes,
                                       const QueryMapping &qmap,
-                                      std::map<int, std::map<int, int>> &default_sensors,
                                       WeatherDataQCData &weatherDataQCData) = 0;
 
   const StationtypeConfig &getStationtypeConfig() const { return itsStationtypeConfig; }
@@ -89,11 +88,6 @@ class CommonDatabaseFunctions
                                  bool isWeatherDataQCTable) const;
   std::string getSensorQueryCondition(
       const std::map<int, std::set<int>> &sensorNumberToMeasurandIds) const;
-  Spine::TimeSeries::Value getDefaultSensorValue(
-      const std::map<int, std::map<int, int>> *defaultSensors,
-      const std::map<std::string, Spine::TimeSeries::Value> &sensorValues,
-      int measurandId,
-      int fmisid) const;
   bool isDataSourceField(const std::string &fieldname) const;
   bool isDataQualityField(const std::string &fieldname) const;
   bool isDataSourceOrDataQualityField(const std::string &fieldname) const;
@@ -106,102 +100,39 @@ class CommonDatabaseFunctions
   std::string buildSqlStationList(const Spine::Stations &stations,
                                   const std::set<std::string> &stationgroup_codes,
                                   const StationInfo &stationInfo) const;
-  ObservationsMap buildObservationsMap(const LocationDataItems &observations,
-                                       const Settings &settings,
-                                       const Fmi::TimeZones &timezones,
-                                       const StationMap &fmisid_to_station) const;
+  StationTimedMeasurandData buildStationTimedMeasurandData(const LocationDataItems &observations,
+														   const Settings &settings,
+														   const Fmi::TimeZones &timezones,
+														   const StationMap &fmisid_to_station) const;
   Spine::TimeSeries::TimeSeriesVectorPtr buildTimeseries(
       const Spine::Stations &stations,
       const Settings &settings,
       const std::string &stationtype,
       const StationMap &fmisid_to_station,
-      const LocationDataItems &observations,
-      ObservationsMap &obsmap,
+	  const StationTimedMeasurandData& station_data,
       const QueryMapping &qmap,
       const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones) const;
-  Spine::TimeSeries::TimeSeriesVectorPtr buildTimeseriesAllTimeSteps(
-      const Spine::Stations &stations,
-      const Settings &settings,
-      const std::string &stationtype,
-      const StationMap &fmisid_to_station,
-      ObservationsMap &obsmap,
-      const QueryMapping &qmap) const;
-  Spine::TimeSeries::TimeSeriesVectorPtr buildTimeseriesLatestTimeStep(
-      const Spine::Stations &stations,
-      const Settings &settings,
-      const std::string &stationtype,
-      const StationMap &fmisid_to_station,
-      const LocationDataItems &observations,
-      ObservationsMap &obsmap,
-      const QueryMapping &qmap,
-      const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones) const;
-  Spine::TimeSeries::TimeSeriesVectorPtr buildTimeseriesListedTimeSteps(
-      const Spine::Stations &stations,
-      const Settings &settings,
-      const std::string &stationtype,
-      const StationMap &fmisid_to_station,
-      const LocationDataItems &observations,
-      ObservationsMap &obsmap,
-      const QueryMapping &qmap,
-      const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones) const;
-  void appendWeatherParameters(const Spine::Station &s,
-                               const boost::local_time::local_date_time &t,
-                               const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-                               const std::string &stationtype,
-                               const StationMap &fmisid_to_station,
-                               const LocationDataItems &observations,
-                               ObservationsMap &obsmap,
-                               const QueryMapping &qmap,
-                               const Settings &settings) const;
 
-  void addSpecialFieldsToTimeSeries(
-      const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-      const std::map<boost::local_time::local_date_time,
-                     std::map<std::string, std::map<std::string, Spine::TimeSeries::Value>>>
-          &stationData,
-      int fmisid,
-      const std::map<std::string, int> &specialPositions,
-      const std::map<std::string, std::string> &parameterNameMap,
-      const std::map<int, std::map<int, int>> *defaultSensors,
-      const std::list<boost::local_time::local_date_time> &tlist,
-      bool addDataSourceField) const;
+  void addSpecialFieldsToTimeSeries(const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+									int fmisid,
+									const TimedMeasurandData& data,
+									const std::set<boost::local_time::local_date_time>& valid_timesteps,
+									const std::map<std::string, int> &specialPositions,
+									const std::map<std::string, std::string> &parameterNameMap,
+									bool addDataSourceField) const;   
+
   void addParameterToTimeSeries(
-      const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-      const std::pair<boost::local_time::local_date_time,
-                      std::map<std::string, std::map<std::string, Spine::TimeSeries::Value>>>
-          &dataItem,
-      int fmisid,
-      const std::map<std::string, int> &specialPositions,
-      const std::map<std::string, std::string> &parameterNameMap,
-      const std::map<std::string, int> &timeseriesPositions,
-      const std::map<int, std::set<int>> &sensorNumberToMeasurandIds,
-      const std::map<int, std::map<int, int>> *defaultSensors,  // measurand_id -> sensor_no
-      const std::string &stationtype,
-      const Spine::Station &station,
-      const Settings &settings) const;
-  void addEmptyValuesToTimeSeries(Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-                                  const boost::local_time::local_date_time &obstime,
-                                  const std::map<std::string, int> &specialPositions,
-                                  const std::map<std::string, std::string> &parameterNameMap,
-                                  const std::map<std::string, int> &timeseriesPositions,
-                                  const std::string &stationtype,
-                                  const Spine::Station &station,
-                                  const std::string &timezone) const;
-  void addSmartSymbolToTimeSeries(
-      const int pos,
-      const Spine::Station &s,
-      const boost::local_time::local_date_time &time,
-      const std::string &stationtype,
-      const std::map<std::string, std::map<std::string, Spine::TimeSeries::Value>> &stationData,
-      const std::map<int,
-                     std::map<boost::local_time::local_date_time,
-                              std::map<int, std::map<int, Spine::TimeSeries::Value>>>> &data,
-      int fmisid,
-      const std::map<int, std::map<int, int>> *defaultSensors,
-      const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns) const;
+								const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+								const std::pair<boost::local_time::local_date_time, MeasurandData> &dataItem,
+								int fmisid,
+								const std::map<std::string, int> &specialPositions,
+								const std::map<std::string, int> &parameterNameIdMap,
+								const std::map<std::string, int> &timeseriesPositions,
+								const std::string &stationtype,
+								const Spine::Station &station,
+								const Settings &settings) const;
+
   void addSpecialParameterToTimeSeries(
       const std::string &paramname,
       const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,

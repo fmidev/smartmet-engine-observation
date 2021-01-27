@@ -83,17 +83,13 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservation
     Engine::Observation::StationMap fmisid_to_station =
         mapQueryStations(stations, observed_fmisids);
 
-    Engine::Observation::ObservationsMap obsmap =
-        buildObservationsMap(observations, settings, timezones, fmisid_to_station);
-
-    Spine::TimeSeries::TimeSeriesVectorPtr ret;
+	StationTimedMeasurandData station_data = buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
 
     return buildTimeseries(stations,
                            settings,
                            stationtype,
                            fmisid_to_station,
-                           observations,
-                           obsmap,
+                           station_data,
                            qmap,
                            timeSeriesOptions,
                            timezones);
@@ -190,8 +186,6 @@ Engine::Observation::LocationDataItems CommonPostgreSQLFunctions::readObservatio
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
-    std::map<int, std::map<int, int>> default_sensors;
-
     for (auto row : result_set)
     {
       Engine::Observation::LocationDataItem obs;
@@ -219,14 +213,9 @@ Engine::Observation::LocationDataItems CommonPostgreSQLFunctions::readObservatio
         obs.longitude = sloc.longitude;
         obs.elevation = sloc.elevation;
       }
-      if (qmap.isDefaultSensor(obs.data.sensor_no, obs.data.measurand_id))
-      {
-        default_sensors[obs.data.fmisid][obs.data.measurand_id] = obs.data.sensor_no;
-      }
 
       ret.emplace_back(obs);
     }
-    ret.default_sensors = default_sensors;
 
     return ret;
   }
