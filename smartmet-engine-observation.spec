@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.2.1
-Release: 2%{?dist}.fmi
+Version: 21.2.2
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Feb  2 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.2.2-1.fmi
+- Re-enabled immutable spatialite caches
+
 * Mon Feb 1 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.2.1-1.fmi
 - Sensor number stored as integer in internal data structures (BRAINSTORM-1951)
 

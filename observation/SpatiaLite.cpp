@@ -1,7 +1,7 @@
 #include "SpatiaLite.h"
+#include "DataWithQuality.h"
 #include "ExternalAndMobileDBInfo.h"
 #include "Keywords.h"
-#include "DataWithQuality.h"
 #include "QueryMapping.h"
 #include "SpatiaLiteCacheParameters.h"
 #include <fmt/format.h>
@@ -124,7 +124,8 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
 
     std::string sqlStmt =
         "SELECT data.fmisid AS fmisid, data.sensor_no AS sensor_no, data.data_time AS obstime, "
-        "measurand_id, measurand_no, data_value, data_quality, data_source FROM observation_data data "
+        "measurand_id, measurand_no, data_value, data_quality, data_source FROM observation_data "
+        "data "
         "WHERE data.fmisid IN (" +
         qstations +
         ") "
@@ -201,7 +202,7 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
     // https://manski.net/2012/10/sqlite-performance/
     // However, for a single shared db it may be better to share:
     // https://github.com/mapnik/mapnik/issues/797
-	/*
+
     itsReadOnly = (access(spatialiteFile.c_str(), W_OK) != 0);
 
     if (itsReadOnly)
@@ -214,7 +215,6 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
           SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_PRIVATECACHE | SQLITE_OPEN_NOMUTEX);
     }
     else
-	*/
     {
       itsDB.connect(spatialiteFile.c_str(),
                     SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_PRIVATECACHE |
@@ -2563,7 +2563,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getObservationData(
     Engine::Observation::StationMap fmisid_to_station =
         mapQueryStations(stations, observed_fmisids);
 
-	StationTimedMeasurandData station_data = buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
+    StationTimedMeasurandData station_data =
+        buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
 
     return buildTimeseries(stations,
                            settings,
