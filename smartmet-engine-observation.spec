@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.2.2
+Version: 21.2.3
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Feb 3 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.2.3-1.fmi
+- Make it possible to optionally prevent database queries (INSPIRE-914)
+
 * Tue Feb  2 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.2.2-1.fmi
 - Re-enabled immutable spatialite caches
 

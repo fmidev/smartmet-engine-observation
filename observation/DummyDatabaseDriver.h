@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DatabaseDriverInterface.h"
+#include "DatabaseDriverBase.h"
 #include "EngineParameters.h"
 
 namespace SmartMet
@@ -12,10 +12,10 @@ namespace Observation
 class Engine;
 struct ObservableProperty;
 
-class DummyDatabaseDriver : public DatabaseDriverInterface
+class DummyDatabaseDriver : public DatabaseDriverBase
 {
  public:
-  DummyDatabaseDriver(const EngineParametersPtr &p) : itsParameters(p) {}
+  DummyDatabaseDriver(const std::string &name, const EngineParametersPtr &p) : DatabaseDriverBase(name), itsParameters(p) {}
 
   void init(Engine *obsengine);
   Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings);
@@ -33,11 +33,11 @@ class DummyDatabaseDriver : public DatabaseDriverInterface
       std::vector<std::string> &parameters, const std::string language);
   void reloadStations() {}
   void getStations(Spine::Stations &stations, const Settings &settings) const {}
-  virtual void getStationsByArea(Spine::Stations &stations,
-                                 const std::string &stationtype,
-                                 const boost::posix_time::ptime &starttime,
-                                 const boost::posix_time::ptime &endtime,
-                                 const std::string &wkt) const
+  void getStationsByArea(Spine::Stations &stations,
+						 const std::string &stationtype,
+						 const boost::posix_time::ptime &starttime,
+						 const boost::posix_time::ptime &endtime,
+						 const std::string &wkt) const
   {
   }
   void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const {}

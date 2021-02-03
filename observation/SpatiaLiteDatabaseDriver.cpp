@@ -93,8 +93,8 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
         return cache->valuesFromCache(settings);
       }
     }
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
-    return ret;
+
+    return boost::make_shared<ts::TimeSeriesVector>();
   }
   catch (...)
   {
@@ -135,8 +135,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
         return cache->valuesFromCache(settings, timeSeriesOptions);
       }
     }
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
-    return ret;
+
+    return boost::make_shared<ts::TimeSeriesVector>();
   }
   catch (...)
   {
