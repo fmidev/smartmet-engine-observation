@@ -239,14 +239,16 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(Settings &
 
   try
   {
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+	// Database query prevented
+	if(settings.preventDatabaseQuery)
+	  return boost::make_shared<ts::TimeSeriesVector>();
 
     if (!itsConnectionsOK)
     {
       std::cerr << "[PostgreSQLDatabaseDriverForMobileData] values(): No connections to PostgreSQL "
                    "database!"
                 << std::endl;
-      return ret;
+      return boost::make_shared<ts::TimeSeriesVector>();
     }
 
     std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
@@ -255,9 +257,7 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(Settings &
     QueryExternalAndMobileData extdata(itsParameters.externalAndMobileProducerConfig,
                                        itsParameters.fmiIoTStations);
 
-    ret = extdata.values(*db, settings, itsTimeZones);
-
-    return ret;
+    return extdata.values(*db, settings, itsTimeZones);
   }
   catch (...)
   {
@@ -304,14 +304,16 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::va
 
   try
   {
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+	// Database query prevented
+	if(settings.preventDatabaseQuery)
+	  return boost::make_shared<ts::TimeSeriesVector>();
 
     if (!itsConnectionsOK)
     {
       std::cerr << "[PostgreSQLDatabaseDriverForMobileData] values(): No connections to PostgreSQL "
                    "database!"
                 << std::endl;
-      return ret;
+      return boost::make_shared<ts::TimeSeriesVector>();
     }
 
     std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
@@ -320,9 +322,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::va
     QueryExternalAndMobileData extdata(itsParameters.externalAndMobileProducerConfig,
                                        itsParameters.fmiIoTStations);
 
-    ret = extdata.values(*db, settings, timeSeriesOptions, itsTimeZones);
-
-    return ret;
+    return extdata.values(*db, settings, timeSeriesOptions, itsTimeZones);
   }
   catch (...)
   {

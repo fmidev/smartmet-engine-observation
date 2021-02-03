@@ -65,6 +65,7 @@ class Settings
   bool starttimeGiven = false;
   bool useCommonQueryMethod = false;  // default is false
   bool useDataCache = true;           // default is true
+  bool preventDatabaseQuery = false;
   // 0 or more bits from DebugOptions to enable debugging features
   uint32_t debug_options = 0;
 };

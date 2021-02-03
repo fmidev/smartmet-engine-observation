@@ -221,7 +221,11 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
 
   try
   {
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+    ts::TimeSeriesVectorPtr ret = boost::make_shared<ts::TimeSeriesVector>();
+
+	// Database query prevented
+	if(settings.preventDatabaseQuery)
+	  return ret;
 
     if (!itsConnectionsOK)
     {
@@ -313,13 +317,18 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::value
 
   try
   {
+    ts::TimeSeriesVectorPtr ret = boost::make_shared<ts::TimeSeriesVector>();
+
+	// Database query prevented
+	if(settings.preventDatabaseQuery)
+	  return ret;
+
     if (!itsConnectionsOK)
     {
       std::cerr << "[PostgreSQLDatabaseDriverForFmiData] values(): No connections to PostgreSQL "
                    "database!"
                 << std::endl;
-      ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
-      return ret;
+	  return ret;
     }
 
     Spine::Stations stations;
@@ -339,8 +348,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::value
       return db->getWeatherDataQCData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
     else if (tablename == FLASH_DATA_TABLE)
       return db->getFlashData(settings, itsTimeZones);
-
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
     return ret;
   }

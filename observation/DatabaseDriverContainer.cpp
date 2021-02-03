@@ -27,7 +27,11 @@ DatabaseDriverBase *DatabaseDriverContainer::resolveDriver(
   try
   {
     if (itsDatabaseDrivers.find(tablename) == itsDatabaseDrivers.end())
-    {
+	{
+	  // If no active drivers defined, dummy driver for all table names '*' is created
+	  if (itsDatabaseDrivers.find("*") != itsDatabaseDrivers.end())
+		return  itsDatabaseDrivers.at("*").at(0).driver;
+
       throw Fmi::Exception::Trace(
           BCP, "Error! No database driver found for reqested table: '" + tablename + "'");
     }

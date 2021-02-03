@@ -22,6 +22,7 @@ class DatabaseDriverContainer
   DatabaseDriverBase *resolveDriver(const std::string &tablename,
                                     const boost::posix_time::ptime &starttime,
                                     const boost::posix_time::ptime &endtime) const;
+  bool size() const { return itsDatabaseDrivers.size(); }
 
  private:
   std::map<std::string, std::vector<DatabaseDriverDays>>
