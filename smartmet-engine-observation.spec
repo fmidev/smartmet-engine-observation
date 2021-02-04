@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.2.3
+Version: 21.2.4
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Feb 4 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.2.4-1.fmi
+- Remove possible sensor number from parameter name in observablePropertyQuery (INSPIRE-874)
+
 * Wed Feb 3 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.2.3-1.fmi
 - Make it possible to optionally prevent database queries (INSPIRE-914)
 
