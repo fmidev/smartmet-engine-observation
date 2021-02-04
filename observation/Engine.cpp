@@ -205,7 +205,17 @@ FlashCounts Engine::getFlashCount(const boost::posix_time::ptime &starttime,
 std::shared_ptr<std::vector<ObservableProperty>> Engine::observablePropertyQuery(
     std::vector<std::string> &parameters, const std::string language)
 {
-  return itsDatabaseDriver->observablePropertyQuery(parameters, language);
+  // Remove possible sensor numbers
+  std::vector<std::string> parameter_names;
+  for(const auto& p : parameters)
+	{
+	  if(p.find("(:") != std::string::npos)
+		parameter_names.push_back(p.substr(0, p.find("(:")));
+	  else
+		parameter_names.push_back(p);
+	}
+
+  return itsDatabaseDriver->observablePropertyQuery(parameter_names, language);
 }
 
 ts::TimeSeriesVectorPtr Engine::values(Settings &settings)
