@@ -146,6 +146,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
     {
       std::shared_ptr<CommonDatabaseFunctions> db = itsConnectionPool->getConnection();
       db->setDebug(settings.debug_options);
+	  db->setAdditionalTimestepOption(AdditionalTimestepOption::JustRequestedTimesteps);
 
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
@@ -195,6 +196,8 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
     {
       std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
       db->setDebug(settings.debug_options);
+	  db->setAdditionalTimestepOption(AdditionalTimestepOption::RequestedAndDataTimesteps);
+
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {

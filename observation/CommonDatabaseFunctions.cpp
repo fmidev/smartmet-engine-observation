@@ -461,7 +461,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
 			  fmisid_timesteps[fmisid].insert(obstime);
 			}
 		}
-	  else if (!timeSeriesOptions.all() && !settings.latest)
+	  else if (!timeSeriesOptions.all() && !settings.latest && itsGetRequestedAndDataTimesteps == AdditionalTimestepOption::RequestedAndDataTimesteps)
 		{
 		  // std::cout << "**** ALL timesteps in data + listed timesteps\n";
 		  // All FMISDS must have all timesteps in data and all listed timesteps

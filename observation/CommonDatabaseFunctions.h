@@ -23,6 +23,13 @@ namespace Observation
 {
 using StationMap = std::map<int, Spine::Station>;
 
+enum class AdditionalTimestepOption
+{
+  JustRequestedTimesteps, // wms,wfs
+	RequestedAndDataTimesteps // timeseries
+};
+
+
 class CommonDatabaseFunctions
 {
  public:
@@ -79,6 +86,9 @@ class CommonDatabaseFunctions
   void setDebug(bool state) { itsDebug = state; }
   bool getDebug() const { return itsDebug; }
   virtual std::string getWeatherDataQCParams(const std::set<std::string> &param_set) const;
+  // If timesteps requested timeseries must have all requested and data timesteps (because of aggregation)
+  // but wms, wfs must have only requested timesteps
+  void setAdditionalTimestepOption(AdditionalTimestepOption opt) { itsGetRequestedAndDataTimesteps = opt; }
 
  protected:
   QueryMapping buildQueryMapping(const Spine::Stations &stations,
@@ -145,6 +155,7 @@ class CommonDatabaseFunctions
   const StationtypeConfig &itsStationtypeConfig;
   const ParameterMapPtr &itsParameterMap;
   bool itsDebug{false};
+  AdditionalTimestepOption itsGetRequestedAndDataTimesteps{AdditionalTimestepOption::RequestedAndDataTimesteps};
 
  private:
 };  // namespace Observation
