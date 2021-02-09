@@ -180,8 +180,6 @@ void PostgreSQLDatabaseDriverForFmiData::makeQuery(QueryBase *qb)
 
 ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &settings)
 {
-  std::cout << "PostgreSQLDatabaseDriverForFmiData::values\n";
-
   if (itsShutdownRequested)
     return nullptr;
 
@@ -225,9 +223,9 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
   {
     ts::TimeSeriesVectorPtr ret = boost::make_shared<ts::TimeSeriesVector>();
 
-	// Database query prevented
-	if(settings.preventDatabaseQuery)
-	  return ret;
+    // Database query prevented
+    if (settings.preventDatabaseQuery)
+      return ret;
 
     if (!itsConnectionsOK)
     {
@@ -249,7 +247,7 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
     std::shared_ptr<PostgreSQLObsDB> db =
         itsPostgreSQLConnectionPool->getConnection(settings.debug_options);
     setSettings(settings, *db);
-	db->setAdditionalTimestepOption(AdditionalTimestepOption::JustRequestedTimesteps);
+    db->setAdditionalTimestepOption(AdditionalTimestepOption::JustRequestedTimesteps);
 
     std::string tablename = DatabaseDriverBase::resolveDatabaseTableName(
         settings.stationtype, itsParameters.params->stationtypeConfig);
@@ -322,16 +320,16 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::value
   {
     ts::TimeSeriesVectorPtr ret = boost::make_shared<ts::TimeSeriesVector>();
 
-	// Database query prevented
-	if(settings.preventDatabaseQuery)
-	  return ret;
+    // Database query prevented
+    if (settings.preventDatabaseQuery)
+      return ret;
 
     if (!itsConnectionsOK)
     {
       std::cerr << "[PostgreSQLDatabaseDriverForFmiData] values(): No connections to PostgreSQL "
                    "database!"
                 << std::endl;
-	  return ret;
+      return ret;
     }
 
     Spine::Stations stations;
@@ -339,7 +337,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::value
     std::shared_ptr<PostgreSQLObsDB> db =
         itsPostgreSQLConnectionPool->getConnection(settings.debug_options);
     setSettings(settings, *db);
-	db->setAdditionalTimestepOption(AdditionalTimestepOption::RequestedAndDataTimesteps);
+    db->setAdditionalTimestepOption(AdditionalTimestepOption::RequestedAndDataTimesteps);
 
     std::string tablename = DatabaseDriverBase::resolveDatabaseTableName(
         settings.stationtype, itsParameters.params->stationtypeConfig);
