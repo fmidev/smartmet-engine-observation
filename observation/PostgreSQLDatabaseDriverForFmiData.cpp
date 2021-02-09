@@ -180,6 +180,8 @@ void PostgreSQLDatabaseDriverForFmiData::makeQuery(QueryBase *qb)
 
 ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &settings)
 {
+  std::cout << "PostgreSQLDatabaseDriverForFmiData::values\n";
+
   if (itsShutdownRequested)
     return nullptr;
 
@@ -247,6 +249,7 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
     std::shared_ptr<PostgreSQLObsDB> db =
         itsPostgreSQLConnectionPool->getConnection(settings.debug_options);
     setSettings(settings, *db);
+	db->setAdditionalTimestepOption(AdditionalTimestepOption::JustRequestedTimesteps);
 
     std::string tablename = DatabaseDriverBase::resolveDatabaseTableName(
         settings.stationtype, itsParameters.params->stationtypeConfig);
@@ -336,6 +339,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::value
     std::shared_ptr<PostgreSQLObsDB> db =
         itsPostgreSQLConnectionPool->getConnection(settings.debug_options);
     setSettings(settings, *db);
+	db->setAdditionalTimestepOption(AdditionalTimestepOption::RequestedAndDataTimesteps);
 
     std::string tablename = DatabaseDriverBase::resolveDatabaseTableName(
         settings.stationtype, itsParameters.params->stationtypeConfig);
