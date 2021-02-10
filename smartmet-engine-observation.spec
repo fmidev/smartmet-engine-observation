@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.2.9
+Version: 21.2.10
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Feb 10 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.2.10-1.fmi
+- Fixed stationlongitude and -latitude to work in direct spatialite queries
+
 * Tue Feb 9 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.2.9-1.fmi
 - Timestep-option doesn't work (BRAINSTORM-2003) 
 

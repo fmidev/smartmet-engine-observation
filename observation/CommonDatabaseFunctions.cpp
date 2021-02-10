@@ -509,10 +509,16 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
 		}
 	  
 	  std::set<int> not_null_columns;
-	  if(qmap.specialPositions.find("fmisid") != qmap.specialPositions.end())
-		not_null_columns.insert(qmap.specialPositions.at("fmisid"));
-	  if(qmap.specialPositions.find("stationname") != qmap.specialPositions.end())
-		not_null_columns.insert(qmap.specialPositions.at("stationname"));
+
+          std::set<std::string> not_null_params{
+            "fmisid", "stationname", "stationlongitude", "stationlatitude", "stationlon", "stationlat"};
+
+          for (const auto &p : not_null_params)
+          {
+            auto it = qmap.specialPositions.find(p);
+            if (it != qmap.specialPositions.end())
+              not_null_columns.insert(it->second);
+          }
 	  
 	  Spine::TimeSeries::TimeSeriesVectorPtr resultVector = initializeResultVector(settings.parameters);
 	  for(const auto& item : station_data)
