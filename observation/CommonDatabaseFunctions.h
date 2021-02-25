@@ -1,7 +1,7 @@
 #pragma once
 
-#include "LocationDataItem.h"
 #include "DataWithQuality.h"
+#include "LocationDataItem.h"
 #include "ParameterMap.h"
 #include "QueryMapping.h"
 #include "Settings.h"
@@ -25,10 +25,9 @@ using StationMap = std::map<int, Spine::Station>;
 
 enum class AdditionalTimestepOption
 {
-  JustRequestedTimesteps, // wms,wfs
-	RequestedAndDataTimesteps // timeseries
+  JustRequestedTimesteps,    // wms,wfs
+  RequestedAndDataTimesteps  // timeseries
 };
-
 
 class CommonDatabaseFunctions
 {
@@ -86,9 +85,12 @@ class CommonDatabaseFunctions
   void setDebug(bool state) { itsDebug = state; }
   bool getDebug() const { return itsDebug; }
   virtual std::string getWeatherDataQCParams(const std::set<std::string> &param_set) const;
-  // If timesteps requested timeseries must have all requested and data timesteps (because of aggregation)
-  // but wms, wfs must have only requested timesteps
-  void setAdditionalTimestepOption(AdditionalTimestepOption opt) { itsGetRequestedAndDataTimesteps = opt; }
+  // If timesteps requested timeseries must have all requested and data timesteps (because of
+  // aggregation) but wms, wfs must have only requested timesteps
+  void setAdditionalTimestepOption(AdditionalTimestepOption opt)
+  {
+    itsGetRequestedAndDataTimesteps = opt;
+  }
 
  protected:
   QueryMapping buildQueryMapping(const Spine::Stations &stations,
@@ -110,38 +112,40 @@ class CommonDatabaseFunctions
   std::string buildSqlStationList(const Spine::Stations &stations,
                                   const std::set<std::string> &stationgroup_codes,
                                   const StationInfo &stationInfo) const;
-  StationTimedMeasurandData buildStationTimedMeasurandData(const LocationDataItems &observations,
-														   const Settings &settings,
-														   const Fmi::TimeZones &timezones,
-														   const StationMap &fmisid_to_station) const;
+  StationTimedMeasurandData buildStationTimedMeasurandData(
+      const LocationDataItems &observations,
+      const Settings &settings,
+      const Fmi::TimeZones &timezones,
+      const StationMap &fmisid_to_station) const;
   Spine::TimeSeries::TimeSeriesVectorPtr buildTimeseries(
       const Spine::Stations &stations,
       const Settings &settings,
       const std::string &stationtype,
       const StationMap &fmisid_to_station,
-	  const StationTimedMeasurandData& station_data,
+      const StationTimedMeasurandData &station_data,
       const QueryMapping &qmap,
       const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones) const;
 
-  void addSpecialFieldsToTimeSeries(const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-									int fmisid,
-									const TimedMeasurandData& data,
-									const std::set<boost::local_time::local_date_time>& valid_timesteps,
-									const std::map<std::string, int> &specialPositions,
-									const std::map<std::string, std::string> &parameterNameMap,
-									bool addDataSourceField) const;   
+  void addSpecialFieldsToTimeSeries(
+      const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+      int fmisid,
+      const TimedMeasurandData &data,
+      const std::set<boost::local_time::local_date_time> &valid_timesteps,
+      const std::map<std::string, int> &specialPositions,
+      const std::map<std::string, std::string> &parameterNameMap,
+      bool addDataSourceField) const;
 
   void addParameterToTimeSeries(
-								const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-								const std::pair<boost::local_time::local_date_time, MeasurandData> &dataItem,
-								int fmisid,
-								const std::map<std::string, int> &specialPositions,
-								const std::map<std::string, int> &parameterNameIdMap,
-								const std::map<std::string, int> &timeseriesPositions,
-								const std::string &stationtype,
-								const Spine::Station &station,
-								const Settings &settings) const;
+      const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+      const std::pair<boost::local_time::local_date_time, MeasurandData> &dataItem,
+      int fmisid,
+      const std::map<std::string, int> &specialPositions,
+      const std::map<std::string, int> &parameterNameIdMap,
+      const std::map<std::string, int> &timeseriesPositions,
+      const std::string &stationtype,
+      const Spine::Station &station,
+      const Settings &settings) const;
 
   void addSpecialParameterToTimeSeries(
       const std::string &paramname,
@@ -155,7 +159,8 @@ class CommonDatabaseFunctions
   const StationtypeConfig &itsStationtypeConfig;
   const ParameterMapPtr &itsParameterMap;
   bool itsDebug{false};
-  AdditionalTimestepOption itsGetRequestedAndDataTimesteps{AdditionalTimestepOption::RequestedAndDataTimesteps};
+  AdditionalTimestepOption itsGetRequestedAndDataTimesteps{
+      AdditionalTimestepOption::RequestedAndDataTimesteps};
 
  private:
 };  // namespace Observation

@@ -15,35 +15,32 @@ namespace Engine
 {
 namespace Observation
 {
-std::ostream& operator<<(std::ostream& out, const SmartMet::Engine::Observation::StationTimedMeasurandData& data)
+std::ostream &operator<<(std::ostream &out,
+                         const SmartMet::Engine::Observation::StationTimedMeasurandData &data)
 {
-  for(auto item1 : data)
-	{
-	  std::cout << "fmisid: " << item1.first << " -> " << std::endl;
-	  for(auto item2 : item1.second)
-		{
-		  std::cout << " observationtime: " << item2.first << " -> " << std::endl;
-		  for(auto item3 : item2.second)
-			{
-			  std::cout << "  measurand: " << item3.first << " -> " << std::endl;
-			  for(auto item4 : item3.second)
-				{
-				  std::cout << "   sensor -> value: " 
-							<< item4.first << " -> " 
-							<< item4.second.value 
-							<< ", " << item4.second.data_quality 
-							<< ", " << item4.second.data_source 
-							<< ", " << item4.second.is_default_sensor_data << std::endl;
-				}
-			}
-		}
-	}
+  for (auto item1 : data)
+  {
+    std::cout << "fmisid: " << item1.first << " -> " << std::endl;
+    for (auto item2 : item1.second)
+    {
+      std::cout << " observationtime: " << item2.first << " -> " << std::endl;
+      for (auto item3 : item2.second)
+      {
+        std::cout << "  measurand: " << item3.first << " -> " << std::endl;
+        for (auto item4 : item3.second)
+        {
+          std::cout << "   sensor -> value: " << item4.first << " -> " << item4.second.value << ", "
+                    << item4.second.data_quality << ", " << item4.second.data_source << ", "
+                    << item4.second.is_default_sensor_data << std::endl;
+        }
+      }
+    }
+  }
   return out;
 }
 
 namespace
 {
-
 enum class DataFieldSpecifier
 {
   Value,
@@ -68,58 +65,66 @@ bool is_data_quality_field(const std::string &fieldname)
            fieldname.find("_data_quality_sensornumber_") != std::string::npos));
 }
 
-Spine::TimeSeries::Value get_default_sensor_value(const SensorData& sensor_data, int fmisid, int measurand_id, DataFieldSpecifier specifier = DataFieldSpecifier::Value)
-{  
-  for(const auto& item : sensor_data)
-	{
-	  if(item.second.is_default_sensor_data == true)
-		{
-		  if(specifier == DataFieldSpecifier::Value)
-			return item.second.value;
-		  else if(specifier == DataFieldSpecifier::DataQuality)
-			return item.second.data_quality;
-		  else if(specifier == DataFieldSpecifier::DataSource)
-			return item.second.data_source;
-		}		
-	}
+Spine::TimeSeries::Value get_default_sensor_value(
+    const SensorData &sensor_data,
+    int fmisid,
+    int measurand_id,
+    DataFieldSpecifier specifier = DataFieldSpecifier::Value)
+{
+  for (const auto &item : sensor_data)
+  {
+    if (item.second.is_default_sensor_data == true)
+    {
+      if (specifier == DataFieldSpecifier::Value)
+        return item.second.value;
+      else if (specifier == DataFieldSpecifier::DataQuality)
+        return item.second.data_quality;
+      else if (specifier == DataFieldSpecifier::DataSource)
+        return item.second.data_source;
+    }
+  }
 
   // If no default sensor found return the first
-  const auto& default_item = *(sensor_data.begin());
+  const auto &default_item = *(sensor_data.begin());
 
-  if(specifier == DataFieldSpecifier::Value)
-	return default_item.second.value;
-  else if(specifier == DataFieldSpecifier::DataQuality)
-	return default_item.second.data_quality;
-  else if(specifier == DataFieldSpecifier::DataSource)
-	return default_item.second.data_source;
+  if (specifier == DataFieldSpecifier::Value)
+    return default_item.second.value;
+  else if (specifier == DataFieldSpecifier::DataQuality)
+    return default_item.second.data_quality;
+  else if (specifier == DataFieldSpecifier::DataSource)
+    return default_item.second.data_source;
 
   return Spine::TimeSeries::None();
 }
 
-Spine::TimeSeries::Value get_sensor_value(const SensorData& sensor_data, const std::string& sensor_no, int fmisid, int measurand_id, DataFieldSpecifier specifier = DataFieldSpecifier::Value)
+Spine::TimeSeries::Value get_sensor_value(const SensorData &sensor_data,
+                                          const std::string &sensor_no,
+                                          int fmisid,
+                                          int measurand_id,
+                                          DataFieldSpecifier specifier = DataFieldSpecifier::Value)
 {
-  if(sensor_data.empty())
-	return Spine::TimeSeries::None();
+  if (sensor_data.empty())
+    return Spine::TimeSeries::None();
 
-  if(sensor_no == "default" || sensor_no.empty())
-	return get_default_sensor_value(sensor_data, fmisid, measurand_id, specifier);
-  
+  if (sensor_no == "default" || sensor_no.empty())
+    return get_default_sensor_value(sensor_data, fmisid, measurand_id, specifier);
+
   int sensor_nro = Fmi::stoi(sensor_no);
-  if(sensor_data.find(sensor_nro) != sensor_data.end())
-	{
-	  if(specifier == DataFieldSpecifier::Value)
-		{
-		  return sensor_data.at(sensor_nro).value;
-		}
-	  else if(specifier == DataFieldSpecifier::DataQuality)
-		{
-		  return sensor_data.at(sensor_nro).data_quality;
-		}
-	  else if(specifier == DataFieldSpecifier::DataSource)
-		{
-		  return sensor_data.at(sensor_nro).data_source;
-		}
-	}	
+  if (sensor_data.find(sensor_nro) != sensor_data.end())
+  {
+    if (specifier == DataFieldSpecifier::Value)
+    {
+      return sensor_data.at(sensor_nro).value;
+    }
+    else if (specifier == DataFieldSpecifier::DataQuality)
+    {
+      return sensor_data.at(sensor_nro).data_quality;
+    }
+    else if (specifier == DataFieldSpecifier::DataSource)
+    {
+      return sensor_data.at(sensor_nro).data_source;
+    }
+  }
 
   return Spine::TimeSeries::None();
 }
@@ -167,7 +172,9 @@ QueryMapping CommonDatabaseFunctions::buildQueryMapping(const Spine::Stations &s
 
           if (!sparam.empty())
           {
-            int nparam = (!isWeatherDataQCTable ? Fmi::stoi(sparam) : itsParameterMap->getRoadAndForeignIds().stringToInteger(sparam));
+            int nparam = (!isWeatherDataQCTable
+                              ? Fmi::stoi(sparam)
+                              : itsParameterMap->getRoadAndForeignIds().stringToInteger(sparam));
 
             ret.timeseriesPositionsString[name_plus_sensor_number] = pos;
             ret.parameterNameMap[name_plus_sensor_number] = sparam;
@@ -176,8 +183,8 @@ QueryMapping CommonDatabaseFunctions::buildQueryMapping(const Spine::Stations &s
             if (mids.find(nparam) == mids.end())
               ret.measurandIds.push_back(nparam);
             int sensor_number = (p.getSensorNumber() ? *(p.getSensorNumber()) : -1);
-			if(sensor_number >= 0)
-			  ret.sensorNumberToMeasurandIds[sensor_number].insert(nparam);
+            if (sensor_number >= 0)
+              ret.sensorNumberToMeasurandIds[sensor_number].insert(nparam);
             mids.insert(nparam);
           }
           else
@@ -383,10 +390,11 @@ std::string CommonDatabaseFunctions::buildSqlStationList(
   }
 }
 
-StationTimedMeasurandData CommonDatabaseFunctions::buildStationTimedMeasurandData(const LocationDataItems &observations,
-																				  const Settings &settings,
-																				  const Fmi::TimeZones &timezones,
-																				  const StationMap &fmisid_to_station) const
+StationTimedMeasurandData CommonDatabaseFunctions::buildStationTimedMeasurandData(
+    const LocationDataItems &observations,
+    const Settings &settings,
+    const Fmi::TimeZones &timezones,
+    const StationMap &fmisid_to_station) const
 {
   StationTimedMeasurandData ret;
 
@@ -402,15 +410,18 @@ StationTimedMeasurandData CommonDatabaseFunctions::buildStationTimedMeasurandDat
       boost::local_time::local_date_time obstime =
           boost::local_time::local_date_time(obs.data.data_time, localtz);
 
-      Spine::TimeSeries::Value value = (obs.data.data_value ? Spine::TimeSeries::Value(*obs.data.data_value): Spine::TimeSeries::None());
-	  Spine::TimeSeries::Value data_quality(obs.data.data_quality);
+      Spine::TimeSeries::Value value =
+          (obs.data.data_value ? Spine::TimeSeries::Value(*obs.data.data_value)
+                               : Spine::TimeSeries::None());
+      Spine::TimeSeries::Value data_quality(obs.data.data_quality);
       Spine::TimeSeries::Value data_source =
           (obs.data.data_source > -1 ? Spine::TimeSeries::Value(obs.data.data_source)
                                      : Spine::TimeSeries::None());
 
-	  bool data_from_default_sensor = (obs.data.measurand_no == 1);
+      bool data_from_default_sensor = (obs.data.measurand_no == 1);
 
-	  ret[fmisid][obstime][obs.data.measurand_id][obs.data.sensor_no] = DataWithQuality(value, data_quality, data_source, data_from_default_sensor);
+      ret[fmisid][obstime][obs.data.measurand_id][obs.data.sensor_no] =
+          DataWithQuality(value, data_quality, data_source, data_from_default_sensor);
     }
   }
   catch (...)
@@ -426,301 +437,317 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
     const Settings &settings,
     const std::string &stationtype,
     const StationMap &fmisid_to_station,
-	const StationTimedMeasurandData& station_data,
+    const StationTimedMeasurandData &station_data,
     const QueryMapping &qmap,
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones) const
 {
   try
-	{
-	  // Resolve timesteps for each fmisid
-	  std::map<int, std::set<boost::local_time::local_date_time>> fmisid_timesteps;
-	  if (timeSeriesOptions.all() && !settings.latest)
-		{
-		  // std::cout << "**** ALL timesteps in data \n";
-		  // All timesteps
-		  for(const auto& item : station_data)
-			{		
-			  int fmisid = item.first;
-			  const auto& timed_measurand_data = item.second;
-			  for(const auto& item2 : timed_measurand_data)
-				{
-				  fmisid_timesteps[fmisid].insert(item2.first);
-				}
-			}
-		}
-	  else if (settings.latest)
-		{
-		  // std::cout << "**** LATEST timesteps\n";
-		  // Latest timestep
-		  for(const auto& item : station_data)
-			{		
-			  int fmisid = item.first;
-			  const auto& timed_measurand_data = item.second;
-			  const auto obstime = timed_measurand_data.rbegin()->first;
-			  fmisid_timesteps[fmisid].insert(obstime);
-			}
-		}
-	  else if (!timeSeriesOptions.all() && !settings.latest && itsGetRequestedAndDataTimesteps == AdditionalTimestepOption::RequestedAndDataTimesteps)
-		{
-		  // std::cout << "**** ALL timesteps in data + listed timesteps\n";
-		  // All FMISDS must have all timesteps in data and all listed timesteps
-		  std::set<int> fmisids;
-		  std::set<boost::local_time::local_date_time> timesteps;
-		  for(const auto& item : station_data)
-			{		
-			  fmisids.insert(item.first);
-			  const auto& timed_measurand_data = item.second;
-			  for(const auto& item2 : timed_measurand_data)
-				{
-				  timesteps.insert(item2.first);
-				}
-			}
-		  const auto tlist = Spine::TimeSeriesGenerator::generate(timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
-		  timesteps.insert(tlist.begin(), tlist.end());
-		  
-		  for(const auto& fmisid : fmisids)
-			fmisid_timesteps[fmisid].insert(timesteps.begin(), timesteps.end());
-		  
-		}
-	  else
-		{
-		  // std::cout << "**** LISTED timesteps\n";
-		  // Listed timesteps
-		  const auto tlist = Spine::TimeSeriesGenerator::generate(timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));		  
-		  for(const auto& item : station_data)
-			fmisid_timesteps[item.first].insert(tlist.begin(), tlist.end());
-		}	
-	  
-	  //	  std::cout << "station_data:\n" << station_data << std::endl;
-	  
-	  Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-		initializeResultVector(settings.parameters);
-	  
-	  bool addDataQualityField = false;
-	  bool addDataSourceField = false;
-	  
-	  for (auto const &item : qmap.specialPositions)
-		{
-		  if (isDataSourceField(item.first))
-			addDataSourceField = true;
-		  if (isDataQualityField(item.first))
-			addDataQualityField = true;
-		}
-	  
-	  std::set<int> not_null_columns;
+  {
+    // Resolve timesteps for each fmisid
+    std::map<int, std::set<boost::local_time::local_date_time>> fmisid_timesteps;
+    if (timeSeriesOptions.all() && !settings.latest)
+    {
+      // std::cout << "**** ALL timesteps in data \n";
+      // All timesteps
+      for (const auto &item : station_data)
+      {
+        int fmisid = item.first;
+        const auto &timed_measurand_data = item.second;
+        for (const auto &item2 : timed_measurand_data)
+        {
+          fmisid_timesteps[fmisid].insert(item2.first);
+        }
+      }
+    }
+    else if (settings.latest)
+    {
+      // std::cout << "**** LATEST timesteps\n";
+      // Latest timestep
+      for (const auto &item : station_data)
+      {
+        int fmisid = item.first;
+        const auto &timed_measurand_data = item.second;
+        const auto obstime = timed_measurand_data.rbegin()->first;
+        fmisid_timesteps[fmisid].insert(obstime);
+      }
+    }
+    else if (!timeSeriesOptions.all() && !settings.latest &&
+             itsGetRequestedAndDataTimesteps == AdditionalTimestepOption::RequestedAndDataTimesteps)
+    {
+      // std::cout << "**** ALL timesteps in data + listed timesteps\n";
+      // All FMISDS must have all timesteps in data and all listed timesteps
+      std::set<int> fmisids;
+      std::set<boost::local_time::local_date_time> timesteps;
+      for (const auto &item : station_data)
+      {
+        fmisids.insert(item.first);
+        const auto &timed_measurand_data = item.second;
+        for (const auto &item2 : timed_measurand_data)
+        {
+          timesteps.insert(item2.first);
+        }
+      }
+      const auto tlist = Spine::TimeSeriesGenerator::generate(
+          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+      timesteps.insert(tlist.begin(), tlist.end());
 
-	  for(const auto& item : qmap.specialPositions)
-		{
-		  if(Spine::is_special_parameter(item.first))
-			not_null_columns.insert(item.second);			
-		}
-	  
-	  Spine::TimeSeries::TimeSeriesVectorPtr resultVector = initializeResultVector(settings.parameters);
-	  for(const auto& item : station_data)
-		{		
-		  int fmisid = item.first;
-		  
-		  const auto& timed_measurand_data = item.second;
-		  const auto& valid_timesteps = fmisid_timesteps.at(fmisid);
-		  
-		  if (fmisid_to_station.find(fmisid) == fmisid_to_station.end())
-			{
-		  //		       std::cout << "Station not found for " << fmisid << std::endl;
-			  continue;
-		    }
-		  for (const auto& data : timed_measurand_data)
-			{
-			  
-			  if(valid_timesteps.find(data.first) == valid_timesteps.end())
-				{
-				  //				  std::cout << "Invalid timestep " << data.first << " for station " << fmisid  << std::endl;
-				  continue;
-				}
-			  
-			  addParameterToTimeSeries(resultVector,
-									   data,fmisid,
-									   qmap.specialPositions,
-									   qmap.parameterNameIdMap,
-									   qmap.timeseriesPositionsString,
-									   stationtype,
-									   fmisid_to_station.at(fmisid),settings);
-			}
-		  
-		  if (addDataSourceField)
-			addSpecialFieldsToTimeSeries(resultVector,
-										 fmisid,
-										 timed_measurand_data,
-										 valid_timesteps,
-										 qmap.specialPositions,
-										 qmap.parameterNameMap,
-										 true);
-		  if (addDataQualityField)
-			addSpecialFieldsToTimeSeries(resultVector,
-										 fmisid,
-										 timed_measurand_data,
-										 valid_timesteps,
-										 qmap.specialPositions,
-										 qmap.parameterNameMap,
-										 false);
-		  
-		  // All possible missing timesteps
-		  for(unsigned int i = 0; i < resultVector->size(); i++)
-			{
-			  auto& ts = resultVector->at(i);
-			  if(ts.empty())
-				continue;
-			  
-			  Spine::TimeSeries::Value missing_value = Spine::TimeSeries::None();
-			  if(ts.size() > 0 && not_null_columns.find(i) != not_null_columns.end())
-				{
-				  missing_value = ts.back().value;
-				}
-		  
-			  Spine::TimeSeries::TimeSeries new_ts;
-			  std::set<boost::local_time::local_date_time>::const_iterator timestep_iter = valid_timesteps.begin();
-			  for(auto& timed_value : ts)
-				{
-				  while(*timestep_iter < timed_value.time && timestep_iter != valid_timesteps.end())
-					{
-					  new_ts.push_back(Spine::TimeSeries::TimedValue(*timestep_iter, missing_value));
-					  timestep_iter++;
-					}				
-				  new_ts.push_back(timed_value);
-				  timestep_iter++;
-				}
-			  
-			  if(timestep_iter != valid_timesteps.end() && (new_ts.size() > 0 && *timestep_iter == new_ts.back().time))
-				timestep_iter++;
-		  
-			  while(timestep_iter != valid_timesteps.end())
-				{
-				  new_ts.push_back(Spine::TimeSeries::TimedValue(*timestep_iter, missing_value));
-				  timestep_iter++;
-				}
-			  /*
-			  ts = new_ts;
-			  timeSeriesColumns->at(i).insert(timeSeriesColumns->at(i).end(), ts.begin(), ts.end());
-			  */
-			  timeSeriesColumns->at(i).insert(timeSeriesColumns->at(i).end(), new_ts.begin(), new_ts.end());
-			  ts.clear();
-			}
-		}
-	  
-	  return timeSeriesColumns;
-	  
-	}
+      for (const auto &fmisid : fmisids)
+        fmisid_timesteps[fmisid].insert(timesteps.begin(), timesteps.end());
+    }
+    else
+    {
+      // std::cout << "**** LISTED timesteps\n";
+      // Listed timesteps
+      const auto tlist = Spine::TimeSeriesGenerator::generate(
+          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+      for (const auto &item : station_data)
+        fmisid_timesteps[item.first].insert(tlist.begin(), tlist.end());
+    }
+
+    //	  std::cout << "station_data:\n" << station_data << std::endl;
+
+    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
+        initializeResultVector(settings.parameters);
+
+    bool addDataQualityField = false;
+    bool addDataSourceField = false;
+
+    for (auto const &item : qmap.specialPositions)
+    {
+      if (isDataSourceField(item.first))
+        addDataSourceField = true;
+      if (isDataQualityField(item.first))
+        addDataQualityField = true;
+    }
+
+    std::set<int> not_null_columns;
+
+    for (const auto &item : qmap.specialPositions)
+    {
+      if (Spine::is_special_parameter(item.first))
+        not_null_columns.insert(item.second);
+    }
+
+    Spine::TimeSeries::TimeSeriesVectorPtr resultVector =
+        initializeResultVector(settings.parameters);
+    for (const auto &item : station_data)
+    {
+      int fmisid = item.first;
+
+      const auto &timed_measurand_data = item.second;
+      const auto &valid_timesteps = fmisid_timesteps.at(fmisid);
+
+      if (fmisid_to_station.find(fmisid) == fmisid_to_station.end())
+      {
+        //		       std::cout << "Station not found for " << fmisid << std::endl;
+        continue;
+      }
+      for (const auto &data : timed_measurand_data)
+      {
+        if (valid_timesteps.find(data.first) == valid_timesteps.end())
+        {
+          //				  std::cout << "Invalid timestep " << data.first << " for station " <<
+          //fmisid  << std::endl;
+          continue;
+        }
+
+        addParameterToTimeSeries(resultVector,
+                                 data,
+                                 fmisid,
+                                 qmap.specialPositions,
+                                 qmap.parameterNameIdMap,
+                                 qmap.timeseriesPositionsString,
+                                 stationtype,
+                                 fmisid_to_station.at(fmisid),
+                                 settings);
+      }
+
+      if (addDataSourceField)
+        addSpecialFieldsToTimeSeries(resultVector,
+                                     fmisid,
+                                     timed_measurand_data,
+                                     valid_timesteps,
+                                     qmap.specialPositions,
+                                     qmap.parameterNameMap,
+                                     true);
+      if (addDataQualityField)
+        addSpecialFieldsToTimeSeries(resultVector,
+                                     fmisid,
+                                     timed_measurand_data,
+                                     valid_timesteps,
+                                     qmap.specialPositions,
+                                     qmap.parameterNameMap,
+                                     false);
+
+      // All possible missing timesteps
+      for (unsigned int i = 0; i < resultVector->size(); i++)
+      {
+        auto &ts = resultVector->at(i);
+        if (ts.empty())
+          continue;
+
+        Spine::TimeSeries::Value missing_value = Spine::TimeSeries::None();
+        if (ts.size() > 0 && not_null_columns.find(i) != not_null_columns.end())
+        {
+          missing_value = ts.back().value;
+        }
+
+        Spine::TimeSeries::TimeSeries new_ts;
+        std::set<boost::local_time::local_date_time>::const_iterator timestep_iter =
+            valid_timesteps.begin();
+        for (auto &timed_value : ts)
+        {
+          while (*timestep_iter < timed_value.time && timestep_iter != valid_timesteps.end())
+          {
+            new_ts.push_back(Spine::TimeSeries::TimedValue(*timestep_iter, missing_value));
+            timestep_iter++;
+          }
+          new_ts.push_back(timed_value);
+          timestep_iter++;
+        }
+
+        if (timestep_iter != valid_timesteps.end() &&
+            (new_ts.size() > 0 && *timestep_iter == new_ts.back().time))
+          timestep_iter++;
+
+        while (timestep_iter != valid_timesteps.end())
+        {
+          new_ts.push_back(Spine::TimeSeries::TimedValue(*timestep_iter, missing_value));
+          timestep_iter++;
+        }
+        /*
+        ts = new_ts;
+        timeSeriesColumns->at(i).insert(timeSeriesColumns->at(i).end(), ts.begin(), ts.end());
+        */
+        timeSeriesColumns->at(i).insert(
+            timeSeriesColumns->at(i).end(), new_ts.begin(), new_ts.end());
+        ts.clear();
+      }
+    }
+
+    return timeSeriesColumns;
+  }
   catch (...)
-	{
-	  throw Fmi::Exception::Trace(BCP, "Building time series with all timesteps failed!");
-	}
+  {
+    throw Fmi::Exception::Trace(BCP, "Building time series with all timesteps failed!");
+  }
 }
 
 void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
     const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
     int fmisid,
-	const TimedMeasurandData& timed_measurand_data,
-	const std::set<boost::local_time::local_date_time>& valid_timesteps,
+    const TimedMeasurandData &timed_measurand_data,
+    const std::set<boost::local_time::local_date_time> &valid_timesteps,
     const std::map<std::string, int> &specialPositions,
     const std::map<std::string, std::string> &parameterNameMap,
     bool addDataSourceField) const
 {
   // Add *data_source- and data_quality-fields
   try
-	{
-	  std::map<int, Spine::TimeSeries::TimeSeries> data_source_ts;
-	  std::set<boost::local_time::local_date_time> timesteps;
-	  for (const auto& item : timed_measurand_data)
-		{
-		  const auto &obstime = item.first;
-		  if(valid_timesteps.find(obstime) == valid_timesteps.end())
-			continue;
+  {
+    std::map<int, Spine::TimeSeries::TimeSeries> data_source_ts;
+    std::set<boost::local_time::local_date_time> timesteps;
+    for (const auto &item : timed_measurand_data)
+    {
+      const auto &obstime = item.first;
+      if (valid_timesteps.find(obstime) == valid_timesteps.end())
+        continue;
 
-		  // measurand_id -> sensor_no -> value
-		  const auto& measurand_data = item.second;
-		  for (const auto &special : specialPositions)
-			{
-			  const auto &fieldname = special.first;
+      // measurand_id -> sensor_no -> value
+      const auto &measurand_data = item.second;
+      for (const auto &special : specialPositions)
+      {
+        const auto &fieldname = special.first;
 
-			  int pos = special.second;
-			  Spine::TimeSeries::Value val = Spine::TimeSeries::None();
-			  if (addDataSourceField && isDataSourceField(fieldname))
-				{
-				  auto masterParamName = fieldname.substr(0, fieldname.find("_data_source_sensornumber_"));
-				  if (!masterParamName.empty())
-					masterParamName = masterParamName.substr(0, masterParamName.length());
-				  std::string sensor_number = fieldname.substr(fieldname.rfind("_") + 1);
-				  for (const auto &item : parameterNameMap)
-					{
-					  if (boost::algorithm::starts_with(item.first, masterParamName + "_sensornumber_"))
-						{
-						  int measurand_id = Fmi::stoi(parameterNameMap.at(item.first));
-						  if (measurand_data.count(measurand_id) > 0)
-							{
-							  const auto& sensor_values = measurand_data.at(measurand_id);
-							  val = get_sensor_value(sensor_values, sensor_number, fmisid, measurand_id, DataFieldSpecifier::DataSource);
-							}
-						  break;
-						}
-					}
-				  data_source_ts[pos].push_back(Spine::TimeSeries::TimedValue(obstime, val));
-				  timesteps.insert(obstime);
-				}
-			  else if (!addDataSourceField && isDataQualityField(fieldname))
-				{
-				  // Handle data_quality field
-				  std::string sensor_number = fieldname.substr(fieldname.rfind("_") + 1);
-				  for (const auto &pn : parameterNameMap)
-					{
-					  int measurand_id = Fmi::stoi(pn.second);
-					  
-					  if (measurand_data.count(measurand_id) > 0)
-						{
-						  const auto& sensor_values = measurand_data.at(measurand_id);
-						  val = get_sensor_value(sensor_values, sensor_number, fmisid, measurand_id, DataFieldSpecifier::DataQuality);
-						}
-					}
-				  data_source_ts[pos].push_back(Spine::TimeSeries::TimedValue(obstime, val));
-				  timesteps.insert(obstime);
-				}
-			}
-		}
+        int pos = special.second;
+        Spine::TimeSeries::Value val = Spine::TimeSeries::None();
+        if (addDataSourceField && isDataSourceField(fieldname))
+        {
+          auto masterParamName = fieldname.substr(0, fieldname.find("_data_source_sensornumber_"));
+          if (!masterParamName.empty())
+            masterParamName = masterParamName.substr(0, masterParamName.length());
+          std::string sensor_number = fieldname.substr(fieldname.rfind("_") + 1);
+          for (const auto &item : parameterNameMap)
+          {
+            if (boost::algorithm::starts_with(item.first, masterParamName + "_sensornumber_"))
+            {
+              int measurand_id = Fmi::stoi(parameterNameMap.at(item.first));
+              if (measurand_data.count(measurand_id) > 0)
+              {
+                const auto &sensor_values = measurand_data.at(measurand_id);
+                val = get_sensor_value(sensor_values,
+                                       sensor_number,
+                                       fmisid,
+                                       measurand_id,
+                                       DataFieldSpecifier::DataSource);
+              }
+              break;
+            }
+          }
+          data_source_ts[pos].push_back(Spine::TimeSeries::TimedValue(obstime, val));
+          timesteps.insert(obstime);
+        }
+        else if (!addDataSourceField && isDataQualityField(fieldname))
+        {
+          // Handle data_quality field
+          std::string sensor_number = fieldname.substr(fieldname.rfind("_") + 1);
+          for (const auto &pn : parameterNameMap)
+          {
+            int measurand_id = Fmi::stoi(pn.second);
 
-		// Add data to result vector + handle missing time steps
-		Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
-		for (const auto &item : data_source_ts)
-		  {
-		  int pos = item.first;
-		  const auto &ts = item.second;
-		  auto time_iterator = timesteps.begin();
-		  for (const auto &val : ts)
-			{
-			  auto obstime = val.time;
-			  while (time_iterator != timesteps.end() && *time_iterator < obstime)
-				{
-				  timeSeriesColumns->at(pos).push_back(
-													   Spine::TimeSeries::TimedValue(*time_iterator, missing));
-				  time_iterator++;
-				}
-			  if (time_iterator != timesteps.end() && *time_iterator == obstime)
-				time_iterator++;
-			  timeSeriesColumns->at(pos).push_back(val);
-			}
-		  // Timesteps after last timestep in data
-		  while (time_iterator != timesteps.end())
-			{
-			  timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(*time_iterator, missing));
-			  time_iterator++;
-			}
-		}
-	}
+            if (measurand_data.count(measurand_id) > 0)
+            {
+              const auto &sensor_values = measurand_data.at(measurand_id);
+              val = get_sensor_value(sensor_values,
+                                     sensor_number,
+                                     fmisid,
+                                     measurand_id,
+                                     DataFieldSpecifier::DataQuality);
+            }
+          }
+          data_source_ts[pos].push_back(Spine::TimeSeries::TimedValue(obstime, val));
+          timesteps.insert(obstime);
+        }
+      }
+    }
+
+    // Add data to result vector + handle missing time steps
+    Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
+    for (const auto &item : data_source_ts)
+    {
+      int pos = item.first;
+      const auto &ts = item.second;
+      auto time_iterator = timesteps.begin();
+      for (const auto &val : ts)
+      {
+        auto obstime = val.time;
+        while (time_iterator != timesteps.end() && *time_iterator < obstime)
+        {
+          timeSeriesColumns->at(pos).push_back(
+              Spine::TimeSeries::TimedValue(*time_iterator, missing));
+          time_iterator++;
+        }
+        if (time_iterator != timesteps.end() && *time_iterator == obstime)
+          time_iterator++;
+        timeSeriesColumns->at(pos).push_back(val);
+      }
+      // Timesteps after last timestep in data
+      while (time_iterator != timesteps.end())
+      {
+        timeSeriesColumns->at(pos).push_back(
+            Spine::TimeSeries::TimedValue(*time_iterator, missing));
+        time_iterator++;
+      }
+    }
+  }
   catch (...)
-	{
-	  if(addDataSourceField)
-		throw Fmi::Exception::Trace(BCP, "Adding special data source to time series failed!");
-	  else
-		throw Fmi::Exception::Trace(BCP, "Adding special data quality to time series failed!");
-	}
+  {
+    if (addDataSourceField)
+      throw Fmi::Exception::Trace(BCP, "Adding special data source to time series failed!");
+    else
+      throw Fmi::Exception::Trace(BCP, "Adding special data quality to time series failed!");
+  }
 }
 
 void CommonDatabaseFunctions::addParameterToTimeSeries(
@@ -736,9 +763,8 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
 {
   try
   {
-
     boost::local_time::local_date_time obstime = dataItem.first;
-    const MeasurandData& data = dataItem.second;
+    const MeasurandData &data = dataItem.second;
     // Append weather parameters
     for (const auto &parameter_item : parameterNameIdMap)
     {
@@ -749,12 +775,13 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
 
       if (data.count(parameter_id) > 0)
       {
-		const auto& sensor_values =  data.at(parameter_id);
-		std::string name_plus_snumber = parameter_item.first;
-		std::string sensor_no = "default";
+        const auto &sensor_values = data.at(parameter_id);
+        std::string name_plus_snumber = parameter_item.first;
+        std::string sensor_no = "default";
         if (name_plus_snumber.find("_sensornumber_") != std::string::npos)
-		  sensor_no = name_plus_snumber.substr(name_plus_snumber.rfind("_") + 1);
-		val = get_sensor_value(sensor_values, sensor_no, fmisid, parameter_id, DataFieldSpecifier::Value);
+          sensor_no = name_plus_snumber.substr(name_plus_snumber.rfind("_") + 1);
+        val = get_sensor_value(
+            sensor_values, sensor_no, fmisid, parameter_id, DataFieldSpecifier::Value);
       }
 
       timeSeriesColumns->at(timeseriesPositions.at(nameInRequest))
@@ -768,9 +795,11 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
       if (special.first.find("windcompass") != std::string::npos)
       {
         // Have to get wind direction first
-		bool isWeatherDataQCTable = (stationtype == "foreign" || stationtype == "road");
-		std::string sparam = itsParameterMap->getParameter("winddirection", stationtype);
-		int mid = (!isWeatherDataQCTable ? Fmi::stoi(sparam) : itsParameterMap->getRoadAndForeignIds().stringToInteger(sparam));
+        bool isWeatherDataQCTable = (stationtype == "foreign" || stationtype == "road");
+        std::string sparam = itsParameterMap->getParameter("winddirection", stationtype);
+        int mid = (!isWeatherDataQCTable
+                       ? Fmi::stoi(sparam)
+                       : itsParameterMap->getRoadAndForeignIds().stringToInteger(sparam));
         if (data.count(mid) == 0)
         {
           Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
@@ -778,9 +807,9 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
         }
         else
         {
-		  const auto& sensor_values = data.at(mid);
+          const auto &sensor_values = data.at(mid);
 
-		  Spine::TimeSeries::Value val = get_default_sensor_value(sensor_values, fmisid, mid);
+          Spine::TimeSeries::Value val = get_default_sensor_value(sensor_values, fmisid, mid);
 
           Spine::TimeSeries::Value none = Spine::TimeSeries::None();
           if (val != none)
@@ -803,8 +832,8 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
         // Feels like - deduction. This ignores radiation, since it is measured
         // using dedicated stations
         int windpos = Fmi::stoi(itsParameterMap->getParameter("windspeedms", stationtype));
-		int rhpos = Fmi::stoi(itsParameterMap->getParameter("relativehumidity", stationtype));
-		int temppos = Fmi::stoi(itsParameterMap->getParameter("temperature", stationtype));
+        int rhpos = Fmi::stoi(itsParameterMap->getParameter("relativehumidity", stationtype));
+        int temppos = Fmi::stoi(itsParameterMap->getParameter("temperature", stationtype));
 
         if (data.count(windpos) == 0 || data.count(rhpos) == 0 || data.count(temppos) == 0)
         {
@@ -829,7 +858,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
       {
         int wawapos = Fmi::stoi(itsParameterMap->getParameter("wawa", stationtype));
         int totalcloudcoverpos =
-		  Fmi::stoi(itsParameterMap->getParameter("totalcloudcover", stationtype));
+            Fmi::stoi(itsParameterMap->getParameter("totalcloudcover", stationtype));
         int temppos = Fmi::stoi(itsParameterMap->getParameter("temperature", stationtype));
         if (data.count(wawapos) == 0 || data.count(totalcloudcoverpos) == 0 ||
             data.count(temppos) == 0)
@@ -842,9 +871,11 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
           auto sensor_values = data.at(temppos);
           float temp = boost::get<double>(get_default_sensor_value(sensor_values, fmisid, temppos));
           sensor_values = data.at(totalcloudcoverpos);
-          int totalcloudcover = static_cast<int>(boost::get<double>(get_default_sensor_value(sensor_values, fmisid, totalcloudcoverpos)));
+          int totalcloudcover = static_cast<int>(boost::get<double>(
+              get_default_sensor_value(sensor_values, fmisid, totalcloudcoverpos)));
           sensor_values = data.at(wawapos);
-          int wawa = static_cast<int>(boost::get<double>(get_default_sensor_value(sensor_values, fmisid, wawapos)));
+          int wawa = static_cast<int>(
+              boost::get<double>(get_default_sensor_value(sensor_values, fmisid, wawapos)));
 
           double lat = station.latitude_out;
           double lon = station.longitude_out;
@@ -1021,10 +1052,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
 
     WeatherDataQCData weatherDataQCData;
 
-    fetchWeatherDataQCData(
-        query, stationInfo, stationgroup_codes, qmap, weatherDataQCData);
+    fetchWeatherDataQCData(query, stationInfo, stationgroup_codes, qmap, weatherDataQCData);
 
-	StationTimedMeasurandData station_data;
+    StationTimedMeasurandData station_data;
 
     unsigned int i = 0;
 
@@ -1039,7 +1069,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
       boost::local_time::local_date_time obstime =
           boost::local_time::local_date_time(utctime, localtz);
 
-	  int measurand_id = *weatherDataQCData.parametersAll[i];
+      int measurand_id = *weatherDataQCData.parametersAll[i];
       int sensor_no = *weatherDataQCData.sensor_nosAll[i];
 
       Spine::TimeSeries::Value val;
@@ -1050,20 +1080,21 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
       if (weatherDataQCData.data_qualityAll[i])
         val_quality = Spine::TimeSeries::Value(*weatherDataQCData.data_qualityAll[i]);
 
-	  bool data_from_default_sensor = (sensor_no == 1);
+      bool data_from_default_sensor = (sensor_no == 1);
 
-	  station_data[fmisid][obstime][measurand_id][sensor_no] = DataWithQuality(val,val_quality, Spine::TimeSeries::None(), data_from_default_sensor);
+      station_data[fmisid][obstime][measurand_id][sensor_no] =
+          DataWithQuality(val, val_quality, Spine::TimeSeries::None(), data_from_default_sensor);
       i++;
     }
 
-	return buildTimeseries(stations,
-						   settings, 
-						   stationtype,
-						   fmisid_to_station,
-						   station_data,
-						   qmap,
-						   timeSeriesOptions,
-						   timezones);
+    return buildTimeseries(stations,
+                           settings,
+                           stationtype,
+                           fmisid_to_station,
+                           station_data,
+                           qmap,
+                           timeSeriesOptions,
+                           timezones);
   }
   catch (...)
   {

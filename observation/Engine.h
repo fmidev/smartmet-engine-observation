@@ -3,8 +3,8 @@
 #include "DatabaseDriverInterface.h"
 #include "EngineParameters.h"
 #include "ObservationCache.h"
-#include <spine/Value.h>
 #include <spine/Table.h>
+#include <spine/Value.h>
 
 namespace SmartMet
 {
@@ -98,14 +98,14 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   std::set<std::string> getValidStationTypes() const;
 
   /* \brief Get detailed info of producer(s)
-   * \param[in] producer If producer is given return info only of that producer, otherwise of all producers
-   * \return Info of producer(s)
+   * \param[in] producer If producer is given return info only of that producer, otherwise of all
+   * producers \return Info of producer(s)
    */
   ContentTable getProducerInfo(boost::optional<std::string> producer) const;
 
   /* \brief Get parameter info of producer(s)
-   * \param[in] producer If producer is given return info only of that producer, otherwise of all producers
-   * \return Parameter info of producer(s)
+   * \param[in] producer If producer is given return info only of that producer, otherwise of all
+   * producers \return Parameter info of producer(s)
    */
   ContentTable getParameterInfo(boost::optional<std::string> producer) const;
 

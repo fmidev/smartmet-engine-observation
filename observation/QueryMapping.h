@@ -23,8 +23,8 @@ struct QueryMapping
 
   bool isDefaultSensor(int sensor_no, int measurand_id) const
   {
-	if(sensorNumberToMeasurandIds.empty())
-	  return false;
+    if (sensorNumberToMeasurandIds.empty())
+      return false;
 
     bool ret = true;
 

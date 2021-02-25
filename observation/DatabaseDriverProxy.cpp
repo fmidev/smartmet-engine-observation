@@ -3,8 +3,8 @@
 #include "PostgreSQLDatabaseDriverForFmiData.h"
 #include "PostgreSQLDatabaseDriverForMobileData.h"
 #include "SpatiaLiteDatabaseDriver.h"
-#include <macgyver/Exception.h>
 #include <macgyver/AnsiEscapeCodes.h>
+#include <macgyver/Exception.h>
 
 extern "C"
 {
@@ -64,10 +64,10 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
         itsOracleDriver = createOracleDriver(driver_id, p, cfg);
         dbDriver = itsOracleDriver;
       }
-	  else if (boost::algorithm::starts_with(driver_id, "dummy"))
-		{
-		  dbDriver = new DummyDatabaseDriver(driver_id, p);
-		}
+      else if (boost::algorithm::starts_with(driver_id, "dummy"))
+      {
+        dbDriver = new DummyDatabaseDriver(driver_id, p);
+      }
 
       if (dbDriver != nullptr)
       {
@@ -83,14 +83,16 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
       }
     }
 
-	// If no active driver configured create dummy driver
-	if (itsDatabaseDriverContainer.size() == 0)
-	  {
-		auto dbDriver = new DummyDatabaseDriver("dummy",  p);
-		itsDatabaseDriverSet.insert(dbDriver);
-		itsDatabaseDriverContainer.addDriver("*", INT_MAX, dbDriver);
-		std::cout << ANSI_FG_RED << "Note! No active database drivers configured -> creating a dummy driver!" << ANSI_FG_DEFAULT << std::endl;	
-	  }
+    // If no active driver configured create dummy driver
+    if (itsDatabaseDriverContainer.size() == 0)
+    {
+      auto dbDriver = new DummyDatabaseDriver("dummy", p);
+      itsDatabaseDriverSet.insert(dbDriver);
+      itsDatabaseDriverContainer.addDriver("*", INT_MAX, dbDriver);
+      std::cout << ANSI_FG_RED
+                << "Note! No active database drivers configured -> creating a dummy driver!"
+                << ANSI_FG_DEFAULT << std::endl;
+    }
   }
   catch (...)
   {

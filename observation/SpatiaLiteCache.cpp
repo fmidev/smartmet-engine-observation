@@ -180,9 +180,9 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
     // Get data if we have stations
     if (!stations.empty())
     {
-      std::shared_ptr<CommonDatabaseFunctions> db = itsConnectionPool->getConnection();  
+      std::shared_ptr<CommonDatabaseFunctions> db = itsConnectionPool->getConnection();
       db->setDebug(settings.debug_options);
-	  db->setAdditionalTimestepOption(AdditionalTimestepOption::JustRequestedTimesteps);
+      db->setAdditionalTimestepOption(AdditionalTimestepOption::JustRequestedTimesteps);
 
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
@@ -233,7 +233,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
     {
       std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
       db->setDebug(settings.debug_options);
-	  db->setAdditionalTimestepOption(AdditionalTimestepOption::RequestedAndDataTimesteps);
+      db->setAdditionalTimestepOption(AdditionalTimestepOption::RequestedAndDataTimesteps);
 
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))

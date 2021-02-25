@@ -83,7 +83,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservation
     Engine::Observation::StationMap fmisid_to_station =
         mapQueryStations(stations, observed_fmisids);
 
-	StationTimedMeasurandData station_data = buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
+    StationTimedMeasurandData station_data =
+        buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
 
     return buildTimeseries(stations,
                            settings,

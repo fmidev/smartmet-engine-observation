@@ -15,7 +15,10 @@ struct ObservableProperty;
 class DummyDatabaseDriver : public DatabaseDriverBase
 {
  public:
-  DummyDatabaseDriver(const std::string &name, const EngineParametersPtr &p) : DatabaseDriverBase(name), itsParameters(p) {}
+  DummyDatabaseDriver(const std::string &name, const EngineParametersPtr &p)
+      : DatabaseDriverBase(name), itsParameters(p)
+  {
+  }
 
   void init(Engine *obsengine);
   Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings);
@@ -34,10 +37,10 @@ class DummyDatabaseDriver : public DatabaseDriverBase
   void reloadStations() {}
   void getStations(Spine::Stations &stations, const Settings &settings) const {}
   void getStationsByArea(Spine::Stations &stations,
-						 const std::string &stationtype,
-						 const boost::posix_time::ptime &starttime,
-						 const boost::posix_time::ptime &endtime,
-						 const std::string &wkt) const
+                         const std::string &stationtype,
+                         const boost::posix_time::ptime &starttime,
+                         const boost::posix_time::ptime &endtime,
+                         const std::string &wkt) const
   {
   }
   void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const {}

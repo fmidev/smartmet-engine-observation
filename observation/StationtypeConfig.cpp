@@ -245,9 +245,9 @@ bool StationtypeConfig::hasProducerIds(const StationtypeType& stationtype) const
 {
   try
   {
-	const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
-	const auto it = m_stProducerIdSetMap.find(stationtypeLower);
-	return (it != m_stProducerIdSetMap.end());
+    const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
+    const auto it = m_stProducerIdSetMap.find(stationtypeLower);
+    return (it != m_stProducerIdSetMap.end());
   }
   catch (...)
   {

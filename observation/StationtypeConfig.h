@@ -114,7 +114,7 @@ class StationtypeConfig
    * @return true if group codes found for stationtype, false otherwise
    */
   bool hasGroupCodes(const StationtypeType& stationtype) const;
-  
+
   /**
    * @brief Get database table name map
    * @return Database table name map

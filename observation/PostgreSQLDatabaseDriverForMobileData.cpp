@@ -239,9 +239,9 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(Settings &
 
   try
   {
-	// Database query prevented
-	if(settings.preventDatabaseQuery)
-	  return boost::make_shared<ts::TimeSeriesVector>();
+    // Database query prevented
+    if (settings.preventDatabaseQuery)
+      return boost::make_shared<ts::TimeSeriesVector>();
 
     if (!itsConnectionsOK)
     {
@@ -304,9 +304,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::va
 
   try
   {
-	// Database query prevented
-	if(settings.preventDatabaseQuery)
-	  return boost::make_shared<ts::TimeSeriesVector>();
+    // Database query prevented
+    if (settings.preventDatabaseQuery)
+      return boost::make_shared<ts::TimeSeriesVector>();
 
     if (!itsConnectionsOK)
     {
