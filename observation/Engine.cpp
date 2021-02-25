@@ -461,7 +461,7 @@ ContentTable Engine::getProducerInfo(boost::optional<std::string> producer) cons
     station_types.insert(*producer);
   }
 
-  static Spine::TableFormatter::Names headers{"#", "Producer", "ProducerId", "StationGroups"};
+  Spine::TableFormatter::Names headers{"#", "Producer", "ProducerId", "StationGroups"};
 
   unsigned int row = 0;
   for (const auto &t : station_types)
@@ -541,46 +541,33 @@ ContentTable Engine::getParameterInfo(boost::optional<std::string> producer) con
     newbase_parameters.insert(Fmi::ascii_tolower_copy(param_name));
   }
 
-  static Spine::TableFormatter::Names headers{"#", "Parameter", "Producer", "ParameterId"};
+  Spine::TableFormatter::Names headers{"#", "Parameter", "Producer", "ParameterId"};
 
   unsigned int row = 0;
   unsigned int param_counter = 1;
   for (const auto &param : *itsEngineParameters->parameterMap)
   {
-    unsigned int column = 0;
+    auto param_counter_str = Fmi::to_string(param_counter);
 
-    // Param counter
-    resultTable->set(column, row, Fmi::to_string(param_counter));
-    ++column;
-
-    // Parameter
-    resultTable->set(column, row, param.first);
-    ++column;
-
-    unsigned int subrow = row;
     for (const auto &producer_param : param.second)
     {
+      unsigned int column = 0;
+
+      // Param counter
+      resultTable->set(column++, row, param_counter_str);
+      // Parameter
+      resultTable->set(column++, row, param.first);
+
       if (!producer || (*producer == producer_param.first))
       {
         // Producer
-        resultTable->set(column, subrow, producer_param.first);
+        resultTable->set(column++, row, producer_param.first);
         // Parameter id
-        resultTable->set(column + 1, subrow, producer_param.second);
-        subrow++;
+        resultTable->set(column, row, producer_param.second);
       }
-    }
-    // No producer for parameter
-    if (row == subrow)
-      continue;
-
-    row++;
-    while (row < subrow)
-    {
-      // Parameter id
-      resultTable->set(0, row, "-");
-      resultTable->set(1, row, "-");
       row++;
     }
+
     param_counter++;
   }
 

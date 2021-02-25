@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.2.11
+Version: 21.2.25
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -19,10 +19,10 @@ BuildRequires: libatomic
 BuildRequires: libconfig-devel
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 21.1.25
-BuildRequires: smartmet-library-locus-devel >= 21.1.14
+BuildRequires: smartmet-engine-geonames-devel >= 21.2.18
+BuildRequires: smartmet-library-locus-devel >= 21.2.18
 BuildRequires: smartmet-library-macgyver-devel >= 21.1.25
-BuildRequires: smartmet-library-spine-devel >= 21.1.14
+BuildRequires: smartmet-library-spine-devel >= 21.2.5
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -35,10 +35,10 @@ Requires: fmt >= 7.1.3
 Requires: gdal32-libs
 Requires: libatomic
 Requires: libconfig
-Requires: smartmet-engine-geonames >= 21.1.25
-Requires: smartmet-library-locus >= 21.1.14
+Requires: smartmet-engine-geonames >= 21.2.18
+Requires: smartmet-library-locus >= 21.2.18
 Requires: smartmet-library-macgyver >= 21.1.25
-Requires: smartmet-library-spine >= 21.1.14
+Requires: smartmet-library-spine >= 21.2.5
 Requires: smartmet-server >= 21.1.14
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
@@ -50,7 +50,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 21.1.25
+#TestRequires: smartmet-engine-geonames >= 21.2.18
 #TestRequires: smartmet-test-data
 #TestRequires: libpqxx-devel < 1:7.0
 
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Feb 25 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.2.25-1.fmi
+- Producer parameter info table in a form more suitable for column sorting and searching
+
 * Thu Feb 11 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.2.11-1.fmi
 - Fixed special parameter handling in spatialite queries. No more null values 
 for special parameters when timestep is not found in data.
