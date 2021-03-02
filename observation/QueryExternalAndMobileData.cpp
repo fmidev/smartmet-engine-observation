@@ -185,7 +185,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
     Fmi::Database::PostgreSQLConnection &conn = db.getConnection();
     pqxx::result result_set = conn.executeNonTransaction(sqlStmt);
     for (unsigned int i = 0; i <= queryfields.size(); i++)
-      ret->push_back(ts::TimeSeries());
+      ret->emplace_back(ts::TimeSeries());
 
     SmartMet::Spine::TimeSeriesGenerator::LocalTimeList tlist;
     // The desired timeseries, unless all available data if timestep=0 or latest only
@@ -227,7 +227,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
           boost::local_time::local_date_time dt =
               *(boost::get<boost::local_time::local_date_time>(&rsr[fieldname]));
           std::string fieldValue = db.getTimeFormatter()->format(dt);
-          ret->at(index).push_back(ts::TimedValue(obstime, fieldValue));
+          ret->at(index).emplace_back(ts::TimedValue(obstime, fieldValue));
         }
         else if (settings.stationtype == FMI_IOT_PRODUCER &&
                  (fieldname == "longitude" || fieldname == "latitude" || fieldname == "altitude"))
@@ -245,7 +245,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
           {
             value = *elevationValue;
           }
-          ret->at(index).push_back(ts::TimedValue(obstime, value));
+          ret->at(index).emplace_back(ts::TimedValue(obstime, value));
         }
         else
         {
@@ -268,7 +268,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
           }
           value = rsr[fieldname];
 
-          ret->at(index).push_back(ts::TimedValue(obstime, value));
+          ret->at(index).emplace_back(ts::TimedValue(obstime, value));
         }
         index++;
       }

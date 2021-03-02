@@ -633,7 +633,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(
 
   // Set timeseries objects for each requested parameter
   for (unsigned int i = 0; i < parameters.size(); i++)
-    ret->push_back(Spine::TimeSeries::TimeSeries());
+    ret->emplace_back(Spine::TimeSeries::TimeSeries());
 
   return ret;
 }

@@ -547,7 +547,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
       {
         if (valid_timesteps.find(data.first) == valid_timesteps.end())
         {
-          //				  std::cout << "Invalid timestep " << data.first << " for station "
+          //				  std::cout << "Invalid timestep " << data.first << " for station
+          //"
           //<< fmisid  << std::endl;
           continue;
         }
@@ -600,7 +601,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
         {
           while (*timestep_iter < timed_value.time && timestep_iter != valid_timesteps.end())
           {
-            new_ts.push_back(Spine::TimeSeries::TimedValue(*timestep_iter, missing_value));
+            new_ts.emplace_back(Spine::TimeSeries::TimedValue(*timestep_iter, missing_value));
             timestep_iter++;
           }
           new_ts.push_back(timed_value);
@@ -613,7 +614,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
 
         while (timestep_iter != valid_timesteps.end())
         {
-          new_ts.push_back(Spine::TimeSeries::TimedValue(*timestep_iter, missing_value));
+          new_ts.emplace_back(Spine::TimeSeries::TimedValue(*timestep_iter, missing_value));
           timestep_iter++;
         }
         /*
@@ -685,7 +686,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
               break;
             }
           }
-          data_source_ts[pos].push_back(Spine::TimeSeries::TimedValue(obstime, val));
+          data_source_ts[pos].emplace_back(Spine::TimeSeries::TimedValue(obstime, val));
           timesteps.insert(obstime);
         }
         else if (!addDataSourceField && isDataQualityField(fieldname))
@@ -706,7 +707,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
                                      DataFieldSpecifier::DataQuality);
             }
           }
-          data_source_ts[pos].push_back(Spine::TimeSeries::TimedValue(obstime, val));
+          data_source_ts[pos].emplace_back(Spine::TimeSeries::TimedValue(obstime, val));
           timesteps.insert(obstime);
         }
       }
@@ -724,7 +725,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
         auto obstime = val.time;
         while (time_iterator != timesteps.end() && *time_iterator < obstime)
         {
-          timeSeriesColumns->at(pos).push_back(
+          timeSeriesColumns->at(pos).emplace_back(
               Spine::TimeSeries::TimedValue(*time_iterator, missing));
           time_iterator++;
         }
@@ -735,7 +736,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
       // Timesteps after last timestep in data
       while (time_iterator != timesteps.end())
       {
-        timeSeriesColumns->at(pos).push_back(
+        timeSeriesColumns->at(pos).emplace_back(
             Spine::TimeSeries::TimedValue(*time_iterator, missing));
         time_iterator++;
       }
@@ -785,7 +786,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
       }
 
       timeSeriesColumns->at(timeseriesPositions.at(nameInRequest))
-          .push_back(Spine::TimeSeries::TimedValue(obstime, val));
+          .emplace_back(Spine::TimeSeries::TimedValue(obstime, val));
     }
 
     for (const auto &special : specialPositions)
@@ -803,7 +804,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
         if (data.count(mid) == 0)
         {
           Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
-          timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, missing));
+          timeSeriesColumns->at(pos).emplace_back(Spine::TimeSeries::TimedValue(obstime, missing));
         }
         else
         {
@@ -822,7 +823,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
             if (special.first == "windcompass32")
               windCompass = windCompass32(boost::get<double>(val), settings.missingtext);
             Spine::TimeSeries::Value windCompassValue = Spine::TimeSeries::Value(windCompass);
-            timeSeriesColumns->at(pos).push_back(
+            timeSeriesColumns->at(pos).emplace_back(
                 Spine::TimeSeries::TimedValue(obstime, windCompassValue));
           }
         }
@@ -838,7 +839,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
         if (data.count(windpos) == 0 || data.count(rhpos) == 0 || data.count(temppos) == 0)
         {
           Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
-          timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, missing));
+          timeSeriesColumns->at(pos).emplace_back(Spine::TimeSeries::TimedValue(obstime, missing));
         }
         else
         {
@@ -851,7 +852,8 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
 
           Spine::TimeSeries::Value feelslike =
               Spine::TimeSeries::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
-          timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, feelslike));
+          timeSeriesColumns->at(pos).emplace_back(
+              Spine::TimeSeries::TimedValue(obstime, feelslike));
         }
       }
       else if (special.first.find("smartsymbol") != std::string::npos)
@@ -864,7 +866,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
             data.count(temppos) == 0)
         {
           Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
-          timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, missing));
+          timeSeriesColumns->at(pos).emplace_back(Spine::TimeSeries::TimedValue(obstime, missing));
         }
         else
         {
@@ -881,7 +883,8 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
           double lon = station.longitude_out;
           Spine::TimeSeries::Value smartsymbol = Spine::TimeSeries::Value(
               *calcSmartsymbolNumber(wawa, totalcloudcover, temp, obstime, lat, lon));
-          timeSeriesColumns->at(pos).push_back(Spine::TimeSeries::TimedValue(obstime, smartsymbol));
+          timeSeriesColumns->at(pos).emplace_back(
+              Spine::TimeSeries::TimedValue(obstime, smartsymbol));
         }
       }
       else

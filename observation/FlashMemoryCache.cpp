@@ -293,7 +293,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr FlashMemoryCache::getData(
         else if (name == "ptz_time")
           val = flash.ptz_time;
 
-        result->at(i).push_back(ts::TimedValue(localtime, val));
+        result->at(i).emplace_back(ts::TimedValue(localtime, val));
       }
     }
 

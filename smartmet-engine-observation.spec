@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.2.25
+Version: 21.3.2
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -21,8 +21,8 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 21.2.18
 BuildRequires: smartmet-library-locus-devel >= 21.2.18
-BuildRequires: smartmet-library-macgyver-devel >= 21.1.25
-BuildRequires: smartmet-library-spine-devel >= 21.2.5
+BuildRequires: smartmet-library-macgyver-devel >= 21.2.25
+BuildRequires: smartmet-library-spine-devel >= 21.3.1
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -37,8 +37,8 @@ Requires: libatomic
 Requires: libconfig
 Requires: smartmet-engine-geonames >= 21.2.18
 Requires: smartmet-library-locus >= 21.2.18
-Requires: smartmet-library-macgyver >= 21.1.25
-Requires: smartmet-library-spine >= 21.2.5
+Requires: smartmet-library-macgyver >= 21.2.25
+Requires: smartmet-library-spine >= 21.3.1
 Requires: smartmet-server >= 21.1.14
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Mar  2 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.3.2-1.fmi
+- Use emplace_back when possible for speed
+
 * Thu Feb 25 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.2.25-1.fmi
 - Producer parameter info table in a form more suitable for column sorting and searching
 

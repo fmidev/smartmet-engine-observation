@@ -210,7 +210,7 @@ std::shared_ptr<std::vector<ObservableProperty>> Engine::observablePropertyQuery
   for (const auto &p : parameters)
   {
     if (p.find("(:") != std::string::npos)
-      parameter_names.push_back(p.substr(0, p.find("(:")));
+      parameter_names.emplace_back(p.substr(0, p.find("(:")));
     else
       parameter_names.push_back(p);
   }
@@ -414,7 +414,7 @@ void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr &tsvPtr,
       SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr(
           new SmartMet::Spine::TimeSeries::TimeSeriesVector);
   for (unsigned int i = 0; i < tsvPtr->size(); i++)
-    result->push_back(ts::TimeSeries());
+    result->emplace_back(ts::TimeSeries());
 
   // FMISIDs are in right order in settings.taggedFMISIDs list
   // Iterate the list and copy data from original data structure to result structure
@@ -485,7 +485,7 @@ ContentTable Engine::getProducerInfo(boost::optional<std::string> producer) cons
             itsEngineParameters->stationtypeConfig.getProducerIdSetByStationtype(t);
         std::list<std::string> producer_id_list;
         for (auto id : *producers)
-          producer_id_list.push_back(Fmi::to_string(id));
+          producer_id_list.emplace_back(Fmi::to_string(id));
         producer_ids = boost::algorithm::join(producer_id_list, ",");
       }
       if (itsEngineParameters->stationtypeConfig.hasGroupCodes(t))

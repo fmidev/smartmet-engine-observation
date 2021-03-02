@@ -116,7 +116,7 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
 
     std::list<std::string> producer_id_str_list;
     for (auto &prodId : settings.producer_ids)
-      producer_id_str_list.push_back(std::to_string(prodId));
+      producer_id_str_list.emplace_back(std::to_string(prodId));
     std::string producerIds = boost::algorithm::join(producer_id_str_list, ",");
 
     auto starttime = to_epoch(settings.starttime);
@@ -1373,7 +1373,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getMobileAndExterna
       for (const auto &paramname : queryfields)
       {
         ts::Value val = result[paramname];
-        ret->at(index).push_back(ts::TimedValue(timestep, val));
+        ret->at(index).emplace_back(ts::TimedValue(timestep, val));
         index++;
       }
     }
@@ -2341,7 +2341,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &
           int pos = p.second;
 
           ts::Value val = result[name];
-          timeSeriesColumns->at(pos).push_back(ts::TimedValue(localtime, val));
+          timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(localtime, val));
         }
         for (const auto &p : specialPositions)
         {
@@ -2350,12 +2350,12 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &
           if (name == "latitude")
           {
             ts::Value val = latitude;
-            timeSeriesColumns->at(pos).push_back(ts::TimedValue(localtime, val));
+            timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(localtime, val));
           }
           if (name == "longitude")
           {
             ts::Value val = longitude;
-            timeSeriesColumns->at(pos).push_back(ts::TimedValue(localtime, val));
+            timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(localtime, val));
           }
         }
       }

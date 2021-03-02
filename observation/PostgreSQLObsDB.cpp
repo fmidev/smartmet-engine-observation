@@ -473,7 +473,7 @@ LocationDataItems PostgreSQLObsDB::readObservations(const Spine::Stations &stati
 
     std::list<std::string> producer_id_str_list;
     for (auto &prodId : settings.producer_ids)
-      producer_id_str_list.push_back(std::to_string(prodId));
+      producer_id_str_list.emplace_back(std::to_string(prodId));
     std::string producerIds = boost::algorithm::join(producer_id_str_list, ",");
 
     std::string starttime = Fmi::to_iso_extended_string(settings.starttime);

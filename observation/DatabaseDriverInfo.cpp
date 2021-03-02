@@ -229,7 +229,7 @@ void DatabaseDriverInfo::readOracleConnectInfo(
     auto poolSize = poolSizeSetting
                         ? lookupDatabase(common_key, "poolSize", name, scope, ccfg.get_config())
                         : cfg.get_mandatory_config_param<int>("database_driver.poolSize");
-    params_vector["poolSize"].push_back(Fmi::to_string(poolSize));
+    params_vector["poolSize"].emplace_back(Fmi::to_string(poolSize));
 
     const std::string extra = "extra";
     if (ccfg.get_config().exists(common_key + "." + extra))
@@ -263,7 +263,7 @@ void DatabaseDriverInfo::readOracleConnectInfo(
         auto poolSizeE =
             poolSizeSetting ? lookupDatabase(common_key, "poolSize", name, extra, ccfg.get_config())
                             : cfg.get_mandatory_config_param<int>("database_driver.poolSize");
-        params_vector["poolsize"].push_back(Fmi::to_string(poolSizeE));
+        params_vector["poolsize"].emplace_back(Fmi::to_string(poolSizeE));
       }
     }
   }

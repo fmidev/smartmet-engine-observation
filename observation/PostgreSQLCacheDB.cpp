@@ -1625,7 +1625,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAnd
               *(boost::get<boost::local_time::local_date_time>(&rsr[fieldname]));
 
           std::string fieldValue = itsTimeFormatter->format(dt);
-          ret->at(index).push_back(ts::TimedValue(obstime, fieldValue));
+          ret->at(index).emplace_back(ts::TimedValue(obstime, fieldValue));
         }
         else
         {
@@ -1645,7 +1645,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAnd
           {
             fieldname = dbInfo.measurandFieldname(measurands.at(fieldname));
           }
-          ret->at(index).push_back(ts::TimedValue(obstime, rsr[fieldname]));
+          ret->at(index).emplace_back(ts::TimedValue(obstime, rsr[fieldname]));
         }
         index++;
       }
@@ -1686,7 +1686,7 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
         val = data.at(nameInDatabase);
       }
       timeSeriesColumns->at(timeseriesPositions.at(nameInRequest))
-          .push_back(ts::TimedValue(obstime, val));
+          .emplace_back(ts::TimedValue(obstime, val));
     }
 
     for (const auto &special : specialPositions)
@@ -1700,7 +1700,7 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
         if (dataItem.second.count(winddirectionpos) == 0)
         {
           ts::Value missing = ts::None();
-          timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, missing));
+          timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, missing));
         }
         else
         {
@@ -1714,7 +1714,7 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
             windCompass = windCompass32(boost::get<double>(data.at(winddirectionpos)), missingtext);
 
           ts::Value windCompassValue = ts::Value(windCompass);
-          timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, windCompassValue));
+          timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, windCompassValue));
         }
       }
       else if (special.first.find("feelslike") != std::string::npos)
@@ -1729,7 +1729,7 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
         if (data.count(windpos) == 0 || data.count(rhpos) == 0 || data.count(temppos) == 0)
         {
           ts::Value missing = ts::None();
-          timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, missing));
+          timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, missing));
         }
         else
         {
@@ -1738,7 +1738,7 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
           float wind = static_cast<float>(boost::get<double>(data.at(windpos)));
 
           ts::Value feelslike = ts::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
-          timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, feelslike));
+          timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, feelslike));
         }
       }
       else if (special.first.find("smartsymbol") != std::string::npos)
@@ -1750,7 +1750,7 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
             data.count(temppos) == 0)
         {
           ts::Value missing = ts::None();
-          timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, missing));
+          timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, missing));
         }
         else
         {
@@ -1768,7 +1768,7 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
 #ifdef __llvm__
 #pragma clang diagnostic pop
 #endif
-          timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, smartsymbol));
+          timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, smartsymbol));
         }
       }
 
@@ -1803,70 +1803,70 @@ void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(
   try
   {
     if (paramname == "localtime")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, obstime));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, obstime));
 
     else if (paramname == "station_name" || paramname == "stationname")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, station.station_formal_name));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, station.station_formal_name));
 
     else if (paramname == "fmisid")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, station.station_id));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, station.station_id));
 
     else if (paramname == "geoid")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, station.geoid));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, station.geoid));
 
     else if (paramname == "distance")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, station.distance));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, station.distance));
 
     else if (paramname == "direction")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, station.stationDirection));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, station.stationDirection));
 
     else if (paramname == "stationary")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, station.stationary));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, station.stationary));
 
     else if (paramname == "lon" || paramname == "longitude")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, station.requestedLon));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, station.requestedLon));
 
     else if (paramname == "lat" || paramname == "latitude")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, station.requestedLat));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, station.requestedLat));
 
     else if (paramname == "stationlon" || paramname == "stationlongitude")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, station.longitude_out));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, station.longitude_out));
 
     else if (paramname == "stationlat" || paramname == "stationlatitude")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, station.latitude_out));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, station.latitude_out));
 
     else if (paramname == "elevation" || paramname == "station_elevation")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, station.station_elevation));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, station.station_elevation));
 
     else if (paramname == "wmo")
     {
       const ts::Value missing = ts::None();
-      timeSeriesColumns->at(pos).push_back(
+      timeSeriesColumns->at(pos).emplace_back(
           ts::TimedValue(obstime, station.wmo > 0 ? station.wmo : missing));
     }
     else if (paramname == "lpnn")
     {
       const ts::Value missing = ts::None();
-      timeSeriesColumns->at(pos).push_back(
+      timeSeriesColumns->at(pos).emplace_back(
           ts::TimedValue(obstime, station.lpnn > 0 ? station.lpnn : missing));
     }
     else if (paramname == "rwsid")
     {
       const ts::Value missing = ts::None();
-      timeSeriesColumns->at(pos).push_back(
+      timeSeriesColumns->at(pos).emplace_back(
           ts::TimedValue(obstime, station.rwsid > 0 ? station.rwsid : missing));
     }
     else if (paramname == "sensor_no")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, 1));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, 1));
 
     else if (paramname == "place")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, station.tag));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, station.tag));
 
     else if (paramname == "model")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, stationtype));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, stationtype));
 
     else if (paramname == "modtime")
-      timeSeriesColumns->at(pos).push_back(ts::TimedValue(obstime, ""));
+      timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, ""));
 
     else
     {
@@ -1982,7 +1982,7 @@ LocationDataItems PostgreSQLCacheDB::readObservations(
 
     std::list<std::string> producer_id_str_list;
     for (auto &prodId : settings.producer_ids)
-      producer_id_str_list.push_back(std::to_string(prodId));
+      producer_id_str_list.emplace_back(std::to_string(prodId));
     std::string producerIds = boost::algorithm::join(producer_id_str_list, ",");
 
     std::string starttime = Fmi::to_iso_extended_string(settings.starttime);
