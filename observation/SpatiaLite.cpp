@@ -2536,24 +2536,21 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getObservationData(
         itsStationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
     stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
 
-    LocationDataItems observations;
+    // Should we use the cache?
 
-    if (!itsObservationMemoryCache)
-    {
-      observations =
-          readObservationDataFromDB(stations, settings, stationInfo, qmap, stationgroup_codes);
-    }
-    else
+    bool use_memory_cache = (itsObservationMemoryCache.get() != nullptr);
+    if (use_memory_cache)
     {
       auto cache_start_time = itsObservationMemoryCache->getStartTime();
-
-      if (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime)
-        observations = itsObservationMemoryCache->read_observations(
-            stations, settings, stationInfo, stationgroup_codes, qmap);
-      else
-        observations =
-            readObservationDataFromDB(stations, settings, stationInfo, qmap, stationgroup_codes);
+      use_memory_cache =
+          (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
     }
+
+    LocationDataItems observations =
+        (use_memory_cache ? itsObservationMemoryCache->read_observations(
+                                stations, settings, stationInfo, stationgroup_codes, qmap)
+                          : readObservationDataFromDB(
+                                stations, settings, stationInfo, qmap, stationgroup_codes));
 
     std::set<int> observed_fmisids;
     for (auto item : observations)
