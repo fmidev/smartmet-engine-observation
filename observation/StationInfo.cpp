@@ -53,7 +53,7 @@ bool timeok(const Spine::Station& station,
  */
 // ----------------------------------------------------------------------
 
-bool groupok(const Spine::Station& station, const std::set<std::string> groups)
+bool groupok(const Spine::Station& station, const std::set<std::string>& groups)
 {
   // All groups allowed?
   if (groups.empty())
