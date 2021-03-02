@@ -18,16 +18,16 @@ namespace Observation
 std::ostream &operator<<(std::ostream &out,
                          const SmartMet::Engine::Observation::StationTimedMeasurandData &data)
 {
-  for (auto item1 : data)
+  for (const auto &item1 : data)
   {
     std::cout << "fmisid: " << item1.first << " -> " << std::endl;
-    for (auto item2 : item1.second)
+    for (const auto &item2 : item1.second)
     {
       std::cout << " observationtime: " << item2.first << " -> " << std::endl;
-      for (auto item3 : item2.second)
+      for (const auto &item3 : item2.second)
       {
         std::cout << "  measurand: " << item3.first << " -> " << std::endl;
-        for (auto item4 : item3.second)
+        for (const auto &item4 : item3.second)
         {
           std::cout << "   sensor -> value: " << item4.first << " -> " << item4.second.value << ", "
                     << item4.second.data_quality << ", " << item4.second.data_source << ", "
@@ -547,8 +547,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
       {
         if (valid_timesteps.find(data.first) == valid_timesteps.end())
         {
-          //				  std::cout << "Invalid timestep " << data.first << " for station " <<
-          //fmisid  << std::endl;
+          //				  std::cout << "Invalid timestep " << data.first << " for station "
+          //<< fmisid  << std::endl;
           continue;
         }
 
