@@ -189,8 +189,12 @@ QueryMapping CommonDatabaseFunctions::buildQueryMapping(const Spine::Stations &s
           }
           else
           {
+            // Note: settings.stationtype may have been converted to a generic narrow table producer
+            // into the stationtype variable, but the original requested type is still in the
+            // settings.
             throw Fmi::Exception::Trace(
-                BCP, "Parameter " + name + " for stationtype " + stationtype + " not found!");
+                BCP,
+                "Parameter " + name + " for stationtype " + settings.stationtype + " not found!");
           }
         }
       }
@@ -547,7 +551,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
       {
         if (valid_timesteps.find(data.first) == valid_timesteps.end())
         {
-          //				  std::cout << "Invalid timestep " << data.first << " for station
+          //				  std::cout << "Invalid timestep " << data.first << " for
+          //station
           //"
           //<< fmisid  << std::endl;
           continue;
