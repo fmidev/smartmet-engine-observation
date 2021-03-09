@@ -1468,9 +1468,13 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
             cmd.bind(":modified_last", modified_last_times[i]);
             if (item.data_value)
               cmd.bind(":data_value", *item.data_value);
+            else
+              cmd.bind(":data_value");  // NULL
             cmd.bind(":data_quality", item.data_quality);
             if (item.data_source >= 0)
               cmd.bind(":data_source", item.data_source);
+            else
+              cmd.bind(":data_source");  // NULL
             cmd.execute();
             cmd.reset();
           }
