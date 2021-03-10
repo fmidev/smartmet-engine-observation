@@ -2524,11 +2524,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getObservationData(
 {
   try
   {
-    // Always use FMI parameter numbers for the narrow table Cache except for solar and mareograph
-    std::string stationtype = (settings.stationtype == "solar" ||
-                                       settings.stationtype.find("mareograph") != std::string::npos
-                                   ? settings.stationtype
-                                   : "observations_fmi");
+    // Legacy variable. TODO: remove unnecessary variable
+    std::string stationtype = settings.stationtype;
 
     // This maps measurand_id and the parameter position in TimeSeriesVector
 
