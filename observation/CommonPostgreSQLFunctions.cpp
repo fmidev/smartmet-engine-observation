@@ -58,8 +58,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservation
 {
   try
   {
-    // Legacy variable when mappings were changed in the cache, should be removed (TODO)
+    // Producer 'fmi' is deprecated
     std::string stationtype = settings.stationtype;
+    if (stationtype == "fmi")
+      stationtype = "observations_fmi";
 
     // This maps measurand_id and the parameter position in TimeSeriesVector
     auto qmap = buildQueryMapping(stations, settings, itsParameterMap, stationtype, false);

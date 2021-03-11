@@ -552,7 +552,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
         if (valid_timesteps.find(data.first) == valid_timesteps.end())
         {
           //				  std::cout << "Invalid timestep " << data.first << " for
-          //station
+          // station
           //"
           //<< fmisid  << std::endl;
           continue;
@@ -962,7 +962,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
 {
   try
   {
+    // Producer 'fmi' is deprecated
     std::string stationtype = settings.stationtype;
+    if (stationtype == "fmi")
+      stationtype = "observations_fmi";
 
     std::string qstations;
     std::map<int, Spine::Station> fmisid_to_station;

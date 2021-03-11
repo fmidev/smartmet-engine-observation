@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.3.10
+Version: 21.3.11
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Mar 11 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.3.11-1.fmi
+- Map legacy producer 'fmi' to 'observations_fmi'
+
 * Wed Mar 10 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.3.10-1.fmi
 - Removed legacy mapping of most producers to observations_fmi in the spatialite/postgresql caches
 
