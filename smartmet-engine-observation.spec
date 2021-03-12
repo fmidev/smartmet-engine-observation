@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.3.11
+Version: 21.3.12
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Mar 12 2021 Pertti Kinnia <pertti.kinnia@fmi.fi> - 21.3.12-1.fmi
+- Crash prevention by ensuring timeseries vector end boundary is not exceeded
+
 * Thu Mar 11 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.3.11-1.fmi
 - Map legacy producer 'fmi' to 'observations_fmi'
 

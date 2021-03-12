@@ -434,7 +434,8 @@ void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr &tsvPtr,
       const SmartMet::Spine::TimeSeries::TimeSeries &ts = tsvPtr->at(i);
       SmartMet::Spine::TimeSeries::TimeSeries &resultVector = result->at(i);
       resultVector.insert(
-          resultVector.end(), ts.begin() + firstIndex, ts.begin() + firstIndex + numberOfRows);
+          resultVector.end(), ts.begin() + std::min((size_t) firstIndex, ts.size()),
+          ts.begin() + std::min((size_t) (firstIndex + numberOfRows), ts.size()));
     }
   }
 
