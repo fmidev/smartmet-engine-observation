@@ -432,10 +432,26 @@ void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr &tsvPtr,
     for (unsigned int i = 0; i < tsvPtr->size(); i++)
     {
       const SmartMet::Spine::TimeSeries::TimeSeries &ts = tsvPtr->at(i);
+
       SmartMet::Spine::TimeSeries::TimeSeries &resultVector = result->at(i);
+
+      // Prevent referencing past the end of source data
+
+      if (firstIndex + numberOfRows > ts.size())
+      {
+        std::cout << "obsengine afterQuery: indexing error: fmisid=" << fmisid
+                  << " firstIndex=" << firstIndex << " numberOfRows=" << numberOfRows
+                  << " ts.size()=" << ts.size()
+                  << " settings=" << settings
+                  << " resultVector=" << resultVector
+                  << " ts=" << ts
+                  << " i=" << i << " tsvPtr->size()=" << tsvPtr->size();
+
+        throw Fmi::Exception::Trace(BCP, "Internal error indexing data");
+      }
+
       resultVector.insert(
-          resultVector.end(), ts.begin() + std::min((size_t) firstIndex, ts.size()),
-          ts.begin() + std::min((size_t) (firstIndex + numberOfRows), ts.size()));
+          resultVector.end(), ts.begin() + firstIndex, ts.begin() + firstIndex + numberOfRows);
     }
   }
 
