@@ -590,8 +590,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
       for (unsigned int i = 0; i < resultVector->size(); i++)
       {
         auto &ts = resultVector->at(i);
-        if (ts.empty())
-          continue;
 
         Spine::TimeSeries::Value missing_value = Spine::TimeSeries::None();
         if (ts.size() > 0 && not_null_columns.find(i) != not_null_columns.end())
