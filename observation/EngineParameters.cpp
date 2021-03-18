@@ -204,13 +204,13 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
           std::string producer_id = cfg.get_mandatory_config_param<std::string>(stationtype_param);
           stationTypeMap[producer_name] = producer_id;
 
-          bool cached = false;
-          std::string cache_param_key = "postgresql_stationtypelist." + producer_name + ".cached";
-          if (cfg.get_config().exists(cache_param_key))
-          {
-            cached = cfg.get_mandatory_config_param<bool>(cache_param_key);
-          }
-          externalAndMobileProducerConfig.cached = cached;
+          std::string cached_param_key = "postgresql_stationtypelist." + producer_name + ".cached";
+          if (cfg.get_config().exists(cached_param_key))
+			externalAndMobileProducerConfig.setCached(cfg.get_mandatory_config_param<bool>(cached_param_key));
+
+          std::string tablename_param_key = "postgresql_stationtypelist." + producer_name + ".databaseTableName";
+          if (cfg.get_config().exists(tablename_param_key))
+			externalAndMobileProducerConfig.setDatabaseTableName(cfg.get_mandatory_config_param<std::string>(tablename_param_key));
 
           // Sort out measurands for producer
           Measurands measurands;

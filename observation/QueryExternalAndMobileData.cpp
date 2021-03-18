@@ -5,27 +5,6 @@
 #include <spine/TimeSeriesGenerator.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
 
-// nclude <boost/algorithm/string/join.hpp>
-// nclude <boost/core/demangle.hpp>
-// nclude <boost/foreach.hpp>
-// nclude <boost/format.hpp>
-// nclude "PostgreSQLObsDB.h"
-// nclude "Utils.h"
-// nclude <macgyver/StringConversion.h>
-// nclude <macgyver/Exception.h>
-// nclude <spine/TimeSeriesOutput.h>
-//#include <string>
-//#include <macgyver/Cache.h>
-//#include <macgyver/DateTimeParser.h>
-//#include <macgyver/TimeFormatter.h>
-//#include <macgyver/TimeZones.h>
-//#include <spine/Table.h>
-//#include <spine/TimeSeries.h>
-//#include <spine/TimeSeriesGenerator.h>
-//#include <spine/TimeSeriesGeneratorOptions.h>
-//#include <memory>
-//#include <vector>
-
 namespace SmartMet
 {
 namespace Engine
@@ -132,6 +111,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
     const ExternalAndMobileProducerMeasurand &producerMeasurand =
         itsProducerConfig.at(settings.stationtype);
     ExternalAndMobileDBInfo dbInfo(&producerMeasurand);
+	dbInfo.setDatabaseTableName(itsProducerConfig.getDatabaseTableName());
     std::vector<std::string> queryfields;
     std::vector<int> measurandIds;
     const Measurands &measurands = producerMeasurand.measurands();

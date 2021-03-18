@@ -25,6 +25,17 @@ void ExternalAndMobileProducerMeasurand::addMeasurand(const std::string& thePara
   }
 }
 
+void ExternalAndMobileProducerConfig::setCached(bool cached)
+{
+  itsIsCached = cached;
+}
+
+void ExternalAndMobileProducerConfig::setDatabaseTableName(const std::string& tablename)
+{
+  itsDatabaseTableName = tablename;
+}
+
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

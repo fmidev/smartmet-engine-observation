@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.3.15
+Version: 21.3.18
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Mar 18 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.3.18-1.fmi
+- Database table name configurable for mobile observations (BRAINSTORM-2022)
+
 * Mon Mar 15 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.3.15-1.fmi
 - Fixed handling of missing timesteps (BRAINSTORM-2028)
 

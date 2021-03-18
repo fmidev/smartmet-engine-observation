@@ -41,9 +41,11 @@ class ExternalAndMobileDBInfo
                                  bool spatialite = false) const;
 
   std::string measurandFieldname(int measurandId) const;
+  void setDatabaseTableName(const std::string& tablename);
 
  private:
   const ExternalAndMobileProducerMeasurand *itsProducerMeasurand{nullptr};
+  std::string itsDatabaseTableName{"ext_obsdata"};
 };
 
 }  // namespace Observation

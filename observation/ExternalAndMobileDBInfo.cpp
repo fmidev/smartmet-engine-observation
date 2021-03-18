@@ -89,11 +89,11 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
       sqlStmt += measurandFieldname(mid);
     }
     sqlStmt +=
-        ", obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value_txt, "
-        "obs.data_quality, obs.ctrl_status, MAX(EXTRACT(EPOCH FROM obs.created)) as created, "
-        "stat.station_code FROM ext_obsdata obs, ext_station_v1 stat WHERE "
-        "obs.prod_id=stat.prod_id and "
-        "obs.station_id=stat.station_id and obs.prod_id=";
+	  (", obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value_txt, "
+	   "obs.data_quality, obs.ctrl_status, MAX(EXTRACT(EPOCH FROM obs.created)) as created, "
+	   "stat.station_code FROM " + itsDatabaseTableName + " obs, ext_station_v1 stat WHERE "
+	   "obs.prod_id=stat.prod_id and "
+	   "obs.station_id=stat.station_id and obs.prod_id=");
     sqlStmt += producerId;
     if (station_ids.size() > 0)
     {
@@ -121,7 +121,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
       "data_value_txt,obs.data_quality,obs.ctrl_status,stat."
       "station_id, stat.station_code ORDER BY obs.data_time, stat.station_id ASC";
 
-  //  std::cout << "SQL: " << sqlStmt << std::endl;
+  // std::cout << "SQL: " << sqlStmt << std::endl;
 
   return sqlStmt;
 }
@@ -151,11 +151,11 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
     }
 
     sqlStmt +=
-        ", obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, "
-        "obs.data_value_txt, obs.data_quality, obs.ctrl_status, MAX(EXTRACT(EPOCH FROM "
-        "obs.created)) as created, ST_X(obs.geom) as longitude, "
-        "ST_Y(obs.geom) as latitude, altitude FROM ext_obsdata obs WHERE obs.prod_id=";
-    sqlStmt += producerId;
+	  (", obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, "
+	   "obs.data_value_txt, obs.data_quality, obs.ctrl_status, MAX(EXTRACT(EPOCH FROM "
+	   "obs.created)) as created, ST_X(obs.geom) as longitude, "
+	   "ST_Y(obs.geom) as latitude, altitude FROM " + itsDatabaseTableName + " obs WHERE obs.prod_id=");
+	sqlStmt += producerId;
   }
   else if (producerName == NETATMO_PRODUCER)
   {
@@ -168,11 +168,10 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
       sqlStmt += measurandFieldname(mid);
     }
     sqlStmt +=
-        ", obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value_txt, "
-        "obs.data_quality, obs.ctrl_status, MAX(EXTRACT(EPOCH FROM obs.created)) as created, "
-        "ST_X(stat.geom) as longitude, ST_Y(stat.geom) as latitude, stat.altitude FROM ext_obsdata "
-        "obs, ext_station_v1 stat WHERE obs.prod_id=stat.prod_id and "
-        "obs.station_id=stat.station_id and obs.prod_id=";
+	  (", obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value_txt, "
+	   "obs.data_quality, obs.ctrl_status, MAX(EXTRACT(EPOCH FROM obs.created)) as created, "
+	   "ST_X(stat.geom) as longitude, ST_Y(stat.geom) as latitude, stat.altitude FROM " + itsDatabaseTableName + " obs, ext_station_v1 stat WHERE obs.prod_id=stat.prod_id and "
+	   "obs.station_id=stat.station_id and obs.prod_id=");
     sqlStmt += producerId;
   }
   else
@@ -206,7 +205,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
         "station_id, stat.station_code ORDER BY obs.data_time, stat.station_id ASC";
   }
 
-  //  std::cout << "SQL: " << sqlStmt << std::endl;
+  // std::cout << "SQL: " << sqlStmt << std::endl;
 
   return sqlStmt;
 }
@@ -234,7 +233,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectForCache(
          ",obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value, "
          "obs.data_value_txt, obs.data_quality, obs.ctrl_status, EXTRACT(EPOCH FROM obs.created) "
          "as created, ST_X(obs.geom) as longitude, ST_Y(obs.geom) as latitude, obs.altitude "
-         "as altitude FROM ext_obsdata obs WHERE obs.prod_id = 1 AND obs.data_time>='" +
+         "as altitude FROM " + itsDatabaseTableName + " obs WHERE obs.prod_id = 1 AND obs.data_time>='" +
          Fmi::to_iso_extended_string(from_data_time) + "'" + created_stmt);
   }
   else if (producer == NETATMO_PRODUCER)
@@ -245,7 +244,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectForCache(
          ",obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value, "
          "obs.data_value_txt, obs.data_quality, obs.ctrl_status, EXTRACT(EPOCH FROM obs.created) "
          "as created, ST_X(stat.geom) as longitude, ST_Y(stat.geom) as latitude, "
-         "stat.altitude as altitude FROM ext_obsdata obs, ext_station_v1 stat WHERE obs.prod_id=3 "
+         "stat.altitude as altitude FROM " + itsDatabaseTableName + " obs, ext_station_v1 stat WHERE obs.prod_id=3 "
          "AND obs.prod_id=stat.prod_id AND obs.station_id=stat.station_id AND obs.data_time>='" +
          Fmi::to_iso_extended_string(from_data_time) + "'" + created_stmt);
   }
@@ -260,7 +259,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectForCache(
         ("select obs.prod_id, obs.station_id, obs.dataset_id, obs.data_level, obs.mid "
          ",obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value, "
          "obs.data_value_txt, obs.data_quality, obs.ctrl_status, EXTRACT(EPOCH FROM obs.created) "
-         "as created, stat.station_code FROM ext_obsdata obs, ext_station_v1 stat WHERE "
+         "as created, stat.station_code FROM " + itsDatabaseTableName + " obs, ext_station_v1 stat WHERE "
          "obs.prod_id=4 "
          "AND obs.prod_id=stat.prod_id AND obs.station_id=stat.station_id AND obs.data_time>='" +
          Fmi::to_iso_extended_string(from_data_time) + "'" + created_stmt);
@@ -516,6 +515,11 @@ std::string ExternalAndMobileDBInfo::measurandFieldname(int measurandId) const
   }
 
   return ret;
+}
+
+void ExternalAndMobileDBInfo::setDatabaseTableName(const std::string& tablename)
+{
+  itsDatabaseTableName = tablename;
 }
 
 }  // namespace Observation
