@@ -29,8 +29,14 @@ class ExternalAndMobileProducerMeasurand
 class ExternalAndMobileProducerConfig
     : public std::map<std::string, ExternalAndMobileProducerMeasurand>
 {
- public:
-  bool cached{false};
+public:
+  void setCached(bool cached);
+  void setDatabaseTableName(const std::string& tablename); 
+  bool getCached() const { return itsIsCached; } 
+  const std::string&  getDatabaseTableName() const { return itsDatabaseTableName; }
+ private:
+  bool itsIsCached{false};
+  std::string itsDatabaseTableName{"ext_obsdata"};
 };
 
 }  // namespace Observation
