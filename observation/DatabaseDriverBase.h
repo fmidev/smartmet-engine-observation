@@ -72,6 +72,8 @@ class DatabaseDriverBase
   virtual void reloadStations() {}
   static std::string resolveDatabaseTableName(const std::string &producer,
                                               const StationtypeConfig &stationtypeConfig);
+  Spine::TimeSeries::TimeSeriesVectorPtr checkForEmptyQuery(Settings &settings) const;
+  Spine::TimeSeries::TimeSeriesVectorPtr checkForEmptyQuery(Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) const;
 
  protected:
   bool isParameter(const std::string &alias,

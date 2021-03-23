@@ -3,6 +3,7 @@
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeParser.h>
 #include <spine/Convenience.h>
+#include <spine/TimeSeriesGenerator.h>
 
 namespace SmartMet
 {
@@ -381,6 +382,83 @@ std::string DatabaseDriverBase::resolveDatabaseTableName(const std::string &prod
 
   return tablename;
 }
+
+Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(Settings &settings) const
+{
+  try
+  {
+	SmartMet::Spine::TimeSeriesGeneratorOptions timeSeriesOptions;
+	timeSeriesOptions.startTime = settings.starttime;
+	timeSeriesOptions.endTime = settings.endtime;
+	timeSeriesOptions.timeStep = settings.timestep;
+	timeSeriesOptions.startTimeUTC = false;
+	timeSeriesOptions.endTimeUTC = false;
+	
+	return checkForEmptyQuery(settings, timeSeriesOptions);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) const
+{
+  try
+  {
+	Spine::TimeSeries::TimeSeriesVectorPtr result = nullptr;
+
+	std::vector<const SmartMet::Spine::Parameter*> fmisidPlaceParams;
+
+	for(const auto& p : settings.parameters)
+	  {
+		if(p.name() == "fmisid" || p.name() == "place")
+		  fmisidPlaceParams.push_back(&p);
+	  }
+
+	// If only fmisid and place parameters requested return timeseries with null values
+	if(settings.parameters.size() == fmisidPlaceParams.size())
+	  {
+		result = SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr(new SmartMet::Spine::TimeSeries::TimeSeriesVector);
+
+		SmartMet::Spine::TimeSeriesGenerator::LocalTimeList tlist = SmartMet::Spine::TimeSeriesGenerator::generate(
+            timeSeriesOptions, itsTimeZones.time_zone_from_string(settings.timezone));
+		SmartMet::Spine::TimeSeries::TimeSeries ts_fmisid;
+		SmartMet::Spine::TimeSeries::TimeSeries ts_place;
+		for(const auto& tfmisid : settings.taggedFMISIDs)
+		  {
+			for(const auto& t: tlist)
+			  {
+				if(fmisidPlaceParams.size() == 2)
+				  ts_place.push_back(SmartMet::Spine::TimeSeries::TimedValue(t, tfmisid.tag));
+				ts_fmisid.push_back(SmartMet::Spine::TimeSeries::TimedValue(t, tfmisid.fmisid));
+			  }
+		  }
+		if(fmisidPlaceParams.size() == 2)
+		  {
+			if(fmisidPlaceParams.front()->name() == "place")
+			  {
+				result->emplace_back(ts_place);
+				result->emplace_back(ts_fmisid);				
+			  }
+			else
+			  {
+				result->emplace_back(ts_place);
+				result->emplace_back(ts_fmisid);				
+			  }
+		  }
+		else
+		  result->emplace_back(ts_fmisid);				
+	  }
+
+	return result;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
 
 }  // namespace Observation
 }  // namespace Engine

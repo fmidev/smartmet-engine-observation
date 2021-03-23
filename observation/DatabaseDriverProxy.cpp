@@ -145,6 +145,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverProxy::values(Settings &set
   try
   {
     DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
+	Spine::TimeSeries::TimeSeriesVectorPtr ret = pDriver->checkForEmptyQuery(settings);
+	if(ret)
+	  return ret;
+
     return pDriver->values(settings);
   }
   catch (...)
@@ -159,6 +163,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverProxy::values(
   try
   {
     DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
+	Spine::TimeSeries::TimeSeriesVectorPtr ret = pDriver->checkForEmptyQuery(settings, timeSeriesOptions);
+	if(ret)
+	  return ret;
+
     return pDriver->values(settings, timeSeriesOptions);
   }
   catch (...)
