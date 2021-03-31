@@ -5,6 +5,7 @@
 #include "SpatiaLiteDatabaseDriver.h"
 #include <macgyver/AnsiEscapeCodes.h>
 #include <macgyver/Exception.h>
+#include <spine/Convenience.h>
 
 extern "C"
 {
@@ -89,8 +90,8 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
       auto dbDriver = new DummyDatabaseDriver("dummy", p);
       itsDatabaseDriverSet.insert(dbDriver);
       itsDatabaseDriverContainer.addDriver("*", INT_MAX, dbDriver);
-      std::cout << ANSI_FG_RED
-                << "Note! No active database drivers configured -> creating a dummy driver!"
+      std::cout << Spine::log_time_str() << ANSI_FG_RED
+                << " Note! No active database drivers configured -> creating a dummy driver!"
                 << ANSI_FG_DEFAULT << std::endl;
     }
   }
@@ -124,11 +125,13 @@ void DatabaseDriverProxy::init(Engine *obsengine)
 
     for (const auto &dbdriver : itsDatabaseDriverSet)
     {
-      if (oracleDriverInitialized && dbdriver == itsOracleDriver)
-        continue;
-      dbdriver->init(obsengine);
+      // Do not init Oracle twice in case the previous if-block was executed
+      if (!(oracleDriverInitialized && dbdriver == itsOracleDriver))
+        dbdriver->init(obsengine);
+
       if (!itsStationsDriver && dbdriver->responsibleForLoadingStations())
         itsStationsDriver = dbdriver;
+
       // Any driver can handle translateToFMISID
       if (!itsTranslateToFMISIDDriver)
         itsTranslateToFMISIDDriver = dbdriver;
@@ -145,9 +148,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverProxy::values(Settings &set
   try
   {
     DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
-	Spine::TimeSeries::TimeSeriesVectorPtr ret = pDriver->checkForEmptyQuery(settings);
-	if(ret)
-	  return ret;
+    Spine::TimeSeries::TimeSeriesVectorPtr ret = pDriver->checkForEmptyQuery(settings);
+    if (ret)
+      return ret;
 
     return pDriver->values(settings);
   }
@@ -163,9 +166,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverProxy::values(
   try
   {
     DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
-	Spine::TimeSeries::TimeSeriesVectorPtr ret = pDriver->checkForEmptyQuery(settings, timeSeriesOptions);
-	if(ret)
-	  return ret;
+    Spine::TimeSeries::TimeSeriesVectorPtr ret =
+        pDriver->checkForEmptyQuery(settings, timeSeriesOptions);
+    if (ret)
+      return ret;
 
     return pDriver->values(settings, timeSeriesOptions);
   }
@@ -230,8 +234,17 @@ void DatabaseDriverProxy::getStations(Spine::Stations &stations, const Settings 
 
 void DatabaseDriverProxy::reloadStations()
 {
-  if (itsStationsDriver)
+  if (!itsStationsDriver)
+    std::cout << Spine::log_time_str()
+              << " [DatabaseDriverProxy] Reload of stations denied, a driver for loading stations "
+                 "is not set\n";
+  else
+  {
+    std::cout << Spine::log_time_str() << " [DatabaseDriverProxy] Reload of stations requested\n";
     itsStationsDriver->reloadStations();
+    std::cout << Spine::log_time_str()
+              << "[DatabaseDriverProxy] Reload request of stations ended\n ";
+  }
 }
 
 void DatabaseDriverProxy::getStationsByArea(Spine::Stations &stations,
