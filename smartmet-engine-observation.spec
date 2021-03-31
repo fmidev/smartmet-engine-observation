@@ -110,6 +110,8 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Wed Mar 31 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.3.31-1.fmi
 - Fixed reloadStations to work even if both Oracle and mobile observations are active
+- Dropped stations table from the spatialite cache as unnecessary
+- Updated default stations.txt to latest information from FMI
 
 * Tue Mar 23 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.3.23-1.fmi
 - If WeatherNumber requested from observation engine return null values (BRAINSTORM-1484)
