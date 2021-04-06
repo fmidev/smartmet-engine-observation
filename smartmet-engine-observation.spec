@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.3.31
+Version: 21.4.6
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Apr 6 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.4.6-1.fmi
+- Load stations from database and update stations.txt when loadStations=true (BRAINSTORM-2036)
+
 * Wed Mar 31 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.3.31-1.fmi
 - Fixed reloadStations to work even if both Oracle and mobile observations are active
 - Dropped stations table from the spatialite cache as unnecessary

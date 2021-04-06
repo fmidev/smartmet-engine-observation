@@ -204,17 +204,18 @@ void ObservationCacheAdminBase::init()
           itsBackgroundTasks->add("Init fmi_iot cache", [this]() { updateFmiIoTCache(); });
         }
       }
+    }
 
-      // If stations info does not exist (stations.txt file  missing), load info from database
-      if (itsParameters.loadStations && itsParameters.params->stationInfo->stations.size() == 0)
+	// If stations info does not exist (stations.txt file  missing), load info from database
+	if (itsParameters.loadStations && itsParameters.params->stationInfo->stations.size() == 0)
       {
         std::cout << Spine::log_time_str() << driverName()
                   << " Stations info missing, loading from database! " << std::endl;
         itsBackgroundTasks->add("Load station data", [this]() { loadStations(); });
       }
-      itsBackgroundTasks->wait();
-    }
 
+	itsBackgroundTasks->wait();
+	
     startCacheUpdateThreads(tablenames);
   }
   catch (...)
@@ -229,6 +230,11 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
   {
     if (itsShutdownRequested || (tables.empty() && !itsParameters.loadStations))
       return;
+
+    if (itsParameters.loadStations)
+    {
+      itsBackgroundTasks->add("station cache update loop", [this]() { updateStationsCacheLoop(); });
+    }
 
     // Updates are disabled for example in regression tests and sometimes when
     // profiling
@@ -283,11 +289,6 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
         itsParameters.fmiIoTCacheUpdateInterval > 0)
     {
       itsBackgroundTasks->add("fmi_iot cache update loop", [this]() { updateFmiIoTCacheLoop(); });
-    }
-
-    if (itsParameters.loadStations)
-    {
-      itsBackgroundTasks->add("station cache update loop", [this]() { updateStationsCacheLoop(); });
     }
   }
   catch (...)
