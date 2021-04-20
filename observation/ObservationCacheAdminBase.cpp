@@ -1210,6 +1210,7 @@ void ObservationCacheAdminBase::addInfoToStations(SmartMet::Spine::Stations& sta
     {
       const SmartMet::Spine::LocationPtr& place = locations.at(station.fmisid);
       station.country = place->country;
+      station.iso2 = place->iso2;
       station.geoid = place->geoid;
       station.requestedLat = place->latitude;
       station.requestedLon = place->longitude;
@@ -1362,6 +1363,7 @@ void ObservationCacheAdminBase::addInfoToStation(SmartMet::Spine::Station& stati
     {
       station.country = place->country;
       station.geoid = place->geoid;
+      station.iso2 = place->iso2;
       station.requestedLat = place->latitude;
       station.requestedLon = place->longitude;
       station.requestedName = place->name;

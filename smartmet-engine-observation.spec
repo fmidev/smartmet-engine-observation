@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.4.6
+Version: 21.4.20
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Apr 20 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.4.20-1.fmi
+- Added support for station info request
+
 * Tue Apr 6 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.4.6-1.fmi
 - Load stations from database and update stations.txt when loadStations=true (BRAINSTORM-2036)
 
