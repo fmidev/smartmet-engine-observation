@@ -109,7 +109,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 * Tue Apr 20 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.4.20-1.fmi
-- Added support for station info request (SMARTMET-2039)
+- Added support for station info request
 
 * Tue Apr 6 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.4.6-1.fmi
 - Load stations from database and update stations.txt when loadStations=true (BRAINSTORM-2036)
