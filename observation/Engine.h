@@ -3,6 +3,7 @@
 #include "DatabaseDriverInterface.h"
 #include "EngineParameters.h"
 #include "ObservationCache.h"
+#include "StationOptions.h"
 #include <spine/Table.h>
 #include <spine/Value.h>
 
@@ -104,10 +105,16 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   ContentTable getProducerInfo(boost::optional<std::string> producer) const;
 
   /* \brief Get parameter info of producer(s)
-   * \param[in] producer If producer is given return info only of that producer, otherwise of all
+   * \param[in] producer If producer is given return info only of that producer, otherwise of all 
    * producers \return Parameter info of producer(s)
    */
   ContentTable getParameterInfo(boost::optional<std::string> producer) const;
+
+  /* \brief Get station info
+   * \param[in] StationOptions Defines query options
+   * \return The requested station info
+   */
+  ContentTable getStationInfo(const StationOptions& options) const;
 
   MetaData metaData(const std::string &producer) const;
 
