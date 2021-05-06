@@ -31,10 +31,13 @@ TEST_CASE("Test observation memory cache in parallel (TSAN)")
     int measurand_count = 10;
     std::atomic_bool read_finished{false};
 
+    bool verbose = false;
+
     std::thread fill_thread(
         [&]()
         {
-          std::cout << "Inserting data\n";
+          if (verbose)
+            std::cout << "Inserting data\n";
           for (const auto& station : stations)
           {
             if (read_finished)
@@ -60,7 +63,8 @@ TEST_CASE("Test observation memory cache in parallel (TSAN)")
             }
             cache.fill(items);
           }
-          std::cout << "Cache filled\n";
+          if (verbose)
+            std::cout << "Cache filled\n";
         });
 
     sleep(1);
@@ -68,7 +72,8 @@ TEST_CASE("Test observation memory cache in parallel (TSAN)")
     std::thread read_thread(
         [&]()
         {
-          std::cout << "Reading data\n";
+          if (verbose)
+            std::cout << "Reading data\n";
           SmartMet::Engine::Observation::Settings settings;
           settings.starttime = starttime;
           settings.endtime = endtime;
@@ -85,7 +90,8 @@ TEST_CASE("Test observation memory cache in parallel (TSAN)")
 
           read_finished = true;
           REQUIRE(obs.size() > 1000);
-          std::cout << "Cache read finished\n";
+          if (verbose)
+            std::cout << "Cache read finished\n";
         });
 
     fill_thread.join();
