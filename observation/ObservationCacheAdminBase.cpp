@@ -21,11 +21,13 @@ ObservationCacheAdminBase::ObservationCacheAdminBase(const DatabaseDriverParamet
       itsTimer(timer),
       itsBackgroundTasks(new Fmi::AsyncTaskGroup)
 {
-  itsBackgroundTasks->on_task_error([](const std::string& task_name) {
-    auto err = Fmi::Exception::Trace(BCP, "Operation failed");
-    err.addParameter("Task", task_name);
-    throw err;
-  });
+  itsBackgroundTasks->on_task_error(
+      [](const std::string& task_name)
+      {
+        auto err = Fmi::Exception::Trace(BCP, "Operation failed");
+        err.addParameter("Task", task_name);
+        throw err;
+      });
 }
 
 ObservationCacheAdminBase::~ObservationCacheAdminBase()
@@ -206,16 +208,16 @@ void ObservationCacheAdminBase::init()
       }
     }
 
-	// If stations info does not exist (stations.txt file  missing), load info from database
-	if (itsParameters.loadStations && itsParameters.params->stationInfo->stations.size() == 0)
-      {
-        std::cout << Spine::log_time_str() << driverName()
-                  << " Stations info missing, loading from database! " << std::endl;
-        itsBackgroundTasks->add("Load station data", [this]() { loadStations(); });
-      }
+    // If stations info does not exist (stations.txt file  missing), load info from database
+    if (itsParameters.loadStations && itsParameters.params->stationInfo->stations.size() == 0)
+    {
+      std::cout << Spine::log_time_str() << driverName()
+                << " Stations info missing, loading from database! " << std::endl;
+      itsBackgroundTasks->add("Load station data", [this]() { loadStations(); });
+    }
 
-	itsBackgroundTasks->wait();
-	
+    itsBackgroundTasks->wait();
+
     startCacheUpdateThreads(tablenames);
   }
   catch (...)

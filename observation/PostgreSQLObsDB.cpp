@@ -191,9 +191,7 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
         "modified_last)) as modified_last "
         "FROM observation_data_v1 data WHERE "
         "data.modified_last >= '" +
-        Fmi::to_iso_extended_string(lastModifiedTime) + "' AND data_time >= '" +
-        Fmi::to_iso_extended_string(startTime) + "' AND data_time <= '" +
-        Fmi::to_iso_extended_string(now) +
+        Fmi::to_iso_extended_string(lastModifiedTime) +
         "' AND data_value IS NOT NULL ORDER BY station_id ASC, data_time ASC";
 
     if (big_request)
@@ -321,7 +319,7 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
         "FROM flashdata flash "
         "WHERE stroke_time BETWEEN '" +
         Fmi::to_iso_extended_string(startTime) + "'  AND '" + Fmi::to_iso_extended_string(now) +
-        "' AND modified_last >= '" + Fmi::to_iso_extended_string(lastModifiedTime) +
+        "' OR modified_last >= '" + Fmi::to_iso_extended_string(lastModifiedTime) +
         "' ORDER BY stroke_time, flash_id";
 
     if (itsDebug)
@@ -405,17 +403,14 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
 {
   try
   {
-    const boost::posix_time::ptime now = second_clock::universal_time();
-
     std::string sqlStmt =
         ("select fmisid, EXTRACT(EPOCH FROM "
          "date_trunc('seconds', obstime)) as obstime, parameter, sensor_no, value, flag, "
          "EXTRACT(EPOCH FROM date_trunc('seconds', "
          "modified_last)) as modified_last from "
-         "weather_data_qc where modified_last >= '" +
-         Fmi::to_iso_extended_string(lastModifiedTime) + "' AND obstime >= '" +
-         Fmi::to_iso_extended_string(lastTime) + "' AND obstime <= '" +
-         Fmi::to_iso_extended_string(now) + "'  AND value IS NOT NULL");
+         "weather_data_qc where (modified_last >= '" +
+         Fmi::to_iso_extended_string(lastModifiedTime) + "' OR obstime >= '" +
+         Fmi::to_iso_extended_string(lastTime) + "')  AND value IS NOT NULL");
 
     return readWeatherDataQCCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
   }

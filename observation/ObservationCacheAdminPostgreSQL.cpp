@@ -225,10 +225,14 @@ std::pair<boost::posix_time::ptime, boost::posix_time::ptime>
 ObservationCacheAdminPostgreSQL::getLatestWeatherDataQCTime(
     const std::shared_ptr<ObservationCache>& cache) const
 {
-  boost::posix_time::ptime last_time = boost::posix_time::second_clock::universal_time() -
-                                       boost::posix_time::hours(itsParameters.extCacheDuration);
+  auto min_last_time = boost::posix_time::second_clock::universal_time() -
+                       boost::posix_time::hours(itsParameters.extCacheDuration);
 
-  boost::posix_time::ptime last_modified_time = cache->getLatestWeatherDataQCModifiedTime();
+  auto last_time = cache->getLatestWeatherDataQCTime();
+  auto last_modified_time = cache->getLatestWeatherDataQCModifiedTime();
+
+  if (last_time.is_not_a_date_time())
+    last_time = min_last_time;
 
   if (last_modified_time.is_not_a_date_time())
     last_modified_time = last_time;
@@ -241,10 +245,14 @@ std::pair<boost::posix_time::ptime, boost::posix_time::ptime>
 ObservationCacheAdminPostgreSQL::getLatestObservationTime(
     const std::shared_ptr<ObservationCache>& cache) const
 {
-  boost::posix_time::ptime last_time = boost::posix_time::second_clock::universal_time() -
-                                       boost::posix_time::hours(itsParameters.finCacheDuration);
+  auto min_last_time = boost::posix_time::second_clock::universal_time() -
+                       boost::posix_time::hours(itsParameters.finCacheDuration);
 
-  boost::posix_time::ptime last_modified_time = cache->getLatestObservationModifiedTime();
+  auto last_time = cache->getLatestObservationTime();
+  auto last_modified_time = cache->getLatestObservationModifiedTime();
+
+  if (last_time.is_not_a_date_time())
+    last_time = min_last_time;
 
   if (last_modified_time.is_not_a_date_time())
     last_modified_time = last_time;
@@ -258,19 +266,20 @@ std::map<std::string, boost::posix_time::ptime> ObservationCacheAdminPostgreSQL:
 {
   std::map<std::string, boost::posix_time::ptime> ret;
 
-  boost::posix_time::ptime start_time =
-      (boost::posix_time::second_clock::universal_time() -
-       boost::posix_time::hours(itsParameters.flashCacheDuration));
-  boost::posix_time::ptime last_stroke_time = cache->getLatestFlashTime();
-  boost::posix_time::ptime last_modified_time = cache->getLatestFlashModifiedTime();
+  auto min_last_time = (boost::posix_time::second_clock::universal_time() -
+                        boost::posix_time::hours(itsParameters.flashCacheDuration));
+
+  auto last_time = cache->getLatestFlashTime();
+  auto last_modified_time = cache->getLatestFlashModifiedTime();
+
+  if (last_time.is_not_a_date_time())
+    last_time = min_last_time;
 
   if (last_modified_time.is_not_a_date_time())
-    last_modified_time = start_time;
-  if (last_stroke_time.is_not_a_date_time())
-    last_stroke_time = start_time;
+    last_modified_time = last_time;
 
-  ret["start_time"] = start_time;
-  ret["last_stroke_time"] = last_stroke_time;
+  ret["start_time"] = min_last_time;
+  ret["last_stroke_time"] = last_time;
   ret["last_modified_time"] = last_modified_time;
 
   return ret;
