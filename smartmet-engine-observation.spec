@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.5.17
+Version: 21.5.18
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -108,6 +108,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue May 18 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.5.18-1.fmi
+- Fixed data_quality condition in SQL statements (BRAINSTORM-2063)
+- Fixed reading of default data_quality condition from configuration file
+- Added 'eq' operator in SQLDataFilter
+
 * Mon May 17 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.5.17-1.fmi
 - Fixed ObservationCacheAdmihnPostgreSQL to return correct last observation times
 - Use only modified_last in PG cache updates, adding an OR for modified_last is very slow

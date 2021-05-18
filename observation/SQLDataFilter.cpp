@@ -56,6 +56,7 @@ std::string SQLDataFilter::getSqlClause(const std::string& name, const std::stri
         boost::replace_all(cond, "gt", dbfield + " >");
         boost::replace_all(cond, "le", dbfield + " <=");
         boost::replace_all(cond, "ge", dbfield + " >=");
+        boost::replace_all(cond, "eq", dbfield + " =");
       }
 
       ret += cond;
@@ -147,6 +148,10 @@ bool SQLDataFilter::valueOK(const std::string& name, int val) const
           {
             res = (val >= int_value(cnd, cnd.find("ge") + 2));
           }
+          else if (cnd.find("eq") != std::string::npos)
+          {
+            res = (val == int_value(cnd, cnd.find("eq") + 2));
+          }
           cond_set.insert(res);
         }
 
@@ -169,7 +174,7 @@ bool SQLDataFilter::valueOK(const std::string& name, int val) const
       {
         return true;
       }
-
+	
     return false;
   }
   catch (...)

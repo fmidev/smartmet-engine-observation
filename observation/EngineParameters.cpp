@@ -109,7 +109,7 @@ void EngineParameters::readDataQualityConfig(Spine::ConfigBase &cfg)
   {
     // Default filter
     auto default_filter =
-        cfg.get_optional_config_param<std::string>("data_quality_filter.default", "le 5");
+        cfg.get_optional_config_param<std::string>("data_quality_filter.default_filter", "le 5");
 
     std::vector<std::string> stationtypes =
         cfg.get_mandatory_config_array<std::string>("stationtypes");
