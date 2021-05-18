@@ -618,8 +618,8 @@ std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(const Settings &sett
           "AND data.obstime BETWEEN '" +
           Fmi::to_iso_extended_string(settings.starttime) + "' AND '" +
           Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + params +
-          ") "
-          "GROUP BY data.fmisid, data.obstime, data.parameter, data.value, data.sensor_no, "
+          ") AND " + settings.sqlDataFilter.getSqlClause("data_quality", "data.flag") +
+          " GROUP BY data.fmisid, data.obstime, data.parameter, data.value, data.sensor_no, "
           "data.flag "
           "ORDER BY fmisid ASC, obstime ASC";
     }
@@ -635,8 +635,8 @@ std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(const Settings &sett
           "AND data.obstime BETWEEN '" +
           Fmi::to_iso_extended_string(settings.starttime) + "' AND '" +
           Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + params +
-          ") "
-          "GROUP BY  data.fmisid, data.obstime, data.parameter, data.value, data.sensor_no, "
+          ") AND " + settings.sqlDataFilter.getSqlClause("data_quality", "data.flag") +
+          " GROUP BY  data.fmisid, data.obstime, data.parameter, data.value, data.sensor_no, "
           "data.flag "
           "ORDER BY fmisid ASC, obstime ASC";
     }

@@ -310,7 +310,7 @@ LocationDataItems ObservationMemoryCache::read_observations(
       // Skip unwanted parameters similarly to SpatiaLite.cpp read_observations
       // Check sensor number and data_quality condition
       bool sensorOK = false;
-      if ((obs->measurand_no == 1 && valid_sensors.find(-1) != valid_sensors.end()) ||
+      if ((obs->measurand_no == 1 &&  (valid_sensors.find(-1) != valid_sensors.end() || valid_sensors.empty())) ||
           valid_sensors.find(obs->sensor_no) != valid_sensors.end())
         sensorOK = true;
 
