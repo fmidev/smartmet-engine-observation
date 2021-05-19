@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.5.18
+Version: 21.5.19
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed May 19 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.5.19-1.fmi
+- 
+
 * Tue May 18 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.5.18-1.fmi
 - Fixed data_quality condition in SQL statements (BRAINSTORM-2063)
 - Fixed reading of default data_quality condition from configuration file

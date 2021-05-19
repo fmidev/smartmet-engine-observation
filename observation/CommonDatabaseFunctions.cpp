@@ -586,6 +586,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
                                      qmap.parameterNameMap,
                                      false);
 
+	  // If no results found return from here
+	  if(resultVector->size() == 0 || resultVector->at(0).size() == 0)
+		return timeSeriesColumns;
+
       // All possible missing timesteps
       for (unsigned int i = 0; i < resultVector->size(); i++)
       {
