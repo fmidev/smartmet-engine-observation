@@ -1,6 +1,6 @@
 #include "DataItem.h"
-#include <boost/functional/hash.hpp>
 #include <macgyver/Exception.h>
+#include <macgyver/Hash.h>
 #include <macgyver/StringConversion.h>
 
 namespace SmartMet
@@ -13,16 +13,16 @@ std::size_t DataItem::hash_value() const
 {
   try
   {
-    std::size_t hash = boost::hash_value(fmisid);
-    boost::hash_combine(hash, boost::hash_value(measurand_id));
-    boost::hash_combine(hash, boost::hash_value(sensor_no));
-    boost::hash_combine(hash, boost::hash_value(producer_id));
-    boost::hash_combine(hash, boost::hash_value(measurand_no));
-    boost::hash_combine(hash, boost::hash_value(Fmi::to_iso_string(data_time)));
-    boost::hash_combine(hash, boost::hash_value(get_value()));
-    boost::hash_combine(hash, boost::hash_value(data_quality));
-    boost::hash_combine(hash, boost::hash_value(data_source));
-    boost::hash_combine(hash, boost::hash_value(Fmi::to_iso_string(modified_last)));
+    std::size_t hash = Fmi::hash_value(fmisid);
+    Fmi::hash_combine(hash, Fmi::hash_value(measurand_id));
+    Fmi::hash_combine(hash, Fmi::hash_value(sensor_no));
+    Fmi::hash_combine(hash, Fmi::hash_value(producer_id));
+    Fmi::hash_combine(hash, Fmi::hash_value(measurand_no));
+    Fmi::hash_combine(hash, Fmi::hash_value(data_time));
+    Fmi::hash_combine(hash, Fmi::hash_value(get_value()));
+    Fmi::hash_combine(hash, Fmi::hash_value(data_quality));
+    Fmi::hash_combine(hash, Fmi::hash_value(data_source));
+    Fmi::hash_combine(hash, Fmi::hash_value(modified_last));
     return hash;
   }
   catch (...)
