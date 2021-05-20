@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 21.5.20
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -19,10 +19,10 @@ BuildRequires: libatomic
 BuildRequires: libconfig-devel
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 21.4.12
-BuildRequires: smartmet-library-locus-devel >= 21.2.18
-BuildRequires: smartmet-library-macgyver-devel >= 21.5.19
-BuildRequires: smartmet-library-spine-devel >= 21.5.11
+BuildRequires: smartmet-engine-geonames-devel >= 21.5.20
+BuildRequires: smartmet-library-locus-devel >= 21.5.20
+BuildRequires: smartmet-library-macgyver-devel >= 21.5.20
+BuildRequires: smartmet-library-spine-devel >= 21.5.20
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -35,10 +35,10 @@ Requires: fmt >= 7.1.3
 Requires: gdal32-libs
 Requires: libatomic
 Requires: libconfig
-Requires: smartmet-engine-geonames >= 21.4.12
-Requires: smartmet-library-locus >= 21.2.18
-Requires: smartmet-library-macgyver >= 21.5.19
-Requires: smartmet-library-spine >= 21.5.11
+Requires: smartmet-engine-geonames >= 21.5.20
+Requires: smartmet-library-locus >= 21.5.20
+Requires: smartmet-library-macgyver >= 21.5.20
+Requires: smartmet-library-spine >= 21.5.20
 Requires: smartmet-server >= 21.1.14
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
@@ -50,7 +50,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 21.4.12
+#TestRequires: smartmet-engine-geonames >= 21.5.20
 #TestRequires: smartmet-test-data
 #TestRequires: libpqxx-devel < 1:7.0
 
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu May 20 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.5.20-2.fmi
+- Repackaged with improved hashing functions
+
 * Thu May 20 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.5.20-1.fmi
 - Use Fmi hash functions, boost::hash_combine produces too many collisions
 
