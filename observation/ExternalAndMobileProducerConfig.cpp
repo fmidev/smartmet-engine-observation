@@ -35,7 +35,6 @@ void ExternalAndMobileProducerConfig::setDatabaseTableName(const std::string& ta
   itsDatabaseTableName = tablename;
 }
 
-
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

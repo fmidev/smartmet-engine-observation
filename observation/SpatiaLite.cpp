@@ -2712,8 +2712,8 @@ std::string SpatiaLite::sqlSelectFromWeatherDataQCData(const Settings &settings,
           ") "
           "AND data.obstime BETWEEN " +
           Fmi::to_string(starttime) + " AND " + Fmi::to_string(endtime) +
-          " AND data.parameter IN (" + params +
-          ") AND " + settings.sqlDataFilter.getSqlClause("data_quality", "data.flag") +
+          " AND data.parameter IN (" + params + ") AND " +
+          settings.sqlDataFilter.getSqlClause("data_quality", "data.flag") +
           " GROUP BY data.fmisid, data.parameter, data.sensor_no "
           "ORDER BY fmisid ASC, obstime ASC;";
     }
@@ -2728,8 +2728,8 @@ std::string SpatiaLite::sqlSelectFromWeatherDataQCData(const Settings &settings,
           ") "
           "AND data.obstime BETWEEN " +
           Fmi::to_string(starttime) + " AND " + Fmi::to_string(endtime) +
-          " AND data.parameter IN (" + params +
-          ") AND " + settings.sqlDataFilter.getSqlClause("data_quality", "data.flag") +
+          " AND data.parameter IN (" + params + ") AND " +
+          settings.sqlDataFilter.getSqlClause("data_quality", "data.flag") +
           " GROUP BY data.fmisid, data.obstime, data.parameter, "
           "data.sensor_no "
           "ORDER BY fmisid ASC, obstime ASC;";

@@ -13,7 +13,7 @@ struct StationOptions
   std::set<int> wmo;
   std::set<int> rwsid;
   std::string type;
-  std::string name;  
+  std::string name;
   std::string iso2;
   std::string region;
   std::string timeformat;

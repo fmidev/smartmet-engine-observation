@@ -245,7 +245,8 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
 
   std::sort(distances.begin(),
             distances.end(),
-            [this](const StationDistance& lhs, const StationDistance& rhs) {
+            [this](const StationDistance& lhs, const StationDistance& rhs)
+            {
               if (lhs.first != rhs.first)
                 return lhs.first < rhs.first;
               return (this->stations.at(lhs.second).station_formal_name <

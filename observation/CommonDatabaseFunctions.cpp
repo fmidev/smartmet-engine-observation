@@ -382,11 +382,11 @@ std::string CommonDatabaseFunctions::buildSqlStationList(
       if (stationInfo.belongsToGroup(s.station_id, stationgroup_codes))
         station_ids.insert(Fmi::to_string(s.station_id));
     }
-    return std::accumulate(
-        std::begin(station_ids),
-        std::end(station_ids),
-        std::string{},
-        [](const std::string &a, const std::string &b) { return a.empty() ? b : a + ',' + b; });
+    return std::accumulate(std::begin(station_ids),
+                           std::end(station_ids),
+                           std::string{},
+                           [](const std::string &a, const std::string &b)
+                           { return a.empty() ? b : a + ',' + b; });
   }
   catch (...)
   {
@@ -586,9 +586,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
                                      qmap.parameterNameMap,
                                      false);
 
-	  // If no results found return from here
-	  if(resultVector->size() == 0 || resultVector->at(0).size() == 0)
-		return timeSeriesColumns;
+      // If no results found return from here
+      if (resultVector->size() == 0 || resultVector->at(0).size() == 0)
+        return timeSeriesColumns;
 
       // All possible missing timesteps
       for (unsigned int i = 0; i < resultVector->size(); i++)

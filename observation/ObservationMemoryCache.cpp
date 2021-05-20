@@ -133,9 +133,8 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
 
         // Sort the data based on time
 
-        auto cmp = [](const DataItem& obs1, const DataItem& obs2) -> bool {
-          return (obs1.data_time < obs2.data_time);
-        };
+        auto cmp = [](const DataItem& obs1, const DataItem& obs2) -> bool
+        { return (obs1.data_time < obs2.data_time); };
 
         // The two segments are already sorted
 #if 1
@@ -203,9 +202,8 @@ void ObservationMemoryCache::clean(const boost::posix_time::ptime& newstarttime)
       {
         // Find first position newer than the given start time
 
-        auto cmp = [](const boost::posix_time::ptime& t, const DataItem& obs) -> bool {
-          return (obs.data_time > t);
-        };
+        auto cmp = [](const boost::posix_time::ptime& t, const DataItem& obs) -> bool
+        { return (obs.data_time > t); };
 
         // No need to load the shared pointer here atomically either, nobody else
         // can modify it right now, only read it.
@@ -278,9 +276,8 @@ LocationDataItems ObservationMemoryCache::read_observations(
 
     // Find first position >= than the given start time
 
-    auto cmp = [](const boost::posix_time::ptime& t, const DataItem& obs) -> bool {
-      return (obs.data_time >= t);
-    };
+    auto cmp = [](const boost::posix_time::ptime& t, const DataItem& obs) -> bool
+    { return (obs.data_time >= t); };
 
     auto obs = std::upper_bound(obsdata->begin(), obsdata->end(), settings.starttime, cmp);
 
@@ -310,7 +307,8 @@ LocationDataItems ObservationMemoryCache::read_observations(
       // Skip unwanted parameters similarly to SpatiaLite.cpp read_observations
       // Check sensor number and data_quality condition
       bool sensorOK = false;
-      if ((obs->measurand_no == 1 &&  (valid_sensors.find(-1) != valid_sensors.end() || valid_sensors.empty())) ||
+      if ((obs->measurand_no == 1 &&
+           (valid_sensors.find(-1) != valid_sensors.end() || valid_sensors.empty())) ||
           valid_sensors.find(obs->sensor_no) != valid_sensors.end())
         sensorOK = true;
 

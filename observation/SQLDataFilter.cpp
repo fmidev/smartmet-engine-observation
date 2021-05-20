@@ -174,7 +174,7 @@ bool SQLDataFilter::valueOK(const std::string& name, int val) const
       {
         return true;
       }
-	
+
     return false;
   }
   catch (...)

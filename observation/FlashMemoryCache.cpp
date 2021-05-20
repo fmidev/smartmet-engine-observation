@@ -135,9 +135,8 @@ void FlashMemoryCache::clean(const boost::posix_time::ptime& newstarttime) const
     {
       // Find first position newer than the given start time
 
-      auto cmp = [](const boost::posix_time::ptime& t, const FlashDataItem& flash) -> bool {
-        return (flash.stroke_time > t);
-      };
+      auto cmp = [](const boost::posix_time::ptime& t, const FlashDataItem& flash) -> bool
+      { return (flash.stroke_time > t); };
 
       auto pos = std::upper_bound(cache->begin(), cache->end(), newstarttime, cmp);
 
@@ -194,9 +193,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr FlashMemoryCache::getData(
 
     // Find time interval from the cache data
 
-    auto lcmp = [](const FlashDataItem& flash, const boost::posix_time::ptime& t) -> bool {
-      return (flash.stroke_time < t);
-    };
+    auto lcmp = [](const FlashDataItem& flash, const boost::posix_time::ptime& t) -> bool
+    { return (flash.stroke_time < t); };
 
     auto pos1 = std::lower_bound(cache->begin(), cache->end(), settings.starttime, lcmp);
 
@@ -205,9 +203,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr FlashMemoryCache::getData(
     if (pos1 == cache->end() || ++pos1 == cache->end())
       return result;
 
-    auto ucmp = [](const boost::posix_time::ptime& t, const FlashDataItem& flash) -> bool {
-      return (flash.stroke_time > t);
-    };
+    auto ucmp = [](const boost::posix_time::ptime& t, const FlashDataItem& flash) -> bool
+    { return (flash.stroke_time > t); };
 
     auto pos2 = std::upper_bound(cache->begin(), cache->end(), settings.endtime, ucmp);
 

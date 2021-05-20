@@ -111,7 +111,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
     const ExternalAndMobileProducerMeasurand &producerMeasurand =
         itsProducerConfig.at(settings.stationtype);
     ExternalAndMobileDBInfo dbInfo(&producerMeasurand);
-	dbInfo.setDatabaseTableName(itsProducerConfig.getDatabaseTableName());
+    dbInfo.setDatabaseTableName(itsProducerConfig.getDatabaseTableName());
     std::vector<std::string> queryfields;
     std::vector<int> measurandIds;
     const Measurands &measurands = producerMeasurand.measurands();
