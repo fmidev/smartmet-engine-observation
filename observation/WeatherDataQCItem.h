@@ -14,13 +14,13 @@ namespace Observation
 class WeatherDataQCItem
 {
  public:
-  int fmisid;
   boost::posix_time::ptime obstime;
-  std::string parameter;
-  int sensor_no;
-  double value;
-  int flag;
   boost::posix_time::ptime modified_last{boost::posix_time::not_a_date_time};
+  std::string parameter;
+  double value;
+  int fmisid;
+  int sensor_no;
+  int flag;
 
   std::size_t hash_value() const;
 };

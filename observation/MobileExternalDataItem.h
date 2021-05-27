@@ -14,22 +14,22 @@ namespace Observation
 class MobileExternalDataItem
 {
  public:
-  int prod_id;
-  boost::optional<int> station_id;
+  boost::posix_time::ptime created;
+  boost::posix_time::ptime data_time;
   boost::optional<std::string> station_code;
   boost::optional<std::string> dataset_id;
-  boost::optional<int> data_level;
-  int mid;
-  boost::optional<int> sensor_no;
-  boost::posix_time::ptime data_time;
-  double data_value;
   boost::optional<std::string> data_value_txt;
+  boost::optional<double> altitude;
+  boost::optional<int> station_id;
+  boost::optional<int> data_level;
+  boost::optional<int> sensor_no;
   boost::optional<int> data_quality;
   boost::optional<int> ctrl_status;
-  boost::posix_time::ptime created;
+  double data_value;
   double longitude;
   double latitude;
-  boost::optional<double> altitude;
+  int mid;
+  int prod_id;
 
   std::size_t hash_value() const;
 };
