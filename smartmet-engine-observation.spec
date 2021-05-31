@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.5.27
-Release: 1%{?dist}.fmi
+Version: 21.5.31
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -108,6 +108,14 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon May 31 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.5.31-2.fmi
+- Use modified_last as search condition in PG flash_data updates
+- sqlite cache weather_data_qc and flash_data modified_last is now not null with default 1970-01-01
+- sqlite cache weather_data_qc value column may now be null in case quality control decides to reset the value
+
+* Mon May 31 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.5.31-1.fmi
+- Use modified_last as search condition in PG weather_data_qc updates
+
 * Thu May 27 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.5.27-1.fmi
 - Sorted cache data item members into descending order by size to avoid unnecessary padding
 

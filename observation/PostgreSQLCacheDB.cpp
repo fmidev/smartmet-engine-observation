@@ -963,7 +963,10 @@ std::size_t PostgreSQLCacheDB::fillWeatherDataQCCache(const WeatherDataQCItems &
                              item.parameter)) +
                          ",");
               values += Fmi::to_string(item.sensor_no) + ",";
-              values += Fmi::to_string(item.value) + ",";
+              if (item.value)
+                values += Fmi::to_string(*item.value) + ",";
+              else
+                values += "NULL,";
               values += Fmi::to_string(item.flag) + ")";
               values_vector.push_back(values);
             }

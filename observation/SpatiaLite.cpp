@@ -1580,7 +1580,10 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
             cmd.bind(":obstime", data_times[i]);
             cmd.bind(":parameter", parameter_ids[i]);
             cmd.bind(":sensor_no", item.sensor_no);
-            cmd.bind(":value", item.value);
+            if (item.value)
+              cmd.bind(":value", *item.value);
+            else
+              cmd.bind(":value");  // NULL
             cmd.bind(":flag", item.flag);
             cmd.bind(":modified_last", modified_last_times[i]);
             cmd.execute();
