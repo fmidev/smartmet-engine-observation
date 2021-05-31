@@ -193,8 +193,7 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
         "modified_last)) as modified_last "
         "FROM observation_data_v1 data WHERE "
         "data.modified_last >= '" +
-        Fmi::to_iso_extended_string(lastModifiedTime) +
-        "' AND data_value IS NOT NULL ORDER BY station_id ASC, data_time ASC";
+        Fmi::to_iso_extended_string(lastModifiedTime) + "' ORDER BY station_id ASC, data_time ASC";
 
     if (big_request)
     {
