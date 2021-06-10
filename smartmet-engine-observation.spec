@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.5.31
-Release: 2%{?dist}.fmi
+Version: 21.6.10
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -109,6 +109,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Jul 10 2021 Andris Pavenis <andris.pavenis@fmi.fi> 21.6.10-1.fmi
+- Speed up engine shutdown: interruption points and postgresql operation cancel
+
 * Mon May 31 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.5.31-2.fmi
 - Use modified_last as search condition in PG flash_data updates
 - sqlite cache weather_data_qc and flash_data modified_last is now not null with default 1970-01-01
