@@ -3,6 +3,7 @@
 #include "PostgreSQLCacheDB.h"
 #include "Utils.h"
 #include <boost/functional/hash.hpp>
+#include <macgyver/AsyncTask.h>
 #include <macgyver/Exception.h>
 #include <spine/Convenience.h>
 
@@ -67,6 +68,8 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
     SmartMet::Spine::TimeSeries::Value none = SmartMet::Spine::TimeSeries::None();
     for (auto rsr : rsrs)
     {
+      Fmi::AsyncTask::interruption_point();
+
       MobileExternalDataItem dataItem;
       dataItem.prod_id = boost::get<int>(rsr["prod_id"]);
       if (rsr["station_id"] != none)
@@ -122,6 +125,8 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
 
     for (auto row : result_set)
     {
+      Fmi::AsyncTask::interruption_point();
+
       DataItem item;
       item.fmisid = row[0].as<int>();
       item.sensor_no = row[1].as<int>();
@@ -223,6 +228,8 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem
 
     for (auto row : result_set)
     {
+      Fmi::AsyncTask::interruption_point();
+
       FlashDataItem item;
 
       int epoch = row[0].as<int>();
@@ -354,7 +361,9 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
     unsigned int count = 0;
     for (auto row : result_set)
     {
-      count++;
+      if (count++ % 64 == 0) {
+	Fmi::AsyncTask::interruption_point();
+      }
       WeatherDataQCItem item;
 
       item.fmisid = row[0].as<int>();
@@ -521,6 +530,7 @@ LocationDataItems PostgreSQLObsDB::readObservations(const Spine::Stations &stati
 
     for (auto row : result_set)
     {
+      Fmi::AsyncTask::interruption_point();
       LocationDataItem obs;
       obs.data.fmisid = row[0].as<int>();
       obs.data.sensor_no = row[1].as<int>();
@@ -569,6 +579,7 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
     for (auto row : result_set)
     {
+      Fmi::AsyncTask::interruption_point();
       boost::optional<int> fmisid = row[0].as<int>();
       boost::posix_time::ptime obstime = boost::posix_time::from_time_t(row[1].as<time_t>());
       boost::optional<std::string> parameter = row[2].as<std::string>();
