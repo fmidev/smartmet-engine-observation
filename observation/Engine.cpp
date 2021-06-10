@@ -91,7 +91,9 @@ void Engine::init()
 void Engine::shutdown()
 {
   std::cout << "  -- Shutdown requested (Observation)" << std::endl;
-  itsDatabaseDriver->shutdown();
+  if (itsDatabaseDriver) {
+    itsDatabaseDriver->shutdown();
+  }
 }
 
 void Engine::unserializeStations()
