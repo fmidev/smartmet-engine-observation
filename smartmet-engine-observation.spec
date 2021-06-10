@@ -21,7 +21,7 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 21.5.20
 BuildRequires: smartmet-library-locus-devel >= 21.5.20
-BuildRequires: smartmet-library-macgyver-devel >= 21.5.20
+BuildRequires: smartmet-library-macgyver-devel >= 21.6.10
 BuildRequires: smartmet-library-spine-devel >= 21.5.20
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
@@ -37,7 +37,7 @@ Requires: libatomic
 Requires: libconfig
 Requires: smartmet-engine-geonames >= 21.5.20
 Requires: smartmet-library-locus >= 21.5.20
-Requires: smartmet-library-macgyver >= 21.5.20
+Requires: smartmet-library-macgyver >= 21.6.10
 Requires: smartmet-library-spine >= 21.5.20
 Requires: smartmet-server >= 21.1.14
 Requires: sqlite >= 3.22.0
@@ -51,6 +51,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
 #TestRequires: smartmet-engine-geonames >= 21.5.20
+#TestRequires: smartmet-library-macgyver >= 21.6.10
 #TestRequires: smartmet-test-data
 #TestRequires: libpqxx-devel < 1:7.0
 
