@@ -413,15 +413,19 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
 {
   try
   {
+    // Sometimes lastModifiedTime is 1.1.1970
+    auto starttime = std::max(lastTime, lastModifiedTime);
+
     const boost::posix_time::ptime now = second_clock::universal_time();
-    const auto diff = now - lastModifiedTime;
+    const auto diff = now - starttime;
+
     const bool big_request = (diff >= boost::posix_time::hours(24));
 
     if (big_request)
     {
       std::cout << (Spine::log_time_str() +
                     " [PostgreSQLObsDB] Performing a large EXT cache update starting from " +
-                    Fmi::to_simple_string(lastModifiedTime) + "\n");
+                    Fmi::to_simple_string(starttime) + "\n");
     }
 
     std::string sqlStmt =
@@ -430,7 +434,7 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
          "EXTRACT(EPOCH FROM date_trunc('seconds', "
          "modified_last)) as modified_last from "
          "weather_data_qc where modified_last >= '" +
-         Fmi::to_iso_extended_string(lastModifiedTime) + "'");
+         Fmi::to_iso_extended_string(starttime) + "'");
 
     return readWeatherDataQCCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
   }
