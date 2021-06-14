@@ -47,6 +47,7 @@ void CommonPostgreSQLFunctions::shutdown()
 {
   std::cout << "  -- Shutdown requested (PostgreSQL)\n";
   itsShutdownRequested = true;
+  itsDB.cancel();
 }
 
 Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationData(
