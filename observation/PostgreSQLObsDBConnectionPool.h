@@ -39,8 +39,9 @@ class PostgreSQLObsDBConnectionPool
   SmartMet::Spine::MutexType itsGetMutex;
   std::vector<Fmi::Database::PostgreSQLConnectionOptions> itsConnectionOptions;
   std::vector<size_t> itsServicePool;
-  size_t itsPoolSize = 0;
-  size_t itsGetConnectionTimeOutSeconds = 30;
+  std::size_t itsPoolSize = 0;
+  std::size_t itsLastConnectionID = 0;  // for rotating through the pool frequently
+  std::size_t itsGetConnectionTimeOutSeconds = 30;
 };
 
 }  // namespace Observation

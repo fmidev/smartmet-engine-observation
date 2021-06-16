@@ -113,16 +113,19 @@ std::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(
       // Local scope to minimize lock life time
       {
         SmartMet::Spine::WriteLock lock(itsGetMutex);
-        for (unsigned int i = 0; i < itsWorkingList.size(); i++)
+        for (std::size_t i = 0; i < itsWorkingList.size(); i++)
         {
-          if (itsWorkingList[i] == 0)
+          // We try the connections after the last taken one to go through all the members more
+          // efficiently to keep the connections alive
+          auto pos = (i + itsLastConnectionID + 1) % itsWorkingList.size();
+
+          if (itsWorkingList[pos] == 0)
           {
-            itsWorkingList[i] = 1;
-            // itsWorkerList[i]->attach();
-            // itsWorkerList[i]->beginSession(tryNumber); // this is very slow
-            itsWorkerList[i]->setConnectionId(static_cast<signed>(i));
-            itsWorkerList[i]->setDebug(debug);
-            return std::shared_ptr<PostgreSQLObsDB>(itsWorkerList[i].get(),
+            itsWorkingList[pos] = 1;
+            itsWorkerList[pos]->setConnectionId(pos);
+            itsWorkerList[pos]->setDebug(debug);
+            itsLastConnectionID = pos;
+            return std::shared_ptr<PostgreSQLObsDB>(itsWorkerList[pos].get(),
                                                     Releaser<PostgreSQLObsDB>(this));
           }
         }

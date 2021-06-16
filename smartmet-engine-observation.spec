@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.6.14
+Version: 21.6.16
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -19,10 +19,10 @@ BuildRequires: libatomic
 BuildRequires: libconfig-devel
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 21.5.20
+BuildRequires: smartmet-engine-geonames-devel >= 21.6.15
 BuildRequires: smartmet-library-locus-devel >= 21.5.20
 BuildRequires: smartmet-library-macgyver-devel >= 21.6.10
-BuildRequires: smartmet-library-spine-devel >= 21.5.20
+BuildRequires: smartmet-library-spine-devel >= 21.6.15
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -35,11 +35,11 @@ Requires: fmt >= 7.1.3
 Requires: gdal32-libs
 Requires: libatomic
 Requires: libconfig
-Requires: smartmet-engine-geonames >= 21.5.20
+Requires: smartmet-engine-geonames >= 21.6.15
 Requires: smartmet-library-locus >= 21.5.20
 Requires: smartmet-library-macgyver >= 21.6.10
-Requires: smartmet-library-spine >= 21.5.20
-Requires: smartmet-server >= 21.1.14
+Requires: smartmet-library-spine >= 21.6.15
+Requires: smartmet-server >= 21.6.3
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
 Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
@@ -50,7 +50,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 21.5.20
+#TestRequires: smartmet-engine-geonames >= 21.6.15
 #TestRequires: smartmet-library-macgyver >= 21.6.10
 #TestRequires: smartmet-test-data
 #TestRequires: libpqxx-devel < 1:7.0
@@ -109,6 +109,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jun 16 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.6.16-1.fmi
+- Fixed PostgreSQL connection pool to use all members of the pool more efficiently to keep the connections alive
+
 * Mon Jun 14 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.6.14-1.fmi
 - Fixed handling of NULL modified_last in weather_data_qc caches
 
