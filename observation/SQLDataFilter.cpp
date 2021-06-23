@@ -15,9 +15,7 @@ namespace
 int int_value(const std::string& str, size_t pos)
 {
   std::string val = str.substr(pos);
-
   Fmi::trim(val);
-
   return Fmi::stoi(val);
 }
 }  // namespace
@@ -122,9 +120,15 @@ bool SQLDataFilter::valueOK(const std::string& name, int val) const
 
         std::vector<std::string> conditions;
         if (orCondition)
-          boost::algorithm::split(conditions, cond, boost::algorithm::is_any_of("OR"));
+        {
+          conditions.push_back(cond.substr(0, cond.find("OR") - 1));
+          conditions.push_back(cond.substr(cond.find("OR") + 2));
+        }
         else if (andCondition)
-          boost::algorithm::split(conditions, cond, boost::algorithm::is_any_of("AND"));
+        {
+          conditions.push_back(cond.substr(0, cond.find("AND") - 1));
+          conditions.push_back(cond.substr(cond.find("AND") + 3));
+        }
         else
           conditions.push_back(cond);
 

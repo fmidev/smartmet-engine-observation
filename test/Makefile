@@ -47,7 +47,7 @@ clean:
 test: $(PROG)
 	@echo Running tests:
 	@for prog in $(PROG); do \
-	./$$prog -s; \
+	./$$prog; \
 	done
 
 $(PROG) : % : %.cpp ../observation.so /usr/share/smartmet/engines/geonames.so
