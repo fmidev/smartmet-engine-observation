@@ -141,8 +141,11 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
         auto cmp = [](const DataItem& obs1, const DataItem& obs2) -> bool
         { return (obs1.data_time < obs2.data_time); };
 
-        // The two segments are already sorted
-#if 1
+        // The two segments are already sorted. However, on RHEL7 the inplace_merge does not
+        // produce a sorted container. Could not find a bug by searching the net, but most
+        // definitely it does not work as expected.
+
+#if 0
         std::inplace_merge(newobs->begin(), newdata_start, newobs->end(), cmp);
 #else
         std::sort(newobs->begin(), newobs->end(), cmp);

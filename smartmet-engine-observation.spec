@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 21.6.23
-Release: 2%{?dist}.fmi
+Release: 3%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -109,6 +109,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jun 23 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.6.23-3.fmi
+- Fixed sorting of memory cache observations. RHEL7 std::inplace_merge seems to be bugged.
+
 * Wed Jun 23 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.6.23-2.fmi
 - Fixed a bug in parsing OR/AND clauses in SQLDataFilter
 
