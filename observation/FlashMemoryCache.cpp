@@ -83,18 +83,15 @@ std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
 
     if (!new_items.empty())
     {
-      // Insert new items to the cache
-
-      auto cache = boost::atomic_load(&itsFlashData);
-
       // Copy the old data
-      if (cache)
-        cache = boost::make_shared<FlashDataVector>(*cache);
-      else
-        cache = boost::make_shared<FlashDataVector>();  // first insert to the cache
+      auto new_cache = boost::make_shared<FlashDataVector>();
+
+      auto old_cache = boost::atomic_load(&itsFlashData);
+      if (old_cache)
+        *new_cache = *old_cache;
 
       // Append new data
-      auto& flashvector = *cache;
+      auto& flashvector = *new_cache;
       for (std::size_t i = 0; i < new_items.size(); i++)
         flashvector.push_back(flashCacheData[new_items[i]]);
 
@@ -103,7 +100,7 @@ std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
         itsHashValues.insert(hash);
 
       // Replace old contents
-      boost::atomic_store(&itsFlashData, cache);
+      boost::atomic_store(&itsFlashData, new_cache);
     }
 
     // Indicate fill has been called once
@@ -148,7 +145,8 @@ void FlashMemoryCache::clean(const boost::posix_time::ptime& newstarttime) const
         for (auto it = cache->begin(); it != pos; ++it)
           itsHashValues.erase(it->hash_value());
 
-        cache = boost::make_shared<FlashDataVector>(pos, cache->end());
+        auto new_cache = boost::make_shared<FlashDataVector>(pos, cache->end());
+        boost::atomic_store(&cache, new_cache);
       }
     }
 

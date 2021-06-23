@@ -81,23 +81,27 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
 
     if (!new_items.empty())
     {
-      // Since no-one else can modify the cache at the same time, we can make a safe copy
-      // by copying the shared pointers in the unordered map.
+      // Make a new cache
+      auto new_cache = boost::make_shared<Observations>();
 
-      auto cache = itsObservations;
+      // Copy pointers to existing observations if there are any
+      if (itsObservations)
+      {
+        auto old_cache = boost::atomic_load(&itsObservations);
+        for (auto& id_observations : *old_cache)
+        {
+          auto id = id_observations.first;
+          auto obs = boost::atomic_load(&id_observations.second);
+          new_cache->insert(std::make_pair(id, obs));
+        }
+      }
 
-      // On first run we may need to initialize, on further runs we create a new copy
-      if (!cache)
-        cache = boost::make_shared<Observations>();  // first insertion
-      else
-        cache = boost::make_shared<Observations>(*cache);  // copy all shared_ptrs
-
-      // The shared_ptrs now point to the original data. If we reset the data, we do
-      // not disturb readers reading the original data, since these shared_ptrs are
-      // our own, and we a free to reset them.
+      // The shared_ptrs now point to the original observations. If we reset
+      // the data, we do not disturb readers reading the original data, since these
+      // shared_ptrs are our own, and we a free to reset them.
 
       // Add the new data to our own copy
-      auto& observations = *cache;
+      auto& observations = *new_cache;
 
       for (std::size_t i = 0; i < new_items.size();)
       {
@@ -122,6 +126,7 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
         // Shorthand alias for the shared station observations to make code more readable
         auto& shared_obs = pos->second;
 
+        // Copy all old observations
         auto newobs = boost::make_shared<StationObservations>(*shared_obs);
 
         auto newdata_start = newobs->end();
@@ -143,8 +148,8 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
         std::sort(newobs->begin(), newobs->end(), cmp);
 #endif
 
-        // And store the new station data, no need for atomics since we own this shared_ptr
-        shared_obs = newobs;
+        // And store the new station data
+        boost::atomic_store(&shared_obs, newobs);
 
         // Move on to the next station
         i = j;
@@ -154,9 +159,9 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
       for (const auto& hash : new_hashes)
         itsHashValues.insert(hash);
 
-      // Replace old contents. Now we finally need to be atomic.
+      // Replace old contents
 
-      boost::atomic_store(&itsObservations, cache);
+      boost::atomic_store(&itsObservations, new_cache);
     }
 
     // Indicate fill has been called once

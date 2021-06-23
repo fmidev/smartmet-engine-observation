@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.6.16
+Version: 21.6.23
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -109,6 +109,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jun 23 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.6.23-1.fmi
+- Fixed safety issues in ObservationMemoryCache and FlashMemoryCache
+
 * Wed Jun 16 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.6.16-1.fmi
 - Fixed PostgreSQL connection pool to use all members of the pool more efficiently to keep the connections alive
 
