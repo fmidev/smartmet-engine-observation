@@ -361,8 +361,9 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
     unsigned int count = 0;
     for (auto row : result_set)
     {
-      if (count++ % 64 == 0) {
-	Fmi::AsyncTask::interruption_point();
+      if (count++ % 64 == 0)
+      {
+        Fmi::AsyncTask::interruption_point();
       }
       WeatherDataQCItem item;
 
@@ -422,11 +423,17 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
 {
   try
   {
-    // Sometimes lastModifiedTime is 1.1.1970
-    auto starttime = std::max(lastTime, lastModifiedTime);
+    auto starttime = lastModifiedTime;
 
     const boost::posix_time::ptime now = second_clock::universal_time();
-    const auto diff = now - starttime;
+    auto diff = now - starttime;
+
+    // Sometimes lastModifiedTime is 1.1.1970 due to problems, disable huge updates
+    if (diff > boost::posix_time::hours(366 * 24))
+    {
+      starttime = lastTime;
+      diff = now - starttime;
+    }
 
     const bool big_request = (diff >= boost::posix_time::hours(24));
 

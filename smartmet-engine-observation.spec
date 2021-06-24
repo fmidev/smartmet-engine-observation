@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.6.23
-Release: 3%{?dist}.fmi
+Version: 21.6.24
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -109,6 +109,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Jun 24 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.6.24-1.fmi
+- Fixed weather_data_qc cache updates logic : sometimes the data contains dates in the future
+
 * Wed Jun 23 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.6.23-3.fmi
 - Fixed sorting of memory cache observations. RHEL7 std::inplace_merge seems to be bugged.
 
