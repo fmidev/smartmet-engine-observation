@@ -231,7 +231,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr FlashMemoryCache::getData(
 
     auto localtz = timezones.time_zone_from_string(settings.timezone);
 
-    for (auto pos = pos1; pos <= pos2; ++pos)
+    for (auto pos = pos1; pos < pos2; ++pos)
     {
       const auto& flash = *pos;
 
