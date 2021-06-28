@@ -129,7 +129,9 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
         // Copy all old observations
         auto newobs = boost::make_shared<StationObservations>(*shared_obs);
 
+#if 0        
         auto newdata_start = newobs->end();
+#endif
 
         // Indices i...j-1 have the same fmisid
 
