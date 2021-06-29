@@ -53,10 +53,10 @@ std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings&
       out << item.first << " -> " << item.second << std::endl;
   }
 
-  if (!settings.sqlDataFilter.empty())
+  if (!settings.dataFilter.empty())
   {
-    out << "sqlDataFilter:" << std::endl;
-    settings.sqlDataFilter.format(out);  // out << settings.sqlDataFilter;
+    out << "dataFilter:" << std::endl;
+    settings.dataFilter.print();
   }
 
   if (settings.producer_ids.size() > 0)

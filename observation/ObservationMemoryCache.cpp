@@ -270,6 +270,11 @@ LocationDataItems ObservationMemoryCache::read_observations(
   // 3. extract wanted measurand_id's
   // 4. attach latitude, longitude and elevation for each fmisid
 
+  // Valid_sensors, -1 is marker of default sensor
+  std::set<int> valid_sensors;
+  for (const auto& item : qmap.sensorNumberToMeasurandIds)
+    valid_sensors.insert(item.first);
+
   for (const auto& station : stations)
   {
     // Accept station only if group condition is satisfied
@@ -303,11 +308,6 @@ LocationDataItems ObservationMemoryCache::read_observations(
 
     // Extract wanted parameters.
 
-    // Valid_sensors, -1 is marker of default sensor
-    std::set<int> valid_sensors;
-    for (const auto& item : qmap.sensorNumberToMeasurandIds)
-      valid_sensors.insert(item.first);
-
     for (; obs < obsdata->end(); ++obs)
     {
       // Done if reached desired endtime
@@ -315,20 +315,29 @@ LocationDataItems ObservationMemoryCache::read_observations(
         break;
 
       // Skip unwanted parameters similarly to SpatiaLite.cpp read_observations
-      // Check sensor number and data_quality condition
+      // Check sensor number and data_quality condition. The checks should be
+      // ordered based on which skips unwanted data the fastest
+
+      // Wanted parameters
+
+      if (std::find(qmap.measurandIds.begin(), qmap.measurandIds.end(), obs->measurand_id) ==
+          qmap.measurandIds.end())
+        continue;
+
+      // Wanted sensords
       bool sensorOK = false;
       if ((obs->measurand_no == 1 &&
            (valid_sensors.find(-1) != valid_sensors.end() || valid_sensors.empty())) ||
           valid_sensors.find(obs->sensor_no) != valid_sensors.end())
         sensorOK = true;
 
-      bool dataQualityOK = settings.sqlDataFilter.valueOK("data_quality", obs->data_quality);
-
-      if (!sensorOK || !dataQualityOK)
+      if (!sensorOK)
         continue;
 
-      if (std::find(qmap.measurandIds.begin(), qmap.measurandIds.end(), obs->measurand_id) ==
-          qmap.measurandIds.end())
+      // Required data quality
+      bool dataQualityOK = settings.dataFilter.valueOK("data_quality", obs->data_quality);
+
+      if (!dataQualityOK)
         continue;
 
       // Construct LocationDataItem from the DataItem

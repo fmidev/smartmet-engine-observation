@@ -189,8 +189,8 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
   settings.useCommonQueryMethod =
       itsParameters.params->stationtypeConfig.getUseCommonQueryMethod(settings.stationtype);
 
-  if (!settings.sqlDataFilter.exist("data_quality"))
-    settings.sqlDataFilter.setDataFilter(
+  if (!settings.dataFilter.exist("data_quality"))
+    settings.dataFilter.setDataFilter(
         "data_quality", itsParameters.params->dataQualityFilters.at(settings.stationtype));
 
   // Try first from cache and on failure (Fmi::Exception::) get from
@@ -285,8 +285,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::value
   settings.useCommonQueryMethod =
       itsParameters.params->stationtypeConfig.getUseCommonQueryMethod(settings.stationtype);
 
-  if (!settings.sqlDataFilter.exist("data_quality"))
-    settings.sqlDataFilter.setDataFilter(
+  if (!settings.dataFilter.exist("data_quality"))
+    settings.dataFilter.setDataFilter(
         "data_quality", itsParameters.params->dataQualityFilters.at(settings.stationtype));
 
   // Try first from cache and on failure (Fmi::Exception::) get from

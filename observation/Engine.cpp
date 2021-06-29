@@ -91,7 +91,8 @@ void Engine::init()
 void Engine::shutdown()
 {
   std::cout << "  -- Shutdown requested (Observation)" << std::endl;
-  if (itsDatabaseDriver) {
+  if (itsDatabaseDriver)
+  {
     itsDatabaseDriver->shutdown();
   }
 }

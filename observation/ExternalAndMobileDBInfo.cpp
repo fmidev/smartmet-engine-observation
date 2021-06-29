@@ -17,7 +17,7 @@ void add_where_conditions(std::string &sqlStmt,
                           const boost::posix_time::ptime &starttime,
                           const boost::posix_time::ptime &endtime,
                           const std::string &wktAreaFilter,
-                          const SQLDataFilter &sqlDataFilter)
+                          const DataFilter &dataFilter)
 {
   if (!wktAreaFilter.empty() && producer != FMI_IOT_PRODUCER)
   {
@@ -49,10 +49,10 @@ void add_where_conditions(std::string &sqlStmt,
     sqlStmt += " AND obs.data_time<='" + Fmi::to_iso_extended_string(endtime) + "'";
   }
 
-  if (sqlDataFilter.exist("station_id"))
-    sqlStmt += " AND " + sqlDataFilter.getSqlClause("station_id", "obs.station_id");
-  if (sqlDataFilter.exist("data_quality"))
-    sqlStmt += " AND " + sqlDataFilter.getSqlClause("data_quality", "obs.data_quality");
+  if (dataFilter.exist("station_id"))
+    sqlStmt += " AND " + dataFilter.getSqlClause("station_id", "obs.station_id");
+  if (dataFilter.exist("data_quality"))
+    sqlStmt += " AND " + dataFilter.getSqlClause("data_quality", "obs.data_quality");
 
   boost::algorithm::replace_all(sqlStmt, "WHERE AND", "WHERE");
 }
@@ -69,7 +69,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
                                                const boost::posix_time::ptime &starttime,
                                                const boost::posix_time::ptime &endtime,
                                                const std::vector<std::string> &station_ids,
-                                               const SQLDataFilter &sqlDataFilter) const
+                                               const DataFilter &dataFilter) const
 {
   std::string sqlStmt;
 
@@ -115,7 +115,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
     throw Fmi::Exception(BCP, "SQL select not defined for producer " + producerName);
   }
 
-  add_where_conditions(sqlStmt, producerName, measurandIds, starttime, endtime, "", sqlDataFilter);
+  add_where_conditions(sqlStmt, producerName, measurandIds, starttime, endtime, "", dataFilter);
 
   sqlStmt +=
       " GROUP BY "
@@ -132,7 +132,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
                                                const boost::posix_time::ptime &starttime,
                                                const boost::posix_time::ptime &endtime,
                                                const std::string &wktAreaFilter,
-                                               const SQLDataFilter &sqlDataFilter) const
+                                               const DataFilter &dataFilter) const
 {
   std::string sqlStmt;
 
@@ -185,7 +185,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
   }
 
   add_where_conditions(
-      sqlStmt, producerName, measurandIds, starttime, endtime, wktAreaFilter, sqlDataFilter);
+      sqlStmt, producerName, measurandIds, starttime, endtime, wktAreaFilter, dataFilter);
 
   if (producerName == ROADCLOUD_PRODUCER)
     sqlStmt +=
@@ -282,7 +282,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
                                                         const boost::posix_time::ptime &starttime,
                                                         const boost::posix_time::ptime &endtime,
                                                         const std::string &wktAreaFilter,
-                                                        const SQLDataFilter &sqlDataFilter,
+                                                        const DataFilter &dataFilter,
                                                         bool spatialite /* = false*/) const
 {
   if (!itsProducerMeasurand)
@@ -338,7 +338,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
   sqlStmt += " obs WHERE";
 
   add_where_conditions(
-      sqlStmt, producerName, measurandIds, starttime, endtime, wktAreaFilter, sqlDataFilter);
+      sqlStmt, producerName, measurandIds, starttime, endtime, wktAreaFilter, dataFilter);
 
   if (producerName == ROADCLOUD_PRODUCER)
     sqlStmt +=

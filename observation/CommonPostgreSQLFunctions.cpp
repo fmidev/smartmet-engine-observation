@@ -153,7 +153,7 @@ Engine::Observation::LocationDataItems CommonPostgreSQLFunctions::readObservatio
         sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
 
       sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
-      sqlStmt += "AND " + settings.sqlDataFilter.getSqlClause("data_quality", "data.data_quality") +
+      sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") +
                  " GROUP BY data.fmisid, data.sensor_no, data.data_time, data.measurand_id, "
                  "data.data_value, data.data_quality, data.data_source "
                  "ORDER BY fmisid ASC, obstime ASC";
@@ -175,7 +175,7 @@ Engine::Observation::LocationDataItems CommonPostgreSQLFunctions::readObservatio
         sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
 
       sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
-      sqlStmt += "AND " + settings.sqlDataFilter.getSqlClause("data_quality", "data.data_quality") +
+      sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") +
                  " GROUP BY data.station_id, data.sensor_no, data.data_time, data.measurand_id, "
                  "data.data_value, data.data_quality, data.data_source "
                  "ORDER BY fmisid ASC, obstime ASC";

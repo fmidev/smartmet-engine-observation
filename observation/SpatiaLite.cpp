@@ -136,7 +136,7 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
       sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
 
     sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
-    sqlStmt += "AND " + settings.sqlDataFilter.getSqlClause("data_quality", "data.data_quality") +
+    sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") +
                " GROUP BY data.fmisid, data.sensor_no, data.data_time, data.measurand_id, "
                "data.data_value, data.data_quality, data.data_source "
                "ORDER BY fmisid ASC, obstime ASC";
@@ -1313,7 +1313,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getMobileAndExterna
                                                     settings.starttime,
                                                     settings.endtime,
                                                     settings.wktArea,
-                                                    settings.sqlDataFilter,
+                                                    settings.dataFilter,
                                                     true);
 
     sqlite3pp::query qry(itsDB, sqlStmt.c_str());
@@ -2716,7 +2716,7 @@ std::string SpatiaLite::sqlSelectFromWeatherDataQCData(const Settings &settings,
           "AND data.obstime BETWEEN " +
           Fmi::to_string(starttime) + " AND " + Fmi::to_string(endtime) +
           " AND data.parameter IN (" + params + ") AND " +
-          settings.sqlDataFilter.getSqlClause("data_quality", "data.flag") +
+          settings.dataFilter.getSqlClause("data_quality", "data.flag") +
           " GROUP BY data.fmisid, data.parameter, data.sensor_no "
           "ORDER BY fmisid ASC, obstime ASC;";
     }
@@ -2732,7 +2732,7 @@ std::string SpatiaLite::sqlSelectFromWeatherDataQCData(const Settings &settings,
           "AND data.obstime BETWEEN " +
           Fmi::to_string(starttime) + " AND " + Fmi::to_string(endtime) +
           " AND data.parameter IN (" + params + ") AND " +
-          settings.sqlDataFilter.getSqlClause("data_quality", "data.flag") +
+          settings.dataFilter.getSqlClause("data_quality", "data.flag") +
           " GROUP BY data.fmisid, data.obstime, data.parameter, "
           "data.sensor_no "
           "ORDER BY fmisid ASC, obstime ASC;";

@@ -147,7 +147,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
       }
 
       sqlStmt = dbInfo.sqlSelect(
-          measurandIds, settings.starttime, settings.endtime, station_ids, settings.sqlDataFilter);
+          measurandIds, settings.starttime, settings.endtime, station_ids, settings.dataFilter);
     }
     else
     {
@@ -155,7 +155,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
                                  settings.starttime,
                                  settings.endtime,
                                  settings.wktArea,
-                                 settings.sqlDataFilter);
+                                 settings.dataFilter);
     }
 
     if (settings.debug_options)

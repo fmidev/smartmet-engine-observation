@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SQLDataFilter.h"
+#include "DataFilter.h"
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/local_time/local_time.hpp>
 #include <boost/date_time/local_time_adjustor.hpp>
@@ -40,7 +40,7 @@ class Settings
   // based on given parameters, for example "stations_no" -> "1020,1046"
   // returns data rows only where station_no == 1020 or 1046
   //  std::map<std::string, std::vector<std::string>> dataFilter;
-  SQLDataFilter sqlDataFilter;
+  DataFilter dataFilter;
 
   std::set<uint> producer_ids;
   std::string cacheKey;

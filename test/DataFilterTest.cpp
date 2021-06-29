@@ -1,24 +1,80 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-#include "CacheDataFilter.h"
+#include "DataFilter.h"
 
-using SmartMet::Engine::Observation::CacheDataFilter;
+using SmartMet::Engine::Observation::DataFilter;
 
 TEST_CASE("Test Cache filter")
 {
+  SECTION("Cache")
+  {
+    SECTION("empty")
+    {
+      DataFilter filter;
+      REQUIRE(filter.getSqlClause("name", "x").empty());
+    }
+    SECTION("number")
+    {
+      DataFilter filter;
+      filter.setDataFilter("name", "123");
+      REQUIRE(filter.getSqlClause("name", "x") == "(x = 123)");
+    }
+    SECTION("eq")
+    {
+      DataFilter filter;
+      filter.setDataFilter("name", "eq 123");
+      REQUIRE(filter.getSqlClause("name", "x") == "(x = 123)");
+    }
+    SECTION("lt")
+    {
+      DataFilter filter;
+      filter.setDataFilter("name", "lt 123");
+      REQUIRE(filter.getSqlClause("name", "x") == "(x < 123)");
+    }
+    SECTION("le")
+    {
+      DataFilter filter;
+      filter.setDataFilter("name", "le 123");
+      REQUIRE(filter.getSqlClause("name", "x") == "(x <= 123)");
+    }
+    SECTION("gt")
+    {
+      DataFilter filter;
+      filter.setDataFilter("name", "gt 123");
+      REQUIRE(filter.getSqlClause("name", "x") == "(x > 123)");
+    }
+    SECTION("ge")
+    {
+      DataFilter filter;
+      filter.setDataFilter("name", "ge 123");
+      REQUIRE(filter.getSqlClause("name", "x") == "(x >= 123)");
+    }
+    SECTION("and")
+    {
+      DataFilter filter;
+      filter.setDataFilter("name", "ge 1 AND lt 9");
+      REQUIRE(filter.getSqlClause("name", "x") == "(x < 9 AND x >= 1)");
+    }
+    SECTION("or")
+    {
+      DataFilter filter;
+      filter.setDataFilter("name", "lt 5 OR ge 10");
+      REQUIRE(filter.getSqlClause("name", "x") == "(x < 5 OR x >= 10)");
+    }
+  }
   SECTION("valueOK")
   {
     SECTION("empty")
     {
-      CacheDataFilter filter;
+      DataFilter filter;
       REQUIRE(filter.valueOK("empty", 1));
       REQUIRE(filter.valueOK("empty", 2));
       REQUIRE(filter.valueOK("empty", 3));
     }
     SECTION("123")
     {
-      CacheDataFilter filter;
+      DataFilter filter;
       filter.setDataFilter("123", "123");
       REQUIRE(!filter.valueOK("123", 122));
       REQUIRE(filter.valueOK("123", 123));
@@ -26,7 +82,7 @@ TEST_CASE("Test Cache filter")
     }
     SECTION("123,124")
     {
-      CacheDataFilter filter;
+      DataFilter filter;
       filter.setDataFilter("123,124", "123,124");
       REQUIRE(!filter.valueOK("123,124", 122));
       REQUIRE(filter.valueOK("123,124", 123));
@@ -34,7 +90,7 @@ TEST_CASE("Test Cache filter")
     }
     SECTION("eq 123")
     {
-      CacheDataFilter filter;
+      DataFilter filter;
       filter.setDataFilter("eq 123", "eq 123");
       REQUIRE(!filter.valueOK("eq 123", 122));
       REQUIRE(filter.valueOK("eq 123", 123));
@@ -42,7 +98,7 @@ TEST_CASE("Test Cache filter")
     }
     SECTION("lt 123")
     {
-      CacheDataFilter filter;
+      DataFilter filter;
       filter.setDataFilter("lt 123", "lt 123");
       REQUIRE(filter.valueOK("lt 123", 122));
       REQUIRE(!filter.valueOK("lt 123", 123));
@@ -50,7 +106,7 @@ TEST_CASE("Test Cache filter")
     }
     SECTION("le 123")
     {
-      CacheDataFilter filter;
+      DataFilter filter;
       filter.setDataFilter("le 123", "le 123");
       REQUIRE(filter.valueOK("le 123", 122));
       REQUIRE(filter.valueOK("le 123", 123));
@@ -58,7 +114,7 @@ TEST_CASE("Test Cache filter")
     }
     SECTION("gt 123")
     {
-      CacheDataFilter filter;
+      DataFilter filter;
       filter.setDataFilter("gt 123", "gt 123");
       REQUIRE(!filter.valueOK("gt 123", 122));
       REQUIRE(!filter.valueOK("gt 123", 123));
@@ -66,7 +122,7 @@ TEST_CASE("Test Cache filter")
     }
     SECTION("ge 123")
     {
-      CacheDataFilter filter;
+      DataFilter filter;
       filter.setDataFilter("ge 123", "ge 123");
       REQUIRE(!filter.valueOK("ge 123", 122));
       REQUIRE(filter.valueOK("ge 123", 123));
@@ -74,7 +130,7 @@ TEST_CASE("Test Cache filter")
     }
     SECTION("ge 1 AND lt 9")
     {
-      CacheDataFilter filter;
+      DataFilter filter;
       filter.setDataFilter("ge 1 AND lt 9", "ge 1 AND lt 9");
       REQUIRE(!filter.valueOK("ge 1 AND lt 9", 0));
       REQUIRE(filter.valueOK("ge 1 AND lt 9", 1));
@@ -85,7 +141,7 @@ TEST_CASE("Test Cache filter")
     }
     SECTION("lt 5 OR ge 10")
     {
-      CacheDataFilter filter;
+      DataFilter filter;
       filter.setDataFilter("lt 5 OR ge 10", "lt 5 OR ge 10");
       REQUIRE(filter.valueOK("lt 5 OR ge 10", 4));
       REQUIRE(filter.valueOK("lt 5 OR ge 10", 10));
@@ -96,7 +152,7 @@ TEST_CASE("Test Cache filter")
     }
     SECTION("1,3,ge 5 AND lt 9,11")
     {
-      CacheDataFilter filter;
+      DataFilter filter;
       filter.setDataFilter("1,3,ge 5 AND lt 9,11", "1,3,ge 5 AND lt 9,11");
       REQUIRE(!filter.valueOK("1,3,ge 5 AND lt 9,11", 0));
       REQUIRE(filter.valueOK("1,3,ge 5 AND lt 9,11", 1));

@@ -1,4 +1,4 @@
-#include "CacheDataFilter.h"
+#include "DataFilter.h"
 #include <boost/algorithm/string.hpp>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
@@ -31,6 +31,7 @@ enum class JoinType
 };
 
 std::vector<const char*> comparison_str{"lt", "le", "eq", "ge", "gt"};
+std::vector<const char*> comparison_sql{" < ", " <= ", " = ", " >= ", " > "};
 
 struct Comparison
 {
@@ -67,7 +68,7 @@ JoinType parse_join(const std::string& str)
 }
 }  // namespace
 
-class CacheDataFilter::Impl
+class DataFilter::Impl
 {
  public:
   void addDataFilter(const std::string& name, const std::string& filter_str)
@@ -168,16 +169,42 @@ class CacheDataFilter::Impl
     }
   }
 
+  std::string getSqlClause(const std::string& name, const std::string& dbfield) const
+  {
+    std::string ret;
+
+    const auto pos = filtermap.find(name);
+    if (pos == filtermap.end())
+      return ret;
+
+    ret += '(';
+    for (const auto& filter : pos->second)
+    {
+      if (ret != "(")
+      {
+        if (filter.join == JoinType::AND)
+          ret += " AND ";
+        else
+          ret += " OR ";
+      }
+      ret += dbfield;
+      ret += comparison_sql[static_cast<int>(filter.cmp)];
+      ret += Fmi::to_string(filter.value);
+    }
+    ret += ')';
+    return ret;
+  }
+
  private:
   using FilterMap = std::map<std::string, Comparisons>;
   FilterMap filtermap;
 };
 
-CacheDataFilter::~CacheDataFilter() = default;
+DataFilter::~DataFilter() = default;
 
-CacheDataFilter::CacheDataFilter() : impl(new Impl()) {}
+DataFilter::DataFilter() : impl(new Impl()) {}
 
-void CacheDataFilter::setDataFilter(const std::string& name, const std::string& value)
+void DataFilter::setDataFilter(const std::string& name, const std::string& value)
 {
   std::vector<std::string> parts;
   boost::algorithm::split(parts, value, boost::algorithm::is_any_of(","));
@@ -186,22 +213,27 @@ void CacheDataFilter::setDataFilter(const std::string& name, const std::string& 
     impl->addDataFilter(name, filter);
 }
 
-bool CacheDataFilter::exist(const std::string& name) const
+bool DataFilter::exist(const std::string& name) const
 {
   return impl->exist(name);
 }
 
-bool CacheDataFilter::empty() const
+bool DataFilter::empty() const
 {
   return impl->empty();
 }
 
-bool CacheDataFilter::valueOK(const std::string& name, int val) const
+bool DataFilter::valueOK(const std::string& name, int val) const
 {
   return impl->valueOK(name, val);
 }
 
-void CacheDataFilter::print() const
+std::string DataFilter::getSqlClause(const std::string& name, const std::string& dbfield) const
+{
+  return impl->getSqlClause(name, dbfield);
+}
+
+void DataFilter::print() const
 {
   impl->print();
 }

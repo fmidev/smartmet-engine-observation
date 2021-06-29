@@ -529,7 +529,7 @@ LocationDataItems PostgreSQLObsDB::readObservations(const Spine::Stations &stati
       sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
 
     sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
-    sqlStmt += "AND " + settings.sqlDataFilter.getSqlClause("data_quality", "data.data_quality") +
+    sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") +
                " GROUP BY data.station_id, data.sensor_no, data.data_time, data.measurand_id, "
                "data.data_value, data.data_quality, data.data_source "
                "ORDER BY fmisid ASC, obstime ASC";
@@ -660,7 +660,7 @@ std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(const Settings &sett
           "AND data.obstime BETWEEN '" +
           Fmi::to_iso_extended_string(settings.starttime) + "' AND '" +
           Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + params +
-          ") AND " + settings.sqlDataFilter.getSqlClause("data_quality", "data.flag") +
+          ") AND " + settings.dataFilter.getSqlClause("data_quality", "data.flag") +
           " GROUP BY data.fmisid, data.obstime, data.parameter, data.value, data.sensor_no, "
           "data.flag "
           "ORDER BY fmisid ASC, obstime ASC";
@@ -677,7 +677,7 @@ std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(const Settings &sett
           "AND data.obstime BETWEEN '" +
           Fmi::to_iso_extended_string(settings.starttime) + "' AND '" +
           Fmi::to_iso_extended_string(settings.endtime) + "' AND data.parameter IN (" + params +
-          ") AND " + settings.sqlDataFilter.getSqlClause("data_quality", "data.flag") +
+          ") AND " + settings.dataFilter.getSqlClause("data_quality", "data.flag") +
           " GROUP BY  data.fmisid, data.obstime, data.parameter, data.value, data.sensor_no, "
           "data.flag "
           "ORDER BY fmisid ASC, obstime ASC";

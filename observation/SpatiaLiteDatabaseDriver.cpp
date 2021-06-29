@@ -77,8 +77,8 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
   settings.useCommonQueryMethod =
       itsParameters.params->stationtypeConfig.getUseCommonQueryMethod(settings.stationtype);
 
-  if (!settings.sqlDataFilter.exist("data_quality"))
-    settings.sqlDataFilter.setDataFilter(
+  if (!settings.dataFilter.exist("data_quality"))
+    settings.dataFilter.setDataFilter(
         "data_quality", itsParameters.params->dataQualityFilters.at(settings.stationtype));
 
   // This driver fetched data only from cache
@@ -119,8 +119,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
   settings.useCommonQueryMethod =
       itsParameters.params->stationtypeConfig.getUseCommonQueryMethod(settings.stationtype);
 
-  if (!settings.sqlDataFilter.exist("data_quality"))
-    settings.sqlDataFilter.setDataFilter(
+  if (!settings.dataFilter.exist("data_quality"))
+    settings.dataFilter.setDataFilter(
         "data_quality", itsParameters.params->dataQualityFilters.at(settings.stationtype));
 
   // This driver fetched data only from cache
