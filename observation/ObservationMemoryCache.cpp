@@ -198,49 +198,40 @@ void ObservationMemoryCache::clean(const boost::posix_time::ptime& newstarttime)
 {
   try
   {
-    // Note: We do not need to load the shared pointer atomically, since
-    // writes are not done simultaneously, and we shall not modify the
-    // master shared pointer to all observations.
-
-    if (itsObservations)
-    {
-      // shorthand alias
-
-      auto& cache = *itsObservations;
-
-      for (auto& fmisid_obsdata : cache)
-      {
-        // Find first position newer than the given start time
-
-        auto cmp = [](const boost::posix_time::ptime& t, const DataItem& obs) -> bool
-        { return (obs.data_time > t); };
-
-        // No need to load the shared pointer here atomically either, nobody else
-        // can modify it right now, only read it.
-
-        const auto& obsdata = *fmisid_obsdata.second;
-        auto pos = std::upper_bound(obsdata.begin(), obsdata.end(), newstarttime, cmp);
-
-        if (pos != obsdata.end())
-        {
-          // Remove elements from the cache by making a new copy of the elements to be kept
-          for (auto it = obsdata.begin(); it != pos; ++it)
-            itsHashValues.erase(it->hash_value());
-
-          // Make a new copy of the data
-          auto new_obsdata = boost::make_shared<StationObservations>(pos, obsdata.end());
-
-          // Now we need to store the new data atomically just in case someone is about
-          // to read the data at the same time.
-          boost::atomic_store(&fmisid_obsdata.second, new_obsdata);
-        }
-      }
-    }
+    auto cache_ptr = boost::atomic_load(&itsObservations);
+    if (!cache_ptr)
+      return;
 
     // Update new start time for the cache first so no-one can request data before it
-    // before the data has been cleaned
+    // while the data is being cleaned
     auto starttime = boost::make_shared<boost::posix_time::ptime>(newstarttime);
     boost::atomic_store(&itsStartTime, starttime);
+
+    auto& cache = *cache_ptr;
+
+    for (auto& fmisid_obsdata : cache)
+    {
+      auto obsdata_ptr = boost::atomic_load(&fmisid_obsdata.second);
+      auto& obsdata = *obsdata_ptr;
+
+      // Erase from hash tables all too old observations for this station
+      auto it = obsdata.begin();
+      for (; it != obsdata.end(); ++it)
+      {
+        if (it->data_time >= newstarttime)
+          break;
+        itsHashValues.erase(it->hash_value());
+      }
+      // Then make a new copy of the remaining data if any deletions were made
+
+      if (it != obsdata.begin())
+      {
+        // Make a new copy of the data
+        auto new_obsdata = boost::make_shared<StationObservations>(it, obsdata.end());
+
+        boost::atomic_store(&fmisid_obsdata.second, new_obsdata);
+      }
+    }
   }
   catch (...)
   {
@@ -291,10 +282,10 @@ LocationDataItems ObservationMemoryCache::read_observations(
 
     // Find first position >= than the given start time
 
-    auto cmp = [](const boost::posix_time::ptime& t, const DataItem& obs) -> bool
-    { return (obs.data_time >= t); };
+    auto cmp = [](const DataItem& obs, const boost::posix_time::ptime& t) -> bool
+    { return (obs.data_time < t); };
 
-    auto obs = std::upper_bound(obsdata->begin(), obsdata->end(), settings.starttime, cmp);
+    auto obs = std::lower_bound(obsdata->begin(), obsdata->end(), settings.starttime, cmp);
 
     // Skip station if there is no data in the interval starttime...endtime
     if (obs == obsdata->end())
