@@ -52,7 +52,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: zlib-devel
 #TestRequires: smartmet-engine-geonames >= 21.6.15
 #TestRequires: smartmet-library-macgyver >= 21.6.10
-#TestRequires: Requires: smartmet-library-spine >= 21.7.5
+#TestRequires: smartmet-library-spine >= 21.7.5
 #TestRequires: smartmet-test-data
 #TestRequires: libpqxx-devel < 1:7.0
 
