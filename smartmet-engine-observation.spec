@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.6.30
+Version: 21.7.5
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -110,6 +110,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Jul  5 2021 Andris Pavēnis <andris.pavenis@fmi.fi> 21.7.5-1.fmi
+- Move DataFilter to smartmet-library-spine
+
 * Wed Jun 30 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.6.30-1.fmi
 - Simplified ObservationMemoryCache::clean
 - Fixed ObservationMemoryCache::read_observations to use std::lower_bound instead of std::upper_bound
