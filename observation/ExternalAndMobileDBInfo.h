@@ -1,7 +1,7 @@
 #pragma once
 
-#include "DataFilter.h"
 #include "ExternalAndMobileProducerConfig.h"
+#include <spine/DataFilter.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <map>
 #include <set>
@@ -23,12 +23,12 @@ class ExternalAndMobileDBInfo
                         const boost::posix_time::ptime &starttime,
                         const boost::posix_time::ptime &endtime,
                         const std::vector<std::string> &station_ids,
-                        const DataFilter &dataFilter) const;
+                        const Spine::DataFilter &dataFilter) const;
   std::string sqlSelect(const std::vector<int> &measurandIds,
                         const boost::posix_time::ptime &starttime,
                         const boost::posix_time::ptime &endtime,
                         const std::string &wktAreaFilter,
-                        const DataFilter &dataFilter) const;
+                        const Spine::DataFilter &dataFilter) const;
   std::string sqlSelectForCache(const std::string &producer,
                                 const boost::posix_time::ptime &from_data_time,
                                 const boost::posix_time::ptime &from_created_time) const;
@@ -36,7 +36,7 @@ class ExternalAndMobileDBInfo
                                  const boost::posix_time::ptime &starttime,
                                  const boost::posix_time::ptime &endtime,
                                  const std::string &wktAreaFilter,
-                                 const DataFilter &dataFilter,
+                                 const Spine::DataFilter &dataFilter,
                                  bool spatialite = false) const;
 
   std::string measurandFieldname(int measurandId) const;

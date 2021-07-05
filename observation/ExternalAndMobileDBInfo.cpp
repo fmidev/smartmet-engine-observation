@@ -5,6 +5,9 @@
 
 namespace SmartMet
 {
+
+using Spine::DataFilter;
+
 namespace Engine
 {
 namespace Observation
