@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.7.5
+Version: 21.7.8
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -20,8 +20,8 @@ BuildRequires: libconfig-devel
 BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 21.6.15
-BuildRequires: smartmet-library-locus-devel >= 21.5.20
-BuildRequires: smartmet-library-macgyver-devel >= 21.6.10
+BuildRequires: smartmet-library-locus-devel >= 21.8.7
+BuildRequires: smartmet-library-macgyver-devel >= 21.8.7
 BuildRequires: smartmet-library-spine-devel >= 21.7.5
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
@@ -36,12 +36,26 @@ Requires: gdal32-libs
 Requires: libatomic
 Requires: libconfig
 Requires: smartmet-engine-geonames >= 21.6.15
-Requires: smartmet-library-locus >= 21.5.20
-Requires: smartmet-library-macgyver >= 21.6.10
+Requires: smartmet-library-locus >= 21.8.7
+Requires: smartmet-library-macgyver >= 21.8.7
 Requires: smartmet-library-spine >= 21.7.5
 Requires: smartmet-server >= 21.6.3
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
+
+%if %{defined el7}
+Requires: libpqxx < 1:7.0
+BuildRequires: libpqxx-devel < 1:7.0
+%else
+%if %{defined el8}
+Requires: libpqxx >= 1:7.0
+BuildRequires: libpqxx-devel >= 1:7.0
+%else
+Requires: libpqxx
+BuildRequires: libpqxx-devel
+%endif
+%endif
+
 Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: make
@@ -54,7 +68,6 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: smartmet-library-macgyver >= 21.6.10
 #TestRequires: smartmet-library-spine >= 21.7.5
 #TestRequires: smartmet-test-data
-#TestRequires: libpqxx-devel < 1:7.0
 
 %if 0%{rhel} >= 8
 Requires: libspatialite50
@@ -110,6 +123,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Jul  8 2021 Andris Pavēnis <andris.pavenis@fmi.fi> 21.7.8-1.fmi
+- Use libpqxx7 for RHEL8
+
 * Mon Jul  5 2021 Andris Pavēnis <andris.pavenis@fmi.fi> 21.7.5-1.fmi
 - Move DataFilter to smartmet-library-spine
 
