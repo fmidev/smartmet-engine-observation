@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.7.8
+Version: 21.7.13
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -21,7 +21,7 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 21.6.15
 BuildRequires: smartmet-library-locus-devel >= 21.8.7
-BuildRequires: smartmet-library-macgyver-devel >= 21.8.7
+BuildRequires: smartmet-library-macgyver-devel >= 21.7.13
 BuildRequires: smartmet-library-spine-devel >= 21.7.5
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
@@ -37,7 +37,7 @@ Requires: libatomic
 Requires: libconfig
 Requires: smartmet-engine-geonames >= 21.6.15
 Requires: smartmet-library-locus >= 21.8.7
-Requires: smartmet-library-macgyver >= 21.8.7
+Requires: smartmet-library-macgyver >= 21.7.13
 Requires: smartmet-library-spine >= 21.7.5
 Requires: smartmet-server >= 21.6.3
 Requires: sqlite >= 3.22.0
@@ -65,7 +65,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
 #TestRequires: smartmet-engine-geonames >= 21.6.15
-#TestRequires: smartmet-library-macgyver >= 21.6.10
+#TestRequires: smartmet-library-macgyver >= 21.7.13
 #TestRequires: smartmet-library-spine >= 21.7.5
 #TestRequires: smartmet-test-data
 
@@ -123,6 +123,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Jul 13 2021 Andris Pavēnis <andris.pavenis@fmi.fi> 21.7.13-1.fmi
+- Update according to macgyver API changes
+
 * Thu Jul  8 2021 Andris Pavēnis <andris.pavenis@fmi.fi> 21.7.8-1.fmi
 - Use libpqxx7 for RHEL8
 
