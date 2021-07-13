@@ -757,8 +757,8 @@ std::size_t PostgreSQLCacheDB::fillDataCache(const DataItems &cacheData)
 
     std::size_t pos1 = 0;
     std::size_t write_count = 0;
-    itsDB.startTransaction();
-    itsDB.executeTransaction("LOCK TABLE observation_data IN SHARE MODE");
+    auto transaction = itsDB.transaction();
+    transaction->execute("LOCK TABLE observation_data IN SHARE MODE");
     // dropIndex("observation_data_data_time_idx", true);
 
     while (pos1 < cacheData.size())
@@ -857,7 +857,7 @@ std::size_t PostgreSQLCacheDB::fillDataCache(const DataItems &cacheData)
                   "(data_value, modified_last, data_quality, data_source) = "
                   "(EXCLUDED.data_value, EXCLUDED.modified_last, EXCLUDED.data_quality, "
                   "EXCLUDED.data_source)\n";
-              itsDB.executeTransaction(sqlStmt);
+              transaction->execute(sqlStmt);
               values_vector.clear();
             }
           }
@@ -877,7 +877,7 @@ std::size_t PostgreSQLCacheDB::fillDataCache(const DataItems &cacheData)
     }
 
     // createIndex("observation_data", "data_time", "observation_data_data_time_idx", true);
-    itsDB.commitTransaction();
+    transaction->commit();
     itsDB.executeNonTransaction("VACUUM ANALYZE observation_data");
 
     return write_count;
@@ -897,8 +897,8 @@ std::size_t PostgreSQLCacheDB::fillWeatherDataQCCache(const WeatherDataQCItems &
 
     std::size_t pos1 = 0;
     std::size_t write_count = 0;
-    itsDB.startTransaction();
-    itsDB.executeTransaction("LOCK TABLE weather_data_qc IN SHARE MODE");
+    auto transaction = itsDB.transaction();
+    transaction->execute("LOCK TABLE weather_data_qc IN SHARE MODE");
     // dropIndex("weather_data_qc_obstime_idx", true);
 
     while (pos1 < cacheData.size())
@@ -988,7 +988,7 @@ std::size_t PostgreSQLCacheDB::fillWeatherDataQCCache(const WeatherDataQCItems &
                   "UPDATE SET "
                   "(value, flag) = "
                   "(EXCLUDED.value, EXCLUDED.flag)";
-              itsDB.executeTransaction(sqlStmt);
+              transaction->execute(sqlStmt);
               values_vector.clear();
             }
           }
@@ -1007,7 +1007,7 @@ std::size_t PostgreSQLCacheDB::fillWeatherDataQCCache(const WeatherDataQCItems &
       pos1 = pos2;
     }
     // createIndex("weather_data_qc", "obstime", "weather_data_qc_obstime_idx", true);
-    itsDB.commitTransaction();
+    transaction->commit();
     itsDB.executeNonTransaction("VACUUM ANALYZE weather_data_qc");
 
     return write_count;
@@ -1027,8 +1027,8 @@ std::size_t PostgreSQLCacheDB::fillFlashDataCache(const FlashDataItems &flashCac
 
     std::size_t pos1 = 0;
     std::size_t write_count = 0;
-    itsDB.startTransaction();
-    itsDB.executeTransaction("LOCK TABLE flash_data IN SHARE MODE");
+    auto transaction = itsDB.transaction();
+    transaction->execute("LOCK TABLE flash_data IN SHARE MODE");
     // dropIndex("flash_data_stroke_time_idx", true);
     // dropIndex("flash_data_gix", true);
 
@@ -1156,7 +1156,7 @@ std::size_t PostgreSQLCacheDB::fillFlashDataCache(const FlashDataItems &flashCac
                   "EXCLUDED.data_source, EXCLUDED.created, EXCLUDED.modified_last, "
                   "EXCLUDED.stroke_location)";
 
-              itsDB.executeTransaction(sqlStmt);
+              transaction->execute(sqlStmt);
               values_vector.clear();
             }
           }
@@ -1177,7 +1177,7 @@ std::size_t PostgreSQLCacheDB::fillFlashDataCache(const FlashDataItems &flashCac
 
     // createIndex("flash_data USING GIST", "stroke_location", "flash_data_idx", true);
     // createIndex("flash_data", "stroke_time", "flash_data_stroke_time_idx", true);
-    itsDB.commitTransaction();
+    transaction->commit();
     itsDB.executeNonTransaction("VACUUM ANALYZE flash_data");
 
     return write_count;
@@ -1198,8 +1198,8 @@ std::size_t PostgreSQLCacheDB::fillRoadCloudCache(
 
     std::size_t pos1 = 0;
     std::size_t write_count = 0;
-    itsDB.startTransaction();
-    itsDB.executeTransaction("LOCK TABLE ext_obsdata_roadcloud IN SHARE MODE");
+    auto transaction = itsDB.transaction();
+    transaction->execute("LOCK TABLE ext_obsdata_roadcloud IN SHARE MODE");
 
     while (pos1 < mobileExternalCacheData.size())
     {
@@ -1336,7 +1336,7 @@ std::size_t PostgreSQLCacheDB::fillRoadCloudCache(
                   "EXCLUDED.data_quality, EXCLUDED.ctrl_status, EXCLUDED.created, "
                   "EXCLUDED.altitude)";
 
-              itsDB.executeTransaction(sqlStmt);
+              transaction->execute(sqlStmt);
               values_vector.clear();
             }
           }
@@ -1355,7 +1355,7 @@ std::size_t PostgreSQLCacheDB::fillRoadCloudCache(
       pos1 = pos2;
     }
 
-    itsDB.commitTransaction();
+    transaction->commit();
     itsDB.executeNonTransaction("VACUUM ANALYZE ext_obsdata_roadcloud");
 
     return write_count;
@@ -1376,8 +1376,8 @@ std::size_t PostgreSQLCacheDB::fillNetAtmoCache(
 
     std::size_t pos1 = 0;
     std::size_t write_count = 0;
-    itsDB.startTransaction();
-    itsDB.executeTransaction("LOCK TABLE ext_obsdata_netatmo IN SHARE MODE");
+    auto transaction = itsDB.transaction();
+    transaction->execute("LOCK TABLE ext_obsdata_netatmo IN SHARE MODE");
 
     while (pos1 < mobileExternalCacheData.size())
     {
@@ -1514,7 +1514,7 @@ std::size_t PostgreSQLCacheDB::fillNetAtmoCache(
                   "EXCLUDED.data_quality, EXCLUDED.ctrl_status, EXCLUDED.created, "
                   "EXCLUDED.altitude)";
 
-              itsDB.executeTransaction(sqlStmt);
+              transaction->execute(sqlStmt);
               values_vector.clear();
             }
           }
@@ -1533,7 +1533,7 @@ std::size_t PostgreSQLCacheDB::fillNetAtmoCache(
       pos1 = pos2;
     }
 
-    itsDB.commitTransaction();
+    transaction->commit();
     itsDB.executeNonTransaction("VACUUM ANALYZE ext_obsdata_netatmo");
 
     return write_count;
@@ -2059,12 +2059,8 @@ void PostgreSQLCacheDB::createIndex(const std::string &table,
 {
   try
   {
-    if (transaction)
-      itsDB.executeTransaction("CREATE INDEX IF NOT EXISTS " + idx_name + " ON " + table + "(" +
-                               column + ")");
-    else
-      itsDB.executeNonTransaction("CREATE INDEX IF NOT EXISTS " + idx_name + " ON " + table + "(" +
-                                  column + ")");
+      itsDB.execute("CREATE INDEX IF NOT EXISTS " + idx_name + " ON " + table + "(" +
+		    column + ")");
   }
   catch (...)
   {
@@ -2077,10 +2073,7 @@ void PostgreSQLCacheDB::dropIndex(const std::string &idx_name, bool transaction 
 {
   try
   {
-    if (transaction)
-      itsDB.executeTransaction("DROP INDEX IF EXISTS " + idx_name);
-    else
-      itsDB.executeNonTransaction("DROP INDEX IF EXISTS " + idx_name);
+    itsDB.execute("DROP INDEX IF EXISTS " + idx_name);
   }
   catch (...)
   {
