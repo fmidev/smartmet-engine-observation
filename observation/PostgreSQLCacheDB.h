@@ -303,10 +303,10 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
                               const QueryMapping &qmap,
-                              WeatherDataQCData &cacheData);
+                              WeatherDataQCData &cacheData) override;
   std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,
-                                             const std::string &station_ids) const;
+                                             const std::string &station_ids) const override;
 
  private:
   // Private members

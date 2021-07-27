@@ -23,7 +23,7 @@ class MastQuery : public QueryBase
  public:
   explicit MastQuery();
 
-  ~MastQuery();
+  ~MastQuery() override;
 
   MastQuery &operator=(const MastQuery &other) = delete;
   MastQuery(const MastQuery &other) = delete;
@@ -32,7 +32,7 @@ class MastQuery : public QueryBase
    * @brief Get SQL statement constructed in the class.
    * @return SQL statement string of empty string when failure occur.
    */
-  std::string getSQLStatement(const std::string &database = "oracle") const;
+  std::string getSQLStatement(const std::string &database = "oracle") const override;
 
   /**
    * @brief Get reference to the result container of
@@ -40,7 +40,7 @@ class MastQuery : public QueryBase
    * @return Reference to the result container or NULL if
    *         SQL statement produce an empty result.
    */
-  std::shared_ptr<QueryResult> getQueryResultContainer();
+  std::shared_ptr<QueryResult> getQueryResultContainer() override;
 
   /**
    * \brief Set query params used in SQL statement formation.

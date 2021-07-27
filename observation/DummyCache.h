@@ -79,7 +79,7 @@ class DummyCache : public ObservationCache
       const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const override;
 
-  void shutdown();
+  void shutdown() override;
 
  private:
   EngineParametersPtr itsParameters;

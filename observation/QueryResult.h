@@ -32,7 +32,7 @@ class QueryResult : public QueryResultBase
   explicit QueryResult(const size_t& numberOfValueVectors);
   explicit QueryResult(const QueryResult& other);
 
-  ~QueryResult();
+  ~QueryResult() override;
 
   QueryResult() = delete;
   QueryResult& operator=(const QueryResult& other) = delete;
@@ -106,9 +106,10 @@ class QueryResult : public QueryResultBase
                                           const ValueVectorType::const_iterator end);
 
   // The method follow the guidelines of the base class.
-  void getValueVectorData(const size_t& valueVectorId, ValueVectorType& outValueVector);
+  void getValueVectorData(const size_t& valueVectorId, ValueVectorType& outValueVector) override;
 
-  void getValueVectorData(const std::string& valueVectorName, ValueVectorType& outValueVector);
+  void getValueVectorData(const std::string& valueVectorName,
+                          ValueVectorType& outValueVector) override;
 
   /**
    *  @brief Get a copy of the data of value vector as strings.
@@ -127,20 +128,20 @@ class QueryResult : public QueryResultBase
 
   size_t getValueVectorId(const std::string& valueVectorName);
 
-  std::string getValueVectorName(const size_t& valueVectorId);
+  std::string getValueVectorName(const size_t& valueVectorId) override;
 
-  bool set(const std::shared_ptr<QueryResultBase> other);
+  bool set(const std::shared_ptr<QueryResultBase> other) override;
 
   // The method follow the guidelines of the base class.
-  void set(const size_t& valueVectorId, const ValueType& value);
+  void set(const size_t& valueVectorId, const ValueType& value) override;
 
-  void setValueVectorName(const size_t& valueVectorId, const std::string& valueVectorName);
+  void setValueVectorName(const size_t& valueVectorId, const std::string& valueVectorName) override;
 
   /**
    *  @brief Get the number of value vectors in the container.
    *  @return The number of value vectors in the container.
    */
-  size_t size() const;
+  size_t size() const override;
 
  private:
   // One value vector is a column.

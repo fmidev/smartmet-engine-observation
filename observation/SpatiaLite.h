@@ -49,7 +49,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
  public:
   SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheParameters &options);
 
-  ~SpatiaLite();
+  ~SpatiaLite() override;
 
   /**
    * @brief Get the time of the last modified  observation in observation_data table
@@ -291,15 +291,15 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFmiIoTData(const Settings &settings,
                                                                  const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFlashData(const Settings &settings,
-                                                                const Fmi::TimeZones &timezones);
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFlashData(
+      const Settings &settings, const Fmi::TimeZones &timezones) override;
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getObservationData(
       const SmartMet::Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
       const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones);
+      const Fmi::TimeZones &timezones) override;
 
   void shutdown();
 
@@ -312,7 +312,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    */
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
-                            const SmartMet::Spine::TaggedLocationList &locations);
+                            const SmartMet::Spine::TaggedLocationList &locations) override;
 
   std::size_t selectCount(const std::string &queryString);
 
@@ -335,12 +335,12 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
                               const QueryMapping &qmap,
-                              WeatherDataQCData &cacheData);
+                              WeatherDataQCData &cacheData) override;
   std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,
-                                             const std::string &station_ids) const;
+                                             const std::string &station_ids) const override;
 
-  std::string getWeatherDataQCParams(const std::set<std::string> &param_set) const;
+  std::string getWeatherDataQCParams(const std::set<std::string> &param_set) const override;
 
  private:
   // Private members

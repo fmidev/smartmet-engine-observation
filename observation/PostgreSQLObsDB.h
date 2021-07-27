@@ -94,10 +94,10 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions, private boost::noncopy
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
                               const QueryMapping &qmap,
-                              WeatherDataQCData &weatherDataQCData);
+                              WeatherDataQCData &weatherDataQCData) override;
   std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,
-                                             const std::string &station_ids) const;
+                                             const std::string &station_ids) const override;
 
   // Station id manipulators
   void translateToIdFunction(SmartMet::Spine::Stations &stations, int net_id) const;

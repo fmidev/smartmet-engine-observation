@@ -25,7 +25,7 @@ class VerifiableMessageQuery : public QueryBase
  public:
   explicit VerifiableMessageQuery();
 
-  ~VerifiableMessageQuery();
+  ~VerifiableMessageQuery() override;
 
   VerifiableMessageQuery &operator=(const VerifiableMessageQuery &other) = delete;
   VerifiableMessageQuery(const VerifiableMessageQuery &other) = delete;
@@ -34,7 +34,7 @@ class VerifiableMessageQuery : public QueryBase
    * @brief Get SQL statement constructed in the class.
    * @return SQL statement string of empty string when failure occur.
    */
-  std::string getSQLStatement(const std::string &database = "oracle") const;
+  std::string getSQLStatement(const std::string &database = "oracle") const override;
 
   /**
    * @brief Get reference to the result container of
@@ -42,7 +42,7 @@ class VerifiableMessageQuery : public QueryBase
    * @return Reference to the result container or NULL if
    *         SQL statement produce an empty result.
    */
-  std::shared_ptr<QueryResult> getQueryResultContainer();
+  std::shared_ptr<QueryResult> getQueryResultContainer() override;
 
   /**
    * \brief Set query params used in SQL statement formation.

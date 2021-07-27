@@ -15,33 +15,33 @@ namespace Observation
 class PostgreSQLDatabaseDriverForFmiData : public PostgreSQLDatabaseDriver
 {
  public:
-  ~PostgreSQLDatabaseDriverForFmiData() = default;
+  ~PostgreSQLDatabaseDriverForFmiData() override = default;
 
   PostgreSQLDatabaseDriverForFmiData(const std::string &name,
                                      const EngineParametersPtr &p,
                                      Spine::ConfigBase &cfg);
 
-  void init(Engine *obsengine);
-  std::string id() const;
-  void makeQuery(QueryBase *qb);
+  void init(Engine *obsengine) override;
+  std::string id() const override;
+  void makeQuery(QueryBase *qb) override;
 
-  Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings);
+  Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings) override;
 
   Spine::TimeSeries::TimeSeriesVectorPtr values(
-      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
+      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
 
   std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
-      std::vector<std::string> &parameters, const std::string language);
-  void getStations(Spine::Stations &stations, const Settings &settings) const;
+      std::vector<std::string> &parameters, const std::string language) override;
+  void getStations(Spine::Stations &stations, const Settings &settings) const override;
   void getStationsByArea(Spine::Stations &stations,
                          const std::string &stationtype,
                          const boost::posix_time::ptime &starttime,
                          const boost::posix_time::ptime &endtime,
-                         const std::string &wkt) const;
-  void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const;
+                         const std::string &wkt) const override;
+  void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const override;
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
-                            const Spine::TaggedLocationList &locations) const;
+                            const Spine::TaggedLocationList &locations) const override;
 
  private:
   void setSettings(Settings &settings, PostgreSQLObsDB &db);

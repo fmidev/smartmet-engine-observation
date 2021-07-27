@@ -12,7 +12,7 @@ namespace Observation
 class QueryObservablePropertyPostgreSQL : public QueryObservableProperty
 {
  public:
-  ~QueryObservablePropertyPostgreSQL();
+  ~QueryObservablePropertyPostgreSQL() override;
 
   std::shared_ptr<std::vector<ObservableProperty> > executeQuery(
       PostgreSQLObsDB &db,

@@ -31,13 +31,13 @@ class StandardFilter : public MinimumStandardFilter
    * failed.
    */
   explicit StandardFilter();
-  ~StandardFilter();
+  ~StandardFilter() override;
 
   StandardFilter(const StandardFilter& other) = delete;
   StandardFilter operator=(const StandardFilter& other) = delete;
 
   virtual std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
-      const NameType& field, const NameType& operationName, const boost::any& toWhat);
+      const NameType& field, const NameType& operationName, const boost::any& toWhat) override;
 };
 
 /**
@@ -55,7 +55,7 @@ class ExtendedStandardFilter : public StandardFilter
   using NameType = FEConformanceClassBase::NameType;
   using PropertyIsBaseType = FEConformanceClassBase::PropertyIsBaseType;
 
-  ~ExtendedStandardFilter();
+  ~ExtendedStandardFilter() override;
 
   ExtendedStandardFilter(const ExtendedStandardFilter& other) = delete;
   ExtendedStandardFilter operator=(const ExtendedStandardFilter& other) = delete;
@@ -67,9 +67,8 @@ class ExtendedStandardFilter : public StandardFilter
                                 Property::MinuteValueModuloIsEqualToZero());
   }
 
-  std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(const NameType& field,
-                                                                    const NameType& operationName,
-                                                                    const boost::any& toWhat)
+  std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
+      const NameType& field, const NameType& operationName, const boost::any& toWhat) override
   {
     try
     {

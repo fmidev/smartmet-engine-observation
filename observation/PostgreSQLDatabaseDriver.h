@@ -19,12 +19,12 @@ namespace Observation
 class PostgreSQLDatabaseDriver : public DatabaseDriverBase
 {
  public:
-  void shutdown();
-  virtual void init(Engine *obsengine);
+  void shutdown() override;
+  virtual void init(Engine *obsengine) override;
   Geonames::Engine *getGeonames() const;
   std::shared_ptr<FmiIoTStations> &getFmiIoTStations() { return itsParameters.fmiIoTStations; }
   //  void setOracleDriver(DatabaseDriverBase *dbDriver) { itsOracleDriver = dbDriver; }
-  void reloadStations();
+  void reloadStations() override;
 
  protected:
   PostgreSQLDatabaseDriver(const std::string &name,

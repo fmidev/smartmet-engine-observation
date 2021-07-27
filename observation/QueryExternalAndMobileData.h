@@ -17,7 +17,7 @@ class QueryExternalAndMobileData : public QueryBase
   QueryExternalAndMobileData(const ExternalAndMobileProducerConfig &producerConfig,
                              const std::shared_ptr<FmiIoTStations> &stations);
 
-  virtual ~QueryExternalAndMobileData();
+  ~QueryExternalAndMobileData() override;
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr executeQuery(PostgreSQLObsDB &db,
                                                                 Settings &settings,

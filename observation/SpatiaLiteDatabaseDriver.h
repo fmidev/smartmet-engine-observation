@@ -15,29 +15,29 @@ namespace Observation
 class SpatiaLiteDatabaseDriver : public DatabaseDriverBase
 {
  public:
-  ~SpatiaLiteDatabaseDriver() = default;
+  ~SpatiaLiteDatabaseDriver() override = default;
 
   SpatiaLiteDatabaseDriver(const std::string &name,
                            const EngineParametersPtr &p,
                            Spine::ConfigBase &cfg);
 
-  void init(Engine *obsengine);
-  std::string id() const;
-  void makeQuery(QueryBase *qb);
+  void init(Engine *obsengine) override;
+  std::string id() const override;
+  void makeQuery(QueryBase *qb) override;
 
-  Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings);
+  Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings) override;
 
   Spine::TimeSeries::TimeSeriesVectorPtr values(
-      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
+      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
 
   std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
-      std::vector<std::string> &parameters, const std::string language);
+      std::vector<std::string> &parameters, const std::string language) override;
 
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
-                            const Spine::TaggedLocationList &locations) const;
+                            const Spine::TaggedLocationList &locations) const override;
 
-  void shutdown();
+  void shutdown() override;
 
  private:
   void readConfig(Spine::ConfigBase &cfg);

@@ -130,7 +130,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   void shutdown() override;
 
  private:
-  ~Engine() = default;
+  ~Engine() override = default;
 
   void initializeCache();
   bool stationHasRightType(const Spine::Station &station, const Settings &settings);

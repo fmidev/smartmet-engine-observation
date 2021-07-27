@@ -98,9 +98,9 @@ class Base
 class IsEqualTo : public Base
 {
  public:
-  ~IsEqualTo();
+  ~IsEqualTo() override;
   IsEqualTo() = default;
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat) override
   {
     std::shared_ptr<IsEqualTo> obj(new IsEqualTo);
     obj->set(property, toWhat, "=");
@@ -111,9 +111,9 @@ class IsEqualTo : public Base
 class IsNotEqualTo : public Base
 {
  public:
-  ~IsNotEqualTo();
+  ~IsNotEqualTo() override;
   IsNotEqualTo() = default;
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat) override
   {
     std::shared_ptr<IsNotEqualTo> obj(new IsNotEqualTo);
     obj->set(property, toWhat, "!=");
@@ -124,9 +124,9 @@ class IsNotEqualTo : public Base
 class IsLessThan : public Base
 {
  public:
-  ~IsLessThan();
+  ~IsLessThan() override;
   IsLessThan() = default;
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat) override
   {
     std::shared_ptr<IsLessThan> obj(new IsLessThan);
     obj->set(property, toWhat, "<");
@@ -137,9 +137,9 @@ class IsLessThan : public Base
 class IsLessThanOrEqualTo : public Base
 {
  public:
-  ~IsLessThanOrEqualTo();
+  ~IsLessThanOrEqualTo() override;
   IsLessThanOrEqualTo() = default;
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat) override
   {
     std::shared_ptr<IsLessThanOrEqualTo> obj(new IsLessThanOrEqualTo);
     obj->set(property, toWhat, "<=");
@@ -150,9 +150,9 @@ class IsLessThanOrEqualTo : public Base
 class IsGreaterThan : public Base
 {
  public:
-  ~IsGreaterThan();
+  ~IsGreaterThan() override;
   IsGreaterThan() = default;
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat) override
   {
     std::shared_ptr<IsGreaterThan> obj(new IsGreaterThan);
     obj->set(property, toWhat, ">");
@@ -163,9 +163,9 @@ class IsGreaterThan : public Base
 class IsGreaterThanOrEqualTo : public Base
 {
  public:
-  ~IsGreaterThanOrEqualTo();
+  ~IsGreaterThanOrEqualTo() override;
   IsGreaterThanOrEqualTo() = default;
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat) override
   {
     std::shared_ptr<IsGreaterThanOrEqualTo> obj(new IsGreaterThanOrEqualTo);
     obj->set(property, toWhat, ">=");
@@ -176,9 +176,9 @@ class IsGreaterThanOrEqualTo : public Base
 class IsNull : public Base
 {
  public:
-  ~IsNull();
+  ~IsNull() override;
   IsNull() = default;
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& /* toWhat */)
+  std::shared_ptr<Base> get(const NameType& property, const boost::any& /* toWhat */) override
   {
     std::shared_ptr<IsNull> obj(new IsNull);
     obj->set(property, boost::any(std::string("NULL")), "");
@@ -189,9 +189,9 @@ class IsNull : public Base
 class IsNotNull : public Base
 {
  public:
-  ~IsNotNull();
+  ~IsNotNull() override;
   IsNotNull() = default;
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& /* toWhat */)
+  std::shared_ptr<Base> get(const NameType& property, const boost::any& /* toWhat */) override
   {
     std::shared_ptr<IsNotNull> obj(new IsNotNull);
     obj->set(property, boost::any(std::string("NULL")), "NOT");
@@ -202,9 +202,9 @@ class IsNotNull : public Base
 class IsNil : public Base
 {
  public:
-  ~IsNil();
+  ~IsNil() override;
   IsNil() = default;
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& /* toWhat */)
+  std::shared_ptr<Base> get(const NameType& property, const boost::any& /* toWhat */) override
   {
     std::shared_ptr<IsNil> obj(new IsNil);
     obj->set(property, boost::any(std::string("EMPTY")), "is");
@@ -215,9 +215,9 @@ class IsNil : public Base
 class IsLike : public Base
 {
  public:
-  ~IsLike();
+  ~IsLike() override;
   IsLike() = default;
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat) override
   {
     std::shared_ptr<IsLike> obj(new IsLike);
     std::string val;
@@ -236,9 +236,9 @@ class IsLike : public Base
 class IsBetween : public Base
 {
  public:
-  ~IsBetween();
+  ~IsBetween() override;
   IsBetween() = default;
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat) override
   {
     std::shared_ptr<IsBetween> obj(new IsBetween);
     obj->set(property, toWhat, "BETWEEN");
@@ -250,22 +250,22 @@ class IsBetween : public Base
 class MinuteValueModuloIsEqualToZero : public Base
 {
  public:
-  ~MinuteValueModuloIsEqualToZero();
+  ~MinuteValueModuloIsEqualToZero() override;
   MinuteValueModuloIsEqualToZero() = default;
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat) override
   {
     std::shared_ptr<MinuteValueModuloIsEqualToZero> obj(new MinuteValueModuloIsEqualToZero);
     obj->set(property, toWhat, "=");
     return obj;
   }
   Base::NameType getExpression(const Base::NameType& viewName,
-                               const std::string& database = "oracle") const;
+                               const std::string& database = "oracle") const override;
 
   // Owerrides the base class implementation!
   // return "ptime" for the following types: int16_t, int32_t, int64_t, int64_t, uint16_t, uint32_t,
   // uint64_t
   // otherwise "unknown"
-  NameType getValueTypeString() const;
+  NameType getValueTypeString() const override;
 };
 
 }  // namespace Property
