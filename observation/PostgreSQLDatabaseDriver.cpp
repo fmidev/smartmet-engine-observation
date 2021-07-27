@@ -10,7 +10,7 @@ namespace Observation
 {
 PostgreSQLDatabaseDriver::PostgreSQLDatabaseDriver(const std::string &name,
                                                    const EngineParametersPtr &p,
-                                                   Spine::ConfigBase &cfg)
+                                                   Spine::ConfigBase & /* cfg */)
     : DatabaseDriverBase(name), itsParameters(name, p)
 {
 }

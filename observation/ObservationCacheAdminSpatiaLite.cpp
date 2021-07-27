@@ -17,7 +17,7 @@ ObservationCacheAdminSpatiaLite::ObservationCacheAdminSpatiaLite(
 
 std::pair<boost::posix_time::ptime, boost::posix_time::ptime>
 ObservationCacheAdminSpatiaLite::getLatestWeatherDataQCTime(
-    const std::shared_ptr<ObservationCache>& cache) const
+    const std::shared_ptr<ObservationCache>& /* cache */) const
 {
   return std::pair<boost::posix_time::ptime, boost::posix_time::ptime>(
       boost::posix_time::not_a_date_time, boost::posix_time::not_a_date_time);
@@ -25,14 +25,14 @@ ObservationCacheAdminSpatiaLite::getLatestWeatherDataQCTime(
 
 std::pair<boost::posix_time::ptime, boost::posix_time::ptime>
 ObservationCacheAdminSpatiaLite::getLatestObservationTime(
-    const std::shared_ptr<ObservationCache>& cache) const
+    const std::shared_ptr<ObservationCache>& /* cache */) const
 {
   return std::pair<boost::posix_time::ptime, boost::posix_time::ptime>(
       boost::posix_time::not_a_date_time, boost::posix_time::not_a_date_time);
 }
 
 std::map<std::string, boost::posix_time::ptime> ObservationCacheAdminSpatiaLite::getLatestFlashTime(
-    const std::shared_ptr<ObservationCache>& cache) const
+    const std::shared_ptr<ObservationCache>& /* cache */) const
 {
   std::map<std::string, boost::posix_time::ptime> ret;
 

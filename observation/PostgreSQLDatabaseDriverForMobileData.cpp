@@ -348,8 +348,8 @@ void PostgreSQLDatabaseDriverForMobileData::getStationsByBoundingBox(Spine::Stat
 }
 
 std::shared_ptr<std::vector<ObservableProperty> >
-PostgreSQLDatabaseDriverForMobileData::observablePropertyQuery(std::vector<std::string> &parameters,
-                                                               const std::string language)
+PostgreSQLDatabaseDriverForMobileData::observablePropertyQuery(
+    std::vector<std::string> & /* parameters */, const std::string /* language */)
 {
   try
   {

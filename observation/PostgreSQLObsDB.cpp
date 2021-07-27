@@ -28,8 +28,8 @@ PostgreSQLObsDB::PostgreSQLObsDB(
 {
 }
 
-void PostgreSQLObsDB::get(const std::string &sqlStatement,
-                          std::shared_ptr<QueryResultBase> qrb,
+void PostgreSQLObsDB::get(const std::string & /* sqlStatement */,
+                          std::shared_ptr<QueryResultBase> /* qrb */,
                           const Fmi::TimeZones & /* timezones */)
 {
   try
@@ -48,7 +48,7 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
                                                         vector<MobileExternalDataItem> &cacheData,
                                                         boost::posix_time::ptime lastTime,
                                                         boost::posix_time::ptime lastCreatedTime,
-                                                        const Fmi::TimeZones &timezones)
+                                                        const Fmi::TimeZones & /* timezones */)
 {
   try
   {
@@ -117,7 +117,7 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
 
 void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
                                                   const std::string &sqlStmt,
-                                                  const Fmi::TimeZones &timezones)
+                                                  const Fmi::TimeZones & /* timezones */)
 {
   try
   {
@@ -181,7 +181,7 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
   }
 }
 void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
-                                                  const boost::posix_time::ptime &startTime,
+                                                  const boost::posix_time::ptime & /* startTime */,
                                                   const boost::posix_time::ptime &lastModifiedTime,
                                                   const Fmi::TimeZones &timezones)
 {
@@ -220,7 +220,7 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
 
 void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem> &cacheData,
                                                        const std::string &sqlStmt,
-                                                       const Fmi::TimeZones &timezones)
+                                                       const Fmi::TimeZones & /* timezones */)
 {
   try
   {
@@ -304,8 +304,8 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
 
 void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
     std::vector<FlashDataItem> &cacheData,
-    const boost::posix_time::ptime &startTime,
-    const boost::posix_time::ptime &lastStrokeTime,
+    const boost::posix_time::ptime & /* startTime */,
+    const boost::posix_time::ptime & /* lastStrokeTime */,
     const boost::posix_time::ptime &lastModifiedTime,
     const Fmi::TimeZones &timezones)
 {
@@ -352,7 +352,7 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
 void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
     std::vector<WeatherDataQCItem> &cacheData,
     const std::string &sqlStmt,
-    const Fmi::TimeZones &timezones)
+    const Fmi::TimeZones & /* timezones */)
 {
   try
   {
@@ -582,7 +582,7 @@ LocationDataItems PostgreSQLObsDB::readObservations(const Spine::Stations &stati
 void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
                                              const StationInfo &stationInfo,
                                              const std::set<std::string> &stationgroup_codes,
-                                             const QueryMapping &qmap,
+                                             const QueryMapping & /* qmap */,
                                              WeatherDataQCData &cacheData)
 {
   try

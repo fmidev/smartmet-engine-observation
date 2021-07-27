@@ -115,10 +115,10 @@ void SpatiaLiteCache::initializeConnectionPool()
   }
 }  // namespace Observation
 
-void SpatiaLiteCache::initializeCaches(int finCacheDuration,
+void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
                                        int finMemoryCacheDuration,
-                                       int extCacheDuration,
-                                       int flashCacheDuration,
+                                       int /* extCacheDuration */,
+                                       int /* flashCacheDuration */,
                                        int flashMemoryCacheDuration)
 {
   try
@@ -280,7 +280,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &set
 }
 
 bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                           const boost::posix_time::ptime &endtime) const
+                                           const boost::posix_time::ptime & /* endtime */) const
 {
   try
   {
@@ -298,7 +298,7 @@ bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &start
 }
 
 bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                            const boost::posix_time::ptime &endtime) const
+                                            const boost::posix_time::ptime & /* endtime */) const
 {
   try
   {
@@ -319,7 +319,7 @@ bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &star
 }
 
 bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
-    const boost::posix_time::ptime &starttime, const boost::posix_time::ptime &endtime) const
+    const boost::posix_time::ptime &starttime, const boost::posix_time::ptime & /* endtime */) const
 {
   try
   {
@@ -943,7 +943,7 @@ SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
   }
 }
 
-void SpatiaLiteCache::readConfig(const Spine::ConfigBase &cfg)
+void SpatiaLiteCache::readConfig(const Spine::ConfigBase & /* cfg */)
 {
   try
   {

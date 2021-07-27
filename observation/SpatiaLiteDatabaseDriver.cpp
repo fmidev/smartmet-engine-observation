@@ -53,7 +53,7 @@ void SpatiaLiteDatabaseDriver::init(Engine *obsengine)
   }
 }
 
-void SpatiaLiteDatabaseDriver::makeQuery(QueryBase *qb)
+void SpatiaLiteDatabaseDriver::makeQuery(QueryBase * /* qb */)
 {
   try
   {
@@ -170,7 +170,7 @@ FlashCounts SpatiaLiteDatabaseDriver::getFlashCount(
 }
 
 std::shared_ptr<std::vector<ObservableProperty>> SpatiaLiteDatabaseDriver::observablePropertyQuery(
-    std::vector<std::string> &parameters, const std::string language)
+    std::vector<std::string> & /* parameters */, const std::string /* language */)
 {
   try
   {

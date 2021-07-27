@@ -1544,7 +1544,7 @@ std::size_t PostgreSQLCacheDB::fillNetAtmoCache(
 }
 
 std::size_t PostgreSQLCacheDB::fillFmiIoTCache(
-    const MobileExternalDataItems &mobileExternalCacheData)
+    const MobileExternalDataItems & /* mobileExternalCacheData */)
 {
   return 0;
 }
@@ -2054,7 +2054,7 @@ LocationDataItems PostgreSQLCacheDB::readObservations(
 void PostgreSQLCacheDB::createIndex(const std::string &table,
                                     const std::string &column,
                                     const std::string &idx_name,
-                                    bool transaction /*= false*/) const
+                                    bool transaction /* false */) const
 {
   try
   {
@@ -2149,7 +2149,7 @@ ResultSetRows PostgreSQLCacheDB::getResultSetForMobileExternalData(
 void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
                                                const StationInfo &stationInfo,
                                                const std::set<std::string> &stationgroup_codes,
-                                               const QueryMapping &qmap,
+                                               const QueryMapping & /* qmap */,
                                                WeatherDataQCData &cacheData)
 {
   try

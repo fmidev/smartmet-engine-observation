@@ -176,7 +176,7 @@ class IsNull : public Base
  public:
   ~IsNull();
   IsNull() : Base() {}
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  std::shared_ptr<Base> get(const NameType& property, const boost::any& /* toWhat */)
   {
     std::shared_ptr<IsNull> obj(new IsNull);
     obj->set(property, boost::any(std::string("NULL")), "");
@@ -189,7 +189,7 @@ class IsNotNull : public Base
  public:
   ~IsNotNull();
   IsNotNull() : Base() {}
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  std::shared_ptr<Base> get(const NameType& property, const boost::any& /* toWhat */)
   {
     std::shared_ptr<IsNotNull> obj(new IsNotNull);
     obj->set(property, boost::any(std::string("NULL")), "NOT");
@@ -202,7 +202,7 @@ class IsNil : public Base
  public:
   ~IsNil();
   IsNil() : Base() {}
-  std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
+  std::shared_ptr<Base> get(const NameType& property, const boost::any& /* toWhat */)
   {
     std::shared_ptr<IsNil> obj(new IsNil);
     obj->set(property, boost::any(std::string("EMPTY")), "is");

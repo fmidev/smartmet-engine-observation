@@ -288,7 +288,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(Settings &se
 }
 
 bool PostgreSQLCache::timeIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                           const boost::posix_time::ptime &endtime) const
+                                           const boost::posix_time::ptime & /* endtime */) const
 {
   try
   {
@@ -306,7 +306,7 @@ bool PostgreSQLCache::timeIntervalIsCached(const boost::posix_time::ptime &start
 }
 
 bool PostgreSQLCache::flashIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                            const boost::posix_time::ptime &endtime) const
+                                            const boost::posix_time::ptime & /* endtime */) const
 {
   try
   {
@@ -324,7 +324,7 @@ bool PostgreSQLCache::flashIntervalIsCached(const boost::posix_time::ptime &star
 }
 
 bool PostgreSQLCache::timeIntervalWeatherDataQCIsCached(
-    const boost::posix_time::ptime &starttime, const boost::posix_time::ptime &endtime) const
+    const boost::posix_time::ptime &starttime, const boost::posix_time::ptime & /* endtime */) const
 {
   try
   {
@@ -492,7 +492,7 @@ std::size_t PostgreSQLCache::fillDataCache(const DataItems &cacheData) const
 
 void PostgreSQLCache::cleanDataCache(
     const boost::posix_time::time_duration &timetokeep,
-    const boost::posix_time::time_duration &timetokeep_memory) const
+    const boost::posix_time::time_duration & /* timetokeep_memory */) const
 {
   try
   {
@@ -858,7 +858,7 @@ PostgreSQLCache::PostgreSQLCache(const std::string &name,
   }
 }
 
-void PostgreSQLCache::readConfig(const Spine::ConfigBase &cfg)
+void PostgreSQLCache::readConfig(const Spine::ConfigBase & /* cfg */)
 {
   try
   {

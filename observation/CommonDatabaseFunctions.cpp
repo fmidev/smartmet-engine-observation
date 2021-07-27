@@ -67,8 +67,8 @@ bool is_data_quality_field(const std::string &fieldname)
 
 Spine::TimeSeries::Value get_default_sensor_value(
     const SensorData &sensor_data,
-    int fmisid,
-    int measurand_id,
+    int /* fmisid */,
+    int /* measurand_id */,
     DataFieldSpecifier specifier = DataFieldSpecifier::Value)
 {
   for (const auto &item : sensor_data)
@@ -131,7 +131,7 @@ Spine::TimeSeries::Value get_sensor_value(const SensorData &sensor_data,
 
 }  // namespace
 
-QueryMapping CommonDatabaseFunctions::buildQueryMapping(const Spine::Stations &stations,
+QueryMapping CommonDatabaseFunctions::buildQueryMapping(const Spine::Stations & /* stations */,
                                                         const Settings &settings,
                                                         const ParameterMapPtr &parameterMap,
                                                         const std::string &stationtype,
@@ -437,7 +437,7 @@ StationTimedMeasurandData CommonDatabaseFunctions::buildStationTimedMeasurandDat
 }
 
 Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
-    const Spine::Stations &stations,
+    const Spine::Stations & /* stations */,
     const Settings &settings,
     const std::string &stationtype,
     const StationMap &fmisid_to_station,

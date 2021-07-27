@@ -2638,7 +2638,7 @@ void SpatiaLite::initObservationMemoryCache(const boost::posix_time::ptime &star
 void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
                                         const StationInfo &stationInfo,
                                         const std::set<std::string> &stationgroup_codes,
-                                        const QueryMapping &qmap,
+                                        const QueryMapping & /* qmap */,
                                         WeatherDataQCData &cacheData)
 {
   try

@@ -31,18 +31,18 @@ class my_visitor : public boost::static_visitor<double>
 {
  public:
   my_visitor() = default;
-  double operator()(SmartMet::Spine::TimeSeries::None none)
+  double operator()(SmartMet::Spine::TimeSeries::None /* none */)
   {
     return static_cast<double>(kFloatMissing);
   }
   double operator()(double luku) { return luku; }
-  double operator()(const std::string &s) { return static_cast<double>(kFloatMissing); }
+  double operator()(const std::string & /* s */) { return static_cast<double>(kFloatMissing); }
   double operator()(int i) { return static_cast<double>(i); }
-  double operator()(boost::local_time::local_date_time i)
+  double operator()(boost::local_time::local_date_time /* i */)
   {
     return static_cast<double>(kFloatMissing);
   }
-  double operator()(SmartMet::Spine::TimeSeries::LonLat i)
+  double operator()(SmartMet::Spine::TimeSeries::LonLat /* i */)
   {
     return static_cast<double>(kFloatMissing);
   }

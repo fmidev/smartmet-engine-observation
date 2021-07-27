@@ -51,9 +51,9 @@ class DatabaseDriverBase
 
   virtual void getStations(Spine::Stations &stations, const Settings &settings) const;
 
-  virtual FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-                                    const boost::posix_time::ptime &endtime,
-                                    const Spine::TaggedLocationList &locations) const
+  virtual FlashCounts getFlashCount(const boost::posix_time::ptime & /* starttime */,
+                                    const boost::posix_time::ptime & /* endtime */,
+                                    const Spine::TaggedLocationList & /* locations */) const
   {
     return FlashCounts();
   }

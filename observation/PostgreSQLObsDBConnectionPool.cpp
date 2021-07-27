@@ -25,7 +25,9 @@ namespace Engine
 {
 namespace Observation
 {
-PostgreSQLObsDBConnectionPool::PostgreSQLObsDBConnectionPool(PostgreSQLDatabaseDriver* driver) {}
+PostgreSQLObsDBConnectionPool::PostgreSQLObsDBConnectionPool(PostgreSQLDatabaseDriver* /* driver */)
+{
+}
 
 bool PostgreSQLObsDBConnectionPool::addService(
     const Fmi::Database::PostgreSQLConnectionOptions& connectionOptions, int poolSize)

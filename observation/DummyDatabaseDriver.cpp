@@ -13,22 +13,22 @@ namespace Observation
 {
 void DummyDatabaseDriver::init(Engine *obsengine) {}
 
-ts::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings &settings)
+ts::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings & /* settings */)
 {
   return boost::make_shared<ts::TimeSeriesVector>();
 }
 
-ts::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings &settings,
+ts::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings & /* settings */,
                                                     const Spine::TimeSeriesGeneratorOptions &)
 {
   return boost::make_shared<ts::TimeSeriesVector>();
 }
 
 Spine::TaggedFMISIDList DummyDatabaseDriver::translateToFMISID(
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime,
-    const std::string &stationtype,
-    const StationSettings &stationSettings) const
+    const boost::posix_time::ptime & /* starttime */,
+    const boost::posix_time::ptime & /* endtime */,
+    const std::string & /* stationtype */,
+    const StationSettings & /* stationSettings */) const
 {
   return Spine::TaggedFMISIDList();
 }

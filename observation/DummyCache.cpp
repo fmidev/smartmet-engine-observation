@@ -16,21 +16,21 @@ void DummyCache::initializeConnectionPool()
   logMessage("[Observation Engine] Dummy cache initialized!", itsParameters->quiet);
 }
 
-void DummyCache::initializeCaches(int finCacheDuration,
-                                  int finMemoryCacheDuration,
-                                  int extCacheDuration,
-                                  int flashCacheDuration,
-                                  int flashMemoryCacheDuration)
+void DummyCache::initializeCaches(int /* finCacheDuration */,
+                                  int /* finMemoryCacheDuration */,
+                                  int /* extCacheDuration */,
+                                  int /* flashCacheDuration */,
+                                  int /* flashMemoryCacheDuration */)
 {
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr DummyCache::valuesFromCache(Settings &settings)
+Spine::TimeSeries::TimeSeriesVectorPtr DummyCache::valuesFromCache(Settings & /* settings */)
 {
   return Spine::TimeSeries::TimeSeriesVectorPtr();
 }
 
 Spine::TimeSeries::TimeSeriesVectorPtr DummyCache::valuesFromCache(
-    Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
+    Settings & /* settings */, const Spine::TimeSeriesGeneratorOptions & /* timeSeriesOptions */)
 {
   return Spine::TimeSeries::TimeSeriesVectorPtr();
 }
@@ -40,15 +40,15 @@ bool DummyCache::dataAvailableInCache(const Settings &settings) const
   return false;
 }
 
-bool DummyCache::flashIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                       const boost::posix_time::ptime &endtime) const
+bool DummyCache::flashIntervalIsCached(const boost::posix_time::ptime & /* starttime */,
+                                       const boost::posix_time::ptime & /* endtime */) const
 {
   return false;
 }
 
-FlashCounts DummyCache::getFlashCount(const boost::posix_time::ptime &starttime,
-                                      const boost::posix_time::ptime &endtime,
-                                      const Spine::TaggedLocationList &locations) const
+FlashCounts DummyCache::getFlashCount(const boost::posix_time::ptime & /* starttime */,
+                                      const boost::posix_time::ptime & /* endtime */,
+                                      const Spine::TaggedLocationList & /* locations */) const
 {
   return FlashCounts();
 }
@@ -63,7 +63,7 @@ boost::posix_time::ptime DummyCache::getLatestFlashTime() const
   return boost::posix_time::not_a_date_time;
 }
 
-std::size_t DummyCache::fillFlashDataCache(const FlashDataItems &flashCacheData) const
+std::size_t DummyCache::fillFlashDataCache(const FlashDataItems & /* flashCacheData */) const
 {
   return 0;
 }
@@ -89,8 +89,9 @@ std::size_t DummyCache::fillDataCache(const DataItems &cacheData) const
   return 0;
 }
 
-void DummyCache::cleanDataCache(const boost::posix_time::time_duration &timetokeep,
-                                const boost::posix_time::time_duration &timetokeep_memory) const
+void DummyCache::cleanDataCache(
+    const boost::posix_time::time_duration & /* timetokeep */,
+    const boost::posix_time::time_duration & /* timetokeep_memory */) const
 {
 }
 
@@ -104,17 +105,18 @@ boost::posix_time::ptime DummyCache::getLatestWeatherDataQCModifiedTime() const
   return boost::posix_time::not_a_date_time;
 }
 
-std::size_t DummyCache::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const
+std::size_t DummyCache::fillWeatherDataQCCache(const WeatherDataQCItems & /* cacheData */) const
 {
   return 0;
 }
 
-void DummyCache::cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep) const
+void DummyCache::cleanWeatherDataQCCache(
+    const boost::posix_time::time_duration & /* timetokeep */) const
 {
 }
 
-bool DummyCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                           const boost::posix_time::ptime &endtime) const
+bool DummyCache::roadCloudIntervalIsCached(const boost::posix_time::ptime & /* starttime */,
+                                           const boost::posix_time::ptime & /* endtime */) const
 {
   return false;
 }
@@ -130,12 +132,15 @@ boost::posix_time::ptime DummyCache::getLatestRoadCloudCreatedTime() const
 }
 
 std::size_t DummyCache::fillRoadCloudCache(
-    const MobileExternalDataItems &mobileExternalCacheData) const
+    const MobileExternalDataItems & /* mobileExternalCacheData */) const
 {
   return 0;
 }
 
-void DummyCache::cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const {}
+void DummyCache::cleanRoadCloudCache(
+    const boost::posix_time::time_duration & /* timetokeep */) const
+{
+}
 
 bool DummyCache::netAtmoIntervalIsCached(const boost::posix_time::ptime & /*starttime */,
                                          const boost::posix_time::ptime & /*endtime */) const
@@ -154,15 +159,17 @@ boost::posix_time::ptime DummyCache::getLatestNetAtmoCreatedTime() const
 }
 
 std::size_t DummyCache::fillNetAtmoCache(
-    const MobileExternalDataItems &mobileExternalCacheData) const
+    const MobileExternalDataItems & /* mobileExternalCacheData */) const
 {
   return 0;
 }
 
-void DummyCache::cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const {}
+void DummyCache::cleanNetAtmoCache(const boost::posix_time::time_duration & /* timetokeep */) const
+{
+}
 
-bool DummyCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                        const boost::posix_time::ptime &endtime) const
+bool DummyCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime & /* starttime */,
+                                        const boost::posix_time::ptime & /* endtime */) const
 {
   return false;
 }
@@ -178,12 +185,14 @@ boost::posix_time::ptime DummyCache::getLatestFmiIoTCreatedTime() const
 }
 
 std::size_t DummyCache::fillFmiIoTCache(
-    const MobileExternalDataItems &mobileExternalCacheData) const
+    const MobileExternalDataItems & /* mobileExternalCacheData */) const
 {
   return 0;
 }
 
-void DummyCache::cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const {}
+void DummyCache::cleanFmiIoTCache(const boost::posix_time::time_duration & /* timetokeep */) const
+{
+}
 
 void DummyCache::shutdown() {}
 
