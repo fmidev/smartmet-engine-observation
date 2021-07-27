@@ -99,7 +99,7 @@ class IsEqualTo : public Base
 {
  public:
   ~IsEqualTo();
-  IsEqualTo() : Base() {}
+  IsEqualTo() = default;
   std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
     std::shared_ptr<IsEqualTo> obj(new IsEqualTo);
@@ -112,7 +112,7 @@ class IsNotEqualTo : public Base
 {
  public:
   ~IsNotEqualTo();
-  IsNotEqualTo() : Base() {}
+  IsNotEqualTo() = default;
   std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
     std::shared_ptr<IsNotEqualTo> obj(new IsNotEqualTo);
@@ -125,7 +125,7 @@ class IsLessThan : public Base
 {
  public:
   ~IsLessThan();
-  IsLessThan() : Base() {}
+  IsLessThan() = default;
   std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
     std::shared_ptr<IsLessThan> obj(new IsLessThan);
@@ -138,7 +138,7 @@ class IsLessThanOrEqualTo : public Base
 {
  public:
   ~IsLessThanOrEqualTo();
-  IsLessThanOrEqualTo() : Base() {}
+  IsLessThanOrEqualTo() = default;
   std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
     std::shared_ptr<IsLessThanOrEqualTo> obj(new IsLessThanOrEqualTo);
@@ -151,7 +151,7 @@ class IsGreaterThan : public Base
 {
  public:
   ~IsGreaterThan();
-  IsGreaterThan() : Base() {}
+  IsGreaterThan() = default;
   std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
     std::shared_ptr<IsGreaterThan> obj(new IsGreaterThan);
@@ -164,7 +164,7 @@ class IsGreaterThanOrEqualTo : public Base
 {
  public:
   ~IsGreaterThanOrEqualTo();
-  IsGreaterThanOrEqualTo() : Base() {}
+  IsGreaterThanOrEqualTo() = default;
   std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
     std::shared_ptr<IsGreaterThanOrEqualTo> obj(new IsGreaterThanOrEqualTo);
@@ -177,7 +177,7 @@ class IsNull : public Base
 {
  public:
   ~IsNull();
-  IsNull() : Base() {}
+  IsNull() = default;
   std::shared_ptr<Base> get(const NameType& property, const boost::any& /* toWhat */)
   {
     std::shared_ptr<IsNull> obj(new IsNull);
@@ -190,7 +190,7 @@ class IsNotNull : public Base
 {
  public:
   ~IsNotNull();
-  IsNotNull() : Base() {}
+  IsNotNull() = default;
   std::shared_ptr<Base> get(const NameType& property, const boost::any& /* toWhat */)
   {
     std::shared_ptr<IsNotNull> obj(new IsNotNull);
@@ -203,7 +203,7 @@ class IsNil : public Base
 {
  public:
   ~IsNil();
-  IsNil() : Base() {}
+  IsNil() = default;
   std::shared_ptr<Base> get(const NameType& property, const boost::any& /* toWhat */)
   {
     std::shared_ptr<IsNil> obj(new IsNil);
@@ -216,7 +216,7 @@ class IsLike : public Base
 {
  public:
   ~IsLike();
-  IsLike() : Base() {}
+  IsLike() = default;
   std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
     std::shared_ptr<IsLike> obj(new IsLike);
@@ -237,7 +237,7 @@ class IsBetween : public Base
 {
  public:
   ~IsBetween();
-  IsBetween() : Base() {}
+  IsBetween() = default;
   std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
     std::shared_ptr<IsBetween> obj(new IsBetween);
@@ -251,7 +251,7 @@ class MinuteValueModuloIsEqualToZero : public Base
 {
  public:
   ~MinuteValueModuloIsEqualToZero();
-  MinuteValueModuloIsEqualToZero() : Base() {}
+  MinuteValueModuloIsEqualToZero() = default;
   std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat)
   {
     std::shared_ptr<MinuteValueModuloIsEqualToZero> obj(new MinuteValueModuloIsEqualToZero);
