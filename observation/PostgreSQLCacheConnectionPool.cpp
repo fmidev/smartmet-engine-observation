@@ -48,8 +48,8 @@ PostgreSQLCacheConnectionPool::PostgreSQLCacheConnectionPool(
     itsWorkerList.resize(options.connectionPoolSize);
 
     // Create all connections in advance, not when needed
-    for (std::size_t i = 0; i < itsWorkerList.size(); i++)
-      itsWorkerList[i] = std::make_shared<PostgreSQLCacheDB>(itsOptions);
+    for (auto& worker : itsWorkerList)
+      worker = std::make_shared<PostgreSQLCacheDB>(itsOptions);
   }
   catch (...)
   {
@@ -134,9 +134,9 @@ void PostgreSQLCacheConnectionPool::shutdown()
   try
   {
     std::cout << "  -- Shutdown requested (PostgreSQLCacheConnectionPool)\n";
-    for (unsigned int i = 0; i < itsWorkerList.size(); i++)
+    for (const auto& worker : itsWorkerList)
     {
-      auto sl = itsWorkerList[i].get();
+      auto* sl = worker.get();
       if (sl != nullptr)
         sl->shutdown();
     }

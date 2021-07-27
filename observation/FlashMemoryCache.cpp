@@ -92,8 +92,8 @@ std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
 
       // Append new data
       auto& flashvector = *new_cache;
-      for (std::size_t i = 0; i < new_items.size(); i++)
-        flashvector.push_back(flashCacheData[new_items[i]]);
+      for (auto new_item : new_items)
+        flashvector.push_back(flashCacheData[new_item]);
 
       // Mark them inserted based on hash value
       for (const auto& hash : new_hashes)

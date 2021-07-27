@@ -69,10 +69,10 @@ void MastQueryParams::addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfi
       throw exception;
     }
 
-    for (auto joinOnField = joinOnFields.begin(); joinOnField != joinOnFields.end(); joinOnField++)
+    for (const auto& joinOnField : joinOnFields)
     {
       // Try to find the joinOnField from the first registry config. Fail if not found.
-      const std::string joinOnFieldUpperCase = Fmi::ascii_toupper_copy(*joinOnField);
+      const std::string joinOnFieldUpperCase = Fmi::ascii_toupper_copy(joinOnField);
       const std::shared_ptr<DBRegistryConfig::FieldNameMapType> map =
           m_dbrConfig.at(0)->getFieldNameMap();
       DBRegistryConfig::FieldNameMapType::const_iterator it = map->find(joinOnFieldUpperCase);
@@ -88,7 +88,7 @@ void MastQueryParams::addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfi
                 "Joining database views '{}' and '{}' by using field name '{}' is not possible",
                 m_dbrConfig.at(0)->getTableName(),
                 dbrConfigJoinOn->getTableName(),
-                *joinOnField));
+                joinOnField));
       }
     }
 
@@ -249,9 +249,9 @@ void MastQueryParams::addOrderBy(const NameType& field, const NameType& ascDesc)
               "the configurations.",
               field));
 
-    for (auto it = m_orderByVector.begin(); it != m_orderByVector.end(); ++it)
+    for (const auto& orderby : m_orderByVector)
     {
-      if (it->first == fieldUpper)
+      if (orderby.first == fieldUpper)
         throw Fmi::Exception(BCP, "Operation processing failed!")
             .addDetail(fmt::format(
                 "Trying to order SQL query result twice by using a field name '{}'.", field));

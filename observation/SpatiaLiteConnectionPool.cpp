@@ -44,8 +44,8 @@ SpatiaLiteConnectionPool::SpatiaLiteConnectionPool(const SpatiaLiteCacheParamete
     itsWorkerList.resize(options.connectionPoolSize);
 
     // Create all connections in advance, not when needed
-    for (std::size_t i = 0; i < itsWorkerList.size(); i++)
-      itsWorkerList[i] = std::make_shared<SpatiaLite>(itsSpatialiteFile, itsOptions);
+    for (auto& worker : itsWorkerList)
+      worker = std::make_shared<SpatiaLite>(itsSpatialiteFile, itsOptions);
   }
   catch (...)
   {
@@ -129,9 +129,10 @@ void SpatiaLiteConnectionPool::shutdown()
   try
   {
     std::cout << "  -- Shutdown requested (SpatiaLiteConnectionPool)\n";
-    for (unsigned int i = 0; i < itsWorkerList.size(); i++)
+
+    for (const auto& worker : itsWorkerList)
     {
-      auto* sl = itsWorkerList[i].get();
+      auto* sl = worker.get();
       if (sl != nullptr)
         sl->shutdown();
     }

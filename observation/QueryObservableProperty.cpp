@@ -21,24 +21,24 @@ void QueryObservableProperty::solveMeasurandIds(
     // Empty list means we want all parameters
     const bool findOnlyGiven = (not parameters.empty());
 
-    for (auto params = parameterMap->begin(); params != parameterMap->end(); ++params)
+    for (const auto &params : *parameterMap)
     {
       if (findOnlyGiven &&
-          find(parameters.begin(), parameters.end(), params->first) == parameters.end())
+          find(parameters.begin(), parameters.end(), params.first) == parameters.end())
         continue;
 
-      auto gid = params->second.find(stationType);
-      if (gid == params->second.end())
+      auto gid = params.second.find(stationType);
+      if (gid == params.second.end())
       {
-        if (params->first == "pap_pt1s_avg")
-          parameterIDs.emplace(650, params->first);
+        if (params.first == "pap_pt1s_avg")
+          parameterIDs.emplace(650, params.first);
         continue;
       }
 
       try
       {
         int id = std::stoi(gid->second);
-        parameterIDs.emplace(id, params->first);
+        parameterIDs.emplace(id, params.first);
       }
       catch (std::exception &)
       {

@@ -167,9 +167,9 @@ void PostgreSQLObsDBConnectionPool::shutdown()
   try
   {
     std::cout << "  -- Shutdown requested (PostgreSQLObsDBConnectionPool)\n";
-    for (unsigned int i = 0; i < itsWorkerList.size(); i++)
+    for (auto& worker : itsWorkerList)
     {
-      auto* sl = itsWorkerList[i].get();
+      auto* sl = worker.get();
       if (sl != nullptr)
         sl->shutdown();
     }

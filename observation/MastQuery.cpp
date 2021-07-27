@@ -96,9 +96,10 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
     using OperationMapType = MastQueryParams::OperationMapType;
 
     const std::shared_ptr<OperationMapType> om = qParams->getOperationMap();
-    for (auto omIt = om->begin(); omIt != om->end(); ++omIt)
+
+    for (const auto &op : *om)
     {
-      if (omIt->second.size() == 0)
+      if (op.second.size() == 0)
         continue;
 
       if (m_where.size() > 0)
@@ -110,9 +111,9 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
       m_where.append("(");
       m_wherePostgreSQL.append("(");
 
-      for (auto it = omIt->second.begin(); it != omIt->second.end(); ++it)
+      for (auto it = op.second.begin(); it != op.second.end(); ++it)
       {
-        if (it != omIt->second.begin())
+        if (it != op.second.begin())
         {
           m_where.append(" or ");
           m_wherePostgreSQL.append(" or ");

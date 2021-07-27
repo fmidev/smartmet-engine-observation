@@ -146,13 +146,13 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
 
     sqlite3pp::query qry(itsDB, sqlStmt.c_str());
 
-    for (auto iter = qry.begin(); iter != qry.end(); ++iter)
+    for (const auto &row : qry)
     {
       LocationDataItem obs;
-      time_t epoch_time = (*iter).get<int>(2);
+      time_t epoch_time = row.get<int>(2);
       obs.data.data_time = boost::posix_time::from_time_t(epoch_time);
-      obs.data.fmisid = (*iter).get<int>(0);
-      obs.data.sensor_no = (*iter).get<int>(1);
+      obs.data.fmisid = row.get<int>(0);
+      obs.data.sensor_no = row.get<int>(1);
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(obs.data.fmisid, stationgroup_codes);
       obs.latitude = s.latitude_out;
@@ -168,14 +168,14 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
         obs.elevation = sloc.elevation;
       }
 
-      obs.data.measurand_id = (*iter).get<int>(3);
-      obs.data.measurand_no = (*iter).get<int>(4);
-      if ((*iter).column_type(5) != SQLITE_NULL)
-        obs.data.data_value = (*iter).get<double>(5);
-      if ((*iter).column_type(6) != SQLITE_NULL)
-        obs.data.data_quality = (*iter).get<int>(6);
-      if ((*iter).column_type(7) != SQLITE_NULL)
-        obs.data.data_source = (*iter).get<int>(7);
+      obs.data.measurand_id = row.get<int>(3);
+      obs.data.measurand_no = row.get<int>(4);
+      if (row.column_type(5) != SQLITE_NULL)
+        obs.data.data_value = row.get<double>(5);
+      if (row.column_type(6) != SQLITE_NULL)
+        obs.data.data_quality = row.get<int>(6);
+      if (row.column_type(7) != SQLITE_NULL)
+        obs.data.data_source = row.get<int>(7);
 
       ret.emplace_back(obs);
     }
@@ -2601,26 +2601,26 @@ void SpatiaLite::initObservationMemoryCache(const boost::posix_time::ptime &star
 
     DataItems observations;
 
-    for (auto iter = qry.begin(); iter != qry.end(); ++iter)
+    for (const auto &row : qry)
     {
-      if ((*iter).column_type(2) == SQLITE_NULL)  // data_value
+      if (row.column_type(2) == SQLITE_NULL)  // data_value
         continue;
-      if ((*iter).column_type(8) == SQLITE_NULL)  // data_quality
+      if (row.column_type(8) == SQLITE_NULL)  // data_quality
         continue;
 
       DataItem obs;
-      time_t data_time = (*iter).get<int>(0);
-      time_t modified_last_time = (*iter).get<int>(1);
+      time_t data_time = row.get<int>(0);
+      time_t modified_last_time = row.get<int>(1);
       obs.data_time = boost::posix_time::from_time_t(data_time);
       obs.modified_last = boost::posix_time::from_time_t(modified_last_time);
-      obs.data_value = (*iter).get<double>(2);
-      obs.fmisid = (*iter).get<int>(3);
-      obs.sensor_no = (*iter).get<int>(4);
-      obs.measurand_id = (*iter).get<int>(5);
-      obs.producer_id = (*iter).get<int>(6);
-      obs.measurand_no = (*iter).get<int>(7);
-      obs.data_quality = (*iter).get<int>(8);
-      obs.data_source = (*iter).get<int>(9);
+      obs.data_value = row.get<double>(2);
+      obs.fmisid = row.get<int>(3);
+      obs.sensor_no = row.get<int>(4);
+      obs.measurand_id = row.get<int>(5);
+      obs.producer_id = row.get<int>(6);
+      obs.measurand_no = row.get<int>(7);
+      obs.data_quality = row.get<int>(8);
+      obs.data_source = row.get<int>(9);
       observations.emplace_back(obs);
     }
 
@@ -2645,13 +2645,10 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
   {
     sqlite3pp::query qry(itsDB, sqlStmt.c_str());
 
-    if (qry.begin() == qry.end())
-      return;
-
-    for (sqlite3pp::query::iterator iter = qry.begin(); iter != qry.end(); ++iter)
+    for (const auto &row : qry)
     {
-      boost::optional<int> fmisid = (*iter).get<int>(0);
-      unsigned int obstime_db = (*iter).get<int>(1);
+      boost::optional<int> fmisid = row.get<int>(0);
+      unsigned int obstime_db = row.get<int>(1);
       boost::posix_time::ptime obstime = boost::posix_time::from_time_t(obstime_db);
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes);
@@ -2669,12 +2666,12 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
         elevation = sloc.elevation;
       }
 
-      int parameter = (*iter).get<int>(2);
+      int parameter = row.get<int>(2);
       boost::optional<double> data_value;
-      if ((*iter).column_type(3) != SQLITE_NULL)
-        data_value = (*iter).get<double>(3);
-      boost::optional<int> sensor_no = (*iter).get<int>(4);
-      boost::optional<int> data_quality = (*iter).get<int>(5);
+      if (row.column_type(3) != SQLITE_NULL)
+        data_value = row.get<double>(3);
+      boost::optional<int> sensor_no = row.get<int>(4);
+      boost::optional<int> data_quality = row.get<int>(5);
 
       cacheData.fmisidsAll.push_back(fmisid);
       cacheData.obstimesAll.push_back(obstime);
