@@ -44,6 +44,9 @@ class QueryResultBase
 #ifdef __llvm__
 #pragma clang diagnostic pop
 #endif
+
+  QueryResultBase& operator=(const QueryResultBase& other) = delete;
+
   /**
    *  @brief Get a copy of the value vector data ordered by \c valueVectorId id.
    *  @param[in] valueVectorId Identity of the value vector (Id range is [0,size()-1]).
@@ -98,10 +101,7 @@ class QueryResultBase
   virtual size_t size() const = 0;
 
  protected:
-  QueryResultBase() {}
-
- private:
-  QueryResultBase& operator=(const QueryResultBase& other);
+  QueryResultBase() = default;
 };
 
 }  // namespace Observation

@@ -46,6 +46,9 @@ class VerifiableMessageQueryParams : public QueryParamsBase
 
   ~VerifiableMessageQueryParams();
 
+  VerifiableMessageQueryParams &operator=(const VerifiableMessageQueryParams &other) = delete;
+  VerifiableMessageQueryParams(const VerifiableMessageQueryParams &other) = delete;
+
   /**
    * @brief Add name used in SQL select statement.
    * @param selectName Name of the column in database.
@@ -99,9 +102,6 @@ class VerifiableMessageQueryParams : public QueryParamsBase
   void setReturnOnlyLatest();
 
  private:
-  VerifiableMessageQueryParams &operator=(const VerifiableMessageQueryParams &other);
-  VerifiableMessageQueryParams(const VerifiableMessageQueryParams &other);
-
   std::shared_ptr<DBRegistryConfig> m_dbrConfig;
 
   StationIdVectorType *m_stationIdVector;

@@ -33,6 +33,9 @@ class StationtypeConfig
   StationtypeConfig();
   ~StationtypeConfig();
 
+  StationtypeConfig& operator=(const StationtypeConfig& other) = delete;
+  StationtypeConfig(const StationtypeConfig& other) = delete;
+
   /**
    * @brief Add an stationtype configuration.
    * @param[in] stationtype Non zero length value.
@@ -147,9 +150,6 @@ class StationtypeConfig
   bool hasProducerIds(const StationtypeType& stationtype) const;
 
  private:
-  StationtypeConfig& operator=(const StationtypeConfig& other);
-  StationtypeConfig(const StationtypeConfig& other);
-
   STGroupCodeSetMapType m_stationtypeMap;
   STDatabaseTableNameMapType m_stDatabaseTableNameMap;
   STUseCommonQueryMethodMapType m_stUseCommonQueryMethodMap;

@@ -21,6 +21,7 @@ class QueryBase;
 class Engine : public SmartMet::Spine::SmartMetEngine
 {
  public:
+  Engine() = delete;
   Engine(const std::string &configfile);
 
   Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings);
@@ -129,9 +130,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   void shutdown();
 
  private:
-  Engine();
-
-  ~Engine() {}
+  ~Engine() = default;
 
   void initializeCache();
   bool stationHasRightType(const Spine::Station &station, const Settings &settings);

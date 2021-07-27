@@ -30,11 +30,9 @@ ObservationCacheAdminBase::ObservationCacheAdminBase(const DatabaseDriverParamet
       });
 }
 
-ObservationCacheAdminBase::~ObservationCacheAdminBase()
-{
-  // FIXME: catch condition when destroying without calling shutdown first as it
-  //        could lead to pure virtual method called
-}
+// FIXME: catch condition when destroying without calling shutdown first as it
+//        could lead to pure virtual method called
+ObservationCacheAdminBase::~ObservationCacheAdminBase() = default;
 
 void ObservationCacheAdminBase::shutdown()
 {

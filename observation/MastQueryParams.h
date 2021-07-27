@@ -58,6 +58,9 @@ class MastQueryParams : public QueryParamsBase
 
   ~MastQueryParams();
 
+  MastQueryParams& operator=(const MastQueryParams& other) = delete;
+  MastQueryParams(const MastQueryParams& other) = delete;
+
   /**
    * @bried Add a join on configuration.
    * @param dbrConfig A configuration to join on.
@@ -154,9 +157,6 @@ class MastQueryParams : public QueryParamsBase
   const std::shared_ptr<FieldAliasMapType> getFieldAliasMap() const;
 
  private:
-  MastQueryParams& operator=(const MastQueryParams& other);
-  MastQueryParams(const MastQueryParams& other);
-
   DBRegistryConfigVectorType m_dbrConfig;
   FieldMapType m_fields;
   FieldAliasMapType m_fieldAliases;

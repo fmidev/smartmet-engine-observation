@@ -91,6 +91,9 @@ class NamesAllowed
 
   ~NamesAllowed();
 
+  NamesAllowed& operator=(const NamesAllowed& names) = delete;
+  NamesAllowed(const NamesAllowed& names) = delete;
+
   /**
    * @brief Add a name.
    * @param inName Name to add.
@@ -102,9 +105,6 @@ class NamesAllowed
   const NameListType* getNameList() const { return &m_nameList; }
 
  private:
-  NamesAllowed& operator=(const NamesAllowed& names);
-  NamesAllowed(const NamesAllowed& names);
-
   NameMapType m_map;
   NameListType m_nameList;
   bool m_caseSensitiveNames;

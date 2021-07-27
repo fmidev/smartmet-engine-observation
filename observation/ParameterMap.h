@@ -16,7 +16,7 @@ namespace Observation
 class ParameterMap
 {
  public:
-  ParameterMap() {}
+  ParameterMap() = default;
   ParameterMap(const ParameterMap&) = delete;
 
   using StationParameters = std::map<std::string, std::string>;

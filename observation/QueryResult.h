@@ -34,6 +34,9 @@ class QueryResult : public QueryResultBase
 
   ~QueryResult();
 
+  QueryResult() = delete;
+  QueryResult& operator=(const QueryResult& other) = delete;
+
   ValueVectorType::const_iterator begin(const std::string& valueVectorName);
   ValueVectorType::const_iterator end(const std::string& valueVectorName);
 
@@ -138,10 +141,6 @@ class QueryResult : public QueryResultBase
    *  @return The number of value vectors in the container.
    */
   size_t size() const;
-
- private:
-  QueryResult();
-  QueryResult& operator=(const QueryResult& other);
 
  private:
   // One value vector is a column.

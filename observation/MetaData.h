@@ -20,13 +20,8 @@ struct MetaData
         timestep(1)
   {
   }
-  MetaData(const MetaData &md)
-      : bbox(md.bbox),
-        period(md.period),
-        fixedPeriodEndTime(md.fixedPeriodEndTime),
-        timestep(md.timestep)
-  {
-  }
+  MetaData(const MetaData &md) = default;
+
   Spine::BoundingBox bbox;
   boost::posix_time::time_period period;
   bool fixedPeriodEndTime{false};

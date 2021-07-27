@@ -31,12 +31,11 @@ class MinimumStandardFilter : public FEConformanceClassBase
    */
   explicit MinimumStandardFilter();
 
+  MinimumStandardFilter(const MinimumStandardFilter& other) = delete;
+  MinimumStandardFilter operator=(const MinimumStandardFilter& other) = delete;
+
   virtual std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
       const NameType& field, const NameType& operationName, const boost::any& toWhat);
-
- private:
-  MinimumStandardFilter(const MinimumStandardFilter& other);
-  MinimumStandardFilter operator=(const MinimumStandardFilter& other);
 };
 
 }  // namespace Observation

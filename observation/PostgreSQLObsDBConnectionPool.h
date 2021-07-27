@@ -15,7 +15,7 @@ class PostgreSQLDatabaseDriver;
 class PostgreSQLObsDBConnectionPool
 {
  public:
-  ~PostgreSQLObsDBConnectionPool() {}
+  ~PostgreSQLObsDBConnectionPool() = default;
 
   bool initializePool(const StationtypeConfig& stc, const ParameterMapPtr& pm);
 

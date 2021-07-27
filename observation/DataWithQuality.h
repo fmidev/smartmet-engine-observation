@@ -20,7 +20,7 @@ struct DataWithQuality
       : value(val), data_quality(q), data_source(ds), is_default_sensor_data(default_sensor_data)
   {
   }
-  DataWithQuality() {}
+  DataWithQuality() = default;
   Spine::TimeSeries::Value value;
   Spine::TimeSeries::Value data_quality;
   Spine::TimeSeries::Value data_source;

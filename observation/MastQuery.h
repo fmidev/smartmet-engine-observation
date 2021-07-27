@@ -25,6 +25,9 @@ class MastQuery : public QueryBase
 
   ~MastQuery();
 
+  MastQuery &operator=(const MastQuery &other) = delete;
+  MastQuery(const MastQuery &other) = delete;
+
   /**
    * @brief Get SQL statement constructed in the class.
    * @return SQL statement string of empty string when failure occur.
@@ -53,9 +56,6 @@ class MastQuery : public QueryBase
   void setQueryParams(const MastQueryParams *qParams);
 
  private:
-  MastQuery &operator=(const MastQuery &other);
-  MastQuery(const MastQuery &other);
-
   // SQL statement parts contructed in setQueryParams method
   // used lated in getSQLStatement method.
   int m_selectSize;

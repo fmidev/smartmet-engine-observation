@@ -27,6 +27,9 @@ class VerifiableMessageQuery : public QueryBase
 
   ~VerifiableMessageQuery();
 
+  VerifiableMessageQuery &operator=(const VerifiableMessageQuery &other) = delete;
+  VerifiableMessageQuery(const VerifiableMessageQuery &other) = delete;
+
   /**
    * @brief Get SQL statement constructed in the class.
    * @return SQL statement string of empty string when failure occur.
@@ -55,9 +58,6 @@ class VerifiableMessageQuery : public QueryBase
   void setQueryParams(const VerifiableMessageQueryParams *qParams);
 
  private:
-  VerifiableMessageQuery &operator=(const VerifiableMessageQuery &other);
-  VerifiableMessageQuery(const VerifiableMessageQuery &other);
-
   // SQL statement parts contructed in setQueryParams method
   // used lated in getSQLStatement method.
   std::vector<std::string> m_select;

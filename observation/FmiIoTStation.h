@@ -13,17 +13,8 @@ namespace Observation
 {
 struct FmiIoTStation
 {
-  FmiIoTStation() {}
-  FmiIoTStation(const FmiIoTStation& s)
-      : station_id(s.station_id),
-        target_group_id(s.target_group_id),
-        longitude(s.longitude),
-        latitude(s.latitude),
-        elevation(s.elevation),
-        valid_from(s.valid_from),
-        valid_to(s.valid_to)
-  {
-  }
+  FmiIoTStation() = default;
+  FmiIoTStation(const FmiIoTStation& s) = default;
   FmiIoTStation(const std::string& id,
                 int tgid,
                 double lon,
@@ -42,10 +33,10 @@ struct FmiIoTStation
   }
 
   std::string station_id{""};
-  int target_group_id;
-  double longitude;
-  double latitude;
-  double elevation{0};
+  int target_group_id = 0;
+  double longitude = 0;
+  double latitude = 0;
+  double elevation = 0;
   boost::posix_time::ptime valid_from{boost::posix_time::not_a_date_time};
   boost::posix_time::ptime valid_to{boost::posix_time::not_a_date_time};
 };

@@ -58,7 +58,7 @@ class DatabaseDriverInterface
   virtual std::string name() const = 0;
 
  protected:
-  DatabaseDriverInterface() {}
+  DatabaseDriverInterface() = default;
 
  private:
   // Pointer to dymanically loaded database driver

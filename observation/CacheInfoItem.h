@@ -13,15 +13,8 @@ namespace Observation
 {
 struct CacheInfoItem
 {
-  CacheInfoItem() {}
-  CacheInfoItem(const CacheInfoItem& cii)
-      : name(cii.name),
-        active(cii.active),
-        tables(cii.tables),
-        params(cii.params),
-        params_vector(cii.params_vector)
-  {
-  }
+  CacheInfoItem() = default;
+  CacheInfoItem(const CacheInfoItem& cii) = default;
 
   CacheInfoItem(const std::string& n, bool a, std::set<std::string> t)
       : name(n), active(a), tables(t)

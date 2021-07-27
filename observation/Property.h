@@ -28,6 +28,9 @@ class Base
   using OperatorType = std::string;
   explicit Base();
   virtual ~Base();
+
+  Base& operator=(const Base& other) = delete;
+
   /**
    * @brief Get expression string constructed from the member parameter values.
    * @param viewName Name of a view that has the fied name (property) set into the class object.
@@ -87,7 +90,6 @@ class Base
   virtual std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat) = 0;
 
  private:
-  Base& operator=(const Base& other);
   NameType m_property;
   boost::any m_toWhat;
   NameType m_operator;

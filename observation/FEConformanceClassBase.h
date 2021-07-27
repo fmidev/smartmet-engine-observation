@@ -88,6 +88,9 @@ class FEConformanceClassBase : public OperationMap
   FEConformanceClassBase();
   virtual ~FEConformanceClassBase();
 
+  FEConformanceClassBase(const FEConformanceClassBase& other) = delete;
+  FEConformanceClassBase& operator=(const FEConformanceClassBase& other) = delete;
+
   /**
    * @brief Get a new operation (filter) instance.
    * @param field A column name of an table (or view) to witch the the \a toWhat param value will be
@@ -98,10 +101,6 @@ class FEConformanceClassBase : public OperationMap
    */
   virtual std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
       const std::string& field, const std::string& operationName, const boost::any& toWhat) = 0;
-
- private:
-  FEConformanceClassBase(const FEConformanceClassBase& other);
-  FEConformanceClassBase& operator=(const FEConformanceClassBase& other);
 };
 
 }  // namespace Observation

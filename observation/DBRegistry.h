@@ -19,6 +19,9 @@ class DBRegistry
 
   ~DBRegistry();
 
+  DBRegistry(const DBRegistry& other) = delete;
+  DBRegistry& operator=(const DBRegistry& other) = delete;
+
   void loadConfigurations(const std::string& configFolderPath);
 
   /**
@@ -28,9 +31,6 @@ class DBRegistry
   std::shared_ptr<DBRegistryConfig> dbRegistryConfig(const std::string& tableName) const;
 
  private:
-  DBRegistry(const DBRegistry& other);
-  DBRegistry& operator=(const DBRegistry& other);
-
   std::string m_configFolderPath;
   DBRegistryConfigVectorType m_configVector;
 };

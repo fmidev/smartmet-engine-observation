@@ -33,12 +33,11 @@ class StandardFilter : public MinimumStandardFilter
   explicit StandardFilter();
   ~StandardFilter();
 
+  StandardFilter(const StandardFilter& other) = delete;
+  StandardFilter operator=(const StandardFilter& other) = delete;
+
   virtual std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
       const NameType& field, const NameType& operationName, const boost::any& toWhat);
-
- private:
-  StandardFilter(const StandardFilter& other);
-  StandardFilter operator=(const StandardFilter& other);
 };
 
 /**
@@ -57,6 +56,9 @@ class ExtendedStandardFilter : public StandardFilter
   using PropertyIsBaseType = FEConformanceClassBase::PropertyIsBaseType;
 
   ~ExtendedStandardFilter();
+
+  ExtendedStandardFilter(const ExtendedStandardFilter& other) = delete;
+  ExtendedStandardFilter operator=(const ExtendedStandardFilter& other) = delete;
 
   explicit ExtendedStandardFilter() : StandardFilter()
   {
@@ -81,10 +83,6 @@ class ExtendedStandardFilter : public StandardFilter
                                  operationName));
     }
   }
-
- private:
-  ExtendedStandardFilter(const ExtendedStandardFilter& other);
-  ExtendedStandardFilter operator=(const ExtendedStandardFilter& other);
 };
 
 }  // namespace Observation

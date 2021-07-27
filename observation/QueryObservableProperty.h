@@ -16,7 +16,7 @@ namespace Observation
 class QueryObservableProperty : public QueryBase
 {
  public:
-  QueryObservableProperty() {}
+  QueryObservableProperty() = default;
 
   virtual ~QueryObservableProperty();
 

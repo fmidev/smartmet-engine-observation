@@ -37,7 +37,7 @@ class CommonDatabaseFunctions
   {
   }
 
-  virtual ~CommonDatabaseFunctions() {}
+  virtual ~CommonDatabaseFunctions() = default;
 
   virtual std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                                      const std::string &params,

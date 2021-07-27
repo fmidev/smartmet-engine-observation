@@ -21,7 +21,7 @@ namespace Observation
 
 struct DatabaseDriverInfoItem
 {
-  DatabaseDriverInfoItem() {}
+  DatabaseDriverInfoItem() = default;
   DatabaseDriverInfoItem(const std::string& n,
                          bool a,
                          const std::set<std::string>& t,
@@ -57,7 +57,7 @@ struct DatabaseDriverInfoItem
 class DatabaseDriverInfo
 {
  public:
-  DatabaseDriverInfo() {}
+  DatabaseDriverInfo() = default;
 
   void readConfig(Spine::ConfigBase& cfg);
 

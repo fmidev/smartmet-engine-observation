@@ -17,6 +17,10 @@ class QueryParamsBase
  public:
   explicit QueryParamsBase() : m_usingTimeRange(false) {}
   virtual ~QueryParamsBase();
+
+  QueryParamsBase& operator=(const QueryParamsBase& other) = delete;
+  QueryParamsBase(const QueryParamsBase& other) = delete;
+
   /**
    *  \brief Get formatted time string.
    *
@@ -57,8 +61,6 @@ class QueryParamsBase
   void setTimeRange(const pt::ptime& beginTime, const pt::ptime& endTime);
 
  private:
-  QueryParamsBase& operator=(const QueryParamsBase& other);
-  QueryParamsBase(const QueryParamsBase& other);
   std::string formattedTime(const pt::ptime& t, const std::string& format) const;
 
  private:
