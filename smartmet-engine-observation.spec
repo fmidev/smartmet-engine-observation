@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.7.13
+Version: 21.7.27
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -19,9 +19,9 @@ BuildRequires: libatomic
 BuildRequires: libconfig-devel
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 21.6.15
-BuildRequires: smartmet-library-locus-devel >= 21.8.7
-BuildRequires: smartmet-library-macgyver-devel >= 21.7.13
+BuildRequires: smartmet-engine-geonames-devel >= 21.7.8
+BuildRequires: smartmet-library-locus-devel >= 21.7.8
+BuildRequires: smartmet-library-macgyver-devel >= 21.7.27
 BuildRequires: smartmet-library-spine-devel >= 21.7.5
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
@@ -35,9 +35,9 @@ Requires: fmt >= 7.1.3
 Requires: gdal32-libs
 Requires: libatomic
 Requires: libconfig
-Requires: smartmet-engine-geonames >= 21.6.15
-Requires: smartmet-library-locus >= 21.8.7
-Requires: smartmet-library-macgyver >= 21.7.13
+Requires: smartmet-engine-geonames >= 21.7.8
+Requires: smartmet-library-locus >= 21.7.8
+Requires: smartmet-library-macgyver >= 21.7.27
 Requires: smartmet-library-spine >= 21.7.5
 Requires: smartmet-server >= 21.6.3
 Requires: sqlite >= 3.22.0
@@ -48,8 +48,8 @@ Requires: libpqxx < 1:7.0
 BuildRequires: libpqxx-devel < 1:7.0
 %else
 %if %{defined el8}
-Requires: libpqxx >= 1:7.0
-BuildRequires: libpqxx-devel >= 1:7.0
+Requires: libpqxx >= 5.0.1
+BuildRequires: libpqxx-devel >= 5.0.1
 %else
 Requires: libpqxx
 BuildRequires: libpqxx-devel
@@ -64,8 +64,8 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 21.6.15
-#TestRequires: smartmet-library-macgyver >= 21.7.13
+#TestRequires: smartmet-engine-geonames >= 21.7.8
+#TestRequires: smartmet-library-macgyver >= 21.7.27
 #TestRequires: smartmet-library-spine >= 21.7.5
 #TestRequires: smartmet-test-data
 
@@ -123,6 +123,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Jul 27 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.7.27-1.fmi
+- Silenced several compiler warnings
+
 * Tue Jul 13 2021 Andris Pavēnis <andris.pavenis@fmi.fi> 21.7.13-1.fmi
 - Update according to macgyver API changes
 
