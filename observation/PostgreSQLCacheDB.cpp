@@ -2059,8 +2059,7 @@ void PostgreSQLCacheDB::createIndex(const std::string &table,
 {
   try
   {
-      itsDB.execute("CREATE INDEX IF NOT EXISTS " + idx_name + " ON " + table + "(" +
-		    column + ")");
+    itsDB.execute("CREATE INDEX IF NOT EXISTS " + idx_name + " ON " + table + "(" + column + ")");
   }
   catch (...)
   {
