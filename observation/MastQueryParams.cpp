@@ -22,7 +22,7 @@ MastQueryParams::MastQueryParams(const std::shared_ptr<DBRegistryConfig> dbrConf
     }
 
     m_dbrConfig.push_back(dbrConfig);
-    m_conformanceClass = std::shared_ptr<ExtendedStandardFilter>(new ExtendedStandardFilter());
+    m_conformanceClass = std::make_shared<ExtendedStandardFilter>();
   }
   catch (...)
   {

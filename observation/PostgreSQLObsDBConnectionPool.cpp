@@ -61,8 +61,7 @@ bool PostgreSQLObsDBConnectionPool::initializePool(const StationtypeConfig& stc,
       {
         // Logon here
 
-        itsWorkerList[i] = std::shared_ptr<PostgreSQLObsDB>(
-            new PostgreSQLObsDB(itsConnectionOptions[filled], stc, pm));
+        itsWorkerList[i] = std::make_shared<PostgreSQLObsDB>(itsConnectionOptions[filled], stc, pm);
         itsWorkingList[i] = 0;
         itsWorkerList[i]->setConnectionId(static_cast<signed>(i));
         if (i == tofill)
