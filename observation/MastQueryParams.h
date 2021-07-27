@@ -21,27 +21,30 @@ namespace Observation
 class MastQueryParams : public QueryParamsBase
 {
  public:
-  typedef DBRegistryConfig::NameType NameType;
-  typedef std::map<NameType, NameType> FieldMapType;  //!< first: Field name, second: Table name
-  typedef std::map<NameType, NameType> FieldAliasMapType;  //!< first: Field name, second: Field
+  using NameType = DBRegistryConfig::NameType;
+  using FieldMapType = std::map<NameType, NameType>;  //!< first: Field name, second: Table name
+  using FieldAliasMapType = std::map<NameType, NameType>;  //!< first: Field name, second: Field
   // alias name
-  typedef FEConformanceClassBase::PropertyIsBaseType PropertyIsBaseType;
+  using PropertyIsBaseType = FEConformanceClassBase::PropertyIsBaseType;
 
-  typedef std::map<std::shared_ptr<const PropertyIsBaseType>, NameType> OperationMapGroupType;
-  typedef std::map<NameType, OperationMapGroupType> OperationMapType;  //!< first: group name,
+  using OperationMapGroupType = std::map<std::shared_ptr<const PropertyIsBaseType>, NameType>;
+  using OperationMapType = std::map<NameType, OperationMapGroupType>;  //!< first: group name,
   //! second: (first: operation
   //! object, second: Table
   //! name)
 
-  typedef std::vector<std::shared_ptr<DBRegistryConfig> > DBRegistryConfigVectorType;
-  typedef std::tuple<NameType, NameType, NameType, NameType>
-      JoinOnTupleType;  //!< 1: table name, 2: table name, 3: field name, 4: typeOfJoin
-  typedef std::tuple<NameType, NameType, std::list<NameType>, NameType>
-      JoinOnListTupleType;  //!< 1: table name, 2: table name, 3: field name list, 4: typeOfJoin
-  typedef std::vector<JoinOnListTupleType> JoinOnListTupleVectorType;
-  typedef std::vector<std::pair<NameType, NameType> > OrderByVectorType;
+  using DBRegistryConfigVectorType = std::vector<std::shared_ptr<DBRegistryConfig> >;
+  using JoinOnTupleType =
+      std::tuple<NameType, NameType, NameType, NameType>;  //!< 1: table name, 2: table name, 3:
+                                                           //!< field name, 4: typeOfJoin
+  using JoinOnListTupleType =
+      std::tuple<NameType, NameType, std::list<NameType>, NameType>;  //!< 1: table name, 2: table
+                                                                      //!< name, 3: field name list,
+                                                                      //!< 4: typeOfJoin
+  using JoinOnListTupleVectorType = std::vector<JoinOnListTupleType>;
+  using OrderByVectorType = std::vector<std::pair<NameType, NameType> >;
 
-  typedef std::map<int, NameType> TypeOfJoinMapType;
+  using TypeOfJoinMapType = std::map<int, NameType>;
   const TypeOfJoinMapType typeOfJoinMap = {{0, "INNER JOIN"},
                                            {1, "LEFT OUTER JOIN"},
                                            {2, "RIGHT OUTER JOIN"},

@@ -35,12 +35,12 @@ class VerifiableMessageQueryParams : public QueryParamsBase
     RETURN_ONLY_LATEST
   };
 
-  typedef DBRegistryConfig::NameType NameType;
-  typedef NameType StationIdType;
-  typedef std::vector<StationIdType> StationIdVectorType;
-  typedef DBRegistryConfig::NameType SelectNameType;
-  typedef std::list<SelectNameType> SelectNameListType;
-  typedef DBRegistryConfig::NameType TableNameType;
+  using NameType = DBRegistryConfig::NameType;
+  using StationIdType = NameType;
+  using StationIdVectorType = std::vector<StationIdType>;
+  using SelectNameType = DBRegistryConfig::NameType;
+  using SelectNameListType = std::list<SelectNameType>;
+  using TableNameType = DBRegistryConfig::NameType;
 
   explicit VerifiableMessageQueryParams(const std::shared_ptr<DBRegistryConfig> dbrConfig);
 

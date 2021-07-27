@@ -75,7 +75,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
       m_distinct = "DISTINCT";
 
     // SELECT part of a SQL statement
-    typedef MastQueryParams::FieldMapType FieldMapType;
+    using FieldMapType = MastQueryParams::FieldMapType;
     const std::shared_ptr<FieldMapType> fv = qParams->getFieldMap();
     m_selectSize = fv->size();
     for (auto it = fv->cbegin(); it != fv->cend(); ++it)
@@ -85,7 +85,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
       // e.g. " table.column_name" where it->second is "table" and it->first is
       // "column_name"
       m_select.append(" ").append(it->second).append(".").append(it->first);
-      typedef MastQueryParams::FieldAliasMapType FieldAliasMapType;
+      using FieldAliasMapType = MastQueryParams::FieldAliasMapType;
       const std::shared_ptr<FieldAliasMapType> fam = qParams->getFieldAliasMap();
       const auto famIt = fam->find(it->first);
       if (famIt != fam->end() && !famIt->second.empty())
@@ -133,7 +133,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
     }
 
     // FROM part of the SQL statement
-    typedef MastQueryParams::JoinOnListTupleVectorType JoinOnListTupleVectorType;
+    using JoinOnListTupleVectorType = MastQueryParams::JoinOnListTupleVectorType;
     const std::shared_ptr<JoinOnListTupleVectorType> joinOnListTupleVector =
         qParams->getJoinOnListTupleVector();
     m_from.append(" ").append(qParams->getTableName()).append(" ").append(qParams->getTableName());
@@ -167,7 +167,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
     }
 
     // ORDER BY part of the SQL statement
-    typedef MastQueryParams::OrderByVectorType OrderByVectorType;
+    using OrderByVectorType = MastQueryParams::OrderByVectorType;
     const std::shared_ptr<OrderByVectorType> orderVector = qParams->getOrderByVector();
     for (auto it = orderVector->cbegin(); it != orderVector->cend(); ++it)
     {

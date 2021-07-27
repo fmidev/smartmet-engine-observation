@@ -25,8 +25,8 @@ namespace Observation
 class QueryResult : public QueryResultBase
 {
  public:
-  typedef QueryResultBase::ValueType ValueType;
-  typedef QueryResultBase::ValueVectorType ValueVectorType;
+  using ValueType = QueryResultBase::ValueType;
+  using ValueVectorType = QueryResultBase::ValueVectorType;
 
   // The constructor follow the guidelines of the base class.
   explicit QueryResult(const size_t& numberOfValueVectors);

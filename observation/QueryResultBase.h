@@ -26,8 +26,8 @@ namespace Observation
 class QueryResultBase
 {
  public:
-  typedef boost::any ValueType;
-  typedef std::vector<ValueType> ValueVectorType;
+  using ValueType = boost::any;
+  using ValueVectorType = std::vector<ValueType>;
 
   /**
    *  @brief The class onstructor with input argument that defines the container size.

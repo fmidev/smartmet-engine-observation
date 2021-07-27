@@ -24,12 +24,11 @@ namespace Observation
 class OperationMap
 {
  public:
-  typedef std::string NameType;
-  typedef int IdType;
-  typedef boost::
-      function2<std::shared_ptr<const Property::Base>, const NameType&, const boost::any&>
-          OperationMapValueType;
-  typedef std::map<NameType, OperationMapValueType> OperationMapType;
+  using NameType = std::string;
+  using IdType = int;
+  using OperationMapValueType =
+      boost::function2<std::shared_ptr<const Property::Base>, const NameType&, const boost::any&>;
+  using OperationMapType = std::map<NameType, OperationMapValueType>;
 
   /**
    * @brief Add an operation.
@@ -82,8 +81,8 @@ class OperationMap
 class FEConformanceClassBase : public OperationMap
 {
  public:
-  typedef std::string NameType;
-  typedef Property::Base PropertyIsBaseType;
+  using NameType = std::string;
+  using PropertyIsBaseType = Property::Base;
 
   FEConformanceClassBase();
   virtual ~FEConformanceClassBase();

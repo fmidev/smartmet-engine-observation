@@ -21,9 +21,9 @@ class QueryObservableProperty : public QueryBase
   virtual ~QueryObservableProperty();
 
  protected:
-  typedef std::multimap<int, std::string> ParameterIdMapType;
-  typedef std::vector<std::string> ParameterVectorType;
-  typedef std::string StationTypeType;
+  using ParameterIdMapType = std::multimap<int, std::string>;
+  using ParameterVectorType = std::vector<std::string>;
+  using StationTypeType = std::string;
 
   void solveMeasurandIds(const ParameterVectorType &parameters,
                          const ParameterMapPtr &parameterMap,

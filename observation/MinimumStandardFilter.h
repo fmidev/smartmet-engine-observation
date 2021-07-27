@@ -22,8 +22,8 @@ namespace Observation
 class MinimumStandardFilter : public FEConformanceClassBase
 {
  public:
-  typedef FEConformanceClassBase::NameType NameType;
-  typedef FEConformanceClassBase::PropertyIsBaseType PropertyIsBaseType;
+  using NameType = FEConformanceClassBase::NameType;
+  using PropertyIsBaseType = FEConformanceClassBase::PropertyIsBaseType;
 
   /**
    * @exception Obs_EngineException::OPERATION_PROCESSING_FAILED

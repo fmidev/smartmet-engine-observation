@@ -14,7 +14,7 @@ namespace Observation
 class DBRegistry
 {
  public:
-  typedef std::vector<std::shared_ptr<DBRegistryConfig> > DBRegistryConfigVectorType;
+  using DBRegistryConfigVectorType = std::vector<std::shared_ptr<DBRegistryConfig> >;
   explicit DBRegistry();
 
   ~DBRegistry();

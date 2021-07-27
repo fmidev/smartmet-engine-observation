@@ -16,19 +16,19 @@ namespace Observation
 class StationtypeConfig
 {
  public:
-  typedef std::string StationtypeType;
-  typedef std::string GroupCodeType;
-  typedef std::string DatabaseTableNameType;
-  typedef uint ProducerIdType;
-  typedef bool UseCommonQueryMethodType;
-  typedef std::set<GroupCodeType> GroupCodeSetType;
-  typedef std::vector<GroupCodeType> GroupCodeVectorType;
-  typedef std::vector<ProducerIdType> ProducerIdVectorType;
-  typedef std::set<ProducerIdType> ProducerIdSetType;
-  typedef std::map<StationtypeType, GroupCodeSetType> STGroupCodeSetMapType;
-  typedef std::map<StationtypeType, DatabaseTableNameType> STDatabaseTableNameMapType;
-  typedef std::map<StationtypeType, UseCommonQueryMethodType> STUseCommonQueryMethodMapType;
-  typedef std::map<StationtypeType, ProducerIdSetType> STProducerIdSetMapType;
+  using StationtypeType = std::string;
+  using GroupCodeType = std::string;
+  using DatabaseTableNameType = std::string;
+  using ProducerIdType = uint;
+  using UseCommonQueryMethodType = bool;
+  using GroupCodeSetType = std::set<GroupCodeType>;
+  using GroupCodeVectorType = std::vector<GroupCodeType>;
+  using ProducerIdVectorType = std::vector<ProducerIdType>;
+  using ProducerIdSetType = std::set<ProducerIdType>;
+  using STGroupCodeSetMapType = std::map<StationtypeType, GroupCodeSetType>;
+  using STDatabaseTableNameMapType = std::map<StationtypeType, DatabaseTableNameType>;
+  using STUseCommonQueryMethodMapType = std::map<StationtypeType, UseCommonQueryMethodType>;
+  using STProducerIdSetMapType = std::map<StationtypeType, ProducerIdSetType>;
 
   StationtypeConfig();
   ~StationtypeConfig();

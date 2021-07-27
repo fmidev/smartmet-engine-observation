@@ -18,19 +18,19 @@ namespace Observation
 class DBRegistryConfig
 {
  public:
-  typedef std::string NameType;
+  using NameType = std::string;
   // 1. field name, 2. active (true / false)
-  typedef std::map<NameType, bool> FieldNameMapType;
+  using FieldNameMapType = std::map<NameType, bool>;
   // 1. fieldname
   // 2. method (e.g. the XMLType methods getClobVal(),
   //    getStringVal(), getNumberVal(), and getBlobVal(csid) to retrieve
   //    XML data as a CLOB, VARCHAR, NUMBER, and BLOB value, respectively.)
-  typedef std::map<NameType, NameType> FieldMethodMapType;
+  using FieldMethodMapType = std::map<NameType, NameType>;
 
   // 1. field name
   // 2. field value type (int, uint, float, double, string, ptime are allowed
   //                      and other strings are replaced with empty string)
-  typedef std::map<NameType, NameType> FieldValueTypeMapType;
+  using FieldValueTypeMapType = std::map<NameType, NameType>;
 
   DBRegistryConfig(std::shared_ptr<SmartMet::Spine::ConfigBase> config);
 
@@ -76,9 +76,9 @@ class DBRegistryConfig
 class NamesAllowed
 {
  public:
-  typedef DBRegistryConfig::FieldNameMapType NameMapType;
-  typedef std::string NameType;
-  typedef std::list<NameType> NameListType;
+  using NameMapType = DBRegistryConfig::FieldNameMapType;
+  using NameType = std::string;
+  using NameListType = std::list<NameType>;
 
   /**
    *  @brief Contructor with input names and with optional case sensitivity selection.
