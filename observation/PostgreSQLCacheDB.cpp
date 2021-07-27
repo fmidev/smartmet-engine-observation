@@ -18,7 +18,6 @@
 #pragma clang diagnostic ignored "-Wshadow"
 #endif
 
-namespace BO = SmartMet::Engine::Observation;
 namespace ts = SmartMet::Spine::TimeSeries;
 
 using namespace std;
