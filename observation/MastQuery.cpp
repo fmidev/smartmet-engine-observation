@@ -78,7 +78,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
     typedef MastQueryParams::FieldMapType FieldMapType;
     const std::shared_ptr<FieldMapType> fv = qParams->getFieldMap();
     m_selectSize = fv->size();
-    for (FieldMapType::const_iterator it = fv->begin(); it != fv->end(); ++it)
+    for (auto it = fv->cbegin(); it != fv->cend(); ++it)
     {
       if (it != fv->begin())
         m_select.append(",");
@@ -87,8 +87,8 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
       m_select.append(" ").append(it->second).append(".").append(it->first);
       typedef MastQueryParams::FieldAliasMapType FieldAliasMapType;
       const std::shared_ptr<FieldAliasMapType> fam = qParams->getFieldAliasMap();
-      FieldAliasMapType::const_iterator famIt = fam->find(it->first);
-      if (famIt != fam->end() and not famIt->second.empty())
+      const auto famIt = fam->find(it->first);
+      if (famIt != fam->end() && !famIt->second.empty())
         m_select.append(" as ").append(famIt->second);
     }
 
@@ -140,8 +140,8 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
 
     if (joinOnListTupleVector->size() > 0)
     {
-      JoinOnListTupleVectorType::const_iterator joinOnIt = joinOnListTupleVector->begin();
-      for (; joinOnIt != joinOnListTupleVector->end(); ++joinOnIt)
+      auto joinOnIt = joinOnListTupleVector->cbegin();
+      for (; joinOnIt != joinOnListTupleVector->cend(); ++joinOnIt)
       {
         m_from.append(" ")
             .append(std::get<3>(*joinOnIt))
@@ -150,9 +150,8 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
             .append(" ")
             .append(std::get<1>(*joinOnIt));
 
-        for (std::list<MastQueryParams::NameType>::const_iterator joinField =
-                 std::get<2>(*joinOnIt).begin();
-             joinField != std::get<2>(*joinOnIt).end();
+        for (auto joinField = std::get<2>(*joinOnIt).cbegin();
+             joinField != std::get<2>(*joinOnIt).cend();
              joinField++)
         {
           m_from.append(joinField == std::get<2>(*joinOnIt).begin() ? " ON " : " AND ")
@@ -170,10 +169,9 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
     // ORDER BY part of the SQL statement
     typedef MastQueryParams::OrderByVectorType OrderByVectorType;
     const std::shared_ptr<OrderByVectorType> orderVector = qParams->getOrderByVector();
-    for (OrderByVectorType::const_iterator it = orderVector->begin(); it != orderVector->end();
-         ++it)
+    for (auto it = orderVector->cbegin(); it != orderVector->cend(); ++it)
     {
-      if (it != orderVector->begin())
+      if (it != orderVector->cbegin())
         m_orderBy.append(", ");
       m_orderBy.append(it->first).append(" ").append(it->second);
     }

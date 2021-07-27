@@ -1732,11 +1732,11 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
         }
         else
         {
-          float temp = static_cast<float>(boost::get<double>(data.at(temppos)));
-          float rh = static_cast<float>(boost::get<double>(data.at(rhpos)));
-          float wind = static_cast<float>(boost::get<double>(data.at(windpos)));
+          auto temp = static_cast<float>(boost::get<double>(data.at(temppos)));
+          auto rh = static_cast<float>(boost::get<double>(data.at(rhpos)));
+          auto wind = static_cast<float>(boost::get<double>(data.at(windpos)));
 
-          ts::Value feelslike = ts::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
+          auto feelslike = ts::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
           timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(obstime, feelslike));
         }
       }
@@ -1753,9 +1753,9 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
         }
         else
         {
-          float temp = static_cast<float>(boost::get<double>(data.at(temppos)));
-          int totalcloudcover = static_cast<int>(boost::get<double>(data.at(totalcloudcoverpos)));
-          int wawa = static_cast<int>(boost::get<double>(data.at(wawapos)));
+          auto temp = static_cast<float>(boost::get<double>(data.at(temppos)));
+          auto totalcloudcover = static_cast<int>(boost::get<double>(data.at(totalcloudcoverpos)));
+          auto wawa = static_cast<int>(boost::get<double>(data.at(wawapos)));
           double lat = station.latitude_out;
           double lon = station.longitude_out;
 #ifdef __llvm__

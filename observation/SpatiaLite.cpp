@@ -1336,7 +1336,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getMobileAndExterna
         ts::Value value = ts::None();
         if (data_type == SQLITE_TEXT)
         {
-          std::string data_value = row.get<std::string>(i);
+          auto data_value = row.get<std::string>(i);
           value = data_value;
         }
         else if (data_type == SQLITE_FLOAT)

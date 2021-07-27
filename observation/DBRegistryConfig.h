@@ -52,7 +52,7 @@ class DBRegistryConfig
   NameType getFieldValueType(const std::string& field) const
   {
     const std::string upperCase = Fmi::ascii_toupper_copy(field);
-    FieldValueTypeMapType::const_iterator it = m_fieldValueTypeMap.find(upperCase);
+    const auto it = m_fieldValueTypeMap.find(upperCase);
     if (it != m_fieldValueTypeMap.end())
       return it->second;
     else

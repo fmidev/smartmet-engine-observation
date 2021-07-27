@@ -142,8 +142,7 @@ void StationtypeConfig::setDatabaseTableName(const StationtypeType& stationtype,
   {
     // Checking that the stationtype has added.
     const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
-    STGroupCodeSetMapType::const_iterator stGroupCodeSetMapIt =
-        m_stationtypeMap.find(stationtypeLower);
+    const auto stGroupCodeSetMapIt = m_stationtypeMap.find(stationtypeLower);
     if (stGroupCodeSetMapIt == m_stationtypeMap.end())
       throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail(fmt::format(
@@ -151,8 +150,7 @@ void StationtypeConfig::setDatabaseTableName(const StationtypeType& stationtype,
               stationtype));
 
     // Checking that there is not already added a database table name.
-    STDatabaseTableNameMapType::const_iterator stDatabaseTableNameMapIt =
-        m_stDatabaseTableNameMap.find(stationtypeLower);
+    const auto stDatabaseTableNameMapIt = m_stDatabaseTableNameMap.find(stationtypeLower);
 
     if (stDatabaseTableNameMapIt != m_stDatabaseTableNameMap.end())
       throw Fmi::Exception(BCP, "Invalid parameter value!")
@@ -212,8 +210,7 @@ void StationtypeConfig::setProducerIds(const StationtypeType& stationtype,
 
     // Checking that the stationtype has added.
     const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
-    STGroupCodeSetMapType::const_iterator stGroupCodeSetMapIt =
-        m_stationtypeMap.find(stationtypeLower);
+    const auto stGroupCodeSetMapIt = m_stationtypeMap.find(stationtypeLower);
 
     if (stGroupCodeSetMapIt == m_stationtypeMap.end())
       throw Fmi::Exception(BCP, "Invalid parameter value!")

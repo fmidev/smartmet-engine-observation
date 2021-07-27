@@ -178,7 +178,7 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
           stationtypeConfig.setProducerIds(type, producerIdVector);
         }
 
-        std::string databaseTableName =
+        auto databaseTableName =
             cfg.get_optional_config_param<std::string>(stationtypeGroup, "databaseTableName", "");
         if (not databaseTableName.empty())
         {
@@ -201,7 +201,7 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
         if (cfg.get_config().exists(stationtype_param))
         {
           std::string producer_name = type;
-          std::string producer_id = cfg.get_mandatory_config_param<std::string>(stationtype_param);
+          auto producer_id = cfg.get_mandatory_config_param<std::string>(stationtype_param);
           stationTypeMap[producer_name] = producer_id;
 
           std::string cached_param_key = "postgresql_stationtypelist." + producer_name + ".cached";
@@ -318,8 +318,7 @@ std::string EngineParameters::getParameterIdAsString(const std::string &alias,
 
     // Is the stationType configured inside configuration block of the alias.
     std::string stationTypeLowerCase = Fmi::ascii_tolower_copy(stationType);
-    std::map<std::string, std::string>::const_iterator stationTypeMapPtr =
-        namePtr->second.find(stationTypeLowerCase);
+    const auto stationTypeMapPtr = namePtr->second.find(stationTypeLowerCase);
 
     if (stationTypeMapPtr == namePtr->second.end())
       return "";

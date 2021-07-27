@@ -107,7 +107,7 @@ bool VerifiableMessageQueryParams::isRestriction(int id) const
 {
   try
   {
-    std::unordered_map<int, bool>::const_iterator it = m_restrictionMap.find(id);
+    const auto it = m_restrictionMap.find(id);
     if (it != m_restrictionMap.end())
       return (*it).second;
     return false;
@@ -122,8 +122,7 @@ void VerifiableMessageQueryParams::setReturnOnlyLatest()
 {
   try
   {
-    std::unordered_map<int, bool>::const_iterator it =
-        m_restrictionMap.find(Restriction::RETURN_ONLY_LATEST);
+    const auto it = m_restrictionMap.find(Restriction::RETURN_ONLY_LATEST);
     if (it == m_restrictionMap.end())
       m_restrictionMap.insert(std::pair<int, bool>(Restriction::RETURN_ONLY_LATEST, true));
   }

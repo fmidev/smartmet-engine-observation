@@ -602,11 +602,10 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
         }
 
         Spine::TimeSeries::TimeSeries new_ts;
-        std::set<boost::local_time::local_date_time>::const_iterator timestep_iter =
-            valid_timesteps.begin();
+        auto timestep_iter = valid_timesteps.cbegin();
         for (auto &timed_value : ts)
         {
-          while (*timestep_iter < timed_value.time && timestep_iter != valid_timesteps.end())
+          while (*timestep_iter < timed_value.time && timestep_iter != valid_timesteps.cend())
           {
             new_ts.emplace_back(Spine::TimeSeries::TimedValue(*timestep_iter, missing_value));
             timestep_iter++;
@@ -615,11 +614,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
           timestep_iter++;
         }
 
-        if (timestep_iter != valid_timesteps.end() &&
+        if (timestep_iter != valid_timesteps.cend() &&
             (new_ts.size() > 0 && *timestep_iter == new_ts.back().time))
           timestep_iter++;
 
-        while (timestep_iter != valid_timesteps.end())
+        while (timestep_iter != valid_timesteps.cend())
         {
           new_ts.emplace_back(Spine::TimeSeries::TimedValue(*timestep_iter, missing_value));
           timestep_iter++;

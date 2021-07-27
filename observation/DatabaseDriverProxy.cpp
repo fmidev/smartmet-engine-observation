@@ -372,8 +372,7 @@ DatabaseDriverBase *DatabaseDriverProxy::createOracleDriver(const std::string &d
 
     // Load the symbols (pointers to functions in dynamic library)
 
-    driver_create_t *driver_create_func =
-        reinterpret_cast<driver_create_t *>(dlsym(handle, "create"));
+    auto *driver_create_func = reinterpret_cast<driver_create_t *>(dlsym(handle, "create"));
 
     // Check that pointer to create function is loaded succesfully
     if (driver_create_func == nullptr)

@@ -42,7 +42,7 @@ class OperationMap
   bool add(const std::string& name, const T& opClass)
   {
     const NameType n = Fmi::ascii_toupper_copy(name);
-    OperationMapType::const_iterator it = m_ops.find(n);
+    const auto it = m_ops.find(n);
     if (it != m_ops.end())
     {
       std::cerr << fmt::format("{} : duplicate map key '{}'.\n", METHOD_NAME, name);
@@ -63,7 +63,7 @@ class OperationMap
   OperationMapValueType get(const std::string& name)
   {
     const NameType n = Fmi::ascii_toupper_copy(name);
-    OperationMapType::const_iterator it = m_ops.find(n);
+    const auto it = m_ops.find(n);
 
     if (it == m_ops.end())
       throw Fmi::Exception(BCP, "Operation processing failed!")

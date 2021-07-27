@@ -181,7 +181,7 @@ bool NamesAllowed::addName(const std::string& inName)
       Fmi::ascii_toupper(name);
 
     // Is there already the name.
-    std::map<std::string, bool>::const_iterator it = m_map.find(name);
+    const auto it = m_map.find(name);
     if (it == m_map.end() or !(*it).second)
       return false;
 

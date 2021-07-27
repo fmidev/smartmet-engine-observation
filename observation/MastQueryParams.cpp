@@ -75,11 +75,11 @@ void MastQueryParams::addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfi
       const std::string joinOnFieldUpperCase = Fmi::ascii_toupper_copy(joinOnField);
       const std::shared_ptr<DBRegistryConfig::FieldNameMapType> map =
           m_dbrConfig.at(0)->getFieldNameMap();
-      DBRegistryConfig::FieldNameMapType::const_iterator it = map->find(joinOnFieldUpperCase);
+      const auto it = map->find(joinOnFieldUpperCase);
 
       const std::shared_ptr<DBRegistryConfig::FieldNameMapType> jmap =
           dbrConfigJoinOn->getFieldNameMap();
-      DBRegistryConfig::FieldNameMapType::const_iterator joinIt = jmap->find(joinOnFieldUpperCase);
+      const auto joinIt = jmap->find(joinOnFieldUpperCase);
 
       if (it == map->end() or joinIt == jmap->end())
       {
@@ -116,13 +116,13 @@ void MastQueryParams::addField(const NameType& field, const NameType& alias)
   try
   {
     // Go through all the config files to find the field name.
-    DBRegistryConfigVectorType::const_iterator configIt = m_dbrConfig.begin();
-    for (; configIt != m_dbrConfig.end(); ++configIt)
+    auto configIt = m_dbrConfig.cbegin();
+    for (; configIt != m_dbrConfig.cend(); ++configIt)
     {
       const std::shared_ptr<DBRegistryConfig::FieldNameMapType> fieldNameMap =
           (*configIt)->getFieldNameMap();
       const std::string upperCase = Fmi::ascii_toupper_copy(field);
-      DBRegistryConfig::FieldNameMapType::const_iterator it = fieldNameMap->find(upperCase);
+      const auto it = fieldNameMap->find(upperCase);
 
       if (it != fieldNameMap->end())
       {
@@ -169,13 +169,13 @@ void MastQueryParams::addOperation(const std::string& groupName,
               fmt::format("MastQueryParams::addOperation '{}' operation not found", operationName));
 
     // Find the table name where the field is defined.
-    DBRegistryConfigVectorType::const_iterator configIt = m_dbrConfig.begin();
-    for (; configIt != m_dbrConfig.end(); ++configIt)
+    auto configIt = m_dbrConfig.cbegin();
+    for (; configIt != m_dbrConfig.cend(); ++configIt)
     {
       const std::shared_ptr<DBRegistryConfig::FieldNameMapType> fieldNameMap =
           (*configIt)->getFieldNameMap();
       const std::string upperCase = Fmi::ascii_toupper_copy(field);
-      DBRegistryConfig::FieldNameMapType::const_iterator it = fieldNameMap->find(upperCase);
+      const auto it = fieldNameMap->find(upperCase);
 
       // Add the operation if configuration is found.
       if (it != fieldNameMap->end())
@@ -229,12 +229,12 @@ void MastQueryParams::addOrderBy(const NameType& field, const NameType& ascDesc)
   {
     bool validFieldName = false;
     const std::string fieldUpper = Fmi::ascii_toupper_copy(field);
-    DBRegistryConfigVectorType::const_iterator configIt = m_dbrConfig.begin();
-    for (; configIt != m_dbrConfig.end(); ++configIt)
+    auto configIt = m_dbrConfig.cbegin();
+    for (; configIt != m_dbrConfig.cend(); ++configIt)
     {
       const std::shared_ptr<DBRegistryConfig::FieldNameMapType> fieldNameMap =
           (*configIt)->getFieldNameMap();
-      DBRegistryConfig::FieldNameMapType::const_iterator it = fieldNameMap->find(fieldUpper);
+      const auto it = fieldNameMap->find(fieldUpper);
       if (it != fieldNameMap->end())
       {
         validFieldName = true;

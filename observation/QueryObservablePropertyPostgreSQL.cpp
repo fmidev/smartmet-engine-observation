@@ -88,7 +88,7 @@ std::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostgre
       // Multiple parameter name aliases may use a same measurand id (e.g. t2m
       // and temperature)
       auto r = parameterIDs.equal_range(measurandId);
-      for (ParameterIdMapType::iterator it = r.first; it != r.second; ++it)
+      for (auto it = r.first; it != r.second; ++it)
       {
         ObservableProperty property;
 

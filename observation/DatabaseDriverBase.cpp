@@ -176,14 +176,14 @@ void DatabaseDriverBase::readMetaData(Spine::ConfigBase &cfg)
       continue;
 
     // bbox
-    std::string bbox = cfg.get_optional_config_param<std::string>("meta_data.bbox." + type, "");
+    auto bbox = cfg.get_optional_config_param<std::string>("meta_data.bbox." + type, "");
     if (bbox.empty())
       bbox = cfg.get_optional_config_param<std::string>(
           "meta_data.bbox.default",
           "-180.0,-90.0,180.0,90.0,EPSG:4326");  // default value: whole world
 
     // first observation
-    std::string first_observation_time =
+    auto first_observation_time =
         cfg.get_optional_config_param<std::string>("meta_data.first_observation." + type, "");
     if (first_observation_time.empty())
       first_observation_time = cfg.get_optional_config_param<std::string>(
@@ -191,7 +191,7 @@ void DatabaseDriverBase::readMetaData(Spine::ConfigBase &cfg)
           "190001010000");  // default value: 1900.01.01 00:00
 
     // last observation time can be given in configuration file (for regression tests)
-    std::string last_observation_time =
+    auto last_observation_time =
         cfg.get_optional_config_param<std::string>("meta_data.last_observation." + type, "");
     if (last_observation_time.empty())
       last_observation_time =
