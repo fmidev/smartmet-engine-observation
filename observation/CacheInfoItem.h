@@ -23,8 +23,8 @@ struct CacheInfoItem
 
   void mergeCacheInfo(const CacheInfoItem& cii_from);
 
-  std::string name{""};
-  bool active{false};
+  std::string name;
+  bool active = false;
   std::set<std::string> tables;
   std::map<std::string, std::string> params;
   std::map<std::string, std::vector<std::string>> params_vector;

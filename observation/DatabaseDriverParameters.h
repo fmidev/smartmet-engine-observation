@@ -16,7 +16,7 @@ struct DatabaseDriverParameters
   {
   }
 
-  std::string driverName{""};
+  std::string driverName;
   std::vector<int> connectionPoolSize;
   size_t connectionTimeoutSeconds = 0;
   bool disableAllCacheUpdates = false;

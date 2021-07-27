@@ -11,33 +11,20 @@ namespace Observation
 class StationLocation
 {
  public:
-  int location_id;
-  int fmisid;
+  int location_id = -1;
+  int fmisid = -1;
   int country_id;
-  boost::posix_time::ptime location_start;
-  boost::posix_time::ptime location_end;
-  double longitude;
-  double latitude;
-  double x;
-  double y;
+  boost::posix_time::ptime location_start{boost::posix_time::not_a_date_time};
+  boost::posix_time::ptime location_end{boost::posix_time::not_a_date_time};
+  double longitude = -1;
+  double latitude = -1;
+  double x = -1;
+  double y = -1;
   double elevation;
   std::string time_zone_name;
   std::string time_zone_abbrev;
 
-  StationLocation()
-      : location_id(-1),
-        fmisid(-1),
-        location_start(boost::posix_time::not_a_date_time),
-        location_end(boost::posix_time::not_a_date_time),
-        longitude(-1.0),
-        latitude(-1.0),
-        x(-1.0),
-        y(-1.0),
-        elevation(-1.0),
-        time_zone_name(""),
-        time_zone_abbrev("")
-  {
-  }
+  StationLocation() = default;
 };
 
 // Vector of all locations

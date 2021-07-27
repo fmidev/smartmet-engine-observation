@@ -57,14 +57,14 @@ std::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostgre
     for (auto row : result_set)
     {
       int measurandId = -1;
-      std::string measurandCode = "";
-      std::string observablePropertyId = "";
-      std::string observablePropertyLabel = "";
-      std::string basePhenomenon = "";
-      std::string uom = "";
-      std::string statisticalMeasureId = "";
-      std::string statisticalFunction = "";
-      std::string aggregationTimePeriod = "";
+      std::string measurandCode;
+      std::string observablePropertyId;
+      std::string observablePropertyLabel;
+      std::string basePhenomenon;
+      std::string uom;
+      std::string statisticalMeasureId;
+      std::string statisticalFunction;
+      std::string aggregationTimePeriod;
 
       if (!row[0].is_null())
         measurandId = row[0].as<int>();

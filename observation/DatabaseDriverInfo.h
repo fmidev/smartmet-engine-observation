@@ -31,7 +31,7 @@ struct DatabaseDriverInfoItem
   {
     parseCacheInfo(c);
   }
-  std::string name{""};
+  std::string name;
   bool active{false};
   std::set<std::string> tables;           // Table names
   std::map<std::string, int> table_days;  // Number of day table contains data

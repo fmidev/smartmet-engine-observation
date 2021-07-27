@@ -374,159 +374,107 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
 
 std::string ExternalAndMobileDBInfo::measurandFieldname(int measurandId) const
 {
-  std::string ret = "";
-
   switch (measurandId)
   {
     case 1:
-      ret = "speed";
-      break;
+      return "speed";
     case 2:
-      ret = "friction";
-      break;
+      return "friction";
     case 3:
-      ret = "road_state";
-      break;
+      return "road_state";
     case 4:
-      ret = "road_quality_z";
-      break;
+      return "road_quality_z";
     case 5:
-      ret = "road_quality_roll";
-      break;
+      return "road_quality_roll";
     case 6:
-      ret = "road_quality_pitch";
-      break;
+      return "road_quality_pitch";
     case 7:
-      ret = "road_quality";
-      break;
+      return "road_quality";
     case 8:
-      ret = "water_accumulation";
-      break;
+      return "water_accumulation";
     case 9:
-      ret = "slippery_road";
-      break;
+      return "slippery_road";
     case 10:
-      ret = "decreased_visibility";
-      break;
+      return "decreased_visibility";
     case 11:
-      ret = "exceptional_weather";
-      break;
+      return "exceptional_weather";
     case 12:
-      ret = "ABC_activation";
-      break;
+      return "ABC_activation";
     case 13:
-      ret = "ESC_activation";
-      break;
+      return "ESC_activation";
     case 14:
-      ret = "ASR_activation";
-      break;
+      return "ASR_activation";
     case 15:
-      ret = "emergency_light";
-      break;
+      return "emergency_light";
     case 16:
-      ret = "traffic_congestion";
-      break;
+      return "traffic_congestion";
     case 17:
-      ret = "";
-      break;
+      return "";
     case 18:
-      ret = "heading";
-      break;
+      return "heading";
     case 19:
-      ret = "rain_sensor";
-      break;
+      return "rain_sensor";
     case 20:
-      ret = "fog_light";
-      break;
+      return "fog_light";
     case 21:
-      ret = "windshield_wiper";
-      break;
+      return "windshield_wiper";
     case 22:
-      ret = "x_acceleration";
-      break;
+      return "x_acceleration";
     case 23:
-      ret = "y_acceleration";
-      break;
+      return "y_acceleration";
     case 24:
-      ret = "z_acceleration";
-      break;
+      return "z_acceleration";
     case 25:
-      ret = "x_acceleration_variance";
-      break;
+      return "x_acceleration_variance";
     case 26:
-      ret = "y_acceleration_variance";
-      break;
+      return "y_acceleration_variance";
     case 27:
-      ret = "z_acceleration_variance";
-      break;
+      return "z_acceleration_variance";
     case 28:
-      ret = "roll_rate";
-      break;
+      return "roll_rate";
     case 29:
-      ret = "pitch_rate";
-      break;
+      return "pitch_rate";
     case 30:
-      ret = "yaw_rate";
-      break;
+      return "yaw_rate";
     case 31:
-      ret = "roll_rate_variance";
-      break;
+      return "roll_rate_variance";
     case 32:
-      ret = "pitch_rate_variance";
-      break;
+      return "pitch_rate_variance";
     case 33:
-      ret = "yaw_rate_variance";
-      break;
+      return "yaw_rate_variance";
     case 34:
-      ret = "ambient_temperature";
-      break;
+      return "ambient_temperature";
     case 35:
-      ret = "";
-      break;
+      return "";
     case 36:
-      ret = "dry_time";
-      break;
+      return "dry_time";
     case 37:
-      ret = "temperature";
-      break;
+      return "temperature";
     case 38:
-      ret = "humidity";
-      break;
+      return "humidity";
     case 39:
-      ret = "pressure";
-      break;
+      return "pressure";
     case 40:
-      ret = "rain";
-      break;
+      return "rain";
     case 41:
-      ret = "rain_sum";
-      break;
+      return "rain_sum";
     case 42:
-      ret = "wind";
-      break;
+      return "wind";
     case 43:
-      ret = "wind_gust";
-      break;
+      return "wind_gust";
     case 44:
-      ret = "wind_angle";
-      break;
+      return "wind_angle";
     case 45:
-      ret = "gust_angle";
-      break;
+      return "gust_angle";
     case 49:
-      ret = "relative_humidity";
-      break;
+      return "relative_humidity";
     case 8164:
-      ret = "pressure";
-      break;
+      return "pressure";
     case 8165:
-      ret = "temperature";
-      break;
+      return "temperature";
     default:
-      break;
+      return "";
   }
-
-  return ret;
 }
 
 void ExternalAndMobileDBInfo::setDatabaseTableName(const std::string &tablename)

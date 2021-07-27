@@ -430,8 +430,8 @@ void DatabaseDriverInfo::readFakeCacheInfo(Spine::ConfigBase& cfg,
       {
         std::string starttime = settings[i]["starttime"];
         std::string endtime = settings[i]["endtime"];
-        std::string measurand_id = "";
-        std::string fmisid = "";
+        std::string measurand_id;
+        std::string fmisid;
         if (settings[i].exists("measurand_id"))
           measurand_id = (settings[i]["measurand_id"]).c_str();
         if (settings[i].exists("fmisid"))

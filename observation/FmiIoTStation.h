@@ -32,7 +32,7 @@ struct FmiIoTStation
   {
   }
 
-  std::string station_id{""};
+  std::string station_id;
   int target_group_id = 0;
   double longitude = 0;
   double latitude = 0;

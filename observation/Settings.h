@@ -49,9 +49,9 @@ class Settings
   std::string localename = "fi_FI";
   std::string missingtext = "nan";
   std::string stationtype = "fmi";
-  std::string stationtype_specifier = "";  // stationtype 'fmi_iot' may have specifier 'itmf'
+  std::string stationtype_specifier;  // stationtype 'fmi_iot' may have specifier 'itmf'
   std::string timeformat = "timestamp";
-  std::string timestring = "";
+  std::string timestring;
   std::string timezone = "localtime";
   std::string wktArea;
   boost::posix_time::ptime endtime = boost::posix_time::second_clock::universal_time();  // now

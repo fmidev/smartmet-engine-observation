@@ -23,7 +23,7 @@ struct NearestStationSettings
   double latitude;
   double maxdistance;
   int numberofstations;
-  std::string tag{""};  // This is put in place parameter (station.tag)
+  std::string tag;  // This is put in place parameter (station.tag)
   boost::optional<int> fmisid;
 
   NearestStationSettings(double lon, double lat, double maxd, int nos, const std::string& t)
