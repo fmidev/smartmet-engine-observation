@@ -1980,7 +1980,7 @@ LocationDataItems PostgreSQLCacheDB::readObservations(
       return ret;
 
     std::list<std::string> producer_id_str_list;
-    for (auto &prodId : settings.producer_ids)
+    for (auto prodId : settings.producer_ids)
       producer_id_str_list.emplace_back(std::to_string(prodId));
     std::string producerIds = boost::algorithm::join(producer_id_str_list, ",");
 

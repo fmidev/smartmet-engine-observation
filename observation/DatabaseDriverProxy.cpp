@@ -87,7 +87,7 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
     // If no active driver configured create dummy driver
     if (itsDatabaseDriverContainer.size() == 0)
     {
-      auto dbDriver = new DummyDatabaseDriver("dummy", p);
+      auto *dbDriver = new DummyDatabaseDriver("dummy", p);
       itsDatabaseDriverSet.insert(dbDriver);
       itsDatabaseDriverContainer.addDriver("*", INT_MAX, dbDriver);
       std::cout << Spine::log_time_str() << ANSI_FG_RED

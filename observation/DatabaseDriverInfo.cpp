@@ -745,7 +745,7 @@ std::ostream& operator<<(std::ostream& out,
   const std::map<std::string, SmartMet::Engine::Observation::CacheInfoItem>& aggregateCacheInfo =
       driverInfo.getAggregateCacheInfo();
 
-  for (auto& item : aggregateCacheInfo)
+  for (const auto& item : aggregateCacheInfo)
   {
     out << ANSI_FG_GREEN << "  name: " << item.first << ANSI_FG_DEFAULT << std::endl;
     out << "  active: " << item.second.active << std::endl;

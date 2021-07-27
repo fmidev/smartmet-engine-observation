@@ -63,7 +63,6 @@ class QueryParamsBase
  private:
   std::string formattedTime(const pt::ptime& t, const std::string& format) const;
 
- private:
   pt::ptime m_beginTime;
   pt::ptime m_endTime;
   bool m_usingTimeRange;
