@@ -30,7 +30,7 @@ PostgreSQLObsDB::PostgreSQLObsDB(
 
 void PostgreSQLObsDB::get(const std::string &sqlStatement,
                           std::shared_ptr<QueryResultBase> qrb,
-                          const Fmi::TimeZones &timezones)
+                          const Fmi::TimeZones & /* timezones */)
 {
   try
   {

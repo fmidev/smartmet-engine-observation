@@ -137,8 +137,8 @@ std::size_t DummyCache::fillRoadCloudCache(
 
 void DummyCache::cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const {}
 
-bool DummyCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                         const boost::posix_time::ptime &endtime) const
+bool DummyCache::netAtmoIntervalIsCached(const boost::posix_time::ptime & /*starttime */,
+                                         const boost::posix_time::ptime & /*endtime */) const
 {
   return false;
 }
