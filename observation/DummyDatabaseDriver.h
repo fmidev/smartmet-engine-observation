@@ -20,34 +20,36 @@ class DummyDatabaseDriver : public DatabaseDriverBase
   {
   }
 
-  void init(Engine *obsengine);
-  Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings);
+  void init(Engine *obsengine) override;
+  Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings) override;
   Spine::TimeSeries::TimeSeriesVectorPtr values(
-      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
+      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
   Spine::TaggedFMISIDList translateToFMISID(const boost::posix_time::ptime &starttime,
                                             const boost::posix_time::ptime &endtime,
                                             const std::string &stationtype,
-                                            const StationSettings &stationSettings) const;
-  void makeQuery(QueryBase *) {}
+                                            const StationSettings &stationSettings) const override;
+  void makeQuery(QueryBase *) override {}
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
-                            const Spine::TaggedLocationList &locations) const;
+                            const Spine::TaggedLocationList &locations) const override;
   std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
-      std::vector<std::string> &parameters, const std::string language);
-  void reloadStations() {}
-  void getStations(Spine::Stations &stations, const Settings &settings) const {}
+      std::vector<std::string> &parameters, const std::string language) override;
+  void reloadStations() override {}
+  void getStations(Spine::Stations &stations, const Settings &settings) const override {}
   void getStationsByArea(Spine::Stations &stations,
                          const std::string &stationtype,
                          const boost::posix_time::ptime &starttime,
                          const boost::posix_time::ptime &endtime,
-                         const std::string &wkt) const
+                         const std::string &wkt) const override
   {
   }
-  void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const {}
+  void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const override
+  {
+  }
 
-  void shutdown() {}
+  void shutdown() override {}
   MetaData metaData(const std::string &) const { return MetaData(); }
-  std::string id() const { return "dummy"; }
+  std::string id() const override { return "dummy"; }
   std::string name() const { return "dummy"; }
 
  private:

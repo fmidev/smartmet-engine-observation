@@ -34,8 +34,8 @@ class MinimumStandardFilter : public FEConformanceClassBase
   MinimumStandardFilter(const MinimumStandardFilter& other) = delete;
   MinimumStandardFilter operator=(const MinimumStandardFilter& other) = delete;
 
-  virtual std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
-      const NameType& field, const NameType& operationName, const boost::any& toWhat);
+  std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
+      const NameType& field, const NameType& operationName, const boost::any& toWhat) override;
 };
 
 }  // namespace Observation

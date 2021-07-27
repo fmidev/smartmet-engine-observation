@@ -19,61 +19,65 @@ class DummyCache : public ObservationCache
  public:
   DummyCache(const std::string &name, const EngineParametersPtr &p);
 
-  void initializeConnectionPool();
+  void initializeConnectionPool() override;
   void initializeCaches(int finCacheDuration,
                         int finMemoryCacheDuration,
                         int extCacheDuration,
                         int flashCacheDuration,
-                        int flashMemoryCacheDuration);
+                        int flashMemoryCacheDuration) override;
 
-  Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(Settings &settings);
+  Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(Settings &settings) override;
   Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(
-      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
+      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
 
-  bool dataAvailableInCache(const Settings &settings) const;
+  bool dataAvailableInCache(const Settings &settings) const override;
   bool flashIntervalIsCached(const boost::posix_time::ptime &starttime,
-                             const boost::posix_time::ptime &endtime) const;
+                             const boost::posix_time::ptime &endtime) const override;
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
-                            const Spine::TaggedLocationList &locations) const;
+                            const Spine::TaggedLocationList &locations) const override;
 
-  boost::posix_time::ptime getLatestFlashModifiedTime() const;
-  boost::posix_time::ptime getLatestFlashTime() const;
-  std::size_t fillFlashDataCache(const FlashDataItems &flashCacheData) const;
-  void cleanFlashDataCache(const boost::posix_time::time_duration &timetokeep,
-                           const boost::posix_time::time_duration &timetokeep_memory) const;
+  boost::posix_time::ptime getLatestFlashModifiedTime() const override;
+  boost::posix_time::ptime getLatestFlashTime() const override;
+  std::size_t fillFlashDataCache(const FlashDataItems &flashCacheData) const override;
+  void cleanFlashDataCache(
+      const boost::posix_time::time_duration &timetokeep,
+      const boost::posix_time::time_duration &timetokeep_memory) const override;
 
-  boost::posix_time::ptime getLatestObservationModifiedTime() const;
-  boost::posix_time::ptime getLatestObservationTime() const;
-  std::size_t fillDataCache(const DataItems &cacheData) const;
+  boost::posix_time::ptime getLatestObservationModifiedTime() const override;
+  boost::posix_time::ptime getLatestObservationTime() const override;
+  std::size_t fillDataCache(const DataItems &cacheData) const override;
   void cleanDataCache(const boost::posix_time::time_duration &timetokeep,
-                      const boost::posix_time::time_duration &timetokeep_memory) const;
+                      const boost::posix_time::time_duration &timetokeep_memory) const override;
 
-  boost::posix_time::ptime getLatestWeatherDataQCTime() const;
-  boost::posix_time::ptime getLatestWeatherDataQCModifiedTime() const;
-  std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const;
-  void cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep) const;
+  boost::posix_time::ptime getLatestWeatherDataQCTime() const override;
+  boost::posix_time::ptime getLatestWeatherDataQCModifiedTime() const override;
+  std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const override;
+  void cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep) const override;
 
   bool roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                 const boost::posix_time::ptime &endtime) const;
-  boost::posix_time::ptime getLatestRoadCloudDataTime() const;
-  boost::posix_time::ptime getLatestRoadCloudCreatedTime() const;
-  std::size_t fillRoadCloudCache(const MobileExternalDataItems &mobileExternalCacheData) const;
-  void cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const;
+                                 const boost::posix_time::ptime &endtime) const override;
+  boost::posix_time::ptime getLatestRoadCloudDataTime() const override;
+  boost::posix_time::ptime getLatestRoadCloudCreatedTime() const override;
+  std::size_t fillRoadCloudCache(
+      const MobileExternalDataItems &mobileExternalCacheData) const override;
+  void cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const override;
 
   bool netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
-                               const boost::posix_time::ptime &endtime) const;
-  boost::posix_time::ptime getLatestNetAtmoDataTime() const;
-  boost::posix_time::ptime getLatestNetAtmoCreatedTime() const;
-  std::size_t fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData) const;
-  void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const;
+                               const boost::posix_time::ptime &endtime) const override;
+  boost::posix_time::ptime getLatestNetAtmoDataTime() const override;
+  boost::posix_time::ptime getLatestNetAtmoCreatedTime() const override;
+  std::size_t fillNetAtmoCache(
+      const MobileExternalDataItems &mobileExternalCacheData) const override;
+  void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const override;
 
   bool fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
-                              const boost::posix_time::ptime &endtime) const;
-  boost::posix_time::ptime getLatestFmiIoTDataTime() const;
-  boost::posix_time::ptime getLatestFmiIoTCreatedTime() const;
-  std::size_t fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData) const;
-  void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const;
+                              const boost::posix_time::ptime &endtime) const override;
+  boost::posix_time::ptime getLatestFmiIoTDataTime() const override;
+  boost::posix_time::ptime getLatestFmiIoTCreatedTime() const override;
+  std::size_t fillFmiIoTCache(
+      const MobileExternalDataItems &mobileExternalCacheData) const override;
+  void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const override;
 
   void shutdown();
 

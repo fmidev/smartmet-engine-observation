@@ -16,7 +16,7 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
   CommonPostgreSQLFunctions(const Fmi::Database::PostgreSQLConnectionOptions &connectionOptions,
                             const StationtypeConfig &stc,
                             const ParameterMapPtr &pm);
-  virtual ~CommonPostgreSQLFunctions();
+  ~CommonPostgreSQLFunctions() override;
 
   void shutdown();
 
@@ -25,12 +25,13 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
       const SmartMet::Engine::Observation::Settings &settings,
       const SmartMet::Engine::Observation::StationInfo &stationInfo,
       const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones);
+      const Fmi::TimeZones &timezones) override;
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFlashData(
-      const SmartMet::Engine::Observation::Settings &settings, const Fmi::TimeZones &timezones);
+      const SmartMet::Engine::Observation::Settings &settings,
+      const Fmi::TimeZones &timezones) override;
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
-                            const SmartMet::Spine::TaggedLocationList &locations);
+                            const SmartMet::Spine::TaggedLocationList &locations) override;
   bool isConnected();
   void reConnect();
   void setConnectionId(int connectionId) { itsConnectionId = connectionId; }

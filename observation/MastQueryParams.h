@@ -56,7 +56,7 @@ class MastQueryParams : public QueryParamsBase
    */
   explicit MastQueryParams(const std::shared_ptr<DBRegistryConfig> dbrConfig);
 
-  ~MastQueryParams();
+  ~MastQueryParams() override;
 
   MastQueryParams& operator=(const MastQueryParams& other) = delete;
   MastQueryParams(const MastQueryParams& other) = delete;

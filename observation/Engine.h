@@ -126,8 +126,8 @@ class Engine : public SmartMet::Spine::SmartMetEngine
                                             const StationSettings &stationSettings) const;
 
  protected:
-  void init();
-  void shutdown();
+  void init() override;
+  void shutdown() override;
 
  private:
   ~Engine() = default;
