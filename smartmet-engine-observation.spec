@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.7.27
+Version: 21.7.28
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -22,7 +22,7 @@ BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 21.7.8
 BuildRequires: smartmet-library-locus-devel >= 21.7.8
 BuildRequires: smartmet-library-macgyver-devel >= 21.7.27
-BuildRequires: smartmet-library-spine-devel >= 21.7.5
+BuildRequires: smartmet-library-spine-devel >= 21.7.28
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -38,7 +38,7 @@ Requires: libconfig
 Requires: smartmet-engine-geonames >= 21.7.8
 Requires: smartmet-library-locus >= 21.7.8
 Requires: smartmet-library-macgyver >= 21.7.27
-Requires: smartmet-library-spine >= 21.7.5
+Requires: smartmet-library-spine >= 21.7.28
 Requires: smartmet-server >= 21.6.3
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
@@ -66,7 +66,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: zlib-devel
 #TestRequires: smartmet-engine-geonames >= 21.7.8
 #TestRequires: smartmet-library-macgyver >= 21.7.27
-#TestRequires: smartmet-library-spine >= 21.7.5
+#TestRequires: smartmet-library-spine >= 21.7.28
 #TestRequires: smartmet-test-data
 
 %if 0%{rhel} >= 8
@@ -123,6 +123,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jul 28 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.7.28-1.fmi
+- Silenced more compiler warnings
+
 * Tue Jul 27 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.7.27-1.fmi
 - Silenced several compiler warnings
 
