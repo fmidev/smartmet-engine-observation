@@ -108,13 +108,13 @@ void Engine::unserializeStations()
     {
       stationinfo->unserialize(itsEngineParameters->serializedStationsFile);
 
-      boost::atomic_store(&itsEngineParameters->stationInfo, stationinfo);
+      itsEngineParameters->stationInfo.store(stationinfo);
       logMessage("[Observation Engine] Unserialized stations successfully from " + path.string(),
                  itsEngineParameters->quiet);
     }
     else
     {
-      boost::atomic_store(&itsEngineParameters->stationInfo, stationinfo);
+      itsEngineParameters->stationInfo.store(stationinfo);
       logMessage("[Observation Engine] No serialized station file found from " + path.string(),
                  itsEngineParameters->quiet);
     }
@@ -664,7 +664,8 @@ ContentTable Engine::getStationInfo(const StationOptions &options) const
     boost::posix_time::ptime now = boost::posix_time::second_clock::universal_time();
 
     unsigned int row = 0;
-    for (const auto &s : itsEngineParameters->stationInfo->stations)
+    auto sinfo = itsEngineParameters->stationInfo.load();
+    for (const auto &s : sinfo->stations)
     {
       // Check data against options
       if (check_fmisid && options.fmisid.count(s.fmisid) == 0)
@@ -721,8 +722,7 @@ ContentTable Engine::getStationInfo(const StationOptions &options) const
       boost::posix_time::time_period option_period(option_starttime, option_endtime);
       boost::posix_time::time_period station_period(s.station_start, s.station_end);
       std::vector<const StationLocation *> station_locations;
-      const StationLocationVector &allLocations =
-          itsEngineParameters->stationInfo->stationLocations.getAllLocations(s.fmisid);
+      const StationLocationVector &allLocations = sinfo->stationLocations.getAllLocations(s.fmisid);
       // Check location time periods
       for (const auto &loc : allLocations)
       {
@@ -773,8 +773,7 @@ ContentTable Engine::getStationInfo(const StationOptions &options) const
     std::set<std::string> groups;
     for (const auto &station_item : station_location_types)
     {
-      const Spine::Station &s =
-          itsEngineParameters->stationInfo->getStation(station_item.first, groups);
+      const Spine::Station &s = sinfo->getStation(station_item.first, groups);
       for (const auto &location_item : station_item.second)
       {
         unsigned int column = 0;

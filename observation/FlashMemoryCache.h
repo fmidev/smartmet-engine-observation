@@ -4,6 +4,7 @@
 #include "Settings.h"
 #include "SpatiaLite.h"
 #include <boost/shared_ptr.hpp>
+#include <boost/smart_ptr/atomic_shared_ptr.hpp>
 #include <macgyver/TimeZones.h>
 #include <spine/TimeSeries.h>
 #include <unordered_set>
@@ -57,10 +58,10 @@ class FlashMemoryCache
  private:
   // The actual flash data in the cache
   using FlashDataVector = FlashDataItems;
-  mutable boost::shared_ptr<FlashDataVector> itsFlashData;
+  mutable boost::atomic_shared_ptr<FlashDataVector> itsFlashData;
 
   // Last value passed to clean()
-  mutable boost::shared_ptr<boost::posix_time::ptime> itsStartTime;
+  mutable boost::atomic_shared_ptr<boost::posix_time::ptime> itsStartTime;
 
   // All the hash values for the flashes in the cache
   mutable std::unordered_set<std::size_t> itsHashValues;

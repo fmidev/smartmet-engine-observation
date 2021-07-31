@@ -43,7 +43,7 @@ void SpatiaLiteDatabaseDriver::init(Engine *obsengine)
         itsParameters, obsengine->getGeonames(), itsConnectionsOK, false);
     if (!itsShutdownRequested)
     {
-      boost::atomic_store(&itsObservationCacheAdminSpatiaLite, cacheAdmin);
+      itsObservationCacheAdminSpatiaLite.store(cacheAdmin);
       cacheAdmin->init();
     }
   }

@@ -1,12 +1,12 @@
 #pragma once
 
 #include "DatabaseDriverBase.h"
+#include "Engine.h"
 #include "ObservationCacheAdminPostgreSQL.h"
 #include "PostgreSQLDriverParameters.h"
 #include "PostgreSQLObsDB.h"
 #include "PostgreSQLObsDBConnectionPool.h"
-
-#include "Engine.h"
+#include <boost/smart_ptr/atomic_shared_ptr.hpp>
 #include <memory>
 #include <string>
 
@@ -35,7 +35,7 @@ class PostgreSQLDatabaseDriver : public DatabaseDriverBase
   void readConfig(Spine::ConfigBase &cfg);
 
   std::unique_ptr<PostgreSQLObsDBConnectionPool> itsPostgreSQLConnectionPool;
-  boost::shared_ptr<ObservationCacheAdminPostgreSQL> itsObservationCacheAdmin;
+  boost::atomic_shared_ptr<ObservationCacheAdminPostgreSQL> itsObservationCacheAdmin;
   PostgreSQLDriverParameters itsParameters;
   Engine *itsObsEngine{nullptr};
   //  DatabaseDriverBase *itsOracleDriver;

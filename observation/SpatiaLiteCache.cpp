@@ -172,7 +172,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    auto sinfo = boost::atomic_load(itsParameters.stationInfo);
+    auto sinfo = itsParameters.stationInfo->load();
 
     SmartMet::Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
     stations = removeDuplicateStations(stations);
@@ -223,7 +223,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
 
     ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
 
-    auto sinfo = boost::atomic_load(itsParameters.stationInfo);
+    auto sinfo = itsParameters.stationInfo->load();
 
     SmartMet::Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
     stations = removeDuplicateStations(stations);

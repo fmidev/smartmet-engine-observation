@@ -23,8 +23,9 @@ ObservationCacheAdminPostgreSQL::ObservationCacheAdminPostgreSQL(
                itsParameters.quiet);
 
     std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
-    // This is called by init() and is hence thread safe to modify stationInfo
-    db->readStationLocations(itsParameters.params->stationInfo->stationLocations);
+    // This is called by init() and is hence thread safe to modify stationInfo stationLocations
+    // directly
+    db->readStationLocations(itsParameters.params->stationInfo.load()->stationLocations);
 
     logMessage("PostgreSQLDatabaseDriver] Locations read from PostgreSQL database.",
                itsParameters.quiet);
@@ -208,9 +209,9 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
     // We can safely copy old settings since this is the only thread updating the stationInfo
     // variable
 
-    newStationInfo->stationLocations = itsParameters.params->stationInfo->stationLocations;
+    newStationInfo->stationLocations = itsParameters.params->stationInfo.load()->stationLocations;
 
-    boost::atomic_store(&itsParameters.params->stationInfo, newStationInfo);
+    itsParameters.params->stationInfo.store(newStationInfo);
 
     logMessage("[PostgreSQLDatabaseDriver] Loading stations done.", itsParameters.quiet);
   }

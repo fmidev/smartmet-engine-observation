@@ -252,7 +252,7 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
     std::string tablename = DatabaseDriverBase::resolveDatabaseTableName(
         settings.stationtype, itsParameters.params->stationtypeConfig);
 
-    auto info = boost::atomic_load(&itsParameters.params->stationInfo);
+    auto info = itsParameters.params->stationInfo.load();
 
     if (tablename == OBSERVATION_DATA_TABLE)
       return db->getObservationData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
@@ -342,7 +342,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::value
     std::string tablename = DatabaseDriverBase::resolveDatabaseTableName(
         settings.stationtype, itsParameters.params->stationtypeConfig);
 
-    auto info = boost::atomic_load(&itsParameters.params->stationInfo);
+    auto info = itsParameters.params->stationInfo.load();
 
     if (tablename == OBSERVATION_DATA_TABLE)
       return db->getObservationData(stations, settings, *info, timeSeriesOptions, itsTimeZones);

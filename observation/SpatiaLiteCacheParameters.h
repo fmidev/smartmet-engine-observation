@@ -8,12 +8,10 @@
 #include "SpatiaLiteOptions.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
+#include <macgyver/Cache.h>
 #include <spine/Station.h>
 #include <spine/TimeSeries.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
-
-#include <macgyver/Cache.h>
-
 #include <string>
 
 namespace SmartMet
@@ -42,7 +40,7 @@ struct SpatiaLiteCacheParameters
   // May be modified by the driver in a separate thread. This is intentionally a reference to the
   // actual stationInfo object in EngineParameters.
 
-  const boost::shared_ptr<StationInfo>* stationInfo = nullptr;
+  const boost::atomic_shared_ptr<StationInfo>* stationInfo = nullptr;
 
   std::shared_ptr<boost::posix_time::time_period> flashCachePeriod;
   std::string cacheFile;

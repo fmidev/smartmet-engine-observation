@@ -3,6 +3,7 @@
 #include "DatabaseDriverBase.h"
 #include "Engine.h"
 #include "ObservationCacheAdminSpatiaLite.h"
+#include <boost/smart_ptr/atomic_shared_ptr.hpp>
 #include <memory>
 #include <string>
 
@@ -43,7 +44,7 @@ class SpatiaLiteDatabaseDriver : public DatabaseDriverBase
   void readConfig(Spine::ConfigBase &cfg);
 
   DatabaseDriverParameters itsParameters;
-  boost::shared_ptr<ObservationCacheAdminSpatiaLite> itsObservationCacheAdminSpatiaLite;
+  boost::atomic_shared_ptr<ObservationCacheAdminSpatiaLite> itsObservationCacheAdminSpatiaLite;
 };
 
 }  // namespace Observation

@@ -43,7 +43,7 @@ boost::posix_time::ptime FlashMemoryCache::getStartTime() const
 {
   try
   {
-    auto t = boost::atomic_load(&itsStartTime);
+    auto t = itsStartTime.load();
     if (t)
       return *t;
 
@@ -86,7 +86,7 @@ std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
       // Copy the old data
       auto new_cache = boost::make_shared<FlashDataVector>();
 
-      auto old_cache = boost::atomic_load(&itsFlashData);
+      auto old_cache = itsFlashData.load();
       if (old_cache)
         *new_cache = *old_cache;
 
@@ -100,16 +100,16 @@ std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
         itsHashValues.insert(hash);
 
       // Replace old contents
-      boost::atomic_store(&itsFlashData, new_cache);
+      itsFlashData.store(new_cache);
     }
 
     // Indicate fill has been called once
 
-    auto starttime = boost::atomic_load(&itsStartTime);
+    auto starttime = itsStartTime.load();
     if (!starttime)
     {
       starttime = boost::make_shared<boost::posix_time::ptime>(boost::posix_time::not_a_date_time);
-      boost::atomic_store(&itsStartTime, starttime);
+      itsStartTime.store(starttime);
     }
 
     return new_items.size();
@@ -126,7 +126,7 @@ void FlashMemoryCache::clean(const boost::posix_time::ptime& newstarttime) const
   {
     bool must_clean = false;
 
-    auto cache = boost::atomic_load(&itsFlashData);
+    auto cache = itsFlashData.load();
 
     if (cache)
     {
@@ -146,18 +146,18 @@ void FlashMemoryCache::clean(const boost::posix_time::ptime& newstarttime) const
           itsHashValues.erase(it->hash_value());
 
         auto new_cache = boost::make_shared<FlashDataVector>(pos, cache->end());
-        boost::atomic_store(&cache, new_cache);
+        cache = new_cache;
       }
     }
 
     // Update new start time for the cache first so no-one can request data before it
     // before the data has been cleaned
     auto starttime = boost::make_shared<boost::posix_time::ptime>(newstarttime);
-    boost::atomic_store(&itsStartTime, starttime);
+    itsStartTime.store(starttime);
 
     // And now a quick atomic update to the data too, if we deleted anything
     if (must_clean)
-      boost::atomic_store(&itsFlashData, cache);
+      itsFlashData.store(cache);
   }
   catch (...)
   {
@@ -183,7 +183,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr FlashMemoryCache::getData(
   {
     auto result = initializeResultVector(settings.parameters);
 
-    auto cache = boost::atomic_load(&itsFlashData);
+    auto cache = itsFlashData.load();
 
     // Safety check
     if (!cache)

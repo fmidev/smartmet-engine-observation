@@ -85,7 +85,7 @@ void PostgreSQLDatabaseDriver::shutdown()
     itsShutdownRequested = true;
 
     // Shutting down cache connections
-    auto cache_admin = boost::atomic_load(&itsObservationCacheAdmin);
+    auto cache_admin = itsObservationCacheAdmin.load();
     if (cache_admin)
     {
       cache_admin->shutdown();
@@ -116,7 +116,7 @@ void PostgreSQLDatabaseDriver::init(Engine *obsengine)
 
     if (!itsShutdownRequested)
     {
-      boost::atomic_store(&itsObservationCacheAdmin, cacheAdmin);
+      itsObservationCacheAdmin.store(cacheAdmin);
       cacheAdmin->init();
 
       itsDatabaseStations.reset(
@@ -140,7 +140,7 @@ void PostgreSQLDatabaseDriver::reloadStations()
 {
   if (!itsShutdownRequested && responsibleForLoadingStations())
   {
-    auto cache_admin = boost::atomic_load(&itsObservationCacheAdmin);
+    auto cache_admin = itsObservationCacheAdmin.load();
     if (cache_admin)
     {
       cache_admin->reloadStations();

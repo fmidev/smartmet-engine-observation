@@ -207,11 +207,15 @@ void ObservationCacheAdminBase::init()
     }
 
     // If stations info does not exist (stations.txt file  missing), load info from database
-    if (itsParameters.loadStations && itsParameters.params->stationInfo->stations.size() == 0)
+    if (itsParameters.loadStations)
     {
-      std::cout << Spine::log_time_str() << driverName()
-                << " Stations info missing, loading from database! " << std::endl;
-      itsBackgroundTasks->add("Load station data", [this]() { loadStations(); });
+      auto sinfo = itsParameters.params->stationInfo.load();
+      if (sinfo->stations.size() == 0)
+      {
+        std::cout << Spine::log_time_str() << driverName()
+                  << " Stations info missing, loading from database! " << std::endl;
+        itsBackgroundTasks->add("Load station data", [this]() { loadStations(); });
+      }
     }
 
     itsBackgroundTasks->wait();

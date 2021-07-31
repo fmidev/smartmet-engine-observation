@@ -74,7 +74,7 @@ void DatabaseStations::getStationsByArea(Spine::Stations &stations,
     StationtypeConfig::GroupCodeSetType stationgroup_codes;
     getStationGroups(stationgroup_codes, stationtype);
 
-    auto info = boost::atomic_load(&itsObservationEngineParameters->stationInfo);
+    auto info = itsObservationEngineParameters->stationInfo.load();
 
     stations = info->findStationsInsideArea(stationgroup_codes, starttime, endtime, wkt);
 
@@ -99,7 +99,7 @@ void DatabaseStations::getStationsByBoundingBox(Spine::Stations &stations,
 
     getStationGroups(stationgroup_codes, stationtype);
 
-    auto info = boost::atomic_load(&itsObservationEngineParameters->stationInfo);
+    auto info = itsObservationEngineParameters->stationInfo.load();
 
     try
     {
@@ -146,7 +146,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateGeoIdsToFMISID(
   opts.SetCountries("");
   opts.SetFullCountrySearch(true);
 
-  auto info = boost::atomic_load(&itsObservationEngineParameters->stationInfo);
+  auto info = itsObservationEngineParameters->stationInfo.load();
 
   for (int geoid : geoidSettings.geoids)
   {
@@ -195,7 +195,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
   Spine::TaggedFMISIDList lpnns;
   Spine::TaggedFMISIDList geoids;
 
-  auto info = boost::atomic_load(&itsObservationEngineParameters->stationInfo);
+  auto info = itsObservationEngineParameters->stationInfo.load();
 
   if (stationSettings.wmos.size() > 0)
   {
@@ -341,7 +341,7 @@ void DatabaseStations::getStations(Spine::Stations &stations, const Settings &se
     // continue with other means
     // to find stations.
 
-    auto info = boost::atomic_load(&itsObservationEngineParameters->stationInfo);
+    auto info = itsObservationEngineParameters->stationInfo.load();
     // All stations
     if (settings.allplaces)
       stations = info->findStationsInGroup(stationgroup_codes, stationstarttime, stationendtime);

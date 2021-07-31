@@ -8,6 +8,7 @@
 #include "ObservationCacheProxy.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
+#include <boost/smart_ptr/atomic_shared_ptr.hpp>
 #include <macgyver/Cache.h>
 
 namespace SmartMet
@@ -53,7 +54,7 @@ struct EngineParameters
   // May be modified by the driver in a separate thread. This is the only copy of the
   // StationInfo data, other classes should just point to this one instead of copying
   // the shared pointer.
-  mutable boost::shared_ptr<StationInfo> stationInfo;
+  mutable boost::atomic_shared_ptr<StationInfo> stationInfo;
   Fmi::Cache::Cache<std::string, std::shared_ptr<QueryResultBase>> queryResultBaseCache;
 
   bool quiet;
