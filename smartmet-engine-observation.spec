@@ -19,9 +19,9 @@ BuildRequires: libatomic
 BuildRequires: libconfig-devel
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 21.7.8
+BuildRequires: smartmet-engine-geonames-devel >= 21.8.4
 BuildRequires: smartmet-library-locus-devel >= 21.7.8
-BuildRequires: smartmet-library-macgyver-devel >= 21.7.27
+BuildRequires: smartmet-library-macgyver-devel >= 21.8.3
 BuildRequires: smartmet-library-spine-devel >= 21.7.28
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
@@ -35,9 +35,9 @@ Requires: fmt >= 7.1.3
 Requires: gdal32-libs
 Requires: libatomic
 Requires: libconfig
-Requires: smartmet-engine-geonames >= 21.7.8
+Requires: smartmet-engine-geonames >= 21.8.4
 Requires: smartmet-library-locus >= 21.7.8
-Requires: smartmet-library-macgyver >= 21.7.27
+Requires: smartmet-library-macgyver >= 21.8.3
 Requires: smartmet-library-spine >= 21.7.28
 Requires: smartmet-server >= 21.6.3
 Requires: sqlite >= 3.22.0
@@ -64,8 +64,8 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 21.7.8
-#TestRequires: smartmet-library-macgyver >= 21.7.27
+#TestRequires: smartmet-engine-geonames >= 21.8.4
+#TestRequires: smartmet-library-macgyver >= 21.8.3
 #TestRequires: smartmet-library-spine >= 21.7.28
 #TestRequires: smartmet-test-data
 
