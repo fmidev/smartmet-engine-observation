@@ -276,6 +276,8 @@ std::string DatabaseDriverBase::resolveCacheTableName(
       tablename = ROADCLOUD_DATA_TABLE;
     else if (producer == FMI_IOT_PRODUCER)
       tablename = FMI_IOT_DATA_TABLE;
+    else if (producer == BK_HYDROMETA_PRODUCER)
+      tablename = BK_HYDROMETA_DATA_TABLE;
     else
     {
       tablename = *(stationtypeConfig.getDatabaseTableNameByStationtype(producer));
@@ -363,7 +365,7 @@ std::string DatabaseDriverBase::resolveDatabaseTableName(const std::string &prod
     if (producer == "flash")
       tablename = FLASH_DATA_TABLE;
     else if (producer == NETATMO_PRODUCER || producer == ROADCLOUD_PRODUCER ||
-             producer == FMI_IOT_PRODUCER)
+             producer == FMI_IOT_PRODUCER || producer == BK_HYDROMETA_PRODUCER)
       tablename = EXT_OBSDATA_TABLE;
     else
     {

@@ -93,6 +93,7 @@ class ObservationCacheAdminBase
   void updateObservationCache() const;
   void updateWeatherDataQCCache() const;
   void updateNetAtmoCache() const;
+  void updateBKHydrometaCache() const;
   void updateRoadCloudCache() const;
   void updateFmiIoTCache() const;
 
@@ -100,6 +101,7 @@ class ObservationCacheAdminBase
   void updateObservationCacheLoop();
   void updateWeatherDataQCCacheLoop();
   void updateNetAtmoCacheLoop();
+  void updateBKHydrometaCacheLoop();
   void updateRoadCloudCacheLoop();
   void updateFmiIoTCacheLoop();
   void updateStationsCacheLoop();

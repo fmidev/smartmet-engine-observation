@@ -179,21 +179,21 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   void cleanFlashDataCache(const boost::posix_time::ptime &newstarttime);
 
   /**
-   * @brief Get the time of the newest RoadCloud observation in ext_obsdata_roadcloud table
+   * @brief Get the time of the newest observation in ext_obsdata_roadcloud table
    * @return boost::posix_time::ptime The time of the newest RoadCloud observation
    */
 
   boost::posix_time::ptime getLatestRoadCloudDataTime();
 
   /**
-   * @brief Get the time of the latest RoadCloud creation in ext_obsdata_roadcloud table
+   * @brief Get latest creation time in ext_obsdata_roadcloud table
    * @return boost::posix_time::ptime The latest creation time of RoadCloud observation
    */
 
   boost::posix_time::ptime getLatestRoadCloudCreatedTime();
 
   /**
-   * @brief Get the time of the oldest RoadCloud observation in ext_obsdata_roadcloud table
+   * @brief Get oldest observation in ext_obsdata_roadcloud table
    * @return boost::posix_time::ptime The time of the oldest RoadCloud observation
    */
 
@@ -207,27 +207,27 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
                                  InsertStatus &insertStatus);
 
   /**
-   * @brief Delete old RoadCloud observation data from ext_obsdata_roadcloud table
+   * @brief Delete old observations from ext_obsdata_roadcloud table
    * @param timetokeep Delete RoadCloud data which is older than given duration
    */
   void cleanRoadCloudCache(const boost::posix_time::ptime &newstarttime);
 
   /**
-   * @brief Get the time of the newest NetAtmo observation in ext_obsdata_roadcloud table
+   * @brief Get newest observation in ext_obsdata_netatmo table
    * @return boost::posix_time::ptime The time of the newest NetAtmo observation
    */
 
   boost::posix_time::ptime getLatestNetAtmoDataTime();
 
   /**
-   * @brief Get the time of the latest NetAtmo creation time in ext_obsdata table
+   * @brief Get latest creation time in ext_obsdata_netatmo table
    * @return boost::posix_time::ptime The latest creation time
    */
 
   boost::posix_time::ptime getLatestNetAtmoCreatedTime();
 
   /**
-   * @brief Get the time of the oldest NetAtmo observation in ext_obsdata_roadcloud table
+   * @brief Get oldest observation in ext_obsdata_netatmo table
 
    * @return boost::posix_time::ptime The time of the oldest NetAtmo observation
    */
@@ -235,17 +235,52 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   boost::posix_time::ptime getOldestNetAtmoDataTime();
 
   /**
-   * @brief Insert cached observations into ext_obsdata_roadcloud table
+   * @brief Insert cached observations into ext_obsdata_netatmo table
    * @param NetAtmo observation data to be inserted into the table
    */
   std::size_t fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData,
                                InsertStatus &insertStatus);
 
   /**
-   * @brief Delete old NetAtmo observation data from ext_obsdata_roadcloud table
+   * @brief Delete old observations from ext_obsdata_netatmo table
    * @param timetokeep Delete NetAtmo data which is older than given duration
    */
   void cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime);
+
+ /**
+   * @brief Get the newest observation in ext_obsdata_bk_hydrometa table
+   * @return boost::posix_time::ptime The time of the newest bk_hydrometa observation
+   */
+
+  boost::posix_time::ptime getLatestBKHydrometaDataTime();
+
+  /**
+   * @brief Get the latest creation time in ext_obsdata_bk_hydromate table
+   * @return boost::posix_time::ptime The latest creation time
+   */
+
+  boost::posix_time::ptime getLatestBKHydrometaCreatedTime();
+
+  /**
+   * @brief Get the oldest observation in ext_obsdata_bk_hydrometa table
+
+   * @return boost::posix_time::ptime The time of the oldest bk_hydrometa observation
+   */
+
+  boost::posix_time::ptime getOldestBKHydrometaDataTime();
+
+  /**
+   * @brief Insert cached observations into ext_obsdata_bk_hydrometa table
+   * @param bk_hydrometa observation data to be inserted into the table
+   */
+  std::size_t fillBKHydrometaCache(const MobileExternalDataItems &mobileExternalCacheData,
+								   InsertStatus &insertStatus);
+
+  /**
+   * @brief Delete old bk_hydrometa observation data from ext_obsdata_roadcloud table
+   * @param timetokeep Delete bk_hydrometa data which is older than given duration
+   */
+  void cleanBKHydrometaCache(const boost::posix_time::ptime &newstarttime);
 
   /**
    * @brief Get the time of the newest FmiIoT observation in ext_obsdata_roadcloud table
@@ -287,6 +322,9 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getNetAtmoData(const Settings &settings,
                                                                   const Fmi::TimeZones &timezones);
+
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getBKHydrometaData(const Settings &settings,
+																	  const Fmi::TimeZones &timezones);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFmiIoTData(const Settings &settings,
                                                                  const Fmi::TimeZones &timezones);
@@ -367,6 +405,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   void createRoadCloudDataTable();
   void createNetAtmoDataTable();
   void createFmiIoTDataTable();
+  void createBKHydrometaDataTable();
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getMobileAndExternalData(
       const Settings &settings, const Fmi::TimeZones &timezones);

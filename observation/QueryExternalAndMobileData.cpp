@@ -244,7 +244,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
           }
           else
           {
-            fieldname = dbInfo.measurandFieldname(measurands.at(fieldname));
+            fieldname = dbInfo.measurandFieldname(settings.stationtype, measurands.at(fieldname));
           }
           value = rsr[fieldname];
 

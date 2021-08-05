@@ -754,6 +754,89 @@ void PostgreSQLCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
   }
 }
 
+bool PostgreSQLCache::bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                              const boost::posix_time::ptime &) const
+{
+  try
+  {
+    Spine::ReadLock lock(itsBKHydrometaTimeIntervalMutex);
+    if (itsBKHydrometaTimeIntervalStart.is_not_a_date_time() ||
+        itsBKHydrometaTimeIntervalEnd.is_not_a_date_time())
+      return false;
+    // We ignore end time intentionally
+    return (starttime >= itsBKHydrometaTimeIntervalStart);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Checking if BKHydrometa interval is cached failed!");
+  }
+}
+
+boost::posix_time::ptime PostgreSQLCache::getLatestBKHydrometaDataTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestBKHydrometaDataTime();
+}
+
+boost::posix_time::ptime PostgreSQLCache::getLatestBKHydrometaCreatedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestBKHydrometaCreatedTime();
+}
+
+std::size_t PostgreSQLCache::fillBKHydrometaCache(
+    const MobileExternalDataItems &mobileExternalCacheData) const
+{
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillBKHydrometaCache(mobileExternalCacheData);
+
+    // Update what really now really is in the database
+    auto start = conn->getOldestBKHydrometaDataTime();
+    auto end = conn->getLatestBKHydrometaDataTime();
+    Spine::WriteLock lock(itsBKHydrometaTimeIntervalMutex);
+    itsBKHydrometaTimeIntervalStart = start;
+    itsBKHydrometaTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Filling BKHydrometa cache failed!");
+  }
+}
+
+void PostgreSQLCache::cleanBKHydrometaCache(const boost::posix_time::time_duration &timetokeep) const
+{
+  try
+  {
+    // Dont clean fake cache
+    if (isFakeCache(NETATMO_DATA_TABLE))
+      return;
+
+    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    t = round_down_to_cache_clean_interval(t);
+
+    auto conn = itsConnectionPool->getConnection();
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsBKHydrometaTimeIntervalMutex);
+      itsBKHydrometaTimeIntervalStart = t;
+    }
+    conn->cleanBKHydrometaCache(t);
+
+    // Update what really remains in the database
+    auto start = conn->getOldestBKHydrometaDataTime();
+    auto end = conn->getLatestBKHydrometaDataTime();
+    Spine::WriteLock lock(itsBKHydrometaTimeIntervalMutex);
+    itsBKHydrometaTimeIntervalStart = start;
+    itsBKHydrometaTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Cleaning BKHydrometa cache failed!");
+  }
+}
+
+
 bool PostgreSQLCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
                                              const boost::posix_time::ptime &) const
 {

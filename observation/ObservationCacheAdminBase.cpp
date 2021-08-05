@@ -81,6 +81,7 @@ void ObservationCacheAdminBase::init()
     std::shared_ptr<ObservationCache> netatmoCache;
     std::shared_ptr<ObservationCache> roadcloudCache;
     std::shared_ptr<ObservationCache> fmiIoTCache;
+    std::shared_ptr<ObservationCache> bkHydrometaCache;
     std::set<ObservationCache*> cache_set;
 
     for (const auto& tablename : tablenames)
@@ -114,6 +115,11 @@ void ObservationCacheAdminBase::init()
       {
         fmiIoTCache = getCache(FMI_IOT_DATA_TABLE);
         cache_set.insert(fmiIoTCache.get());
+      }
+      else if (tablename == BK_HYDROMETA_DATA_TABLE)
+      {
+        bkHydrometaCache = getCache(BK_HYDROMETA_DATA_TABLE);
+        cache_set.insert(bkHydrometaCache.get());
       }
     }
 
@@ -204,7 +210,17 @@ void ObservationCacheAdminBase::init()
           itsBackgroundTasks->add("Init fmi_iot cache", [this]() { updateFmiIoTCache(); });
         }
       }
-    }
+
+      if (bkHydrometaCache)
+      {
+        bkHydrometaCache->cleanBKHydrometaCache(boost::posix_time::hours(itsParameters.bkHydrometaCacheDuration));
+
+        if (itsParameters.bkHydrometaCacheUpdateInterval > 0)
+        {
+          itsBackgroundTasks->add("Init bk_hydrometa cache", [this]() { updateBKHydrometaCache(); });
+        }
+      }
+    }	  
 
     // If stations info does not exist (stations.txt file  missing), load info from database
     if (itsParameters.loadStations)
@@ -293,6 +309,12 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
         itsParameters.fmiIoTCacheUpdateInterval > 0)
     {
       itsBackgroundTasks->add("fmi_iot cache update loop", [this]() { updateFmiIoTCacheLoop(); });
+    }
+
+	if (tables.find(BK_HYDROMETA_DATA_TABLE) != tables.end() &&
+        itsParameters.bkHydrometaCacheUpdateInterval > 0)
+    {
+      itsBackgroundTasks->add("bk_hydrometa cache update loop", [this]() { updateBKHydrometaCacheLoop(); });
     }
   }
   catch (...)
@@ -715,7 +737,7 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
     {
       auto begin = std::chrono::high_resolution_clock::now();
       netatmoCache->cleanNetAtmoCache(
-          boost::posix_time::hours(itsParameters.roadCloudCacheDuration));
+          boost::posix_time::hours(itsParameters.netAtmoCacheDuration));
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
@@ -729,6 +751,115 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
   {
     throw Fmi::Exception::Trace(BCP,
                                 ("Updating " + std::string(NETATMO_PRODUCER) + " cache failed!"));
+  }
+}
+
+void ObservationCacheAdminBase::updateBKHydrometaCache() const
+{
+  try
+  {
+    if (itsShutdownRequested)
+      return;		
+
+    std::shared_ptr<ObservationCache> bkHydrometaCache = getCache(BK_HYDROMETA_DATA_TABLE);
+
+    std::vector<MobileExternalDataItem> cacheData;
+
+    boost::posix_time::ptime last_time = bkHydrometaCache->getLatestBKHydrometaDataTime();
+    boost::posix_time::ptime last_created_time = bkHydrometaCache->getLatestBKHydrometaCreatedTime();
+
+    // Make sure the time is not in the future
+    boost::posix_time::ptime now = boost::posix_time::second_clock::universal_time();
+    if (!last_time.is_not_a_date_time() && last_time > now)
+      last_time = now;
+
+    // Making sure that we do not request more data than we actually store into
+    // the cache.
+    boost::posix_time::ptime min_last_time =
+        boost::posix_time::second_clock::universal_time() -
+        boost::posix_time::hours(itsParameters.bkHydrometaCacheDuration);
+
+    static int update_count = 0;
+
+    if (!last_time.is_not_a_date_time() &&
+        last_time < min_last_time)  // do not read too old observations
+    {
+      last_time = min_last_time;
+    }
+
+    // Note: observations are always delayed. Do not make the latter update interval
+    // too short! Experimentally 3 minutes was too short at FMI.
+
+    // Big update every 10 updates to get delayed observations.
+    bool long_update = (++update_count % 10 == 0);
+
+    if (!last_time.is_not_a_date_time() && update_count > 0)
+    {
+      if (long_update)
+        last_time -= boost::posix_time::hours(3);
+      else
+        last_time -= boost::posix_time::minutes(15);
+    }
+
+    if (last_time.is_not_a_date_time())
+    {
+      last_time = boost::posix_time::second_clock::universal_time() -
+                  boost::posix_time::hours(itsParameters.bkHydrometaCacheDuration);
+    }
+
+    {
+      auto begin = std::chrono::high_resolution_clock::now();
+
+      readMobileCacheData(BK_HYDROMETA_PRODUCER, cacheData, last_time, last_created_time, itsTimeZones);
+
+      auto end = std::chrono::high_resolution_clock::now();
+
+      if (itsTimer)
+        std::cout << Spine::log_time_str() << driverName() << " database driver read "
+                  << cacheData.size() << BK_HYDROMETA_PRODUCER << " observations starting from "
+                  << last_time << " finished in "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
+                  << " ms" << std::endl;
+    }
+
+    if (itsShutdownRequested)
+      return;
+
+    {
+      auto begin = std::chrono::high_resolution_clock::now();
+      auto count = bkHydrometaCache->fillBKHydrometaCache(cacheData);
+      auto end = std::chrono::high_resolution_clock::now();
+
+      if (itsTimer)
+        std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
+                  << BK_HYDROMETA_PRODUCER << " observations starting from " << last_time
+                  << " finished in "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
+                  << " ms" << std::endl;
+    }
+
+    if (itsShutdownRequested)
+      return;
+
+    // Delete too old observations from the Cache database
+
+    {
+      auto begin = std::chrono::high_resolution_clock::now();
+      bkHydrometaCache->cleanBKHydrometaCache(
+          boost::posix_time::hours(itsParameters.roadCloudCacheDuration));
+      auto end = std::chrono::high_resolution_clock::now();
+
+      if (itsTimer)
+        std::cout << Spine::log_time_str() << driverName() << " database driver cleaner "
+                  << BK_HYDROMETA_PRODUCER << " cache cleaner finished in "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
+                  << " ms" << std::endl;
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP,
+                                ("Updating " + std::string(BK_HYDROMETA_PRODUCER) + " cache failed!"));
   }
 }
 
@@ -1076,6 +1207,38 @@ void ObservationCacheAdminBase::updateNetAtmoCacheLoop()
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Failure in updateNetAtmoCacheLoop-function!");
+  }
+}
+
+void ObservationCacheAdminBase::updateBKHydrometaCacheLoop()
+{
+  try
+  {
+    while (!itsShutdownRequested)
+    {
+      Fmi::AsyncTask::interruption_point();
+      try
+      {
+        updateBKHydrometaCache();
+      }
+      catch (std::exception& err)
+      {
+        logMessage(std::string(": updateBKHydrometaCache(): ") + err.what(), itsParameters.quiet);
+      }
+      catch (...)
+      {
+        logMessage(": updateBKHydrometaCache(): unknown error", itsParameters.quiet);
+      }
+
+      // Use absolute time to wait, not duration since there may be spurious wakeups.
+      std::size_t wait_duration = itsParameters.bkHydrometaCacheUpdateInterval;
+      boost::this_thread::sleep_until(boost::chrono::system_clock::now() +
+                                      boost::chrono::seconds(wait_duration));
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Failure in updateBKHydrometaCacheLoop-function!");
   }
 }
 

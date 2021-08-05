@@ -376,6 +376,8 @@ void PostgreSQLDatabaseDriverForMobileData::readConfig(Spine::ConfigBase &cfg)
         Fmi::stoi(driverInfo.params.at("roadCloudCacheUpdateInterval"));
     itsParameters.fmiIoTCacheUpdateInterval =
         Fmi::stoi(driverInfo.params.at("fmiIoTCacheUpdateInterval"));
+    itsParameters.bkHydrometaCacheUpdateInterval =
+        Fmi::stoi(driverInfo.params.at("bkHydrometaCacheUpdateInterval"));
 
     if (!itsParameters.disableAllCacheUpdates)
     {
@@ -383,6 +385,7 @@ void PostgreSQLDatabaseDriverForMobileData::readConfig(Spine::ConfigBase &cfg)
       itsParameters.roadCloudCacheDuration =
           Fmi::stoi(driverInfo.params.at("roadCloudCacheDuration"));
       itsParameters.fmiIoTCacheDuration = Fmi::stoi(driverInfo.params.at("fmiIoTCacheDuration"));
+      itsParameters.bkHydrometaCacheDuration = Fmi::stoi(driverInfo.params.at("bkHydrometaCacheDuration"));
     }
 
     // Read part of config in base class

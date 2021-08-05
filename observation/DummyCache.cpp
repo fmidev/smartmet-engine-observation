@@ -121,6 +121,7 @@ bool DummyCache::roadCloudIntervalIsCached(const boost::posix_time::ptime & /* s
   return false;
 }
 
+
 boost::posix_time::ptime DummyCache::getLatestRoadCloudDataTime() const
 {
   return boost::posix_time::not_a_date_time;
@@ -165,6 +166,32 @@ std::size_t DummyCache::fillNetAtmoCache(
 }
 
 void DummyCache::cleanNetAtmoCache(const boost::posix_time::time_duration & /* timetokeep */) const
+{
+}
+
+bool DummyCache::bkHydrometaIntervalIsCached(const boost::posix_time::ptime & /*starttime */,
+                                         const boost::posix_time::ptime & /*endtime */) const
+{
+  return false;
+}
+
+boost::posix_time::ptime DummyCache::getLatestBKHydrometaDataTime() const
+{
+  return boost::posix_time::not_a_date_time;
+}
+
+boost::posix_time::ptime DummyCache::getLatestBKHydrometaCreatedTime() const
+{
+  return boost::posix_time::not_a_date_time;
+}
+
+std::size_t DummyCache::fillBKHydrometaCache(
+    const MobileExternalDataItems & /* mobileExternalCacheData */) const
+{
+  return 0;
+}
+
+void DummyCache::cleanBKHydrometaCache(const boost::posix_time::time_duration & /* timetokeep */) const
 {
 }
 
