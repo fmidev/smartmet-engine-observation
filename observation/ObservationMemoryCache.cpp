@@ -19,7 +19,7 @@ boost::posix_time::ptime ObservationMemoryCache::getStartTime() const
 {
   try
   {
-    auto t = boost::atomic_load(&itsStartTime);
+    auto t = itsStartTime.load();
     if (t)
       return *t;
 
@@ -85,16 +85,9 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
       auto new_cache = boost::make_shared<Observations>();
 
       // Copy pointers to existing observations if there are any
-      if (itsObservations)
-      {
-        auto old_cache = boost::atomic_load(&itsObservations);
-        for (auto& id_observations : *old_cache)
-        {
-          auto id = id_observations.first;
-          auto obs = boost::atomic_load(&id_observations.second);
-          new_cache->insert(std::make_pair(id, obs));
-        }
-      }
+      auto old_cache = itsObservations.load();
+      if (old_cache)
+        *new_cache = *old_cache;
 
       // The shared_ptrs now point to the original observations. If we reset
       // the data, we do not disturb readers reading the original data, since these
@@ -119,15 +112,18 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
 
         auto pos = observations.find(fmisid);
         if (pos == observations.end())
-          pos =
-              observations.insert(std::make_pair(fmisid, boost::make_shared<StationObservations>()))
-                  .first;
+        {
+          auto items = boost::make_shared<DataItems>();
+          pos = observations
+                    .insert(std::make_pair(fmisid, new boost::atomic_shared_ptr<DataItems>(items)))
+                    .first;
+        }
 
         // Shorthand alias for the shared station observations to make code more readable
-        auto& shared_obs = pos->second;
+        auto shared_obs = pos->second->load();
 
         // Copy all old observations
-        auto newobs = boost::make_shared<StationObservations>(*shared_obs);
+        auto newobs = boost::make_shared<DataItems>(*shared_obs);
 
 #if 0        
         auto newdata_start = newobs->end();
@@ -153,8 +149,8 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
         std::sort(newobs->begin(), newobs->end(), cmp);
 #endif
 
-        // And store the new station data
-        boost::atomic_store(&shared_obs, newobs);
+        // And store the new station data back to the atomic_shared_ptr
+        pos->second->store(newobs);
 
         // Move on to the next station
         i = j;
@@ -166,18 +162,18 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
 
       // Replace old contents
 
-      boost::atomic_store(&itsObservations, new_cache);
+      itsObservations.store(new_cache);
     }
 
     // Indicate fill has been called once
 
-    auto starttime = boost::atomic_load(&itsStartTime);
+    auto starttime = itsStartTime.load();
     if (!starttime)
     {
       // We intentionally store a not_a_date_time, and let the cache cleaner determine
       // what the oldest observation in the cache is.
       starttime = boost::make_shared<boost::posix_time::ptime>(boost::posix_time::not_a_date_time);
-      boost::atomic_store(&itsStartTime, starttime);
+      itsStartTime.store(starttime);
     }
 
     return new_items.size();
@@ -198,20 +194,20 @@ void ObservationMemoryCache::clean(const boost::posix_time::ptime& newstarttime)
 {
   try
   {
-    auto cache_ptr = boost::atomic_load(&itsObservations);
+    auto cache_ptr = itsObservations.load();
     if (!cache_ptr)
       return;
 
     // Update new start time for the cache first so no-one can request data before it
     // while the data is being cleaned
     auto starttime = boost::make_shared<boost::posix_time::ptime>(newstarttime);
-    boost::atomic_store(&itsStartTime, starttime);
+    itsStartTime.store(starttime);
 
     auto& cache = *cache_ptr;
 
     for (auto& fmisid_obsdata : cache)
     {
-      auto obsdata_ptr = boost::atomic_load(&fmisid_obsdata.second);
+      auto obsdata_ptr = fmisid_obsdata.second->load();
       auto& obsdata = *obsdata_ptr;
 
       // Erase from hash tables all too old observations for this station
@@ -227,9 +223,9 @@ void ObservationMemoryCache::clean(const boost::posix_time::ptime& newstarttime)
       if (it != obsdata.begin())
       {
         // Make a new copy of the data
-        auto new_obsdata = boost::make_shared<StationObservations>(it, obsdata.end());
+        auto new_obsdata = boost::make_shared<DataItems>(it, obsdata.end());
 
-        boost::atomic_store(&fmisid_obsdata.second, new_obsdata);
+        fmisid_obsdata.second->store(new_obsdata);
       }
     }
   }
@@ -251,7 +247,7 @@ LocationDataItems ObservationMemoryCache::read_observations(
 {
   LocationDataItems ret;
 
-  auto cache = boost::atomic_load(&itsObservations);
+  auto cache = itsObservations.load();
 
   if (!cache)
     return ret;
@@ -278,7 +274,7 @@ LocationDataItems ObservationMemoryCache::read_observations(
       continue;
 
     // Safe shared copy of the station observations right at this moment
-    auto obsdata = boost::atomic_load(&pos->second);
+    auto obsdata = pos->second->load();
 
     // Find first position >= than the given start time
 
