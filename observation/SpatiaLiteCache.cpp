@@ -98,7 +98,7 @@ void SpatiaLiteCache::initializeConnectionPool()
       itsNetAtmoTimeIntervalEnd = end;
     }
 
-    // BKHydrometa
+	// BKHydrometa
     if (cacheTables.find(BK_HYDROMETA_DATA_TABLE) != cacheTables.end())
     {
       auto start = db->getOldestBKHydrometaDataTime();
@@ -697,7 +697,7 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestNetAtmoCreatedTime() const
 }
 
 bool SpatiaLiteCache::bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                                  const boost::posix_time::ptime &) const
+												  const boost::posix_time::ptime &) const
 {
   try
   {
@@ -736,8 +736,7 @@ std::size_t SpatiaLiteCache::fillBKHydrometaCache(
   }
 }
 
-void SpatiaLiteCache::cleanBKHydrometaCache(
-    const boost::posix_time::time_duration &timetokeep) const
+void SpatiaLiteCache::cleanBKHydrometaCache(const boost::posix_time::time_duration &timetokeep) const
 {
   try
   {
