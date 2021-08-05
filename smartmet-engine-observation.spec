@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.7.31
+Version: 21.8.2
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -123,6 +123,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Aug  2 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.2-1.fmi
+- ObservationMemoryCache now uses boost::atomic_shared_ptr for better thread safety
+
 * Sat Jul 31 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.7.31-1.fmi
 - Use boost::atomic_shared_ptr for better thread safety
 
