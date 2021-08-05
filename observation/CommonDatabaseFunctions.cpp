@@ -1,6 +1,7 @@
 #include "CommonDatabaseFunctions.h"
 #include "SpecialParameters.h"
 #include "Utils.h"
+#include <boost/algorithm/string.hpp>
 #include <boost/functional/hash.hpp>
 #include <macgyver/StringConversion.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
@@ -77,9 +78,9 @@ Spine::TimeSeries::Value get_default_sensor_value(
     {
       if (specifier == DataFieldSpecifier::Value)
         return item.second.value;
-      else if (specifier == DataFieldSpecifier::DataQuality)
+      if (specifier == DataFieldSpecifier::DataQuality)
         return item.second.data_quality;
-      else if (specifier == DataFieldSpecifier::DataSource)
+      if (specifier == DataFieldSpecifier::DataSource)
         return item.second.data_source;
     }
   }
@@ -89,9 +90,9 @@ Spine::TimeSeries::Value get_default_sensor_value(
 
   if (specifier == DataFieldSpecifier::Value)
     return default_item.second.value;
-  else if (specifier == DataFieldSpecifier::DataQuality)
+  if (specifier == DataFieldSpecifier::DataQuality)
     return default_item.second.data_quality;
-  else if (specifier == DataFieldSpecifier::DataSource)
+  if (specifier == DataFieldSpecifier::DataSource)
     return default_item.second.data_source;
 
   return Spine::TimeSeries::None();
@@ -113,17 +114,13 @@ Spine::TimeSeries::Value get_sensor_value(const SensorData &sensor_data,
   if (sensor_data.find(sensor_nro) != sensor_data.end())
   {
     if (specifier == DataFieldSpecifier::Value)
-    {
       return sensor_data.at(sensor_nro).value;
-    }
-    else if (specifier == DataFieldSpecifier::DataQuality)
-    {
+
+    if (specifier == DataFieldSpecifier::DataQuality)
       return sensor_data.at(sensor_nro).data_quality;
-    }
-    else if (specifier == DataFieldSpecifier::DataSource)
-    {
+
+    if (specifier == DataFieldSpecifier::DataSource)
       return sensor_data.at(sensor_nro).data_source;
-    }
   }
 
   return Spine::TimeSeries::None();
@@ -808,7 +805,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
     {
       int pos = special.second;
 
-      if (special.first.find("windcompass") != std::string::npos)
+      if (boost::algorithm::starts_with(special.first, "windcompass"))
       {
         // Have to get wind direction first
         bool isWeatherDataQCTable = (stationtype == "foreign" || stationtype == "road");
@@ -833,9 +830,9 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
             std::string windCompass;
             if (special.first == "windcompass8")
               windCompass = windCompass8(boost::get<double>(val), settings.missingtext);
-            if (special.first == "windcompass16")
+            else if (special.first == "windcompass16")
               windCompass = windCompass16(boost::get<double>(val), settings.missingtext);
-            if (special.first == "windcompass32")
+            else if (special.first == "windcompass32")
               windCompass = windCompass32(boost::get<double>(val), settings.missingtext);
             Spine::TimeSeries::Value windCompassValue = Spine::TimeSeries::Value(windCompass);
             timeSeriesColumns->at(pos).emplace_back(
@@ -843,7 +840,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
           }
         }
       }
-      else if (special.first.find("feelslike") != std::string::npos)
+      else if (special.first == "feelslike")
       {
         // Feels like - deduction. This ignores radiation, since it is measured
         // using dedicated stations
@@ -871,7 +868,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
               Spine::TimeSeries::TimedValue(obstime, feelslike));
         }
       }
-      else if (special.first.find("smartsymbol") != std::string::npos)
+      else if (special.first == "smartsymbol")
       {
         int wawapos = Fmi::stoi(itsParameterMap->getParameter("wawa", stationtype));
         int totalcloudcoverpos =
@@ -1033,20 +1030,20 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
         std::string name = p.name();
         Fmi::ascii_tolower(name);
 
-        if (name.find("windcompass") != std::string::npos)
+        if (starts_with(name, "windcompass"))
         {
           param_set.insert(itsParameterMap->getParameter("winddirection", stationtype));
           timeseriesPositions[itsParameterMap->getParameter("winddirection", stationtype)] = pos;
           specialPositions[name] = pos;
         }
-        else if (name.find("feelslike") != std::string::npos)
+        else if (name == "feelslike")
         {
           param_set.insert(itsParameterMap->getParameter("windspeedms", stationtype));
           param_set.insert(itsParameterMap->getParameter("relativehumidity", stationtype));
           param_set.insert(itsParameterMap->getParameter("relativehumidity", stationtype));
           specialPositions[name] = pos;
         }
-        else if (name.find("smartsymbol") != std::string::npos)
+        else if (name == "smartsymbol")
         {
           param_set.insert(itsParameterMap->getParameter("wawa", stationtype));
           param_set.insert(itsParameterMap->getParameter("totalcloudcover", stationtype));
