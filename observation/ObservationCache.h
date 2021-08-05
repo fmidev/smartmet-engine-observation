@@ -65,7 +65,7 @@ class ObservationCache
   virtual void cleanWeatherDataQCCache(
       const boost::posix_time::time_duration &timetokeep) const = 0;
 
-  virtual bool roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
+    virtual bool roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
                                          const boost::posix_time::ptime &endtime) const = 0;
   virtual boost::posix_time::ptime getLatestRoadCloudDataTime() const = 0;
   virtual boost::posix_time::ptime getLatestRoadCloudCreatedTime() const = 0;
@@ -80,6 +80,14 @@ class ObservationCache
   virtual std::size_t fillNetAtmoCache(
       const MobileExternalDataItems &mobileExternalCacheData) const = 0;
   virtual void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const = 0;
+
+  virtual bool bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                       const boost::posix_time::ptime &endtime) const = 0;
+  virtual boost::posix_time::ptime getLatestBKHydrometaDataTime() const = 0;
+  virtual boost::posix_time::ptime getLatestBKHydrometaCreatedTime() const = 0;
+  virtual std::size_t fillBKHydrometaCache(
+      const MobileExternalDataItems &mobileExternalCacheData) const = 0;
+  virtual void cleanBKHydrometaCache(const boost::posix_time::time_duration &timetokeep) const = 0;
 
   virtual bool fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
                                       const boost::posix_time::ptime &endtime) const = 0;

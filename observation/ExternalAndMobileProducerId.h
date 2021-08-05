@@ -13,6 +13,7 @@ const std::string ROADCLOUD_PRODUCER = "roadcloud";
 const std::string TECONER_PRODUCER = "teconer";
 const std::string NETATMO_PRODUCER = "netatmo";
 const std::string FMI_IOT_PRODUCER = "fmi_iot";
+const std::string BK_HYDROMETA_PRODUCER = "bk_hydrometa";
 
 class ProducerId
 {
@@ -32,7 +33,7 @@ class ProducerId
  private:
   void init(int id)
   {
-    if (id == 1 || id == 2 || id == 3 || id == 4)
+    if (id == 1 || id == 2 || id == 3 || id == 4 || id == 7)
     {
       itsIdString = Fmi::to_string(id);
       if (id == 1)
@@ -43,6 +44,8 @@ class ProducerId
         itsName = NETATMO_PRODUCER;
       else if (id == 4)
         itsName = FMI_IOT_PRODUCER;
+      else if (id == 7)
+        itsName = BK_HYDROMETA_PRODUCER;
     }
     else
     {

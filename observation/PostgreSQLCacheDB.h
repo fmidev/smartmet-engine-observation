@@ -165,29 +165,29 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
   void cleanFlashDataCache(const boost::posix_time::ptime &newstarttime);
 
   /**
-   * @brief Get the time of the oldest RoadCloud observation in ext_obsdata table
+   * @brief Get oldest RoadCloud observation in ext_obsdata_roadcloud table
    * @return boost::posix_time::ptime The time of the oldest observation
    */
 
   boost::posix_time::ptime getOldestRoadCloudDataTime();
 
   /**
-   * @brief Get the latest creation time of RoadCloud observation in ext_obsdata table
+   * @brief Get the latest creation time in ext_obsdata_roadcloud table
    * @return boost::posix_time::ptime The latest creation time road cloud observation
    */
 
   boost::posix_time::ptime getLatestRoadCloudCreatedTime();
 
   /**
-   * @brief Get the time of the newest RoadCloud observation in ext_obsdata table
+   * @brief Get newest observation in ext_obsdata_roadcloud table
    * @return boost::posix_time::ptime The time of the newest observation
    */
 
   boost::posix_time::ptime getLatestRoadCloudDataTime();
 
   /**
-   * @brief Delete old RoadCloud data from ext_obsdata table
-   * @param newstarttime Delete RoadCloud data from ext_obsdata which is older than given time
+   * @brief Delete old data from ext_obsdata_roadcloud table
+   * @param newstarttime Delete data from ext_obsdata_roadcloud table which is older than given time
    */
   void cleanRoadCloudCache(const boost::posix_time::ptime &newstarttime);
 
@@ -198,37 +198,72 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
   std::size_t fillRoadCloudCache(const MobileExternalDataItems &mobileExternalCacheData);
 
   /**
-   * @brief Get the time of the oldest NetAtmo observation in ext_obsdata table
+   * @brief Get oldest observation in ext_obsdata_netatmo table
    * @return boost::posix_time::ptime The time of the oldest observation
    */
 
   boost::posix_time::ptime getOldestNetAtmoDataTime();
 
   /**
-   * @brief Get the time of the newest NetAtmo observation in ext_obsdata table
+   * @brief Get newest observation in ext_obsdata_netatmo table
    * @return boost::posix_time::ptime The time of the newest observation
    */
 
   boost::posix_time::ptime getLatestNetAtmoDataTime();
 
   /**
-   * @brief Get the time of the latest NetAtmo creation time in ext_obsdata table
+   * @brief Get latest creation time in ext_obsdata_netatmo table
    * @return boost::posix_time::ptime The latest creation time
    */
 
   boost::posix_time::ptime getLatestNetAtmoCreatedTime();
 
   /**
-   * @brief Delete old NetAtmo data from ext_obsdata table
+   * @brief Delete old data from ext_obsdata_netatmo table
    * @param newstarttime Delete NetAtmo data which is older than given time
    */
   void cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime);
 
   /**
-   * @brief Insert cached NetAtmo observations into ext_obsdata table
+   * @brief Insert cached NetAtmo observations into ext_obsdata_netatmo table
    * @param NetAtmo observation data to be inserted into the table
    */
   std::size_t fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData);
+
+
+  /**
+   * @brief Get oldest observation in ext_obsdata_hydrometa table
+   * @return boost::posix_time::ptime The time of the oldest observation
+   */
+
+  boost::posix_time::ptime getOldestBKHydrometaDataTime();
+
+  /**
+   * @brief Get newest observation in ext_obsdata_bk_hydrometa table
+   * @return boost::posix_time::ptime The time of the newest observation
+   */
+
+  boost::posix_time::ptime getLatestBKHydrometaDataTime();
+
+  /**
+   * @brief Get latest creation time in ext_obsdata_bk_hydrometa table
+   * @return boost::posix_time::ptime The latest creation time
+   */
+
+  boost::posix_time::ptime getLatestBKHydrometaCreatedTime();
+
+  /**
+   * @brief Delete old data from ext_obsdata_bk_hydrometa table
+   * @param newstarttime Delete data which is older than given time
+   */
+  void cleanBKHydrometaCache(const boost::posix_time::ptime &newstarttime);
+
+  /**
+   * @brief Insert cached NetAtmo observations into ext_obsdata_bk_hydrometa table
+   * @param NetAtmo observation data to be inserted into the table
+   */
+  std::size_t fillBKHydrometaCache(const MobileExternalDataItems &mobileExternalCacheData);
+
 
   /**
    * @brief Get the time of the newest FmiIoT observation in ext_obsdata_roadcloud table
@@ -358,6 +393,7 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
   void createFlashDataTable();
   void createRoadCloudDataTable();
   void createNetAtmoDataTable();
+  void createBKHydrometaDataTable();
   void createFmiIoTDataTable();
   void createIndex(const std::string &table,
                    const std::string &column,

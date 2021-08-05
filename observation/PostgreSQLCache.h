@@ -77,6 +77,16 @@ class PostgreSQLCache : public ObservationCache
       const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const override;
 
+  // BKHydrometa
+  bool bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
+								   const boost::posix_time::ptime &endtime) const override;
+  boost::posix_time::ptime getLatestBKHydrometaDataTime() const override;
+  boost::posix_time::ptime getLatestBKHydrometaCreatedTime() const override;
+  std::size_t fillBKHydrometaCache(
+								   const MobileExternalDataItems &mobileExternalCacheData) const override;
+  void cleanBKHydrometaCache(const boost::posix_time::time_duration &timetokeep) const override;
+  Spine::TimeSeries::TimeSeriesVectorPtr bkHydrometaValuesFromSpatiaLite(Settings &settings) const;
+
   // FmiIoT
   bool fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
                               const boost::posix_time::ptime &endtime) const override;
@@ -126,6 +136,10 @@ class PostgreSQLCache : public ObservationCache
   mutable Spine::MutexType itsNetAtmoTimeIntervalMutex;
   mutable boost::posix_time::ptime itsNetAtmoTimeIntervalStart;
   mutable boost::posix_time::ptime itsNetAtmoTimeIntervalEnd;
+
+  mutable Spine::MutexType itsBKHydrometaTimeIntervalMutex;
+  mutable boost::posix_time::ptime itsBKHydrometaTimeIntervalStart;
+  mutable boost::posix_time::ptime itsBKHydrometaTimeIntervalEnd;
 
   mutable Spine::MutexType itsFmiIoTTimeIntervalMutex;
   mutable boost::posix_time::ptime itsFmiIoTTimeIntervalStart;

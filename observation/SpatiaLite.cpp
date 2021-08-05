@@ -298,6 +298,8 @@ void SpatiaLite::createTables(const std::set<std::string> &tables)
       createNetAtmoDataTable();
     if (tables.find(FMI_IOT_DATA_TABLE) != tables.end())
       createFmiIoTDataTable();
+    if (tables.find(BK_HYDROMETA_DATA_TABLE) != tables.end())
+	  createBKHydrometaDataTable();
   }
   catch (...)
   {
@@ -725,6 +727,69 @@ void SpatiaLite::createFmiIoTDataTable()
   }
 }
 
+void SpatiaLite::createBKHydrometaDataTable()
+{
+  try
+  {
+    sqlite3pp::transaction xct(itsDB);
+    sqlite3pp::command cmd(itsDB,
+                           "CREATE TABLE IF NOT EXISTS ext_obsdata_bk_hydrometa("
+                           "prod_id INTEGER, "
+                           "station_id INTEGER, "
+                           "dataset_id character VARYING(50), "
+                           "data_level INTEGER, "
+                           "mid INTEGER, "
+                           "sensor_no INTEGER, "
+                           "data_time INTEGER NOT NULL, "
+                           "data_value NUMERIC, "
+                           "data_value_txt character VARYING(30), "
+                           "data_quality INTEGER, "
+                           "ctrl_status INTEGER, "
+                           "created INTEGER, "
+                           "altitude REAL)");
+
+    cmd.execute();
+    xct.commit();
+
+    try
+    {
+      sqlite3pp::query qry(itsDB, "SELECT X(geom) AS latitude FROM ext_obsdata_bk_hydrometa LIMIT 1");
+      qry.begin();
+    }
+    catch (const std::exception &e)
+    {
+      sqlite3pp::query qry(itsDB,
+                           "SELECT AddGeometryColumn('ext_obsdata_bk_hydrometa', 'geom', "
+                           "4326, 'POINT', 'XY')");
+      qry.begin();
+      itsDB.execute(
+          "ALTER TABLE ext_obsdata_bk_hydrometa ADD PRIMARY KEY (prod_id,mid,data_time, geom)");
+    }
+
+    // Check whether the spatial index exists already
+    sqlite3pp::query qry(itsDB,
+                         "SELECT spatial_index_enabled FROM geometry_columns "
+                         "WHERE f_table_name='ext_obsdata_bk_hydrometa' AND f_geometry_column = "
+                         "'geom'");
+    int spatial_index_enabled = 0;
+    sqlite3pp::query::iterator iter = qry.begin();
+    if (iter != qry.end())
+      (*iter).getter() >> spatial_index_enabled;
+
+    if (spatial_index_enabled == 0)
+    {
+      std::cout << Spine::log_time_str()
+                << " [SpatiaLite] Adding spatial index to ext_obsdata_bk_hydrometa table" << std::endl;
+      itsDB.execute("SELECT CreateSpatialIndex('ext_obsdata_bk_hydrometa', 'geom')");
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Creation of ext_obsdata_bk_hydrometa table failed!");
+  }
+}
+
+
 void SpatiaLite::initSpatialMetaData()
 {
   try
@@ -1016,6 +1081,48 @@ boost::posix_time::ptime SpatiaLite::getLatestNetAtmoCreatedTime()
   }
 }
 
+ptime SpatiaLite::getOldestBKHydrometaDataTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_bk_hydrometa";
+    string time_field = "data_time";
+    return getOldestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Oldest bk_hydrometa data time query failed!");
+  }
+}
+
+ptime SpatiaLite::getLatestBKHydrometaDataTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_bk_hydrometa";
+    string time_field = "data_time";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Latest bk_hydrometa data time query failed!");
+  }
+}
+
+boost::posix_time::ptime SpatiaLite::getLatestBKHydrometaCreatedTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_bk_hydrometa";
+    string time_field = "created";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Latest bk_hydrometa created time query failed!");
+  }
+}
+
 ptime SpatiaLite::getOldestFmiIoTDataTime()
 {
   try
@@ -1235,11 +1342,41 @@ void SpatiaLite::cleanNetAtmoCache(const ptime &newstarttime)
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(BCP, "Cleaning of NetAtmno cache failed!");
+    throw Fmi::Exception::Trace(BCP, "Cleaning of NetAtmo cache failed!");
   }
 }
 
 SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getNetAtmoData(
+    const Settings &settings, const Fmi::TimeZones &timezones)
+{
+  return getMobileAndExternalData(settings, timezones);
+}
+
+
+void SpatiaLite::cleanBKHydrometaCache(const ptime &newstarttime)
+{
+  try
+  {
+    auto oldest = getOldestBKHydrometaDataTime();
+    if (newstarttime <= oldest)
+      return;
+
+    auto epoch_time = to_epoch(newstarttime);
+
+    Spine::WriteLock lock(write_mutex);
+
+    sqlite3pp::command cmd(itsDB, "DELETE FROM ext_obsdata_bk_hydrometa WHERE data_time < :timestring");
+
+    cmd.bind(":timestring", epoch_time);
+    cmd.execute();
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Cleaning of bk_hydrometa cache failed!");
+  }
+}
+
+SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getBKHydrometaData(
     const Settings &settings, const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, timezones);
@@ -2064,6 +2201,150 @@ std::size_t SpatiaLite::fillNetAtmoCache(const MobileExternalDataItems &mobileEx
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "NetAtmo cache update failed!");
+  }
+
+  return 0;
+}
+
+std::size_t SpatiaLite::fillBKHydrometaCache(const MobileExternalDataItems &mobileExternalCacheData,
+											 InsertStatus &insertStatus)
+{
+  try
+  {
+    if (mobileExternalCacheData.empty())
+      return 0;
+
+    // Collect new items before taking a lock - we might avoid one completely
+    std::vector<std::size_t> new_items;
+    std::vector<std::size_t> new_hashes;
+
+    for (std::size_t i = 0; i < mobileExternalCacheData.size(); i++)
+    {
+      const auto &item = mobileExternalCacheData[i];
+      auto hash = item.hash_value();
+
+      if (!insertStatus.exists(hash))
+      {
+        new_items.push_back(i);
+        new_hashes.push_back(hash);
+      }
+    }
+
+    // Abort if so requested
+    if (itsShutdownRequested)
+      return 0;
+
+    // Abort if nothing to do
+    if (new_items.empty())
+      return 0;
+
+    // Insert the new items
+
+    std::size_t pos1 = 0;
+
+    Spine::WriteLock lock(write_mutex);
+
+    while (pos1 < new_items.size())
+    {
+      if (itsShutdownRequested)
+        return 0;
+
+      sqlite3pp::transaction xct(itsDB);
+
+      std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, new_items.size());
+      for (std::size_t i = pos1; i < pos2; i++)
+      {
+        const auto &item = mobileExternalCacheData[new_items[i]];
+
+        std::string obs_location = "GeomFromText('POINT(" +
+                                   Fmi::to_string("%.10g", item.longitude) + " " +
+                                   Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
+
+        std::string sqlStmt =
+            "INSERT OR IGNORE INTO ext_obsdata_bk_hydrometa "
+            "(prod_id, station_id, dataset_id, data_level, mid, sensor_no, "
+            "data_time, data_value, data_value_txt, data_quality, ctrl_status, "
+            "created, altitude, geom) "
+            "VALUES ("
+            ":prod_id, "
+            ":station_id, "
+            ":dataset_id,"
+            ":data_level,"
+            ":mid,"
+            ":sensor_no,"
+            ":data_time,"
+            ":data_value,"
+            ":data_value_txt,"
+            ":data_quality,"
+            ":ctrl_status,"
+            ":created,"
+            ":altitude," +
+            obs_location + ");";
+
+        sqlite3pp::command cmd(itsDB, sqlStmt.c_str());
+
+        try
+        {
+          cmd.bind(":prod_id", item.prod_id);
+          if (item.station_id)
+            cmd.bind(":station_id", *item.station_id);
+          else
+            cmd.bind(":station_id");
+          if (item.dataset_id)
+            cmd.bind(":dataset_id", *item.dataset_id, sqlite3pp::nocopy);
+          else
+            cmd.bind(":dataset_id");
+          if (item.data_level)
+            cmd.bind(":data_level", *item.data_level);
+          else
+            cmd.bind(":data_level");
+          cmd.bind(":mid", item.mid);
+          if (item.sensor_no)
+            cmd.bind(":sensor_no", *item.sensor_no);
+          else
+            cmd.bind(":sensor_no");
+          auto data_time = to_epoch(item.data_time);
+          cmd.bind(":data_time", data_time);
+          cmd.bind(":data_value", item.data_value);
+          if (item.data_value_txt)
+            cmd.bind(":data_value_txt", *item.data_value_txt, sqlite3pp::nocopy);
+          else
+            cmd.bind(":data_value_txt");
+          if (item.data_quality)
+            cmd.bind(":data_quality", *item.data_quality);
+          else
+            cmd.bind(":data_quality");
+          if (item.ctrl_status)
+            cmd.bind(":ctrl_status", *item.ctrl_status);
+          else
+            cmd.bind(":ctrl_status");
+          auto created_time = to_epoch(item.created);
+          cmd.bind(":created", created_time);
+          if (item.altitude)
+            cmd.bind(":altitude", *item.altitude);
+          else
+            cmd.bind(":altitude");
+          cmd.execute();
+          cmd.reset();
+        }
+        catch (const std::exception &e)
+        {
+          std::cerr << "Problem updating BK_hydrometa cache: " << e.what() << std::endl;
+        }
+      }
+      xct.commit();
+
+      pos1 = pos2;
+    }
+
+    for (const auto &hash : new_hashes)
+      insertStatus.add(hash);
+
+    return new_items.size();
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "BK_hydrometa cache update failed!");
   }
 
   return 0;

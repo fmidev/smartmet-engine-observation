@@ -97,6 +97,15 @@ void SpatiaLiteCache::initializeConnectionPool()
       itsNetAtmoTimeIntervalEnd = end;
     }
 
+	// BKHydrometa
+    if (cacheTables.find(BK_HYDROMETA_DATA_TABLE) != cacheTables.end())
+    {
+      auto start = db->getOldestBKHydrometaDataTime();
+      auto end = db->getLatestBKHydrometaDataTime();
+      itsBKHydrometaTimeIntervalStart = start;
+      itsBKHydrometaTimeIntervalEnd = end;
+    }
+
     // FmiIoT
     if (cacheTables.find(FMI_IOT_DATA_TABLE) != cacheTables.end())
     {
@@ -164,6 +173,9 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
     if (settings.stationtype == NETATMO_PRODUCER)
       return netAtmoValuesFromSpatiaLite(settings);
 
+    if (settings.stationtype == BK_HYDROMETA_PRODUCER)
+      return bkHydrometaValuesFromSpatiaLite(settings);
+
     if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTValuesFromSpatiaLite(settings);
 
@@ -214,6 +226,9 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
 
     if (settings.stationtype == NETATMO_PRODUCER)
       return netAtmoValuesFromSpatiaLite(settings);
+
+    if (settings.stationtype == BK_HYDROMETA_PRODUCER)
+      return bkHydrometaValuesFromSpatiaLite(settings);
 
     if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTValuesFromSpatiaLite(settings);
@@ -359,6 +374,9 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
 
     if (s == NETATMO_PRODUCER)
       return netAtmoIntervalIsCached(settings.starttime, settings.endtime);
+
+    if (s == BK_HYDROMETA_PRODUCER)
+      return bkHydrometaIntervalIsCached(settings.starttime, settings.endtime);
 
     if (s == FMI_IOT_PRODUCER)
       return fmiIoTIntervalIsCached(settings.starttime, settings.endtime);
@@ -658,6 +676,107 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestNetAtmoDataTime() const
 boost::posix_time::ptime SpatiaLiteCache::getLatestNetAtmoCreatedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestNetAtmoCreatedTime();
+}
+
+bool SpatiaLiteCache::bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
+												  const boost::posix_time::ptime &) const
+{
+  try
+  {
+    Spine::ReadLock lock(itsBKHydrometaTimeIntervalMutex);
+    if (itsBKHydrometaTimeIntervalStart.is_not_a_date_time() ||
+        itsBKHydrometaTimeIntervalEnd.is_not_a_date_time())
+      return false;
+    // We ignore end time intentionally
+    return (starttime >= itsBKHydrometaTimeIntervalStart);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Checking if BKHydrometa interval is cached failed!");
+  }
+}
+
+std::size_t SpatiaLiteCache::fillBKHydrometaCache(
+    const MobileExternalDataItems &mobileExternalCacheData) const
+{
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillBKHydrometaCache(mobileExternalCacheData, itsBKHydrometaInsertCache);
+
+    // Update what really now really is in the database
+    auto start = conn->getOldestBKHydrometaDataTime();
+    auto end = conn->getLatestBKHydrometaDataTime();
+    Spine::WriteLock lock(itsBKHydrometaTimeIntervalMutex);
+    itsBKHydrometaTimeIntervalStart = start;
+    itsBKHydrometaTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Filling BKHydrometa cache failed!");
+  }
+}
+
+void SpatiaLiteCache::cleanBKHydrometaCache(const boost::posix_time::time_duration &timetokeep) const
+{
+  try
+  {
+    // Dont clean fake cache
+    if (isFakeCache(BK_HYDROMETA_DATA_TABLE))
+      return;
+
+    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    t = round_down_to_cache_clean_interval(t);
+
+    auto conn = itsConnectionPool->getConnection();
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsBKHydrometaTimeIntervalMutex);
+      itsBKHydrometaTimeIntervalStart = t;
+    }
+    conn->cleanBKHydrometaCache(t);
+
+    // Update what really remains in the database
+    auto start = conn->getOldestBKHydrometaDataTime();
+    auto end = conn->getLatestBKHydrometaDataTime();
+    Spine::WriteLock lock(itsBKHydrometaTimeIntervalMutex);
+    itsBKHydrometaTimeIntervalStart = start;
+    itsBKHydrometaTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Cleaning BKHydrometa cache failed!");
+  }
+}
+
+Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::bkHydrometaValuesFromSpatiaLite(
+    Settings &settings) const
+{
+  try
+  {
+    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+
+    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
+    ret = db->getBKHydrometaData(settings, itsTimeZones);
+
+    return ret;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Getting BKHydrometa values from cache failed!");
+  }
+}
+
+boost::posix_time::ptime SpatiaLiteCache::getLatestBKHydrometaDataTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestBKHydrometaDataTime();
+}
+
+boost::posix_time::ptime SpatiaLiteCache::getLatestBKHydrometaCreatedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestBKHydrometaCreatedTime();
 }
 
 bool SpatiaLiteCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
