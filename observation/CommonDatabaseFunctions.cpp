@@ -402,25 +402,34 @@ StationTimedMeasurandData CommonDatabaseFunctions::buildStationTimedMeasurandDat
 {
   StationTimedMeasurandData ret;
 
+  // Avoid calling time_zone_from_string too repeatedly:
+  auto current_timezone = settings.timezone;
+  auto current_tz = timezones.time_zone_from_string(current_timezone);
+
   try
   {
     for (const auto &obs : observations)
     {
       int fmisid = obs.data.fmisid;
 
-      std::string zone(settings.timezone == "localtime" ? fmisid_to_station.at(fmisid).timezone
-                                                        : settings.timezone);
-      auto localtz = timezones.time_zone_from_string(zone);
-      boost::local_time::local_date_time obstime =
-          boost::local_time::local_date_time(obs.data.data_time, localtz);
+      // Update current_tz only if necessary
+      if (settings.timezone == "localtime")
+      {
+        const auto &new_timezone = fmisid_to_station.at(fmisid).timezone;
+        if (new_timezone != current_timezone)
+        {
+          current_timezone = new_timezone;
+          current_tz = timezones.time_zone_from_string(current_timezone);
+        }
+      }
 
-      Spine::TimeSeries::Value value =
-          (obs.data.data_value ? Spine::TimeSeries::Value(*obs.data.data_value)
-                               : Spine::TimeSeries::None());
-      Spine::TimeSeries::Value data_quality(obs.data.data_quality);
-      Spine::TimeSeries::Value data_source =
-          (obs.data.data_source > -1 ? Spine::TimeSeries::Value(obs.data.data_source)
-                                     : Spine::TimeSeries::None());
+      boost::local_time::local_date_time obstime(obs.data.data_time, current_tz);
+
+      auto value = (obs.data.data_value ? Spine::TimeSeries::Value(*obs.data.data_value)
+                                        : Spine::TimeSeries::None());
+      auto data_quality = obs.data.data_quality;
+      auto data_source = (obs.data.data_source > -1 ? Spine::TimeSeries::Value(obs.data.data_source)
+                                                    : Spine::TimeSeries::None());
 
       bool data_from_default_sensor = (obs.data.measurand_no == 1);
 
