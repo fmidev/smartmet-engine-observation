@@ -153,6 +153,13 @@ void DatabaseDriverBase::readConfig(Spine::ConfigBase &cfg, DatabaseDriverParame
           "flashMemoryCacheDuration", parameters.flashMemoryCacheDuration);
     }
 
+	if(driverInfo.getStringParameterValue("flash_emulator_active", "false") == "true")
+	  {		
+		parameters.flashEmulator.active = true;
+		parameters.flashEmulator.bbox = Spine::BoundingBox(driverInfo.getStringParameterValue("flash_emulator_bbox", "20,60,30,70"));
+		parameters.flashEmulator.strokes_per_minute = driverInfo.getIntParameterValue("flash_emulator_strokes", 10);   	
+	  }
+
     readMetaData(cfg);
   }
   catch (...)

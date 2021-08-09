@@ -102,6 +102,9 @@ class SpatiaLiteCache : public ObservationCache
 
   void shutdown() override;
 
+  // This has been added for flash emulator
+  int getMaxFlashId() const override;
+
  private:
   Spine::Stations getStationsFromSpatiaLite(Settings &settings,
                                             std::shared_ptr<SpatiaLite> spatialitedb);

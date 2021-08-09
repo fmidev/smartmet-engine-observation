@@ -99,6 +99,9 @@ class ObservationCache
 
   virtual void shutdown() = 0;
 
+  // This has been added for flash emulator
+  virtual int getMaxFlashId() const { return 0; }
+
   const std::string &name() const;
 
   bool isFakeCache(const std::string &tablename) const;

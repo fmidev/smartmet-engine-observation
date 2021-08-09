@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EngineParameters.h"
+#include <spine/Value.h>
 
 namespace SmartMet
 {
@@ -8,6 +9,12 @@ namespace Engine
 {
 namespace Observation
 {
+struct FlashEmulatorParameters
+{
+  bool active{false};
+  Spine::BoundingBox bbox;
+  unsigned int strokes_per_minute{0};
+};
 // Common parameters for all database drivers
 struct DatabaseDriverParameters
 {
@@ -40,6 +47,7 @@ struct DatabaseDriverParameters
   int bkHydrometaCacheDuration = 0;
   bool quiet = false;
   bool loadStations = false;
+  FlashEmulatorParameters flashEmulator;
 
   const EngineParametersPtr& params;
 };

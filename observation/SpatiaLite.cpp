@@ -955,6 +955,24 @@ ptime SpatiaLite::getOldestWeatherDataQCTime()
   }
 }
 
+int SpatiaLite::getMaxFlashId()
+{ 
+ try
+  {
+    // Spine::ReadLock lock(write_mutex);
+
+    sqlite3pp::query qry(itsDB, "SELECT MAX(flash_id) FROM flash_data");
+    sqlite3pp::query::iterator iter = qry.begin();
+    if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
+      return 0;
+
+    return  (*iter).get<int>(0);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Maximum flash_id  query failed!");
+  }
+}
 ptime SpatiaLite::getLatestFlashModifiedTime()
 {
   try
