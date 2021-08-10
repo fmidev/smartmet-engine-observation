@@ -1030,7 +1030,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
         std::string name = p.name();
         Fmi::ascii_tolower(name);
 
-        if (starts_with(name, "windcompass"))
+        if (boost::algorithm::starts_with(name, "windcompass"))
         {
           param_set.insert(itsParameterMap->getParameter("winddirection", stationtype));
           timeseriesPositions[itsParameterMap->getParameter("winddirection", stationtype)] = pos;
