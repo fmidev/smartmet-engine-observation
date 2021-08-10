@@ -85,6 +85,7 @@ class ObservationCacheAdminBase
   void updateObservationFakeCache(std::shared_ptr<ObservationCache>& cache) const;
   void updateWeatherDataQCFakeCache(std::shared_ptr<ObservationCache>& cache) const;
   void updateFlashFakeCache(std::shared_ptr<ObservationCache>& cache) const;
+  void emulateFlashCacheUpdate(std::shared_ptr<ObservationCache>& cache) const;
 
   void startCacheUpdateThreads(const std::set<std::string>& tables);
 
