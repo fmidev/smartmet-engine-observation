@@ -19,9 +19,9 @@ BuildRequires: libatomic
 BuildRequires: libconfig-devel
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 21.7.8
+BuildRequires: smartmet-engine-geonames-devel >= 21.8.4
 BuildRequires: smartmet-library-locus-devel >= 21.7.8
-BuildRequires: smartmet-library-macgyver-devel >= 21.7.27
+BuildRequires: smartmet-library-macgyver-devel >= 21.8.3
 BuildRequires: smartmet-library-spine-devel >= 21.7.28
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
@@ -35,9 +35,9 @@ Requires: fmt >= 7.1.3
 Requires: gdal32-libs
 Requires: libatomic
 Requires: libconfig
-Requires: smartmet-engine-geonames >= 21.7.8
+Requires: smartmet-engine-geonames >= 21.8.4
 Requires: smartmet-library-locus >= 21.7.8
-Requires: smartmet-library-macgyver >= 21.7.27
+Requires: smartmet-library-macgyver >= 21.8.3
 Requires: smartmet-library-spine >= 21.7.28
 Requires: smartmet-server >= 21.6.3
 Requires: sqlite >= 3.22.0
@@ -64,8 +64,8 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 21.7.8
-#TestRequires: smartmet-library-macgyver >= 21.7.27
+#TestRequires: smartmet-engine-geonames >= 21.8.4
+#TestRequires: smartmet-library-macgyver >= 21.8.3
 #TestRequires: smartmet-library-spine >= 21.7.28
 #TestRequires: smartmet-test-data
 
@@ -128,6 +128,9 @@ rm -rf $RPM_BUILD_ROOT
 
 * Thu Aug 5 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.8.5-1.fmi
 - Added support for new mobile producer 'bk_hydrometa' (BRAINSTORM-2125)
+
+* Mon Aug  2 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.2-1.fmi
+- ObservationMemoryCache now uses boost::atomic_shared_ptr for better thread safety
 
 * Sat Jul 31 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.7.31-1.fmi
 - Use boost::atomic_shared_ptr for better thread safety
