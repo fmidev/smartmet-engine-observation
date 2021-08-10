@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.8.9
+Version: 21.8.10
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -123,6 +123,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Aug 10 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.10-1.fmi
+- Fixed updateExtraInterval to be applied to modified_last instead of data_time
+
 * Mon Aug 9 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.8.9-1.fmi
 - Flash emulator implemented (BRAINSTORM-2126)
 

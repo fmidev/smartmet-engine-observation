@@ -213,14 +213,16 @@ void ObservationCacheAdminBase::init()
 
       if (bkHydrometaCache)
       {
-        bkHydrometaCache->cleanBKHydrometaCache(boost::posix_time::hours(itsParameters.bkHydrometaCacheDuration));
+        bkHydrometaCache->cleanBKHydrometaCache(
+            boost::posix_time::hours(itsParameters.bkHydrometaCacheDuration));
 
         if (itsParameters.bkHydrometaCacheUpdateInterval > 0)
         {
-          itsBackgroundTasks->add("Init bk_hydrometa cache", [this]() { updateBKHydrometaCache(); });
+          itsBackgroundTasks->add("Init bk_hydrometa cache",
+                                  [this]() { updateBKHydrometaCache(); });
         }
       }
-    }	  
+    }
 
     // If stations info does not exist (stations.txt file  missing), load info from database
     if (itsParameters.loadStations)
@@ -311,10 +313,11 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
       itsBackgroundTasks->add("fmi_iot cache update loop", [this]() { updateFmiIoTCacheLoop(); });
     }
 
-	if (tables.find(BK_HYDROMETA_DATA_TABLE) != tables.end() &&
+    if (tables.find(BK_HYDROMETA_DATA_TABLE) != tables.end() &&
         itsParameters.bkHydrometaCacheUpdateInterval > 0)
     {
-      itsBackgroundTasks->add("bk_hydrometa cache update loop", [this]() { updateBKHydrometaCacheLoop(); });
+      itsBackgroundTasks->add("bk_hydrometa cache update loop",
+                              [this]() { updateBKHydrometaCacheLoop(); });
     }
   }
   catch (...)
@@ -360,7 +363,8 @@ int random_integer(int min, int max)
   return ((rand() % range) + min);
 }
 
-void ObservationCacheAdminBase::emulateFlashCacheUpdate(std::shared_ptr<ObservationCache>& cache) const
+void ObservationCacheAdminBase::emulateFlashCacheUpdate(
+    std::shared_ptr<ObservationCache>& cache) const
 {
   auto function_starttime = std::chrono::high_resolution_clock::now();
   std::map<std::string, boost::posix_time::ptime> last_times = getLatestFlashTime(cache);
@@ -369,7 +373,7 @@ void ObservationCacheAdminBase::emulateFlashCacheUpdate(std::shared_ptr<Observat
   auto endtime = boost::posix_time::second_clock::universal_time();
   // Start emulation from next second
   starttime += boost::posix_time::seconds(1);
-  
+
   std::vector<FlashDataItem> cacheData;
 
   std::srand(std::time(nullptr));
@@ -377,68 +381,80 @@ void ObservationCacheAdminBase::emulateFlashCacheUpdate(std::shared_ptr<Observat
   auto total_count = 0;
   auto time_iter = starttime;
   auto flash_id = cache->getMaxFlashId() + 1;
-  std::cout << "Emulating flash cache database update, id start from: " << flash_id << ", time from: " << time_iter << std::endl;
-  while(time_iter < endtime)
-	{
-	  auto number_of_seconds = std::min(static_cast<int>((endtime - time_iter).total_seconds()), 60);
-	  auto number_of_flashes = itsParameters.flashEmulator.strokes_per_minute * (number_of_seconds / 60.0);
-	  
-	  for(unsigned int i = 0; i < number_of_flashes; i++)
-		{
-		  FlashDataItem item;
-		  item.flash_id = flash_id++;
-		  item.longitude = (random_integer(itsParameters.flashEmulator.bbox.xMin*1000, itsParameters.flashEmulator.bbox.xMax*1000) / 1000.0);
-		  item.latitude = (random_integer(itsParameters.flashEmulator.bbox.yMin*1000, itsParameters.flashEmulator.bbox.yMax*1000) / 1000.0);
-		  item.stroke_time = time_iter + boost::posix_time::seconds(random_integer(0, number_of_seconds));
-		  item.stroke_time_fraction = random_integer(0, 1000); // milliseconds
-		  item.created = endtime;
-		  item.modified_last = endtime;
-		  item.ellipse_angle = 1.0;
-		  item.ellipse_major = 1.0;
-		  item.ellipse_minor = 1.0;
-		  item.chi_square = 1.0;
-		  item.rise_time = 1.0;
-		  item.ptz_time = 1.0;
-		  item.multiplicity = 1;
-		  item.peak_current = 1;
-		  item.sensors = 1;
-		  item.freedom_degree = 1;
-		  item.cloud_indicator = 1;
-		  item.angle_indicator = 1;
-		  item.signal_indicator = 1;
-		  item.timing_indicator = 1;
-		  item.stroke_status = 1;
-		  item.data_source = -1;
-		  item.modified_by = 1;
-		  cacheData.push_back(item);
+  std::cout << "Emulating flash cache database update, id start from: " << flash_id
+            << ", time from: " << time_iter << std::endl;
+  while (time_iter < endtime)
+  {
+    auto number_of_seconds = std::min(static_cast<int>((endtime - time_iter).total_seconds()), 60);
+    auto number_of_flashes =
+        itsParameters.flashEmulator.strokes_per_minute * (number_of_seconds / 60.0);
 
-		  // Write 10000 flashes at a time
-		  if((cacheData.size() % 10000) == 0)
-			{
-			  total_count += cache->fillFlashDataCache(cacheData);
-			  std::cout << "Added 10000 flashes to database, total number of flashes #" << total_count << std::endl;
-			  cacheData.clear();
-			}
-		  if (itsShutdownRequested)
-			return;
-		}
-	  time_iter +=  boost::posix_time::seconds(number_of_seconds);
-	}
+    for (unsigned int i = 0; i < number_of_flashes; i++)
+    {
+      FlashDataItem item;
+      item.flash_id = flash_id++;
+      item.longitude = (random_integer(itsParameters.flashEmulator.bbox.xMin * 1000,
+                                       itsParameters.flashEmulator.bbox.xMax * 1000) /
+                        1000.0);
+      item.latitude = (random_integer(itsParameters.flashEmulator.bbox.yMin * 1000,
+                                      itsParameters.flashEmulator.bbox.yMax * 1000) /
+                       1000.0);
+      item.stroke_time =
+          time_iter + boost::posix_time::seconds(random_integer(0, number_of_seconds));
+      item.stroke_time_fraction = random_integer(0, 1000);  // milliseconds
+      item.created = endtime;
+      item.modified_last = endtime;
+      item.ellipse_angle = 1.0;
+      item.ellipse_major = 1.0;
+      item.ellipse_minor = 1.0;
+      item.chi_square = 1.0;
+      item.rise_time = 1.0;
+      item.ptz_time = 1.0;
+      item.multiplicity = 1;
+      item.peak_current = 1;
+      item.sensors = 1;
+      item.freedom_degree = 1;
+      item.cloud_indicator = 1;
+      item.angle_indicator = 1;
+      item.signal_indicator = 1;
+      item.timing_indicator = 1;
+      item.stroke_status = 1;
+      item.data_source = -1;
+      item.modified_by = 1;
+      cacheData.push_back(item);
+
+      // Write 10000 flashes at a time
+      if ((cacheData.size() % 10000) == 0)
+      {
+        total_count += cache->fillFlashDataCache(cacheData);
+        std::cout << "Added 10000 flashes to database, total number of flashes #" << total_count
+                  << std::endl;
+        cacheData.clear();
+      }
+      if (itsShutdownRequested)
+        return;
+    }
+    time_iter += boost::posix_time::seconds(number_of_seconds);
+  }
 
   if (itsShutdownRequested)
-	return;
+    return;
 
-  if(cacheData.size() > 0)
-	{
-	  total_count += cache->fillFlashDataCache(cacheData);
-	  std::cout << "Added " << cacheData.size() << " flashes to database, total number of flashes #" << total_count << std::endl;
-	}
+  if (cacheData.size() > 0)
+  {
+    total_count += cache->fillFlashDataCache(cacheData);
+    std::cout << "Added " << cacheData.size() << " flashes to database, total number of flashes #"
+              << total_count << std::endl;
+  }
 
   auto function_endtime = std::chrono::high_resolution_clock::now();
   std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << total_count
-			<< " emulated flash observations between " << starttime << "..." << endtime << " finished in "
-			<< std::chrono::duration_cast<std::chrono::milliseconds>(function_endtime - function_starttime).count()
-              << " ms" << std::endl;
+            << " emulated flash observations between " << starttime << "..." << endtime
+            << " finished in "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(function_endtime -
+                                                                     function_starttime)
+                   .count()
+            << " ms" << std::endl;
 }
 
 void ObservationCacheAdminBase::updateFlashCache() const
@@ -450,7 +466,7 @@ void ObservationCacheAdminBase::updateFlashCache() const
 
     std::shared_ptr<ObservationCache> flashCache = getCache(FLASH_DATA_TABLE);
 
-	if(itsParameters.flashEmulator.active)
+    if (itsParameters.flashEmulator.active)
       return emulateFlashCacheUpdate(flashCache);
 
     if (flashCache->isFakeCache(FLASH_DATA_TABLE))
@@ -569,12 +585,12 @@ void ObservationCacheAdminBase::updateObservationCache() const
 
     std::vector<DataItem> cacheData;
 
-    std::pair<boost::posix_time::ptime, boost::posix_time::ptime> last_time_pair =
-        getLatestObservationTime(observationCache);
+    // pair of data_time, modified_last
+    auto last_time_pair = getLatestObservationTime(observationCache);
 
     // Extra safety margin since the view contains 3 tables with different max(modified_last) values
-    if (!last_time_pair.first.is_not_a_date_time())
-      last_time_pair.first -= boost::posix_time::seconds(itsParameters.updateExtraInterval);
+    if (!last_time_pair.second.is_not_a_date_time())
+      last_time_pair.second -= boost::posix_time::seconds(itsParameters.updateExtraInterval);
 
     // Making sure that we do not request more data than we actually store into
     // the cache.
@@ -826,8 +842,7 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
-      netatmoCache->cleanNetAtmoCache(
-          boost::posix_time::hours(itsParameters.netAtmoCacheDuration));
+      netatmoCache->cleanNetAtmoCache(boost::posix_time::hours(itsParameters.netAtmoCacheDuration));
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
@@ -849,14 +864,15 @@ void ObservationCacheAdminBase::updateBKHydrometaCache() const
   try
   {
     if (itsShutdownRequested)
-      return;		
+      return;
 
     std::shared_ptr<ObservationCache> bkHydrometaCache = getCache(BK_HYDROMETA_DATA_TABLE);
 
     std::vector<MobileExternalDataItem> cacheData;
 
     boost::posix_time::ptime last_time = bkHydrometaCache->getLatestBKHydrometaDataTime();
-    boost::posix_time::ptime last_created_time = bkHydrometaCache->getLatestBKHydrometaCreatedTime();
+    boost::posix_time::ptime last_created_time =
+        bkHydrometaCache->getLatestBKHydrometaCreatedTime();
 
     // Make sure the time is not in the future
     boost::posix_time::ptime now = boost::posix_time::second_clock::universal_time();
@@ -900,7 +916,8 @@ void ObservationCacheAdminBase::updateBKHydrometaCache() const
     {
       auto begin = std::chrono::high_resolution_clock::now();
 
-      readMobileCacheData(BK_HYDROMETA_PRODUCER, cacheData, last_time, last_created_time, itsTimeZones);
+      readMobileCacheData(
+          BK_HYDROMETA_PRODUCER, cacheData, last_time, last_created_time, itsTimeZones);
 
       auto end = std::chrono::high_resolution_clock::now();
 
@@ -948,8 +965,8 @@ void ObservationCacheAdminBase::updateBKHydrometaCache() const
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(BCP,
-                                ("Updating " + std::string(BK_HYDROMETA_PRODUCER) + " cache failed!"));
+    throw Fmi::Exception::Trace(
+        BCP, ("Updating " + std::string(BK_HYDROMETA_PRODUCER) + " cache failed!"));
   }
 }
 
