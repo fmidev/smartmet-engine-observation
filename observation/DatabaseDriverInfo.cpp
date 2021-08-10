@@ -313,6 +313,17 @@ void DatabaseDriverInfo::readOracleCommonInfo(Spine::ConfigBase& cfg,
       cfg.get_optional_config_param<int>(common_key + ".flashMemoryCacheDuration", 0));
   params["stationsCacheUpdateInterval"] = Fmi::to_string(
       cfg.get_optional_config_param<std::size_t>(common_key + ".stationsCacheUpdateInterval", 0));
+	  
+  params["flash_emulator_active"] = "false";
+  if(cfg.get_optional_config_param<bool>(common_key + ".flash_emulator.active", false))
+	{
+	  params["flash_emulator_active"] = "true";
+	  params["flash_emulator_bbox"] = cfg.get_optional_config_param<std::string>(common_key + ".flash_emulator.bbox", "20,60,30,70");
+	  params["flash_emulator_strokes"] = Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flash_emulator.strokes_per_minute", 0));
+	  std::cout << "FLASH_GENERATIR: " << params.at("flash_emulator_active") << params.at("flash_emulator_bbox") << params.at("flash_emulator_strokes") << std::endl;
+	}
+  else
+	std::cout << "Flash emulator not active in driver " << name << std::endl;
 }
 
 void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
@@ -380,6 +391,16 @@ void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
     params["stationsCacheUpdateInterval"] = Fmi::to_string(
         cfg.get_optional_config_param<std::size_t>(common_key + ".stationsCacheUpdateInterval", 0));
   }
+
+  params["flash_emulator_active"] = "false";
+  if(cfg.get_optional_config_param<bool>(common_key + ".flash_emulator.active", false))
+	{
+	  params["flash_emulator_active"] = "true";
+	  params["flash_emulator_bbox"] = cfg.get_optional_config_param<std::string>(common_key + ".flash_emulator.bbox", "20,60,30,70");
+	  params["flash_emulator_strokes"] = Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flash_emulator.strokes_per_minute", 0));
+	}
+  else
+	std::cout << "Flash emulator not active in driver " << name << std::endl;
 }
 
 void DatabaseDriverInfo::readPostgreSQLMobileCommonInfo(Spine::ConfigBase& cfg,

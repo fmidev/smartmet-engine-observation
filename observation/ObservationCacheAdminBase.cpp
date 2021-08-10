@@ -354,6 +354,93 @@ void ObservationCacheAdminBase::updateFlashFakeCache(std::shared_ptr<Observation
   }
 }
 
+int random_integer(int min, int max)
+{
+  int range = max - min;
+  return ((rand() % range) + min);
+}
+
+void ObservationCacheAdminBase::emulateFlashCacheUpdate(std::shared_ptr<ObservationCache>& cache) const
+{
+  auto function_starttime = std::chrono::high_resolution_clock::now();
+  std::map<std::string, boost::posix_time::ptime> last_times = getLatestFlashTime(cache);
+
+  auto starttime = last_times.at("last_stroke_time");
+  auto endtime = boost::posix_time::second_clock::universal_time();
+  // Start emulation from next second
+  starttime += boost::posix_time::seconds(1);
+  
+  std::vector<FlashDataItem> cacheData;
+
+  std::srand(std::time(nullptr));
+
+  auto total_count = 0;
+  auto time_iter = starttime;
+  auto flash_id = cache->getMaxFlashId() + 1;
+  std::cout << "Emulating flash cache database update, id start from: " << flash_id << ", time from: " << time_iter << std::endl;
+  while(time_iter < endtime)
+	{
+	  auto number_of_seconds = std::min(static_cast<int>((endtime - time_iter).total_seconds()), 60);
+	  auto number_of_flashes = itsParameters.flashEmulator.strokes_per_minute * (number_of_seconds / 60.0);
+	  
+	  for(unsigned int i = 0; i < number_of_flashes; i++)
+		{
+		  FlashDataItem item;
+		  item.flash_id = flash_id++;
+		  item.longitude = (random_integer(itsParameters.flashEmulator.bbox.xMin*1000, itsParameters.flashEmulator.bbox.xMax*1000) / 1000.0);
+		  item.latitude = (random_integer(itsParameters.flashEmulator.bbox.yMin*1000, itsParameters.flashEmulator.bbox.yMax*1000) / 1000.0);
+		  item.stroke_time = time_iter + boost::posix_time::seconds(random_integer(0, number_of_seconds));
+		  item.stroke_time_fraction = random_integer(0, 1000); // milliseconds
+		  item.created = endtime;
+		  item.modified_last = endtime;
+		  item.ellipse_angle = 1.0;
+		  item.ellipse_major = 1.0;
+		  item.ellipse_minor = 1.0;
+		  item.chi_square = 1.0;
+		  item.rise_time = 1.0;
+		  item.ptz_time = 1.0;
+		  item.multiplicity = 1;
+		  item.peak_current = 1;
+		  item.sensors = 1;
+		  item.freedom_degree = 1;
+		  item.cloud_indicator = 1;
+		  item.angle_indicator = 1;
+		  item.signal_indicator = 1;
+		  item.timing_indicator = 1;
+		  item.stroke_status = 1;
+		  item.data_source = -1;
+		  item.modified_by = 1;
+		  cacheData.push_back(item);
+
+		  // Write 10000 flashes at a time
+		  if((cacheData.size() % 10000) == 0)
+			{
+			  total_count += cache->fillFlashDataCache(cacheData);
+			  std::cout << "Added 10000 flashes to database, total number of flashes #" << total_count << std::endl;
+			  cacheData.clear();
+			}
+		  if (itsShutdownRequested)
+			return;
+		}
+	  time_iter +=  boost::posix_time::seconds(number_of_seconds);
+	}
+
+  if (itsShutdownRequested)
+	return;
+
+  if(cacheData.size() > 0)
+	{
+	  total_count += cache->fillFlashDataCache(cacheData);
+	  std::cout << "Added " << cacheData.size() << " flashes to database, total number of flashes #" << total_count << std::endl;
+	}
+
+  auto function_endtime = std::chrono::high_resolution_clock::now();
+  std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << total_count
+			<< " emulated flash observations between " << starttime << "..." << endtime << " finished in "
+			<< std::chrono::duration_cast<std::chrono::milliseconds>(function_endtime - function_starttime).count()
+              << " ms" << std::endl;
+}
+
 void ObservationCacheAdminBase::updateFlashCache() const
 {
   try
@@ -362,6 +449,9 @@ void ObservationCacheAdminBase::updateFlashCache() const
       return;
 
     std::shared_ptr<ObservationCache> flashCache = getCache(FLASH_DATA_TABLE);
+
+	if(itsParameters.flashEmulator.active)
+      return emulateFlashCacheUpdate(flashCache);
 
     if (flashCache->isFakeCache(FLASH_DATA_TABLE))
       return updateFlashFakeCache(flashCache);

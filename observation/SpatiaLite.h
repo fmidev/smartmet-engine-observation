@@ -66,6 +66,13 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   boost::posix_time::ptime getLatestObservationTime();
 
   /**
+   * @brief Get the maximum value of flash_id field
+   * @retval int Maximum value of flash_id_field
+   */
+
+  int getMaxFlashId();
+
+  /**
    * @brief Get the time of the latest modified flash obervation
    * @retval boost::posix_time::ptime The time of the last modification
    */

@@ -1019,6 +1019,19 @@ void SpatiaLiteCache::shutdown()
   itsConnectionPool = nullptr;
 }
 
+// This has been added for flash emulator
+int SpatiaLiteCache::getMaxFlashId() const
+{
+  try
+  {
+	return itsConnectionPool->getConnection()->getMaxFlashId();
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Getting maximum flash id from cache failed!");
+  }
+}
+
 SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
                                  const EngineParametersPtr &p,
                                  const Spine::ConfigBase &cfg)
