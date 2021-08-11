@@ -194,8 +194,8 @@ void ObservationMemoryCache::clean(const boost::posix_time::ptime& newstarttime)
 {
   try
   {
-    auto cache_ptr = itsObservations.load();
-    if (!cache_ptr)
+    auto old_cache = itsObservations.load();
+    if (!old_cache)
       return;
 
     // Update new start time for the cache first so no-one can request data before it
@@ -203,9 +203,13 @@ void ObservationMemoryCache::clean(const boost::posix_time::ptime& newstarttime)
     auto starttime = boost::make_shared<boost::posix_time::ptime>(newstarttime);
     itsStartTime.store(starttime);
 
-    auto& cache = *cache_ptr;
+    // Make a new cache
+    auto new_cache = boost::make_shared<Observations>();
 
-    for (auto& fmisid_obsdata : cache)
+    // Copy pointers to existing observations if there are any
+    *new_cache = *old_cache;
+
+    for (auto& fmisid_obsdata : *new_cache)
     {
       auto obsdata_ptr = fmisid_obsdata.second->load();
       auto& obsdata = *obsdata_ptr;
@@ -228,6 +232,8 @@ void ObservationMemoryCache::clean(const boost::posix_time::ptime& newstarttime)
         fmisid_obsdata.second->store(new_obsdata);
       }
     }
+
+    itsObservations.store(new_cache);
   }
   catch (...)
   {
