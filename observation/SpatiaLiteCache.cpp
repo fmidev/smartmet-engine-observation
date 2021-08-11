@@ -97,7 +97,7 @@ void SpatiaLiteCache::initializeConnectionPool()
       itsNetAtmoTimeIntervalEnd = end;
     }
 
-	// BKHydrometa
+    // BKHydrometa
     if (cacheTables.find(BK_HYDROMETA_DATA_TABLE) != cacheTables.end())
     {
       auto start = db->getOldestBKHydrometaDataTime();
@@ -679,7 +679,7 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestNetAtmoCreatedTime() const
 }
 
 bool SpatiaLiteCache::bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
-												  const boost::posix_time::ptime &) const
+                                                  const boost::posix_time::ptime &) const
 {
   try
   {
@@ -718,7 +718,8 @@ std::size_t SpatiaLiteCache::fillBKHydrometaCache(
   }
 }
 
-void SpatiaLiteCache::cleanBKHydrometaCache(const boost::posix_time::time_duration &timetokeep) const
+void SpatiaLiteCache::cleanBKHydrometaCache(
+    const boost::posix_time::time_duration &timetokeep) const
 {
   try
   {
@@ -1024,7 +1025,7 @@ int SpatiaLiteCache::getMaxFlashId() const
 {
   try
   {
-	return itsConnectionPool->getConnection()->getMaxFlashId();
+    return itsConnectionPool->getConnection()->getMaxFlashId();
   }
   catch (...)
   {
@@ -1044,30 +1045,6 @@ SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
     // Verify multithreading is possible
     if (!sqlite3_threadsafe())
       throw Fmi::Exception(BCP, "Installed sqlite is not thread safe");
-
-    // Switch from serialized to multithreaded access
-
-    int err = 0;
-
-    if (itsParameters.sqlite.threading_mode == "MULTITHREAD")
-      err = sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
-    else if (itsParameters.sqlite.threading_mode == "SERIALIZED")
-      err = sqlite3_config(SQLITE_CONFIG_SERIALIZED);
-    else
-      throw Fmi::Exception(BCP,
-                           "Unknown sqlite threading mode: " + itsParameters.sqlite.threading_mode);
-
-    if (err != 0)
-      std::cout << Spine::log_time_str()
-                << " [SpatiaLiteCache] failed to set sqlite3 multithread mode to "
-                << itsParameters.sqlite.threading_mode << ", exit code = " << err << std::endl;
-
-    // Enable or disable memory statistics
-    err = sqlite3_config(SQLITE_CONFIG_MEMSTATUS, itsParameters.sqlite.memstatus);
-    if (err != 0)
-      std::cout << Spine::log_time_str()
-                << " [SpatiaLiteCache] failed to initialize sqlite3 memstatus mode, exit code "
-                << err << std::endl;
   }
   catch (...)
   {
@@ -1093,12 +1070,10 @@ void SpatiaLiteCache::readConfig(const Spine::ConfigBase & /* cfg */)
 
     itsParameters.sqlite.cache_size = Fmi::stoi(itsCacheInfo.params.at("cache_size"));
     itsParameters.sqlite.threads = Fmi::stoi(itsCacheInfo.params.at("threads"));
-    itsParameters.sqlite.threading_mode = itsCacheInfo.params.at("threading_mode");
     itsParameters.sqlite.timeout = Fmi::stoi(itsCacheInfo.params.at("timeout"));
     itsParameters.sqlite.shared_cache = (Fmi::stoi(itsCacheInfo.params.at("shared_cache")) == 1);
     itsParameters.sqlite.read_uncommitted =
         (Fmi::stoi(itsCacheInfo.params.at("read_uncommitted")) == 1);
-    itsParameters.sqlite.memstatus = (Fmi::stoi(itsCacheInfo.params.at("memstatus")) == 1);
     itsParameters.sqlite.synchronous = itsCacheInfo.params.at("synchronous");
     itsParameters.sqlite.journal_mode = itsCacheInfo.params.at("journal_mode");
     itsParameters.sqlite.temp_store = itsCacheInfo.params.at("temp_store");

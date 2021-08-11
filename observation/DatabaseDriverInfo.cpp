@@ -313,17 +313,21 @@ void DatabaseDriverInfo::readOracleCommonInfo(Spine::ConfigBase& cfg,
       cfg.get_optional_config_param<int>(common_key + ".flashMemoryCacheDuration", 0));
   params["stationsCacheUpdateInterval"] = Fmi::to_string(
       cfg.get_optional_config_param<std::size_t>(common_key + ".stationsCacheUpdateInterval", 0));
-	  
+
   params["flash_emulator_active"] = "false";
-  if(cfg.get_optional_config_param<bool>(common_key + ".flash_emulator.active", false))
-	{
-	  params["flash_emulator_active"] = "true";
-	  params["flash_emulator_bbox"] = cfg.get_optional_config_param<std::string>(common_key + ".flash_emulator.bbox", "20,60,30,70");
-	  params["flash_emulator_strokes"] = Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flash_emulator.strokes_per_minute", 0));
-	  std::cout << "FLASH_GENERATIR: " << params.at("flash_emulator_active") << params.at("flash_emulator_bbox") << params.at("flash_emulator_strokes") << std::endl;
-	}
+  if (cfg.get_optional_config_param<bool>(common_key + ".flash_emulator.active", false))
+  {
+    params["flash_emulator_active"] = "true";
+    params["flash_emulator_bbox"] = cfg.get_optional_config_param<std::string>(
+        common_key + ".flash_emulator.bbox", "20,60,30,70");
+    params["flash_emulator_strokes"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".flash_emulator.strokes_per_minute", 0));
+    std::cout << "FLASH_GENERATIR: " << params.at("flash_emulator_active")
+              << params.at("flash_emulator_bbox") << params.at("flash_emulator_strokes")
+              << std::endl;
+  }
   else
-	std::cout << "Flash emulator not active in driver " << name << std::endl;
+    std::cout << "Flash emulator not active in driver " << name << std::endl;
 }
 
 void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
@@ -393,14 +397,16 @@ void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
   }
 
   params["flash_emulator_active"] = "false";
-  if(cfg.get_optional_config_param<bool>(common_key + ".flash_emulator.active", false))
-	{
-	  params["flash_emulator_active"] = "true";
-	  params["flash_emulator_bbox"] = cfg.get_optional_config_param<std::string>(common_key + ".flash_emulator.bbox", "20,60,30,70");
-	  params["flash_emulator_strokes"] = Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flash_emulator.strokes_per_minute", 0));
-	}
+  if (cfg.get_optional_config_param<bool>(common_key + ".flash_emulator.active", false))
+  {
+    params["flash_emulator_active"] = "true";
+    params["flash_emulator_bbox"] = cfg.get_optional_config_param<std::string>(
+        common_key + ".flash_emulator.bbox", "20,60,30,70");
+    params["flash_emulator_strokes"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".flash_emulator.strokes_per_minute", 0));
+  }
   else
-	std::cout << "Flash emulator not active in driver " << name << std::endl;
+    std::cout << "Flash emulator not active in driver " << name << std::endl;
 }
 
 void DatabaseDriverInfo::readPostgreSQLMobileCommonInfo(Spine::ConfigBase& cfg,
@@ -423,16 +429,17 @@ void DatabaseDriverInfo::readPostgreSQLMobileCommonInfo(Spine::ConfigBase& cfg,
       cfg.get_optional_config_param<std::size_t>(common_key + ".roadCloudCacheUpdateInterval", 0));
   params["netAtmoCacheUpdateInterval"] = Fmi::to_string(
       cfg.get_optional_config_param<std::size_t>(common_key + ".netAtmoCacheUpdateInterval", 0));
-  params["bkHydrometaCacheUpdateInterval"] = Fmi::to_string(
-      cfg.get_optional_config_param<std::size_t>(common_key + ".bkHydrometaCacheUpdateInterval", 0));
+  params["bkHydrometaCacheUpdateInterval"] =
+      Fmi::to_string(cfg.get_optional_config_param<std::size_t>(
+          common_key + ".bkHydrometaCacheUpdateInterval", 0));
   params["fmiIoTCacheUpdateInterval"] = Fmi::to_string(
       cfg.get_optional_config_param<std::size_t>(common_key + ".fmiIoTCacheUpdateInterval", 0));
   params["roadCloudCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".roadCloudCacheDuration", 0));
   params["netAtmoCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".netAtmoCacheDuration", 0));
-  params["bkHydrometaCacheDuration"] =
-      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".bkHydrometaCacheDuration", 0));
+  params["bkHydrometaCacheDuration"] = Fmi::to_string(
+      cfg.get_optional_config_param<int>(common_key + ".bkHydrometaCacheDuration", 0));
   params["fmiIoTCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".fmiIoTCacheDuration", 0));
 }
@@ -497,8 +504,6 @@ void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
   if (cfg.get_config().exists(common_key + ".fake_cache"))
     readFakeCacheInfo(cfg, common_key + ".fake_cache", params);
 
-  params["threading_mode"] =
-      cfg.get_mandatory_config_param<std::string>(common_key + ".threading_mode");
   params["synchronous"] = cfg.get_mandatory_config_param<std::string>(common_key + ".synchronous");
   params["journal_mode"] =
       cfg.get_mandatory_config_param<std::string>(common_key + ".journal_mode");
@@ -512,8 +517,6 @@ void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
       Fmi::to_string(cfg.get_mandatory_config_param<bool>(common_key + ".shared_cache"));
   params["read_uncommitted"] =
       Fmi::to_string(cfg.get_mandatory_config_param<bool>(common_key + ".read_uncommitted"));
-  params["memstatus"] =
-      Fmi::to_string(cfg.get_mandatory_config_param<bool>(common_key + ".memstatus"));
   params["wal_autocheckpoint"] =
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".wal_autocheckpoint"));
   params["mmap_size"] =
@@ -530,14 +533,14 @@ void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
       cfg.get_mandatory_config_param<int>(common_key + ".weatherDataQCInsertCacheSize"));
   params["flashInsertCacheSize"] =
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".flashInsertCacheSize"));
-  params["roadCloudInsertCacheSize"] =
-	Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".roadCloudInsertCacheSize", 0));
+  params["roadCloudInsertCacheSize"] = Fmi::to_string(
+      cfg.get_optional_config_param<int>(common_key + ".roadCloudInsertCacheSize", 0));
   params["netAtmoInsertCacheSize"] =
-	Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".netAtmoInsertCacheSize", 0));
-  params["bkHydrometaInsertCacheSize"] =
-	Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".bkHydrometaInsertCacheSize", 0));
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".netAtmoInsertCacheSize", 0));
+  params["bkHydrometaInsertCacheSize"] = Fmi::to_string(
+      cfg.get_optional_config_param<int>(common_key + ".bkHydrometaInsertCacheSize", 0));
   params["fmiIoTInsertCacheSize"] =
-	Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".fmiIoTInsertCacheSize", 0));
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".fmiIoTInsertCacheSize", 0));
 }
 
 /*!

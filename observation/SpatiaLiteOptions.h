@@ -10,13 +10,11 @@ namespace Observation
 {
 struct SpatiaLiteOptions
 {
-  std::string synchronous = "NORMAL";          // OFF | NORMAL | FULL | EXTRA
-  std::string journal_mode = "WAL";            // DELETE | TRUNCATE | PERSIST | MEMORY | WAL | OFFD
-  std::string threading_mode = "MULTITHREAD";  // MULTITHREAD | SERIALIZED
-  std::string auto_vacuum = "NONE";            // NONE | FULL | INCREMENTAL
-  std::string temp_store = "DEFAULT";          // DEFAULT | FILE | MEMORY
+  std::string synchronous = "NORMAL";  // OFF | NORMAL | FULL | EXTRA
+  std::string journal_mode = "WAL";    // DELETE | TRUNCATE | PERSIST | MEMORY | WAL | OFFD
+  std::string auto_vacuum = "NONE";    // NONE | FULL | INCREMENTAL
+  std::string temp_store = "DEFAULT";  // DEFAULT | FILE | MEMORY
   std::size_t mmap_size = 0;
-  bool memstatus = false;
   bool shared_cache = false;
   bool read_uncommitted = false;
   int threads = 0;                // 0 = number of helper threads

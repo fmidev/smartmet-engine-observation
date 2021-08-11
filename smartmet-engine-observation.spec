@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.8.10
+Version: 21.8.11
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -123,6 +123,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Aug 11 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.11-1.fmi
+- Fixed cleaning of observation memory cache
+- Removed sqlite threading_model and memstatus settings as obsolete
+
 * Tue Aug 10 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.10-1.fmi
 - Fixed updateExtraInterval to be applied to modified_last instead of data_time
 
