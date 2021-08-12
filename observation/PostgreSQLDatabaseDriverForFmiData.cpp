@@ -1,5 +1,6 @@
 #include "PostgreSQLDatabaseDriverForFmiData.h"
 #include "ObservationCache.h"
+#include "ObservationMemoryCache.h"
 #include "QueryObservablePropertyPostgreSQL.h"
 #include "QueryResult.h"
 #include "StationInfo.h"
@@ -254,8 +255,11 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
 
     auto info = itsParameters.params->stationInfo.load();
 
+    std::unique_ptr<ObservationMemoryCache> dummy;
+
     if (tablename == OBSERVATION_DATA_TABLE)
-      return db->getObservationData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
+      return db->getObservationData(
+          stations, settings, *info, timeSeriesOptions, itsTimeZones, dummy);
     if (tablename == WEATHER_DATA_QC_TABLE)
       return db->getWeatherDataQCData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
     if (tablename == FLASH_DATA_TABLE)
@@ -344,8 +348,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::value
 
     auto info = itsParameters.params->stationInfo.load();
 
+    std::unique_ptr<ObservationMemoryCache> dummy;
+
     if (tablename == OBSERVATION_DATA_TABLE)
-      return db->getObservationData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
+      return db->getObservationData(
+          stations, settings, *info, timeSeriesOptions, itsTimeZones, dummy);
     else if (tablename == WEATHER_DATA_QC_TABLE)
       return db->getWeatherDataQCData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
     else if (tablename == FLASH_DATA_TABLE)

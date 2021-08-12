@@ -1,16 +1,13 @@
 #pragma once
 
 #include "EngineParameters.h"
-#include "FlashMemoryCache.h"
 #include "InsertStatus.h"
 #include "ObservationCache.h"
 #include "Settings.h"
 #include "SpatiaLiteCacheParameters.h"
 #include "SpatiaLiteConnectionPool.h"
 #include "StationtypeConfig.h"
-
 #include <macgyver/Cache.h>
-
 #include <string>
 
 namespace SmartMet
@@ -19,6 +16,9 @@ namespace Engine
 {
 namespace Observation
 {
+class ObservationMemoryCache;
+class FlashMemoryCache;
+
 class SpatiaLiteCache : public ObservationCache
 {
  public:
@@ -82,11 +82,11 @@ class SpatiaLiteCache : public ObservationCache
 
   // BKHydrometa
   bool bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
-								   const boost::posix_time::ptime &endtime) const override;
+                                   const boost::posix_time::ptime &endtime) const override;
   boost::posix_time::ptime getLatestBKHydrometaDataTime() const override;
   boost::posix_time::ptime getLatestBKHydrometaCreatedTime() const override;
   std::size_t fillBKHydrometaCache(
-								   const MobileExternalDataItems &mobileExternalCacheData) const override;
+      const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanBKHydrometaCache(const boost::posix_time::time_duration &timetokeep) const override;
   Spine::TimeSeries::TimeSeriesVectorPtr bkHydrometaValuesFromSpatiaLite(Settings &settings) const;
 
@@ -104,6 +104,13 @@ class SpatiaLiteCache : public ObservationCache
 
   // This has been added for flash emulator
   int getMaxFlashId() const override;
+
+  /**
+   * \brief Init the internal memory cache from SpatiaLite
+   * \param starttime Start time for the update
+   */
+
+  void cleanMemoryDataCache(const boost::posix_time::ptime &newstarttime) const;
 
  private:
   Spine::Stations getStationsFromSpatiaLite(Settings &settings,
@@ -160,6 +167,7 @@ class SpatiaLiteCache : public ObservationCache
   mutable InsertStatus itsFmiIoTInsertCache;
 
   // Memory caches smaller than the spatialite cache itself
+  std::unique_ptr<ObservationMemoryCache> itsObservationMemoryCache;
   std::unique_ptr<FlashMemoryCache> itsFlashMemoryCache;
 };
 

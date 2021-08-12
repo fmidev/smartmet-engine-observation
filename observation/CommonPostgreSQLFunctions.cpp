@@ -55,7 +55,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservation
     const SmartMet::Engine::Observation::Settings &settings,
     const SmartMet::Engine::Observation::StationInfo &stationInfo,
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-    const Fmi::TimeZones &timezones)
+    const Fmi::TimeZones &timezones,
+    const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache)
 {
   try
   {

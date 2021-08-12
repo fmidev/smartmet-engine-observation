@@ -29,6 +29,8 @@ enum class AdditionalTimestepOption
   RequestedAndDataTimesteps  // timeseries
 };
 
+class ObservationMemoryCache;
+
 class CommonDatabaseFunctions
 {
  public:
@@ -47,14 +49,16 @@ class CommonDatabaseFunctions
       const Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
-      const Fmi::TimeZones &timezones);
+      const Fmi::TimeZones &timezones,
+      const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache);
 
   virtual Spine::TimeSeries::TimeSeriesVectorPtr getObservationData(
       const Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
       const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones) = 0;
+      const Fmi::TimeZones &timezones,
+      const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache) = 0;
 
   virtual Spine::TimeSeries::TimeSeriesVectorPtr getFlashData(const Settings &settings,
                                                               const Fmi::TimeZones &timezones) = 0;

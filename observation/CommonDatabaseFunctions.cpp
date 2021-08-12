@@ -1124,7 +1124,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getObservationDa
     const Spine::Stations &stations,
     const Settings &settings,
     const StationInfo &stationInfo,
-    const Fmi::TimeZones &timezones)
+    const Fmi::TimeZones &timezones,
+    const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache)
 {
   Spine::TimeSeriesGeneratorOptions opt;
   opt.startTime = settings.starttime;
@@ -1133,7 +1134,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getObservationDa
   opt.startTimeUTC = false;
   opt.endTimeUTC = false;
 
-  return getObservationData(stations, settings, stationInfo, opt, timezones);
+  return getObservationData(
+      stations, settings, stationInfo, opt, timezones, observationMemoryCache);
 }
 
 std::string CommonDatabaseFunctions::getWeatherDataQCParams(

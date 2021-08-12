@@ -5,7 +5,6 @@
 #include "FlashDataItem.h"
 #include "InsertStatus.h"
 #include "MobileExternalDataItem.h"
-#include "ObservationMemoryCache.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
 #include <spine/Value.h>
@@ -41,6 +40,7 @@ namespace Engine
 namespace Observation
 {
 class SpatiaLiteCacheParameters;
+class ObservationMemoryCache;
 
 struct QueryMapping;
 
@@ -163,7 +163,6 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    * @param[in] newstarttime_memory
    */
   void cleanDataCache(const boost::posix_time::ptime &newstarttime);
-  void cleanMemoryDataCache(const boost::posix_time::ptime &newstarttime);
 
   /**
    * @brief Delete everything from weather_data_qc table which
@@ -254,7 +253,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    */
   void cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime);
 
- /**
+  /**
    * @brief Get the newest observation in ext_obsdata_bk_hydrometa table
    * @return boost::posix_time::ptime The time of the newest bk_hydrometa observation
    */
@@ -281,7 +280,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    * @param bk_hydrometa observation data to be inserted into the table
    */
   std::size_t fillBKHydrometaCache(const MobileExternalDataItems &mobileExternalCacheData,
-								   InsertStatus &insertStatus);
+                                   InsertStatus &insertStatus);
 
   /**
    * @brief Delete old bk_hydrometa observation data from ext_obsdata_roadcloud table
@@ -330,8 +329,8 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getNetAtmoData(const Settings &settings,
                                                                   const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getBKHydrometaData(const Settings &settings,
-																	  const Fmi::TimeZones &timezones);
+  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getBKHydrometaData(
+      const Settings &settings, const Fmi::TimeZones &timezones);
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFmiIoTData(const Settings &settings,
                                                                  const Fmi::TimeZones &timezones);
@@ -344,7 +343,8 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
       const Settings &settings,
       const StationInfo &stationInfo,
       const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones) override;
+      const Fmi::TimeZones &timezones,
+      const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache) override;
 
   void shutdown();
 
@@ -369,13 +369,6 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
 
   FlashDataItems readFlashCacheData(const boost::posix_time::ptime &starttime);
 
-  /**
-   * \brief Init the internal memory cache from SpatiaLite
-   * \param starttime Start time for the update
-   */
-
-  void initObservationMemoryCache(const boost::posix_time::ptime &starttime);
-
   void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
@@ -387,6 +380,10 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
 
   std::string getWeatherDataQCParams(const std::set<std::string> &param_set) const override;
 
+  void initObservationMemoryCache(
+      const boost::posix_time::ptime &starttime,
+      const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache);
+
  private:
   // Private members
   sqlite3pp::database itsDB;
@@ -395,7 +392,6 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   std::size_t itsMaxInsertSize;
   const ExternalAndMobileProducerConfig &itsExternalAndMobileProducerConfig;
 
-  std::unique_ptr<ObservationMemoryCache> itsObservationMemoryCache;
   std::atomic<bool> itsShutdownRequested;
 
   bool itsReadOnly = false;

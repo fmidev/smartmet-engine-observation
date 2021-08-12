@@ -2,6 +2,7 @@
 #include "DataWithQuality.h"
 #include "ExternalAndMobileDBInfo.h"
 #include "Keywords.h"
+#include "ObservationMemoryCache.h"
 #include "QueryMapping.h"
 #include "SpatiaLiteCacheParameters.h"
 #include <fmt/format.h>
@@ -299,7 +300,7 @@ void SpatiaLite::createTables(const std::set<std::string> &tables)
     if (tables.find(FMI_IOT_DATA_TABLE) != tables.end())
       createFmiIoTDataTable();
     if (tables.find(BK_HYDROMETA_DATA_TABLE) != tables.end())
-	  createBKHydrometaDataTable();
+      createBKHydrometaDataTable();
   }
   catch (...)
   {
@@ -753,7 +754,8 @@ void SpatiaLite::createBKHydrometaDataTable()
 
     try
     {
-      sqlite3pp::query qry(itsDB, "SELECT X(geom) AS latitude FROM ext_obsdata_bk_hydrometa LIMIT 1");
+      sqlite3pp::query qry(itsDB,
+                           "SELECT X(geom) AS latitude FROM ext_obsdata_bk_hydrometa LIMIT 1");
       qry.begin();
     }
     catch (const std::exception &e)
@@ -779,7 +781,8 @@ void SpatiaLite::createBKHydrometaDataTable()
     if (spatial_index_enabled == 0)
     {
       std::cout << Spine::log_time_str()
-                << " [SpatiaLite] Adding spatial index to ext_obsdata_bk_hydrometa table" << std::endl;
+                << " [SpatiaLite] Adding spatial index to ext_obsdata_bk_hydrometa table"
+                << std::endl;
       itsDB.execute("SELECT CreateSpatialIndex('ext_obsdata_bk_hydrometa', 'geom')");
     }
   }
@@ -788,7 +791,6 @@ void SpatiaLite::createBKHydrometaDataTable()
     throw Fmi::Exception::Trace(BCP, "Creation of ext_obsdata_bk_hydrometa table failed!");
   }
 }
-
 
 void SpatiaLite::initSpatialMetaData()
 {
@@ -956,8 +958,8 @@ ptime SpatiaLite::getOldestWeatherDataQCTime()
 }
 
 int SpatiaLite::getMaxFlashId()
-{ 
- try
+{
+  try
   {
     // Spine::ReadLock lock(write_mutex);
 
@@ -966,7 +968,7 @@ int SpatiaLite::getMaxFlashId()
     if (iter == qry.end() || (*iter).column_type(0) == SQLITE_NULL)
       return 0;
 
-    return  (*iter).get<int>(0);
+    return (*iter).get<int>(0);
   }
   catch (...)
   {
@@ -1251,19 +1253,6 @@ void SpatiaLite::cleanDataCache(const ptime &newstarttime)
   }
 }
 
-void SpatiaLite::cleanMemoryDataCache(const ptime &newstarttime)
-{
-  try
-  {
-    if (itsObservationMemoryCache)
-      itsObservationMemoryCache->clean(newstarttime);
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Cleaning of memory data cache failed!");
-  }
-}
-
 void SpatiaLite::cleanWeatherDataQCCache(const ptime &newstarttime)
 {
   try
@@ -1370,7 +1359,6 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getNetAtmoData(
   return getMobileAndExternalData(settings, timezones);
 }
 
-
 void SpatiaLite::cleanBKHydrometaCache(const ptime &newstarttime)
 {
   try
@@ -1383,7 +1371,8 @@ void SpatiaLite::cleanBKHydrometaCache(const ptime &newstarttime)
 
     Spine::WriteLock lock(write_mutex);
 
-    sqlite3pp::command cmd(itsDB, "DELETE FROM ext_obsdata_bk_hydrometa WHERE data_time < :timestring");
+    sqlite3pp::command cmd(itsDB,
+                           "DELETE FROM ext_obsdata_bk_hydrometa WHERE data_time < :timestring");
 
     cmd.bind(":timestring", epoch_time);
     cmd.execute();
@@ -1549,11 +1538,6 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
 
     if (cacheData.empty())
       return new_item_count;
-
-    // Update memory cache first
-
-    if (itsObservationMemoryCache)
-      itsObservationMemoryCache->fill(cacheData);
 
     const char *sqltemplate =
         "INSERT OR REPLACE INTO observation_data "
@@ -1779,8 +1763,6 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &cacheData,
 
     if (cacheData.empty())
       return new_item_count;
-
-    // TODO: Where is the memory cache update?????
 
     const char *sqltemplate =
         "INSERT OR IGNORE INTO flash_data "
@@ -2225,7 +2207,7 @@ std::size_t SpatiaLite::fillNetAtmoCache(const MobileExternalDataItems &mobileEx
 }
 
 std::size_t SpatiaLite::fillBKHydrometaCache(const MobileExternalDataItems &mobileExternalCacheData,
-											 InsertStatus &insertStatus)
+                                             InsertStatus &insertStatus)
 {
   try
   {
@@ -2822,7 +2804,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getObservationData(
     const Settings &settings,
     const StationInfo &stationInfo,
     const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
-    const Fmi::TimeZones &timezones)
+    const Fmi::TimeZones &timezones,
+    const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache)
 {
   try
   {
@@ -2841,16 +2824,16 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getObservationData(
 
     // Should we use the cache?
 
-    bool use_memory_cache = (itsObservationMemoryCache.get() != nullptr);
+    bool use_memory_cache = (observationMemoryCache.get() != nullptr);
     if (use_memory_cache)
     {
-      auto cache_start_time = itsObservationMemoryCache->getStartTime();
+      auto cache_start_time = observationMemoryCache->getStartTime();
       use_memory_cache =
           (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
     }
 
     LocationDataItems observations =
-        (use_memory_cache ? itsObservationMemoryCache->read_observations(
+        (use_memory_cache ? observationMemoryCache->read_observations(
                                 stations, settings, stationInfo, stationgroup_codes, qmap)
                           : readObservationDataFromDB(
                                 stations, settings, stationInfo, qmap, stationgroup_codes));
@@ -2881,7 +2864,9 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getObservationData(
   }
 }
 
-void SpatiaLite::initObservationMemoryCache(const boost::posix_time::ptime &starttime)
+void SpatiaLite::initObservationMemoryCache(
+    const boost::posix_time::ptime &starttime,
+    const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache)
 {
   try
   {
@@ -2925,8 +2910,7 @@ void SpatiaLite::initObservationMemoryCache(const boost::posix_time::ptime &star
 
     // Feed them into the cache
 
-    itsObservationMemoryCache.reset(new ObservationMemoryCache);
-    itsObservationMemoryCache->fill(observations);
+    observationMemoryCache->fill(observations);
   }
   catch (...)
   {

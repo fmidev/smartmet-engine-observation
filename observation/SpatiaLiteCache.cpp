@@ -1,5 +1,6 @@
 #include "SpatiaLiteCache.h"
-
+#include "FlashMemoryCache.h"
+#include "ObservationMemoryCache.h"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/make_shared.hpp>
 #include <macgyver/StringConversion.h>
@@ -150,8 +151,10 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
     {
       logMessage("[Observation Engine] Initializing SpatiaLite observation memory cache",
                  itsParameters.quiet);
+      itsObservationMemoryCache.reset(new ObservationMemoryCache);
       auto timetokeep_memory = boost::posix_time::hours(finMemoryCacheDuration);
-      itsConnectionPool->getConnection()->initObservationMemoryCache(now - timetokeep_memory);
+      itsConnectionPool->getConnection()->initObservationMemoryCache(now - timetokeep_memory,
+                                                                     itsObservationMemoryCache);
     }
 
     logMessage("[Observation Engine] SpatiaLite memory cache ready.", itsParameters.quiet);
@@ -203,7 +206,8 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
       }
       else
       {
-        ret = db->getObservationData(stations, settings, *sinfo, itsTimeZones);
+        ret = db->getObservationData(
+            stations, settings, *sinfo, itsTimeZones, itsObservationMemoryCache);
       }
     }
 
@@ -257,7 +261,8 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
       }
       else
       {
-        ret = db->getObservationData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
+        ret = db->getObservationData(
+            stations, settings, *sinfo, timeSeriesOptions, itsTimeZones, itsObservationMemoryCache);
       }
     }
 
@@ -406,6 +411,19 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestFlashModifiedTime() const
 boost::posix_time::ptime SpatiaLiteCache::getLatestFlashTime() const
 {
   return itsConnectionPool->getConnection()->getLatestFlashTime();
+}
+
+void SpatiaLiteCache::cleanMemoryDataCache(const boost::posix_time::ptime &newstarttime) const
+{
+  try
+  {
+    if (itsObservationMemoryCache)
+      itsObservationMemoryCache->clean(newstarttime);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Cleaning of memory data cache failed!");
+  }
 }
 
 std::size_t SpatiaLiteCache::fillFlashDataCache(const FlashDataItems &flashCacheData) const
@@ -895,6 +913,11 @@ std::size_t SpatiaLiteCache::fillDataCache(const DataItems &cacheData) const
 {
   try
   {
+    // Update memory cache first
+
+    if (itsObservationMemoryCache)
+      itsObservationMemoryCache->fill(cacheData);
+
     auto conn = itsConnectionPool->getConnection();
     auto sz = conn->fillDataCache(cacheData, itsDataInsertCache);
 
@@ -927,14 +950,14 @@ void SpatiaLiteCache::cleanDataCache(
     auto time1 = round_down_to_cache_clean_interval(now - timetokeep);
     auto time2 = round_down_to_cache_clean_interval(now - timetokeep_memory);
 
-    auto conn = itsConnectionPool->getConnection();
-    conn->cleanMemoryDataCache(time2);
+    cleanMemoryDataCache(time2);
 
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsTimeIntervalMutex);
       itsTimeIntervalStart = time1;
     }
+    auto conn = itsConnectionPool->getConnection();
     conn->cleanDataCache(time1);
 
     // Update what really remains in the database

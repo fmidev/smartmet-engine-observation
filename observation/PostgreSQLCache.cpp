@@ -1,5 +1,5 @@
 #include "PostgreSQLCache.h"
-
+#include "ObservationMemoryCache.h"
 #include <boost/make_shared.hpp>
 #include <macgyver/StringConversion.h>
 
@@ -155,7 +155,8 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
       }
       else
       {
-        ret = db->getObservationData(stations, settings, *sinfo, itsTimeZones);
+        ret = db->getObservationData(
+            stations, settings, *sinfo, itsTimeZones, itsObservationMemoryCache);
       }
     }
 
@@ -205,7 +206,8 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
       }
       else
       {
-        ret = db->getObservationData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
+        ret = db->getObservationData(
+            stations, settings, *sinfo, timeSeriesOptions, itsTimeZones, itsObservationMemoryCache);
       }
     }
     return ret;
@@ -755,7 +757,7 @@ void PostgreSQLCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
 }
 
 bool PostgreSQLCache::bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                              const boost::posix_time::ptime &) const
+                                                  const boost::posix_time::ptime &) const
 {
   try
   {
@@ -804,7 +806,8 @@ std::size_t PostgreSQLCache::fillBKHydrometaCache(
   }
 }
 
-void PostgreSQLCache::cleanBKHydrometaCache(const boost::posix_time::time_duration &timetokeep) const
+void PostgreSQLCache::cleanBKHydrometaCache(
+    const boost::posix_time::time_duration &timetokeep) const
 {
   try
   {
@@ -835,7 +838,6 @@ void PostgreSQLCache::cleanBKHydrometaCache(const boost::posix_time::time_durati
     throw Fmi::Exception::Trace(BCP, "Cleaning BKHydrometa cache failed!");
   }
 }
-
 
 bool PostgreSQLCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
                                              const boost::posix_time::ptime &) const
