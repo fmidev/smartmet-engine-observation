@@ -354,7 +354,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getF
       longitude = Fmi::stod(row[3].as<std::string>());
       latitude = Fmi::stod(row[4].as<std::string>());
       // Rest of the parameters in requested order
-      for (unsigned int i = 5; i != row.size(); ++i)
+      for (int i = 5; i != int(row.size()); ++i)
       {
         pqxx::field fld = row[i];
         std::string data_type = itsPostgreDataTypes.at(fld.type());
