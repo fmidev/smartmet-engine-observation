@@ -59,12 +59,6 @@ bool is_data_source_field(const std::string &fieldname)
 {
   return (fieldname.find("_data_source_sensornumber_") != std::string::npos);
 }
-bool is_data_quality_field(const std::string &fieldname)
-{
-  return (fieldname.length() > 3 &&
-          (fieldname.compare(0, 3, "qc_") == 0 ||
-           fieldname.find("_data_quality_sensornumber_") != std::string::npos));
-}
 
 Spine::TimeSeries::Value get_default_sensor_value(
     const SensorData &sensor_data,
