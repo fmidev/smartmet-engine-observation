@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.8.11
-Release: 2%{?dist}.fmi
+Version: 21.8.16
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -123,6 +123,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Aug 16 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.16-1.fmi
+- Faster bbox searches for lightning data in the memory cache
+
 * Wed Aug 11 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.11-2.fmi
 - Fixed cleaning of observation memory cache
 - Removed sqlite threading_model and memstatus settings as obsolete

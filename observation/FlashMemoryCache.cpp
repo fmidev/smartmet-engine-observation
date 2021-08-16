@@ -1,6 +1,8 @@
 #include "FlashMemoryCache.h"
 #include "Utils.h"
+#include <boost/optional.hpp>
 #include <macgyver/Geometry.h>
+#include <list>
 
 namespace SmartMet
 {
@@ -12,8 +14,14 @@ namespace Observation
 // 1) a radius from a point
 // 2) a bounding box
 
-bool is_within_search_limits(const FlashDataItem& flash, const Settings& settings)
+using BBoxes = std::list<boost::optional<Spine::BoundingBox>>;
+
+bool is_within_search_limits(const FlashDataItem& flash,
+                             const Settings& settings,
+                             const BBoxes& bboxes)
 {
+  auto bbox_iter = bboxes.begin();
+
   for (const auto& tloc : settings.taggedLocations)
   {
     if (tloc.loc->type == Spine::Location::CoordinatePoint)
@@ -25,13 +33,29 @@ bool is_within_search_limits(const FlashDataItem& flash, const Settings& setting
     }
     else if (tloc.loc->type == Spine::Location::BoundingBox)
     {
-      Spine::BoundingBox bbox(tloc.loc->name);
+      const auto& bbox = **bbox_iter;
+
       if (flash.longitude < bbox.xMin || flash.longitude > bbox.xMax ||
           flash.latitude < bbox.yMin || flash.latitude > bbox.yMax)
         return false;
     }
+    ++bbox_iter;
   }
   return true;
+}
+
+// Parse all tagged location bounding boxes once for repeated use in is_within_search_limits loops
+BBoxes parse_bboxes(const Spine::TaggedLocationList& tlocs)
+{
+  BBoxes bboxes;
+  for (const auto& tloc : tlocs)
+  {
+    if (tloc.loc->type == Spine::Location::BoundingBox)
+      bboxes.push_back(Spine::BoundingBox(tloc.loc->name));
+    else
+      bboxes.push_back(boost::none);
+  }
+  return bboxes;
 }
 
 // After the cache has been initialized, we store the time of the
@@ -231,11 +255,14 @@ Spine::TimeSeries::TimeSeriesVectorPtr FlashMemoryCache::getData(
 
     auto localtz = timezones.time_zone_from_string(settings.timezone);
 
+    // Parse the bboxes only once instead of inside the below loop for every flash
+    const auto bboxes = parse_bboxes(settings.taggedLocations);
+
     for (auto pos = pos1; pos < pos2; ++pos)
     {
       const auto& flash = *pos;
 
-      if (!is_within_search_limits(flash, settings))
+      if (!is_within_search_limits(flash, settings, bboxes))
         continue;
 
       // Append to output
