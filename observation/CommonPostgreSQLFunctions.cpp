@@ -339,7 +339,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getF
                 << std::endl;
 
     Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-        Engine::Observation::initializeResultVector(settings.parameters);
+        Engine::Observation::initializeResultVector(settings);
 
     double longitude = std::numeric_limits<double>::max();
     double latitude = std::numeric_limits<double>::max();

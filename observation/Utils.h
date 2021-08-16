@@ -3,6 +3,7 @@
 #define PI 3.14159265358979323846
 
 #include "ParameterMap.h"
+#include "Settings.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/local_time/local_time.hpp>
 #include <boost/optional.hpp>
@@ -103,8 +104,7 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
  */
 // ----------------------------------------------------------------------
 
-Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(
-    const std::vector<SmartMet::Spine::Parameter>& parameters);
+  Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(const Settings &settings);
 
 // ----------------------------------------------------------------------
 /*!

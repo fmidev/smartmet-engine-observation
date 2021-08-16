@@ -9,6 +9,7 @@
 #include <spine/Parameter.h>
 #include <spine/Station.h>
 #include <spine/ValueFormatter.h>
+#include <spine/TimeSeries.h>
 #include <locale>
 #include <ostream>
 #include <set>
@@ -65,6 +66,7 @@ class Settings
   bool useCommonQueryMethod = false;  // default is false
   bool useDataCache = true;           // default is true
   bool preventDatabaseQuery = false;
+  Spine::TimeSeries::LocalTimePoolPtr localTimePool{nullptr};
   // 0 or more bits from DebugOptions to enable debugging features
   uint32_t debug_options = 0;
 };

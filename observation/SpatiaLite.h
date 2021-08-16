@@ -289,41 +289,6 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   void cleanBKHydrometaCache(const boost::posix_time::ptime &newstarttime);
 
   /**
-   * @brief Get the newest observation in ext_obsdata_bk_hydrometa table
-   * @return boost::posix_time::ptime The time of the newest bk_hydrometa observation
-   */
-
-  boost::posix_time::ptime getLatestBKHydrometaDataTime();
-
-  /**
-   * @brief Get the latest creation time in ext_obsdata_bk_hydromate table
-   * @return boost::posix_time::ptime The latest creation time
-   */
-
-  boost::posix_time::ptime getLatestBKHydrometaCreatedTime();
-
-  /**
-   * @brief Get the oldest observation in ext_obsdata_bk_hydrometa table
-
-   * @return boost::posix_time::ptime The time of the oldest bk_hydrometa observation
-   */
-
-  boost::posix_time::ptime getOldestBKHydrometaDataTime();
-
-  /**
-   * @brief Insert cached observations into ext_obsdata_bk_hydrometa table
-   * @param bk_hydrometa observation data to be inserted into the table
-   */
-  std::size_t fillBKHydrometaCache(const MobileExternalDataItems &mobileExternalCacheData,
-                                   InsertStatus &insertStatus);
-
-  /**
-   * @brief Delete old bk_hydrometa observation data from ext_obsdata_roadcloud table
-   * @param timetokeep Delete bk_hydrometa data which is older than given duration
-   */
-  void cleanBKHydrometaCache(const boost::posix_time::ptime &newstarttime);
-
-  /**
    * @brief Get the time of the newest FmiIoT observation in ext_obsdata_roadcloud table
    * @return boost::posix_time::ptime The time of the newest FmiIoT observation
    */

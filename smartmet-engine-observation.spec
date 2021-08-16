@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.8.11
+Version: 21.8.17
 Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -22,7 +22,7 @@ BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 21.8.4
 BuildRequires: smartmet-library-locus-devel >= 21.7.8
 BuildRequires: smartmet-library-macgyver-devel >= 21.8.3
-BuildRequires: smartmet-library-spine-devel >= 21.7.28
+BuildRequires: smartmet-library-spine-devel >= 21.8.17
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -38,7 +38,7 @@ Requires: libconfig
 Requires: smartmet-engine-geonames >= 21.8.4
 Requires: smartmet-library-locus >= 21.7.8
 Requires: smartmet-library-macgyver >= 21.8.3
-Requires: smartmet-library-spine >= 21.7.28
+Requires: smartmet-library-spine >= 21.8.17
 Requires: smartmet-server >= 21.6.3
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
@@ -123,6 +123,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Aug 17 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.8.17-1.fmi
+- Start using local time pool to avoid unnecessary allocations of local_date_time objects (BRAINSTORM-2122)
+
 * Wed Aug 11 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.11-2.fmi
 - Fixed cleaning of observation memory cache
 - Removed sqlite threading_model and memstatus settings as obsolete

@@ -21,6 +21,17 @@ void print_vector(const std::vector<int>& data, const std::string& header, std::
 
 std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings& settings)
 {
+  if (settings.parameters.size() > 0)
+	{
+	  out << "parameters:" << std::endl;
+	  unsigned int i = 0;
+	  for (const auto& p : settings.parameters)
+		out << "parameter #" << i++ << ": " << p.name() << std::endl;
+	}
+  else
+	out << "parameters: none" << std::endl;
+
+
   if (settings.taggedLocations.size() > 0)
   {
     out << "taggedLocations:" << std::endl;
@@ -65,6 +76,8 @@ std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings&
     for (auto item : settings.producer_ids)
       out << item << std::endl;
   }
+  else 
+    out << "producer_ids: none" << std::endl;
 
   out << "cacheKey: " << settings.cacheKey << std::endl;
   out << "format: " << settings.format << std::endl;

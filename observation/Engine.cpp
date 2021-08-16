@@ -370,6 +370,11 @@ Spine::TaggedFMISIDList Engine::translateToFMISID(const boost::posix_time::ptime
 Settings Engine::beforeQuery(const Settings &settings,
                              std::vector<unsigned int> &unknownParameterIndexes) const
 {
+  // LocalTimePool must be created by client plugin, because references to localtimes in the pool 
+  // are used in the result set and they must be valid as log as result set is processed
+  if(settings.localTimePool == nullptr)
+    throw Fmi::Exception::Trace(BCP, "Observation::Settings::localTimePool can not be null!!!");
+
   // Copy original settings
   Settings ret = settings;
   // Clear parameter list
@@ -437,7 +442,7 @@ void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr &tsvPtr,
       SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr(
           new SmartMet::Spine::TimeSeries::TimeSeriesVector);
   for (unsigned int i = 0; i < tsvPtr->size(); i++)
-    result->emplace_back(ts::TimeSeries());
+    result->emplace_back(ts::TimeSeries(settings.localTimePool));
 
   // FMISIDs are in right order in settings.taggedFMISIDs list
   // Iterate the list and copy data from original data structure to result structure
@@ -471,12 +476,20 @@ void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr &tsvPtr,
         throw Fmi::Exception::Trace(BCP, "Internal error indexing data");
       }
 
-      resultVector.insert(
-          resultVector.end(), ts.begin() + firstIndex, ts.begin() + firstIndex + numberOfRows);
+	  SmartMet::Spine::TimeSeries::TimedValueVector::const_iterator it_first = ts.begin();
+	  for(unsigned int i = 0; i < firstIndex; i++)
+		it_first++;
+	  SmartMet::Spine::TimeSeries::TimedValueVector::const_iterator it_last = it_first;
+	  for(unsigned int i = 0; i < numberOfRows; i++)
+		it_last++;
+
+	  //      resultVector.insert(resultVector.end(), ts.begin() + firstIndex, ts.begin() + firstIndex + numberOfRows);
+      resultVector.insert(resultVector.end(), it_first, it_last);
     }
   }
 
   tsvPtr = result;
+
 }
 
 void Engine::reloadStations()

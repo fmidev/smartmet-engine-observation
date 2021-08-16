@@ -1423,7 +1423,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getMobileAndExterna
   try
   {
     SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr ret =
-        initializeResultVector(settings.parameters);
+        initializeResultVector(settings);
 
     const ExternalAndMobileProducerMeasurand &producerMeasurand =
         itsExternalAndMobileProducerConfig.at(settings.stationtype);
@@ -2576,7 +2576,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &
       std::cout << "SpatiaLite: " << query << std::endl;
 
     Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-        initializeResultVector(settings.parameters);
+        initializeResultVector(settings);
 
     int stroke_time = 0;
     double longitude = std::numeric_limits<double>::max();

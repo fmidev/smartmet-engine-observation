@@ -436,8 +436,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
       SmartMet::Spine::TimeSeriesGenerator::LocalTimeList tlist =
           SmartMet::Spine::TimeSeriesGenerator::generate(
               timeSeriesOptions, itsTimeZones.time_zone_from_string(settings.timezone));
-      SmartMet::Spine::TimeSeries::TimeSeries ts_fmisid;
-      SmartMet::Spine::TimeSeries::TimeSeries ts_place;
+      SmartMet::Spine::TimeSeries::TimeSeries ts_fmisid(settings.localTimePool);
+      SmartMet::Spine::TimeSeries::TimeSeries ts_place(settings.localTimePool);
       for (const auto &tfmisid : settings.taggedFMISIDs)
       {
         for (const auto &t : tlist)
