@@ -9,6 +9,7 @@
 #include <boost/date_time/time_duration.hpp>
 #include <boost/make_shared.hpp>
 #include <spine/Convenience.h>
+#include <spine/Reactor.h>
 #include <atomic>
 #include <chrono>
 #include <clocale>
@@ -105,7 +106,7 @@ void PostgreSQLDatabaseDriverForMobileData::makeQuery(QueryBase *qb)
 {
   try
   {
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     if (qb == nullptr)
@@ -207,7 +208,7 @@ void PostgreSQLDatabaseDriverForMobileData::makeQuery(QueryBase *qb)
 
 ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(Settings &settings)
 {
-  if (itsShutdownRequested)
+  if (Spine::Reactor::isShuttingDown())
     return nullptr;
 
   parameterSanityCheck(
@@ -272,7 +273,7 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(Settings &
 Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(
     Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
-  if (itsShutdownRequested)
+  if (Spine::Reactor::isShuttingDown())
     return nullptr;
 
   parameterSanityCheck(
@@ -385,7 +386,8 @@ void PostgreSQLDatabaseDriverForMobileData::readConfig(Spine::ConfigBase &cfg)
       itsParameters.roadCloudCacheDuration =
           Fmi::stoi(driverInfo.params.at("roadCloudCacheDuration"));
       itsParameters.fmiIoTCacheDuration = Fmi::stoi(driverInfo.params.at("fmiIoTCacheDuration"));
-      itsParameters.bkHydrometaCacheDuration = Fmi::stoi(driverInfo.params.at("bkHydrometaCacheDuration"));
+      itsParameters.bkHydrometaCacheDuration =
+          Fmi::stoi(driverInfo.params.at("bkHydrometaCacheDuration"));
     }
 
     // Read part of config in base class

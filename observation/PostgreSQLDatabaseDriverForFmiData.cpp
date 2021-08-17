@@ -9,6 +9,7 @@
 #include <boost/date_time/time_duration.hpp>
 #include <boost/make_shared.hpp>
 #include <spine/Convenience.h>
+#include <spine/Reactor.h>
 #include <atomic>
 #include <chrono>
 #include <clocale>
@@ -107,7 +108,7 @@ void PostgreSQLDatabaseDriverForFmiData::makeQuery(QueryBase *qb)
 {
   try
   {
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     if (qb == nullptr)
@@ -181,7 +182,7 @@ void PostgreSQLDatabaseDriverForFmiData::makeQuery(QueryBase *qb)
 
 ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &settings)
 {
-  if (itsShutdownRequested)
+  if (Spine::Reactor::isShuttingDown())
     return nullptr;
 
   parameterSanityCheck(
@@ -280,7 +281,7 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
 Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
     Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
-  if (itsShutdownRequested)
+  if (Spine::Reactor::isShuttingDown())
     return nullptr;
 
   parameterSanityCheck(

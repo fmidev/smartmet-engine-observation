@@ -75,7 +75,6 @@ class ObservationCacheAdminBase
   const DatabaseDriverParameters& itsParameters;
   const std::shared_ptr<ObservationCacheProxy>& itsCacheProxy;
   SmartMet::Engine::Geonames::Engine* itsGeonames;
-  std::atomic<bool> itsShutdownRequested;
   std::atomic<bool>& itsConnectionsOK;
   bool itsTimer{false};
   Fmi::TimeZones itsTimeZones;

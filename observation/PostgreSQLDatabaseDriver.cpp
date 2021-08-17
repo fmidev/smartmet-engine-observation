@@ -1,6 +1,7 @@
 #include "PostgreSQLDatabaseDriver.h"
 #include "DatabaseDriverInfo.h"
 #include <macgyver/TimeParser.h>
+#include <spine/Reactor.h>
 
 namespace SmartMet
 {
@@ -82,14 +83,10 @@ void PostgreSQLDatabaseDriver::shutdown()
 {
   try
   {
-    itsShutdownRequested = true;
-
     // Shutting down cache connections
     auto cache_admin = itsObservationCacheAdmin.load();
     if (cache_admin)
-    {
       cache_admin->shutdown();
-    }
 
     // Shutting down PostgreSQL connections
     if (itsPostgreSQLConnectionPool != nullptr)
@@ -114,7 +111,7 @@ void PostgreSQLDatabaseDriver::init(Engine *obsengine)
         new ObservationCacheAdminPostgreSQL(
             itsParameters, itsPostgreSQLConnectionPool, getGeonames(), itsConnectionsOK, itsTimer));
 
-    if (!itsShutdownRequested)
+    if (!Spine::Reactor::isShuttingDown())
     {
       itsObservationCacheAdmin.store(cacheAdmin);
       cacheAdmin->init();
@@ -138,7 +135,7 @@ Geonames::Engine *PostgreSQLDatabaseDriver::getGeonames() const
 
 void PostgreSQLDatabaseDriver::reloadStations()
 {
-  if (!itsShutdownRequested && responsibleForLoadingStations())
+  if (!Spine::Reactor::isShuttingDown() && responsibleForLoadingStations())
   {
     auto cache_admin = itsObservationCacheAdmin.load();
     if (cache_admin)
