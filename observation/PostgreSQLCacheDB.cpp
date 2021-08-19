@@ -7,12 +7,14 @@
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeParser.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
+#include <spine/Reactor.h>
 #include <spine/Thread.h>
 #include <spine/TimeSeriesGenerator.h>
 #include <spine/TimeSeriesOutput.h>
 #include <chrono>
 #include <iostream>
 #include <thread>
+
 #ifdef __llvm__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"
@@ -121,7 +123,6 @@ void PostgreSQLCacheDB::createTables(const std::set<std::string> &tables)
 void PostgreSQLCacheDB::shutdown()
 {
   std::cout << "  -- Shutdown requested (PostgreSQLCacheDB)\n";
-  itsShutdownRequested = true;
 }
 
 void PostgreSQLCacheDB::createObservationDataTable()
@@ -353,7 +354,8 @@ void PostgreSQLCacheDB::createBKHydrometaDataTable()
       itsDB.executeNonTransaction(
           "SELECT AddGeometryColumn('ext_obsdata_bk_hydrometa', 'geom', 4326, 'POINT', 2)");
       itsDB.executeNonTransaction(
-          "CREATE INDEX IF NOT EXISTS ext_obsdata_bk_hydrometa_gix ON ext_obsdata_bk_hydrometa USING GIST "
+          "CREATE INDEX IF NOT EXISTS ext_obsdata_bk_hydrometa_gix ON ext_obsdata_bk_hydrometa "
+          "USING GIST "
           "(geom)");
       itsDB.executeNonTransaction(
           "ALTER TABLE ext_obsdata_bk_hydrometa ADD PRIMARY KEY (prod_id,mid,data_time, geom)");
@@ -865,7 +867,7 @@ std::size_t PostgreSQLCacheDB::fillDataCache(const DataItems &cacheData)
 
     while (pos1 < cacheData.size())
     {
-      if (itsShutdownRequested)
+      if (Spine::Reactor::isShuttingDown())
         break;
       // Yield if there is more than 1 block
       if (pos1 > 0)
@@ -1005,7 +1007,7 @@ std::size_t PostgreSQLCacheDB::fillWeatherDataQCCache(const WeatherDataQCItems &
 
     while (pos1 < cacheData.size())
     {
-      if (itsShutdownRequested)
+      if (Spine::Reactor::isShuttingDown())
         break;
 
       // Yield if there is more than 1 block
@@ -1646,7 +1648,8 @@ std::size_t PostgreSQLCacheDB::fillNetAtmoCache(
   }
 }
 
-std::size_t PostgreSQLCacheDB::fillBKHydrometaCache(const MobileExternalDataItems & /*mobileExternalCacheData*/)
+std::size_t PostgreSQLCacheDB::fillBKHydrometaCache(
+    const MobileExternalDataItems & /*mobileExternalCacheData*/)
 {
   return 0;
 }

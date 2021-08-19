@@ -1,6 +1,7 @@
 #include "ObservationCacheAdminPostgreSQL.h"
 #include "PostgreSQLObsDB.h"
 #include "Utils.h"
+#include <spine/Reactor.h>
 
 namespace SmartMet
 {
@@ -139,7 +140,7 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
       return;
     }
 
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
@@ -164,7 +165,7 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
 
     for (Spine::Station& station : newStationInfo->stations)
     {
-      if (itsShutdownRequested)
+      if (Spine::Reactor::isShuttingDown())
         return;
 
       if (station.station_type == "AWS" or station.station_type == "SYNOP" or
@@ -194,7 +195,7 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
         station.isForeignStation = true;
       }
 
-      if (itsShutdownRequested)
+      if (Spine::Reactor::isShuttingDown())
         throw Fmi::Exception(
             BCP, "PostgreSQLDatabaseDriver: Aborting station preload due to shutdown request");
     }

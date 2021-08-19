@@ -49,7 +49,6 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
 
   std::size_t itsConnectionId;
   std::map<unsigned int, std::string> itsPostgreDataTypes;
-  std::atomic<bool> itsShutdownRequested{false};
   bool itsIsCacheDatabase{false};
 
   std::shared_ptr<Fmi::TimeFormatter> itsTimeFormatter;

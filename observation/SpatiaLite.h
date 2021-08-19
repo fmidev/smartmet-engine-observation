@@ -393,8 +393,6 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   std::size_t itsMaxInsertSize;
   const ExternalAndMobileProducerConfig &itsExternalAndMobileProducerConfig;
 
-  std::atomic<bool> itsShutdownRequested;
-
   bool itsReadOnly = false;
 
   boost::posix_time::ptime getLatestTimeFromTable(const std::string &tablename,

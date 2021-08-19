@@ -7,6 +7,7 @@
 #include <boost/date_time/time_duration.hpp>
 #include <boost/make_shared.hpp>
 #include <spine/Convenience.h>
+#include <spine/Reactor.h>
 #include <spine/TimeSeriesOutput.h>
 #include <atomic>
 #include <chrono>
@@ -41,7 +42,7 @@ void SpatiaLiteDatabaseDriver::init(Engine *obsengine)
 
     auto cacheAdmin = boost::make_shared<ObservationCacheAdminSpatiaLite>(
         itsParameters, obsengine->getGeonames(), itsConnectionsOK, false);
-    if (!itsShutdownRequested)
+    if (!Spine::Reactor::isShuttingDown())
     {
       itsObservationCacheAdminSpatiaLite.store(cacheAdmin);
       cacheAdmin->init();
@@ -67,7 +68,7 @@ void SpatiaLiteDatabaseDriver::makeQuery(QueryBase * /* qb */)
 
 ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
 {
-  if (itsShutdownRequested)
+  if (Spine::Reactor::isShuttingDown())
     return nullptr;
 
   parameterSanityCheck(
@@ -109,7 +110,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
 Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
     Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
-  if (itsShutdownRequested)
+  if (Spine::Reactor::isShuttingDown())
     return nullptr;
 
   parameterSanityCheck(

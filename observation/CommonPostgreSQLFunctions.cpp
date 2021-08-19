@@ -46,7 +46,6 @@ CommonPostgreSQLFunctions::~CommonPostgreSQLFunctions()
 void CommonPostgreSQLFunctions::shutdown()
 {
   std::cout << "  -- Shutdown requested (PostgreSQL)\n";
-  itsShutdownRequested = true;
   itsDB.cancel();
 }
 

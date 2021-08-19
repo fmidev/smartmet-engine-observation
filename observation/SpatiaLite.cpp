@@ -11,6 +11,7 @@
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <spine/Convenience.h>
 #include <spine/ParameterTools.h>
+#include <spine/Reactor.h>
 #include <spine/Thread.h>
 #include <spine/TimeSeriesGenerator.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
@@ -192,8 +193,7 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
 SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheParameters &options)
     : CommonDatabaseFunctions(options.stationtypeConfig, options.parameterMap),
       itsMaxInsertSize(options.maxInsertSize),
-      itsExternalAndMobileProducerConfig(options.externalAndMobileProducerConfig),
-      itsShutdownRequested(false)
+      itsExternalAndMobileProducerConfig(options.externalAndMobileProducerConfig)
 {
   try
   {
@@ -317,7 +317,6 @@ void SpatiaLite::createTables(const std::set<std::string> &tables)
 void SpatiaLite::shutdown()
 {
   std::cout << "  -- Shutdown requested (SpatiaLite)\n";
-  itsShutdownRequested = true;
 }
 
 void SpatiaLite::createObservationDataTable()
@@ -1556,7 +1555,7 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
     for (std::size_t pos = 0; pos < cacheData.size(); ++pos)
     {
       // Abort if so requested
-      if (itsShutdownRequested)
+      if (Spine::Reactor::isShuttingDown())
         return 0;
 
       const auto &item = cacheData[pos];
@@ -1667,7 +1666,7 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
     for (std::size_t pos = 0; pos < cacheData.size(); ++pos)
     {
       // Abort if so requested
-      if (itsShutdownRequested)
+      if (Spine::Reactor::isShuttingDown())
         return 0;
 
       const auto &item = cacheData[pos];
@@ -1808,7 +1807,7 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &cacheData,
     for (std::size_t pos = 0, n = cacheData.size(); pos < n; ++pos)
     {
       // Abort if so requested
-      if (itsShutdownRequested)
+      if (Spine::Reactor::isShuttingDown())
         return 0;
 
       const auto &item = cacheData[pos];
@@ -1942,7 +1941,7 @@ std::size_t SpatiaLite::fillRoadCloudCache(const MobileExternalDataItems &mobile
     }
 
     // Abort if so requested
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return 0;
 
     // Abort if nothing to do
@@ -1957,7 +1956,7 @@ std::size_t SpatiaLite::fillRoadCloudCache(const MobileExternalDataItems &mobile
 
     while (pos1 < new_items.size())
     {
-      if (itsShutdownRequested)
+      if (Spine::Reactor::isShuttingDown())
         return 0;
 
       sqlite3pp::transaction xct(itsDB);
@@ -2086,7 +2085,7 @@ std::size_t SpatiaLite::fillNetAtmoCache(const MobileExternalDataItems &mobileEx
     }
 
     // Abort if so requested
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return 0;
 
     // Abort if nothing to do
@@ -2101,7 +2100,7 @@ std::size_t SpatiaLite::fillNetAtmoCache(const MobileExternalDataItems &mobileEx
 
     while (pos1 < new_items.size())
     {
-      if (itsShutdownRequested)
+      if (Spine::Reactor::isShuttingDown())
         return 0;
 
       sqlite3pp::transaction xct(itsDB);
@@ -2230,7 +2229,7 @@ std::size_t SpatiaLite::fillBKHydrometaCache(const MobileExternalDataItems &mobi
     }
 
     // Abort if so requested
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return 0;
 
     // Abort if nothing to do
@@ -2245,7 +2244,7 @@ std::size_t SpatiaLite::fillBKHydrometaCache(const MobileExternalDataItems &mobi
 
     while (pos1 < new_items.size())
     {
-      if (itsShutdownRequested)
+      if (Spine::Reactor::isShuttingDown())
         return 0;
 
       sqlite3pp::transaction xct(itsDB);
@@ -2374,7 +2373,7 @@ std::size_t SpatiaLite::fillFmiIoTCache(const MobileExternalDataItems &mobileExt
     }
 
     // Abort if so requested
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return 0;
 
     // Abort if nothing to do
@@ -2389,7 +2388,7 @@ std::size_t SpatiaLite::fillFmiIoTCache(const MobileExternalDataItems &mobileExt
 
     while (pos1 < new_items.size())
     {
-      if (itsShutdownRequested)
+      if (Spine::Reactor::isShuttingDown())
         return 0;
 
       sqlite3pp::transaction xct(itsDB);

@@ -66,7 +66,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: zlib-devel
 #TestRequires: smartmet-engine-geonames >= 21.8.17
 #TestRequires: smartmet-library-macgyver >= 21.8.5
-#TestRequires: smartmet-library-spine >= 21.7.28
+#TestRequires: smartmet-library-spine >= 21.8.17
 #TestRequires: smartmet-test-data
 
 %if 0%{rhel} >= 8
@@ -125,6 +125,12 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Thu Aug 19 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.19-1.fmi
 - Start using local time pool to avoid unnecessary allocations of local_date_time objects (BRAINSTORM-2122)
+
+* Tue Aug 17 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.17-1.fmi
+- Use new shutdown API
+
+* Mon Aug 16 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.16-1.fmi
+- Faster bbox searches for lightning data in the memory cache
 
 * Wed Aug 11 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.11-2.fmi
 - Fixed cleaning of observation memory cache

@@ -93,7 +93,6 @@ class DatabaseDriverBase
   std::shared_ptr<ObservationCache> resolveCache(const std::string &producer,
                                                  const EngineParametersPtr &parameters) const;
 
-  std::atomic<bool> itsShutdownRequested{false};
   std::set<std::string> itsSupportedProducers;
   std::string itsDriverName;
   std::map<std::string, MetaData> itsMetaData;

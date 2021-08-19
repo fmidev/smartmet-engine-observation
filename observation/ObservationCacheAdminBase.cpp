@@ -2,6 +2,7 @@
 #include "Utils.h"
 #include <macgyver/AnsiEscapeCodes.h>
 #include <spine/Convenience.h>
+#include <spine/Reactor.h>
 
 namespace SmartMet
 {
@@ -16,7 +17,6 @@ ObservationCacheAdminBase::ObservationCacheAdminBase(const DatabaseDriverParamet
     : itsParameters(parameters),
       itsCacheProxy(parameters.params->observationCacheProxy),
       itsGeonames(geonames),
-      itsShutdownRequested(false),
       itsConnectionsOK(conn_ok),
       itsTimer(timer),
       itsBackgroundTasks(new Fmi::AsyncTaskGroup)
@@ -36,7 +36,6 @@ ObservationCacheAdminBase::~ObservationCacheAdminBase() = default;
 
 void ObservationCacheAdminBase::shutdown()
 {
-  itsShutdownRequested = true;
   itsBackgroundTasks->stop();
   itsCacheProxy->shutdown();
 }
@@ -248,7 +247,7 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
 {
   try
   {
-    if (itsShutdownRequested || (tables.empty() && !itsParameters.loadStations))
+    if (Spine::Reactor::isShuttingDown() || (tables.empty() && !itsParameters.loadStations))
       return;
 
     if (itsParameters.loadStations)
@@ -428,13 +427,13 @@ void ObservationCacheAdminBase::emulateFlashCacheUpdate(
                   << std::endl;
         cacheData.clear();
       }
-      if (itsShutdownRequested)
+      if (Spine::Reactor::isShuttingDown())
         return;
     }
     time_iter += boost::posix_time::seconds(number_of_seconds);
   }
 
-  if (itsShutdownRequested)
+  if (Spine::Reactor::isShuttingDown())
     return;
 
   if (cacheData.size() > 0)
@@ -495,7 +494,7 @@ void ObservationCacheAdminBase::updateFlashCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     {
@@ -510,7 +509,7 @@ void ObservationCacheAdminBase::updateFlashCache() const
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
                   << " ms" << std::endl;
     }
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     // Delete too old flashes from the Cache database
@@ -571,7 +570,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
 {
   try
   {
-    if (itsShutdownRequested || itsParameters.disableAllCacheUpdates)
+    if (Spine::Reactor::isShuttingDown() || itsParameters.disableAllCacheUpdates)
       return;
 
     // The time of the last observation in the cache
@@ -607,7 +606,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     {
@@ -622,7 +621,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     // Delete too old observations from the Cache database
@@ -681,7 +680,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
 {
   try
   {
-    if (itsShutdownRequested || itsParameters.disableAllCacheUpdates)
+    if (Spine::Reactor::isShuttingDown() || itsParameters.disableAllCacheUpdates)
       return;
 
     std::shared_ptr<ObservationCache> weatherDataQCCache = getCache(WEATHER_DATA_QC_TABLE);
@@ -710,7 +709,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     {
@@ -725,7 +724,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     // Delete too old observations from the Cache database
@@ -752,7 +751,7 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
 {
   try
   {
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     std::shared_ptr<ObservationCache> netatmoCache = getCache(NETATMO_DATA_TABLE);
@@ -816,7 +815,7 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     {
@@ -832,7 +831,7 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     // Delete too old observations from the Cache database
@@ -860,7 +859,7 @@ void ObservationCacheAdminBase::updateBKHydrometaCache() const
 {
   try
   {
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     std::shared_ptr<ObservationCache> bkHydrometaCache = getCache(BK_HYDROMETA_DATA_TABLE);
@@ -924,7 +923,7 @@ void ObservationCacheAdminBase::updateBKHydrometaCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     {
@@ -940,7 +939,7 @@ void ObservationCacheAdminBase::updateBKHydrometaCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     // Delete too old observations from the Cache database
@@ -968,7 +967,7 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
 {
   try
   {
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     std::shared_ptr<ObservationCache> roadcloudCache = getCache(ROADCLOUD_DATA_TABLE);
@@ -1033,7 +1032,7 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     {
@@ -1049,7 +1048,7 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     // Delete too old observations from the Cache database
@@ -1078,7 +1077,7 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
 {
   try
   {
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     std::shared_ptr<ObservationCache> fmiIoTCache = getCache(FMI_IOT_DATA_TABLE);
@@ -1142,7 +1141,7 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     {
@@ -1158,7 +1157,7 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
                   << " ms" << std::endl;
     }
 
-    if (itsShutdownRequested)
+    if (Spine::Reactor::isShuttingDown())
       return;
 
     // Delete too old observations from the Cache database
@@ -1186,7 +1185,7 @@ void ObservationCacheAdminBase::updateObservationCacheLoop()
 {
   try
   {
-    while (!itsShutdownRequested)
+    while (!Spine::Reactor::isShuttingDown())
     {
       Fmi::AsyncTask::interruption_point();
       try
@@ -1219,7 +1218,7 @@ void ObservationCacheAdminBase::updateFlashCacheLoop()
 {
   try
   {
-    while (!itsShutdownRequested)
+    while (!Spine::Reactor::isShuttingDown())
     {
       Fmi::AsyncTask::interruption_point();
       try
@@ -1251,7 +1250,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCacheLoop()
 {
   try
   {
-    while (!itsShutdownRequested)
+    while (!Spine::Reactor::isShuttingDown())
     {
       Fmi::AsyncTask::interruption_point();
       try
@@ -1283,7 +1282,7 @@ void ObservationCacheAdminBase::updateNetAtmoCacheLoop()
 {
   try
   {
-    while (!itsShutdownRequested)
+    while (!Spine::Reactor::isShuttingDown())
     {
       Fmi::AsyncTask::interruption_point();
       try
@@ -1315,7 +1314,7 @@ void ObservationCacheAdminBase::updateBKHydrometaCacheLoop()
 {
   try
   {
-    while (!itsShutdownRequested)
+    while (!Spine::Reactor::isShuttingDown())
     {
       Fmi::AsyncTask::interruption_point();
       try
@@ -1347,7 +1346,7 @@ void ObservationCacheAdminBase::updateRoadCloudCacheLoop()
 {
   try
   {
-    while (!itsShutdownRequested)
+    while (!Spine::Reactor::isShuttingDown())
     {
       Fmi::AsyncTask::interruption_point();
       try
@@ -1379,7 +1378,7 @@ void ObservationCacheAdminBase::updateFmiIoTCacheLoop()
 {
   try
   {
-    while (!itsShutdownRequested)
+    while (!Spine::Reactor::isShuttingDown())
     {
       Fmi::AsyncTask::interruption_point();
       try
@@ -1411,7 +1410,7 @@ void ObservationCacheAdminBase::updateStationsCacheLoop()
 {
   try
   {
-    while (!itsShutdownRequested)
+    while (!Spine::Reactor::isShuttingDown())
     {
       Fmi::AsyncTask::interruption_point();
       try
