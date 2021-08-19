@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.8.17
-Release: 2%{?dist}.fmi
+Version: 21.8.19
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -19,10 +19,10 @@ BuildRequires: libatomic
 BuildRequires: libconfig-devel
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 21.8.4
-BuildRequires: smartmet-library-locus-devel >= 21.7.8
-BuildRequires: smartmet-library-macgyver-devel >= 21.8.3
-BuildRequires: smartmet-library-spine-devel >= 21.8.17
+BuildRequires: smartmet-engine-geonames-devel >= 21.8.17
+BuildRequires: smartmet-library-locus-devel >= 21.8.11
+BuildRequires: smartmet-library-macgyver-devel >= 21.8.5
+BuildRequires: smartmet-library-spine-devel >= 21.8.19
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -35,10 +35,10 @@ Requires: fmt >= 7.1.3
 Requires: gdal32-libs
 Requires: libatomic
 Requires: libconfig
-Requires: smartmet-engine-geonames >= 21.8.4
-Requires: smartmet-library-locus >= 21.7.8
-Requires: smartmet-library-macgyver >= 21.8.3
-Requires: smartmet-library-spine >= 21.8.17
+Requires: smartmet-engine-geonames >= 21.8.17
+Requires: smartmet-library-locus >= 21.8.11
+Requires: smartmet-library-macgyver >= 21.8.5
+Requires: smartmet-library-spine >= 21.8.19
 Requires: smartmet-server >= 21.6.3
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
@@ -64,8 +64,8 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 21.8.4
-#TestRequires: smartmet-library-macgyver >= 21.8.3
+#TestRequires: smartmet-engine-geonames >= 21.8.17
+#TestRequires: smartmet-library-macgyver >= 21.8.5
 #TestRequires: smartmet-library-spine >= 21.7.28
 #TestRequires: smartmet-test-data
 
@@ -123,7 +123,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Tue Aug 17 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.8.17-1.fmi
+* Thu Aug 19 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.19-1.fmi
 - Start using local time pool to avoid unnecessary allocations of local_date_time objects (BRAINSTORM-2122)
 
 * Wed Aug 11 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.11-2.fmi
