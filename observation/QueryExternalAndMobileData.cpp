@@ -165,7 +165,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
     Fmi::Database::PostgreSQLConnection &conn = db.getConnection();
     pqxx::result result_set = conn.executeNonTransaction(sqlStmt);
     for (unsigned int i = 0; i <= queryfields.size(); i++)
-      ret->emplace_back(ts::TimeSeries());
+      ret->emplace_back(ts::TimeSeries(settings.localTimePool));
 
     SmartMet::Spine::TimeSeriesGenerator::LocalTimeList tlist;
     // The desired timeseries, unless all available data if timestep=0 or latest only

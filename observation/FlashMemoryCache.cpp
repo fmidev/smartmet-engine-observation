@@ -205,7 +205,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr FlashMemoryCache::getData(
 
   try
   {
-    auto result = initializeResultVector(settings.parameters);
+    auto result = initializeResultVector(settings);
 
     auto cache = itsFlashData.load();
 

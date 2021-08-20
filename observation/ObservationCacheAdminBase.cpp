@@ -212,16 +212,14 @@ void ObservationCacheAdminBase::init()
 
       if (bkHydrometaCache)
       {
-        bkHydrometaCache->cleanBKHydrometaCache(
-            boost::posix_time::hours(itsParameters.bkHydrometaCacheDuration));
+        bkHydrometaCache->cleanBKHydrometaCache(boost::posix_time::hours(itsParameters.bkHydrometaCacheDuration));
 
         if (itsParameters.bkHydrometaCacheUpdateInterval > 0)
         {
-          itsBackgroundTasks->add("Init bk_hydrometa cache",
-                                  [this]() { updateBKHydrometaCache(); });
+          itsBackgroundTasks->add("Init bk_hydrometa cache", [this]() { updateBKHydrometaCache(); });
         }
       }
-    }
+    }	  
 
     // If stations info does not exist (stations.txt file  missing), load info from database
     if (itsParameters.loadStations)
@@ -312,11 +310,10 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
       itsBackgroundTasks->add("fmi_iot cache update loop", [this]() { updateFmiIoTCacheLoop(); });
     }
 
-    if (tables.find(BK_HYDROMETA_DATA_TABLE) != tables.end() &&
+	if (tables.find(BK_HYDROMETA_DATA_TABLE) != tables.end() &&
         itsParameters.bkHydrometaCacheUpdateInterval > 0)
     {
-      itsBackgroundTasks->add("bk_hydrometa cache update loop",
-                              [this]() { updateBKHydrometaCacheLoop(); });
+      itsBackgroundTasks->add("bk_hydrometa cache update loop", [this]() { updateBKHydrometaCacheLoop(); });
     }
   }
   catch (...)
@@ -870,8 +867,7 @@ void ObservationCacheAdminBase::updateBKHydrometaCache() const
     std::vector<MobileExternalDataItem> cacheData;
 
     boost::posix_time::ptime last_time = bkHydrometaCache->getLatestBKHydrometaDataTime();
-    boost::posix_time::ptime last_created_time =
-        bkHydrometaCache->getLatestBKHydrometaCreatedTime();
+    boost::posix_time::ptime last_created_time = bkHydrometaCache->getLatestBKHydrometaCreatedTime();
 
     // Make sure the time is not in the future
     boost::posix_time::ptime now = boost::posix_time::second_clock::universal_time();
@@ -915,8 +911,7 @@ void ObservationCacheAdminBase::updateBKHydrometaCache() const
     {
       auto begin = std::chrono::high_resolution_clock::now();
 
-      readMobileCacheData(
-          BK_HYDROMETA_PRODUCER, cacheData, last_time, last_created_time, itsTimeZones);
+      readMobileCacheData(BK_HYDROMETA_PRODUCER, cacheData, last_time, last_created_time, itsTimeZones);
 
       auto end = std::chrono::high_resolution_clock::now();
 
@@ -964,8 +959,7 @@ void ObservationCacheAdminBase::updateBKHydrometaCache() const
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(
-        BCP, ("Updating " + std::string(BK_HYDROMETA_PRODUCER) + " cache failed!"));
+	throw Fmi::Exception::Trace(BCP, ("Updating " + std::string(BK_HYDROMETA_PRODUCER) + " cache failed!"));
   }
 }
 

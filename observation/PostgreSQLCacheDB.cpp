@@ -1683,7 +1683,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAnd
 {
   try
   {
-    Spine::TimeSeries::TimeSeriesVectorPtr ret = initializeResultVector(settings.parameters);
+    Spine::TimeSeries::TimeSeriesVectorPtr ret = initializeResultVector(settings);
 
     const ExternalAndMobileProducerMeasurand &producerMeasurand =
         itsExternalAndMobileProducerConfig.at(settings.stationtype);

@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.8.17
+Version: 21.8.19
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -22,7 +22,7 @@ BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 21.8.17
 BuildRequires: smartmet-library-locus-devel >= 21.8.11
 BuildRequires: smartmet-library-macgyver-devel >= 21.8.5
-BuildRequires: smartmet-library-spine-devel >= 21.8.17
+BuildRequires: smartmet-library-spine-devel >= 21.8.19
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -38,7 +38,7 @@ Requires: libconfig
 Requires: smartmet-engine-geonames >= 21.8.17
 Requires: smartmet-library-locus >= 21.8.11
 Requires: smartmet-library-macgyver >= 21.8.5
-Requires: smartmet-library-spine >= 21.8.17
+Requires: smartmet-library-spine >= 21.8.19
 Requires: smartmet-server >= 21.6.3
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
@@ -123,6 +123,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Aug 19 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.19-1.fmi
+- Start using local time pool to avoid unnecessary allocations of local_date_time objects (BRAINSTORM-2122)
+
 * Tue Aug 17 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.17-1.fmi
 - Use new shutdown API
 

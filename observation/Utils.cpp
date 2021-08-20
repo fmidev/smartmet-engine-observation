@@ -625,15 +625,14 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
   return {};
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(
-    const std::vector<SmartMet::Spine::Parameter>& parameters)
+Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(const Settings &settings)
 {
   Spine::TimeSeries::TimeSeriesVectorPtr ret =
       boost::make_shared<Spine::TimeSeries::TimeSeriesVector>();
 
   // Set timeseries objects for each requested parameter
-  for (unsigned int i = 0; i < parameters.size(); i++)
-    ret->emplace_back(Spine::TimeSeries::TimeSeries());
+  for (unsigned int i = 0; i < settings.parameters.size(); i++)
+    ret->emplace_back(Spine::TimeSeries::TimeSeries(settings.localTimePool));
 
   return ret;
 }
