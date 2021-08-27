@@ -1,4 +1,5 @@
 #include "PostgreSQLObsDB.h"
+#include "AsDouble.h"
 #include "ExternalAndMobileDBInfo.h"
 #include "PostgreSQLCacheDB.h"
 #include "Utils.h"
@@ -128,18 +129,18 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
       Fmi::AsyncTask::interruption_point();
 
       DataItem item;
-      item.fmisid = row[0].as<int>();
-      item.sensor_no = row[1].as<int>();
-      item.measurand_id = row[2].as<int>();
-      item.producer_id = row[3].as<int>();
-      item.measurand_no = row[4].as<int>();
+      item.fmisid = as_int(row[0]);
+      item.sensor_no = as_int(row[1]);
+      item.measurand_id = as_int(row[2]);
+      item.producer_id = as_int(row[3]);
+      item.measurand_no = as_int(row[4]);
       item.data_time = boost::posix_time::from_time_t(row[5].as<time_t>());
       if (!row[6].is_null())
-        item.data_value = row[6].as<double>();
+        item.data_value = as_double(row[6]);
       if (!row[7].is_null())
-        item.data_quality = row[7].as<int>();
+        item.data_quality = as_int(row[7]);
       if (!row[8].is_null())
-        item.data_source = row[8].as<int>();
+        item.data_source = as_int(row[8]);
       item.modified_last = boost::posix_time::from_time_t(row[9].as<time_t>());
 
       cacheData.emplace_back(item);
@@ -232,35 +233,35 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem
 
       FlashDataItem item;
 
-      int epoch = row[0].as<int>();
+      int epoch = as_int(row[0]);
       item.stroke_time = epoch2ptime(epoch);
-      item.stroke_time_fraction = row[1].as<int>();
-      item.flash_id = row[2].as<int>();
-      item.multiplicity = row[3].as<int>();
-      item.peak_current = row[4].as<int>();
-      item.sensors = row[5].as<int>();
-      item.freedom_degree = row[6].as<int>();
-      item.ellipse_angle = row[7].as<double>();
-      item.ellipse_major = row[8].as<double>();
-      item.ellipse_minor = row[9].as<double>();
-      item.chi_square = row[10].as<double>();
-      item.rise_time = row[11].as<double>();
-      item.ptz_time = row[12].as<double>();
-      item.cloud_indicator = row[13].as<int>();
-      item.angle_indicator = row[14].as<int>();
-      item.signal_indicator = row[15].as<int>();
-      item.timing_indicator = row[16].as<int>();
-      item.stroke_status = row[17].as<int>();
+      item.stroke_time_fraction = as_int(row[1]);
+      item.flash_id = as_int(row[2]);
+      item.multiplicity = as_int(row[3]);
+      item.peak_current = as_int(row[4]);
+      item.sensors = as_int(row[5]);
+      item.freedom_degree = as_int(row[6]);
+      item.ellipse_angle = as_double(row[7]);
+      item.ellipse_major = as_double(row[8]);
+      item.ellipse_minor = as_double(row[9]);
+      item.chi_square = as_double(row[10]);
+      item.rise_time = as_double(row[11]);
+      item.ptz_time = as_double(row[12]);
+      item.cloud_indicator = as_int(row[13]);
+      item.angle_indicator = as_int(row[14]);
+      item.signal_indicator = as_int(row[15]);
+      item.timing_indicator = as_int(row[16]);
+      item.stroke_status = as_int(row[17]);
       if (!row[18].is_null())
-        item.data_source = row[18].as<int>();
-      int created = row[19].as<int>();
+        item.data_source = as_int(row[18]);
+      int created = as_int(row[19]);
       item.created = epoch2ptime(created);
-      int modified_last = row[20].as<int>();
+      int modified_last = as_int(row[20]);
       item.modified_last = epoch2ptime(modified_last);
       if (!row[21].is_null())
-        item.modified_by = row[21].as<int>();
-      item.longitude = row[22].as<double>();
-      item.latitude = row[23].as<double>();
+        item.modified_by = as_int(row[21]);
+      item.longitude = as_double(row[22]);
+      item.latitude = as_double(row[23]);
       cacheData.push_back(item);
     }
   }
@@ -367,13 +368,13 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
       }
       WeatherDataQCItem item;
 
-      item.fmisid = row[0].as<int>();
+      item.fmisid = as_int(row[0]);
       item.obstime = boost::posix_time::from_time_t(row[1].as<time_t>());
       item.parameter = row[2].as<std::string>();
-      item.sensor_no = row[3].as<int>();
+      item.sensor_no = as_int(row[3]);
       if (!row[4].is_null())
-        item.value = row[4].as<double>();
-      item.flag = row[5].as<int>();
+        item.value = as_double(row[4]);
+      item.flag = as_int(row[5]);
       item.modified_last = boost::posix_time::from_time_t(row[6].as<time_t>());
 
       cacheData.emplace_back(item);
@@ -543,16 +544,16 @@ LocationDataItems PostgreSQLObsDB::readObservations(const Spine::Stations &stati
     {
       Fmi::AsyncTask::interruption_point();
       LocationDataItem obs;
-      obs.data.fmisid = row[0].as<int>();
-      obs.data.sensor_no = row[1].as<int>();
+      obs.data.fmisid = as_int(row[0]);
+      obs.data.sensor_no = as_int(row[1]);
       obs.data.data_time = boost::posix_time::from_time_t(row[2].as<time_t>());
-      obs.data.measurand_id = row[3].as<int>();
+      obs.data.measurand_id = as_int(row[3]);
       if (!row[4].is_null())
-        obs.data.data_value = row[4].as<double>();
+        obs.data.data_value = as_double(row[4]);
       if (!row[5].is_null())
-        obs.data.data_quality = row[5].as<int>();
+        obs.data.data_quality = as_int(row[5]);
       if (!row[6].is_null())
-        obs.data.data_source = row[6].as<int>();
+        obs.data.data_source = as_int(row[6]);
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(obs.data.fmisid, stationgroup_codes);
       obs.latitude = s.latitude_out;
@@ -591,7 +592,7 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
     for (auto row : result_set)
     {
       Fmi::AsyncTask::interruption_point();
-      boost::optional<int> fmisid = row[0].as<int>();
+      boost::optional<int> fmisid = as_int(row[0]);
       boost::posix_time::ptime obstime = boost::posix_time::from_time_t(row[1].as<time_t>());
       boost::optional<std::string> parameter = row[2].as<std::string>();
       int int_parameter = itsParameterMap->getRoadAndForeignIds().stringToInteger(*parameter);
@@ -616,11 +617,11 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       boost::optional<int> data_quality;
       boost::optional<int> sensor_no;
       if (!row[3].is_null())
-        data_value = row[3].as<double>();
+        data_value = as_double(row[3]);
       if (!row[4].is_null())
-        sensor_no = row[4].as<int>();
+        sensor_no = as_int(row[4]);
       if (!row[5].is_null())
-        data_quality = row[5].as<int>();
+        data_quality = as_int(row[5]);
 
       cacheData.fmisidsAll.push_back(fmisid);
       cacheData.obstimesAll.push_back(obstime);
@@ -722,15 +723,15 @@ void PostgreSQLObsDB::translateToIdFunction(SmartMet::Spine::Stations &stations,
       {
         if (net_id == 10)
         {
-          s.lpnn = row[0].as<int>();
+          s.lpnn = as_int(row[0]);
         }
         else if (net_id == 20)
         {
-          s.wmo = row[0].as<int>();
+          s.wmo = as_int(row[0]);
         }
         else if (net_id == 30)
         {
-          s.rwsid = row[0].as<int>();
+          s.rwsid = as_int(row[0]);
         }
       }
       break;
@@ -827,8 +828,8 @@ void PostgreSQLObsDB::getStations(SmartMet::Spine::Stations &stations) const
       std::string station_start, station_end;
       SmartMet::Spine::Station s;
       s.station_type = row[0].as<std::string>();
-      s.station_id = row[1].as<int>();
-      s.access_policy_id = row[2].as<int>();
+      s.station_id = as_int(row[1]);
+      s.access_policy_id = as_int(row[2]);
 
       // Skip private stations unless EXTRWYWS (runway stations)
       if (s.access_policy_id != 0 && s.station_type != "EXTRWYWS")
@@ -846,25 +847,25 @@ void PostgreSQLObsDB::getStations(SmartMet::Spine::Stations &stations) const
       s.distance = "-1";
       s.stationDirection = -1;
 
-      s.station_status_id = row[3].as<int>();
+      s.station_status_id = as_int(row[3]);
       s.language_code = row[4].as<std::string>();
       s.station_formal_name = row[5].as<std::string>();
       station_start = row[6].as<std::string>();
       station_end = row[9].as<std::string>();
       s.station_start = boost::posix_time::time_from_string(row[7].as<std::string>());
       s.station_end = boost::posix_time::time_from_string(row[8].as<std::string>());
-      s.target_category = row[10].as<int>();
+      s.target_category = as_int(row[10]);
       s.stationary = row[11].as<std::string>();
       if (!row[12].is_null())
-        s.lpnn = row[12].as<int>();
+        s.lpnn = as_int(row[12]);
       if (!row[13].is_null())
-        s.wmo = row[13].as<int>();
+        s.wmo = as_int(row[13]);
       if (!row[14].is_null())
-        s.longitude_out = row[14].as<double>();
+        s.longitude_out = as_double(row[14]);
       if (!row[15].is_null())
-        s.latitude_out = row[15].as<double>();
+        s.latitude_out = as_double(row[15]);
       s.modified_last = boost::posix_time::time_from_string(row[17].as<std::string>());
-      s.modified_by = row[18].as<int>();
+      s.modified_by = as_int(row[18]);
 
       stations.push_back(s);
     }
@@ -890,14 +891,14 @@ void PostgreSQLObsDB::readStationLocations(StationLocations &stationLocations) c
       if (row[5].is_null() || row[6].is_null() || row[7].is_null())
         continue;
       StationLocation item;
-      item.location_id = row[0].as<int>();
-      item.fmisid = row[1].as<int>();
-      item.country_id = row[2].as<int>();
+      item.location_id = as_int(row[0]);
+      item.fmisid = as_int(row[1]);
+      item.country_id = as_int(row[2]);
       item.location_start = boost::posix_time::time_from_string(row[3].as<std::string>());
       item.location_end = boost::posix_time::time_from_string(row[4].as<std::string>());
-      item.longitude = row[5].as<double>();
-      item.latitude = row[6].as<double>();
-      item.elevation = row[7].as<double>();
+      item.longitude = as_double(row[5]);
+      item.latitude = as_double(row[6]);
+      item.elevation = as_double(row[7]);
 
       stationLocations[item.fmisid].push_back(item);
     }

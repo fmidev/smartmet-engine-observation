@@ -1,4 +1,5 @@
 #include "QueryObservablePropertyPostgreSQL.h"
+#include "AsDouble.h"
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 
@@ -67,7 +68,7 @@ std::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostgre
       std::string aggregationTimePeriod;
 
       if (!row[0].is_null())
-        measurandId = row[0].as<int>();
+        measurandId = as_int(row[0]);
       if (!row[1].is_null())
         measurandCode = row[1].as<std::string>();
       if (!row[2].is_null())
