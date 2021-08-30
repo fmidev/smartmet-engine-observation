@@ -7,7 +7,6 @@
 #include "SpatiaLiteCacheParameters.h"
 #include "SpatiaLiteConnectionPool.h"
 #include "StationtypeConfig.h"
-#include <macgyver/Cache.h>
 #include <string>
 
 namespace SmartMet
@@ -112,6 +111,8 @@ class SpatiaLiteCache : public ObservationCache
 
   void cleanMemoryDataCache(const boost::posix_time::ptime &newstarttime) const;
 
+  Fmi::Cache::CacheStatistics getCacheStats() const override;
+
  private:
   Spine::Stations getStationsFromSpatiaLite(Settings &settings,
                                             std::shared_ptr<SpatiaLite> spatialitedb);
@@ -169,6 +170,8 @@ class SpatiaLiteCache : public ObservationCache
   // Memory caches smaller than the spatialite cache itself
   std::unique_ptr<ObservationMemoryCache> itsObservationMemoryCache;
   std::unique_ptr<FlashMemoryCache> itsFlashMemoryCache;
+  // Cache statistics
+  mutable Fmi::Cache::CacheStatistics itsCacheStatistics;
 };
 
 }  // namespace Observation

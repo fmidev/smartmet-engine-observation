@@ -12,8 +12,6 @@
 #include <spine/TimeSeries.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
 
-#include <macgyver/Cache.h>
-
 #include <string>
 
 namespace SmartMet

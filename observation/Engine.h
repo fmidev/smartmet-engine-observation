@@ -119,7 +119,9 @@ class Engine : public SmartMet::Spine::SmartMetEngine
 
   MetaData metaData(const std::string &producer) const;
 
-  // Translates WMO,RWID,LPNN,GEOID,Bounding box to FMISID
+  /* \brief Translates WMO,RWID,LPNN,GEOID,Bounding box to FMISID
+   * \return List of FMISIDs
+   */
   Spine::TaggedFMISIDList translateToFMISID(const boost::posix_time::ptime &starttime,
                                             const boost::posix_time::ptime &endtime,
                                             const std::string &stationtype,
@@ -140,6 +142,8 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   void afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr &tsvPtr,
                   const Settings &settings,
                   const std::vector<unsigned int> &unknownParameterIndexes) const;
+
+  Fmi::Cache::CacheStatistics getCacheStats() const;
 
   std::string itsConfigFile;
 

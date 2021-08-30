@@ -8,7 +8,6 @@
 #include "SpatiaLiteOptions.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
-#include <macgyver/Cache.h>
 #include <spine/Station.h>
 #include <spine/TimeSeries.h>
 #include <spine/TimeSeriesGeneratorOptions.h>

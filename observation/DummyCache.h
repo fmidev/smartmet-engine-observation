@@ -4,8 +4,6 @@
 #include "ObservationCache.h"
 #include "Settings.h"
 
-#include <macgyver/Cache.h>
-
 #include <string>
 
 namespace SmartMet

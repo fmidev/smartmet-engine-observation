@@ -7,8 +7,6 @@
 #include "Settings.h"
 #include "StationtypeConfig.h"
 
-#include <macgyver/Cache.h>
-
 #include <string>
 
 namespace SmartMet
@@ -147,6 +145,8 @@ class PostgreSQLCache : public ObservationCache
   mutable boost::posix_time::ptime itsFmiIoTTimeIntervalEnd;
 
   std::unique_ptr<ObservationMemoryCache> itsObservationMemoryCache;
+  // Cache statistics
+  mutable Fmi::Cache::CacheStatistics itsCacheStatistics;
 };
 
 }  // namespace Observation

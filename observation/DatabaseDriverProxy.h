@@ -53,6 +53,8 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
   std::string id() const override;
   std::string name() const override;
 
+  Fmi::Cache::CacheStatistics getCacheStats() const override;
+
  private:
   const StationtypeConfig &itsStationtypeConfig;
   DatabaseDriverContainer itsDatabaseDriverContainer;

@@ -11,6 +11,7 @@
 #include <spine/Station.h>
 #include <spine/TimeSeries.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
+#include <macgyver/CacheStats.h>
 
 namespace SmartMet
 {
@@ -56,6 +57,7 @@ class DatabaseDriverInterface
   virtual void reloadStations() = 0;
   virtual std::string id() const = 0;
   virtual std::string name() const = 0;
+  virtual Fmi::Cache::CacheStatistics getCacheStats() const = 0;
 
  protected:
   DatabaseDriverInterface() = default;

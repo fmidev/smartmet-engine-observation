@@ -8,10 +8,10 @@
 #include "Settings.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
-#include <macgyver/Cache.h>
 #include <spine/Station.h>
 #include <spine/TimeSeries.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
+#include <macgyver/CacheStats.h>
 #include <string>
 
 namespace SmartMet
@@ -96,6 +96,7 @@ class ObservationCache
   virtual std::size_t fillFmiIoTCache(
       const MobileExternalDataItems &mobileExternalCacheData) const = 0;
   virtual void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const = 0;
+  virtual Fmi::Cache::CacheStatistics getCacheStats() const { return Fmi::Cache::CacheStatistics(); }
 
   virtual void shutdown() = 0;
 
