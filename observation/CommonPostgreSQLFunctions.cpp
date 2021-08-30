@@ -1,4 +1,5 @@
 #include "CommonPostgreSQLFunctions.h"
+#include "AsDouble.h"
 #include "Utils.h"
 #include <gis/OGR.h>
 #include <macgyver/Exception.h>
@@ -190,16 +191,16 @@ Engine::Observation::LocationDataItems CommonPostgreSQLFunctions::readObservatio
     for (auto row : result_set)
     {
       Engine::Observation::LocationDataItem obs;
-      obs.data.fmisid = row[0].as<int>();
-      obs.data.sensor_no = row[1].as<int>();
+      obs.data.fmisid = as_int(row[0]);
+      obs.data.sensor_no = as_int(row[1]);
       obs.data.data_time = boost::posix_time::from_time_t(row[2].as<time_t>());
-      obs.data.measurand_id = row[3].as<int>();
+      obs.data.measurand_id = as_int(row[3]);
       if (!row[4].is_null())
-        obs.data.data_value = row[4].as<double>();
+        obs.data.data_value = as_double(row[4]);
       if (!row[5].is_null())
-        obs.data.data_quality = row[5].as<int>();
+        obs.data.data_quality = as_int(row[5]);
       if (!row[6].is_null())
-        obs.data.data_source = row[6].as<int>();
+        obs.data.data_source = as_int(row[6]);
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(obs.data.fmisid, stationgroup_codes);
       obs.latitude = s.latitude_out;
@@ -347,8 +348,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getF
     {
       std::map<std::string, SmartMet::Spine::TimeSeries::Value> result;
       boost::posix_time::ptime stroke_time = boost::posix_time::from_time_t(row[0].as<time_t>());
-      // int stroke_time_fraction = row[1].as<int>();
-      SmartMet::Spine::TimeSeries::Value flashIdValue = row[2].as<int>();
+      // int stroke_time_fraction = as_int(row[1]);
+      SmartMet::Spine::TimeSeries::Value flashIdValue = as_int(row[2]);
       result["flash_id"] = flashIdValue;
       longitude = Fmi::stod(row[3].as<std::string>());
       latitude = Fmi::stod(row[4].as<std::string>());
@@ -366,12 +367,12 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getF
         else if (data_type == "numeric" || data_type == "decimal" || data_type == "float4" ||
                  data_type == "float8" || data_type == "_float4" || data_type == "_float8")
         {
-          temp = row[i].as<double>();
+          temp = as_double(row[i]);
         }
         else if (data_type == "int2" || data_type == "int4" || data_type == "int8" ||
                  data_type == "_int2" || data_type == "_int4" || data_type == "_int8")
         {
-          temp = row[i].as<int>(i);
+          temp = as_int(row[i]);
         }
 
         result[fld.name()] = temp;
@@ -490,11 +491,11 @@ FlashCounts CommonPostgreSQLFunctions::getFlashCount(
     for (auto row : result_set)
     {
       if (!row[0].is_null())
-        flashcounts.flashcount = row[0].as<int>();
+        flashcounts.flashcount = as_int(row[0]);
       if (!row[1].is_null())
-        flashcounts.strokecount = row[1].as<int>();
+        flashcounts.strokecount = as_int(row[1]);
       if (!row[2].is_null())
-        flashcounts.iccount = row[2].as<int>();
+        flashcounts.iccount = as_int(row[2]);
     }
 
     return flashcounts;

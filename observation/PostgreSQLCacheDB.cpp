@@ -1,4 +1,5 @@
 #include "PostgreSQLCacheDB.h"
+#include "AsDouble.h"
 #include "ExternalAndMobileDBInfo.h"
 #include "PostgreSQLCacheParameters.h"
 #include "QueryMapping.h"
@@ -441,7 +442,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getTime(const std::string &timeQuery
       pqxx::result::const_iterator row = result_set.begin();
       if (!row[0].is_null())
       {
-        auto value = row[0].as<double>();
+        auto value = as_double(row[0]);
         time_t seconds = floor(value);
         ret = boost::posix_time::from_time_t(seconds);
         double fractions = (value - floor(value));
@@ -2050,9 +2051,9 @@ TODO FlashCounts PostgreSQLCacheDB::getFlashCount(const boost::posix_time::ptime
     if (!result_set.empty())
     {
       pqxx::result::const_iterator row = result_set.begin();
-      flashcounts.flashcount = row[0].as<int>();
-      flashcounts.strokecount = row[1].as<int>();
-      flashcounts.iccount = row[2].as<int>();
+      flashcounts.flashcount = as_int(row[0]);
+      flashcounts.strokecount = as_int(row[1]);
+      flashcounts.iccount = as_int(row[2]);
     }
 
     return flashcounts;
@@ -2126,16 +2127,16 @@ LocationDataItems PostgreSQLCacheDB::readObservations(
     for (auto row : result_set)
     {
       LocationDataItem obs;
-      obs.data.fmisid = row[0].as<int>();
-      obs.data.sensor_no = row[1].as<int>();
+      obs.data.fmisid = as_int(row[0]);
+      obs.data.sensor_no = as_int(row[1]);
       obs.data.data_time = boost::posix_time::from_time_t(row[2].as<time_t>());
-      obs.data.measurand_id = row[3].as<int>();
+      obs.data.measurand_id = as_int(row[3]);
       if (!row[4].is_null())
-        obs.data.data_value = row[4].as<double>();
+        obs.data.data_value = as_double(row[4]);
       if (!row[5].is_null())
-        obs.data.data_quality = row[5].as<int>();
+        obs.data.data_quality = as_int(row[5]);
       if (!row[6].is_null())
-        obs.data.data_source = row[6].as<int>();
+        obs.data.data_source = as_int(row[6]);
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(obs.data.fmisid, stationgroup_codes);
       obs.latitude = s.latitude_out;
@@ -2222,23 +2223,23 @@ ResultSetRows PostgreSQLCacheDB::getResultSetForMobileExternalData(
           {
             if (column_name == "created" || column_name == "data_time")
             {
-              boost::posix_time::ptime pt = epoch2ptime(row[i].as<double>());
+              boost::posix_time::ptime pt = epoch2ptime(as_double(row[i]));
               boost::local_time::time_zone_ptr zone(new posix_time_zone("UTC"));
               val = boost::local_time::local_date_time(pt, zone);
             }
             else
             {
-              val = row[i].as<double>();
+              val = as_double(row[i]);
             }
           }
           else if (data_type == "int2" || data_type == "int4" || data_type == "int8" ||
                    data_type == "_int2" || data_type == "_int4" || data_type == "_int8")
           {
-            val = row[i].as<int>(i);
+            val = as_int(row[i]);
           }
           else if (data_type == "timestamp")
           {
-            boost::posix_time::ptime pt = epoch2ptime(row[i].as<double>());
+            boost::posix_time::ptime pt = epoch2ptime(as_double(row[i]));
             boost::local_time::time_zone_ptr zone(new posix_time_zone("UTC"));
             val = boost::local_time::local_date_time(pt, zone);
           }
@@ -2268,9 +2269,9 @@ void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
     for (auto row : result_set)
     {
-      boost::optional<int> fmisid = row[0].as<int>();
+      boost::optional<int> fmisid = as_int(row[0]);
       boost::posix_time::ptime obstime = boost::posix_time::from_time_t(row[1].as<time_t>());
-      boost::optional<int> parameter = row[2].as<int>();
+      boost::optional<int> parameter = as_int(row[2]);
 
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes);
@@ -2294,9 +2295,9 @@ void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       if (!row[3].is_null())
         data_value = row[3].as<double>();
       if (!row[4].is_null())
-        sensor_no = row[4].as<int>();
+        sensor_no = as_int(row[4]);
       if (!row[5].is_null())
-        data_quality = row[5].as<int>();
+        data_quality = as_int(row[5]);
 
       cacheData.fmisidsAll.push_back(fmisid);
       cacheData.obstimesAll.push_back(obstime);

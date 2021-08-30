@@ -126,6 +126,9 @@ rm -rf $RPM_BUILD_ROOT
 * Mon Aug 30 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.8.30-1.fmi
 - Cache counters added (BRAINSTORM-1005)
 
+* Fri Aug 27 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.27-1.fmi
+- Avoid stringstreams in pqxx version 5 field conversions
+
 * Sat Aug 21 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.21-1.fmi
 - Repackaged due to LocalTimePool ABI change
 
