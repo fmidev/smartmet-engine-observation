@@ -371,9 +371,9 @@ Spine::TaggedFMISIDList Engine::translateToFMISID(const boost::posix_time::ptime
 Settings Engine::beforeQuery(const Settings &settings,
                              std::vector<unsigned int> &unknownParameterIndexes) const
 {
-  // LocalTimePool must be created by client plugin, because references to localtimes in the pool 
+  // LocalTimePool must be created by client plugin, because references to localtimes in the pool
   // are used in the result set and they must be valid as log as result set is processed
-  if(settings.localTimePool == nullptr)
+  if (settings.localTimePool == nullptr)
     throw Fmi::Exception::Trace(BCP, "Observation::Settings::localTimePool can not be null!!!");
 
   // Copy original settings
@@ -477,20 +477,20 @@ void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr &tsvPtr,
         throw Fmi::Exception::Trace(BCP, "Internal error indexing data");
       }
 
-	  SmartMet::Spine::TimeSeries::TimedValueVector::const_iterator it_first = ts.begin();
-	  for(unsigned int i = 0; i < firstIndex; i++)
-		it_first++;
-	  SmartMet::Spine::TimeSeries::TimedValueVector::const_iterator it_last = it_first;
-	  for(unsigned int i = 0; i < numberOfRows; i++)
-		it_last++;
+      SmartMet::Spine::TimeSeries::TimedValueVector::const_iterator it_first = ts.begin();
+      for (unsigned int i = 0; i < firstIndex; i++)
+        it_first++;
+      SmartMet::Spine::TimeSeries::TimedValueVector::const_iterator it_last = it_first;
+      for (unsigned int i = 0; i < numberOfRows; i++)
+        it_last++;
 
-	  //      resultVector.insert(resultVector.end(), ts.begin() + firstIndex, ts.begin() + firstIndex + numberOfRows);
+      //      resultVector.insert(resultVector.end(), ts.begin() + firstIndex, ts.begin() +
+      //      firstIndex + numberOfRows);
       resultVector.insert(resultVector.end(), it_first, it_last);
     }
   }
 
   tsvPtr = result;
-
 }
 
 void Engine::reloadStations()
@@ -839,21 +839,22 @@ Fmi::Cache::CacheStatistics Engine::getCacheStats() const
   Fmi::Cache::CacheStatistics ret;
 
   // Disk and memory caches
-  const ObservationCaches& caches =  itsEngineParameters->observationCacheProxy->getCachesByName();
+  const ObservationCaches &caches = itsEngineParameters->observationCacheProxy->getCachesByName();
 
-  for(const auto& item : caches)
-	{
-	  auto cache_name = item.first;
-	  auto cache_stats = item.second->getCacheStats();
-	  for(const auto& item : cache_stats)
-		{
-		  auto key = ("Observation::" + cache_name + "::" + item.first);
-		  ret.insert(std::make_pair(key, item.second));
-		}
-	}
+  for (const auto &item : caches)
+  {
+    auto cache_name = item.first;
+    auto cache_stats = item.second->getCacheStats();
+    for (const auto &item : cache_stats)
+    {
+      auto key = ("Observation::" + cache_name + "::" + item.first);
+      ret.insert(std::make_pair(key, item.second));
+    }
+  }
 
   // "query_result_cache" is used by wfs makeQuery function
-  ret.insert(std::make_pair("Observation::query_result_cache", itsEngineParameters->queryResultBaseCache.statistics()));
+  ret.insert(std::make_pair("Observation::query_result_cache",
+                            itsEngineParameters->queryResultBaseCache.statistics()));
 
   // Get private caches from drivers (Oracle-driver has some)
   auto private_caches = itsDatabaseDriver->getCacheStats();

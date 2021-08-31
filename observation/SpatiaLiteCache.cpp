@@ -98,7 +98,7 @@ void SpatiaLiteCache::initializeConnectionPool()
       itsNetAtmoTimeIntervalEnd = end;
     }
 
-	// BKHydrometa
+    // BKHydrometa
     if (cacheTables.find(BK_HYDROMETA_DATA_TABLE) != cacheTables.end())
     {
       auto start = db->getOldestBKHydrometaDataTime();
@@ -202,25 +202,26 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-		itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
+        itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
         ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
       }
       else
       {
-		bool use_memory_cache = false;
-		if(itsObservationMemoryCache)
-		  {
-			auto cache_start_time = itsObservationMemoryCache->getStartTime();
-			use_memory_cache = (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
-		  }
-		if (use_memory_cache)
-		  {
-			itsCacheStatistics.at("observation_memory").hit();
-		  }
-		else
-		  {
-			itsCacheStatistics.at(OBSERVATION_DATA_TABLE).hit();
-		  }
+        bool use_memory_cache = false;
+        if (itsObservationMemoryCache)
+        {
+          auto cache_start_time = itsObservationMemoryCache->getStartTime();
+          use_memory_cache =
+              (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
+        }
+        if (use_memory_cache)
+        {
+          itsCacheStatistics.at("observation_memory").hit();
+        }
+        else
+        {
+          itsCacheStatistics.at(OBSERVATION_DATA_TABLE).hit();
+        }
 
         ret = db->getObservationData(
             stations, settings, *sinfo, itsTimeZones, itsObservationMemoryCache);
@@ -273,25 +274,26 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-		itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
+        itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
         ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
       else
       {
-		bool use_memory_cache = false;
-		if(itsObservationMemoryCache)
-		  {
-			auto cache_start_time = itsObservationMemoryCache->getStartTime();
-			use_memory_cache = (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
-		  }
-		if (use_memory_cache)
-		  {
-			itsCacheStatistics.at("observation_memory").hit();
-		  }
-		else
-		  {
-			itsCacheStatistics.at(OBSERVATION_DATA_TABLE).hit();
-		  }
+        bool use_memory_cache = false;
+        if (itsObservationMemoryCache)
+        {
+          auto cache_start_time = itsObservationMemoryCache->getStartTime();
+          use_memory_cache =
+              (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
+        }
+        if (use_memory_cache)
+        {
+          itsCacheStatistics.at("observation_memory").hit();
+        }
+        else
+        {
+          itsCacheStatistics.at(OBSERVATION_DATA_TABLE).hit();
+        }
 
         ret = db->getObservationData(
             stations, settings, *sinfo, timeSeriesOptions, itsTimeZones, itsObservationMemoryCache);
@@ -317,16 +319,16 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &set
       auto t = itsFlashMemoryCache->getStartTime();
 
       if (!t.is_not_a_date_time() && settings.starttime >= t)
-		{
-		  itsCacheStatistics.at("flash_memory").hit();		  
-		  return itsFlashMemoryCache->getData(settings, itsParameters.parameterMap, itsTimeZones);
-		}
+      {
+        itsCacheStatistics.at("flash_memory").hit();
+        return itsFlashMemoryCache->getData(settings, itsParameters.parameterMap, itsTimeZones);
+      }
     }
 
     // Must use disk cache instead
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-	itsCacheStatistics.at(FLASH_DATA_TABLE).hit();
+    itsCacheStatistics.at(FLASH_DATA_TABLE).hit();
 
     return db->getFlashData(settings, itsTimeZones);
   }
@@ -622,7 +624,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpati
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-	itsCacheStatistics.at(ROADCLOUD_DATA_TABLE).hit();
+    itsCacheStatistics.at(ROADCLOUD_DATA_TABLE).hit();
     ret = db->getRoadCloudData(settings, itsTimeZones);
 
     return ret;
@@ -714,7 +716,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaL
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-	itsCacheStatistics.at(NETATMO_DATA_TABLE).hit();
+    itsCacheStatistics.at(NETATMO_DATA_TABLE).hit();
     ret = db->getNetAtmoData(settings, itsTimeZones);
 
     return ret;
@@ -736,7 +738,7 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestNetAtmoCreatedTime() const
 }
 
 bool SpatiaLiteCache::bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
-												  const boost::posix_time::ptime &) const
+                                                  const boost::posix_time::ptime &) const
 {
   try
   {
@@ -775,7 +777,8 @@ std::size_t SpatiaLiteCache::fillBKHydrometaCache(
   }
 }
 
-void SpatiaLiteCache::cleanBKHydrometaCache(const boost::posix_time::time_duration &timetokeep) const
+void SpatiaLiteCache::cleanBKHydrometaCache(
+    const boost::posix_time::time_duration &timetokeep) const
 {
   try
   {
@@ -816,7 +819,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::bkHydrometaValuesFromSpa
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-	itsCacheStatistics.at(BK_HYDROMETA_DATA_TABLE).hit();
+    itsCacheStatistics.at(BK_HYDROMETA_DATA_TABLE).hit();
     ret = db->getBKHydrometaData(settings, itsTimeZones);
 
     return ret;
@@ -918,7 +921,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLi
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-	itsCacheStatistics.at(FMI_IOT_DATA_TABLE).hit();
+    itsCacheStatistics.at(FMI_IOT_DATA_TABLE).hit();
     ret = db->getFmiIoTData(settings, itsTimeZones);
 
     return ret;
@@ -1103,23 +1106,22 @@ SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
 {
   try
   {
-	// Create cache statistics objecs for each table
-	for(const auto& tablename : itsCacheInfo.tables)
-	  {		
-		itsCacheStatistics.insert(std::make_pair(tablename, Fmi::Cache::CacheStats()));
+    // Create cache statistics objecs for each table
+    for (const auto &tablename : itsCacheInfo.tables)
+    {
+      itsCacheStatistics.insert(std::make_pair(tablename, Fmi::Cache::CacheStats()));
 
-		if(tablename == OBSERVATION_DATA_TABLE)
-		  {
-			itsCacheStatistics.insert(std::make_pair("observation_memory", Fmi::Cache::CacheStats()));
-		  }
-		else if(tablename == FLASH_DATA_TABLE)
-		  {
-			itsCacheStatistics.insert(std::make_pair("flash_memory",Fmi::Cache::CacheStats()));
-		  }
-	  }
+      if (tablename == OBSERVATION_DATA_TABLE)
+      {
+        itsCacheStatistics.insert(std::make_pair("observation_memory", Fmi::Cache::CacheStats()));
+      }
+      else if (tablename == FLASH_DATA_TABLE)
+      {
+        itsCacheStatistics.insert(std::make_pair("flash_memory", Fmi::Cache::CacheStats()));
+      }
+    }
 
     readConfig(cfg);
-
 
     // Verify multithreading is possible
     if (!sqlite3_threadsafe())

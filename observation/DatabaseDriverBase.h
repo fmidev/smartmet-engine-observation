@@ -76,7 +76,10 @@ class DatabaseDriverBase
   Spine::TimeSeries::TimeSeriesVectorPtr checkForEmptyQuery(
       Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) const;
 
-  virtual Fmi::Cache::CacheStatistics getCacheStats() const  { return Fmi::Cache::CacheStatistics(); }
+  virtual Fmi::Cache::CacheStatistics getCacheStats() const
+  {
+    return Fmi::Cache::CacheStatistics();
+  }
 
  protected:
   bool isParameter(const std::string &alias,

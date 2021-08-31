@@ -79,10 +79,11 @@ class PostgreSQLCache : public ObservationCache
 
   // BKHydrometa
   bool bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
-								   const boost::posix_time::ptime &endtime) const override;
+                                   const boost::posix_time::ptime &endtime) const override;
   boost::posix_time::ptime getLatestBKHydrometaDataTime() const override;
   boost::posix_time::ptime getLatestBKHydrometaCreatedTime() const override;
-  std::size_t fillBKHydrometaCache(const MobileExternalDataItems &mobileExternalCacheData) const override;
+  std::size_t fillBKHydrometaCache(
+      const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanBKHydrometaCache(const boost::posix_time::time_duration &timetokeep) const override;
   Spine::TimeSeries::TimeSeriesVectorPtr bkHydrometaValuesFromSpatiaLite(Settings &settings) const;
 

@@ -104,7 +104,7 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
  */
 // ----------------------------------------------------------------------
 
-  Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(const Settings &settings);
+Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(const Settings& settings);
 
 // ----------------------------------------------------------------------
 /*!

@@ -1370,7 +1370,8 @@ void SpatiaLite::cleanBKHydrometaCache(const ptime &newstarttime)
 
     Spine::WriteLock lock(write_mutex);
 
-    sqlite3pp::command cmd(itsDB, "DELETE FROM ext_obsdata_bk_hydrometa WHERE data_time < :timestring");
+    sqlite3pp::command cmd(itsDB,
+                           "DELETE FROM ext_obsdata_bk_hydrometa WHERE data_time < :timestring");
 
     cmd.bind(":timestring", epoch_time);
     cmd.execute();
@@ -1421,8 +1422,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getMobileAndExterna
 {
   try
   {
-    SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr ret =
-        initializeResultVector(settings);
+    SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr ret = initializeResultVector(settings);
 
     const ExternalAndMobileProducerMeasurand &producerMeasurand =
         itsExternalAndMobileProducerConfig.at(settings.stationtype);
@@ -2205,7 +2205,7 @@ std::size_t SpatiaLite::fillNetAtmoCache(const MobileExternalDataItems &mobileEx
 }
 
 std::size_t SpatiaLite::fillBKHydrometaCache(const MobileExternalDataItems &mobileExternalCacheData,
-											 InsertStatus &insertStatus)
+                                             InsertStatus &insertStatus)
 {
   try
   {
@@ -2574,8 +2574,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &
     if (itsDebug)
       std::cout << "SpatiaLite: " << query << std::endl;
 
-    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-        initializeResultVector(settings);
+    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
     int stroke_time = 0;
     double longitude = std::numeric_limits<double>::max();

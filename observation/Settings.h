@@ -8,8 +8,8 @@
 #include <spine/Location.h>
 #include <spine/Parameter.h>
 #include <spine/Station.h>
-#include <spine/ValueFormatter.h>
 #include <spine/TimeSeries.h>
+#include <spine/ValueFormatter.h>
 #include <locale>
 #include <ostream>
 #include <set>
