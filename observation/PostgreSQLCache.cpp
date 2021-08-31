@@ -151,13 +151,10 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
         ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
       }
       else
       {
-        itsCacheStatistics.at(OBSERVATION_DATA_TABLE).hit();
-
         ret = db->getObservationData(
             stations, settings, *sinfo, itsTimeZones, itsObservationMemoryCache);
       }
@@ -205,12 +202,10 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
         ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
       else
       {
-        itsCacheStatistics.at(OBSERVATION_DATA_TABLE).hit();
         ret = db->getObservationData(
             stations, settings, *sinfo, timeSeriesOptions, itsTimeZones, itsObservationMemoryCache);
       }
@@ -231,7 +226,6 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(Settings &set
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-    itsCacheStatistics.at(FLASH_DATA_TABLE).hit();
     ret = db->getFlashData(settings, itsTimeZones);
 
     return ret;
@@ -249,7 +243,6 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings 
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-    itsCacheStatistics.at(ROADCLOUD_DATA_TABLE).hit();
     ret = db->getRoadCloudData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
@@ -268,7 +261,6 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &s
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-    itsCacheStatistics.at(NETATMO_DATA_TABLE).hit();
     ret = db->getNetAtmoData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
@@ -287,7 +279,6 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(Settings &se
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-    itsCacheStatistics.at(FMI_IOT_DATA_TABLE).hit();
     ret = db->getFmiIoTData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
@@ -303,12 +294,24 @@ bool PostgreSQLCache::timeIntervalIsCached(const boost::posix_time::ptime &start
 {
   try
   {
+    auto &stat = itsCacheStatistics.at(OBSERVATION_DATA_TABLE);
+
     Spine::ReadLock lock(itsTimeIntervalMutex);
 
     if (itsTimeIntervalStart.is_not_a_date_time() || itsTimeIntervalEnd.is_not_a_date_time())
+    {
+      stat.miss();
       return false;
+    }
+
     // We ignore end time intentionally
-    return (starttime >= itsTimeIntervalStart);
+    if (starttime >= itsTimeIntervalStart)
+    {
+      stat.hit();
+      return true;
+    }
+    stat.miss();
+    return false;
   }
   catch (...)
   {
@@ -321,12 +324,24 @@ bool PostgreSQLCache::flashIntervalIsCached(const boost::posix_time::ptime &star
 {
   try
   {
+    auto &stat = itsCacheStatistics.at(FLASH_DATA_TABLE);
+
     Spine::ReadLock lock(itsFlashTimeIntervalMutex);
     if (itsFlashTimeIntervalStart.is_not_a_date_time() ||
         itsFlashTimeIntervalEnd.is_not_a_date_time())
+    {
+      stat.miss();
       return false;
+    }
+
     // We ignore end time intentionally
-    return (starttime >= itsFlashTimeIntervalStart);
+    if (starttime >= itsFlashTimeIntervalStart)
+    {
+      stat.hit();
+      return true;
+    }
+    stat.miss();
+    return false;
   }
   catch (...)
   {
@@ -339,12 +354,24 @@ bool PostgreSQLCache::timeIntervalWeatherDataQCIsCached(
 {
   try
   {
+    auto &stat = itsCacheStatistics.at(WEATHER_DATA_QC_TABLE);
+
     Spine::ReadLock lock(itsWeatherDataQCTimeIntervalMutex);
     if (itsWeatherDataQCTimeIntervalStart.is_not_a_date_time() ||
         itsWeatherDataQCTimeIntervalEnd.is_not_a_date_time())
+    {
+      stat.miss();
       return false;
+    }
+
     // We ignore end time intentionally
-    return (starttime >= itsWeatherDataQCTimeIntervalStart);
+    if (starttime >= itsWeatherDataQCTimeIntervalStart)
+    {
+      stat.hit();
+      return true;
+    }
+    stat.miss();
+    return false;
   }
   catch (...)
   {
@@ -605,13 +632,24 @@ bool PostgreSQLCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &
 {
   try
   {
+    auto &stat = itsCacheStatistics.at(ROADCLOUD_DATA_TABLE);
+
     Spine::ReadLock lock(itsRoadCloudTimeIntervalMutex);
     if (itsRoadCloudTimeIntervalStart.is_not_a_date_time() &&
         itsRoadCloudTimeIntervalEnd.is_not_a_date_time())
+    {
+      stat.miss();
       return false;
+    }
 
     // We ignore end time intentionally
-    return (starttime >= itsRoadCloudTimeIntervalStart);
+    if (starttime >= itsRoadCloudTimeIntervalStart)
+    {
+      stat.hit();
+      return true;
+    }
+    stat.miss();
+    return false;
   }
   catch (...)
   {
@@ -688,12 +726,24 @@ bool PostgreSQLCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &st
 {
   try
   {
+    auto &stat = itsCacheStatistics.at(NETATMO_DATA_TABLE);
+
     Spine::ReadLock lock(itsNetAtmoTimeIntervalMutex);
     if (itsNetAtmoTimeIntervalStart.is_not_a_date_time() ||
         itsNetAtmoTimeIntervalEnd.is_not_a_date_time())
+    {
+      stat.miss();
       return false;
+    }
+
     // We ignore end time intentionally
-    return (starttime >= itsNetAtmoTimeIntervalStart);
+    if (starttime >= itsNetAtmoTimeIntervalStart)
+    {
+      stat.hit();
+      return true;
+    }
+    stat.miss();
+    return false;
   }
   catch (...)
   {
@@ -853,12 +903,24 @@ bool PostgreSQLCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &sta
 {
   try
   {
+    auto &stat = itsCacheStatistics.at(NETATMO_DATA_TABLE);
+
     Spine::ReadLock lock(itsFmiIoTTimeIntervalMutex);
     if (itsFmiIoTTimeIntervalStart.is_not_a_date_time() ||
         itsFmiIoTTimeIntervalEnd.is_not_a_date_time())
+    {
+      stat.miss();
       return false;
+    }
+
     // We ignore end time intentionally
-    return (starttime >= itsFmiIoTTimeIntervalStart);
+    if (starttime >= itsFmiIoTTimeIntervalStart)
+    {
+      stat.hit();
+      return true;
+    }
+    stat.miss();
+    return false;
   }
   catch (...)
   {

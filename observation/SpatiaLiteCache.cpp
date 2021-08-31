@@ -202,7 +202,6 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
         ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
       }
       else
@@ -210,17 +209,16 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
         bool use_memory_cache = false;
         if (itsObservationMemoryCache)
         {
+          // We know that spatialite cache hits will include memory cache hits, but do not
+          // bother to substract the memory cache hits from spatialite hits
+
           auto cache_start_time = itsObservationMemoryCache->getStartTime();
           use_memory_cache =
               (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
-        }
-        if (use_memory_cache)
-        {
-          itsCacheStatistics.at("observation_memory").hit();
-        }
-        else
-        {
-          itsCacheStatistics.at(OBSERVATION_DATA_TABLE).hit();
+          if (use_memory_cache)
+            itsCacheStatistics.at("observation_memory").hit();
+          else
+            itsCacheStatistics.at("observation_memory").miss();
         }
 
         ret = db->getObservationData(
@@ -274,7 +272,6 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
         ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
       else
@@ -282,17 +279,17 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
         bool use_memory_cache = false;
         if (itsObservationMemoryCache)
         {
+          // We know that spatialite cache hits will include memory cache hits, but do not
+          // bother to substract the memory cache hits from spatialite hits
+
           auto cache_start_time = itsObservationMemoryCache->getStartTime();
           use_memory_cache =
               (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
-        }
-        if (use_memory_cache)
-        {
-          itsCacheStatistics.at("observation_memory").hit();
-        }
-        else
-        {
-          itsCacheStatistics.at(OBSERVATION_DATA_TABLE).hit();
+
+          if (use_memory_cache)
+            itsCacheStatistics.at("observation_memory").hit();
+          else
+            itsCacheStatistics.at("observation_memory").miss();
         }
 
         ret = db->getObservationData(
@@ -323,12 +320,12 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &set
         itsCacheStatistics.at("flash_memory").hit();
         return itsFlashMemoryCache->getData(settings, itsParameters.parameterMap, itsTimeZones);
       }
+      itsCacheStatistics.at("flash_memory").miss();
     }
 
     // Must use disk cache instead
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-    itsCacheStatistics.at(FLASH_DATA_TABLE).hit();
 
     return db->getFlashData(settings, itsTimeZones);
   }
@@ -343,12 +340,24 @@ bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &start
 {
   try
   {
+    auto &stat = itsCacheStatistics.at(OBSERVATION_DATA_TABLE);
+
     Spine::ReadLock lock(itsTimeIntervalMutex);
 
     if (itsTimeIntervalStart.is_not_a_date_time() || itsTimeIntervalEnd.is_not_a_date_time())
+    {
+      stat.miss();
       return false;
+    }
+
     // We ignore end time intentionally
-    return (starttime >= itsTimeIntervalStart);
+    if (starttime >= itsTimeIntervalStart)
+    {
+      stat.hit();
+      return true;
+    }
+    stat.miss();
+    return false;
   }
   catch (...)
   {
@@ -363,13 +372,25 @@ bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &star
   {
     // No need to check memory cache here, it is always supposed to be shorted than the disk cache
 
+    auto &stat = itsCacheStatistics.at(FLASH_DATA_TABLE);
+
     Spine::ReadLock lock(itsFlashTimeIntervalMutex);
 
     if (itsFlashTimeIntervalStart.is_not_a_date_time() ||
         itsFlashTimeIntervalEnd.is_not_a_date_time())
+    {
+      stat.miss();
       return false;
+    }
+
     // We ignore end time intentionally
-    return (starttime >= itsFlashTimeIntervalStart);
+    if (starttime >= itsFlashTimeIntervalStart)
+    {
+      stat.hit();
+      return true;
+    }
+    stat.miss();
+    return false;
   }
   catch (...)
   {
@@ -382,13 +403,24 @@ bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
 {
   try
   {
+    auto &stat = itsCacheStatistics.at(WEATHER_DATA_QC_TABLE);
+
     Spine::ReadLock lock(itsWeatherDataQCTimeIntervalMutex);
     if (itsWeatherDataQCTimeIntervalStart.is_not_a_date_time() ||
         itsWeatherDataQCTimeIntervalEnd.is_not_a_date_time())
+    {
+      stat.miss();
       return false;
+    }
 
     // We ignore end time intentionally
-    return (starttime >= itsWeatherDataQCTimeIntervalStart);
+    if (starttime >= itsWeatherDataQCTimeIntervalStart)
+    {
+      stat.hit();
+      return true;
+    }
+    stat.miss();
+    return false;
   }
   catch (...)
   {
@@ -537,13 +569,24 @@ bool SpatiaLiteCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &
 {
   try
   {
+    auto &stat = itsCacheStatistics.at(ROADCLOUD_DATA_TABLE);
+
     Spine::ReadLock lock(itsRoadCloudTimeIntervalMutex);
     if (itsRoadCloudTimeIntervalStart.is_not_a_date_time() &&
         itsRoadCloudTimeIntervalEnd.is_not_a_date_time())
+    {
+      stat.miss();
       return false;
+    }
 
     // We ignore end time intentionally
-    return (starttime >= itsRoadCloudTimeIntervalStart);
+    if (starttime >= itsRoadCloudTimeIntervalStart)
+    {
+      stat.hit();
+      return true;
+    }
+    stat.miss();
+    return false;
   }
   catch (...)
   {
@@ -624,7 +667,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpati
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-    itsCacheStatistics.at(ROADCLOUD_DATA_TABLE).hit();
     ret = db->getRoadCloudData(settings, itsTimeZones);
 
     return ret;
@@ -640,12 +682,23 @@ bool SpatiaLiteCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &st
 {
   try
   {
+    auto &stat = itsCacheStatistics.at(NETATMO_DATA_TABLE);
     Spine::ReadLock lock(itsNetAtmoTimeIntervalMutex);
     if (itsNetAtmoTimeIntervalStart.is_not_a_date_time() ||
         itsNetAtmoTimeIntervalEnd.is_not_a_date_time())
+    {
+      stat.miss();
       return false;
+    }
+
     // We ignore end time intentionally
-    return (starttime >= itsNetAtmoTimeIntervalStart);
+    if (starttime >= itsNetAtmoTimeIntervalStart)
+    {
+      stat.hit();
+      return true;
+    }
+    stat.miss();
+    return false;
   }
   catch (...)
   {
@@ -716,7 +769,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaL
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-    itsCacheStatistics.at(NETATMO_DATA_TABLE).hit();
     ret = db->getNetAtmoData(settings, itsTimeZones);
 
     return ret;
@@ -742,12 +794,24 @@ bool SpatiaLiteCache::bkHydrometaIntervalIsCached(const boost::posix_time::ptime
 {
   try
   {
+    auto &stat = itsCacheStatistics.at(BK_HYDROMETA_DATA_TABLE);
+
     Spine::ReadLock lock(itsBKHydrometaTimeIntervalMutex);
     if (itsBKHydrometaTimeIntervalStart.is_not_a_date_time() ||
         itsBKHydrometaTimeIntervalEnd.is_not_a_date_time())
+    {
+      stat.miss();
       return false;
+    }
+
     // We ignore end time intentionally
-    return (starttime >= itsBKHydrometaTimeIntervalStart);
+    if (starttime >= itsBKHydrometaTimeIntervalStart)
+    {
+      stat.hit();
+      return true;
+    }
+    stat.miss();
+    return false;
   }
   catch (...)
   {
@@ -819,7 +883,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::bkHydrometaValuesFromSpa
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-    itsCacheStatistics.at(BK_HYDROMETA_DATA_TABLE).hit();
     ret = db->getBKHydrometaData(settings, itsTimeZones);
 
     return ret;
@@ -845,12 +908,24 @@ bool SpatiaLiteCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &sta
 {
   try
   {
+    auto &stat = itsCacheStatistics.at(FMI_IOT_DATA_TABLE);
+
     Spine::ReadLock lock(itsFmiIoTTimeIntervalMutex);
     if (itsFmiIoTTimeIntervalStart.is_not_a_date_time() ||
         itsFmiIoTTimeIntervalEnd.is_not_a_date_time())
+    {
+      stat.miss();
       return false;
+    }
+
     // We ignore end time intentionally
-    return (starttime >= itsFmiIoTTimeIntervalStart);
+    if (starttime >= itsFmiIoTTimeIntervalStart)
+    {
+      stat.hit();
+      return true;
+    }
+    stat.miss();
+    return false;
   }
   catch (...)
   {
@@ -921,7 +996,6 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLi
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-    itsCacheStatistics.at(FMI_IOT_DATA_TABLE).hit();
     ret = db->getFmiIoTData(settings, itsTimeZones);
 
     return ret;
