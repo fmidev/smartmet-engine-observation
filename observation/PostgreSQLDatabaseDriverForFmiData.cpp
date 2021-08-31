@@ -150,7 +150,7 @@ void PostgreSQLDatabaseDriverForFmiData::makeQuery(QueryBase *qb)
     if (result == nullptr)
     {
       std::ostringstream msg;
-      msg << "OPostgreSQLDatabaseDriverForFmiData::makeQuery : Result container of '"
+      msg << "PostgreSQLDatabaseDriverForFmiData::makeQuery : Result container of '"
           << typeid(*qb).name() << "' class not found.\n";
 
       Fmi::Exception exception(BCP, "Invalid parameter value!");

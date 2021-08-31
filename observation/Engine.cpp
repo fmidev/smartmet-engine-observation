@@ -64,6 +64,7 @@ void Engine::init()
 
     itsEngineParameters->observationCacheProxy =
         ObservationCacheFactory::create(itsEngineParameters, cfg);
+
 #ifdef TODO_CAUSES_SEGFAULT_AT_EXIT
     itsDatabaseDriver.reset(DatabaseDriverFactory::create(itsEngineParameters, cfg));
 #else
@@ -831,6 +832,34 @@ ContentTable Engine::getStationInfo(const StationOptions &options) const
   {
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
+}
+
+Fmi::Cache::CacheStatistics Engine::getCacheStats() const
+{
+  Fmi::Cache::CacheStatistics ret;
+
+  // Disk and memory caches
+  const ObservationCaches& caches =  itsEngineParameters->observationCacheProxy->getCachesByName();
+
+  for(const auto& item : caches)
+	{
+	  auto cache_name = item.first;
+	  auto cache_stats = item.second->getCacheStats();
+	  for(const auto& item : cache_stats)
+		{
+		  auto key = ("Observation::" + cache_name + "::" + item.first);
+		  ret.insert(std::make_pair(key, item.second));
+		}
+	}
+
+  // "query_result_cache" is used by wfs makeQuery function
+  ret.insert(std::make_pair("Observation::query_result_cache", itsEngineParameters->queryResultBaseCache.statistics()));
+
+  // Get private caches from drivers (Oracle-driver has some)
+  auto private_caches = itsDatabaseDriver->getCacheStats();
+  ret.insert(private_caches.begin(), private_caches.end());
+
+  return ret;
 }
 
 }  // namespace Observation

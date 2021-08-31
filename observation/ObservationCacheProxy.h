@@ -20,6 +20,7 @@ class ObservationCacheProxy
   std::shared_ptr<ObservationCache> getCacheByTableName(const std::string& tablename) const;
   std::shared_ptr<ObservationCache> getCacheByName(const std::string& cachename) const;
   void addCache(const std::string& tablename, const std::shared_ptr<ObservationCache>& cache);
+  const ObservationCaches& getCachesByName() const  { return itsCachesByName; } 
 
   void shutdown();
 

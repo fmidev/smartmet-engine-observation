@@ -322,9 +322,6 @@ void DatabaseDriverInfo::readOracleCommonInfo(Spine::ConfigBase& cfg,
         common_key + ".flash_emulator.bbox", "20,60,30,70");
     params["flash_emulator_strokes"] = Fmi::to_string(
         cfg.get_optional_config_param<int>(common_key + ".flash_emulator.strokes_per_minute", 0));
-    std::cout << "FLASH_GENERATIR: " << params.at("flash_emulator_active")
-              << params.at("flash_emulator_bbox") << params.at("flash_emulator_strokes")
-              << std::endl;
   }
   else
     std::cout << "Flash emulator not active in driver " << name << std::endl;

@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.8.27
+Version: 21.8.30
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -21,8 +21,8 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 21.8.17
 BuildRequires: smartmet-library-locus-devel >= 21.8.11
-BuildRequires: smartmet-library-macgyver-devel >= 21.8.20
-BuildRequires: smartmet-library-spine-devel >= 21.8.21
+BuildRequires: smartmet-library-macgyver-devel >= 21.8.30
+BuildRequires: smartmet-library-spine-devel >= 21.8.30
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -37,8 +37,8 @@ Requires: libatomic
 Requires: libconfig
 Requires: smartmet-engine-geonames >= 21.8.17
 Requires: smartmet-library-locus >= 21.8.11
-Requires: smartmet-library-macgyver >= 21.8.20
-Requires: smartmet-library-spine >= 21.8.21
+Requires: smartmet-library-macgyver >= 21.8.30
+Requires: smartmet-library-spine >= 21.8.30
 Requires: smartmet-server >= 21.6.3
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
@@ -123,6 +123,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Aug 30 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.8.30-1.fmi
+- Cache counters added (BRAINSTORM-1005)
+
 * Fri Aug 27 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.8.27-1.fmi
 - Avoid stringstreams in pqxx version 5 field conversions
 
