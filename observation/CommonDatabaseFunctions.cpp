@@ -511,8 +511,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
 
     //	  std::cout << "station_data:\n" << station_data << std::endl;
 
-    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-        initializeResultVector(settings);
+    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
     bool addDataQualityField = false;
     bool addDataSourceField = false;
@@ -533,8 +532,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
         not_null_columns.insert(item.second);
     }
 
-    Spine::TimeSeries::TimeSeriesVectorPtr resultVector =
-        initializeResultVector(settings);
+    Spine::TimeSeries::TimeSeriesVectorPtr resultVector = initializeResultVector(settings);
     for (const auto &item : station_data)
     {
       int fmisid = item.first;
@@ -655,7 +653,8 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
   {
     std::map<int, Spine::TimeSeries::TimeSeries> data_source_ts;
     std::set<boost::local_time::local_date_time> timesteps;
-	Spine::TimeSeries::LocalTimePoolPtr local_time_pool = timeSeriesColumns->begin()->getLocalTimePool();
+    Spine::TimeSeries::LocalTimePoolPtr local_time_pool =
+        timeSeriesColumns->begin()->getLocalTimePool();
     for (const auto &item : timed_measurand_data)
     {
       const auto &obstime = item.first;
@@ -693,8 +692,9 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
               break;
             }
           }
-		  if(data_source_ts.find(pos) == data_source_ts.end())
-			data_source_ts.insert(std::make_pair(pos, Spine::TimeSeries::TimeSeries(local_time_pool)));
+          if (data_source_ts.find(pos) == data_source_ts.end())
+            data_source_ts.insert(
+                std::make_pair(pos, Spine::TimeSeries::TimeSeries(local_time_pool)));
           data_source_ts.at(pos).emplace_back(Spine::TimeSeries::TimedValue(obstime, val));
           timesteps.insert(obstime);
         }
@@ -716,8 +716,9 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
                                      DataFieldSpecifier::DataQuality);
             }
           }
-		  if(data_source_ts.find(pos) == data_source_ts.end())
-			data_source_ts.insert(std::make_pair(pos, Spine::TimeSeries::TimeSeries(local_time_pool)));
+          if (data_source_ts.find(pos) == data_source_ts.end())
+            data_source_ts.insert(
+                std::make_pair(pos, Spine::TimeSeries::TimeSeries(local_time_pool)));
           data_source_ts.at(pos).emplace_back(Spine::TimeSeries::TimedValue(obstime, val));
           timesteps.insert(obstime);
         }
@@ -1062,8 +1063,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
 
     auto qmap = buildQueryMapping(stations, settings, itsParameterMap, stationtype, true);
 
-    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-        initializeResultVector(settings);
+    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
     std::string query = sqlSelectFromWeatherDataQCData(settings, params, qstations);
 

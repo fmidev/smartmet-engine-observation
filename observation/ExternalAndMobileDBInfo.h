@@ -39,7 +39,7 @@ class ExternalAndMobileDBInfo
                                  const Spine::DataFilter &dataFilter,
                                  bool spatialite = false) const;
 
-  std::string measurandFieldname(const std::string& producerName, int measurandId) const;
+  std::string measurandFieldname(const std::string &producerName, int measurandId) const;
   void setDatabaseTableName(const std::string &tablename);
 
  private:

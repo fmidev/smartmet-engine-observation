@@ -230,7 +230,6 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
    */
   std::size_t fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData);
 
-
   /**
    * @brief Get oldest observation in ext_obsdata_hydrometa table
    * @return boost::posix_time::ptime The time of the oldest observation
@@ -263,7 +262,6 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
    * @param NetAtmo observation data to be inserted into the table
    */
   std::size_t fillBKHydrometaCache(const MobileExternalDataItems &mobileExternalCacheData);
-
 
   /**
    * @brief Get the time of the newest FmiIoT observation in ext_obsdata_roadcloud table

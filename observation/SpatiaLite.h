@@ -253,7 +253,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    */
   void cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime);
 
- /**
+  /**
    * @brief Get the newest observation in ext_obsdata_bk_hydrometa table
    * @return boost::posix_time::ptime The time of the newest bk_hydrometa observation
    */
@@ -280,7 +280,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    * @param bk_hydrometa observation data to be inserted into the table
    */
   std::size_t fillBKHydrometaCache(const MobileExternalDataItems &mobileExternalCacheData,
-								   InsertStatus &insertStatus);
+                                   InsertStatus &insertStatus);
 
   /**
    * @brief Delete old bk_hydrometa observation data from ext_obsdata_roadcloud table
@@ -328,7 +328,6 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getNetAtmoData(const Settings &settings,
                                                                   const Fmi::TimeZones &timezones);
-
 
   SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getBKHydrometaData(
       const Settings &settings, const Fmi::TimeZones &timezones);

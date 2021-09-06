@@ -8,6 +8,7 @@
 #include "Settings.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
+#include <macgyver/CacheStats.h>
 #include <spine/Station.h>
 #include <spine/TimeSeries.h>
 #include <spine/TimeSeriesGeneratorOptions.h>
@@ -65,7 +66,7 @@ class ObservationCache
   virtual void cleanWeatherDataQCCache(
       const boost::posix_time::time_duration &timetokeep) const = 0;
 
-    virtual bool roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
+  virtual bool roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
                                          const boost::posix_time::ptime &endtime) const = 0;
   virtual boost::posix_time::ptime getLatestRoadCloudDataTime() const = 0;
   virtual boost::posix_time::ptime getLatestRoadCloudCreatedTime() const = 0;
@@ -82,7 +83,7 @@ class ObservationCache
   virtual void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const = 0;
 
   virtual bool bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                       const boost::posix_time::ptime &endtime) const = 0;
+                                           const boost::posix_time::ptime &endtime) const = 0;
   virtual boost::posix_time::ptime getLatestBKHydrometaDataTime() const = 0;
   virtual boost::posix_time::ptime getLatestBKHydrometaCreatedTime() const = 0;
   virtual std::size_t fillBKHydrometaCache(
@@ -96,7 +97,10 @@ class ObservationCache
   virtual std::size_t fillFmiIoTCache(
       const MobileExternalDataItems &mobileExternalCacheData) const = 0;
   virtual void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const = 0;
-  virtual Fmi::Cache::CacheStatistics getCacheStats() const { return Fmi::Cache::CacheStatistics(); }
+  virtual Fmi::Cache::CacheStatistics getCacheStats() const
+  {
+    return Fmi::Cache::CacheStatistics();
+  }
 
   virtual void shutdown() = 0;
 

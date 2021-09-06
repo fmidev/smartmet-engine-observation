@@ -402,11 +402,11 @@ Fmi::Cache::CacheStatistics DatabaseDriverProxy::getCacheStats() const
   Fmi::Cache::CacheStatistics ret;
 
   for (const auto *driver : itsDatabaseDriverSet)
-	{
-	  Fmi::Cache::CacheStatistics stats = driver->getCacheStats();
-	  for(const auto& stat : stats)
-		ret.insert(std::make_pair(stat.first, stat.second));
-	}
+  {
+    Fmi::Cache::CacheStatistics stats = driver->getCacheStats();
+    for (const auto &stat : stats)
+      ret.insert(std::make_pair(stat.first, stat.second));
+  }
 
   return ret;
 }
