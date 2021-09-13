@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.9.7
+Version: 21.9.13
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -18,10 +18,10 @@ BuildRequires: gdal32-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 21.8.17
+BuildRequires: smartmet-engine-geonames-devel >= 21.8.30
 BuildRequires: smartmet-library-locus-devel >= 21.8.11
-BuildRequires: smartmet-library-macgyver-devel >= 21.8.30
-BuildRequires: smartmet-library-spine-devel >= 21.9.7
+BuildRequires: smartmet-library-macgyver-devel >= 21.9.13
+BuildRequires: smartmet-library-spine-devel >= 21.9.13
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -33,11 +33,11 @@ Requires: boost169-thread
 Requires: fmt >= 7.1.3
 Requires: gdal32-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 21.8.17
+Requires: smartmet-engine-geonames >= 21.8.30
 Requires: smartmet-library-locus >= 21.8.11
-Requires: smartmet-library-macgyver >= 21.8.30
-Requires: smartmet-library-spine >= 21.9.7
-Requires: smartmet-server >= 21.6.3
+Requires: smartmet-library-macgyver >= 21.9.13
+Requires: smartmet-library-spine >= 21.9.13
+Requires: smartmet-server >= 21.9.7
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
 
@@ -62,9 +62,9 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 21.8.17
+#TestRequires: smartmet-engine-geonames >= 21.8.30
 #TestRequires: smartmet-library-macgyver >= 21.8.20
-#TestRequires: smartmet-library-spine >= 21.9.7
+#TestRequires: smartmet-library-spine >= 21.9.13
 #TestRequires: smartmet-test-data
 
 %if 0%{rhel} >= 8
@@ -121,6 +121,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Sep 13 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.9.13-1.fmi
+- Repackaged due to Fmi::Cache statistics fixes
+
 * Tue Sep  7 2021 Andris Pavēnis <andris.pavenis@fmi.fi> 21.9.7-1.fmi
 - Rebuild due to dependency changes
 
