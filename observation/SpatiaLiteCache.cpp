@@ -473,7 +473,31 @@ FlashCounts SpatiaLiteCache::getFlashCount(const boost::posix_time::ptime &start
                                            const boost::posix_time::ptime &endtime,
                                            const Spine::TaggedLocationList &locations) const
 {
-  return itsConnectionPool->getConnection()->getFlashCount(starttime, endtime, locations);
+  try
+  {
+    // Use memory cache if possible. t is not set if the cache is not ready yet
+    if (itsFlashMemoryCache)
+    {
+      auto t = itsFlashMemoryCache->getStartTime();
+
+      if (!t.is_not_a_date_time() && starttime >= t)
+      {
+        itsCacheStatistics.at("flash_memory").hit();
+        return itsFlashMemoryCache->getFlashCount(starttime, endtime, locations);
+      }
+      itsCacheStatistics.at("flash_memory").miss();
+    }
+
+    // Must use disk cache instead
+    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+	db->setDebug(false);
+
+    return db->getFlashCount(starttime, endtime, locations);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Getting flash count from cache failed!");
+  }
 }
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestFlashModifiedTime() const

@@ -24,9 +24,9 @@ namespace Observation
 {
 struct FlashCounts
 {
-  int flashcount;
-  int strokecount;
-  int iccount;
+  int flashcount{0};
+  int strokecount{0};
+  int iccount{0};
 };
 
 /** \brief Remove given prefix from an input string.

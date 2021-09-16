@@ -17,12 +17,12 @@ namespace Observation
 using BBoxes = std::list<boost::optional<Spine::BoundingBox>>;
 
 bool is_within_search_limits(const FlashDataItem& flash,
-                             const Settings& settings,
+                             const Spine::TaggedLocationList& tlocs,
                              const BBoxes& bboxes)
 {
   auto bbox_iter = bboxes.begin();
 
-  for (const auto& tloc : settings.taggedLocations)
+  for (const auto& tloc : tlocs)
   {
     if (tloc.loc->type == Spine::Location::CoordinatePoint)
     {
@@ -262,7 +262,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr FlashMemoryCache::getData(
     {
       const auto& flash = *pos;
 
-      if (!is_within_search_limits(flash, settings, bboxes))
+      if (!is_within_search_limits(flash, settings.taggedLocations, bboxes))
         continue;
 
       // Append to output
@@ -326,6 +326,66 @@ Spine::TimeSeries::TimeSeriesVectorPtr FlashMemoryCache::getData(
     throw Fmi::Exception::Trace(BCP, "FlashMemoryCache::getData failed");
   }
 }
+
+FlashCounts FlashMemoryCache::getFlashCount(const boost::posix_time::ptime &starttime,
+											const boost::posix_time::ptime &endtime,
+											const Spine::TaggedLocationList &locations) const
+{
+  try
+	{
+	  FlashCounts result;
+
+	  auto cache = itsFlashData.load();
+	  
+	  // Safety check
+	  if (!cache)
+		return result;
+	  
+	  // Find time interval from the cache data
+	  
+	  auto lcmp = [](const FlashDataItem& flash, const boost::posix_time::ptime& t) -> bool
+		{ return (flash.stroke_time < t); };
+	  
+	  auto pos1 = std::lower_bound(cache->begin(), cache->end(), starttime, lcmp);
+	  
+	  // Nothing to do if there is nothing with a time lower than the starttime, or if there is
+	  // nothing after it
+	  if (pos1 == cache->end() || ++pos1 == cache->end())
+		return result;
+	  
+	  auto ucmp = [](const boost::posix_time::ptime& t, const FlashDataItem& flash) -> bool
+		{ return (flash.stroke_time > t); };
+	  
+	  auto pos2 = std::upper_bound(cache->begin(), cache->end(), endtime, ucmp);
+	  
+	  // pos1...pos2 is now the inclusive range to be checked against other search conditions
+	  
+	  // Parse the bboxes only once instead of inside the below loop for every flash
+	  const auto bboxes = parse_bboxes(locations);
+	  
+	  for (auto pos = pos1; pos < pos2; ++pos)
+		{
+		  const auto& flash = *pos;
+		  
+		  if (!is_within_search_limits(flash, locations, bboxes))
+			continue;
+		  
+		  if(flash.multiplicity > 0)
+			result.flashcount++;
+		  else if(flash.multiplicity == 0)
+			result.strokecount++;
+		  if(flash.cloud_indicator == 1)
+			result.iccount++;
+		}
+    
+	  return result;
+	}
+  catch (...)
+	{
+	  throw Fmi::Exception::Trace(BCP, "FlashMemoryCache::getFlashCount failed");
+	}
+}
+
 
 }  // namespace Observation
 }  // namespace Engine

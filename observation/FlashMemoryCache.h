@@ -55,6 +55,11 @@ class FlashMemoryCache
                                                  const ParameterMapPtr& parameterMap,
                                                  const Fmi::TimeZones& timezones) const;
 
+
+  FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
+							const boost::posix_time::ptime &endtime,
+							const Spine::TaggedLocationList &locations) const;
+
  private:
   // The actual flash data in the cache
   using FlashDataVector = FlashDataItems;
