@@ -202,6 +202,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
+		itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
         ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
       }
       else
@@ -272,6 +273,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
+		itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
         ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
       else
@@ -471,7 +473,31 @@ FlashCounts SpatiaLiteCache::getFlashCount(const boost::posix_time::ptime &start
                                            const boost::posix_time::ptime &endtime,
                                            const Spine::TaggedLocationList &locations) const
 {
-  return itsConnectionPool->getConnection()->getFlashCount(starttime, endtime, locations);
+  try
+  {
+    // Use memory cache if possible. t is not set if the cache is not ready yet
+    if (itsFlashMemoryCache)
+    {
+      auto t = itsFlashMemoryCache->getStartTime();
+
+      if (!t.is_not_a_date_time() && starttime >= t)
+      {
+        itsCacheStatistics.at("flash_memory").hit();
+        return itsFlashMemoryCache->getFlashCount(starttime, endtime, locations);
+      }
+      itsCacheStatistics.at("flash_memory").miss();
+    }
+
+    // Must use disk cache instead
+    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+	db->setDebug(false);
+
+    return db->getFlashCount(starttime, endtime, locations);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Getting flash count from cache failed!");
+  }
 }
 
 boost::posix_time::ptime SpatiaLiteCache::getLatestFlashModifiedTime() const
@@ -667,6 +693,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpati
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
+	itsCacheStatistics.at(ROADCLOUD_DATA_TABLE).hit();
     ret = db->getRoadCloudData(settings, itsTimeZones);
 
     return ret;
@@ -769,6 +796,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaL
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
+	itsCacheStatistics.at(NETATMO_DATA_TABLE).hit();
     ret = db->getNetAtmoData(settings, itsTimeZones);
 
     return ret;
@@ -883,6 +911,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::bkHydrometaValuesFromSpa
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
+	itsCacheStatistics.at(BK_HYDROMETA_DATA_TABLE).hit();
     ret = db->getBKHydrometaData(settings, itsTimeZones);
 
     return ret;
@@ -996,6 +1025,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLi
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
+	itsCacheStatistics.at(FMI_IOT_DATA_TABLE).hit();
     ret = db->getFmiIoTData(settings, itsTimeZones);
 
     return ret;
@@ -1196,6 +1226,7 @@ SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
     }
 
     readConfig(cfg);
+
 
     // Verify multithreading is possible
     if (!sqlite3_threadsafe())

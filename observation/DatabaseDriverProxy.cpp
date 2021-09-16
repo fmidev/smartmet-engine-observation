@@ -36,7 +36,7 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
     const std::vector<DatabaseDriverInfoItem> &ddi = p->databaseDriverInfo.getDatabaseDriverInfo();
     for (const auto &item : ddi)
     {
-      if (!item.active)
+	  if (!item.active)
         continue;
       const std::string &driver_id = item.name;
       DatabaseDriverBase *dbDriver = nullptr;
@@ -72,7 +72,7 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
 
       if (dbDriver != nullptr)
       {
-        itsDatabaseDriverSet.insert(dbDriver);
+		itsDatabaseDriverSet.insert(dbDriver);
 
         for (const auto &period_item : item.table_days)
         {

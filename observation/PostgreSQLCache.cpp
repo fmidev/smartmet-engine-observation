@@ -151,10 +151,13 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
+		itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
         ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
       }
       else
       {
+		itsCacheStatistics.at(OBSERVATION_DATA_TABLE).hit();
+
         ret = db->getObservationData(
             stations, settings, *sinfo, itsTimeZones, itsObservationMemoryCache);
       }
@@ -202,10 +205,12 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
+		itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
+		ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
       else
       {
+		itsCacheStatistics.at(OBSERVATION_DATA_TABLE).hit();		
         ret = db->getObservationData(
             stations, settings, *sinfo, timeSeriesOptions, itsTimeZones, itsObservationMemoryCache);
       }
@@ -226,6 +231,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(Settings &set
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
+	itsCacheStatistics.at(FLASH_DATA_TABLE).hit();
     ret = db->getFlashData(settings, itsTimeZones);
 
     return ret;
@@ -243,6 +249,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings 
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
+	itsCacheStatistics.at(ROADCLOUD_DATA_TABLE).hit();
     ret = db->getRoadCloudData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
@@ -261,6 +268,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &s
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
+	itsCacheStatistics.at(NETATMO_DATA_TABLE).hit();
     ret = db->getNetAtmoData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
@@ -279,6 +287,7 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(Settings &se
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
+	itsCacheStatistics.at(FMI_IOT_DATA_TABLE).hit();
     ret = db->getFmiIoTData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;

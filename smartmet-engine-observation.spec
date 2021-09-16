@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.9.13
+Version: 21.9.16
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -121,6 +121,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Sep 16 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.9.16-1.fmi
+- SpatiaLiteCache::getFlashCount to start using memory cache (BRAINSTORM-2139)
+
 * Mon Sep 13 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.9.13-1.fmi
 - Repackaged due to Fmi::Cache statistics fixes
 
