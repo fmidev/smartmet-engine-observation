@@ -318,9 +318,13 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
 
     if (big_request)
     {
-      std::cout << (Spine::log_time_str() +
-                    " [PostgreSQLObsDB] Performing a large FLASH cache update starting from " +
-                    Fmi::to_simple_string(lastModifiedTime) + "\n");
+      if (!bigFlashRequestReported)
+      {
+        std::cout << (Spine::log_time_str() +
+                      " [PostgreSQLObsDB] Performing a large FLASH cache update starting from " +
+                      Fmi::to_simple_string(lastModifiedTime) + "\n");
+        bigFlashRequestReported = true;
+      }
     }
 
     std::string sqlStmt =
@@ -342,7 +346,13 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
     if (itsDebug)
       std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
-    return readFlashCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+    readFlashCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+
+    // Report the next big request after we successfully read some *new* data. Note that
+    // we may keep reading the last flash again and again since the same second is read
+    // again just in case there are new flashes for the same second.
+    if (!cacheData.empty() && cacheData.back().stroke_time > lastModifiedTime)
+      bigFlashRequestReported = false;
   }
   catch (...)
   {

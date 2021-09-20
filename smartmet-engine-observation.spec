@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.9.16
+Version: 21.9.20
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -18,7 +18,7 @@ BuildRequires: gdal32-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 21.8.30
+BuildRequires: smartmet-engine-geonames-devel >= 21.9.13
 BuildRequires: smartmet-library-locus-devel >= 21.8.11
 BuildRequires: smartmet-library-macgyver-devel >= 21.9.13
 BuildRequires: smartmet-library-spine-devel >= 21.9.13
@@ -33,7 +33,7 @@ Requires: boost169-thread
 Requires: fmt >= 7.1.3
 Requires: gdal32-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 21.8.30
+Requires: smartmet-engine-geonames >= 21.9.13
 Requires: smartmet-library-locus >= 21.8.11
 Requires: smartmet-library-macgyver >= 21.9.13
 Requires: smartmet-library-spine >= 21.9.13
@@ -62,7 +62,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 21.8.30
+#TestRequires: smartmet-engine-geonames >= 21.9.13
 #TestRequires: smartmet-library-macgyver >= 21.8.20
 #TestRequires: smartmet-library-spine >= 21.9.13
 #TestRequires: smartmet-test-data
@@ -121,6 +121,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Sep 20 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.9.20-1.fmi
+- Avoid excessive logging on large flash cache updates when the flash season is over
+
 * Thu Sep 16 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.9.16-1.fmi
 - SpatiaLiteCache::getFlashCount to start using memory cache (BRAINSTORM-2139)
 
