@@ -2,7 +2,7 @@ SUBNAME = observation
 SPEC = smartmet-engine-$(SUBNAME)
 INCDIR = smartmet//engines/$(SUBNAME)
 
-REQUIRES = gdal
+REQUIRES = gdal configpp
 
 include $(shell echo $${PREFIX-/usr})/share/smartmet/devel/makefile.inc
 
