@@ -18,9 +18,7 @@ namespace Engine
 {
 namespace Observation
 {
-typedef DatabaseDriverBase *driver_create_t(const std::string &driver_id,
-                                            const EngineParametersPtr &p,
-                                            Spine::ConfigBase &cfg);
+using driver_create_t = DatabaseDriverBase *(const std::string &, const EngineParametersPtr &, Spine::ConfigBase &);
 
 DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::ConfigBase &cfg)
     : itsStationtypeConfig(p->stationtypeConfig)

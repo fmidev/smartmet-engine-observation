@@ -39,7 +39,7 @@ namespace Engine
 {
 namespace Observation
 {
-class SpatiaLiteCacheParameters;
+struct SpatiaLiteCacheParameters;
 class ObservationMemoryCache;
 
 struct QueryMapping;
