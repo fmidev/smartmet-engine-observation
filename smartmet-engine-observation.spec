@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.9.20
+Version: 21.11.4
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -121,6 +121,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+
+* Thu Nov 4 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.11.4-1.fmi
+- Fixed default-sensor bug in PostgreSQL driver (BRAINSTORM-2196)
+
 * Mon Sep 20 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.9.20-1.fmi
 - Avoid excessive logging on large flash cache updates when the flash season is over
 
