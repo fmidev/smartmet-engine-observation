@@ -174,7 +174,8 @@ QueryMapping CommonDatabaseFunctions::buildQueryMapping(const Spine::Stations & 
             if (mids.find(nparam) == mids.end())
               ret.measurandIds.push_back(nparam);
             int sensor_number = (p.getSensorNumber() ? *(p.getSensorNumber()) : -1);
-            if (sensor_number >= 0)
+			// -1 indicates default sensor
+            if (sensor_number >= -1)
               ret.sensorNumberToMeasurandIds[sensor_number].insert(nparam);
             mids.insert(nparam);
           }
