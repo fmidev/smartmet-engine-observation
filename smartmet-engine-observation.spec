@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.11.4
+Version: 21.11.11
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -21,7 +21,7 @@ BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 21.9.28
 BuildRequires: smartmet-library-locus-devel >= 21.8.11
 BuildRequires: smartmet-library-macgyver-devel >= 21.10.4
-BuildRequires: smartmet-library-spine-devel >= 21.11.3
+BuildRequires: smartmet-library-spine-devel >= 21.11.10
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -36,7 +36,7 @@ Requires: libatomic
 Requires: smartmet-engine-geonames >= 21.9.28
 Requires: smartmet-library-locus >= 21.8.11
 Requires: smartmet-library-macgyver >= 21.10.4
-Requires: smartmet-library-spine >= 21.11.3
+Requires: smartmet-library-spine >= 21.11.10
 Requires: smartmet-server >= 21.9.7
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
@@ -64,7 +64,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: zlib-devel
 #TestRequires: smartmet-engine-geonames >= 21.9.28
 #TestRequires: smartmet-library-macgyver >= 21.8.20
-#TestRequires: smartmet-library-spine >= 21.11.3
+#TestRequires: smartmet-library-spine >= 21.11.10
 #TestRequires: smartmet-test-data
 
 %if 0%{rhel} >= 8
@@ -121,6 +121,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Nov 11 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.11.11-1.fmi
+- Repackaged since ValueFormatter ABI changed
 
 * Thu Nov 4 2021 Anssi Reponen <anssi.reponen@fmi.fi> - 21.11.4-1.fmi
 - Fixed default-sensor bug in PostgreSQL driver (BRAINSTORM-2196)
