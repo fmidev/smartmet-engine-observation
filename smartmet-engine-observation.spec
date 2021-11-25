@@ -14,7 +14,7 @@ BuildRequires: boost169-devel
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 7.1.3
 BuildRequires: gcc-c++
-BuildRequires: gdal32-devel
+BuildRequires: gdal33-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
@@ -31,7 +31,7 @@ Requires: boost169-serialization
 Requires: boost169-system
 Requires: boost169-thread
 Requires: fmt >= 7.1.3
-Requires: gdal32-libs
+Requires: gdal33-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 21.9.28
 Requires: smartmet-library-locus >= 21.8.11
@@ -58,7 +58,7 @@ Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: make
 #TestRequires: gcc-c++
-#TestRequires: gdal32-devel
+#TestRequires: gdal33-devel
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
