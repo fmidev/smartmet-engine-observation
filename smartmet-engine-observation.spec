@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.11.11
+Version: 21.11.30
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -121,6 +121,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Nov 30 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.11.30-1.fmi
+- Flush important messages to the log immediately
+
 * Thu Nov 11 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.11.11-1.fmi
 - Repackaged since ValueFormatter ABI changed
 
