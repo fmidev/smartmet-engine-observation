@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.11.11
+Version: 21.12.2
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -18,10 +18,10 @@ BuildRequires: gdal33-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 21.9.28
-BuildRequires: smartmet-library-locus-devel >= 21.8.11
-BuildRequires: smartmet-library-macgyver-devel >= 21.10.4
-BuildRequires: smartmet-library-spine-devel >= 21.11.10
+BuildRequires: smartmet-engine-geonames-devel >= 21.12.2
+BuildRequires: smartmet-library-locus-devel >= 21.12.2
+BuildRequires: smartmet-library-macgyver-devel >= 21.12.1
+BuildRequires: smartmet-library-spine-devel >= 21.12.2
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -33,10 +33,10 @@ Requires: boost169-thread
 Requires: fmt >= 7.1.3
 Requires: gdal33-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 21.9.28
-Requires: smartmet-library-locus >= 21.8.11
-Requires: smartmet-library-macgyver >= 21.10.4
-Requires: smartmet-library-spine >= 21.11.10
+Requires: smartmet-engine-geonames >= 21.12.2
+Requires: smartmet-library-locus >= 21.12.2
+Requires: smartmet-library-macgyver >= 21.12.1
+Requires: smartmet-library-spine >= 21.12.2
 Requires: smartmet-server >= 21.9.7
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
@@ -46,8 +46,8 @@ Requires: libpqxx < 1:7.0
 BuildRequires: libpqxx-devel < 1:7.0
 %else
 %if %{defined el8}
-Requires: libpqxx >= 5.0.1
-BuildRequires: libpqxx-devel >= 5.0.1
+Requires: libpqxx >= 1:7.6.0, libpqxx < 1:7.7.0
+BuildRequires: libpqxx-devel >= 1:7.6.0, libpqxx-devel < 1:7.7.0
 %else
 Requires: libpqxx
 BuildRequires: libpqxx-devel
@@ -62,9 +62,9 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 21.9.28
-#TestRequires: smartmet-library-macgyver >= 21.8.20
-#TestRequires: smartmet-library-spine >= 21.11.10
+#TestRequires: smartmet-engine-geonames >= 21.12.2
+#TestRequires: smartmet-library-macgyver >= 21.12.1
+#TestRequires: smartmet-library-spine >= 21.12.2
 #TestRequires: smartmet-test-data
 
 %if 0%{rhel} >= 8
@@ -86,8 +86,8 @@ SmartMet engine for fetching observations from the climate database (cldb).
 Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
-Requires: %{SPECNAME}
-Requires: smartmet-library-spine-devel
+Requires: %{SPECNAME} = %{version}-%{release}
+Requires: smartmet-library-spine-devel >= 21.12.2
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
