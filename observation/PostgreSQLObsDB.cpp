@@ -205,7 +205,8 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
     {
       std::cout << (Spine::log_time_str() +
                     " [PostgreSQLObsDB] Performing a large OBS cache update starting from " +
-                    Fmi::to_simple_string(lastModifiedTime) + "\n");
+                    Fmi::to_simple_string(lastModifiedTime))
+                << std::endl;
     }
 
     if (itsDebug)
@@ -322,7 +323,8 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
       {
         std::cout << (Spine::log_time_str() +
                       " [PostgreSQLObsDB] Performing a large FLASH cache update starting from " +
-                      Fmi::to_simple_string(lastModifiedTime) + "\n");
+                      Fmi::to_simple_string(lastModifiedTime))
+                  << std::endl;
         bigFlashRequestReported = true;
       }
     }
@@ -452,7 +454,8 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
     {
       std::cout << (Spine::log_time_str() +
                     " [PostgreSQLObsDB] Performing a large EXT cache update starting from " +
-                    Fmi::to_simple_string(starttime) + "\n");
+                    Fmi::to_simple_string(starttime))
+                << std::endl;
     }
 
     std::string sqlStmt =
