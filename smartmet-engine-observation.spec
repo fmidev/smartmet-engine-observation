@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 21.12.2
+Version: 21.12.7
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -121,6 +121,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Dec  7 2021 Andris Pavēnis <andris.pavenis@fmi.fi> 21.12.7-1.fmi
+- Update to postgresql 13 and gdal 3.3
+
 * Tue Nov 30 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.11.30-1.fmi
 - Flush important messages to the log immediately
 
