@@ -9,6 +9,12 @@
 using namespace SmartMet;
 using SmartMet::Engine::Observation::SpecialParameters;
 
+const SpecialParameters& SpecialParameters::instance()
+{
+    static SpecialParameters special_parameters;
+    return special_parameters;
+}
+
 Spine::TimeSeries::Value
 SpecialParameters::getValue(
     const std::string& param_name,

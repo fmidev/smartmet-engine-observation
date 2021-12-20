@@ -935,7 +935,8 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
     boost::local_time::local_date_time now(boost::posix_time::second_clock::universal_time(),
                                            obstime.zone());
     Spine::TimeSeries::TimedValue value =
-        special_parameters.getTimedValue(station, stationtype, paramname, obstime, now, timezone);
+        SpecialParameters::instance()
+        .getTimedValue(station, stationtype, paramname, obstime, now, timezone);
     timeSeriesColumns->at(pos).push_back(value);
   }
   catch (...)

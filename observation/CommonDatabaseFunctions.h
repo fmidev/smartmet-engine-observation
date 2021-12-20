@@ -168,7 +168,6 @@ class CommonDatabaseFunctions
       AdditionalTimestepOption::RequestedAndDataTimesteps};
 
  private:
-    SpecialParameters special_parameters;
 };  // namespace Observation
 
 }  // namespace Observation

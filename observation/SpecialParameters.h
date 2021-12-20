@@ -52,9 +52,10 @@ class SpecialParameters
         mutable std::unique_ptr<Fmi::Astronomy::lunar_time_t> lunar_time;
   };
 
- public:
+ private:
     SpecialParameters();
 
+ public:
     virtual ~SpecialParameters() = default;
 
     Spine::TimeSeries::Value getValue(const std::string& param_name, const Args& args) const;
@@ -69,6 +70,7 @@ class SpecialParameters
         const boost::local_time::local_date_time &origintime,
         const std::string &timeZone) const;
 
+    static const SpecialParameters& instance();
 
  private:
     typedef std::function <Spine::TimeSeries::Value(const Args&)> parameter_handler_t;
