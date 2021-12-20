@@ -265,6 +265,12 @@ SpecialParameters::SpecialParameters()
             return d.obstime.local_time().date().month();
         };
 
+    handler_map[MOONPHASE_PARAM] =
+        [] (const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
+        {
+            return Fmi::Astronomy::moonphase(d.obstime.utc_time());
+        };
+
     handler_map[MOONRISETODAY_PARAM] =
         [] (const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
