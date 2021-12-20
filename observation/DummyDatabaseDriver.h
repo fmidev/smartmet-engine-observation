@@ -15,8 +15,8 @@ struct ObservableProperty;
 class DummyDatabaseDriver : public DatabaseDriverBase
 {
  public:
-  DummyDatabaseDriver(const std::string &name, const EngineParametersPtr &p)
-      : DatabaseDriverBase(name), itsParameters(p)
+  DummyDatabaseDriver(const std::string &name, const EngineParametersPtr &)
+      : DatabaseDriverBase(name)
   {
   }
 
@@ -52,8 +52,6 @@ class DummyDatabaseDriver : public DatabaseDriverBase
   std::string id() const override { return "dummy"; }
   std::string name() const { return "dummy"; }
 
- private:
-  const EngineParametersPtr &itsParameters;
 };
 
 }  // namespace Observation
