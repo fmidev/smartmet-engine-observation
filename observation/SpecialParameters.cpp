@@ -232,7 +232,7 @@ SpecialParameters::SpecialParameters()
         Spine::ValueFormatterParam vfp;
         Spine::ValueFormatter valueformatter(vfp);
             return valueformatter.format(d.station.longitude_out, 5) + ", " +
-                valueformatter.format(d.station.latitude_out, 5) + ", ";
+                valueformatter.format(d.station.latitude_out, 5);
         };
 
     handler_map[LPNN_PARAM] =
