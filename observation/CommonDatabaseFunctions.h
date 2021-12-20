@@ -5,6 +5,7 @@
 #include "ParameterMap.h"
 #include "QueryMapping.h"
 #include "Settings.h"
+#include "SpecialParameters.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
 #include "Utils.h"
