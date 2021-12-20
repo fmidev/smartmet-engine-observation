@@ -73,6 +73,7 @@ SpecialParameters::getTimedValue(
 SpecialParameters::SpecialParameters()
     : tf(Fmi::TimeFormatter::create("iso"))
 {
+    // FIXME: is locale dependent (this dependency does not seem to work)
     handler_map[COUNTRY_PARAM] =
         [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
@@ -134,6 +135,7 @@ SpecialParameters::SpecialParameters()
             return d.station.station_elevation;
         };
 
+    // FIXME: extra .0 added by formatter
     handler_map[EPOCHTIME_PARAM] =
         [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
@@ -174,6 +176,7 @@ SpecialParameters::SpecialParameters()
             return int(d.obstime.local_time().time_of_day().hours());
         };
 
+    // FIXME: iso2 seems to be empty in d.station.iso2
     handler_map[ISO2_PARAM] =
         [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
@@ -258,6 +261,8 @@ SpecialParameters::SpecialParameters()
             return "";
         };
 
+    // FIXME: should return locale dependent short month name for MON_PARAM
+    //        and full month name for MONTH_PARAM
     handler_map[MONTH_PARAM] =
     handler_map[MON_PARAM] =
         [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
@@ -510,8 +515,10 @@ SpecialParameters::SpecialParameters()
             return Fmi::to_iso_extended_string(d.obstime.local_time());
         };
 
+    // FIXME: implement: requires initial coordinate system
     handler_map[X_PARAM] = parameter_handler_t();
 
+    // FIXME: implement: requires initial coordinate system
     handler_map[Y_PARAM] = parameter_handler_t();
 }
 
