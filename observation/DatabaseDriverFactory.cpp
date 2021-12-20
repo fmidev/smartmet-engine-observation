@@ -21,10 +21,6 @@ DatabaseDriverInterface *DatabaseDriverFactory::create(const EngineParametersPtr
   }
 }
 
-#ifdef __llvm__
-#pragma clang diagnostic pop
-#endif
-
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
