@@ -55,11 +55,12 @@ SpecialParameters::getTimedValue(
     const std::string &parameter,
     const boost::local_time::local_date_time &obstime,
     const boost::local_time::local_date_time &origintime,
-    const std::string &timeZone) const
+    const std::string &timeZone,
+    const Settings* settings) const
 {
   try
   {
-      const SpecialParameters::Args args(station, stationType, obstime, origintime, timeZone);
+      const SpecialParameters::Args args(station, stationType, obstime, origintime, timeZone, settings);
       Spine::TimeSeries::Value value = getValue(parameter, args);
       return Spine::TimeSeries::TimedValue(obstime, value);
   }

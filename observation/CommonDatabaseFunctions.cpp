@@ -804,6 +804,10 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
           .emplace_back(Spine::TimeSeries::TimedValue(obstime, val));
     }
 
+    boost::local_time::local_date_time now(boost::posix_time::second_clock::universal_time(),
+					   obstime.zone());
+    SpecialParameters::Args args(station, stationtype, obstime, now, settings.timezone, &settings);
+
     for (const auto &special : specialPositions)
     {
       int pos = special.second;
@@ -912,8 +916,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
         }
         else
         {
-          addSpecialParameterToTimeSeries(
-              fieldname, timeSeriesColumns, station, pos, stationtype, obstime, settings.timezone);
+          addSpecialParameterToTimeSeries(fieldname, timeSeriesColumns, pos, args);
         }
       }
     }
@@ -927,19 +930,14 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
 void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
     const std::string &paramname,
     const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-    const Spine::Station &station,
     const int pos,
-    const std::string &stationtype,
-    const boost::local_time::local_date_time &obstime,
-    const std::string &timezone) const
+    const SpecialParameters::Args& args) const
 {
   try
   {
-    boost::local_time::local_date_time now(boost::posix_time::second_clock::universal_time(),
-                                           obstime.zone());
     Spine::TimeSeries::TimedValue value =
         SpecialParameters::instance()
-        .getTimedValue(station, stationtype, paramname, obstime, now, timezone);
+      .getTimedValue(paramname, args);
     timeSeriesColumns->at(pos).push_back(value);
   }
   catch (...)

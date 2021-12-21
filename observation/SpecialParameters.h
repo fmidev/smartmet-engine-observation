@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Settings.h"
 #include <functional>
 #include <memory>
 #include <spine/Station.h>
@@ -24,13 +25,15 @@ class SpecialParameters
         const boost::local_time::local_date_time &obstime;
         const boost::local_time::local_date_time &origintime;
         const std::string &timeZone;
+        const Settings* settings;
 
         Args(
             const Spine::Station &station,
             const std::string &stationType,
             const boost::local_time::local_date_time &obstime,
             const boost::local_time::local_date_time &origintime,
-            const std::string &timeZone)
+            const std::string &timeZone,
+            const Settings* settings = nullptr)
 
             : station(station)
             , stationType(stationType)
@@ -38,6 +41,10 @@ class SpecialParameters
             , origintime(origintime)
             , timeZone(timeZone)
         {
+	    // Does not seem to be directly available in smartmet-library-delfoi
+	    // Use fallback settings when not available
+	    static const Settings fallback_settings;
+	    this->settings = settings ? settings : &fallback_settings;
         }
 
         virtual ~Args() = default;
@@ -58,9 +65,11 @@ class SpecialParameters
  public:
     virtual ~SpecialParameters() = default;
 
-    Spine::TimeSeries::Value getValue(const std::string& param_name, const Args& args) const;
+    Spine::TimeSeries::Value getValue(const std::string& param_name,
+				      const Args& args) const;
 
-    Spine::TimeSeries::TimedValue getTimedValue(const std::string& param_name, const Args& args) const;
+    Spine::TimeSeries::TimedValue getTimedValue(const std::string& param_name,
+						const Args& args) const;
 
     Spine::TimeSeries::TimedValue getTimedValue(
         const Spine::Station &station,
@@ -68,7 +77,8 @@ class SpecialParameters
         const std::string &parameter,
         const boost::local_time::local_date_time &obstime,
         const boost::local_time::local_date_time &origintime,
-        const std::string &timeZone) const;
+        const std::string &timeZone,
+	const Settings* settings = nullptr) const;
 
     static const SpecialParameters& instance();
 
