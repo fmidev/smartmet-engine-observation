@@ -3,15 +3,22 @@
 #include "Settings.h"
 #include <functional>
 #include <memory>
+#include <spine/Location.h>
 #include <spine/Station.h>
 #include <spine/TimeSeries.h>
 #include <macgyver/Astronomy.h>
 #include <macgyver/TimeFormatter.h>
+#include <boost/optional.hpp>
 
 namespace SmartMet
 {
 namespace Engine
 {
+namespace Geonames
+{
+  class Engine;
+}
+
 namespace Observation
 {
 
@@ -52,18 +59,22 @@ class SpecialParameters
         const Fmi::Astronomy::solar_position_t& get_solar_position() const;
         const Fmi::Astronomy::solar_time_t& get_solar_time() const;
         const Fmi::Astronomy::lunar_time_t& get_lunar_time() const;
+        SmartMet::Spine::LocationPtr get_location(Geonames::Engine* engine) const;
 
   private:
         mutable std::unique_ptr<Fmi::Astronomy::solar_position_t> solar_position;
         mutable std::unique_ptr<Fmi::Astronomy::solar_time_t> solar_time;
         mutable std::unique_ptr<Fmi::Astronomy::lunar_time_t> lunar_time;
-  };
+        mutable boost::optional<SmartMet::Spine::LocationPtr> location_ptr;
+    };
 
  private:
     SpecialParameters();
 
  public:
     virtual ~SpecialParameters() = default;
+
+    static void setGeonames(::SmartMet::Engine::Geonames::Engine* itsGeonames);
 
     Spine::TimeSeries::Value getValue(const std::string& param_name,
 				      const Args& args) const;
@@ -80,12 +91,16 @@ class SpecialParameters
         const std::string &timeZone,
 	const Settings* settings = nullptr) const;
 
-    static const SpecialParameters& instance();
+    static const SpecialParameters& instance() { return mutable_instance(); }
+
+ private:
+    static SpecialParameters& mutable_instance();
 
  private:
     typedef std::function <Spine::TimeSeries::Value(const Args&)> parameter_handler_t;
 
     std::map<std::string, parameter_handler_t> handler_map;
+    Geonames::Engine* itsGeonames;
 
     std::unique_ptr<Fmi::TimeFormatter> tf;
 };
