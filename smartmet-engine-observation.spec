@@ -18,10 +18,10 @@ BuildRequires: gdal33-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 22.1.10
-BuildRequires: smartmet-library-locus-devel >= 21.12.7
-BuildRequires: smartmet-library-macgyver-devel >= 22.1.10
-BuildRequires: smartmet-library-spine-devel >= 22.1.5
+BuildRequires: smartmet-engine-geonames-devel >= 21.12.2
+BuildRequires: smartmet-library-locus-devel >= 21.12.2
+BuildRequires: smartmet-library-macgyver-devel >= 21.12.1
+BuildRequires: smartmet-library-spine-devel >= 21.12.2
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -33,11 +33,11 @@ Requires: boost169-thread
 Requires: fmt >= 7.1.3
 Requires: gdal33-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 22.1.10
-Requires: smartmet-library-locus >= 21.12.7
-Requires: smartmet-library-macgyver >= 22.1.10
-Requires: smartmet-library-spine >= 22.1.5
-Requires: smartmet-server >= 21.11.25
+Requires: smartmet-engine-geonames >= 21.12.2
+Requires: smartmet-library-locus >= 21.12.2
+Requires: smartmet-library-macgyver >= 21.12.1
+Requires: smartmet-library-spine >= 21.12.2
+Requires: smartmet-server >= 21.9.7
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
 
@@ -46,8 +46,8 @@ Requires: libpqxx < 1:7.0
 BuildRequires: libpqxx-devel < 1:7.0
 %else
 %if %{defined el8}
-Requires: libpqxx >= 6.2.5
-BuildRequires: libpqxx-devel >= 6.2.5
+Requires: libpqxx >= 1:7.6.0, libpqxx < 1:7.7.0
+BuildRequires: libpqxx-devel >= 1:7.6.0, libpqxx-devel < 1:7.7.0
 %else
 Requires: libpqxx
 BuildRequires: libpqxx-devel
@@ -62,9 +62,9 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 22.1.10
-#TestRequires: smartmet-library-macgyver >= 21.8.20
-#TestRequires: smartmet-library-spine >= 22.1.5
+#TestRequires: smartmet-engine-geonames >= 21.12.2
+#TestRequires: smartmet-library-macgyver >= 21.12.1
+#TestRequires: smartmet-library-spine >= 21.12.2
 #TestRequires: smartmet-test-data
 
 %if 0%{rhel} >= 8
@@ -86,8 +86,8 @@ SmartMet engine for fetching observations from the climate database (cldb).
 Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
-Requires: %{SPECNAME}
-Requires: smartmet-library-spine-devel
+Requires: %{SPECNAME} = %{version}-%{release}
+Requires: smartmet-library-spine-devel >= 21.12.2
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -123,6 +123,12 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Fri Jan 14 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.1.14-1.fmi
 - Use observation_data_r1 instead of observation_data_v1
+
+* Mon Dec 20 2021 Andris Pavēnis <andris.pavenis@fmi.fi> 21.12.20-1.fmi
+- Reimplement special parameter support
+
+* Tue Dec  7 2021 Andris Pavēnis <andris.pavenis@fmi.fi> 21.12.7-1.fmi
+- Update to postgresql 13 and gdal 3.3
 
 * Tue Nov 30 2021 Mika Heiskanen <mika.heiskanen@fmi.fi> - 21.11.30-1.fmi
 - Flush important messages to the log immediately

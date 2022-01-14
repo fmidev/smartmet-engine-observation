@@ -1,5 +1,4 @@
 #include "CommonDatabaseFunctions.h"
-#include "SpecialParameters.h"
 #include "Utils.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/functional/hash.hpp>
@@ -936,7 +935,8 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
     boost::local_time::local_date_time now(boost::posix_time::second_clock::universal_time(),
                                            obstime.zone());
     Spine::TimeSeries::TimedValue value =
-        getSpecialParameterValue(station, stationtype, paramname, obstime, now, timezone);
+        SpecialParameters::instance()
+        .getTimedValue(station, stationtype, paramname, obstime, now, timezone);
     timeSeriesColumns->at(pos).push_back(value);
   }
   catch (...)

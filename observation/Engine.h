@@ -143,7 +143,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
                   const Settings &settings,
                   const std::vector<unsigned int> &unknownParameterIndexes) const;
 
-  Fmi::Cache::CacheStatistics getCacheStats() const;
+  Fmi::Cache::CacheStatistics getCacheStats() const override;
 
   std::string itsConfigFile;
 
