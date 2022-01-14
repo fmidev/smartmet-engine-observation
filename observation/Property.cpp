@@ -210,8 +210,8 @@ Base::NameType MinuteValueModuloIsEqualToZero::getExpression(
           .append(Base::getOperator())
           .append(" 0");
 
-    // (MOD(60*TO_CHAR(OBSERVATION_DATA_V1.DATA_TIME,'HH24') +
-    // TO_CHAR(OBSERVATION_DATA_V1.DATA_TIME,'MI'), 10) = 0)
+    // (MOD(60*TO_CHAR(OBSERVATION_DATA_R1.DATA_TIME,'HH24') +
+    // TO_CHAR(OBSERVATION_DATA_R1.DATA_TIME,'MI'), 10) = 0)
 
     return retVal;
   }

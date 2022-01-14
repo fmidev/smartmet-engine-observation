@@ -165,7 +165,7 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
         "date_trunc('seconds', data_time)) as data_time, "
         "data_value, data_quality, data_source, EXTRACT(EPOCH FROM date_trunc('seconds', "
         "modified_last)) as modified_last "
-        "FROM observation_data_v1 data WHERE data_time >= '" +
+        "FROM observation_data_r1 data WHERE data_time >= '" +
         Fmi::to_iso_extended_string(dataPeriod.begin()) + "' AND data_time <= '" +
         Fmi::to_iso_extended_string(dataPeriod.last()) + ",";
     if (!measurandId.empty())
@@ -197,7 +197,7 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
         "date_trunc('seconds', data_time)) as data_time, "
         "data_value, data_quality, data_source, EXTRACT(EPOCH FROM date_trunc('seconds', "
         "modified_last)) as modified_last "
-        "FROM observation_data_v1 data WHERE "
+        "FROM observation_data_r1 data WHERE "
         "data.modified_last >= '" +
         Fmi::to_iso_extended_string(lastModifiedTime) + "' ORDER BY station_id ASC, data_time ASC";
 
@@ -532,7 +532,7 @@ LocationDataItems PostgreSQLObsDB::readObservations(const Spine::Stations &stati
         "SELECT data.station_id AS fmisid, data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM "
         "date_trunc('seconds', data.data_time)) AS obstime, "
         "measurand_id, data_value, data_quality, data_source "
-        "FROM observation_data_v1 data "
+        "FROM observation_data_r1 data "
         "WHERE data.station_id IN (" +
         qstations +
         ") "

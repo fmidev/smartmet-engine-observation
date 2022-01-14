@@ -165,7 +165,7 @@ Engine::Observation::LocationDataItems CommonPostgreSQLFunctions::readObservatio
           "SELECT data.station_id AS fmisid, data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM "
           "date_trunc('seconds', data.data_time)) AS obstime, "
           "measurand_id, data_value, data_quality, data_source "
-          "FROM observation_data_v1 data "
+          "FROM observation_data_r1 data "
           "WHERE data.station_id IN (" +
           qstations +
           ") "

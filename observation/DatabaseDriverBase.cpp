@@ -291,7 +291,7 @@ std::string DatabaseDriverBase::resolveCacheTableName(
     {
       tablename = *(stationtypeConfig.getDatabaseTableNameByStationtype(producer));
 
-      if (tablename == "observation_data_v1")
+      if (tablename == "observation_data_r1")
         tablename = OBSERVATION_DATA_TABLE;
       else if (tablename == "weather_data_qc")
         tablename = WEATHER_DATA_QC_TABLE;
@@ -380,7 +380,7 @@ std::string DatabaseDriverBase::resolveDatabaseTableName(const std::string &prod
     {
       tablename = *(stationtypeConfig.getDatabaseTableNameByStationtype(producer));
 
-      if (tablename == "observation_data_v1")
+      if (tablename == "observation_data_r1")
         tablename = OBSERVATION_DATA_TABLE;
       else if (tablename == "weather_data_qc")
         tablename = WEATHER_DATA_QC_TABLE;
