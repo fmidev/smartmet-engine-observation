@@ -104,7 +104,6 @@ namespace {
 SpecialParameters::SpecialParameters()
     : tf(Fmi::TimeFormatter::create("iso"))
 {
-    // FIXME: is locale dependent (this dependency does not seem to work)
     handler_map[COUNTRY_PARAM] =
         [this](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
@@ -130,8 +129,12 @@ SpecialParameters::SpecialParameters()
             return minutes;
         };
 
-    // FIXME: läsnä ParameterKeywords.h. Ei kuitenkaan toteutusta tähän asti
-    handler_map[DEM_PARAM] = parameter_handler_t();
+    handler_map[DEM_PARAM] =
+        [this](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
+	{
+            auto loc = d.get_location(itsGeonames);
+	    return loc->dem;
+	};
 
     handler_map[DIRECTION_PARAM] =
         [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
@@ -399,9 +402,21 @@ SpecialParameters::SpecialParameters()
     handler_map[PRODUCER_PARAM] = parameter_handler_t();
 
     handler_map[REGION_PARAM] =
-        [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
+        [this](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
-            return d.station.region;
+	  auto loc = d.get_location(itsGeonames);
+	  if (loc->area.empty())
+	    {
+	      if (loc->name.empty())
+		{
+		  // No area (administrative region) nor name known.
+		  return Spine::TimeSeries::Value();
+		}
+	      // Place name known, administrative region unknown.
+	      return loc->name;
+	    }
+	  // Administrative region known.
+	  return loc->area;
         };
 
     handler_map[RWSID_PARAM] =
