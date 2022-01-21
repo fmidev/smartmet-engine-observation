@@ -14,14 +14,14 @@ BuildRequires: boost169-devel
 BuildRequires: bzip2-devel
 BuildRequires: fmt-devel >= 7.1.3
 BuildRequires: gcc-c++
-BuildRequires: gdal33-devel
+BuildRequires: gdal34-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 22.1.10
+BuildRequires: smartmet-engine-geonames-devel >= 21.1.21
 BuildRequires: smartmet-library-locus-devel >= 21.12.7
-BuildRequires: smartmet-library-macgyver-devel >= 22.1.10
-BuildRequires: smartmet-library-spine-devel >= 22.1.5
+BuildRequires: smartmet-library-macgyver-devel >= 21.1.21
+BuildRequires: smartmet-library-spine-devel >= 21.1.21
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -31,12 +31,12 @@ Requires: boost169-serialization
 Requires: boost169-system
 Requires: boost169-thread
 Requires: fmt >= 7.1.3
-Requires: gdal33-libs
+Requires: gdal34-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 22.1.10
+Requires: smartmet-engine-geonames >= 21.1.21
 Requires: smartmet-library-locus >= 21.12.7
-Requires: smartmet-library-macgyver >= 22.1.10
-Requires: smartmet-library-spine >= 22.1.5
+Requires: smartmet-library-macgyver >= 21.1.21
+Requires: smartmet-library-spine >= 21.1.21
 Requires: smartmet-server >= 21.11.25
 Requires: sqlite >= 3.22.0
 Requires: unixODBC
@@ -58,13 +58,13 @@ Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: make
 #TestRequires: gcc-c++
-#TestRequires: gdal33-devel
+#TestRequires: gdal34-devel
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 22.1.10
-#TestRequires: smartmet-library-macgyver >= 22.1.10
-#TestRequires: smartmet-library-spine >= 22.1.5
+#TestRequires: smartmet-engine-geonames >= 21.1.21
+#TestRequires: smartmet-library-macgyver >= 21.1.21
+#TestRequires: smartmet-library-spine >= 21.1.21
 #TestRequires: smartmet-test-data
 
 %if 0%{rhel} >= 8
@@ -87,7 +87,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 22.1.5
+Requires: smartmet-library-spine-devel >= 21.1.21
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
