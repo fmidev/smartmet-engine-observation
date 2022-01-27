@@ -29,6 +29,8 @@ struct FlashCounts
   int iccount{0};
 };
 
+namespace Utils
+{
 /** \brief Remove given prefix from an input string.
  * @param[in,out] parameter The string from which the prefix is wanted to remove.
  * @param[in] prefix The prefix string we are looking for.
@@ -124,6 +126,26 @@ boost::posix_time::ptime epoch2ptime(double epoch);
 
 std::string getStringValue(const Spine::TimeSeries::Value& tv);
 
+// ----------------------------------------------------------------------
+/*!
+ * \brief Checks weather specified parameter name with specified stationtype can be found in parameterMap
+ *
+ */
+// ----------------------------------------------------------------------
+
+bool isParameter(const std::string &name, const std::string &stationType, const ParameterMap& parameterMap);
+
+
+// ----------------------------------------------------------------------
+/*!
+ * \brief Checks weather specified parameter name can be found in parameterMap
+ *
+ */
+// ----------------------------------------------------------------------
+
+bool isParameterVariant(const std::string &name, const ParameterMap& parameterMap);
+
+}  // namespace Utils
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

@@ -88,6 +88,7 @@ namespace Engine
 {
 namespace Observation
 {
+  using namespace Utils;
 // Results read from the sqlite database
 
 LocationDataItems SpatiaLite::readObservationDataFromDB(

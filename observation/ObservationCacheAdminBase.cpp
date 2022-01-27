@@ -10,6 +10,8 @@ namespace Engine
 {
 namespace Observation
 {
+ using namespace Utils;
+
 ObservationCacheAdminBase::ObservationCacheAdminBase(const DatabaseDriverParameters& parameters,
                                                      Engine::Geonames::Engine* geonames,
                                                      std::atomic<bool>& conn_ok,

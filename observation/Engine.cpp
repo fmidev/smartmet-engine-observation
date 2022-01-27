@@ -21,6 +21,8 @@ namespace Observation
 {
 namespace
 {
+  using namespace Utils;
+
 struct CompareLocations
 {
   bool operator()(const StationLocation *loc1, const StationLocation *loc2) const
