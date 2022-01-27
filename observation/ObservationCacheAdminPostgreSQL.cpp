@@ -9,6 +9,8 @@ namespace Engine
 {
 namespace Observation
 {
+  using namespace Utils;
+
 ObservationCacheAdminPostgreSQL::ObservationCacheAdminPostgreSQL(
     const PostgreSQLDriverParameters& p,
     const std::unique_ptr<PostgreSQLObsDBConnectionPool>& pcp,

@@ -73,6 +73,8 @@ namespace Engine
 {
 namespace Observation
 {
+ using namespace Utils;
+
 PostgreSQLCacheDB::PostgreSQLCacheDB(const PostgreSQLCacheParameters &options)
     : CommonPostgreSQLFunctions(
           options.postgresql, options.stationtypeConfig, options.parameterMap),

@@ -272,7 +272,7 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
         Fmi::to_string(std::round(distance * 10) / 10.0);  // round to 100 meter precision
     newstation.requestedLat = latitude;
     newstation.requestedLon = longitude;
-    calculateStationDirection(newstation);
+	Utils::calculateStationDirection(newstation);
 
     result.push_back(newstation);
   }

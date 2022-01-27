@@ -21,6 +21,8 @@ namespace Engine
 {
 namespace Observation
 {
+  using namespace Utils;
+
 PostgreSQLObsDB::PostgreSQLObsDB(
     const Fmi::Database::PostgreSQLConnectionOptions &connectionOptions,
     const StationtypeConfig &stc,

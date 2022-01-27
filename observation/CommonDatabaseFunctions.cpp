@@ -9,12 +9,15 @@
 #include <spine/TimeSeriesOutput.h>
 #include <numeric>
 
+
 namespace SmartMet
 {
 namespace Engine
 {
 namespace Observation
 {
+  using namespace Utils;
+
 std::ostream &operator<<(std::ostream &out,
                          const SmartMet::Engine::Observation::StationTimedMeasurandData &data)
 {

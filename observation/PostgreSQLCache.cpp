@@ -13,6 +13,7 @@ namespace Engine
 {
 namespace Observation
 {
+ using namespace Utils;
 namespace
 {
 // Round down to HH:MM:00. Deleting an entire hour at once takes too long, and causes a major

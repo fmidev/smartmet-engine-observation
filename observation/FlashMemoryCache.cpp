@@ -205,7 +205,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr FlashMemoryCache::getData(
 
   try
   {
-    auto result = initializeResultVector(settings);
+    auto result = Utils::initializeResultVector(settings);
 
     auto cache = itsFlashData.load();
 
@@ -238,7 +238,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr FlashMemoryCache::getData(
     {
       std::string name = p.name();
       boost::to_lower(name, std::locale::classic());
-      if (!not_special(p))
+      if (!Utils::not_special(p))
         column_names.push_back(name);
       else
       {
