@@ -251,26 +251,7 @@ bool EngineParameters::isParameter(const std::string &alias, const std::string &
 {
   try
   {
-    std::string parameterAliasName = Fmi::ascii_tolower_copy(alias);
-    Engine::Observation::removePrefix(parameterAliasName, "qc_");
-
-    if (boost::algorithm::ends_with(parameterAliasName, "data_source"))
-      return true;
-
-    // Is the alias configured.
-    const auto namePtr = parameterMap->find(parameterAliasName);
-
-    if (namePtr == parameterMap->end())
-      return false;
-
-    // Is the stationType configured inside configuration block of the alias.
-    std::string stationTypeLowerCase = Fmi::ascii_tolower_copy(stationType);
-    const auto stationTypeMapPtr = namePtr->second.find(stationTypeLowerCase);
-
-    if (stationTypeMapPtr == namePtr->second.end())
-      return false;
-
-    return true;
+	return Utils::isParameter(alias, stationType, *parameterMap);
   }
   catch (...)
   {
@@ -282,19 +263,7 @@ bool EngineParameters::isParameterVariant(const std::string &name) const
 {
   try
   {
-    std::string parameterLowerCase = Fmi::ascii_tolower_copy(name);
-    Engine::Observation::removePrefix(parameterLowerCase, "qc_");
-
-    if (boost::algorithm::ends_with(parameterLowerCase, "data_source"))
-      return true;
-
-    // Is the alias configured.
-    const auto namePtr = parameterMap->find(parameterLowerCase);
-
-    if (namePtr == parameterMap->end())
-      return false;
-
-    return true;
+	return Utils::isParameterVariant(name, *parameterMap);
   }
   catch (...)
   {
@@ -308,22 +277,10 @@ std::string EngineParameters::getParameterIdAsString(const std::string &alias,
   try
   {
     std::string parameterAliasName = Fmi::ascii_tolower_copy(alias);
-    Engine::Observation::removePrefix(parameterAliasName, "qc_");
-
-    // Is the alias configured.
-    const auto namePtr = parameterMap->find(parameterAliasName);
-
-    if (namePtr == parameterMap->end())
-      return "";
-
-    // Is the stationType configured inside configuration block of the alias.
+    Utils::removePrefix(parameterAliasName, "qc_");
     std::string stationTypeLowerCase = Fmi::ascii_tolower_copy(stationType);
-    const auto stationTypeMapPtr = namePtr->second.find(stationTypeLowerCase);
-
-    if (stationTypeMapPtr == namePtr->second.end())
-      return "";
-
-    return stationTypeMapPtr->second;
+	
+	return parameterMap->getParameter(parameterAliasName, stationTypeLowerCase);
   }
   catch (...)
   {

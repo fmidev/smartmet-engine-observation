@@ -13,7 +13,7 @@ DummyCache::DummyCache(const std::string &name, const EngineParametersPtr &p)
 
 void DummyCache::initializeConnectionPool()
 {
-  logMessage("[Observation Engine] Dummy cache initialized!", itsParameters->quiet);
+  Utils::logMessage("[Observation Engine] Dummy cache initialized!", itsParameters->quiet);
 }
 
 void DummyCache::initializeCaches(int /* finCacheDuration */,

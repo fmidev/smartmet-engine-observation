@@ -10,6 +10,8 @@ namespace Observation
 {
 namespace
 {
+  using namespace Utils;
+
 // Sort based on fmisid
 static bool sort_stations_function(const SmartMet::Spine::Station &s1,
                                    const SmartMet::Spine::Station &s2)

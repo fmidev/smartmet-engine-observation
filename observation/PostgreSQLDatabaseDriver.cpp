@@ -9,6 +9,8 @@ namespace Engine
 {
 namespace Observation
 {
+ using namespace Utils;
+
 PostgreSQLDatabaseDriver::PostgreSQLDatabaseDriver(const std::string &name,
                                                    const EngineParametersPtr &p,
                                                    Spine::ConfigBase & /* cfg */)

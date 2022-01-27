@@ -11,61 +11,9 @@ namespace Engine
 {
 namespace Observation
 {
+  using namespace Utils;
+
 DatabaseDriverBase::~DatabaseDriverBase() = default;
-
-bool DatabaseDriverBase::isParameter(const std::string &alias,
-                                     const std::string &stationType,
-                                     const ParameterMap &parameterMap) const
-{
-  try
-  {
-    std::string parameterAliasName = Fmi::ascii_tolower_copy(alias);
-    removePrefix(parameterAliasName, "qc_");
-
-    if (boost::algorithm::ends_with(parameterAliasName, "data_source"))
-      return true;
-
-    // Is the alias configured.
-    const auto namePtr = parameterMap.find(parameterAliasName);
-
-    if (namePtr == parameterMap.end())
-      return false;
-
-    // Is the stationType configured inside configuration block of the alias.
-    auto stationTypeLowerCase = Fmi::ascii_tolower_copy(stationType);
-    const auto stationTypeMapPtr = namePtr->second.find(stationTypeLowerCase);
-
-    if (stationTypeMapPtr == namePtr->second.end())
-      return false;
-
-    return true;
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Operation failed!");
-  }
-}
-
-bool DatabaseDriverBase::isParameterVariant(const std::string &name,
-                                            const ParameterMap &parameterMap) const
-{
-  try
-  {
-    auto parameterLowerCase = Fmi::ascii_tolower_copy(name);
-    removePrefix(parameterLowerCase, "qc_");
-    // Is the alias configured.
-    const auto namePtr = parameterMap.find(parameterLowerCase);
-
-    if (namePtr == parameterMap.end())
-      return false;
-
-    return true;
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Operation failed!");
-  }
-}
 
 void DatabaseDriverBase::parameterSanityCheck(const std::string &stationtype,
                                               const std::vector<Spine::Parameter> &parameters,
@@ -264,7 +212,7 @@ std::shared_ptr<ObservationCache> DatabaseDriverBase::resolveCache(
   std::string tablename = resolveCacheTableName(producer, parameters->stationtypeConfig);
 
   if (tablename.empty())
-    logMessage("No cache for producer " + producer, itsQuiet);
+	logMessage("No cache for producer " + producer, itsQuiet);
 
   return parameters->observationCacheProxy->getCacheByTableName(tablename);
 }

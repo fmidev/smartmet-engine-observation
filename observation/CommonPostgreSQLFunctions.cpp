@@ -13,6 +13,8 @@ namespace Engine
 {
 namespace Observation
 {
+  using namespace Utils;
+
 CommonPostgreSQLFunctions::CommonPostgreSQLFunctions(
     const Fmi::Database::PostgreSQLConnectionOptions &connectionOptions,
     const StationtypeConfig &stc,
@@ -243,7 +245,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getF
     {
       std::string name = p.name();
       boost::to_lower(name, std::locale::classic());
-      if (Engine::Observation::not_special(p))
+      if (not_special(p))
       {
         if (!itsParameterMap->getParameter(name, stationtype).empty())
         {
@@ -260,7 +262,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getF
       pos++;
     }
 
-    param = Engine::Observation::trimCommasFromEnd(param);
+    param = trimCommasFromEnd(param);
 
     std::string starttimeString = Fmi::to_iso_extended_string(settings.starttime);
     boost::replace_all(starttimeString, ",", ".");
@@ -339,7 +341,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getF
                 << std::endl;
 
     Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-        Engine::Observation::initializeResultVector(settings);
+        initializeResultVector(settings);
 
     double longitude = std::numeric_limits<double>::max();
     double latitude = std::numeric_limits<double>::max();

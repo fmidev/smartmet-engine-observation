@@ -13,6 +13,10 @@ namespace Engine
 {
 namespace Observation
 {
+  static const std::string DEFAULT_STATIONTYPE = "default";
+  static const std::string DATA_SOURCE = "data_source";
+  static const std::string MAIN_MEASURAND_ID = "main_measurand_id";
+
 class ParameterMap
 {
  public:

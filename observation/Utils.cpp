@@ -19,6 +19,8 @@ namespace Engine
 {
 namespace Observation
 {
+namespace Utils
+{
 bool removePrefix(std::string& parameter, const std::string& prefix)
 {
   try
@@ -682,6 +684,61 @@ std::string getStringValue(const Spine::TimeSeries::Value& tv)
   throw Fmi::Exception(BCP, "Failed to extract FMISID (double/int/string) from variant");
 }
 
+bool isParameter(const std::string &name, const std::string &stationType, const ParameterMap& parameterMap)
+{
+  try
+  {
+    std::string parameterName = Fmi::ascii_tolower_copy(name);
+    removePrefix(parameterName, "qc_");
+
+    if (boost::algorithm::ends_with(parameterName, DATA_SOURCE))
+      return true;
+
+    // Is the alias configured.
+    const auto namePtr = parameterMap.find(parameterName);
+
+    if (namePtr == parameterMap.end())
+      return false;
+
+    // Is the stationType configured inside configuration block of the alias.
+    std::string stationTypeLowerCase = Fmi::ascii_tolower_copy(stationType);
+    auto stationTypeMapPtr = namePtr->second.find(stationTypeLowerCase);
+
+    if (stationTypeMapPtr == namePtr->second.end())
+	  stationTypeMapPtr = namePtr->second.find(DEFAULT_STATIONTYPE);
+    if (stationTypeMapPtr == namePtr->second.end())
+      return false;
+
+    return true;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+bool isParameterVariant(const std::string &name, const ParameterMap& parameterMap)
+{
+  try
+  {
+    auto parameterLowerCase = Fmi::ascii_tolower_copy(name);
+    removePrefix(parameterLowerCase, "qc_");
+    // Is the alias configured.
+    const auto namePtr = parameterMap.find(parameterLowerCase);
+
+    if (namePtr == parameterMap.end())
+      return false;
+
+    return true;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+
+}  // namespace Utils
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

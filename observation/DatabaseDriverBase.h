@@ -82,11 +82,6 @@ class DatabaseDriverBase
   }
 
  protected:
-  bool isParameter(const std::string &alias,
-                   const std::string &stationType,
-                   const ParameterMap &parameterMap) const;
-  bool isParameterVariant(const std::string &name, const ParameterMap &parameterMap) const;
-
   void parameterSanityCheck(const std::string &stationtype,
                             const std::vector<Spine::Parameter> &parameters,
                             const ParameterMap &parameterMap) const;
