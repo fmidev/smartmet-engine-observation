@@ -87,22 +87,23 @@ namespace {
   {
     try
       {
-	using tfacet = boost::date_time::time_facet<boost::local_time::local_date_time, char>;
+	using tfacet = boost::date_time::time_facet<boost::posix_time::ptime, char>;
 	std::ostringstream os;
 	os.imbue(std::locale(llocale, new tfacet(fmt.c_str())));
-	    os << ldt;
-	    return Fmi::latin1_to_utf8(os.str());
+	os << ldt.local_time();
+	return Fmi::latin1_to_utf8(os.str());
       }
     catch (...)
       {
 	throw Fmi::Exception::Trace(BCP, "Operation failed!");
-	  }
+      }
   };
 
 }
 
 SpecialParameters::SpecialParameters()
     : tf(Fmi::TimeFormatter::create("iso"))
+    , utc_tz(Fmi::TimeZoneFactory::instance().time_zone_from_string("UTC"))
 {
     handler_map[COUNTRY_PARAM] =
         [this](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
@@ -116,7 +117,7 @@ SpecialParameters::SpecialParameters()
         {
             Fmi::Astronomy::solar_position_t sp =
                 Fmi::Astronomy::solar_position(d.obstime, d.station.longitude_out, d.station.latitude_out);
-            return sp.dark();
+           return sp.dark();
         };
 
     handler_map[DAYLENGTH_PARAM] =
@@ -153,7 +154,7 @@ SpecialParameters::SpecialParameters()
     handler_map[DISTANCE_PARAM] =
         [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
-            Spine::TimeSeries::Value value = Spine::TimeSeries::None();
+           Spine::TimeSeries::Value value = Spine::TimeSeries::None();
             if (!d.station.distance.empty())
             {
                 Spine::ValueFormatterParam vfp;
@@ -250,13 +251,16 @@ SpecialParameters::SpecialParameters()
     handler_map[LOCALTIME_PARAM] =
         [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
-            return d.obstime;
+            const boost::posix_time::ptime utc = d.obstime.utc_time();
+            auto& tzf = Fmi::TimeZoneFactory::instance();
+	    boost::local_time::time_zone_ptr tz = tzf.time_zone_from_string(d.station.timezone);
+	    return boost::local_time::local_date_time(utc, tz);
         };
 
     handler_map[LOCALTZ_PARAM] =
         [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
-            return d.station.timezone;
+	    return d.station.timezone;
         };
 
     handler_map[LONGITUDE_PARAM] =
@@ -544,16 +548,11 @@ SpecialParameters::SpecialParameters()
         };
 
     handler_map[UTCTIME_PARAM] =
-        [this](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
-        {
-            return tf->format(d.obstime.utc_time());
-        };
-
-
     handler_map[UTC_PARAM] =
         [this](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
-            return tf->format(d.obstime.utc_time());
+            boost::local_time::local_date_time utc(d.obstime.utc_time(), utc_tz);
+	    return utc;
         };
 
     handler_map[WDAY_PARAM] =
@@ -641,4 +640,16 @@ SmartMet::Spine::LocationPtr SpecialParameters::Args::get_location(Geonames::Eng
         ptr = *location_ptr;
     }
     return ptr;
+}
+
+boost::local_time::time_zone_ptr SpecialParameters::Args::get_tz() const
+{
+  if (tz) {
+    return tz;
+  } else {
+    auto& tzf = Fmi::TimeZoneFactory::instance();
+    const std::string tz_name = get_tz_name();
+    tz = tzf.time_zone_from_string(tz_name);
+    return tz;
+  }
 }
