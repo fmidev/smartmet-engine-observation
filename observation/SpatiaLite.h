@@ -13,7 +13,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 #endif
-#include "sqlite3pp.h"
+#include <macgyver/sqlite3pp.h>
 #ifdef __llvm__
 #pragma clang diagnostic pop
 #endif
