@@ -155,11 +155,8 @@ class CommonDatabaseFunctions
   void addSpecialParameterToTimeSeries(
       const std::string &paramname,
       const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-      const Spine::Station &station,
       const int pos,
-      const std::string &stationtype,
-      const boost::local_time::local_date_time &obstime,
-      const std::string &timezone) const;
+      const SpecialParameters::Args& args) const;
 
   const StationtypeConfig &itsStationtypeConfig;
   const ParameterMapPtr &itsParameterMap;

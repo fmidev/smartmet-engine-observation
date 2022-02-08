@@ -1,18 +1,26 @@
 #include "SpecialParameters.h"
 #include <macgyver/Astronomy.h>
+#include <macgyver/CharsetTools.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <spine/ParameterKeywords.h>
 #include <spine/ParameterTools.h>
 #include <spine/ValueFormatter.h>
+#include <locus/Query.h>
+#include <engines/geonames/Engine.h>
 
 using namespace SmartMet;
 using SmartMet::Engine::Observation::SpecialParameters;
 
-const SpecialParameters& SpecialParameters::instance()
+SpecialParameters& SpecialParameters::mutable_instance()
 {
     static SpecialParameters special_parameters;
     return special_parameters;
+}
+
+void SpecialParameters::setGeonames(SmartMet::Engine::Geonames::Engine* itsGeonames)
+{
+     mutable_instance().itsGeonames = itsGeonames;
 }
 
 Spine::TimeSeries::Value
@@ -20,6 +28,7 @@ SpecialParameters::getValue(
     const std::string& param_name,
     const SpecialParameters::Args& args) const
 {
+    assert(itsGeonames);
     try {
         auto it = handler_map.find(param_name);
         if (it == handler_map.end() || !it->second) {
@@ -55,11 +64,12 @@ SpecialParameters::getTimedValue(
     const std::string &parameter,
     const boost::local_time::local_date_time &obstime,
     const boost::local_time::local_date_time &origintime,
-    const std::string &timeZone) const
+    const std::string &timeZone,
+    const Settings* settings) const
 {
   try
   {
-      const SpecialParameters::Args args(station, stationType, obstime, origintime, timeZone);
+      const SpecialParameters::Args args(station, stationType, obstime, origintime, timeZone, settings);
       Spine::TimeSeries::Value value = getValue(parameter, args);
       return Spine::TimeSeries::TimedValue(obstime, value);
   }
@@ -69,15 +79,37 @@ SpecialParameters::getTimedValue(
   }
 }
 
+namespace {
+
+  std::string format_date(const boost::local_time::local_date_time& ldt,
+			  const std::locale& llocale,
+			  const std::string& fmt)
+  {
+    try
+      {
+	using tfacet = boost::date_time::time_facet<boost::posix_time::ptime, char>;
+	std::ostringstream os;
+	os.imbue(std::locale(llocale, new tfacet(fmt.c_str())));
+	os << ldt.local_time();
+	return Fmi::latin1_to_utf8(os.str());
+      }
+    catch (...)
+      {
+	throw Fmi::Exception::Trace(BCP, "Operation failed!");
+      }
+  };
+
+}
 
 SpecialParameters::SpecialParameters()
     : tf(Fmi::TimeFormatter::create("iso"))
+    , utc_tz(Fmi::TimeZoneFactory::instance().time_zone_from_string("UTC"))
 {
-    // FIXME: is locale dependent (this dependency does not seem to work)
     handler_map[COUNTRY_PARAM] =
-        [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
+        [this](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
-            return d.station.country;
+            auto loc = d.get_location(itsGeonames);
+            return loc ? loc->country : d.station.country;
         };
 
     handler_map[DARK_PARAM] =
@@ -85,7 +117,7 @@ SpecialParameters::SpecialParameters()
         {
             Fmi::Astronomy::solar_position_t sp =
                 Fmi::Astronomy::solar_position(d.obstime, d.station.longitude_out, d.station.latitude_out);
-            return sp.dark();
+           return sp.dark();
         };
 
     handler_map[DAYLENGTH_PARAM] =
@@ -98,8 +130,12 @@ SpecialParameters::SpecialParameters()
             return minutes;
         };
 
-    // FIXME: läsnä ParameterKeywords.h. Ei kuitenkaan toteutusta tähän asti
-    handler_map[DEM_PARAM] = parameter_handler_t();
+    handler_map[DEM_PARAM] =
+        [this](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
+	{
+            auto loc = d.get_location(itsGeonames);
+	    return loc->dem;
+	};
 
     handler_map[DIRECTION_PARAM] =
         [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
@@ -118,7 +154,7 @@ SpecialParameters::SpecialParameters()
     handler_map[DISTANCE_PARAM] =
         [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
-            Spine::TimeSeries::Value value = Spine::TimeSeries::None();
+           Spine::TimeSeries::Value value = Spine::TimeSeries::None();
             if (!d.station.distance.empty())
             {
                 Spine::ValueFormatterParam vfp;
@@ -141,7 +177,7 @@ SpecialParameters::SpecialParameters()
         {
             boost::posix_time::ptime time_t_epoch(boost::gregorian::date(1970, 1, 1));
             boost::posix_time::time_duration diff = d.obstime.utc_time() - time_t_epoch;
-            return double(diff.total_seconds());
+            return int(diff.total_seconds());
         };
 
     // FIXME: on Location::feature mutta ei kuitenkaan sopiva arvo täällä saattavissa
@@ -178,9 +214,10 @@ SpecialParameters::SpecialParameters()
 
     // FIXME: iso2 seems to be empty in d.station.iso2
     handler_map[ISO2_PARAM] =
-        [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
+        [this](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
-            return d.station.iso2;
+            auto loc = d.get_location(itsGeonames);
+            return loc ? loc->iso2 : d.station.iso2;
         };
 
     handler_map[ISOTIME_PARAM] =
@@ -208,18 +245,22 @@ SpecialParameters::SpecialParameters()
         };
 
     // FIXME: ei toteutusta aikaisemmin. On määrrätty ParameterKeywords.h
+    //        on toteutus smartmet-library-delfoi
     handler_map[LEVEL_PARAM] = parameter_handler_t();
 
     handler_map[LOCALTIME_PARAM] =
         [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
-            return d.obstime;
+            const boost::posix_time::ptime utc = d.obstime.utc_time();
+            auto& tzf = Fmi::TimeZoneFactory::instance();
+	    boost::local_time::time_zone_ptr tz = tzf.time_zone_from_string(d.station.timezone);
+	    return boost::local_time::local_date_time(utc, tz);
         };
 
     handler_map[LOCALTZ_PARAM] =
         [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
-            return d.station.timezone;
+	    return d.station.timezone;
         };
 
     handler_map[LONGITUDE_PARAM] =
@@ -261,13 +302,16 @@ SpecialParameters::SpecialParameters()
             return "";
         };
 
-    // FIXME: should return locale dependent short month name for MON_PARAM
-    //        and full month name for MONTH_PARAM
     handler_map[MONTH_PARAM] =
+        [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
+        {
+	    return format_date(d.obstime, d.settings->locale, "%B");
+        };
+
     handler_map[MON_PARAM] =
         [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
-            return d.obstime.local_time().date().month();
+	    return format_date(d.obstime, d.settings->locale, "%b");
         };
 
     handler_map[MOONPHASE_PARAM] =
@@ -319,13 +363,18 @@ SpecialParameters::SpecialParameters()
         };
 
     handler_map[NAME_PARAM] =
-        [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
+        [this](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
-            if (d.station.requestedName.length() > 0)
+            auto loc = d.get_location(itsGeonames);
+            if (loc) {
+	      return loc->name;
+	    } else {
+	      if (d.station.requestedName.length() > 0)
                 return d.station.requestedName;
-            else
+	      else
                 return d.station.station_formal_name;
-        };
+	    }
+	};
 
     handler_map[NEARLATLON_PARAM] = parameter_handler_t();
 
@@ -357,9 +406,21 @@ SpecialParameters::SpecialParameters()
     handler_map[PRODUCER_PARAM] = parameter_handler_t();
 
     handler_map[REGION_PARAM] =
-        [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
+        [this](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
-            return d.station.region;
+	  auto loc = d.get_location(itsGeonames);
+	  if (loc->area.empty())
+	    {
+	      if (loc->name.empty())
+		{
+		  // No area (administrative region) nor name known.
+		  return Spine::TimeSeries::Value();
+		}
+	      // Place name known, administrative region unknown.
+	      return loc->name;
+	    }
+	  // Administrative region known.
+	  return loc->area;
         };
 
     handler_map[RWSID_PARAM] =
@@ -490,14 +551,20 @@ SpecialParameters::SpecialParameters()
     handler_map[UTC_PARAM] =
         [this](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
-            return tf->format(d.obstime.utc_time());
+            boost::local_time::local_date_time utc(d.obstime.utc_time(), utc_tz);
+	    return utc;
         };
 
     handler_map[WDAY_PARAM] =
+        [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
+        {
+	    return format_date(d.obstime, d.settings->locale, "%a");
+        };
+
     handler_map[WEEKDAY_PARAM] =
         [](const SpecialParameters::Args& d) -> Spine::TimeSeries::Value
         {
-            return d.obstime.date().day_of_week();
+	    return format_date(d.obstime, d.settings->locale, "%A");
         };
 
     handler_map[WMO_PARAM] =
@@ -553,4 +620,36 @@ SpecialParameters::Args::get_lunar_time() const
                 Fmi::Astronomy::lunar_time(obstime, station.longitude_out, station.latitude_out)));
     }
     return *lunar_time;
+}
+
+SmartMet::Spine::LocationPtr SpecialParameters::Args::get_location(Geonames::Engine* itsGeonames) const
+{
+    SmartMet::Spine::LocationPtr ptr;
+    if (!location_ptr && settings && itsGeonames) {
+        Locus::QueryOptions opts;
+	opts.SetLanguage(settings->language);
+	opts.SetResultLimit(1);
+	opts.SetCountries("");
+	opts.SetSearchVariants(true);
+	auto places = itsGeonames->idSearch(opts, station.geoid);
+	if (!places.empty()) {
+            ptr = *places.begin();
+	}
+        location_ptr = ptr;
+    } else if (location_ptr) {
+        ptr = *location_ptr;
+    }
+    return ptr;
+}
+
+boost::local_time::time_zone_ptr SpecialParameters::Args::get_tz() const
+{
+  if (tz) {
+    return tz;
+  } else {
+    auto& tzf = Fmi::TimeZoneFactory::instance();
+    const std::string tz_name = get_tz_name();
+    tz = tzf.time_zone_from_string(tz_name);
+    return tz;
+  }
 }

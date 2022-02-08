@@ -2,6 +2,7 @@
 #include "DBRegistry.h"
 #include "DatabaseDriverFactory.h"
 #include "ObservationCacheFactory.h"
+#include "SpecialParameters.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/make_shared.hpp>
@@ -78,6 +79,8 @@ void Engine::init()
                  itsEngineParameters->quiet);
       itsDatabaseDriver->init(this);
     }
+
+    SpecialParameters::setGeonames(getGeonames());
   }
   catch (...)
   {
