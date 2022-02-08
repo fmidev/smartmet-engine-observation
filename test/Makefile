@@ -1,23 +1,11 @@
 PROG = $(patsubst %.cpp,%,$(wildcard *Test.cpp))
 
-REQUIRES = gdal
+REQUIRES = gdal sqlite3 spatialite
 
 include $(shell echo $${PREFIX-/usr})/share/smartmet/devel/makefile.inc
 
 SOURCES = /usr/share/smartmet/engines/geonames.so \
 	../observation.so
-
-ifneq ($(wildcard /usr/libspatialite50/include/spatialite.h),)
-    INCLUDES += -isystem /usr/libspatialite50/include
-    SPATIALITE_LIBS = -L /usr/libspatialite50/lib -lspatialite
-else
-ifneq ($(wildcard /usr/libspatialite43/include/spatialite.h),)
-    INCLUDES += -isystem /usr/libspatialite43/include
-    SPATIALITE_LIBS = -L /usr/libspatialite43/lib -lspatialite
-else
-    SPATIALITE_LIBS = -lspatialite
-endif
-endif
 
 INCLUDES += \
 	-I../observation \
@@ -36,8 +24,7 @@ LIBS += \
 	-lboost_regex \
 	-lboost_iostreams \
 	-lboost_system \
-	$(SPATIALITE_LIBS) \
-	-lsqlite3 \
+	$(REQUIRED_LIBS) \
 	-lbz2 -lz -lpthread
 
 all: 	$(PROG)
