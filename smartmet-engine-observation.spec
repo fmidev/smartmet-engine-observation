@@ -84,6 +84,10 @@ BuildRequires: minizip-devel
 BuildRequires: freexl-devel
 BuildRequires: proj82-devel
 BuildRequires: libxml2-devel
+#TestRequires: minizip-devel
+#TestRequires: freexl-devel
+#TestRequires: proj82-devel
+#TestRequires: libxml2-devel
 %else
 Requires: libspatialite43
 BuildRequires: libspatialite43-devel
