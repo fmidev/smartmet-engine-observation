@@ -39,27 +39,26 @@ Requires: smartmet-library-locus >= 22.1.31
 Requires: smartmet-library-macgyver >= 22.1.21
 Requires: smartmet-library-spine >= 22.1.21
 Requires: smartmet-server >= 21.11.25
-Requires: sqlite33-libs
 Requires: unixODBC
 
 %if %{defined el7}
 Requires: libpqxx < 1:7.0
 BuildRequires: libpqxx-devel < 1:7.0
-Requires: sqlite33 >= 3.22.0
+Requires: sqlite33-libs >= 3.22.0
 BuildRequires: sqlite33-devel >= 3.22.0
 #TestRequires: sqlite33-devel >= 3.22.0
 #TestRequires: smartmet-utils-devel >= 22.2.8
 %else
 %if %{defined el8}
 Requires: libpqxx >= 6.2.5 libpqxx < 1:7.7.0
-Requires: sqlite >= 3.26.0
+Requires: sqlite-libs >= 3.26.0
 BuildRequires: sqlite-devel >= 3.26.0
 #TestRequires: sqlite-devel >= 3.26.0
 BuildRequires: libpqxx-devel >= 6.2.5 libpqxx-devel < 1:7.7.0
 %else
 Requires: libpqxx
 BuildRequires: libpqxx-devel
-Requires: sqlite >= 3.22.0
+Requires: sqlite-libs >= 3.22.0
 BuildRequires: sqlite-devel >= 3.22.0
 %endif
 %endif
