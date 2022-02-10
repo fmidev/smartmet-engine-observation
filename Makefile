@@ -2,7 +2,7 @@ SUBNAME = observation
 SPEC = smartmet-engine-$(SUBNAME)
 INCDIR = smartmet//engines/$(SUBNAME)
 
-REQUIRES = gdal configpp
+REQUIRES = sqlite3 gdal configpp
 
 include $(shell echo $${PREFIX-/usr})/share/smartmet/devel/makefile.inc
 
@@ -37,8 +37,9 @@ endif
 
 INCLUDES += -isystem $(includedir)/mysql
 
-LIBS += -L$(libdir) \
-        -lsmartmet-spine \
+LIBS += $(REQUIRED_LIBS) \
+	-L$(libdir) \
+	-lsmartmet-spine \
         -lsmartmet-macgyver \
         -lsmartmet-locus \
 	-lsmartmet-gis \
@@ -48,10 +49,8 @@ LIBS += -L$(libdir) \
         -lboost_locale \
         -lboost_system \
         -lboost_serialization \
-	-lsqlite3 \
 	-latomic \
 	$(SPATIALITE_LIBS) \
-	$(GDAL_LIBS) \
         -lbz2 -lz \
 	-lpthread
 

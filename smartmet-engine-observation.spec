@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.2.8
+Version: 22.2.10
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -23,7 +23,7 @@ BuildRequires: smartmet-library-locus-devel >= 22.1.31
 BuildRequires: smartmet-library-macgyver-devel >= 22.1.21
 BuildRequires: smartmet-library-spine-devel >= 22.1.21
 BuildRequires: sqlite3pp-devel >= 1.0.9
-BuildRequires: sqlite-devel >= 3.22.0
+BuildRequires: sqlite33-devel
 BuildRequires: zlib-devel
 Requires: boost169-date-time
 Requires: boost169-iostreams
@@ -39,7 +39,7 @@ Requires: smartmet-library-locus >= 22.1.31
 Requires: smartmet-library-macgyver >= 22.1.21
 Requires: smartmet-library-spine >= 22.1.21
 Requires: smartmet-server >= 21.11.25
-Requires: sqlite >= 3.22.0
+Requires: sqlite33-libs
 Requires: unixODBC
 
 %if %{defined el7}
@@ -122,6 +122,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Feb 10 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.2.10-1.fmi
+- Use sqlite33
+
 * Tue Feb 8 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.2.8-1.fmi
 - sqlite3pp headers moved to sqlite3pp-devel library (BRAINSTORM-2187)
 
