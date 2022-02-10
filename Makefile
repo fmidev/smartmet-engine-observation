@@ -2,7 +2,7 @@ SUBNAME = observation
 SPEC = smartmet-engine-$(SUBNAME)
 INCDIR = smartmet//engines/$(SUBNAME)
 
-REQUIRES = sqlite3 gdal configpp
+REQUIRES = gdal configpp sqlite3 spatialite
 
 include $(shell echo $${PREFIX-/usr})/share/smartmet/devel/makefile.inc
 
@@ -23,18 +23,6 @@ CFLAGS += -Wno-pedantic
 # Older GCC won't accept newer standards in linker options, and we're using CC due to -latomic issues
 LFLAGS = $(filter-out -std=c++%, $(CFLAGS))
 
-ifneq ($(wildcard /usr/libspatialite50/include/spatialite.h),)
-    INCLUDES += -isystem /usr/libspatialite50/include
-    SPATIALITE_LIBS = -L /usr/libspatialite50/lib -lspatialite
-else
-ifneq ($(wildcard /usr/libspatialite43/include/spatialite.h),)
-    INCLUDES += -isystem /usr/libspatialite43/include
-    SPATIALITE_LIBS = -L /usr/libspatialite43/lib -lspatialite
-else
-    SPATIALITE_LIBS = -lspatialite
-endif
-endif
-
 INCLUDES += -isystem $(includedir)/mysql
 
 LIBS += $(REQUIRED_LIBS) \
@@ -50,7 +38,7 @@ LIBS += $(REQUIRED_LIBS) \
         -lboost_system \
         -lboost_serialization \
 	-latomic \
-	$(SPATIALITE_LIBS) \
+	$(REQUIRED_LIBS) \
         -lbz2 -lz \
 	-lpthread
 
