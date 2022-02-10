@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 22.2.8
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -23,7 +23,7 @@ BuildRequires: smartmet-library-locus-devel >= 22.1.31
 BuildRequires: smartmet-library-macgyver-devel >= 22.2.8
 BuildRequires: smartmet-library-spine-devel >= 22.1.21
 BuildRequires: sqlite3pp-devel >= 1.0.9
-BuildRequires: sqlite-devel >= 3.22.0
+BuildRequires: smartmet-utils-devel >= 22.2.8
 BuildRequires: zlib-devel
 Requires: boost169-date-time
 Requires: boost169-iostreams
@@ -39,19 +39,27 @@ Requires: smartmet-library-locus >= 22.1.31
 Requires: smartmet-library-macgyver >= 22.2.8
 Requires: smartmet-library-spine >= 22.1.21
 Requires: smartmet-server >= 21.11.25
-Requires: sqlite >= 3.22.0
 Requires: unixODBC
 
 %if %{defined el7}
 Requires: libpqxx < 1:7.0
 BuildRequires: libpqxx-devel < 1:7.0
+Requires: sqlite33 >= 3.22.0
+BuildRequires: sqlite33-devel >= 3.22.0
+#TestRequires: sqlite33-devel >= 3.22.0
+#TestRequires: smartmet-utils-devel >= 22.2.8
 %else
 %if %{defined el8}
 Requires: libpqxx >= 6.2.5 libpqxx < 1:7.7.0
+Requires: sqlite >= 3.26.0
+BuildRequires: sqlite-devel >= 3.26.0
+#TestRequires: sqlite-devel >= 3.26.0
 BuildRequires: libpqxx-devel >= 6.2.5 libpqxx-devel < 1:7.7.0
 %else
 Requires: libpqxx
 BuildRequires: libpqxx-devel
+Requires: sqlite >= 3.22.0
+BuildRequires: sqlite-devel >= 3.22.0
 %endif
 %endif
 
@@ -60,7 +68,6 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: make
 #TestRequires: gcc-c++
 #TestRequires: gdal34-devel
-#TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
 #TestRequires: smartmet-engine-geonames >= 22.1.31
@@ -72,6 +79,15 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 Requires: libspatialite50
 BuildRequires: libspatialite50-devel
 #TestRequires: libspatialite50-devel
+# pkg-config for libspatialite wants these
+BuildRequires: minizip-devel
+BuildRequires: freexl-devel
+BuildRequires: proj82-devel
+BuildRequires: libxml2-devel
+#TestRequires: minizip-devel
+#TestRequires: freexl-devel
+#TestRequires: proj82-devel
+#TestRequires: libxml2-devel
 %else
 Requires: libspatialite43
 BuildRequires: libspatialite43-devel
@@ -122,6 +138,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Feb  8 2022 Andris Pavēnis <andris.pavenis@fmi.fi> 22.2.8-2.fmi
+- Use makefile.inc for support of libspatialite and sqlite3
+
 * Tue Feb 8 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.2.8-1.fmi
 - sqlite3pp headers moved to sqlite3pp-devel library (BRAINSTORM-2187)
 
