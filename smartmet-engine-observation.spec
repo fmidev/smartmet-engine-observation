@@ -23,7 +23,6 @@ BuildRequires: smartmet-library-locus-devel >= 22.1.31
 BuildRequires: smartmet-library-macgyver-devel >= 22.1.21
 BuildRequires: smartmet-library-spine-devel >= 22.1.21
 BuildRequires: sqlite3pp-devel >= 1.0.9
-BuildRequires: sqlite33-devel
 BuildRequires: smartmet-utils-devel >= 22.2.8
 BuildRequires: zlib-devel
 Requires: boost169-date-time
