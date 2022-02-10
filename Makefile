@@ -25,8 +25,9 @@ LFLAGS = $(filter-out -std=c++%, $(CFLAGS))
 
 INCLUDES += -isystem $(includedir)/mysql
 
-LIBS += -L$(libdir) \
-        -lsmartmet-spine \
+LIBS += $(REQUIRED_LIBS) \
+	-L$(libdir) \
+	-lsmartmet-spine \
         -lsmartmet-macgyver \
         -lsmartmet-locus \
 	-lsmartmet-gis \

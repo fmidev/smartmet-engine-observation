@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.2.8
-Release: 2%{?dist}.fmi
+Version: 22.2.10
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -23,6 +23,7 @@ BuildRequires: smartmet-library-locus-devel >= 22.1.31
 BuildRequires: smartmet-library-macgyver-devel >= 22.2.8
 BuildRequires: smartmet-library-spine-devel >= 22.1.21
 BuildRequires: sqlite3pp-devel >= 1.0.9
+BuildRequires: sqlite33-devel
 BuildRequires: smartmet-utils-devel >= 22.2.8
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -39,6 +40,7 @@ Requires: smartmet-library-locus >= 22.1.31
 Requires: smartmet-library-macgyver >= 22.2.8
 Requires: smartmet-library-spine >= 22.1.21
 Requires: smartmet-server >= 21.11.25
+Requires: sqlite33-libs
 Requires: unixODBC
 
 %if %{defined el7}
@@ -138,6 +140,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Feb 10 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.2.10-1.fmi
+- Use sqlite33
+
 * Tue Feb  8 2022 Andris Pavēnis <andris.pavenis@fmi.fi> 22.2.8-2.fmi
 - Use makefile.inc for support of libspatialite and sqlite3
 
