@@ -28,6 +28,10 @@ void QueryObservableProperty::solveMeasurandIds(
         continue;
 
       auto gid = params.second.find(stationType);
+
+      if (gid == params.second.end())
+        gid = params.second.find("default");
+
       if (gid == params.second.end())
       {
         if (params.first == "pap_pt1s_avg")

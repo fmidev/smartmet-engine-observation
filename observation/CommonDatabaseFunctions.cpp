@@ -9,14 +9,13 @@
 #include <spine/TimeSeriesOutput.h>
 #include <numeric>
 
-
 namespace SmartMet
 {
 namespace Engine
 {
 namespace Observation
 {
-  using namespace Utils;
+using namespace Utils;
 
 std::ostream &operator<<(std::ostream &out,
                          const SmartMet::Engine::Observation::StationTimedMeasurandData &data)
@@ -176,7 +175,7 @@ QueryMapping CommonDatabaseFunctions::buildQueryMapping(const Spine::Stations & 
             if (mids.find(nparam) == mids.end())
               ret.measurandIds.push_back(nparam);
             int sensor_number = (p.getSensorNumber() ? *(p.getSensorNumber()) : -1);
-			// -1 indicates default sensor
+            // -1 indicates default sensor
             if (sensor_number >= -1)
               ret.sensorNumberToMeasurandIds[sensor_number].insert(nparam);
             mids.insert(nparam);
@@ -320,6 +319,10 @@ void CommonDatabaseFunctions::solveMeasurandIds(const std::vector<std::string> &
         continue;
 
       auto gid = params.second.find(stationType);
+
+      if (gid == params.second.end())
+        gid = params.second.find("default");
+
       if (gid == params.second.end())
         continue;
 
@@ -805,7 +808,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
     }
 
     boost::local_time::local_date_time now(boost::posix_time::second_clock::universal_time(),
-					   obstime.zone());
+                                           obstime.zone());
     SpecialParameters::Args args(station, stationtype, obstime, now, settings.timezone, &settings);
 
     for (const auto &special : specialPositions)
@@ -931,13 +934,12 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
     const std::string &paramname,
     const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
     const int pos,
-    const SpecialParameters::Args& args) const
+    const SpecialParameters::Args &args) const
 {
   try
   {
     Spine::TimeSeries::TimedValue value =
-        SpecialParameters::instance()
-      .getTimedValue(paramname, args);
+        SpecialParameters::instance().getTimedValue(paramname, args);
     timeSeriesColumns->at(pos).push_back(value);
   }
   catch (...)
