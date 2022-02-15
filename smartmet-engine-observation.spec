@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.2.10
+Version: 22.2.15
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -23,7 +23,6 @@ BuildRequires: smartmet-library-locus-devel >= 22.1.31
 BuildRequires: smartmet-library-macgyver-devel >= 22.2.8
 BuildRequires: smartmet-library-spine-devel >= 22.1.21
 BuildRequires: sqlite3pp-devel >= 1.0.9
-BuildRequires: sqlite33-devel
 BuildRequires: smartmet-utils-devel >= 22.2.8
 BuildRequires: zlib-devel
 Requires: boost169-date-time
@@ -40,27 +39,26 @@ Requires: smartmet-library-locus >= 22.1.31
 Requires: smartmet-library-macgyver >= 22.2.8
 Requires: smartmet-library-spine >= 22.1.21
 Requires: smartmet-server >= 21.11.25
-Requires: sqlite33-libs
 Requires: unixODBC
 
 %if %{defined el7}
 Requires: libpqxx < 1:7.0
 BuildRequires: libpqxx-devel < 1:7.0
-Requires: sqlite33 >= 3.22.0
+Requires: sqlite33-libs >= 3.22.0
 BuildRequires: sqlite33-devel >= 3.22.0
 #TestRequires: sqlite33-devel >= 3.22.0
 #TestRequires: smartmet-utils-devel >= 22.2.8
 %else
 %if %{defined el8}
 Requires: libpqxx >= 6.2.5 libpqxx < 1:7.7.0
-Requires: sqlite >= 3.26.0
+Requires: sqlite-libs >= 3.26.0
 BuildRequires: sqlite-devel >= 3.26.0
 #TestRequires: sqlite-devel >= 3.26.0
 BuildRequires: libpqxx-devel >= 6.2.5 libpqxx-devel < 1:7.7.0
 %else
 Requires: libpqxx
 BuildRequires: libpqxx-devel
-Requires: sqlite >= 3.22.0
+Requires: sqlite-libs >= 3.22.0
 BuildRequires: sqlite-devel >= 3.22.0
 %endif
 %endif
@@ -140,6 +138,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Feb 15 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.2.15-1.fmi
+- Allow stationtype "default" when solving measurand ids if no exact match is found
+
+* Thu Feb 10 2022 Andris Pavēnis <andris.pavenis@fmi.fi> 22.2.10-2.fmi
+- Fix RPM dependencies
+
 * Thu Feb 10 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.2.10-1.fmi
 - Use sqlite33
 
