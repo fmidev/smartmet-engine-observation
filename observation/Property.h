@@ -67,6 +67,7 @@ class Base
   inline NameType getOperator() const { return m_operator; }
   inline boost::any getToWhat() const { return m_toWhat; }
   NameType toWhatString(const boost::any& value, const std::string& database = "oracle") const;
+  virtual bool has_vector_argument() const { return false; }
 
   /**
    * @brief Set basic parts of an operation.
@@ -74,12 +75,7 @@ class Base
    * @param toWhat A value to compared with the values behind \a property name.
    * @param op A comparison operator.
    */
-  void set(const NameType& property, const boost::any& toWhat, const NameType& op)
-  {
-    m_property = property;
-    m_toWhat = toWhat;
-    m_operator = op;
-  }
+  void set(const NameType& property, const boost::any& toWhat, const NameType& op);
 
   /**
    * @brief Get an inherit operation.
