@@ -1,7 +1,13 @@
 #include "Property.h"
+#include <tuple>
+#include <boost/algorithm/string/join.hpp>
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
+#include <macgyver/TypeMap.h>
+#include <macgyver/TypeName.h>
+
+namespace ba = boost::algorithm;
 
 namespace SmartMet
 {
@@ -62,55 +68,105 @@ Base::NameType Base::getExpression(const NameType& viewName,
   }
 }
 
+namespace {
+    typedef std::function<std::string(const boost::any&, const std::string)> value2str_t;
+
+    template <typename ValueType>
+    std::string value_vect2str(const boost::any& value, const std::string& database, value2str_t conv)
+    {
+        std::vector<std::string> parts;
+        const std::vector<ValueType>& args = boost::any_cast<std::vector<ValueType> >(value);
+        std::transform(
+            args.begin(),
+            args.end(),
+            std::back_inserter(parts),
+            [&database, &conv](const ValueType& x) { return conv(x, database); });
+        return "(" + ba::join(parts, std::string(", ")) + ")";
+    }
+
+    template <typename ValueType>
+    void add_type(Fmi::TypeMap<value2str_t>& type_map, value2str_t f)
+    {
+        type_map.add<ValueType>(f);
+        type_map.add<std::vector<ValueType> >(
+            [f](const boost::any& value, const std::string& database) -> std::string
+            {
+                return value_vect2str<ValueType>(value, database, f);
+            });
+    }
+
+    template <typename ValueType>
+    void add_type(Fmi::TypeMap<value2str_t>& type_map)
+    {
+        const auto f = [](const boost::any& value, const std::string&) -> std::string
+                       {
+                           return Fmi::to_string(boost::any_cast<ValueType>(value));
+                       };
+        type_map.add<ValueType>(f);
+        type_map.add<std::vector<ValueType> >(
+            [f](const boost::any& value, const std::string& database) -> std::string
+            {
+                return value_vect2str<ValueType>(value, database, f);
+            });
+    }
+
+    template <typename ValueType>
+    Fmi::TypeMap<value2str_t>& add_types(Fmi::TypeMap<value2str_t>& type_map)
+    {
+        add_type<ValueType>(type_map);
+        return type_map;
+    }
+
+    template <typename ValueType, typename... RemainingTypes>
+    typename std::enable_if_t<(sizeof...(RemainingTypes) > 0), Fmi::TypeMap<value2str_t>& >
+    add_types(Fmi::TypeMap<value2str_t>& type_map)
+    {
+        add_type<ValueType>(type_map);
+        if (sizeof...(RemainingTypes) > 0) {
+            add_types<RemainingTypes...>(type_map);
+        }
+        return type_map;
+    }
+
+    Fmi::TypeMap<value2str_t> create_value_to_string_converter()
+    {
+        Fmi::TypeMap<value2str_t> conv;
+
+        add_types<int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float, double>(conv);
+
+        add_type<boost::posix_time::ptime>(conv,
+            [](const boost::any& value, const std::string& database) -> std::string
+            {
+                if (database == "oracle")
+                    return "TO_DATE('" +
+                        boost::posix_time::to_simple_string(
+                            boost::any_cast<boost::posix_time::ptime>(value)) +
+                        "','YYYY-MM-DD HH24:MI:SS')";
+                else  // PostgreSQL
+                    return boost::posix_time::to_simple_string(
+                        boost::any_cast<boost::posix_time::ptime>(value));
+            });
+        return conv;
+    };
+
+}
+
 Base::NameType Base::toWhatString(const boost::any& value,
                                   const std::string& database /*= "oracle"*/) const
 {
-  try
-  {
-    if ((value).type() == typeid(int32_t))
-      return Fmi::to_string(boost::any_cast<int32_t>(value));
+  try {
+     static auto converter_map = create_value_to_string_converter();
 
-    if ((value).type() == typeid(uint32_t))
-      return Fmi::to_string(boost::any_cast<uint32_t>(value));
+     value2str_t converter;
 
-    if ((value).type() == typeid(int64_t))
-      return Fmi::to_string(boost::any_cast<int64_t>(value));
+     try {
+         converter = converter_map [value];
+     } catch (...) {
+         throw Fmi::Exception::Trace(BCP, "Warning: " + METHOD_NAME + ": Unsupported data type "
+             + Fmi::demangle_cpp_type_name(value.type().name()));
+     }
 
-    if ((value).type() == typeid(uint64_t))
-      return Fmi::to_string(boost::any_cast<uint64_t>(value));
-
-    if ((value).type() == typeid(int16_t))
-      return Fmi::to_string(boost::any_cast<int16_t>(value));
-
-    if ((value).type() == typeid(uint16_t))
-      return Fmi::to_string(static_cast<unsigned long>(boost::any_cast<uint16_t>(value)));
-
-    if ((value).type() == typeid(float))
-      return Fmi::to_string(boost::any_cast<float>(value));
-
-    if ((value).type() == typeid(double))
-      return Fmi::to_string(boost::any_cast<double>(value));
-
-    if ((value).type() == typeid(std::string))
-      return "'" + boost::any_cast<std::string>(value) + "'";
-
-    if ((value).type() == typeid(boost::posix_time::ptime))
-    {
-      if (database == "oracle")
-        return "TO_DATE('" +
-               boost::posix_time::to_simple_string(
-                   boost::any_cast<boost::posix_time::ptime>(value)) +
-               "','YYYY-MM-DD HH24:MI:SS')";
-      else  // PostgreSQL
-        return boost::posix_time::to_simple_string(
-            boost::any_cast<boost::posix_time::ptime>(value));
-    }
-
-    throw Fmi::Exception(BCP, "Operation processing failed!")
-        .addDetail(fmt::format(
-            "warning: Engine::Observation::Property::Base::toWhatString : Unsupported data type "
-            "'{}'.",
-            (value).type().name()));
+     return converter (value, database);
   }
   catch (...)
   {
