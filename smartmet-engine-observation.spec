@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.2.15
+Version: 22.2.28
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -138,6 +138,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Feb 28 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.2.28-1.fmi
+- Improved error handling of special parameters
+
 * Tue Feb 15 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.2.15-1.fmi
 - Allow stationtype "default" when solving measurand ids if no exact match is found
 

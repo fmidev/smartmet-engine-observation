@@ -811,116 +811,128 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
                                            obstime.zone());
     SpecialParameters::Args args(station, stationtype, obstime, now, settings.timezone, &settings);
 
+    Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
+
     for (const auto &special : specialPositions)
     {
       int pos = special.second;
 
-      if (boost::algorithm::starts_with(special.first, "windcompass"))
+      try
       {
-        // Have to get wind direction first
-        bool isWeatherDataQCTable = (stationtype == "foreign" || stationtype == "road");
-        std::string sparam = itsParameterMap->getParameter("winddirection", stationtype);
-        int mid = (!isWeatherDataQCTable
-                       ? Fmi::stoi(sparam)
-                       : itsParameterMap->getRoadAndForeignIds().stringToInteger(sparam));
-        if (data.count(mid) == 0)
+        if (boost::algorithm::starts_with(special.first, "windcompass"))
         {
-          Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
-          timeSeriesColumns->at(pos).emplace_back(Spine::TimeSeries::TimedValue(obstime, missing));
+          // Have to get wind direction first
+          bool isWeatherDataQCTable = (stationtype == "foreign" || stationtype == "road");
+          std::string sparam = itsParameterMap->getParameter("winddirection", stationtype);
+          int mid = (!isWeatherDataQCTable
+                         ? Fmi::stoi(sparam)
+                         : itsParameterMap->getRoadAndForeignIds().stringToInteger(sparam));
+          if (data.count(mid) == 0)
+          {
+            timeSeriesColumns->at(pos).emplace_back(
+                Spine::TimeSeries::TimedValue(obstime, missing));
+          }
+          else
+          {
+            const auto &sensor_values = data.at(mid);
+
+            Spine::TimeSeries::Value val = get_default_sensor_value(sensor_values, fmisid, mid);
+
+            Spine::TimeSeries::Value none = Spine::TimeSeries::None();
+            if (val != none)
+            {
+              std::string windCompass;
+              if (special.first == "windcompass8")
+                windCompass = windCompass8(boost::get<double>(val), settings.missingtext);
+              else if (special.first == "windcompass16")
+                windCompass = windCompass16(boost::get<double>(val), settings.missingtext);
+              else if (special.first == "windcompass32")
+                windCompass = windCompass32(boost::get<double>(val), settings.missingtext);
+              Spine::TimeSeries::Value windCompassValue = Spine::TimeSeries::Value(windCompass);
+              timeSeriesColumns->at(pos).emplace_back(
+                  Spine::TimeSeries::TimedValue(obstime, windCompassValue));
+            }
+          }
+        }
+        else if (special.first == "feelslike")
+        {
+          // Feels like - deduction. This ignores radiation, since it is measured
+          // using dedicated stations
+          int windpos = Fmi::stoi(itsParameterMap->getParameter("windspeedms", stationtype));
+          int rhpos = Fmi::stoi(itsParameterMap->getParameter("relativehumidity", stationtype));
+          int temppos = Fmi::stoi(itsParameterMap->getParameter("temperature", stationtype));
+
+          if (data.count(windpos) == 0 || data.count(rhpos) == 0 || data.count(temppos) == 0)
+          {
+            timeSeriesColumns->at(pos).emplace_back(
+                Spine::TimeSeries::TimedValue(obstime, missing));
+          }
+          else
+          {
+            auto sensor_values = data.at(temppos);
+            float temp =
+                boost::get<double>(get_default_sensor_value(sensor_values, fmisid, temppos));
+            sensor_values = data.at(rhpos);
+            float rh = boost::get<double>(get_default_sensor_value(sensor_values, fmisid, rhpos));
+            sensor_values = data.at(windpos);
+            float wind =
+                boost::get<double>(get_default_sensor_value(sensor_values, fmisid, windpos));
+
+            Spine::TimeSeries::Value feelslike =
+                Spine::TimeSeries::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
+            timeSeriesColumns->at(pos).emplace_back(
+                Spine::TimeSeries::TimedValue(obstime, feelslike));
+          }
+        }
+        else if (special.first == "smartsymbol")
+        {
+          int wawapos = Fmi::stoi(itsParameterMap->getParameter("wawa", stationtype));
+          int totalcloudcoverpos =
+              Fmi::stoi(itsParameterMap->getParameter("totalcloudcover", stationtype));
+          int temppos = Fmi::stoi(itsParameterMap->getParameter("temperature", stationtype));
+          if (data.count(wawapos) == 0 || data.count(totalcloudcoverpos) == 0 ||
+              data.count(temppos) == 0)
+          {
+            timeSeriesColumns->at(pos).emplace_back(
+                Spine::TimeSeries::TimedValue(obstime, missing));
+          }
+          else
+          {
+            auto sensor_values = data.at(temppos);
+            float temp =
+                boost::get<double>(get_default_sensor_value(sensor_values, fmisid, temppos));
+            sensor_values = data.at(totalcloudcoverpos);
+            int totalcloudcover = static_cast<int>(boost::get<double>(
+                get_default_sensor_value(sensor_values, fmisid, totalcloudcoverpos)));
+            sensor_values = data.at(wawapos);
+            int wawa = static_cast<int>(
+                boost::get<double>(get_default_sensor_value(sensor_values, fmisid, wawapos)));
+
+            double lat = station.latitude_out;
+            double lon = station.longitude_out;
+            Spine::TimeSeries::Value smartsymbol = Spine::TimeSeries::Value(
+                *calcSmartsymbolNumber(wawa, totalcloudcover, temp, obstime, lat, lon));
+            timeSeriesColumns->at(pos).emplace_back(
+                Spine::TimeSeries::TimedValue(obstime, smartsymbol));
+          }
         }
         else
         {
-          const auto &sensor_values = data.at(mid);
-
-          Spine::TimeSeries::Value val = get_default_sensor_value(sensor_values, fmisid, mid);
-
-          Spine::TimeSeries::Value none = Spine::TimeSeries::None();
-          if (val != none)
+          std::string fieldname = special.first;
+          if (isDataSourceOrDataQualityField(fieldname))
           {
-            std::string windCompass;
-            if (special.first == "windcompass8")
-              windCompass = windCompass8(boost::get<double>(val), settings.missingtext);
-            else if (special.first == "windcompass16")
-              windCompass = windCompass16(boost::get<double>(val), settings.missingtext);
-            else if (special.first == "windcompass32")
-              windCompass = windCompass32(boost::get<double>(val), settings.missingtext);
-            Spine::TimeSeries::Value windCompassValue = Spine::TimeSeries::Value(windCompass);
-            timeSeriesColumns->at(pos).emplace_back(
-                Spine::TimeSeries::TimedValue(obstime, windCompassValue));
+            // *data_source fields is handled outside this function
+            // *data_quality fields is handled outside this function
+          }
+          else
+          {
+            addSpecialParameterToTimeSeries(fieldname, timeSeriesColumns, pos, args);
           }
         }
       }
-      else if (special.first == "feelslike")
+      catch (...)
       {
-        // Feels like - deduction. This ignores radiation, since it is measured
-        // using dedicated stations
-        int windpos = Fmi::stoi(itsParameterMap->getParameter("windspeedms", stationtype));
-        int rhpos = Fmi::stoi(itsParameterMap->getParameter("relativehumidity", stationtype));
-        int temppos = Fmi::stoi(itsParameterMap->getParameter("temperature", stationtype));
-
-        if (data.count(windpos) == 0 || data.count(rhpos) == 0 || data.count(temppos) == 0)
-        {
-          Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
-          timeSeriesColumns->at(pos).emplace_back(Spine::TimeSeries::TimedValue(obstime, missing));
-        }
-        else
-        {
-          auto sensor_values = data.at(temppos);
-          float temp = boost::get<double>(get_default_sensor_value(sensor_values, fmisid, temppos));
-          sensor_values = data.at(rhpos);
-          float rh = boost::get<double>(get_default_sensor_value(sensor_values, fmisid, rhpos));
-          sensor_values = data.at(windpos);
-          float wind = boost::get<double>(get_default_sensor_value(sensor_values, fmisid, windpos));
-
-          Spine::TimeSeries::Value feelslike =
-              Spine::TimeSeries::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
-          timeSeriesColumns->at(pos).emplace_back(
-              Spine::TimeSeries::TimedValue(obstime, feelslike));
-        }
-      }
-      else if (special.first == "smartsymbol")
-      {
-        int wawapos = Fmi::stoi(itsParameterMap->getParameter("wawa", stationtype));
-        int totalcloudcoverpos =
-            Fmi::stoi(itsParameterMap->getParameter("totalcloudcover", stationtype));
-        int temppos = Fmi::stoi(itsParameterMap->getParameter("temperature", stationtype));
-        if (data.count(wawapos) == 0 || data.count(totalcloudcoverpos) == 0 ||
-            data.count(temppos) == 0)
-        {
-          Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
-          timeSeriesColumns->at(pos).emplace_back(Spine::TimeSeries::TimedValue(obstime, missing));
-        }
-        else
-        {
-          auto sensor_values = data.at(temppos);
-          float temp = boost::get<double>(get_default_sensor_value(sensor_values, fmisid, temppos));
-          sensor_values = data.at(totalcloudcoverpos);
-          int totalcloudcover = static_cast<int>(boost::get<double>(
-              get_default_sensor_value(sensor_values, fmisid, totalcloudcoverpos)));
-          sensor_values = data.at(wawapos);
-          int wawa = static_cast<int>(
-              boost::get<double>(get_default_sensor_value(sensor_values, fmisid, wawapos)));
-
-          double lat = station.latitude_out;
-          double lon = station.longitude_out;
-          Spine::TimeSeries::Value smartsymbol = Spine::TimeSeries::Value(
-              *calcSmartsymbolNumber(wawa, totalcloudcover, temp, obstime, lat, lon));
-          timeSeriesColumns->at(pos).emplace_back(
-              Spine::TimeSeries::TimedValue(obstime, smartsymbol));
-        }
-      }
-      else
-      {
-        std::string fieldname = special.first;
-        if (isDataSourceOrDataQualityField(fieldname))
-        {
-          // *data_source fields is handled outside this function
-          // *data_quality fields is handled outside this function
-        }
-        else
-        {
-          addSpecialParameterToTimeSeries(fieldname, timeSeriesColumns, pos, args);
-        }
+        timeSeriesColumns->at(pos).emplace_back(Spine::TimeSeries::TimedValue(obstime, missing));
       }
     }
   }
