@@ -12,8 +12,8 @@
 #include <boost/atomic.hpp>
 #include <macgyver/PostgreSQLConnection.h>
 #include <macgyver/TimeZones.h>
+#include <macgyver/ValueFormatter.h>
 #include <spine/Station.h>
-#include <spine/ValueFormatter.h>
 #include <timeseries/TimeSeriesInclude.h>
 
 namespace SmartMet

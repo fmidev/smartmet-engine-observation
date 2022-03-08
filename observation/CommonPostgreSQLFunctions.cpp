@@ -6,6 +6,7 @@
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeFormatter.h>
 #include <spine/Value.h>
+#include <thread>
 
 namespace SmartMet
 {
@@ -13,7 +14,7 @@ namespace Engine
 {
 namespace Observation
 {
-  using namespace Utils;
+using namespace Utils;
 
 CommonPostgreSQLFunctions::CommonPostgreSQLFunctions(
     const Fmi::Database::PostgreSQLConnectionOptions &connectionOptions,
@@ -83,8 +84,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationData(
       observed_fmisids.insert(item.data.fmisid);
 
     // Map fmisid to station information
-    StationMap fmisid_to_station =
-        mapQueryStations(stations, observed_fmisids);
+    StationMap fmisid_to_station = mapQueryStations(stations, observed_fmisids);
 
     StationTimedMeasurandData station_data =
         buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
@@ -229,8 +229,8 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
   }
 }
 
-TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(
-    const Settings &settings, const Fmi::TimeZones &timezones)
+TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &settings,
+                                                                const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -340,8 +340,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(
       std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
                 << std::endl;
 
-    TS::TimeSeriesVectorPtr timeSeriesColumns =
-        initializeResultVector(settings);
+    TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
     double longitude = std::numeric_limits<double>::max();
     double latitude = std::numeric_limits<double>::max();
@@ -390,8 +389,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(
         int pos = p.second;
 
         TS::Value val = result[name];
-        timeSeriesColumns->at(pos).push_back(
-            TS::TimedValue(localtime, val));
+        timeSeriesColumns->at(pos).push_back(TS::TimedValue(localtime, val));
       }
       for (const auto &p : specialPositions)
       {
@@ -400,14 +398,12 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(
         if (name == "latitude")
         {
           TS::Value val = latitude;
-          timeSeriesColumns->at(pos).push_back(
-              TS::TimedValue(localtime, val));
+          timeSeriesColumns->at(pos).push_back(TS::TimedValue(localtime, val));
         }
         if (name == "longitude")
         {
           TS::Value val = longitude;
-          timeSeriesColumns->at(pos).push_back(
-              TS::TimedValue(localtime, val));
+          timeSeriesColumns->at(pos).push_back(TS::TimedValue(localtime, val));
         }
       }
     }
@@ -420,10 +416,9 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(
   }
 }
 
-FlashCounts CommonPostgreSQLFunctions::getFlashCount(
-    const boost::posix_time::ptime &startt,
-    const boost::posix_time::ptime &endt,
-    const Spine::TaggedLocationList &locations)
+FlashCounts CommonPostgreSQLFunctions::getFlashCount(const boost::posix_time::ptime &startt,
+                                                     const boost::posix_time::ptime &endt,
+                                                     const Spine::TaggedLocationList &locations)
 {
   try
   {
