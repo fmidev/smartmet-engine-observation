@@ -7,8 +7,7 @@
 #include <boost/smart_ptr/atomic_shared_ptr.hpp>
 #include <macgyver/TimeZones.h>
 #include <spine/Station.h>
-#include <spine/TimeSeries.h>
-#include <spine/TimeSeriesGeneratorOptions.h>
+#include <timeseries/TimeSeriesInclude.h>
 #include <map>
 #include <unordered_set>
 

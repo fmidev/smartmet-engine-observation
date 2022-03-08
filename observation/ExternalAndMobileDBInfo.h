@@ -2,7 +2,7 @@
 
 #include "ExternalAndMobileProducerConfig.h"
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <spine/DataFilter.h>
+#include <timeseries/TimeSeriesInclude.h>
 #include <map>
 #include <set>
 #include <string>
@@ -23,12 +23,12 @@ class ExternalAndMobileDBInfo
                         const boost::posix_time::ptime &starttime,
                         const boost::posix_time::ptime &endtime,
                         const std::vector<std::string> &station_ids,
-                        const Spine::DataFilter &dataFilter) const;
+                        const TS::DataFilter &dataFilter) const;
   std::string sqlSelect(const std::vector<int> &measurandIds,
                         const boost::posix_time::ptime &starttime,
                         const boost::posix_time::ptime &endtime,
                         const std::string &wktAreaFilter,
-                        const Spine::DataFilter &dataFilter) const;
+                        const TS::DataFilter &dataFilter) const;
   std::string sqlSelectForCache(const std::string &producer,
                                 const boost::posix_time::ptime &from_data_time,
                                 const boost::posix_time::ptime &from_created_time) const;
@@ -36,7 +36,7 @@ class ExternalAndMobileDBInfo
                                  const boost::posix_time::ptime &starttime,
                                  const boost::posix_time::ptime &endtime,
                                  const std::string &wktAreaFilter,
-                                 const Spine::DataFilter &dataFilter,
+                                 const TS::DataFilter &dataFilter,
                                  bool spatialite = false) const;
 
   std::string measurandFieldname(const std::string &producerName, int measurandId) const;

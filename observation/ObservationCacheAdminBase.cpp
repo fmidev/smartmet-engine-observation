@@ -1450,7 +1450,7 @@ void ObservationCacheAdminBase::updateStationsCacheLoop()
   }
 }
 
-void ObservationCacheAdminBase::addInfoToStations(SmartMet::Spine::Stations& stations,
+void ObservationCacheAdminBase::addInfoToStations(Spine::Stations& stations,
                                                   const std::string& language) const
 {
   Locus::QueryOptions opts;
@@ -1461,19 +1461,19 @@ void ObservationCacheAdminBase::addInfoToStations(SmartMet::Spine::Stations& sta
   opts.SetFeatures("SYNOP,FINAVIA,STUK");
   opts.SetSearchVariants(true);
 
-  SmartMet::Spine::LocationList locationList;
+  Spine::LocationList locationList;
 
   // Stations from center of Finland with 2000 km radius
   locationList = itsGeonames->latlonSearch(opts, 64.96, 27.59, 2000);
 
   // Get synop_foreign stations
-  SmartMet::Spine::LocationList locationList2 = itsGeonames->keywordSearch(opts, "synop_foreign");
+  Spine::LocationList locationList2 = itsGeonames->keywordSearch(opts, "synop_foreign");
 
   locationList.splice(locationList.end(), locationList2);
 
   std::set<int> processed_stations;
 
-  std::map<int, SmartMet::Spine::LocationPtr> locations;
+  std::map<int, Spine::LocationPtr> locations;
 
   for (const auto& loc : locationList)
     if (loc->fmisid)
@@ -1483,7 +1483,7 @@ void ObservationCacheAdminBase::addInfoToStations(SmartMet::Spine::Stations& sta
   {
     if (locations.find(station.fmisid) != locations.end())
     {
-      const SmartMet::Spine::LocationPtr& place = locations.at(station.fmisid);
+      const Spine::LocationPtr& place = locations.at(station.fmisid);
       station.country = place->country;
       station.iso2 = place->iso2;
       station.geoid = place->geoid;
@@ -1543,7 +1543,7 @@ void ObservationCacheAdminBase::loadStations()
   }
 }  // namespace Delfoi
 
-void ObservationCacheAdminBase::calculateStationDirection(SmartMet::Spine::Station& station) const
+void ObservationCacheAdminBase::calculateStationDirection(Spine::Station& station) const
 {
   try
   {
@@ -1568,7 +1568,7 @@ void ObservationCacheAdminBase::calculateStationDirection(SmartMet::Spine::Stati
   }
 }
 
-void ObservationCacheAdminBase::addInfoToStation(SmartMet::Spine::Station& station,
+void ObservationCacheAdminBase::addInfoToStation(Spine::Station& station,
                                                  const std::string& language) const
 {
   try
@@ -1583,13 +1583,13 @@ void ObservationCacheAdminBase::addInfoToStation(SmartMet::Spine::Station& stati
     opts.SetFeatures("SYNOP");
     opts.SetSearchVariants(true);
 
-    SmartMet::Spine::LocationList places;
+    Spine::LocationList places;
 
     try
     {
       // Search by fmisid.
       std::string fmisid_s = Fmi::to_string(station.fmisid);
-      SmartMet::Spine::LocationList suggest = itsGeonames->nameSearch(opts, fmisid_s);
+      Spine::LocationList suggest = itsGeonames->nameSearch(opts, fmisid_s);
 
       opts.SetLanguage(lang);
 

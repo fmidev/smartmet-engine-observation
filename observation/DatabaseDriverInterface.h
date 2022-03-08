@@ -10,8 +10,7 @@
 #include <boost/thread/condition.hpp>
 #include <macgyver/CacheStats.h>
 #include <spine/Station.h>
-#include <spine/TimeSeries.h>
-#include <spine/TimeSeriesGeneratorOptions.h>
+#include <timeseries/TimeSeriesInclude.h>
 #include <macgyver/CacheStats.h>
 
 namespace SmartMet
@@ -29,9 +28,9 @@ class DatabaseDriverInterface
   virtual ~DatabaseDriverInterface();
 
   virtual void init(Engine *obsengine) = 0;
-  virtual Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings) = 0;
-  virtual Spine::TimeSeries::TimeSeriesVectorPtr values(
-      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) = 0;
+  virtual TS::TimeSeriesVectorPtr values(Settings &settings) = 0;
+  virtual TS::TimeSeriesVectorPtr values(
+      Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) = 0;
   virtual Spine::TaggedFMISIDList translateToFMISID(
       const boost::posix_time::ptime &starttime,
       const boost::posix_time::ptime &endtime,

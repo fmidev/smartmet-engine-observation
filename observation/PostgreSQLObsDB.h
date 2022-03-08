@@ -13,8 +13,8 @@
 #include <macgyver/PostgreSQLConnection.h>
 #include <macgyver/TimeZones.h>
 #include <spine/Station.h>
-#include <spine/TimeSeries.h>
 #include <spine/ValueFormatter.h>
+#include <timeseries/TimeSeriesInclude.h>
 
 namespace SmartMet
 {
@@ -101,16 +101,16 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions, private boost::noncopy
                                              const std::string &station_ids) const override;
 
   // Station id manipulators
-  void translateToIdFunction(SmartMet::Spine::Stations &stations, int net_id) const;
-  void translateToLPNN(SmartMet::Spine::Stations &stations) const;
-  void translateToWMO(SmartMet::Spine::Stations &stations) const;
-  void translateToRWSID(SmartMet::Spine::Stations &stations) const;
+  void translateToIdFunction(Spine::Stations &stations, int net_id) const;
+  void translateToLPNN(Spine::Stations &stations) const;
+  void translateToWMO(Spine::Stations &stations) const;
+  void translateToRWSID(Spine::Stations &stations) const;
 
-  void getStations(SmartMet::Spine::Stations &stations) const;
+  void getStations(Spine::Stations &stations) const;
   void readStationLocations(StationLocations &stationLocations) const;
 
  private:
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr itsTimeSeriesColumns;
+  TS::TimeSeriesVectorPtr itsTimeSeriesColumns;
   LocationDataItems readObservations(const Spine::Stations &stations,
                                      const Settings &settings,
                                      const StationInfo &stationInfo,

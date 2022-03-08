@@ -17,8 +17,6 @@
 
 // #define MYDEBUG 1
 
-namespace ts = SmartMet::Spine::TimeSeries;
-
 namespace SmartMet
 {
 namespace Engine
@@ -180,7 +178,7 @@ void PostgreSQLDatabaseDriverForFmiData::makeQuery(QueryBase *qb)
   }
 }
 
-ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &settings)
+TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &settings)
 {
   if (Spine::Reactor::isShuttingDown())
     return nullptr;
@@ -223,7 +221,7 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
 
   try
   {
-    ts::TimeSeriesVectorPtr ret = boost::make_shared<ts::TimeSeriesVector>();
+    TS::TimeSeriesVectorPtr ret = boost::make_shared<TS::TimeSeriesVector>();
 
     // Database query prevented
     if (settings.preventDatabaseQuery)
@@ -239,7 +237,7 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
 
     Spine::Stations stations;
     itsDatabaseStations->getStations(stations, settings);
-    Spine::TimeSeriesGeneratorOptions timeSeriesOptions;
+    TS::TimeSeriesGeneratorOptions timeSeriesOptions;
     timeSeriesOptions.startTime = settings.starttime;
     timeSeriesOptions.endTime = settings.endtime;
     timeSeriesOptions.timeStep = settings.timestep;
@@ -278,8 +276,8 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
  * \brief Read values for given times only.
  */
 
-Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
-    Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
+TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
+    Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
   if (Spine::Reactor::isShuttingDown())
     return nullptr;
@@ -323,7 +321,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::value
 
   try
   {
-    ts::TimeSeriesVectorPtr ret = boost::make_shared<ts::TimeSeriesVector>();
+    TS::TimeSeriesVectorPtr ret = boost::make_shared<TS::TimeSeriesVector>();
 
     // Database query prevented
     if (settings.preventDatabaseQuery)

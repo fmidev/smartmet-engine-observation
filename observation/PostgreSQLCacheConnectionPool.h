@@ -28,7 +28,7 @@ class PostgreSQLCacheConnectionPool
   std::vector<int> itsWorkingList;
   std::vector<std::shared_ptr<PostgreSQLCacheDB>> itsWorkerList;
 
-  SmartMet::Spine::MutexType itsGetMutex;
+  Spine::MutexType itsGetMutex;
 };
 
 }  // namespace Observation

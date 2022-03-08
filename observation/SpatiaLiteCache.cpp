@@ -7,8 +7,6 @@
 #include <spine/Convenience.h>
 #include <atomic>
 
-namespace ts = SmartMet::Spine::TimeSeries;
-
 namespace SmartMet
 {
 namespace Engine
@@ -168,7 +166,7 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
   }
 }
 
-ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
+TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
 {
   try
   {
@@ -187,11 +185,11 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
     if (settings.stationtype == "flash")
       return flashValuesFromSpatiaLite(settings);
 
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+    TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
     auto sinfo = itsParameters.stationInfo->load();
 
-    SmartMet::Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
+    Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
@@ -238,8 +236,8 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
   }
 }
 
-ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
-    Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
+TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
+    Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
   try
   {
@@ -258,11 +256,11 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
     if (settings.stationtype == "flash")
       return flashValuesFromSpatiaLite(settings);
 
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+    TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
     auto sinfo = itsParameters.stationInfo->load();
 
-    SmartMet::Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
+    Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
@@ -310,7 +308,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
   }
 }
 
-ts::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &settings) const
+TS::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &settings) const
 {
   try
   {
@@ -686,12 +684,12 @@ void SpatiaLiteCache::cleanRoadCloudCache(const boost::posix_time::time_duration
   }
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpatiaLite(
+TS::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpatiaLite(
     Settings &settings) const
 {
   try
   {
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+    TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
@@ -789,12 +787,12 @@ void SpatiaLiteCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
   }
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaLite(
+TS::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaLite(
     Settings &settings) const
 {
   try
   {
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+    TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
@@ -904,12 +902,12 @@ void SpatiaLiteCache::cleanBKHydrometaCache(
   }
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::bkHydrometaValuesFromSpatiaLite(
+TS::TimeSeriesVectorPtr SpatiaLiteCache::bkHydrometaValuesFromSpatiaLite(
     Settings &settings) const
 {
   try
   {
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+    TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
@@ -1018,12 +1016,12 @@ void SpatiaLiteCache::cleanFmiIoTCache(const boost::posix_time::time_duration &t
   }
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLite(
+TS::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLite(
     Settings &settings) const
 {
   try
   {
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+    TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);

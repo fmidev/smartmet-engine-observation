@@ -5,7 +5,7 @@
 
 namespace SmartMet
 {
-using Spine::DataFilter;
+using TS::DataFilter;
 
 namespace Engine
 {

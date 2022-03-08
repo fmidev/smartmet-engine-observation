@@ -5,8 +5,7 @@
 #include <macgyver/StringConversion.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <spine/ParameterTools.h>
-#include <spine/TimeSeriesGenerator.h>
-#include <spine/TimeSeriesOutput.h>
+#include <timeseries/TimeSeriesInclude.h>
 #include <numeric>
 
 namespace SmartMet
@@ -18,7 +17,7 @@ namespace Observation
 using namespace Utils;
 
 std::ostream &operator<<(std::ostream &out,
-                         const SmartMet::Engine::Observation::StationTimedMeasurandData &data)
+                         const Engine::Observation::StationTimedMeasurandData &data)
 {
   for (const auto &item1 : data)
   {
@@ -61,7 +60,7 @@ bool is_data_source_field(const std::string &fieldname)
   return (fieldname.find("_data_source_sensornumber_") != std::string::npos);
 }
 
-Spine::TimeSeries::Value get_default_sensor_value(
+TS::Value get_default_sensor_value(
     const SensorData &sensor_data,
     int /* fmisid */,
     int /* measurand_id */,
@@ -90,17 +89,17 @@ Spine::TimeSeries::Value get_default_sensor_value(
   if (specifier == DataFieldSpecifier::DataSource)
     return default_item.second.data_source;
 
-  return Spine::TimeSeries::None();
+  return TS::None();
 }
 
-Spine::TimeSeries::Value get_sensor_value(const SensorData &sensor_data,
+TS::Value get_sensor_value(const SensorData &sensor_data,
                                           const std::string &sensor_no,
                                           int fmisid,
                                           int measurand_id,
                                           DataFieldSpecifier specifier = DataFieldSpecifier::Value)
 {
   if (sensor_data.empty())
-    return Spine::TimeSeries::None();
+    return TS::None();
 
   if (sensor_no == "default" || sensor_no.empty())
     return get_default_sensor_value(sensor_data, fmisid, measurand_id, specifier);
@@ -118,7 +117,7 @@ Spine::TimeSeries::Value get_sensor_value(const SensorData &sensor_data,
       return sensor_data.at(sensor_nro).data_source;
   }
 
-  return Spine::TimeSeries::None();
+  return TS::None();
 }
 
 }  // namespace
@@ -422,11 +421,11 @@ StationTimedMeasurandData CommonDatabaseFunctions::buildStationTimedMeasurandDat
 
       boost::local_time::local_date_time obstime(obs.data.data_time, current_tz);
 
-      auto value = (obs.data.data_value ? Spine::TimeSeries::Value(*obs.data.data_value)
-                                        : Spine::TimeSeries::None());
+      auto value = (obs.data.data_value ? TS::Value(*obs.data.data_value)
+                                        : TS::None());
       auto data_quality = obs.data.data_quality;
-      auto data_source = (obs.data.data_source > -1 ? Spine::TimeSeries::Value(obs.data.data_source)
-                                                    : Spine::TimeSeries::None());
+      auto data_source = (obs.data.data_source > -1 ? TS::Value(obs.data.data_source)
+                                                    : TS::None());
 
       bool data_from_default_sensor = (obs.data.measurand_no == 1);
 
@@ -442,14 +441,14 @@ StationTimedMeasurandData CommonDatabaseFunctions::buildStationTimedMeasurandDat
   return ret;
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
+TS::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
     const Spine::Stations & /* stations */,
     const Settings &settings,
     const std::string &stationtype,
     const StationMap &fmisid_to_station,
     const StationTimedMeasurandData &station_data,
     const QueryMapping &qmap,
-    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones) const
 {
   try
@@ -498,7 +497,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
           timesteps.insert(item2.first);
         }
       }
-      const auto tlist = Spine::TimeSeriesGenerator::generate(
+      const auto tlist = TS::TimeSeriesGenerator::generate(
           timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
       timesteps.insert(tlist.begin(), tlist.end());
 
@@ -509,7 +508,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
     {
       // std::cout << "**** LISTED timesteps\n";
       // Listed timesteps
-      const auto tlist = Spine::TimeSeriesGenerator::generate(
+      const auto tlist = TS::TimeSeriesGenerator::generate(
           timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
       for (const auto &item : station_data)
         fmisid_timesteps[item.first].insert(tlist.begin(), tlist.end());
@@ -517,7 +516,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
 
     //	  std::cout << "station_data:\n" << station_data << std::endl;
 
-    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
+    TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
     bool addDataQualityField = false;
     bool addDataSourceField = false;
@@ -538,7 +537,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
         not_null_columns.insert(item.second);
     }
 
-    Spine::TimeSeries::TimeSeriesVectorPtr resultVector = initializeResultVector(settings);
+    TS::TimeSeriesVectorPtr resultVector = initializeResultVector(settings);
     for (const auto &item : station_data)
     {
       int fmisid = item.first;
@@ -599,19 +598,19 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
       {
         auto &ts = resultVector->at(i);
 
-        Spine::TimeSeries::Value missing_value = Spine::TimeSeries::None();
+        TS::Value missing_value = TS::None();
         if (ts.size() > 0 && not_null_columns.find(i) != not_null_columns.end())
         {
           missing_value = ts.back().value;
         }
 
-        Spine::TimeSeries::TimeSeries new_ts(settings.localTimePool);
+        TS::TimeSeries new_ts(settings.localTimePool);
         auto timestep_iter = valid_timesteps.cbegin();
         for (auto &timed_value : ts)
         {
           while (*timestep_iter < timed_value.time && timestep_iter != valid_timesteps.cend())
           {
-            new_ts.emplace_back(Spine::TimeSeries::TimedValue(*timestep_iter, missing_value));
+            new_ts.emplace_back(TS::TimedValue(*timestep_iter, missing_value));
             timestep_iter++;
           }
           new_ts.push_back(timed_value);
@@ -624,7 +623,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
 
         while (timestep_iter != valid_timesteps.cend())
         {
-          new_ts.emplace_back(Spine::TimeSeries::TimedValue(*timestep_iter, missing_value));
+          new_ts.emplace_back(TS::TimedValue(*timestep_iter, missing_value));
           timestep_iter++;
         }
         /*
@@ -646,7 +645,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
 }
 
 void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
-    const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+    const TS::TimeSeriesVectorPtr &timeSeriesColumns,
     int fmisid,
     const TimedMeasurandData &timed_measurand_data,
     const std::set<boost::local_time::local_date_time> &valid_timesteps,
@@ -657,9 +656,9 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
   // Add *data_source- and data_quality-fields
   try
   {
-    std::map<int, Spine::TimeSeries::TimeSeries> data_source_ts;
+    std::map<int, TS::TimeSeries> data_source_ts;
     std::set<boost::local_time::local_date_time> timesteps;
-    Spine::TimeSeries::LocalTimePoolPtr local_time_pool =
+    TS::LocalTimePoolPtr local_time_pool =
         timeSeriesColumns->begin()->getLocalTimePool();
     for (const auto &item : timed_measurand_data)
     {
@@ -674,7 +673,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
         const auto &fieldname = special.first;
 
         int pos = special.second;
-        Spine::TimeSeries::Value val = Spine::TimeSeries::None();
+        TS::Value val = TS::None();
         if (addDataSourceField && isDataSourceField(fieldname))
         {
           auto masterParamName = fieldname.substr(0, fieldname.find("_data_source_sensornumber_"));
@@ -700,8 +699,8 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
           }
           if (data_source_ts.find(pos) == data_source_ts.end())
             data_source_ts.insert(
-                std::make_pair(pos, Spine::TimeSeries::TimeSeries(local_time_pool)));
-          data_source_ts.at(pos).emplace_back(Spine::TimeSeries::TimedValue(obstime, val));
+                std::make_pair(pos, TS::TimeSeries(local_time_pool)));
+          data_source_ts.at(pos).emplace_back(TS::TimedValue(obstime, val));
           timesteps.insert(obstime);
         }
         else if (!addDataSourceField && isDataQualityField(fieldname))
@@ -724,15 +723,15 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
           }
           if (data_source_ts.find(pos) == data_source_ts.end())
             data_source_ts.insert(
-                std::make_pair(pos, Spine::TimeSeries::TimeSeries(local_time_pool)));
-          data_source_ts.at(pos).emplace_back(Spine::TimeSeries::TimedValue(obstime, val));
+                std::make_pair(pos, TS::TimeSeries(local_time_pool)));
+          data_source_ts.at(pos).emplace_back(TS::TimedValue(obstime, val));
           timesteps.insert(obstime);
         }
       }
     }
 
     // Add data to result vector + handle missing time steps
-    Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
+    TS::Value missing = TS::None();
     for (const auto &item : data_source_ts)
     {
       int pos = item.first;
@@ -744,7 +743,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
         while (time_iterator != timesteps.end() && *time_iterator < obstime)
         {
           timeSeriesColumns->at(pos).emplace_back(
-              Spine::TimeSeries::TimedValue(*time_iterator, missing));
+              TS::TimedValue(*time_iterator, missing));
           time_iterator++;
         }
         if (time_iterator != timesteps.end() && *time_iterator == obstime)
@@ -755,7 +754,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
       while (time_iterator != timesteps.end())
       {
         timeSeriesColumns->at(pos).emplace_back(
-            Spine::TimeSeries::TimedValue(*time_iterator, missing));
+            TS::TimedValue(*time_iterator, missing));
         time_iterator++;
       }
     }
@@ -770,7 +769,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
 }
 
 void CommonDatabaseFunctions::addParameterToTimeSeries(
-    const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+    const TS::TimeSeriesVectorPtr &timeSeriesColumns,
     const std::pair<boost::local_time::local_date_time, MeasurandData> &dataItem,
     int fmisid,
     const std::map<std::string, int> &specialPositions,
@@ -790,7 +789,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
       std::string nameInRequest = parameter_item.first;
       int parameter_id = parameter_item.second;
 
-      Spine::TimeSeries::Value val = Spine::TimeSeries::None();
+      TS::Value val = TS::None();
 
       if (data.count(parameter_id) > 0)
       {
@@ -804,14 +803,14 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
       }
 
       timeSeriesColumns->at(timeseriesPositions.at(nameInRequest))
-          .emplace_back(Spine::TimeSeries::TimedValue(obstime, val));
+          .emplace_back(TS::TimedValue(obstime, val));
     }
 
     boost::local_time::local_date_time now(boost::posix_time::second_clock::universal_time(),
                                            obstime.zone());
     SpecialParameters::Args args(station, stationtype, obstime, now, settings.timezone, &settings);
 
-    Spine::TimeSeries::Value missing = Spine::TimeSeries::None();
+    TS::Value missing = TS::None();
 
     for (const auto &special : specialPositions)
     {
@@ -830,15 +829,15 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
           if (data.count(mid) == 0)
           {
             timeSeriesColumns->at(pos).emplace_back(
-                Spine::TimeSeries::TimedValue(obstime, missing));
+                TS::TimedValue(obstime, missing));
           }
           else
           {
             const auto &sensor_values = data.at(mid);
 
-            Spine::TimeSeries::Value val = get_default_sensor_value(sensor_values, fmisid, mid);
+            TS::Value val = get_default_sensor_value(sensor_values, fmisid, mid);
 
-            Spine::TimeSeries::Value none = Spine::TimeSeries::None();
+            TS::Value none = TS::None();
             if (val != none)
             {
               std::string windCompass;
@@ -848,9 +847,9 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
                 windCompass = windCompass16(boost::get<double>(val), settings.missingtext);
               else if (special.first == "windcompass32")
                 windCompass = windCompass32(boost::get<double>(val), settings.missingtext);
-              Spine::TimeSeries::Value windCompassValue = Spine::TimeSeries::Value(windCompass);
+              TS::Value windCompassValue = TS::Value(windCompass);
               timeSeriesColumns->at(pos).emplace_back(
-                  Spine::TimeSeries::TimedValue(obstime, windCompassValue));
+                  TS::TimedValue(obstime, windCompassValue));
             }
           }
         }
@@ -865,7 +864,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
           if (data.count(windpos) == 0 || data.count(rhpos) == 0 || data.count(temppos) == 0)
           {
             timeSeriesColumns->at(pos).emplace_back(
-                Spine::TimeSeries::TimedValue(obstime, missing));
+                TS::TimedValue(obstime, missing));
           }
           else
           {
@@ -878,10 +877,10 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
             float wind =
                 boost::get<double>(get_default_sensor_value(sensor_values, fmisid, windpos));
 
-            Spine::TimeSeries::Value feelslike =
-                Spine::TimeSeries::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
+            TS::Value feelslike =
+                TS::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
             timeSeriesColumns->at(pos).emplace_back(
-                Spine::TimeSeries::TimedValue(obstime, feelslike));
+                TS::TimedValue(obstime, feelslike));
           }
         }
         else if (special.first == "smartsymbol")
@@ -894,7 +893,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
               data.count(temppos) == 0)
           {
             timeSeriesColumns->at(pos).emplace_back(
-                Spine::TimeSeries::TimedValue(obstime, missing));
+                TS::TimedValue(obstime, missing));
           }
           else
           {
@@ -910,10 +909,10 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
 
             double lat = station.latitude_out;
             double lon = station.longitude_out;
-            Spine::TimeSeries::Value smartsymbol = Spine::TimeSeries::Value(
+            TS::Value smartsymbol = TS::Value(
                 *calcSmartsymbolNumber(wawa, totalcloudcover, temp, obstime, lat, lon));
             timeSeriesColumns->at(pos).emplace_back(
-                Spine::TimeSeries::TimedValue(obstime, smartsymbol));
+                TS::TimedValue(obstime, smartsymbol));
           }
         }
         else
@@ -932,7 +931,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
       }
       catch (...)
       {
-        timeSeriesColumns->at(pos).emplace_back(Spine::TimeSeries::TimedValue(obstime, missing));
+        timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, missing));
       }
     }
   }
@@ -944,13 +943,13 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
 
 void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
     const std::string &paramname,
-    const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+    const TS::TimeSeriesVectorPtr &timeSeriesColumns,
     const int pos,
     const SpecialParameters::Args &args) const
 {
   try
   {
-    Spine::TimeSeries::TimedValue value =
+    TS::TimedValue value =
         SpecialParameters::instance().getTimedValue(paramname, args);
     timeSeriesColumns->at(pos).push_back(value);
   }
@@ -960,13 +959,13 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
   }
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
+TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
     const Spine::Stations &stations,
     const Settings &settings,
     const StationInfo &stationInfo,
     const Fmi::TimeZones &timezones)
 {
-  Spine::TimeSeriesGeneratorOptions opt;
+  TS::TimeSeriesGeneratorOptions opt;
   opt.startTime = settings.starttime;
   opt.endTime = settings.endtime;
   opt.timeStep = settings.timestep;
@@ -976,11 +975,11 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
   return getWeatherDataQCData(stations, settings, stationInfo, opt, timezones);
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
+TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
     const Spine::Stations &stations,
     const Settings &settings,
     const StationInfo &stationInfo,
-    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
   try
@@ -1079,7 +1078,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
 
     auto qmap = buildQueryMapping(stations, settings, itsParameterMap, stationtype, true);
 
-    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
+    TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
     std::string query = sqlSelectFromWeatherDataQCData(settings, params, qstations);
 
@@ -1105,18 +1104,18 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
       int measurand_id = *weatherDataQCData.parametersAll[i];
       int sensor_no = *weatherDataQCData.sensor_nosAll[i];
 
-      Spine::TimeSeries::Value val;
+      TS::Value val;
       if (weatherDataQCData.data_valuesAll[i])
-        val = Spine::TimeSeries::Value(*weatherDataQCData.data_valuesAll[i]);
+        val = TS::Value(*weatherDataQCData.data_valuesAll[i]);
 
-      Spine::TimeSeries::Value val_quality = Spine::TimeSeries::None();
+      TS::Value val_quality = TS::None();
       if (weatherDataQCData.data_qualityAll[i])
-        val_quality = Spine::TimeSeries::Value(*weatherDataQCData.data_qualityAll[i]);
+        val_quality = TS::Value(*weatherDataQCData.data_qualityAll[i]);
 
       bool data_from_default_sensor = (sensor_no == 1);
 
       station_data[fmisid][obstime][measurand_id][sensor_no] =
-          DataWithQuality(val, val_quality, Spine::TimeSeries::None(), data_from_default_sensor);
+          DataWithQuality(val, val_quality, TS::None(), data_from_default_sensor);
       i++;
     }
 
@@ -1135,14 +1134,14 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQC
   }
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr CommonDatabaseFunctions::getObservationData(
+TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getObservationData(
     const Spine::Stations &stations,
     const Settings &settings,
     const StationInfo &stationInfo,
     const Fmi::TimeZones &timezones,
     const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache)
 {
-  Spine::TimeSeriesGeneratorOptions opt;
+  TS::TimeSeriesGeneratorOptions opt;
   opt.startTime = settings.starttime;
   opt.endTime = settings.endtime;
   opt.timeStep = settings.timestep;

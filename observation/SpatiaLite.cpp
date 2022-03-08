@@ -13,9 +13,8 @@
 #include <spine/ParameterTools.h>
 #include <spine/Reactor.h>
 #include <spine/Thread.h>
-#include <spine/TimeSeriesGenerator.h>
-#include <spine/TimeSeriesGeneratorOptions.h>
-#include <spine/TimeSeriesOutput.h>
+#include <spine/Value.h>
+#include <timeseries/TimeSeriesInclude.h>
 #include <chrono>
 #include <iostream>
 #include <ogr_geometry.h>
@@ -29,8 +28,6 @@
 // long long should be allowed
 #pragma clang diagnostic ignored "-Wc++98-compat-pedantic"
 #endif
-
-namespace ts = SmartMet::Spine::TimeSeries;
 
 using namespace std;
 using namespace boost::gregorian;
@@ -1324,7 +1321,7 @@ void SpatiaLite::cleanRoadCloudCache(const ptime &newstarttime)
   }
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getRoadCloudData(
+TS::TimeSeriesVectorPtr SpatiaLite::getRoadCloudData(
     const Settings &settings, const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, timezones);
@@ -1353,7 +1350,7 @@ void SpatiaLite::cleanNetAtmoCache(const ptime &newstarttime)
   }
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getNetAtmoData(
+TS::TimeSeriesVectorPtr SpatiaLite::getNetAtmoData(
     const Settings &settings, const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, timezones);
@@ -1383,7 +1380,7 @@ void SpatiaLite::cleanBKHydrometaCache(const ptime &newstarttime)
   }
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getBKHydrometaData(
+TS::TimeSeriesVectorPtr SpatiaLite::getBKHydrometaData(
     const Settings &settings, const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, timezones);
@@ -1412,25 +1409,25 @@ void SpatiaLite::cleanFmiIoTCache(const ptime &newstarttime)
   }
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFmiIoTData(
+TS::TimeSeriesVectorPtr SpatiaLite::getFmiIoTData(
     const Settings &settings, const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, timezones);
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getMobileAndExternalData(
+TS::TimeSeriesVectorPtr SpatiaLite::getMobileAndExternalData(
     const Settings &settings, const Fmi::TimeZones &timezones)
 {
   try
   {
-    SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr ret = initializeResultVector(settings);
+    TS::TimeSeriesVectorPtr ret = initializeResultVector(settings);
 
     const ExternalAndMobileProducerMeasurand &producerMeasurand =
         itsExternalAndMobileProducerConfig.at(settings.stationtype);
     std::vector<std::string> queryfields;
     std::vector<int> measurandIds;
-    const SmartMet::Engine::Observation::Measurands &measurands = producerMeasurand.measurands();
-    for (const SmartMet::Spine::Parameter &p : settings.parameters)
+    const Engine::Observation::Measurands &measurands = producerMeasurand.measurands();
+    for (const Spine::Parameter &p : settings.parameters)
     {
       std::string name = Fmi::ascii_tolower_copy(p.name());
       queryfields.push_back(name);
@@ -1438,15 +1435,15 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getMobileAndExterna
         measurandIds.push_back(measurands.at(name));
     }
 
-    SmartMet::Spine::TimeSeriesGeneratorOptions timeSeriesOptions;
+    TS::TimeSeriesGeneratorOptions timeSeriesOptions;
     timeSeriesOptions.startTime = settings.starttime;
     timeSeriesOptions.endTime = settings.endtime;
-    SmartMet::Spine::TimeSeriesGenerator::LocalTimeList tlist;
+    TS::TimeSeriesGenerator::LocalTimeList tlist;
 
     // The desired timeseries, unless all available data if timestep=0 or latest only
     if (!settings.latest && !timeSeriesOptions.all())
     {
-      tlist = SmartMet::Spine::TimeSeriesGenerator::generate(
+      tlist = TS::TimeSeriesGenerator::generate(
           timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
     }
 
@@ -1468,7 +1465,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getMobileAndExterna
 
     for (auto row : qry)
     {
-      map<std::string, ts::Value> result;
+      map<std::string, TS::Value> result;
       boost::local_time::time_zone_ptr zone(new posix_time_zone("UTC"));
       boost::local_time::local_date_time timestep(not_a_date_time, zone);
       for (int i = 0; i < column_count; i++)
@@ -1476,7 +1473,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getMobileAndExterna
         std::string column_name = qry.column_name(i);
 
         int data_type = row.column_type(i);
-        ts::Value value = ts::None();
+        TS::Value value = TS::None();
         if (data_type == SQLITE_TEXT)
         {
           auto data_value = row.get<std::string>(i);
@@ -1515,8 +1512,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getMobileAndExterna
       unsigned int index = 0;
       for (const auto &paramname : queryfields)
       {
-        ts::Value val = result[paramname];
-        ret->at(index).emplace_back(ts::TimedValue(timestep, val));
+        TS::Value val = result[paramname];
+        ret->at(index).emplace_back(TS::TimedValue(timestep, val));
         index++;
       }
     }
@@ -2493,7 +2490,7 @@ std::size_t SpatiaLite::fillFmiIoTCache(const MobileExternalDataItems &mobileExt
   return 0;
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
+TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
                                                                 const Fmi::TimeZones &timezones)
 {
   try
@@ -2575,7 +2572,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &
     if (itsDebug)
       std::cout << "SpatiaLite: " << query << std::endl;
 
-    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
+    TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
     int stroke_time = 0;
     double longitude = std::numeric_limits<double>::max();
@@ -2587,7 +2584,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &
 
       for (auto row : qry)
       {
-        map<std::string, ts::Value> result;
+        map<std::string, TS::Value> result;
 
         // These will be always in this order
         stroke_time = row.get<int>(0);
@@ -2600,7 +2597,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &
         for (int i = 5; i != qry.column_count(); ++i)
         {
           int data_type = row.column_type(i);
-          ts::Value temp;
+          TS::Value temp;
           if (data_type == SQLITE_TEXT)
           {
             temp = row.get<std::string>(i);
@@ -2626,8 +2623,8 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &
           std::string name = p.first;
           int pos = p.second;
 
-          ts::Value val = result[name];
-          timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(localtime, val));
+          TS::Value val = result[name];
+          timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(localtime, val));
         }
         for (const auto &p : specialPositions)
         {
@@ -2635,13 +2632,13 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &
           int pos = p.second;
           if (name == "latitude")
           {
-            ts::Value val = latitude;
-            timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(localtime, val));
+            TS::Value val = latitude;
+            timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(localtime, val));
           }
           if (name == "longitude")
           {
-            ts::Value val = longitude;
-            timeSeriesColumns->at(pos).emplace_back(ts::TimedValue(localtime, val));
+            TS::Value val = longitude;
+            timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(localtime, val));
           }
         }
       }
@@ -2797,11 +2794,11 @@ FlashCounts SpatiaLite::getFlashCount(const ptime &starttime,
   }
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLite::getObservationData(
+TS::TimeSeriesVectorPtr SpatiaLite::getObservationData(
     const Spine::Stations &stations,
     const Settings &settings,
     const StationInfo &stationInfo,
-    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones,
     const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache)
 {

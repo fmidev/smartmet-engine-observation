@@ -5,8 +5,6 @@
 
 #include <atomic>
 
-namespace ts = SmartMet::Spine::TimeSeries;
-
 namespace SmartMet
 {
 namespace Engine
@@ -119,7 +117,7 @@ void PostgreSQLCache::initializeCaches(int finCacheDuration,
   // Nothing to do
 }
 
-ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
+TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
 {
   try
   {
@@ -135,11 +133,11 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
     if (settings.stationtype == "flash")
       return flashValuesFromPostgreSQL(settings);
 
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+    TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
     auto sinfo = itsParameters.stationInfo->load();
 
-    SmartMet::Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
+    Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
@@ -172,8 +170,8 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
   }
 }
 
-ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
-    Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
+TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
+    Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
   try
   {
@@ -189,11 +187,11 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
     if (settings.stationtype == "flash")
       return flashValuesFromPostgreSQL(settings);
 
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+    TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
     auto sinfo = itsParameters.stationInfo->load();
 
-    SmartMet::Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
+    Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
@@ -224,11 +222,11 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
   }
 }
 
-ts::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(Settings &settings) const
+TS::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(Settings &settings) const
 {
   try
   {
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+    TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
@@ -242,11 +240,11 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(Settings &set
     throw Fmi::Exception::Trace(BCP, "Getting flash values from cache failed!");
   }
 }
-ts::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings &settings) const
+TS::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings &settings) const
 {
   try
   {
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+    TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
@@ -261,11 +259,11 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings 
   }
 }
 
-ts::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &settings) const
+TS::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &settings) const
 {
   try
   {
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+    TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
@@ -280,11 +278,11 @@ ts::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &s
   }
 }
 
-ts::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(Settings &settings) const
+TS::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(Settings &settings) const
 {
   try
   {
-    ts::TimeSeriesVectorPtr ret(new ts::TimeSeriesVector);
+    TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);

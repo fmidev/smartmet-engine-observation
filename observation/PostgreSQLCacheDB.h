@@ -12,7 +12,6 @@
 #include "WeatherDataQCItem.h"
 
 #include <macgyver/PostgreSQLConnection.h>
-#include <spine/Value.h>
 #include <string>
 
 namespace SmartMet
@@ -21,7 +20,7 @@ namespace Engine
 {
 namespace Observation
 {
-using ResultSetRow = std::map<std::string, SmartMet::Spine::TimeSeries::Value>;
+using ResultSetRow = std::map<std::string, TS::Value>;
 using ResultSetRows = std::vector<ResultSetRow>;
 
 struct PostgreSQLCacheParameters;
@@ -297,17 +296,17 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
    */
   void cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getRoadCloudData(
+  TS::TimeSeriesVectorPtr getRoadCloudData(
       const Settings &settings,
       const ParameterMapPtr &parameterMap,
       const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getNetAtmoData(
+  TS::TimeSeriesVectorPtr getNetAtmoData(
       const Settings &settings,
       const ParameterMapPtr &parameterMap,
       const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFmiIoTData(
+  TS::TimeSeriesVectorPtr getFmiIoTData(
       const Settings &settings,
       const ParameterMapPtr &parameterMap,
       const Fmi::TimeZones &timezones);
@@ -324,7 +323,7 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
   /*
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
-                            const SmartMet::Spine::TaggedLocationList &locations);
+                            const Spine::TaggedLocationList &locations);
   */
 
   size_t selectCount(const std::string &queryString);
@@ -357,26 +356,26 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
 
   // Private methods
   std::string stationType(const std::string &type);
-  std::string stationType(SmartMet::Spine::Station &station);
+  std::string stationType(Spine::Station &station);
 
   void addSpecialParameterToTimeSeries(
       const std::string &paramname,
-      SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
-      const SmartMet::Spine::Station &station,
+      TS::TimeSeriesVectorPtr &timeSeriesColumns,
+      const Spine::Station &station,
       const int pos,
       const std::string stationtype,
       const boost::local_time::local_date_time &obstime);
 
   void addParameterToTimeSeries(
-      SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+      TS::TimeSeriesVectorPtr &timeSeriesColumns,
       const std::pair<boost::local_time::local_date_time,
-                      std::map<std::string, SmartMet::Spine::TimeSeries::Value>> &dataItem,
+                      std::map<std::string, TS::Value>> &dataItem,
       const std::map<std::string, int> &specialPositions,
       const std::map<std::string, std::string> &parameterNameMap,
       const std::map<std::string, int> &timeseriesPositions,
       const ParameterMapPtr &parameterMap,
       const std::string &stationtype,
-      const SmartMet::Spine::Station &station,
+      const Spine::Station &station,
       const std::string &missingtext);
 
   boost::posix_time::ptime getLatestTimeFromTable(std::string tablename, std::string time_field);
@@ -400,7 +399,7 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
   void dropIndex(const std::string &idx_name, bool transaction = false) const;
 
   boost::posix_time::ptime getTime(const std::string &timeQuery) const;
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getMobileAndExternalData(
+  TS::TimeSeriesVectorPtr getMobileAndExternalData(
       const Settings &settings,
       const ParameterMapPtr &parameterMap,
       const Fmi::TimeZones &timezones);

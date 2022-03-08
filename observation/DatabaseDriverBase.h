@@ -16,8 +16,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/condition.hpp>
 #include <spine/Station.h>
-#include <spine/TimeSeries.h>
-#include <spine/TimeSeriesGeneratorOptions.h>
+#include <timeseries/TimeSeriesInclude.h>
 
 namespace SmartMet
 {
@@ -35,9 +34,9 @@ class DatabaseDriverBase
   virtual std::string id() const = 0;
 
   virtual void makeQuery(SmartMet::Engine::Observation::QueryBase *qb) = 0;
-  virtual Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings) = 0;
-  virtual Spine::TimeSeries::TimeSeriesVectorPtr values(
-      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) = 0;
+  virtual TS::TimeSeriesVectorPtr values(Settings &settings) = 0;
+  virtual TS::TimeSeriesVectorPtr values(
+      Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) = 0;
   virtual Spine::TaggedFMISIDList translateToFMISID(const boost::posix_time::ptime &starttime,
                                                     const boost::posix_time::ptime &endtime,
                                                     const std::string &stationtype,
@@ -72,9 +71,9 @@ class DatabaseDriverBase
   virtual void reloadStations() {}
   static std::string resolveDatabaseTableName(const std::string &producer,
                                               const StationtypeConfig &stationtypeConfig);
-  Spine::TimeSeries::TimeSeriesVectorPtr checkForEmptyQuery(Settings &settings) const;
-  Spine::TimeSeries::TimeSeriesVectorPtr checkForEmptyQuery(
-      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) const;
+  TS::TimeSeriesVectorPtr checkForEmptyQuery(Settings &settings) const;
+  TS::TimeSeriesVectorPtr checkForEmptyQuery(
+      Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) const;
 
   virtual Fmi::Cache::CacheStatistics getCacheStats() const
   {

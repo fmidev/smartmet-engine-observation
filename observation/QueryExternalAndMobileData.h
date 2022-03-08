@@ -19,24 +19,24 @@ class QueryExternalAndMobileData : public QueryBase
 
   ~QueryExternalAndMobileData() override;
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr executeQuery(PostgreSQLObsDB &db,
+  TS::TimeSeriesVectorPtr executeQuery(PostgreSQLObsDB &db,
                                                                 Settings &settings,
                                                                 const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr executeQuery(
+  TS::TimeSeriesVectorPtr executeQuery(
       PostgreSQLObsDB &db,
       Settings &settings,
-      const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr values(PostgreSQLObsDB &db,
+  TS::TimeSeriesVectorPtr values(PostgreSQLObsDB &db,
                                                           Settings &settings,
                                                           const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr values(
+  TS::TimeSeriesVectorPtr values(
       PostgreSQLObsDB &db,
       Settings &settings,
-      const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
 
  private:

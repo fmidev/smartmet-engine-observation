@@ -5,7 +5,6 @@
 #include "ObservationCache.h"
 #include "StationOptions.h"
 #include <spine/Table.h>
-#include <spine/Value.h>
 
 namespace SmartMet
 {
@@ -24,9 +23,9 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   Engine() = delete;
   Engine(const std::string &configfile);
 
-  Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings);
-  Spine::TimeSeries::TimeSeriesVectorPtr values(
-      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions);
+  TS::TimeSeriesVectorPtr values(Settings &settings);
+  TS::TimeSeriesVectorPtr values(
+      Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions);
 
   void makeQuery(QueryBase *qb);
 
@@ -139,7 +138,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   void unserializeStations();
   Settings beforeQuery(const Settings &settings,
                        std::vector<unsigned int> &unknownParameterIndexes) const;
-  void afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr &tsvPtr,
+  void afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
                   const Settings &settings,
                   const std::vector<unsigned int> &unknownParameterIndexes) const;
 

@@ -68,7 +68,7 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
     ResultSetRows rsrs =
         PostgreSQLCacheDB::getResultSetForMobileExternalData(result_set, conn.dataTypes());
 
-    SmartMet::Spine::TimeSeries::Value none = SmartMet::Spine::TimeSeries::None();
+    TS::Value none = TS::None();
     for (auto rsr : rsrs)
     {
       Fmi::AsyncTask::interruption_point();
@@ -711,7 +711,7 @@ std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(const Settings &sett
   }
 }
 
-void PostgreSQLObsDB::translateToIdFunction(SmartMet::Spine::Stations &stations, int net_id) const
+void PostgreSQLObsDB::translateToIdFunction(Spine::Stations &stations, int net_id) const
 {
   std::string sqlStmtStart = ("select getMemberId(" + Fmi::to_string(net_id) + ",");
 
@@ -754,22 +754,22 @@ void PostgreSQLObsDB::translateToIdFunction(SmartMet::Spine::Stations &stations,
   }
 }
 
-void PostgreSQLObsDB::translateToLPNN(SmartMet::Spine::Stations &stations) const
+void PostgreSQLObsDB::translateToLPNN(Spine::Stations &stations) const
 {
   translateToIdFunction(stations, 10);
 }
 
-void PostgreSQLObsDB::translateToWMO(SmartMet::Spine::Stations &stations) const
+void PostgreSQLObsDB::translateToWMO(Spine::Stations &stations) const
 {
   translateToIdFunction(stations, 20);
 }
 
-void PostgreSQLObsDB::translateToRWSID(SmartMet::Spine::Stations &stations) const
+void PostgreSQLObsDB::translateToRWSID(Spine::Stations &stations) const
 {
   translateToIdFunction(stations, 30);
 }
 
-void PostgreSQLObsDB::getStations(SmartMet::Spine::Stations &stations) const
+void PostgreSQLObsDB::getStations(Spine::Stations &stations) const
 {
   try
   {
@@ -841,7 +841,7 @@ void PostgreSQLObsDB::getStations(SmartMet::Spine::Stations &stations) const
     for (auto row : result_set)
     {
       std::string station_start, station_end;
-      SmartMet::Spine::Station s;
+      Spine::Station s;
       s.station_type = row[0].as<std::string>();
       s.station_id = as_int(row[1]);
       s.access_policy_id = as_int(row[2]);
