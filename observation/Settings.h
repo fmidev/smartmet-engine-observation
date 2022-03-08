@@ -4,12 +4,11 @@
 #include <boost/date_time/local_time/local_time.hpp>
 #include <boost/date_time/local_time_adjustor.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <spine/DataFilter.h>
+#include <macgyver/ValueFormatter.h>
 #include <spine/Location.h>
 #include <spine/Parameter.h>
 #include <spine/Station.h>
-#include <spine/TimeSeries.h>
-#include <spine/ValueFormatter.h>
+#include <timeseries/TimeSeriesInclude.h>
 #include <locale>
 #include <ostream>
 #include <set>
@@ -28,9 +27,9 @@ class Settings
     DUMP_SETTINGS = 1
   };
 
-  SmartMet::Spine::TaggedLocationList taggedLocations;
-  SmartMet::Spine::TaggedFMISIDList taggedFMISIDs;
-  std::vector<SmartMet::Spine::Parameter> parameters;
+  Spine::TaggedLocationList taggedLocations;
+  Spine::TaggedFMISIDList taggedFMISIDs;
+  std::vector<Spine::Parameter> parameters;
   std::vector<int> hours;
   std::vector<int> weekdays;
   std::locale locale{"fi_FI"};
@@ -40,7 +39,7 @@ class Settings
   // based on given parameters, for example "stations_no" -> "1020,1046"
   // returns data rows only where station_no == 1020 or 1046
   //  std::map<std::string, std::vector<std::string>> dataFilter;
-  Spine::DataFilter dataFilter;
+  TS::DataFilter dataFilter;
 
   std::set<uint> producer_ids;
   std::string cacheKey;
@@ -66,7 +65,7 @@ class Settings
   bool useCommonQueryMethod = false;  // default is false
   bool useDataCache = true;           // default is true
   bool preventDatabaseQuery = false;
-  Spine::TimeSeries::LocalTimePoolPtr localTimePool{nullptr};
+  TS::LocalTimePoolPtr localTimePool{nullptr};
   // 0 or more bits from DebugOptions to enable debugging features
   uint32_t debug_options = 0;
 };

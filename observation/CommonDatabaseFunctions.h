@@ -13,8 +13,7 @@
 #include <boost/atomic.hpp>
 #include <macgyver/TimeZones.h>
 #include <spine/Station.h>
-#include <spine/TimeSeries.h>
-#include <spine/TimeSeriesGeneratorOptions.h>
+#include <timeseries/TimeSeriesInclude.h>
 
 namespace SmartMet
 {
@@ -46,37 +45,37 @@ class CommonDatabaseFunctions
                                                      const std::string &params,
                                                      const std::string &station_ids) const = 0;
 
-  virtual Spine::TimeSeries::TimeSeriesVectorPtr getObservationData(
+  virtual TS::TimeSeriesVectorPtr getObservationData(
       const Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
       const Fmi::TimeZones &timezones,
       const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache);
 
-  virtual Spine::TimeSeries::TimeSeriesVectorPtr getObservationData(
+  virtual TS::TimeSeriesVectorPtr getObservationData(
       const Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
-      const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones,
       const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache) = 0;
 
-  virtual Spine::TimeSeries::TimeSeriesVectorPtr getFlashData(const Settings &settings,
+  virtual TS::TimeSeriesVectorPtr getFlashData(const Settings &settings,
                                                               const Fmi::TimeZones &timezones) = 0;
   virtual FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                                     const boost::posix_time::ptime &endtime,
-                                    const SmartMet::Spine::TaggedLocationList &locations) = 0;
+                                    const Spine::TaggedLocationList &locations) = 0;
 
-  Spine::TimeSeries::TimeSeriesVectorPtr getWeatherDataQCData(const Spine::Stations &stations,
+  TS::TimeSeriesVectorPtr getWeatherDataQCData(const Spine::Stations &stations,
                                                               const Settings &settings,
                                                               const StationInfo &stationInfo,
                                                               const Fmi::TimeZones &timezones);
 
-  Spine::TimeSeries::TimeSeriesVectorPtr getWeatherDataQCData(
+  TS::TimeSeriesVectorPtr getWeatherDataQCData(
       const Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
-      const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
 
   virtual void fetchWeatherDataQCData(const std::string &sqlStmt,
@@ -122,18 +121,18 @@ class CommonDatabaseFunctions
       const Settings &settings,
       const Fmi::TimeZones &timezones,
       const StationMap &fmisid_to_station) const;
-  Spine::TimeSeries::TimeSeriesVectorPtr buildTimeseries(
+  TS::TimeSeriesVectorPtr buildTimeseries(
       const Spine::Stations &stations,
       const Settings &settings,
       const std::string &stationtype,
       const StationMap &fmisid_to_station,
       const StationTimedMeasurandData &station_data,
       const QueryMapping &qmap,
-      const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones) const;
 
   void addSpecialFieldsToTimeSeries(
-      const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+      const TS::TimeSeriesVectorPtr &timeSeriesColumns,
       int fmisid,
       const TimedMeasurandData &data,
       const std::set<boost::local_time::local_date_time> &valid_timesteps,
@@ -142,7 +141,7 @@ class CommonDatabaseFunctions
       bool addDataSourceField) const;
 
   void addParameterToTimeSeries(
-      const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+      const TS::TimeSeriesVectorPtr &timeSeriesColumns,
       const std::pair<boost::local_time::local_date_time, MeasurandData> &dataItem,
       int fmisid,
       const std::map<std::string, int> &specialPositions,
@@ -154,7 +153,7 @@ class CommonDatabaseFunctions
 
   void addSpecialParameterToTimeSeries(
       const std::string &paramname,
-      const Spine::TimeSeries::TimeSeriesVectorPtr &timeSeriesColumns,
+      const TS::TimeSeriesVectorPtr &timeSeriesColumns,
       const int pos,
       const SpecialParameters::Args& args) const;
 

@@ -6,7 +6,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/smart_ptr/atomic_shared_ptr.hpp>
 #include <macgyver/TimeZones.h>
-#include <spine/TimeSeries.h>
+#include <timeseries/TimeSeriesInclude.h>
 #include <unordered_set>
 
 namespace SmartMet
@@ -51,7 +51,7 @@ class FlashMemoryCache
    * @timezones Global timezone information
    */
 
-  Spine::TimeSeries::TimeSeriesVectorPtr getData(const Settings& settings,
+  TS::TimeSeriesVectorPtr getData(const Settings& settings,
                                                  const ParameterMapPtr& parameterMap,
                                                  const Fmi::TimeZones& timezones) const;
 

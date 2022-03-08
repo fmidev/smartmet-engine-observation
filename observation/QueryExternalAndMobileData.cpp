@@ -2,8 +2,7 @@
 #include "ExternalAndMobileDBInfo.h"
 #include "PostgreSQLCacheDB.h"
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
-#include <spine/TimeSeriesGenerator.h>
-#include <spine/TimeSeriesGeneratorOptions.h>
+#include <timeseries/TimeSeriesInclude.h>
 
 namespace SmartMet
 {
@@ -11,8 +10,6 @@ namespace Engine
 {
 namespace Observation
 {
-namespace ts = SmartMet::Spine::TimeSeries;
-
 using namespace std;
 using namespace boost::gregorian;
 using namespace boost::posix_time;
@@ -31,7 +28,7 @@ class my_visitor : public boost::static_visitor<double>
 {
  public:
   my_visitor() = default;
-  double operator()(SmartMet::Spine::TimeSeries::None /* none */)
+  double operator()(TS::None /* none */)
   {
     return static_cast<double>(kFloatMissing);
   }
@@ -42,18 +39,18 @@ class my_visitor : public boost::static_visitor<double>
   {
     return static_cast<double>(kFloatMissing);
   }
-  double operator()(SmartMet::Spine::TimeSeries::LonLat /* i */)
+  double operator()(TS::LonLat /* i */)
   {
     return static_cast<double>(kFloatMissing);
   }
 };
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
+TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
     PostgreSQLObsDB &db, Settings &settings, const Fmi::TimeZones &timezones)
 {
   try
   {
-    SmartMet::Spine::TimeSeriesGeneratorOptions timeSeriesOptions;
+    TS::TimeSeriesGeneratorOptions timeSeriesOptions;
     timeSeriesOptions.startTime = db.startTime;
     timeSeriesOptions.endTime = db.endTime;
     timeSeriesOptions.timeStep = settings.timestep;
@@ -69,7 +66,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
   }
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::values(
+TS::TimeSeriesVectorPtr QueryExternalAndMobileData::values(
     PostgreSQLObsDB &db, Settings &settings, const Fmi::TimeZones &timezones)
 {
   try
@@ -82,10 +79,10 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::val
   }
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::values(
+TS::TimeSeriesVectorPtr QueryExternalAndMobileData::values(
     PostgreSQLObsDB &db,
     Settings &settings,
-    const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
   try
@@ -98,16 +95,16 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::val
   }
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
+TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
     PostgreSQLObsDB &db,
     Settings &settings,
-    const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
   try
   {
-    SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr ret =
-        boost::make_shared<SmartMet::Spine::TimeSeries::TimeSeriesVector>();
+    TS::TimeSeriesVectorPtr ret =
+        boost::make_shared<TS::TimeSeriesVector>();
     const ExternalAndMobileProducerMeasurand &producerMeasurand =
         itsProducerConfig.at(settings.stationtype);
     ExternalAndMobileDBInfo dbInfo(&producerMeasurand);
@@ -115,7 +112,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
     std::vector<std::string> queryfields;
     std::vector<int> measurandIds;
     const Measurands &measurands = producerMeasurand.measurands();
-    for (const SmartMet::Spine::Parameter &p : settings.parameters)
+    for (const Spine::Parameter &p : settings.parameters)
     {
       std::string name = Fmi::ascii_tolower_copy(p.name());
       queryfields.push_back(name);
@@ -165,13 +162,13 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
     Fmi::Database::PostgreSQLConnection &conn = db.getConnection();
     pqxx::result result_set = conn.executeNonTransaction(sqlStmt);
     for (unsigned int i = 0; i <= queryfields.size(); i++)
-      ret->emplace_back(ts::TimeSeries(settings.localTimePool));
+      ret->emplace_back(TS::TimeSeries(settings.localTimePool));
 
-    SmartMet::Spine::TimeSeriesGenerator::LocalTimeList tlist;
+	TS::TimeSeriesGenerator::LocalTimeList tlist;
     // The desired timeseries, unless all available data if timestep=0 or latest only
     if (!settings.latest && !timeSeriesOptions.all())
     {
-      tlist = SmartMet::Spine::TimeSeriesGenerator::generate(
+      tlist = TS::TimeSeriesGenerator::generate(
           timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
     }
     ResultSetRows rsrs =
@@ -207,12 +204,12 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
           boost::local_time::local_date_time dt =
               *(boost::get<boost::local_time::local_date_time>(&rsr[fieldname]));
           std::string fieldValue = db.getTimeFormatter()->format(dt);
-          ret->at(index).emplace_back(ts::TimedValue(obstime, fieldValue));
+          ret->at(index).emplace_back(TS::TimedValue(obstime, fieldValue));
         }
         else if (settings.stationtype == FMI_IOT_PRODUCER &&
                  (fieldname == "longitude" || fieldname == "latitude" || fieldname == "altitude"))
         {
-          ts::Value value;
+          TS::Value value;
           if (fieldname == "longitude" && longitudeValue)
           {
             value = *longitudeValue;
@@ -225,11 +222,11 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
           {
             value = *elevationValue;
           }
-          ret->at(index).emplace_back(ts::TimedValue(obstime, value));
+          ret->at(index).emplace_back(TS::TimedValue(obstime, value));
         }
         else
         {
-          ts::Value value;
+          TS::Value value;
           if (measurands.find(fieldname) == measurands.end())
           {
             const auto iter = db.getParameterMap()->find(fieldname);
@@ -248,7 +245,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr QueryExternalAndMobileData::exe
           }
           value = rsr[fieldname];
 
-          ret->at(index).emplace_back(ts::TimedValue(obstime, value));
+          ret->at(index).emplace_back(TS::TimedValue(obstime, value));
         }
         index++;
       }

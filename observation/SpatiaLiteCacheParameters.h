@@ -9,8 +9,7 @@
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
 #include <spine/Station.h>
-#include <spine/TimeSeries.h>
-#include <spine/TimeSeriesGeneratorOptions.h>
+#include <timeseries/TimeSeriesInclude.h>
 #include <string>
 
 namespace SmartMet

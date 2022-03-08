@@ -10,8 +10,7 @@
 #include "WeatherDataQCItem.h"
 #include <macgyver/CacheStats.h>
 #include <spine/Station.h>
-#include <spine/TimeSeries.h>
-#include <spine/TimeSeriesGeneratorOptions.h>
+#include <timeseries/TimeSeriesInclude.h>
 #include <macgyver/CacheStats.h>
 #include <string>
 
@@ -33,10 +32,10 @@ class ObservationCache
                                 int flashCacheDuration,
                                 int flashMemoryCacheDuration) = 0;
 
-  virtual Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(Settings &settings) = 0;
+  virtual TS::TimeSeriesVectorPtr valuesFromCache(Settings &settings) = 0;
 
-  virtual Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(
-      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) = 0;
+  virtual TS::TimeSeriesVectorPtr valuesFromCache(
+      Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) = 0;
 
   virtual bool dataAvailableInCache(const Settings &settings) const = 0;
 

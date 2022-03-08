@@ -24,8 +24,8 @@ namespace Engine
 namespace Observation
 {
 // Sort based on fmisid
-static bool sort_stations_function(const SmartMet::Spine::Station& s1,
-                                   const SmartMet::Spine::Station& s2)
+static bool sort_stations_function(const Spine::Station& s1,
+                                   const Spine::Station& s2)
 {
   return (s1.fmisid < s2.fmisid);
 }
@@ -363,14 +363,14 @@ Spine::Stations StationInfo::findFmisidStations(const std::vector<int>& fmisids)
  */
 // ----------------------------------------------------------------------
 
-SmartMet::Spine::Stations StationInfo::findFmisidStations(
-    const SmartMet::Spine::TaggedFMISIDList& taggedFMISIDs,
+Spine::Stations StationInfo::findFmisidStations(
+    const Spine::TaggedFMISIDList& taggedFMISIDs,
     const std::set<std::string>& groups,
     const boost::posix_time::ptime& starttime,
     const boost::posix_time::ptime& endtime) const
 {
   std::vector<int> fmisids;
-  std::map<int, const SmartMet::Spine::TaggedFMISID*> fmisidMap;
+  std::map<int, const Spine::TaggedFMISID*> fmisidMap;
 
   for (const auto& item : taggedFMISIDs)
   {
@@ -378,12 +378,12 @@ SmartMet::Spine::Stations StationInfo::findFmisidStations(
     fmisidMap.insert(std::make_pair(item.fmisid, &item));
   }
 
-  SmartMet::Spine::Stations ret = findFmisidStations(fmisids, groups, starttime, endtime);
+  Spine::Stations ret = findFmisidStations(fmisids, groups, starttime, endtime);
 
   // Set direction, distance, tag
   for (auto& station : ret)
   {
-    const SmartMet::Spine::TaggedFMISID* tfmisid = fmisidMap.at(station.fmisid);
+    const Spine::TaggedFMISID* tfmisid = fmisidMap.at(station.fmisid);
     // Chage to >= 0
     if (tfmisid->direction > 0)
       station.stationDirection = tfmisid->direction;
@@ -407,11 +407,11 @@ SmartMet::Spine::Stations StationInfo::findFmisidStations(
  */
 // ----------------------------------------------------------------------
 
-SmartMet::Spine::Stations StationInfo::findFmisidStations(
-    const SmartMet::Spine::TaggedFMISIDList& taggedFMISIDs) const
+Spine::Stations StationInfo::findFmisidStations(
+    const Spine::TaggedFMISIDList& taggedFMISIDs) const
 {
   std::vector<int> fmisids;
-  std::map<int, const SmartMet::Spine::TaggedFMISID*> fmisidMap;
+  std::map<int, const Spine::TaggedFMISID*> fmisidMap;
 
   for (const auto& item : taggedFMISIDs)
   {
@@ -419,12 +419,12 @@ SmartMet::Spine::Stations StationInfo::findFmisidStations(
     fmisidMap.insert(std::make_pair(item.fmisid, &item));
   }
 
-  SmartMet::Spine::Stations ret = findFmisidStations(fmisids);
+  Spine::Stations ret = findFmisidStations(fmisids);
 
   // Set direction, distance, tag
   for (auto& station : ret)
   {
-    const SmartMet::Spine::TaggedFMISID* tfmisid = fmisidMap.at(station.fmisid);
+    const Spine::TaggedFMISID* tfmisid = fmisidMap.at(station.fmisid);
     // Chage to >= 0
     if (tfmisid->direction > 0)
       station.stationDirection = tfmisid->direction;
@@ -582,7 +582,7 @@ Spine::Stations StationInfo::findStationsInsideArea(const std::set<std::string>&
     Spine::Stations stations;
 
     // Get stations belonging to the requested groups and period
-    SmartMet::Spine::Stations groupStations = findStationsInGroup(groups, starttime, endtime);
+    Spine::Stations groupStations = findStationsInGroup(groups, starttime, endtime);
     // Create area geometry from wkt-string
     OGRGeometry* areaGeometry = Fmi::OGR::createFromWkt(wkt, 4326);
     // Create spatial refernce to be used below
@@ -806,7 +806,7 @@ Spine::TaggedFMISIDList StationInfo::translateWMOToFMISID(const std::vector<int>
 {
   Spine::TaggedFMISIDList ret;
 
-  SmartMet::Spine::Stations stations = findWmoStations(wmos);
+  Spine::Stations stations = findWmoStations(wmos);
 
   std::set<int> processed;
   for (const auto& s : stations)
@@ -824,7 +824,7 @@ Spine::TaggedFMISIDList StationInfo::translateRWSIDToFMISID(const std::vector<in
 {
   Spine::TaggedFMISIDList ret;
 
-  SmartMet::Spine::Stations stations = findRwsidStations(rwsids);
+  Spine::Stations stations = findRwsidStations(rwsids);
 
   std::set<int> processed;
   for (const auto& s : stations)
@@ -842,7 +842,7 @@ Spine::TaggedFMISIDList StationInfo::translateLPNNToFMISID(const std::vector<int
 {
   Spine::TaggedFMISIDList ret;
 
-  SmartMet::Spine::Stations stations = findLpnnStations(lpnns);
+  Spine::Stations stations = findLpnnStations(lpnns);
 
   std::set<int> processed;
   for (const auto& s : stations)

@@ -24,15 +24,15 @@ void DummyCache::initializeCaches(int /* finCacheDuration */,
 {
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr DummyCache::valuesFromCache(Settings & /* settings */)
+TS::TimeSeriesVectorPtr DummyCache::valuesFromCache(Settings & /* settings */)
 {
-  return Spine::TimeSeries::TimeSeriesVectorPtr();
+  return TS::TimeSeriesVectorPtr();
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr DummyCache::valuesFromCache(
-    Settings & /* settings */, const Spine::TimeSeriesGeneratorOptions & /* timeSeriesOptions */)
+TS::TimeSeriesVectorPtr DummyCache::valuesFromCache(
+    Settings & /* settings */, const TS::TimeSeriesGeneratorOptions & /* timeSeriesOptions */)
 {
-  return Spine::TimeSeries::TimeSeriesVectorPtr();
+  return TS::TimeSeriesVectorPtr();
 }
 
 bool DummyCache::dataAvailableInCache(const Settings &settings) const

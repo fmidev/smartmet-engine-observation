@@ -14,6 +14,7 @@ INCLUDES += \
 
 LIBS += \
 	-lsmartmet-spine \
+	-lsmartmet-timeseries \
 	-lsmartmet-macgyver \
 	-lsmartmet-locus \
 	-lsmartmet-newbase \

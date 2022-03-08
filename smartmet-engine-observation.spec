@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.2.28
+Version: 22.3.8
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -20,8 +20,9 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 22.1.31
 BuildRequires: smartmet-library-locus-devel >= 22.1.31
-BuildRequires: smartmet-library-macgyver-devel >= 22.1.21
-BuildRequires: smartmet-library-spine-devel >= 22.1.21
+BuildRequires: smartmet-library-macgyver-devel >= 22.3.8
+BuildRequires: smartmet-library-spine-devel >= 22.3.8
+BuildRequires: smartmet-library-timeseries-devel >= 22.3.8
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 22.2.8
 BuildRequires: zlib-devel
@@ -36,8 +37,9 @@ Requires: gdal34-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 22.1.31
 Requires: smartmet-library-locus >= 22.1.31
-Requires: smartmet-library-macgyver >= 22.1.21
-Requires: smartmet-library-spine >= 22.1.21
+Requires: smartmet-library-macgyver >= 22.3.8
+Requires: smartmet-library-spine >= 22.3.8
+Requires: smartmet-library-timeseries >= 22.3.8
 Requires: smartmet-server >= 21.11.25
 Requires: unixODBC
 
@@ -71,7 +73,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
 #TestRequires: smartmet-engine-geonames >= 22.1.31
-#TestRequires: smartmet-library-macgyver >= 22.1.21
+#TestRequires: smartmet-library-macgyver >= 22.2.8
 #TestRequires: smartmet-library-spine >= 22.1.21
 #TestRequires: smartmet-test-data
 
@@ -138,6 +140,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Mar 8 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.3.8-1.fmi
+- Started using timeseries-library (BRAINSTORM-2259)
+
 * Mon Feb 28 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.2.28-1.fmi
 - Improved error handling of special parameters
 

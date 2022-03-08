@@ -20,21 +20,21 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
 
   void shutdown();
 
-  Spine::TimeSeries::TimeSeriesVectorPtr getObservationData(
+  TS::TimeSeriesVectorPtr getObservationData(
       const Spine::Stations &stations,
-      const SmartMet::Engine::Observation::Settings &settings,
-      const SmartMet::Engine::Observation::StationInfo &stationInfo,
-      const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Settings &settings,
+      const StationInfo &stationInfo,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones,
       const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache) override;
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFlashData(
-      const SmartMet::Engine::Observation::Settings &settings,
+  TS::TimeSeriesVectorPtr getFlashData(
+      const Settings &settings,
       const Fmi::TimeZones &timezones) override;
 
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
-                            const SmartMet::Spine::TaggedLocationList &locations) override;
+                            const Spine::TaggedLocationList &locations) override;
 
   bool isConnected();
   void reConnect();
@@ -54,11 +54,11 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
   std::shared_ptr<Fmi::TimeFormatter> itsTimeFormatter;
 
  private:
-  SmartMet::Engine::Observation::LocationDataItems readObservationDataFromDB(
+  LocationDataItems readObservationDataFromDB(
       const Spine::Stations &stations,
-      const SmartMet::Engine::Observation::Settings &settings,
-      const SmartMet::Engine::Observation::StationInfo &stationInfo,
-      const SmartMet::Engine::Observation::QueryMapping &qmap,
+      const Settings &settings,
+      const StationInfo &stationInfo,
+      const QueryMapping &qmap,
       const std::set<std::string> &stationgroup_codes) const;
 };
 

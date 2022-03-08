@@ -113,7 +113,7 @@ std::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(
     {
       // Local scope to minimize lock life time
       {
-        SmartMet::Spine::WriteLock lock(itsGetMutex);
+        Spine::WriteLock lock(itsGetMutex);
         for (std::size_t i = 0; i < itsWorkingList.size(); i++)
         {
           // We try the connections after the last taken one to go through all the members more

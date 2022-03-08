@@ -7,7 +7,6 @@
 #include "MobileExternalDataItem.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
-#include <spine/Value.h>
 
 #ifdef __llvm__
 #pragma clang diagnostic push
@@ -172,8 +171,8 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   void cleanWeatherDataQCCache(const boost::posix_time::ptime &newstarttime);
 
   /*
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getWeatherDataQCData(
-      const SmartMet::Spine::Stations &stations,
+  TS::TimeSeriesVectorPtr getWeatherDataQCData(
+      const Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
       const Fmi::TimeZones &timezones);
@@ -323,26 +322,26 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    */
   void cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getRoadCloudData(
+  TS::TimeSeriesVectorPtr getRoadCloudData(
       const Settings &settings, const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getNetAtmoData(const Settings &settings,
+  TS::TimeSeriesVectorPtr getNetAtmoData(const Settings &settings,
                                                                   const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getBKHydrometaData(
+  TS::TimeSeriesVectorPtr getBKHydrometaData(
       const Settings &settings, const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFmiIoTData(const Settings &settings,
+  TS::TimeSeriesVectorPtr getFmiIoTData(const Settings &settings,
                                                                  const Fmi::TimeZones &timezones);
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getFlashData(
+  TS::TimeSeriesVectorPtr getFlashData(
       const Settings &settings, const Fmi::TimeZones &timezones) override;
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getObservationData(
-      const SmartMet::Spine::Stations &stations,
+  TS::TimeSeriesVectorPtr getObservationData(
+      const Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
-      const SmartMet::Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones,
       const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache) override;
 
@@ -357,7 +356,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    */
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
-                            const SmartMet::Spine::TaggedLocationList &locations) override;
+                            const Spine::TaggedLocationList &locations) override;
 
   std::size_t selectCount(const std::string &queryString);
 
@@ -408,7 +407,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   void createFmiIoTDataTable();
   void createBKHydrometaDataTable();
 
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr getMobileAndExternalData(
+  TS::TimeSeriesVectorPtr getMobileAndExternalData(
       const Settings &settings, const Fmi::TimeZones &timezones);
 
   LocationDataItems readObservationDataFromDB(const Spine::Stations &stations,

@@ -36,7 +36,7 @@ class PostgreSQLObsDBConnectionPool
  private:
   std::vector<int> itsWorkingList;
   std::vector<std::shared_ptr<PostgreSQLObsDB> > itsWorkerList;
-  SmartMet::Spine::MutexType itsGetMutex;
+  Spine::MutexType itsGetMutex;
   std::vector<Fmi::Database::PostgreSQLConnectionOptions> itsConnectionOptions;
   std::vector<size_t> itsServicePool;
   std::size_t itsPoolSize = 0;

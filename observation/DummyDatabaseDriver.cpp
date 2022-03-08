@@ -3,8 +3,6 @@
 #include "Utils.h"
 #include <spine/Table.h>
 
-namespace ts = SmartMet::Spine::TimeSeries;
-
 namespace SmartMet
 {
 namespace Engine
@@ -13,15 +11,15 @@ namespace Observation
 {
 void DummyDatabaseDriver::init(Engine *obsengine) {}
 
-ts::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings & /* settings */)
+TS::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings & /* settings */)
 {
-  return boost::make_shared<ts::TimeSeriesVector>();
+  return boost::make_shared<TS::TimeSeriesVector>();
 }
 
-ts::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings & /* settings */,
-                                                    const Spine::TimeSeriesGeneratorOptions &)
+TS::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings & /* settings */,
+                                                    const TS::TimeSeriesGeneratorOptions &)
 {
-  return boost::make_shared<ts::TimeSeriesVector>();
+  return boost::make_shared<TS::TimeSeriesVector>();
 }
 
 Spine::TaggedFMISIDList DummyDatabaseDriver::translateToFMISID(

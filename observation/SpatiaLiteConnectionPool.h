@@ -29,7 +29,7 @@ class SpatiaLiteConnectionPool
   std::vector<int> itsWorkingList;
   std::vector<std::shared_ptr<SpatiaLite> > itsWorkerList;
 
-  SmartMet::Spine::MutexType itsGetMutex;
+  Spine::MutexType itsGetMutex;
 };
 
 }  // namespace Observation

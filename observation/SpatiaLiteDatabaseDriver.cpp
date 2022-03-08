@@ -8,15 +8,13 @@
 #include <boost/make_shared.hpp>
 #include <spine/Convenience.h>
 #include <spine/Reactor.h>
-#include <spine/TimeSeriesOutput.h>
+#include <timeseries/TimeSeriesInclude.h>
 #include <atomic>
 #include <chrono>
 #include <clocale>
 #include <numeric>
 
 // #define MYDEBUG 1
-
-namespace ts = SmartMet::Spine::TimeSeries;
 
 namespace SmartMet
 {
@@ -66,7 +64,7 @@ void SpatiaLiteDatabaseDriver::makeQuery(QueryBase * /* qb */)
   }
 }
 
-ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
+TS::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
 {
   if (Spine::Reactor::isShuttingDown())
     return nullptr;
@@ -95,7 +93,7 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
       }
     }
 
-    return boost::make_shared<ts::TimeSeriesVector>();
+    return boost::make_shared<TS::TimeSeriesVector>();
   }
   catch (...)
   {
@@ -107,8 +105,8 @@ ts::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
  * \brief Read values for given times only.
  */
 
-Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
-    Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
+TS::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
+    Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
   if (Spine::Reactor::isShuttingDown())
     return nullptr;
@@ -137,7 +135,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
       }
     }
 
-    return boost::make_shared<ts::TimeSeriesVector>();
+    return boost::make_shared<TS::TimeSeriesVector>();
   }
   catch (...)
   {

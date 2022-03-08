@@ -11,7 +11,7 @@
 #include <spine/ConfigBase.h>
 #include <spine/Parameter.h>
 #include <spine/Station.h>
-#include <spine/TimeSeries.h>
+#include <timeseries/TimeSeriesInclude.h>
 #include <map>
 #include <string>
 #include <vector>
@@ -41,7 +41,7 @@ bool removePrefix(std::string& parameter, const std::string& prefix);
 /** *\brief Return true of a parameter looks to be normal enough to be an observation
  */
 
-bool not_special(const SmartMet::Spine::Parameter& theParam);
+bool not_special(const Spine::Parameter& theParam);
 
 std::string trimCommasFromEnd(const std::string& what);
 
@@ -49,7 +49,7 @@ std::string translateParameter(const std::string& paramname,
                                const std::string& stationType,
                                ParameterMap& parameterMap);
 
-void calculateStationDirection(SmartMet::Spine::Station& station);
+void calculateStationDirection(Spine::Station& station);
 double deg2rad(double deg);
 double rad2deg(double rad);
 
@@ -60,7 +60,7 @@ std::string windCompass32(double direction, const std::string& missingValue);
 std::string parseParameterName(const std::string& parameter);
 int parseSensorNumber(const std::string& parameter);
 
-SmartMet::Spine::Stations removeDuplicateStations(SmartMet::Spine::Stations& stations);
+Spine::Stations removeDuplicateStations(Spine::Stations& stations);
 
 // ----------------------------------------------------------------------
 /*!
@@ -106,7 +106,7 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
  */
 // ----------------------------------------------------------------------
 
-Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(const Settings& settings);
+TS::TimeSeriesVectorPtr initializeResultVector(const Settings& settings);
 
 // ----------------------------------------------------------------------
 /*!
@@ -119,12 +119,12 @@ boost::posix_time::ptime epoch2ptime(double epoch);
 
 // ----------------------------------------------------------------------
 /*!
- * \brief converts Spine::TimeSeries::Value to string
+ * \brief converts TS::Value to string
  *
  */
 // ----------------------------------------------------------------------
 
-std::string getStringValue(const Spine::TimeSeries::Value& tv);
+std::string getStringValue(const TS::Value& tv);
 
 // ----------------------------------------------------------------------
 /*!

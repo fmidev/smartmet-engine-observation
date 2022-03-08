@@ -17,8 +17,6 @@
 
 // #define MYDEBUG 1
 
-namespace ts = SmartMet::Spine::TimeSeries;
-
 namespace SmartMet
 {
 namespace Engine
@@ -206,7 +204,7 @@ void PostgreSQLDatabaseDriverForMobileData::makeQuery(QueryBase *qb)
   }
 }
 
-ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(Settings &settings)
+TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(Settings &settings)
 {
   if (Spine::Reactor::isShuttingDown())
     return nullptr;
@@ -242,14 +240,14 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(Settings &
   {
     // Database query prevented
     if (settings.preventDatabaseQuery)
-      return boost::make_shared<ts::TimeSeriesVector>();
+      return boost::make_shared<TS::TimeSeriesVector>();
 
     if (!itsConnectionsOK)
     {
       std::cerr << "[PostgreSQLDatabaseDriverForMobileData] values(): No connections to PostgreSQL "
                    "database!"
                 << std::endl;
-      return boost::make_shared<ts::TimeSeriesVector>();
+      return boost::make_shared<TS::TimeSeriesVector>();
     }
 
     std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
@@ -270,8 +268,8 @@ ts::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(Settings &
  * \brief Read values for given times only.
  */
 
-Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(
-    Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
+TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(
+    Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
   if (Spine::Reactor::isShuttingDown())
     return nullptr;
@@ -307,14 +305,14 @@ Spine::TimeSeries::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::va
   {
     // Database query prevented
     if (settings.preventDatabaseQuery)
-      return boost::make_shared<ts::TimeSeriesVector>();
+      return boost::make_shared<TS::TimeSeriesVector>();
 
     if (!itsConnectionsOK)
     {
       std::cerr << "[PostgreSQLDatabaseDriverForMobileData] values(): No connections to PostgreSQL "
                    "database!"
                 << std::endl;
-      return boost::make_shared<ts::TimeSeriesVector>();
+      return boost::make_shared<TS::TimeSeriesVector>();
     }
 
     std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();

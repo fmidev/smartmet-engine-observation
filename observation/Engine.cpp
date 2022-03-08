@@ -10,9 +10,7 @@
 #include <spine/Convenience.h>
 #include <spine/ParameterTools.h>
 #include <spine/Reactor.h>
-#include <spine/TimeSeriesOutput.h>
-
-namespace ts = SmartMet::Spine::TimeSeries;
+#include <timeseries/TimeSeriesInclude.h>
 
 namespace SmartMet
 {
@@ -247,18 +245,18 @@ std::shared_ptr<std::vector<ObservableProperty>> Engine::observablePropertyQuery
   return itsDatabaseDriver->observablePropertyQuery(parameter_names, language);
 }
 
-ts::TimeSeriesVectorPtr Engine::values(Settings &settings)
+TS::TimeSeriesVectorPtr Engine::values(Settings &settings)
 {
   // Drop unknown parameters from parameter list and
   // store their indexes
   std::vector<unsigned int> unknownParameterIndexes;
   if (settings.debug_options & Settings::DUMP_SETTINGS)
   {
-    std::cout << "SmartMet::Engine::Observation::Settings:\n" << settings << std::endl;
+    std::cout << "Engine::Observation::Settings:\n" << settings << std::endl;
   }
   Settings querySettings = beforeQuery(settings, unknownParameterIndexes);
 
-  ts::TimeSeriesVectorPtr ret = itsDatabaseDriver->values(querySettings);
+  TS::TimeSeriesVectorPtr ret = itsDatabaseDriver->values(querySettings);
 
   // Insert missing values for unknown parameters and
   // arrange data order in result set
@@ -336,20 +334,20 @@ std::set<std::string> Engine::getValidStationTypes() const
  * \brief Read values for given times only.
  */
 
-Spine::TimeSeries::TimeSeriesVectorPtr Engine::values(
-    Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
+TS::TimeSeriesVectorPtr Engine::values(
+    Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
   // Drop unknown parameters from parameter list and
   // store their indexes
   std::vector<unsigned int> unknownParameterIndexes;
   if (settings.debug_options & Settings::DUMP_SETTINGS)
   {
-    std::cout << "SmartMet::Engine::Observation::Settings:\n" << settings << std::endl;
-    std::cout << "SmartMet::Spine::TimeSeriesGeneratorOptions:\n" << timeSeriesOptions << std::endl;
+    std::cout << "Engine::Observation::Settings:\n" << settings << std::endl;
+    std::cout << "TS::TimeSeriesGeneratorOptions:\n" << timeSeriesOptions << std::endl;
   }
   Settings querySettings = beforeQuery(settings, unknownParameterIndexes);
 
-  Spine::TimeSeries::TimeSeriesVectorPtr ret =
+  TS::TimeSeriesVectorPtr ret =
       itsDatabaseDriver->values(querySettings, timeSeriesOptions);
 
   // Insert missing values for unknown parameters and
@@ -401,7 +399,7 @@ Settings Engine::beforeQuery(const Settings &settings,
   return ret;
 }
 
-void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr &tsvPtr,
+void Engine::afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
                         const Settings &settings,
                         const std::vector<unsigned int> &unknownParameterIndexes) const
 {
@@ -411,10 +409,10 @@ void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr &tsvPtr,
   if (!unknownParameterIndexes.empty())
   {
     // Take copy of the first time series
-    Spine::TimeSeries::TimeSeries ts = tsvPtr->at(0);
-    // Set values in all timestesps to Spine::TimeSeries::None()
+    TS::TimeSeries ts = tsvPtr->at(0);
+    // Set values in all timestesps to TS::None()
     for (auto &timedvalue : ts)
-      timedvalue.value = Spine::TimeSeries::None();
+      timedvalue.value = TS::None();
     // Insert the nullified times series to time series vector
     for (auto index : unknownParameterIndexes)
       tsvPtr->insert(tsvPtr->begin() + index, ts);
@@ -433,22 +431,22 @@ void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr &tsvPtr,
   if (fmisid_index < 0)
     return;
 
-  const SmartMet::Spine::TimeSeries::TimeSeries &fmisid_vector = tsvPtr->at(fmisid_index);
+  const TS::TimeSeries &fmisid_vector = tsvPtr->at(fmisid_index);
   std::map<std::string, std::vector<int>> fmisid_mapped_indexes;
   // Sort out data indexes per each FMISID
   for (unsigned int i = 0; i < fmisid_vector.size(); i++)
   {
-    const SmartMet::Spine::TimeSeries::Value &value = fmisid_vector.at(i).value;
+    const TS::Value &value = fmisid_vector.at(i).value;
     std::string fmisid = getStringValue(value);
     fmisid_mapped_indexes[fmisid].push_back(i);
   }
 
   // Create and initialize data structure for results
-  SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr result =
-      SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr(
-          new SmartMet::Spine::TimeSeries::TimeSeriesVector);
+  TS::TimeSeriesVectorPtr result =
+      TS::TimeSeriesVectorPtr(
+          new TS::TimeSeriesVector);
   for (unsigned int i = 0; i < tsvPtr->size(); i++)
-    result->emplace_back(ts::TimeSeries(settings.localTimePool));
+    result->emplace_back(TS::TimeSeries(settings.localTimePool));
 
   // FMISIDs are in right order in settings.taggedFMISIDs list
   // Iterate the list and copy data from original data structure to result structure
@@ -465,9 +463,9 @@ void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr &tsvPtr,
 
     for (unsigned int i = 0; i < tsvPtr->size(); i++)
     {
-      const SmartMet::Spine::TimeSeries::TimeSeries &ts = tsvPtr->at(i);
+      const TS::TimeSeries &ts = tsvPtr->at(i);
 
-      SmartMet::Spine::TimeSeries::TimeSeries &resultVector = result->at(i);
+      TS::TimeSeries &resultVector = result->at(i);
 
       // Prevent referencing past the end of source data
 
@@ -482,10 +480,10 @@ void Engine::afterQuery(Spine::TimeSeries::TimeSeriesVectorPtr &tsvPtr,
         throw Fmi::Exception::Trace(BCP, "Internal error indexing data");
       }
 
-      SmartMet::Spine::TimeSeries::TimedValueVector::const_iterator it_first = ts.begin();
+      TS::TimedValueVector::const_iterator it_first = ts.begin();
       for (unsigned int i = 0; i < firstIndex; i++)
         it_first++;
-      SmartMet::Spine::TimeSeries::TimedValueVector::const_iterator it_last = it_first;
+      TS::TimedValueVector::const_iterator it_last = it_first;
       for (unsigned int i = 0; i < numberOfRows; i++)
         it_last++;
 

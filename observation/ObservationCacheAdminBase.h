@@ -70,7 +70,7 @@ class ObservationCacheAdminBase
 
   virtual ~ObservationCacheAdminBase();
 
-  void addInfoToStations(SmartMet::Spine::Stations& stations, const std::string& language) const;
+  void addInfoToStations(Spine::Stations& stations, const std::string& language) const;
 
   const DatabaseDriverParameters& itsParameters;
   const std::shared_ptr<ObservationCacheProxy>& itsCacheProxy;
@@ -106,8 +106,8 @@ class ObservationCacheAdminBase
   void updateFmiIoTCacheLoop();
   void updateStationsCacheLoop();
 
-  void calculateStationDirection(SmartMet::Spine::Station& station) const;
-  void addInfoToStation(SmartMet::Spine::Station& station, const std::string& language) const;
+  void calculateStationDirection(Spine::Station& station) const;
+  void addInfoToStation(Spine::Station& station, const std::string& language) const;
   std::shared_ptr<ObservationCache> getCache(const std::string& tablename) const;
   std::string driverName() const;
 

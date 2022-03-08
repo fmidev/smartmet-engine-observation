@@ -2,6 +2,7 @@
 #include "Utils.h"
 #include <boost/optional.hpp>
 #include <macgyver/Geometry.h>
+#include <spine/Value.h>
 #include <list>
 
 namespace SmartMet
@@ -196,13 +197,11 @@ void FlashMemoryCache::clean(const boost::posix_time::ptime& newstarttime) const
  * @timezones Global timezone information
  */
 
-Spine::TimeSeries::TimeSeriesVectorPtr FlashMemoryCache::getData(
+TS::TimeSeriesVectorPtr FlashMemoryCache::getData(
     const Settings& settings,
     const ParameterMapPtr& parameterMap,
     const Fmi::TimeZones& timezones) const
 {
-  namespace ts = Spine::TimeSeries;
-
   try
   {
     auto result = Utils::initializeResultVector(settings);
@@ -273,7 +272,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr FlashMemoryCache::getData(
       {
         const auto& name = column_names[i];
 
-        ts::Value val;  // missing value
+        TS::Value val;  // missing value
 
         // strcmp is slow, but reordering the loops would look ugly
         if (name == "longitude")
@@ -315,7 +314,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr FlashMemoryCache::getData(
         else if (name == "ptz_time")
           val = flash.ptz_time;
 
-        result->at(i).emplace_back(ts::TimedValue(localtime, val));
+        result->at(i).emplace_back(TS::TimedValue(localtime, val));
       }
     }
 

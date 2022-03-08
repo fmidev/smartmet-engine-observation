@@ -3,7 +3,7 @@
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeParser.h>
 #include <spine/Convenience.h>
-#include <spine/TimeSeriesGenerator.h>
+#include <timeseries/TimeSeriesInclude.h>
 
 namespace SmartMet
 {
@@ -342,12 +342,12 @@ std::string DatabaseDriverBase::resolveDatabaseTableName(const std::string &prod
   return tablename;
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
+TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
     Settings &settings) const
 {
   try
   {
-    SmartMet::Spine::TimeSeriesGeneratorOptions timeSeriesOptions;
+    TS::TimeSeriesGeneratorOptions timeSeriesOptions;
     timeSeriesOptions.startTime = settings.starttime;
     timeSeriesOptions.endTime = settings.endtime;
     timeSeriesOptions.timeStep = settings.timestep;
@@ -362,14 +362,14 @@ Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
   }
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
-    Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) const
+TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
+    Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) const
 {
   try
   {
-    Spine::TimeSeries::TimeSeriesVectorPtr result = nullptr;
+    TS::TimeSeriesVectorPtr result = nullptr;
 
-    std::vector<const SmartMet::Spine::Parameter *> fmisidPlaceParams;
+    std::vector<const Spine::Parameter *> fmisidPlaceParams;
 
     for (const auto &p : settings.parameters)
     {
@@ -380,21 +380,21 @@ Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
     // If only fmisid and place parameters requested return timeseries with null values
     if (settings.parameters.size() == fmisidPlaceParams.size())
     {
-      result = SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr(
-          new SmartMet::Spine::TimeSeries::TimeSeriesVector);
+      result = TS::TimeSeriesVectorPtr(
+          new TS::TimeSeriesVector);
 
-      SmartMet::Spine::TimeSeriesGenerator::LocalTimeList tlist =
-          SmartMet::Spine::TimeSeriesGenerator::generate(
+      TS::TimeSeriesGenerator::LocalTimeList tlist =
+          TS::TimeSeriesGenerator::generate(
               timeSeriesOptions, itsTimeZones.time_zone_from_string(settings.timezone));
-      SmartMet::Spine::TimeSeries::TimeSeries ts_fmisid(settings.localTimePool);
-      SmartMet::Spine::TimeSeries::TimeSeries ts_place(settings.localTimePool);
+      TS::TimeSeries ts_fmisid(settings.localTimePool);
+      TS::TimeSeries ts_place(settings.localTimePool);
       for (const auto &tfmisid : settings.taggedFMISIDs)
       {
         for (const auto &t : tlist)
         {
           if (fmisidPlaceParams.size() == 2)
-            ts_place.push_back(SmartMet::Spine::TimeSeries::TimedValue(t, tfmisid.tag));
-          ts_fmisid.push_back(SmartMet::Spine::TimeSeries::TimedValue(t, tfmisid.fmisid));
+            ts_place.push_back(TS::TimedValue(t, tfmisid.tag));
+          ts_fmisid.push_back(TS::TimedValue(t, tfmisid.fmisid));
         }
       }
       if (fmisidPlaceParams.size() == 2)

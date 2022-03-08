@@ -627,14 +627,14 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
   return {};
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr initializeResultVector(const Settings& settings)
+TS::TimeSeriesVectorPtr initializeResultVector(const Settings& settings)
 {
-  Spine::TimeSeries::TimeSeriesVectorPtr ret =
-      boost::make_shared<Spine::TimeSeries::TimeSeriesVector>();
+  TS::TimeSeriesVectorPtr ret =
+      boost::make_shared<TS::TimeSeriesVector>();
 
   // Set timeseries objects for each requested parameter
   for (unsigned int i = 0; i < settings.parameters.size(); i++)
-    ret->emplace_back(Spine::TimeSeries::TimeSeries(settings.localTimePool));
+    ret->emplace_back(TS::TimeSeries(settings.localTimePool));
 
   return ret;
 }
@@ -648,7 +648,7 @@ boost::posix_time::ptime epoch2ptime(double epoch)
   return ret;
 }
 
-std::string getStringValue(const Spine::TimeSeries::Value& tv)
+std::string getStringValue(const TS::Value& tv)
 {
   // For some reason different databases/drivers don't simply use int for FMISID.
   // This is workaround code, FMISID should always be int.
@@ -664,12 +664,12 @@ std::string getStringValue(const Spine::TimeSeries::Value& tv)
 
   // These are just for getting more informative error messages:
 
-  if (boost::get<SmartMet::Spine::TimeSeries::None>(&tv))
+  if (boost::get<TS::None>(&tv))
   {
     throw Fmi::Exception(BCP, "Encountered NULL FMISID");
   }
 
-  if (boost::get<SmartMet::Spine::TimeSeries::LonLat>(&tv))
+  if (boost::get<TS::LonLat>(&tv))
   {
     throw Fmi::Exception(BCP, "Encountered LonLat FMISID");
   }

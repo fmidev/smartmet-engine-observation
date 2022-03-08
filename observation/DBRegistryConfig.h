@@ -32,7 +32,7 @@ class DBRegistryConfig
   //                      and other strings are replaced with empty string)
   using FieldValueTypeMapType = std::map<NameType, NameType>;
 
-  DBRegistryConfig(std::shared_ptr<SmartMet::Spine::ConfigBase> config);
+  DBRegistryConfig(std::shared_ptr<Spine::ConfigBase> config);
 
   /**
    * @brief Get the table (view) name.

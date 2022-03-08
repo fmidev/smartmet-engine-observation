@@ -11,7 +11,7 @@ class Result : private boost::noncopyable
  public:
   Result();
   vector<std::string> headers;
-  SmartMet::SparseTable data;
+  SparseTable data;
 
  private:
 };

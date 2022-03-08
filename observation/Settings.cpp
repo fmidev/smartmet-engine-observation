@@ -39,7 +39,7 @@ std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings&
     {
       out << "taggedLocation #" << i++ << std::endl;
       out << "tag: " << l.tag << std::endl;
-      out << SmartMet::Spine::formatLocation(*(l.loc));
+      out << Spine::formatLocation(*(l.loc));
     }
   }
 

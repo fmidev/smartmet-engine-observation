@@ -6,6 +6,7 @@
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeFormatter.h>
 #include <spine/Value.h>
+#include <thread>
 
 namespace SmartMet
 {
@@ -13,7 +14,7 @@ namespace Engine
 {
 namespace Observation
 {
-  using namespace Utils;
+using namespace Utils;
 
 CommonPostgreSQLFunctions::CommonPostgreSQLFunctions(
     const Fmi::Database::PostgreSQLConnectionOptions &connectionOptions,
@@ -37,7 +38,7 @@ CommonPostgreSQLFunctions::CommonPostgreSQLFunctions(
   catch (...)
   {
     throw Fmi::Exception::Trace(
-        BCP, "SmartMet::Engine::Observation::CommonPostgreSQLFunctions constructor failed!");
+        BCP, "Engine::Observation::CommonPostgreSQLFunctions constructor failed!");
   }
 }
 
@@ -52,11 +53,11 @@ void CommonPostgreSQLFunctions::shutdown()
   itsDB.cancel();
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationData(
+TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationData(
     const Spine::Stations &stations,
-    const SmartMet::Engine::Observation::Settings &settings,
-    const SmartMet::Engine::Observation::StationInfo &stationInfo,
-    const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const Settings &settings,
+    const StationInfo &stationInfo,
+    const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones,
     const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache)
 {
@@ -75,7 +76,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservation
     auto stationgroupCodeSet = itsStationtypeConfig.getGroupCodeSetByStationtype(stationtype);
     stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
 
-    Engine::Observation::LocationDataItems observations =
+    LocationDataItems observations =
         readObservationDataFromDB(stations, settings, stationInfo, qmap, stationgroup_codes);
 
     std::set<int> observed_fmisids;
@@ -83,8 +84,7 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservation
       observed_fmisids.insert(item.data.fmisid);
 
     // Map fmisid to station information
-    Engine::Observation::StationMap fmisid_to_station =
-        mapQueryStations(stations, observed_fmisids);
+    StationMap fmisid_to_station = mapQueryStations(stations, observed_fmisids);
 
     StationTimedMeasurandData station_data =
         buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
@@ -104,16 +104,16 @@ Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservation
   }
 }
 
-Engine::Observation::LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
+LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
     const Spine::Stations &stations,
-    const Engine::Observation::Settings &settings,
-    const Engine::Observation::StationInfo &stationInfo,
-    const Engine::Observation::QueryMapping &qmap,
+    const Settings &settings,
+    const StationInfo &stationInfo,
+    const QueryMapping &qmap,
     const std::set<std::string> &stationgroup_codes) const
 {
   try
   {
-    Engine::Observation::LocationDataItems ret;
+    LocationDataItems ret;
 
     // Safety check
     if (qmap.measurandIds.empty())
@@ -192,7 +192,7 @@ Engine::Observation::LocationDataItems CommonPostgreSQLFunctions::readObservatio
 
     for (auto row : result_set)
     {
-      Engine::Observation::LocationDataItem obs;
+      LocationDataItem obs;
       obs.data.fmisid = as_int(row[0]);
       obs.data.sensor_no = as_int(row[1]);
       obs.data.data_time = boost::posix_time::from_time_t(row[2].as<time_t>());
@@ -208,7 +208,7 @@ Engine::Observation::LocationDataItems CommonPostgreSQLFunctions::readObservatio
       obs.latitude = s.latitude_out;
       obs.longitude = s.longitude_out;
       obs.elevation = s.station_elevation;
-      const Engine::Observation::StationLocation &sloc =
+      const StationLocation &sloc =
           stationInfo.stationLocations.getLocation(obs.data.fmisid, obs.data.data_time);
       // Get exact location, elevation
       if (sloc.location_id != -1)
@@ -229,8 +229,8 @@ Engine::Observation::LocationDataItems CommonPostgreSQLFunctions::readObservatio
   }
 }
 
-SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(
-    const SmartMet::Engine::Observation::Settings &settings, const Fmi::TimeZones &timezones)
+TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &settings,
+                                                                const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -340,18 +340,17 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getF
       std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
                 << std::endl;
 
-    Spine::TimeSeries::TimeSeriesVectorPtr timeSeriesColumns =
-        initializeResultVector(settings);
+    TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
     double longitude = std::numeric_limits<double>::max();
     double latitude = std::numeric_limits<double>::max();
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
     for (auto row : result_set)
     {
-      std::map<std::string, SmartMet::Spine::TimeSeries::Value> result;
+      std::map<std::string, TS::Value> result;
       boost::posix_time::ptime stroke_time = boost::posix_time::from_time_t(row[0].as<time_t>());
       // int stroke_time_fraction = as_int(row[1]);
-      SmartMet::Spine::TimeSeries::Value flashIdValue = as_int(row[2]);
+      TS::Value flashIdValue = as_int(row[2]);
       result["flash_id"] = flashIdValue;
       longitude = Fmi::stod(row[3].as<std::string>());
       latitude = Fmi::stod(row[4].as<std::string>());
@@ -361,7 +360,7 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getF
         pqxx::field fld = row[i];
         std::string data_type = itsPostgreDataTypes.at(fld.type());
 
-        SmartMet::Spine::TimeSeries::Value temp;
+        TS::Value temp;
         if (data_type == "text")
         {
           temp = row[i].as<std::string>();
@@ -389,9 +388,8 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getF
         std::string name = p.first;
         int pos = p.second;
 
-        SmartMet::Spine::TimeSeries::Value val = result[name];
-        timeSeriesColumns->at(pos).push_back(
-            SmartMet::Spine::TimeSeries::TimedValue(localtime, val));
+        TS::Value val = result[name];
+        timeSeriesColumns->at(pos).push_back(TS::TimedValue(localtime, val));
       }
       for (const auto &p : specialPositions)
       {
@@ -399,15 +397,13 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getF
         int pos = p.second;
         if (name == "latitude")
         {
-          SmartMet::Spine::TimeSeries::Value val = latitude;
-          timeSeriesColumns->at(pos).push_back(
-              SmartMet::Spine::TimeSeries::TimedValue(localtime, val));
+          TS::Value val = latitude;
+          timeSeriesColumns->at(pos).push_back(TS::TimedValue(localtime, val));
         }
         if (name == "longitude")
         {
-          SmartMet::Spine::TimeSeries::Value val = longitude;
-          timeSeriesColumns->at(pos).push_back(
-              SmartMet::Spine::TimeSeries::TimedValue(localtime, val));
+          TS::Value val = longitude;
+          timeSeriesColumns->at(pos).push_back(TS::TimedValue(localtime, val));
         }
       }
     }
@@ -420,14 +416,13 @@ SmartMet::Spine::TimeSeries::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getF
   }
 }
 
-FlashCounts CommonPostgreSQLFunctions::getFlashCount(
-    const boost::posix_time::ptime &startt,
-    const boost::posix_time::ptime &endt,
-    const SmartMet::Spine::TaggedLocationList &locations)
+FlashCounts CommonPostgreSQLFunctions::getFlashCount(const boost::posix_time::ptime &startt,
+                                                     const boost::posix_time::ptime &endt,
+                                                     const Spine::TaggedLocationList &locations)
 {
   try
   {
-    Engine::Observation::FlashCounts flashcounts;
+    FlashCounts flashcounts;
     flashcounts.flashcount = 0;
     flashcounts.strokecount = 0;
     flashcounts.iccount = 0;
@@ -453,7 +448,7 @@ FlashCounts CommonPostgreSQLFunctions::getFlashCount(
     {
       for (const auto &tloc : locations)
       {
-        if (tloc.loc->type == SmartMet::Spine::Location::CoordinatePoint)
+        if (tloc.loc->type == Spine::Location::CoordinatePoint)
         {
           std::string lon = Fmi::to_string(tloc.loc->longitude);
           std::string lat = Fmi::to_string(tloc.loc->latitude);
@@ -468,10 +463,10 @@ FlashCounts CommonPostgreSQLFunctions::getFlashCount(
           sqlStmt +=
               " AND ST_Within(flash.stroke_location, ST_GeomFromText('" + circleWkt + "',4326))";
         }
-        else if (tloc.loc->type == SmartMet::Spine::Location::BoundingBox)
+        else if (tloc.loc->type == Spine::Location::BoundingBox)
         {
           std::string bboxString = tloc.loc->name;
-          SmartMet::Spine::BoundingBox bbox(bboxString);
+          Spine::BoundingBox bbox(bboxString);
           std::string bboxWkt = "POLYGON((" + Fmi::to_string(bbox.xMin) + " " +
                                 Fmi::to_string(bbox.yMin) + ", " + Fmi::to_string(bbox.xMin) + " " +
                                 Fmi::to_string(bbox.yMax) + ", " + Fmi::to_string(bbox.xMax) + " " +

@@ -24,9 +24,9 @@ class DummyCache : public ObservationCache
                         int flashCacheDuration,
                         int flashMemoryCacheDuration) override;
 
-  Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(Settings &settings) override;
-  Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(
-      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
+  TS::TimeSeriesVectorPtr valuesFromCache(Settings &settings) override;
+  TS::TimeSeriesVectorPtr valuesFromCache(
+      Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
 
   bool dataAvailableInCache(const Settings &settings) const override;
   bool flashIntervalIsCached(const boost::posix_time::ptime &starttime,

@@ -36,13 +36,13 @@ class StationInfo
   StationInfo() = default;
   StationInfo(const std::string& filename);
 
-  SmartMet::Spine::Stations stations;  // all known stations
+  Spine::Stations stations;  // all known stations
   StationLocations stationLocations;   // all station locations
 
   void serialize(const std::string& filename) const;
   void unserialize(const std::string& filename);
 
-  SmartMet::Spine::Stations findNearestStations(double longitude,
+  Spine::Stations findNearestStations(double longitude,
                                                 double latitude,
                                                 double maxdistance,
                                                 int numberofstations,
@@ -50,40 +50,40 @@ class StationInfo
                                                 const boost::posix_time::ptime& starttime,
                                                 const boost::posix_time::ptime& endtime) const;
 
-  SmartMet::Spine::Stations findWmoStations(const std::vector<int>& wmos) const;
-  SmartMet::Spine::Stations findLpnnStations(const std::vector<int>& lpnns) const;
-  SmartMet::Spine::Stations findFmisidStations(const std::vector<int>& fmisids) const;
-  SmartMet::Spine::Stations findRwsidStations(const std::vector<int>& rwsids) const;
+  Spine::Stations findWmoStations(const std::vector<int>& wmos) const;
+  Spine::Stations findLpnnStations(const std::vector<int>& lpnns) const;
+  Spine::Stations findFmisidStations(const std::vector<int>& fmisids) const;
+  Spine::Stations findRwsidStations(const std::vector<int>& rwsids) const;
 
-  SmartMet::Spine::Stations findFmisidStations(const std::vector<int>& fmisids,
+  Spine::Stations findFmisidStations(const std::vector<int>& fmisids,
                                                const std::set<std::string>& groups,
                                                const boost::posix_time::ptime& starttime,
                                                const boost::posix_time::ptime& endtime) const;
-  SmartMet::Spine::Stations findFmisidStations(
-      const SmartMet::Spine::TaggedFMISIDList& taggedFMISIDs,
+  Spine::Stations findFmisidStations(
+      const Spine::TaggedFMISIDList& taggedFMISIDs,
       const std::set<std::string>& groups,
       const boost::posix_time::ptime& starttime,
       const boost::posix_time::ptime& endtime) const;
 
-  SmartMet::Spine::Stations findFmisidStations(
-      const SmartMet::Spine::TaggedFMISIDList& taggedFMISIDs) const;
+  Spine::Stations findFmisidStations(
+      const Spine::TaggedFMISIDList& taggedFMISIDs) const;
 
-  SmartMet::Spine::Stations findWmoStations(const std::vector<int>& wmos,
+  Spine::Stations findWmoStations(const std::vector<int>& wmos,
                                             const std::set<std::string>& groups,
                                             const boost::posix_time::ptime& starttime,
                                             const boost::posix_time::ptime& endtime) const;
 
-  SmartMet::Spine::Stations findLpnnStations(const std::vector<int>& lpnns,
+  Spine::Stations findLpnnStations(const std::vector<int>& lpnns,
                                              const std::set<std::string>& groups,
                                              const boost::posix_time::ptime& starttime,
                                              const boost::posix_time::ptime& endtime) const;
 
-  SmartMet::Spine::Stations findRwsidStations(const std::vector<int>& rwsids,
+  Spine::Stations findRwsidStations(const std::vector<int>& rwsids,
                                               const std::set<std::string>& groups,
                                               const boost::posix_time::ptime& starttime,
                                               const boost::posix_time::ptime& endtime) const;
 
-  SmartMet::Spine::Stations findStationsInGroup(const std::set<std::string>& groups,
+  Spine::Stations findStationsInGroup(const std::set<std::string>& groups,
                                                 const boost::posix_time::ptime& starttime,
                                                 const boost::posix_time::ptime& endtime) const;
 
@@ -92,7 +92,7 @@ class StationInfo
                                          const boost::posix_time::ptime& endtime,
                                          const std::string& wkt) const;
 
-  SmartMet::Spine::Stations findStationsInsideBox(double minx,
+  Spine::Stations findStationsInsideBox(double minx,
                                                   double miny,
                                                   double maxx,
                                                   double maxy,

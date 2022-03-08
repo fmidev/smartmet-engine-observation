@@ -66,7 +66,7 @@ class QueryParamsBase
   pt::ptime m_beginTime;
   pt::ptime m_endTime;
   bool m_usingTimeRange;
-  struct SmartMet::Spine::BoundingBox m_bbox;
+  struct Spine::BoundingBox m_bbox;
 };
 
 }  // namespace Observation

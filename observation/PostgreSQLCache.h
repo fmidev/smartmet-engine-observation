@@ -32,9 +32,9 @@ class PostgreSQLCache : public ObservationCache
                         int flashCacheDuration,
                         int flashMemoryCacheDuration) override;
 
-  Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(Settings &settings) override;
-  Spine::TimeSeries::TimeSeriesVectorPtr valuesFromCache(
-      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
+  TS::TimeSeriesVectorPtr valuesFromCache(Settings &settings) override;
+  TS::TimeSeriesVectorPtr valuesFromCache(
+      Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
 
   bool dataAvailableInCache(const Settings &settings) const override;
   bool flashIntervalIsCached(const boost::posix_time::ptime &starttime,
@@ -85,7 +85,7 @@ class PostgreSQLCache : public ObservationCache
   std::size_t fillBKHydrometaCache(
       const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanBKHydrometaCache(const boost::posix_time::time_duration &timetokeep) const override;
-  Spine::TimeSeries::TimeSeriesVectorPtr bkHydrometaValuesFromSpatiaLite(Settings &settings) const;
+  TS::TimeSeriesVectorPtr bkHydrometaValuesFromSpatiaLite(Settings &settings) const;
 
   // FmiIoT
   bool fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
@@ -108,10 +108,10 @@ class PostgreSQLCache : public ObservationCache
                             const boost::posix_time::ptime &endtime) const;
   bool timeIntervalWeatherDataQCIsCached(const boost::posix_time::ptime &starttime,
                                          const boost::posix_time::ptime &endtime) const;
-  Spine::TimeSeries::TimeSeriesVectorPtr flashValuesFromPostgreSQL(Settings &settings) const;
-  Spine::TimeSeries::TimeSeriesVectorPtr roadCloudValuesFromPostgreSQL(Settings &settings) const;
-  Spine::TimeSeries::TimeSeriesVectorPtr netAtmoValuesFromPostgreSQL(Settings &settings) const;
-  Spine::TimeSeries::TimeSeriesVectorPtr fmiIoTValuesFromPostgreSQL(Settings &settings) const;
+  TS::TimeSeriesVectorPtr flashValuesFromPostgreSQL(Settings &settings) const;
+  TS::TimeSeriesVectorPtr roadCloudValuesFromPostgreSQL(Settings &settings) const;
+  TS::TimeSeriesVectorPtr netAtmoValuesFromPostgreSQL(Settings &settings) const;
+  TS::TimeSeriesVectorPtr fmiIoTValuesFromPostgreSQL(Settings &settings) const;
 
   PostgreSQLCacheParameters itsParameters;
 

@@ -25,10 +25,10 @@ class PostgreSQLDatabaseDriverForFmiData : public PostgreSQLDatabaseDriver
   std::string id() const override;
   void makeQuery(QueryBase *qb) override;
 
-  Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings) override;
+  TS::TimeSeriesVectorPtr values(Settings &settings) override;
 
-  Spine::TimeSeries::TimeSeriesVectorPtr values(
-      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
+  TS::TimeSeriesVectorPtr values(
+								 Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
 
   std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language) override;

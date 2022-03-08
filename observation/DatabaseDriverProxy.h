@@ -21,9 +21,9 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
   ~DatabaseDriverProxy() override;
 
   void init(Engine *obsengine) override;
-  Spine::TimeSeries::TimeSeriesVectorPtr values(Settings &settings) override;
-  Spine::TimeSeries::TimeSeriesVectorPtr values(
-      Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
+  TS::TimeSeriesVectorPtr values(Settings &settings) override;
+  TS::TimeSeriesVectorPtr values(
+      Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
   Spine::TaggedFMISIDList translateToFMISID(const boost::posix_time::ptime &starttime,
                                             const boost::posix_time::ptime &endtime,
                                             const std::string &stationtype,

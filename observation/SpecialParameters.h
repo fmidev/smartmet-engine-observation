@@ -5,7 +5,7 @@
 #include <memory>
 #include <spine/Location.h>
 #include <spine/Station.h>
-#include <spine/TimeSeries.h>
+#include <timeseries/TimeSeriesInclude.h>
 #include <macgyver/Astronomy.h>
 #include <macgyver/TimeFormatter.h>
 #include <macgyver/TimeZoneFactory.h>
@@ -60,7 +60,7 @@ class SpecialParameters
         const Fmi::Astronomy::solar_position_t& get_solar_position() const;
         const Fmi::Astronomy::solar_time_t& get_solar_time() const;
         const Fmi::Astronomy::lunar_time_t& get_lunar_time() const;
-        SmartMet::Spine::LocationPtr get_location(Geonames::Engine* engine) const;
+        Spine::LocationPtr get_location(Geonames::Engine* engine) const;
         const std::string& get_tz_name() const { return timeZone == "localtime" ? station.timezone : timeZone; }
         boost::local_time::time_zone_ptr get_tz() const;
 
@@ -68,7 +68,7 @@ class SpecialParameters
         mutable std::unique_ptr<Fmi::Astronomy::solar_position_t> solar_position;
         mutable std::unique_ptr<Fmi::Astronomy::solar_time_t> solar_time;
         mutable std::unique_ptr<Fmi::Astronomy::lunar_time_t> lunar_time;
-        mutable boost::optional<SmartMet::Spine::LocationPtr> location_ptr;
+        mutable boost::optional<Spine::LocationPtr> location_ptr;
         mutable boost::local_time::time_zone_ptr tz;
     };
 
@@ -78,15 +78,15 @@ class SpecialParameters
  public:
     virtual ~SpecialParameters() = default;
 
-    static void setGeonames(::SmartMet::Engine::Geonames::Engine* itsGeonames);
+  static void setGeonames(SmartMet::Engine::Geonames::Engine* itsGeonames);
 
-    Spine::TimeSeries::Value getValue(const std::string& param_name,
+    TS::Value getValue(const std::string& param_name,
 				      const Args& args) const;
 
-    Spine::TimeSeries::TimedValue getTimedValue(const std::string& param_name,
+    TS::TimedValue getTimedValue(const std::string& param_name,
 						const Args& args) const;
 
-    Spine::TimeSeries::TimedValue getTimedValue(
+    TS::TimedValue getTimedValue(
         const Spine::Station &station,
         const std::string &stationType,
         const std::string &parameter,
@@ -101,7 +101,7 @@ class SpecialParameters
     static SpecialParameters& mutable_instance();
 
  private:
-    typedef std::function <Spine::TimeSeries::Value(const Args&)> parameter_handler_t;
+    typedef std::function <TS::Value(const Args&)> parameter_handler_t;
 
     std::map<std::string, parameter_handler_t> handler_map;
     Geonames::Engine* itsGeonames;

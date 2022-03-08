@@ -141,13 +141,13 @@ void DatabaseDriverProxy::init(Engine *obsengine)
   }
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverProxy::values(Settings &settings)
+TS::TimeSeriesVectorPtr DatabaseDriverProxy::values(Settings &settings)
 {
   try
   {
     DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
 
-    Spine::TimeSeries::TimeSeriesVectorPtr ret = pDriver->checkForEmptyQuery(settings);
+    TS::TimeSeriesVectorPtr ret = pDriver->checkForEmptyQuery(settings);
     if (ret)
       return ret;
 
@@ -159,14 +159,14 @@ Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverProxy::values(Settings &set
   }
 }
 
-Spine::TimeSeries::TimeSeriesVectorPtr DatabaseDriverProxy::values(
-    Settings &settings, const Spine::TimeSeriesGeneratorOptions &timeSeriesOptions)
+TS::TimeSeriesVectorPtr DatabaseDriverProxy::values(
+    Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
   try
   {
     DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
 
-    Spine::TimeSeries::TimeSeriesVectorPtr ret =
+    TS::TimeSeriesVectorPtr ret =
         pDriver->checkForEmptyQuery(settings, timeSeriesOptions);
     if (ret)
       return ret;
