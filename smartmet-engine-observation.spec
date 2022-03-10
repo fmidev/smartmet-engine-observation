@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.3.8
+Version: 22.3.10
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -22,7 +22,7 @@ BuildRequires: smartmet-engine-geonames-devel >= 22.1.31
 BuildRequires: smartmet-library-locus-devel >= 22.1.31
 BuildRequires: smartmet-library-macgyver-devel >= 22.3.8
 BuildRequires: smartmet-library-spine-devel >= 22.3.8
-BuildRequires: smartmet-library-timeseries-devel >= 22.3.8
+BuildRequires: smartmet-library-timeseries-devel >= 22.3.10
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 22.2.8
 BuildRequires: zlib-devel
@@ -39,23 +39,23 @@ Requires: smartmet-engine-geonames >= 22.1.31
 Requires: smartmet-library-locus >= 22.1.31
 Requires: smartmet-library-macgyver >= 22.3.8
 Requires: smartmet-library-spine >= 22.3.8
-Requires: smartmet-library-timeseries >= 22.3.8
+Requires: smartmet-library-timeseries >= 22.3.10
 Requires: smartmet-server >= 21.11.25
 Requires: unixODBC
 
 %if %{defined el7}
 Requires: libpqxx < 1:7.0
 BuildRequires: libpqxx-devel < 1:7.0
-Requires: sqlite33-libs >= 3.22.0
-BuildRequires: sqlite33-devel >= 3.22.0
-#TestRequires: sqlite33-devel >= 3.22.0
+Requires: sqlite33-libs >= 3.30.1
+BuildRequires: sqlite33-devel >= 3.30.1
+#TestRequires: sqlite33-devel >= 3.30.1
 #TestRequires: smartmet-utils-devel >= 22.2.8
 %else
 %if %{defined el8}
 Requires: libpqxx >= 6.2.5 libpqxx < 1:7.7.0
-Requires: sqlite-libs >= 3.26.0
-BuildRequires: sqlite-devel >= 3.26.0
-#TestRequires: sqlite-devel >= 3.26.0
+Requires: sqlite-libs >= 3.22.0
+BuildRequires: sqlite-devel >= 3.22.0
+#TestRequires: sqlite-devel >= 3.22.0
 BuildRequires: libpqxx-devel >= 6.2.5 libpqxx-devel < 1:7.7.0
 %else
 Requires: libpqxx
@@ -74,6 +74,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: zlib-devel
 #TestRequires: smartmet-engine-geonames >= 22.1.31
 #TestRequires: smartmet-library-macgyver >= 22.2.8
+#TestRequires: smartmet-library-timeseries >= 22.2.8
 #TestRequires: smartmet-library-spine >= 22.1.21
 #TestRequires: smartmet-test-data
 
@@ -106,7 +107,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 22.1.21
+Requires: smartmet-library-spine-devel >= 22.3.8
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -140,6 +141,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Mar 10 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.3.10-1.fmi
+- Repackaged due to refactored library dependencies
+
 * Tue Mar 8 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.3.8-1.fmi
 - Started using timeseries-library (BRAINSTORM-2259)
 
