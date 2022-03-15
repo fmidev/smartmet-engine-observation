@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.3.10
+Version: 22.3.15
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -18,7 +18,7 @@ BuildRequires: gdal34-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 22.1.31
+BuildRequires: smartmet-engine-geonames-devel >= 22.3.15
 BuildRequires: smartmet-library-locus-devel >= 22.1.31
 BuildRequires: smartmet-library-macgyver-devel >= 22.3.8
 BuildRequires: smartmet-library-spine-devel >= 22.3.8
@@ -35,7 +35,7 @@ Requires: boost169-thread
 Requires: fmt >= 7.1.3
 Requires: gdal34-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 22.1.31
+Requires: smartmet-engine-geonames >= 22.3.15
 Requires: smartmet-library-locus >= 22.1.31
 Requires: smartmet-library-macgyver >= 22.3.8
 Requires: smartmet-library-spine >= 22.3.8
@@ -72,7 +72,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: gdal34-devel
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 22.1.31
+#TestRequires: smartmet-engine-geonames >= 22.3.15
 #TestRequires: smartmet-library-macgyver >= 22.2.8
 #TestRequires: smartmet-library-timeseries >= 22.2.8
 #TestRequires: smartmet-library-spine >= 22.1.21
@@ -141,6 +141,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Mar 15 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.3.15-1.fmi
+- Optimized sqlite requests for speed when fetched time interval is a single time point
+
 * Thu Mar 10 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.3.10-1.fmi
 - Repackaged due to refactored library dependencies
 

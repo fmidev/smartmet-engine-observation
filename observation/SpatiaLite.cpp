@@ -85,7 +85,7 @@ namespace Engine
 {
 namespace Observation
 {
-  using namespace Utils;
+using namespace Utils;
 // Results read from the sqlite database
 
 LocationDataItems SpatiaLite::readObservationDataFromDB(
@@ -129,9 +129,14 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
         "WHERE data.fmisid IN (" +
         qstations +
         ") "
-        "AND data.data_time >= " +
-        Fmi::to_string(starttime) + " AND data.data_time <= " + Fmi::to_string(endtime) +
-        " AND data.measurand_id IN (" + measurand_ids + ") ";
+        "AND data.data_time";
+
+    if (starttime == endtime)
+      sqlStmt += "=" + Fmi::to_string(starttime);
+    else
+      sqlStmt += " BETWEEN " + Fmi::to_string(starttime) + " AND " + Fmi::to_string(endtime);
+
+    sqlStmt += " AND data.measurand_id IN (" + measurand_ids + ") ";
     if (!producerIds.empty())
       sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
 
@@ -1321,8 +1326,8 @@ void SpatiaLite::cleanRoadCloudCache(const ptime &newstarttime)
   }
 }
 
-TS::TimeSeriesVectorPtr SpatiaLite::getRoadCloudData(
-    const Settings &settings, const Fmi::TimeZones &timezones)
+TS::TimeSeriesVectorPtr SpatiaLite::getRoadCloudData(const Settings &settings,
+                                                     const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, timezones);
 }
@@ -1350,8 +1355,8 @@ void SpatiaLite::cleanNetAtmoCache(const ptime &newstarttime)
   }
 }
 
-TS::TimeSeriesVectorPtr SpatiaLite::getNetAtmoData(
-    const Settings &settings, const Fmi::TimeZones &timezones)
+TS::TimeSeriesVectorPtr SpatiaLite::getNetAtmoData(const Settings &settings,
+                                                   const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, timezones);
 }
@@ -1380,8 +1385,8 @@ void SpatiaLite::cleanBKHydrometaCache(const ptime &newstarttime)
   }
 }
 
-TS::TimeSeriesVectorPtr SpatiaLite::getBKHydrometaData(
-    const Settings &settings, const Fmi::TimeZones &timezones)
+TS::TimeSeriesVectorPtr SpatiaLite::getBKHydrometaData(const Settings &settings,
+                                                       const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, timezones);
 }
@@ -1409,14 +1414,14 @@ void SpatiaLite::cleanFmiIoTCache(const ptime &newstarttime)
   }
 }
 
-TS::TimeSeriesVectorPtr SpatiaLite::getFmiIoTData(
-    const Settings &settings, const Fmi::TimeZones &timezones)
+TS::TimeSeriesVectorPtr SpatiaLite::getFmiIoTData(const Settings &settings,
+                                                  const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, timezones);
 }
 
-TS::TimeSeriesVectorPtr SpatiaLite::getMobileAndExternalData(
-    const Settings &settings, const Fmi::TimeZones &timezones)
+TS::TimeSeriesVectorPtr SpatiaLite::getMobileAndExternalData(const Settings &settings,
+                                                             const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -1443,8 +1448,8 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMobileAndExternalData(
     // The desired timeseries, unless all available data if timestep=0 or latest only
     if (!settings.latest && !timeSeriesOptions.all())
     {
-      tlist = TS::TimeSeriesGenerator::generate(
-          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+      tlist = TS::TimeSeriesGenerator::generate(timeSeriesOptions,
+                                                timezones.time_zone_from_string(settings.timezone));
     }
 
     ExternalAndMobileDBInfo dbInfo(&producerMeasurand);
@@ -2491,7 +2496,7 @@ std::size_t SpatiaLite::fillFmiIoTCache(const MobileExternalDataItems &mobileExt
 }
 
 TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
-                                                                const Fmi::TimeZones &timezones)
+                                                 const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -2988,12 +2993,18 @@ std::string SpatiaLite::sqlSelectFromWeatherDataQCData(const Settings &settings,
           "WHERE data.fmisid IN (" +
           station_ids +
           ") "
-          "AND data.obstime BETWEEN " +
-          Fmi::to_string(starttime) + " AND " + Fmi::to_string(endtime) +
-          " AND data.parameter IN (" + params + ") AND " +
-          settings.dataFilter.getSqlClause("data_quality", "data.flag") +
-          " GROUP BY data.fmisid, data.parameter, data.sensor_no "
-          "ORDER BY fmisid ASC, obstime ASC;";
+          "AND data.obstime";
+
+      // sqlite does not optimize this automatically
+      if (starttime == endtime)
+        sqlStmt += "=" + Fmi::to_string(starttime);
+      else
+        sqlStmt += " BETWEEN " + Fmi::to_string(starttime) + " AND " + Fmi::to_string(endtime);
+
+      sqlStmt += " AND data.parameter IN (" + params + ") AND " +
+                 settings.dataFilter.getSqlClause("data_quality", "data.flag") +
+                 " GROUP BY data.fmisid, data.parameter, data.sensor_no "
+                 "ORDER BY fmisid ASC, obstime ASC;";
     }
     else
     {
@@ -3002,15 +3013,19 @@ std::string SpatiaLite::sqlSelectFromWeatherDataQCData(const Settings &settings,
           "data.parameter, data.value, data.sensor_no, data.flag as data_quality "
           "FROM weather_data_qc data "
           "WHERE data.fmisid IN (" +
-          station_ids +
-          ") "
-          "AND data.obstime BETWEEN " +
-          Fmi::to_string(starttime) + " AND " + Fmi::to_string(endtime) +
-          " AND data.parameter IN (" + params + ") AND " +
-          settings.dataFilter.getSqlClause("data_quality", "data.flag") +
-          " GROUP BY data.fmisid, data.obstime, data.parameter, "
-          "data.sensor_no "
-          "ORDER BY fmisid ASC, obstime ASC;";
+          station_ids + ") AND data.obstime";
+
+      // sqlite does not optimize this automatically
+      if (starttime == endtime)
+        sqlStmt += "=" + Fmi::to_string(starttime);
+      else
+        sqlStmt += " BETWEEN " + Fmi::to_string(starttime) + " AND " + Fmi::to_string(endtime);
+
+      sqlStmt += " AND data.parameter IN (" + params + ") AND " +
+                 settings.dataFilter.getSqlClause("data_quality", "data.flag") +
+                 " GROUP BY data.fmisid, data.obstime, data.parameter, "
+                 "data.sensor_no "
+                 "ORDER BY fmisid ASC, obstime ASC;";
     }
 
     if (itsDebug)
