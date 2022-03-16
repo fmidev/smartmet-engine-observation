@@ -75,6 +75,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: smartmet-engine-geonames >= 22.3.15
 #TestRequires: smartmet-library-macgyver >= 22.2.8
 #TestRequires: smartmet-library-timeseries >= 22.2.8
+#TestRequires: smartmet-library-timeseries-devel >= 22.2.8
 #TestRequires: smartmet-library-spine >= 22.1.21
 #TestRequires: smartmet-test-data
 
