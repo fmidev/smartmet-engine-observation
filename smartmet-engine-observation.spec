@@ -21,8 +21,8 @@ BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 22.3.15
 BuildRequires: smartmet-library-locus-devel >= 22.1.31
 BuildRequires: smartmet-library-macgyver-devel >= 22.3.8
-BuildRequires: smartmet-library-spine-devel >= 22.3.8
-BuildRequires: smartmet-library-timeseries-devel >= 22.3.10
+BuildRequires: smartmet-library-spine-devel >= 22.3.18
+BuildRequires: smartmet-library-timeseries-devel >= 22.3.18
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 22.2.8
 BuildRequires: zlib-devel
@@ -38,8 +38,8 @@ Requires: libatomic
 Requires: smartmet-engine-geonames >= 22.3.15
 Requires: smartmet-library-locus >= 22.1.31
 Requires: smartmet-library-macgyver >= 22.3.8
-Requires: smartmet-library-spine >= 22.3.8
-Requires: smartmet-library-timeseries >= 22.3.10
+Requires: smartmet-library-spine >= 22.3.18
+Requires: smartmet-library-timeseries >= 22.3.18
 Requires: smartmet-server >= 21.11.25
 Requires: unixODBC
 
@@ -75,8 +75,8 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: smartmet-engine-geonames >= 22.3.15
 #TestRequires: smartmet-library-macgyver >= 22.2.8
 #TestRequires: smartmet-library-timeseries >= 22.2.8
-#TestRequires: smartmet-library-timeseries-devel >= 22.2.8
-#TestRequires: smartmet-library-spine >= 22.1.21
+#TestRequires: smartmet-library-timeseries-devel >= 22.2.18
+#TestRequires: smartmet-library-spine >= 22.3.18
 #TestRequires: smartmet-test-data
 
 %if 0%{rhel} >= 8
