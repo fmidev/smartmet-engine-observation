@@ -6,8 +6,8 @@
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/ValueFormatter.h>
-#include <spine/ParameterKeywords.h>
-#include <spine/ParameterTools.h>
+#include <timeseries/ParameterKeywords.h>
+#include <timeseries/ParameterTools.h>
 
 using namespace SmartMet;
 using Engine::Observation::SpecialParameters;
@@ -403,7 +403,7 @@ SpecialParameters::SpecialParameters()
   handler_map[SYKE_PRODUCER] = [](const SpecialParameters::Args& d) -> TS::Value
   { return int(d.station.isSYKEStation); };
 
-  // FIXME: Spine::ParameterTools contains TZ conversion. Do we need it here?
+  // FIXME: TimeSeries::ParameterTools contains TZ conversion. Do we need it here?
   handler_map[TIME_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value { return d.obstime; };
 
   // FIXME: implement

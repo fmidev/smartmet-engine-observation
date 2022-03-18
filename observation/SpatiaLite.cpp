@@ -10,11 +10,11 @@
 #include <macgyver/StringConversion.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <spine/Convenience.h>
-#include <spine/ParameterTools.h>
 #include <spine/Reactor.h>
 #include <spine/Thread.h>
 #include <spine/Value.h>
 #include <timeseries/TimeSeriesInclude.h>
+#include <timeseries/ParameterTools.h>
 #include <chrono>
 #include <iostream>
 #include <ogr_geometry.h>

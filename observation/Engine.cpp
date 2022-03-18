@@ -8,9 +8,9 @@
 #include <boost/make_shared.hpp>
 #include <macgyver/Geometry.h>
 #include <spine/Convenience.h>
-#include <spine/ParameterTools.h>
 #include <spine/Reactor.h>
 #include <timeseries/TimeSeriesInclude.h>
+#include <timeseries/ParameterTools.h>
 
 namespace SmartMet
 {
@@ -388,7 +388,7 @@ Settings Engine::beforeQuery(const Settings &settings,
   {
     const auto &p = settings.parameters.at(i);
     std::string pname = Fmi::ascii_tolower_copy(p.name());
-    if (!isParameter(pname, settings.stationtype) && !Spine::is_special_parameter(pname))
+    if (!isParameter(pname, settings.stationtype) && !TimeSeries::is_special_parameter(pname))
     {
       unknownParameterIndexes.push_back(i);
       continue;

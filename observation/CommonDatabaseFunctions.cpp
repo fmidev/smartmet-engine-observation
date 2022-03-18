@@ -4,7 +4,7 @@
 #include <boost/functional/hash.hpp>
 #include <macgyver/StringConversion.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
-#include <spine/ParameterTools.h>
+#include <timeseries/ParameterTools.h>
 #include <timeseries/TimeSeriesInclude.h>
 #include <numeric>
 
@@ -533,7 +533,7 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
 
     for (const auto &item : qmap.specialPositions)
     {
-      if (Spine::is_special_parameter(item.first))
+      if (TimeSeries::is_special_parameter(item.first))
         not_null_columns.insert(item.second);
     }
 

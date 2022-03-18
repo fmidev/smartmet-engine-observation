@@ -27,6 +27,7 @@ INCLUDES += -isystem $(includedir)/mysql
 
 LIBS += $(REQUIRED_LIBS) \
 	-L$(libdir) \
+	-lsmartmet-timeseries \
 	-lsmartmet-spine \
         -lsmartmet-macgyver \
         -lsmartmet-locus \

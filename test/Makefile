@@ -13,8 +13,8 @@ INCLUDES += \
 	-I/usr/include/oracle/11.2/client64
 
 LIBS += \
-	-lsmartmet-spine \
 	-lsmartmet-timeseries \
+	-lsmartmet-spine \
 	-lsmartmet-macgyver \
 	-lsmartmet-locus \
 	-lsmartmet-newbase \
