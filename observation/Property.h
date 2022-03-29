@@ -264,6 +264,21 @@ class MinuteValueModuloIsEqualToZero : public Base
   NameType getValueTypeString() const override;
 };
 
+class IsOneOf : public Base
+{
+  public:
+    ~IsOneOf() override;
+    IsOneOf() = default;
+    std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat) override
+    {
+      std::shared_ptr<IsOneOf> obj(new IsOneOf);
+      obj->set(property, toWhat, " IN ");
+      return obj;
+    }
+  protected:
+    virtual bool has_vector_argument() const { return true; }
+};
+
 }  // namespace Property
 }  // namespace Observation
 }  // namespace Engine
