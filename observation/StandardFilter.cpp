@@ -21,6 +21,7 @@ StandardFilter::StandardFilter() : MinimumStandardFilter()
       FEConformanceClassBase::add("PropertyIsNil", Property::IsNil());
       FEConformanceClassBase::add("PropertyIsLike", Property::IsLike());
       FEConformanceClassBase::add("PropertyIsBetween", Property::IsBetween());
+      FEConformanceClassBase::add("PropertyIsOneOf", Property::IsOneOf());
     }
     catch (...)
     {
