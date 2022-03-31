@@ -276,7 +276,7 @@ class IsOneOf : public Base
       return obj;
     }
   protected:
-    virtual bool has_vector_argument() const { return true; }
+    bool has_vector_argument() const override { return true; }
 };
 
 }  // namespace Property
