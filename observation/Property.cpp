@@ -134,7 +134,7 @@ namespace {
     }
 
     template <typename ValueType, typename... RemainingTypes>
-    typename std::enable_if_t<(sizeof...(RemainingTypes) > 0), Fmi::TypeMap<TypeConv>& >
+    typename std::enable_if<(sizeof...(RemainingTypes) > 0), Fmi::TypeMap<TypeConv>& >::type
     add_types(Fmi::TypeMap<TypeConv>& type_map, const std::string& type_name)
     {
         add_type<ValueType>(type_map, type_name);
