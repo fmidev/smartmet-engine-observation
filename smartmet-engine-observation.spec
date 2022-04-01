@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.3.18
+Version: 22.4.1
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -142,6 +142,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Apr  1 2022 Andris Pavēnis <andris.pavenis@fmi.fi> 22.4.1-1.fmi
+- StandardFilter: add filters IsOneOf and IsNotOf
+
 * Fri Mar 18 2022 Andris Pavēnis <andris.pavenis@fmi.fi> 22.3.18-1.fmi
 - Update due to smartmet-library-spine and smartmet-library-timeseries changes
 
