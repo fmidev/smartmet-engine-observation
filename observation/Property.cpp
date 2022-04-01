@@ -31,6 +31,7 @@ IsNil::~IsNil() = default;
 IsLike::~IsLike() = default;
 IsBetween::~IsBetween() = default;
 IsOneOf::~IsOneOf() = default;
+IsNotOf::~IsNotOf() = default;
 MinuteValueModuloIsEqualToZero::~MinuteValueModuloIsEqualToZero() = default;
 
 Base::Base(const Base& other)

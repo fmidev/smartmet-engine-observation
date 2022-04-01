@@ -279,6 +279,21 @@ class IsOneOf : public Base
     bool has_vector_argument() const override { return true; }
 };
 
+class IsNotOf : public Base
+{
+  public:
+    ~IsNotOf() override;
+    IsNotOf() = default;
+    std::shared_ptr<Base> get(const NameType& property, const boost::any& toWhat) override
+    {
+      std::shared_ptr<IsNotOf> obj(new IsNotOf);
+      obj->set(property, toWhat, " NOT IN ");
+      return obj;
+    }
+  protected:
+    bool has_vector_argument() const override { return true; }
+};
+
 }  // namespace Property
 }  // namespace Observation
 }  // namespace Engine
