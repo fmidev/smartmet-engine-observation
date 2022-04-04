@@ -105,13 +105,12 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
   {
     TS::TimeSeriesVectorPtr ret =
         boost::make_shared<TS::TimeSeriesVector>();
-    const ExternalAndMobileProducerMeasurand &producerMeasurand =
+    const ExternalAndMobileProducerConfigItem &producerConfig =
         itsProducerConfig.at(settings.stationtype);
-    ExternalAndMobileDBInfo dbInfo(&producerMeasurand);
-    dbInfo.setDatabaseTableName(itsProducerConfig.getDatabaseTableName());
+    ExternalAndMobileDBInfo dbInfo(&producerConfig);
     std::vector<std::string> queryfields;
     std::vector<int> measurandIds;
-    const Measurands &measurands = producerMeasurand.measurands();
+    const Measurands &measurands = producerConfig.measurands();
     for (const Spine::Parameter &p : settings.parameters)
     {
       std::string name = Fmi::ascii_tolower_copy(p.name());
@@ -161,6 +160,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
     // Execute SQL statement
     Fmi::Database::PostgreSQLConnection &conn = db.getConnection();
     pqxx::result result_set = conn.executeNonTransaction(sqlStmt);
+
     for (unsigned int i = 0; i <= queryfields.size(); i++)
       ret->emplace_back(TS::TimeSeries(settings.localTimePool));
 
@@ -232,7 +232,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
             const auto iter = db.getParameterMap()->find(fieldname);
             if (iter != db.getParameterMap()->end())
             {
-              std::string producer = producerMeasurand.producerId().name();
+              std::string producer = producerConfig.producerId().name();
               if (iter->second.find(producer) != iter->second.end())
               {
                 fieldname = iter->second.at(producer);
@@ -241,7 +241,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
           }
           else
           {
-            fieldname = dbInfo.measurandFieldname(settings.stationtype, measurands.at(fieldname));
+            fieldname = dbInfo.measurandFieldname(measurands.at(fieldname));
           }
           value = rsr[fieldname];
 

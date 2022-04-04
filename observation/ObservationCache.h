@@ -5,9 +5,11 @@
 #include "FlashDataItem.h"
 #include "LocationItem.h"
 #include "MobileExternalDataItem.h"
+#include "MagnetometerDataItem.h"
 #include "Settings.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
+#include "Keywords.h"
 #include <macgyver/CacheStats.h>
 #include <spine/Station.h>
 #include <timeseries/TimeSeriesInclude.h>
@@ -96,6 +98,14 @@ class ObservationCache
   virtual std::size_t fillFmiIoTCache(
       const MobileExternalDataItems &mobileExternalCacheData) const = 0;
   virtual void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const = 0;
+
+  virtual bool magnetometerIntervalIsCached(const boost::posix_time::ptime &starttime,
+											const boost::posix_time::ptime &endtime) const = 0;
+  virtual boost::posix_time::ptime getLatestMagnetometerDataTime() const = 0;
+  virtual boost::posix_time::ptime getLatestMagnetometerModifiedTime() const = 0;
+  virtual std::size_t fillMagnetometerCache(const MagnetometerDataItems &magnetometerCacheData) const = 0;
+  virtual void cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const = 0;
+
   virtual Fmi::Cache::CacheStatistics getCacheStats() const
   {
     return Fmi::Cache::CacheStatistics();

@@ -213,7 +213,7 @@ FlashCounts DatabaseDriverProxy::getFlashCount(const boost::posix_time::ptime &s
   Settings settings;
   settings.starttime = starttime;
   settings.endtime = endtime;
-  settings.stationtype = "flash";
+  settings.stationtype = FLASH_PRODUCER;
 
   DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
   return pDriver->getFlashCount(starttime, endtime, locations);

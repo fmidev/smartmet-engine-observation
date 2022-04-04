@@ -41,7 +41,6 @@ struct EngineParameters
   std::string spatiaLiteFile;
 
   std::map<std::string, std::string> dataQualityFilters;  // stationtype
-  std::map<std::string, std::string> stationTypeMap;
   StationtypeConfig stationtypeConfig;
   ExternalAndMobileProducerConfig externalAndMobileProducerConfig;
 

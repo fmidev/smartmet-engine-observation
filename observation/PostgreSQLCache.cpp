@@ -130,7 +130,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
     if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTValuesFromPostgreSQL(settings);
 
-    if (settings.stationtype == "flash")
+    if (settings.stationtype == FLASH_PRODUCER)
       return flashValuesFromPostgreSQL(settings);
 
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
@@ -184,7 +184,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
     if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTValuesFromPostgreSQL(settings);
 
-    if (settings.stationtype == "flash")
+    if (settings.stationtype == FLASH_PRODUCER)
       return flashValuesFromPostgreSQL(settings);
 
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
@@ -403,7 +403,7 @@ bool PostgreSQLCache::dataAvailableInCache(const Settings &settings) const
     else if ((settings.stationtype == "road" || settings.stationtype == "foreign"))
       return timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime);
 
-    else if (settings.stationtype == "flash")
+    else if (settings.stationtype == FLASH_PRODUCER)
       return flashIntervalIsCached(settings.starttime, settings.endtime);
 
     else if (settings.stationtype == ROADCLOUD_PRODUCER)
@@ -998,6 +998,31 @@ void PostgreSQLCache::cleanFmiIoTCache(const boost::posix_time::time_duration &t
   {
     throw Fmi::Exception::Trace(BCP, "Cleaning FmiIoT cache failed!");
   }
+}
+
+bool PostgreSQLCache::magnetometerIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                      const boost::posix_time::ptime &endtime) const
+{
+  return false;
+}
+
+boost::posix_time::ptime PostgreSQLCache::getLatestMagnetometerDataTime() const
+{
+  return boost::posix_time::not_a_date_time;
+}
+
+boost::posix_time::ptime PostgreSQLCache::getLatestMagnetometerModifiedTime() const
+{
+  return boost::posix_time::not_a_date_time;
+}
+
+std::size_t PostgreSQLCache::fillMagnetometerCache(const MagnetometerDataItems &magnetometerCacheData) const
+{
+  return 0;
+}
+
+void PostgreSQLCache::cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const
+{
 }
 
 void PostgreSQLCache::shutdown()

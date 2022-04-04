@@ -1,5 +1,6 @@
 #include "FlashMemoryCache.h"
 #include "Utils.h"
+#include "Keywords.h"
 #include <boost/optional.hpp>
 #include <macgyver/Geometry.h>
 #include <spine/Value.h>
@@ -241,7 +242,7 @@ TS::TimeSeriesVectorPtr FlashMemoryCache::getData(
         column_names.push_back(name);
       else
       {
-        std::string pname = parameterMap->getParameter(name, "flash");
+        std::string pname = parameterMap->getParameter(name, FLASH_PRODUCER);
         if (!pname.empty())
         {
           boost::to_lower(pname, std::locale::classic());

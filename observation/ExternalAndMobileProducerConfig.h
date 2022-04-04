@@ -9,36 +9,27 @@ namespace Engine
 {
 namespace Observation
 {
+
 using Measurands = std::map<std::string, int>;  // Parameter name -> measurand id
 
-class ExternalAndMobileProducerMeasurand
+class ExternalAndMobileProducerConfigItem
 {
  public:
-  ExternalAndMobileProducerMeasurand(ProducerId theProducerId, const Measurands& theMeasurands);
+  ExternalAndMobileProducerConfigItem(const ProducerId& theProducerId, const Measurands& theMeasurands, const std::string& theDatabaseTable)
+  : itsProducerId(theProducerId), itsMeasurands(theMeasurands), itsDatabaseTable(theDatabaseTable)
+  {}
 
-  void addMeasurand(const std::string& theParameterName, int theMeasurandId);
-  const Measurands& measurands() const { return itsMeasurands; }
   const ProducerId& producerId() const { return itsProducerId; }
+  const Measurands& measurands() const { return itsMeasurands; }
+  const std::string& databaseTable() const { return itsDatabaseTable; }
 
  private:
   ProducerId itsProducerId;
   Measurands itsMeasurands;
+  std::string itsDatabaseTable;
 };
 
-// Maps producer to its configuration
-class ExternalAndMobileProducerConfig
-    : public std::map<std::string, ExternalAndMobileProducerMeasurand>
-{
- public:
-  void setCached(bool cached);
-  void setDatabaseTableName(const std::string& tablename);
-  bool getCached() const { return itsIsCached; }
-  const std::string& getDatabaseTableName() const { return itsDatabaseTableName; }
-
- private:
-  bool itsIsCached{false};
-  std::string itsDatabaseTableName{"ext_obsdata"};
-};
+using ExternalAndMobileProducerConfig = std::map<std::string, ExternalAndMobileProducerConfigItem>;
 
 }  // namespace Observation
 }  // namespace Engine

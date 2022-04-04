@@ -244,6 +244,7 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
     timeSeriesOptions.startTimeUTC = false;
     timeSeriesOptions.endTimeUTC = false;
 
+	//    std::shared_ptr<PostgreSQLObsDB> db =
     std::shared_ptr<PostgreSQLObsDB> db =
         itsPostgreSQLConnectionPool->getConnection(settings.debug_options);
     setSettings(settings, *db);
@@ -259,10 +260,12 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
     if (tablename == OBSERVATION_DATA_TABLE)
       return db->getObservationData(
           stations, settings, *info, timeSeriesOptions, itsTimeZones, dummy);
-    if (tablename == WEATHER_DATA_QC_TABLE)
+    else if (tablename == WEATHER_DATA_QC_TABLE)
       return db->getWeatherDataQCData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
-    if (tablename == FLASH_DATA_TABLE)
+    else if (tablename == FLASH_DATA_TABLE)
       return db->getFlashData(settings, itsTimeZones);
+    else if (tablename == MAGNETOMETER_DATA_TABLE)
+      return db->getMagnetometerData(settings, itsTimeZones);
 
     return ret;
   }
@@ -356,6 +359,8 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
       return db->getWeatherDataQCData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
     else if (tablename == FLASH_DATA_TABLE)
       return db->getFlashData(settings, itsTimeZones);
+    else if (tablename == MAGNETOMETER_DATA_TABLE)
+      return db->getMagnetometerData(settings, itsTimeZones);
 
     return ret;
   }
@@ -394,7 +399,7 @@ FlashCounts PostgreSQLDatabaseDriverForFmiData::getFlashCount(
   try
   {
     Settings settings;
-    settings.stationtype = "flash";
+    settings.stationtype = FLASH_PRODUCER;
 
     auto cache = resolveCache(settings.stationtype, itsParameters.params);
     if (cache && cache->flashIntervalIsCached(starttime, endtime))

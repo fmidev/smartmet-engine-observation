@@ -151,7 +151,7 @@ FlashCounts SpatiaLiteDatabaseDriver::getFlashCount(
   try
   {
     Settings settings;
-    settings.stationtype = "flash";
+    settings.stationtype = FLASH_PRODUCER;
 
     auto cache = resolveCache(settings.stationtype, itsParameters.params);
     if (cache && cache->flashIntervalIsCached(starttime, endtime))

@@ -74,5 +74,6 @@ const std::string POPULATION_PARAM = "population";
 const std::string PRODUCER_PARAM = "producer";
 const std::string STATIONTYPE_PARAM = "stationtype";
 const std::string FLASH_PRODUCER = "flash";
+const std::string MAGNETO_PRODUCER = "magneto";
 const std::string SYKE_PRODUCER = "syke";
 const std::string MODEL_PARAM = "model";

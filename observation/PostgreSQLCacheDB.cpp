@@ -1685,11 +1685,11 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
   {
     TS::TimeSeriesVectorPtr ret = initializeResultVector(settings);
 
-    const ExternalAndMobileProducerMeasurand &producerMeasurand =
+    const ExternalAndMobileProducerConfigItem &producerConfig =
         itsExternalAndMobileProducerConfig.at(settings.stationtype);
     std::vector<std::string> queryfields;
     std::vector<int> measurandIds;
-    const Engine::Observation::Measurands &measurands = producerMeasurand.measurands();
+    const Engine::Observation::Measurands &measurands = producerConfig.measurands();
     for (const Spine::Parameter &p : settings.parameters)
     {
       std::string name = Fmi::ascii_tolower_copy(p.name());
@@ -1709,7 +1709,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
           timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
     }
 
-    ExternalAndMobileDBInfo dbInfo(&producerMeasurand);
+    ExternalAndMobileDBInfo dbInfo(&producerConfig);
 
     std::string sqlStmt = dbInfo.sqlSelectFromCache(
         measurandIds, settings.starttime, settings.endtime, settings.wktArea, settings.dataFilter);
@@ -1744,7 +1744,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
             const auto iter = parameterMap->find(fieldname);
             if (iter != parameterMap->end())
             {
-              std::string producer = producerMeasurand.producerId().name();
+              std::string producer = producerConfig.producerId().name();
               if (iter->second.find(producer) != iter->second.end())
               {
                 fieldname = iter->second.at(producer);
@@ -1753,7 +1753,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
           }
           else
           {
-            fieldname = dbInfo.measurandFieldname(settings.stationtype, measurands.at(fieldname));
+            fieldname = dbInfo.measurandFieldname(measurands.at(fieldname));
           }
           ret->at(index).emplace_back(TS::TimedValue(obstime, rsr[fieldname]));
         }

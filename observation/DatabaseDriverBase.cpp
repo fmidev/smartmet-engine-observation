@@ -82,6 +82,8 @@ void DatabaseDriverBase::readConfig(Spine::ConfigBase &cfg, DatabaseDriverParame
         "flashCacheUpdateInterval", parameters.flashCacheUpdateInterval);
     parameters.stationsCacheUpdateInterval = driverInfo.getIntParameterValue(
         "stationsCacheUpdateInterval", parameters.stationsCacheUpdateInterval);
+    parameters.magnetometerCacheUpdateInterval = driverInfo.getIntParameterValue(
+        "magnetometerCacheUpdateInterval", parameters.magnetometerCacheUpdateInterval);
 
     // update 10 seconds before max(modified_last) for extra safety with Oracle views
     parameters.updateExtraInterval = driverInfo.getIntParameterValue(
@@ -89,6 +91,8 @@ void DatabaseDriverBase::readConfig(Spine::ConfigBase &cfg, DatabaseDriverParame
 
     if (!parameters.disableAllCacheUpdates)
     {
+      parameters.magnetometerCacheDuration =
+          driverInfo.getIntParameterValue("magnetometerCacheDuration", parameters.magnetometerCacheDuration);
       parameters.finCacheDuration =
           driverInfo.getIntParameterValue("finCacheDuration", parameters.finCacheDuration);
       parameters.finMemoryCacheDuration = driverInfo.getIntParameterValue(
@@ -225,8 +229,10 @@ std::string DatabaseDriverBase::resolveCacheTableName(
 
   try
   {
-    if (producer == "flash")
+    if (producer == FLASH_PRODUCER)
       tablename = FLASH_DATA_TABLE;
+    else if (producer == MAGNETO_PRODUCER)
+      tablename = MAGNETOMETER_DATA_TABLE;
     else if (producer == NETATMO_PRODUCER)
       tablename = NETATMO_DATA_TABLE;
     else if (producer == ROADCLOUD_PRODUCER)
@@ -319,8 +325,10 @@ std::string DatabaseDriverBase::resolveDatabaseTableName(const std::string &prod
 
   try
   {
-    if (producer == "flash")
+    if (producer == FLASH_PRODUCER)
       tablename = FLASH_DATA_TABLE;
+    else if (producer == MAGNETO_PRODUCER)
+      tablename = MAGNETOMETER_DATA_TABLE;
     else if (producer == NETATMO_PRODUCER || producer == ROADCLOUD_PRODUCER ||
              producer == FMI_IOT_PRODUCER || producer == BK_HYDROMETA_PRODUCER)
       tablename = EXT_OBSDATA_TABLE;

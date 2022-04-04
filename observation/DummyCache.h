@@ -85,6 +85,13 @@ class DummyCache : public ObservationCache
       const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const override;
 
+  bool magnetometerIntervalIsCached(const boost::posix_time::ptime &starttime,
+									const boost::posix_time::ptime &endtime) const override;
+  boost::posix_time::ptime getLatestMagnetometerDataTime() const override;
+  boost::posix_time::ptime getLatestMagnetometerModifiedTime() const override;
+  std::size_t fillMagnetometerCache(const MagnetometerDataItems &magnetometerCacheData) const override;
+  void cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const override;
+
   void shutdown() override;
 
  private:

@@ -12,6 +12,7 @@
 #include "Settings.h"
 #include "StationSettings.h"
 #include "Utils.h"
+#include "Keywords.h"
 #include <boost/atomic.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/condition.hpp>

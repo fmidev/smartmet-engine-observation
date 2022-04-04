@@ -360,6 +360,8 @@ void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
         cfg.get_optional_config_param<int>(common_key + ".bkHydrometaInsertCacheSize", 0));
     params["fmiIoTInsertCacheSize"] = Fmi::to_string(
         cfg.get_optional_config_param<int>(common_key + ".fmiIoTInsertCacheSize", 0));
+    params["magnetometerInsertCacheSize"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".magnetometerInsertCacheSize", 0));
   }
   else
   {
@@ -375,10 +377,14 @@ void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
         cfg.get_optional_config_param<std::size_t>(common_key + ".finCacheUpdateInterval", 0));
     params["extCacheUpdateInterval"] = Fmi::to_string(
         cfg.get_optional_config_param<std::size_t>(common_key + ".extCacheUpdateInterval", 0));
+    params["magnetometerCacheUpdateInterval"] = Fmi::to_string(
+        cfg.get_optional_config_param<std::size_t>(common_key + ".magnetometerCacheUpdateInterval", 0));
     params["flashCacheUpdateInterval"] = Fmi::to_string(
         cfg.get_optional_config_param<std::size_t>(common_key + ".flashCacheUpdateInterval", 0));
     params["updateExtraInterval"] = Fmi::to_string(
         cfg.get_optional_config_param<std::size_t>(common_key + ".updateExtraInterval", 10));
+    params["magnetometerCacheDuration"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".magnetometerCacheDuration", 0));
     params["finCacheDuration"] =
         Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finCacheDuration", 0));
     params["finMemoryCacheDuration"] = Fmi::to_string(
@@ -538,6 +544,8 @@ void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
       cfg.get_optional_config_param<int>(common_key + ".bkHydrometaInsertCacheSize", 0));
   params["fmiIoTInsertCacheSize"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".fmiIoTInsertCacheSize", 0));
+  params["magnetometerInsertCacheSize"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".magnetometerInsertCacheSize", 0));
 }
 
 /*!
@@ -653,6 +661,7 @@ void DatabaseDriverInfoItem::parseCacheInfo(const std::set<std::string>& cachein
       table_set.insert(NETATMO_DATA_TABLE);
       table_set.insert(ROADCLOUD_DATA_TABLE);
       table_set.insert(FMI_IOT_DATA_TABLE);
+      table_set.insert(MAGNETOMETER_DATA_TABLE);
     }
     if (itsCacheInfoItems.find(cachename) == itsCacheInfoItems.end())
     {
