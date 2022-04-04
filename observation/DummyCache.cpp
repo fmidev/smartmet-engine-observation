@@ -221,6 +221,33 @@ void DummyCache::cleanFmiIoTCache(const boost::posix_time::time_duration & /* ti
 {
 }
 
+bool DummyCache::magnetometerIntervalIsCached(const boost::posix_time::ptime & /* starttime */,
+											  const boost::posix_time::ptime & /* endtime */) const
+{
+  return false;
+}
+
+boost::posix_time::ptime DummyCache::getLatestMagnetometerDataTime() const
+{
+  return boost::posix_time::not_a_date_time;
+}
+
+boost::posix_time::ptime DummyCache::getLatestMagnetometerModifiedTime() const
+{
+  return boost::posix_time::not_a_date_time;
+}
+
+std::size_t DummyCache::fillMagnetometerCache(
+    const MagnetometerDataItems & /* magnetometerCacheData */) const
+{
+  return 0;
+}
+
+void DummyCache::cleanMagnetometerCache(const boost::posix_time::time_duration & /* timetokeep */) const
+{
+}
+
+
 void DummyCache::shutdown() {}
 
 }  // namespace Observation

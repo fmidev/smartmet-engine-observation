@@ -14,6 +14,7 @@ namespace Observation
 #define OBSERVATION_DATA_TABLE "observation_data"
 #define WEATHER_DATA_QC_TABLE "weather_data_qc"
 #define FLASH_DATA_TABLE "flash_data"
+#define MAGNETOMETER_DATA_TABLE "magnetometer_data"
 #define NETATMO_DATA_TABLE "ext_obsdata_netatmo"
 #define ROADCLOUD_DATA_TABLE "ext_obsdata_roadcloud"
 #define FMI_IOT_DATA_TABLE "ext_obsdata_fmi_iot"

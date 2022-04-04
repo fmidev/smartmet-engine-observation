@@ -5,6 +5,7 @@
 #include "FlashDataItem.h"
 #include "InsertStatus.h"
 #include "MobileExternalDataItem.h"
+#include "MagnetometerDataItem.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
 
@@ -310,6 +311,14 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   boost::posix_time::ptime getOldestFmiIoTDataTime();
 
   /**
+   * @brief Get the time of the oldest Magnetometer in observation_data table
+
+   * @return boost::posix_time::ptime The time of the oldest FmiIoT observation
+   */
+
+  boost::posix_time::ptime getOldestMagnetometerDataTime();
+
+  /**
    * @brief Insert cached observations into ext_obsdata_roadcloud table
    * @param FmiIoT observation data to be inserted into the table
    */
@@ -321,6 +330,20 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    * @param timetokeep Delete FmiIoT data which is older than given duration
    */
   void cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime);
+
+  /**
+   * @brief Insert cached observations into magnetometer_data table
+   * @param Magnetometer observation data to be inserted into the table
+   */
+  std::size_t fillMagnetometerDataCache(const MagnetometerDataItems &magnetometerCacheData,
+										InsertStatus &insertStatus);
+
+  /**
+   * @brief Delete old Magnetometer observation data from magnetometer_data table
+   * @param timetokeep Delete magnetometer data which is older than given duration
+   */
+  void cleanMagnetometerCache(const boost::posix_time::ptime &newstarttime);
+
 
   TS::TimeSeriesVectorPtr getRoadCloudData(
       const Settings &settings, const Fmi::TimeZones &timezones);
@@ -344,6 +367,26 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
       const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones,
       const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache) override;
+
+  /**
+   * @brief Get the time of the last modified observation in magnetometer_data table
+   * @retval boost::posix_time::ptime The time of the last modification
+   */
+  
+  boost::posix_time::ptime getLatestMagnetometerModifiedTime();
+
+  /**
+   * @brief Get the time of the newest observation in magnetometer_data table
+   * @retval boost::posix_time::ptime The time of the newest observation
+   */
+
+  boost::posix_time::ptime getLatestMagnetometerDataTime();
+
+  /**
+   * @brief Get the maximum value of flash_id field
+   * @retval int Maximum value of flash_id_field
+   */
+
 
   void shutdown();
 
@@ -383,6 +426,10 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
       const boost::posix_time::ptime &starttime,
       const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache);
 
+  TS::TimeSeriesVectorPtr getMagnetometerData(const Settings &settings,
+											  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+											  const Fmi::TimeZones &timezones) override;
+
  private:
   // Private members
   sqlite3pp::database itsDB;
@@ -406,6 +453,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   void createNetAtmoDataTable();
   void createFmiIoTDataTable();
   void createBKHydrometaDataTable();
+  void createMagnetometerDataTable();
 
   TS::TimeSeriesVectorPtr getMobileAndExternalData(
       const Settings &settings, const Fmi::TimeZones &timezones);

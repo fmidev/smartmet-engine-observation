@@ -83,6 +83,7 @@ void ObservationCacheAdminBase::init()
     std::shared_ptr<ObservationCache> roadcloudCache;
     std::shared_ptr<ObservationCache> fmiIoTCache;
     std::shared_ptr<ObservationCache> bkHydrometaCache;
+    std::shared_ptr<ObservationCache> magnetometerCache;
     std::set<ObservationCache*> cache_set;
 
     for (const auto& tablename : tablenames)
@@ -122,7 +123,12 @@ void ObservationCacheAdminBase::init()
         bkHydrometaCache = getCache(BK_HYDROMETA_DATA_TABLE);
         cache_set.insert(bkHydrometaCache.get());
       }
-    }
+	  else if (tablename == MAGNETOMETER_DATA_TABLE)
+      {
+        magnetometerCache = getCache(MAGNETOMETER_DATA_TABLE);
+        cache_set.insert(magnetometerCache.get());
+      }
+   }
 
     for (auto* cache : cache_set)
     {
@@ -223,6 +229,19 @@ void ObservationCacheAdminBase::init()
                                   [this]() { updateBKHydrometaCache(); });
         }
       }
+
+      if (magnetometerCache)
+      {
+        magnetometerCache->cleanMagnetometerCache(
+            boost::posix_time::hours(itsParameters.magnetometerCacheDuration));
+
+        if (itsParameters.magnetometerCacheUpdateInterval > 0)
+        {
+          itsBackgroundTasks->add("Init magnetometer cache",
+                                  [this]() { updateMagnetometerCache(); });
+        }
+      }
+
     }
 
     // If stations info does not exist (stations.txt file  missing), load info from database
@@ -320,6 +339,14 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
       itsBackgroundTasks->add("bk_hydrometa cache update loop",
                               [this]() { updateBKHydrometaCacheLoop(); });
     }
+
+    if (tables.find(MAGNETOMETER_DATA_TABLE) != tables.end() &&
+        itsParameters.magnetometerCacheUpdateInterval > 0)
+    {
+      itsBackgroundTasks->add("magnetometer cache update loop",
+                              [this]() { updateMagnetometerCacheLoop(); });
+    }
+
   }
   catch (...)
   {
@@ -1189,6 +1216,95 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
   }
 }
 
+void ObservationCacheAdminBase::updateMagnetometerCache() const
+{
+  try
+  {
+    if (Spine::Reactor::isShuttingDown() || itsParameters.disableAllCacheUpdates)
+      return;
+
+    // The time of the last observation in the cache
+    std::shared_ptr<ObservationCache> magnetometerCache = getCache(MAGNETOMETER_DATA_TABLE);
+
+/*
+    if (magnetometerCache->isFakeCache(MAGNETOMETER_DATA_TABLE))
+      return updateMagnetometerFakeCache(magnetometerCache);
+*/
+    std::vector<MagnetometerDataItem> cacheData;
+
+    // pair of data_time, modified_last
+	auto min_last_time = boost::posix_time::second_clock::universal_time() -
+	  boost::posix_time::hours(itsParameters.magnetometerCacheDuration);
+	
+	auto last_time = magnetometerCache->getLatestMagnetometerDataTime();
+	auto last_modified_time = magnetometerCache->getLatestMagnetometerModifiedTime();
+	
+	if (last_time.is_not_a_date_time())
+	  last_time = min_last_time;
+	
+	if (last_modified_time.is_not_a_date_time())
+	  last_modified_time = last_time;
+	
+	auto last_time_pair = std::pair<boost::posix_time::ptime, boost::posix_time::ptime>(last_time,
+																						last_modified_time);
+
+    // Extra safety margin since the view contains 3 tables with different max(modified_last) values
+    if (!last_time_pair.second.is_not_a_date_time())
+      last_time_pair.second -= boost::posix_time::seconds(itsParameters.updateExtraInterval);
+
+    // Making sure that we do not request more data than we actually store into
+    // the cache.
+    {
+      auto begin = std::chrono::high_resolution_clock::now();
+
+      readMagnetometerCacheData(
+          cacheData, last_time_pair.first, last_time_pair.second, itsTimeZones);
+
+      auto end = std::chrono::high_resolution_clock::now();
+
+      if (itsTimer)
+        std::cout << Spine::log_time_str() << driverName() << " database driver read "
+                  << cacheData.size() << " Magnetometer observations starting from " << last_time_pair.first
+                  << " finished in "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
+                  << " ms" << std::endl;
+    }
+
+    if (Spine::Reactor::isShuttingDown())
+      return;
+
+    {
+      auto begin = std::chrono::high_resolution_clock::now();
+      auto count = magnetometerCache->fillMagnetometerCache(cacheData);
+      auto end = std::chrono::high_resolution_clock::now();
+
+      if (itsTimer)
+        std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
+                  << " Magnetometer observations starting from " << last_time_pair.first << " finished in "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
+                  << " ms" << std::endl;
+    }
+
+    if (Spine::Reactor::isShuttingDown())
+      return;
+
+    // Delete too old observations from the Cache database
+    auto begin = std::chrono::high_resolution_clock::now();
+    magnetometerCache->cleanMagnetometerCache(boost::posix_time::hours(itsParameters.magnetometerCacheDuration));
+    auto end = std::chrono::high_resolution_clock::now();
+
+    if (itsTimer)
+      std::cout << Spine::log_time_str() << driverName()
+                << " database driver Magnetometer cache cleaner finished in "
+                << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
+                << " ms" << std::endl;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "UPdating magnetometer cache failed failed!");
+  }
+}
+
 void ObservationCacheAdminBase::updateObservationCacheLoop()
 {
   try
@@ -1411,6 +1527,38 @@ void ObservationCacheAdminBase::updateFmiIoTCacheLoop()
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Failure in fmiIoTCacheLoop-function!");
+  }
+}
+
+void ObservationCacheAdminBase::updateMagnetometerCacheLoop()
+{
+  try
+  {
+    while (!Spine::Reactor::isShuttingDown())
+    {
+      Fmi::AsyncTask::interruption_point();
+      try
+      {
+        updateMagnetometerCache();
+      }
+      catch (std::exception& err)
+      {
+        logMessage(std::string(": updateMagnetometerCacheLoop(): ") + err.what(), itsParameters.quiet);
+      }
+      catch (...)
+      {
+        logMessage(": updateMagnetometerCacheLoop(): unknown error", itsParameters.quiet);
+      }
+
+      // Use absolute time to wait, not duration since there may be spurious wakeups.
+      std::size_t wait_duration = itsParameters.magnetometerCacheUpdateInterval;
+      boost::this_thread::sleep_until(boost::chrono::system_clock::now() +
+                                      boost::chrono::seconds(wait_duration));
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Failure in updateMagnetometerCacheLoop-function!");
   }
 }
 

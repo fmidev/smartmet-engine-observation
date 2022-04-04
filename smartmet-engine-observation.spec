@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.4.1
+Version: 22.4.4
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -142,6 +142,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Apr 4 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.4.4-1.fmi
+- Added support for magnetometer observations (BRAINSTORM-2279)
+
 * Fri Apr  1 2022 Andris Pavēnis <andris.pavenis@fmi.fi> 22.4.1-1.fmi
 - StandardFilter: add filters IsOneOf and IsNotOf
 

@@ -64,8 +64,8 @@ void add_where_conditions(std::string &sqlStmt,
 }  // namespace
 
 ExternalAndMobileDBInfo::ExternalAndMobileDBInfo(
-    const ExternalAndMobileProducerMeasurand *producerMeasurand /*= nullptr*/)
-    : itsProducerMeasurand(producerMeasurand)
+    const ExternalAndMobileProducerConfigItem *producerConfig /*= nullptr*/)
+    : itsProducerConfig(producerConfig)
 {
 }
 
@@ -77,11 +77,11 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
 {
   std::string sqlStmt;
 
-  if (!itsProducerMeasurand)
+  if (!itsProducerConfig)
     return "";
 
-  std::string producerName = itsProducerMeasurand->producerId().name();
-  std::string producerId = itsProducerMeasurand->producerId().asString();
+  std::string producerName = itsProducerConfig->producerId().name();
+  std::string producerId = itsProducerConfig->producerId().asString();
   if (producerName == FMI_IOT_PRODUCER)
   {
     sqlStmt = "SELECT obs.prod_id, obs.station_id, obs.dataset_id, obs.data_level";
@@ -90,13 +90,13 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
       sqlStmt += ", MAX(CASE WHEN obs.mid=";
       sqlStmt += Fmi::to_string(mid);
       sqlStmt += " THEN obs.data_value END) AS ";
-      sqlStmt += measurandFieldname(producerName, mid);
+      sqlStmt += measurandFieldname(mid);
     }
     sqlStmt +=
         (", obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value_txt, "
          "obs.data_quality, obs.ctrl_status, MAX(EXTRACT(EPOCH FROM obs.created)) as created, "
          "stat.station_code FROM " +
-         itsDatabaseTableName +
+         itsProducerConfig->databaseTable() +
          " obs, ext_station_v1 stat WHERE "
          "obs.prod_id=stat.prod_id and "
          "obs.station_id=stat.station_id and obs.prod_id=");
@@ -140,11 +140,11 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
 {
   std::string sqlStmt;
 
-  if (!itsProducerMeasurand)
+  if (!itsProducerConfig)
     return "";
 
-  std::string producerName = itsProducerMeasurand->producerId().name();
-  std::string producerId = itsProducerMeasurand->producerId().asString();
+  std::string producerName = itsProducerConfig->producerId().name();
+  std::string producerId = itsProducerConfig->producerId().asString();
   if (producerName == ROADCLOUD_PRODUCER)
   {
     sqlStmt = "SELECT obs.prod_id, obs.station_id, obs.dataset_id, obs.data_level";
@@ -153,7 +153,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
       sqlStmt += ", MAX(CASE WHEN obs.mid=";
       sqlStmt += Fmi::to_string(mid);
       sqlStmt += " THEN obs.data_value END) AS ";
-      sqlStmt += measurandFieldname(producerName, mid);
+      sqlStmt += measurandFieldname(mid);
     }
 
     sqlStmt +=
@@ -161,7 +161,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
          "obs.data_value_txt, obs.data_quality, obs.ctrl_status, MAX(EXTRACT(EPOCH FROM "
          "obs.created)) as created, ST_X(obs.geom) as longitude, "
          "ST_Y(obs.geom) as latitude, altitude FROM " +
-         itsDatabaseTableName + " obs WHERE obs.prod_id=");
+         itsProducerConfig->databaseTable() + " obs WHERE obs.prod_id=");
     sqlStmt += producerId;
   }
   else if (producerName == NETATMO_PRODUCER || producerName == BK_HYDROMETA_PRODUCER)
@@ -172,13 +172,13 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
       sqlStmt += ", MAX(CASE WHEN obs.mid=";
       sqlStmt += Fmi::to_string(mid);
       sqlStmt += " THEN obs.data_value END) AS ";
-      sqlStmt += measurandFieldname(producerName, mid);
+      sqlStmt += measurandFieldname(mid);
     }
     sqlStmt +=
         (", obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value_txt, "
          "obs.data_quality, obs.ctrl_status, MAX(EXTRACT(EPOCH FROM obs.created)) as created, "
          "ST_X(stat.geom) as longitude, ST_Y(stat.geom) as latitude, stat.altitude FROM " +
-         itsDatabaseTableName +
+         itsProducerConfig->databaseTable() +
          " obs, ext_station_v1 stat WHERE obs.prod_id=stat.prod_id and "
          "obs.station_id=stat.station_id and obs.prod_id=");
     sqlStmt += producerId;
@@ -219,14 +219,13 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
   return sqlStmt;
 }
 
-std::string ExternalAndMobileDBInfo::sqlSelectForCache(
-    const std::string &producer,
-    const boost::posix_time::ptime &from_data_time,
-    const boost::posix_time::ptime &from_created_time) const
+std::string ExternalAndMobileDBInfo::sqlSelectForCache(const std::string& producer,
+													   const boost::posix_time::ptime &from_data_time,
+													   const boost::posix_time::ptime &from_created_time)
 {
   std::string sqlStmt;
-
   std::string created_stmt;
+  std::string tablename = "ext_obsdata";
   if (!from_created_time.is_not_a_date_time())
   {
     std::string timestamp = Fmi::to_iso_extended_string(from_created_time);
@@ -242,8 +241,8 @@ std::string ExternalAndMobileDBInfo::sqlSelectForCache(
          ",obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value, "
          "obs.data_value_txt, obs.data_quality, obs.ctrl_status, EXTRACT(EPOCH FROM obs.created) "
          "as created, ST_X(obs.geom) as longitude, ST_Y(obs.geom) as latitude, obs.altitude "
-         "as altitude FROM " +
-         itsDatabaseTableName + " obs WHERE obs.prod_id = 1 AND obs.data_time>='" +
+         "as altitude FROM ext_obsdata" +
+         tablename + " obs WHERE obs.prod_id = 1 AND obs.data_time>='" +
          Fmi::to_iso_extended_string(from_data_time) + "'" + created_stmt);
   }
   else if (producer == NETATMO_PRODUCER || producer == BK_HYDROMETA_PRODUCER)
@@ -255,7 +254,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectForCache(
          "obs.data_value_txt, obs.data_quality, obs.ctrl_status, EXTRACT(EPOCH FROM obs.created) "
          "as created, ST_X(stat.geom) as longitude, ST_Y(stat.geom) as latitude, "
          "stat.altitude as altitude FROM " +
-         itsDatabaseTableName + " obs, ext_station_v1 stat WHERE obs.prod_id= " +
+         tablename + " obs, ext_station_v1 stat WHERE obs.prod_id= " +
          (producer == NETATMO_PRODUCER ? "3 " : "7 ") +
          "AND obs.prod_id=stat.prod_id AND obs.station_id=stat.station_id AND obs.data_time>='" +
          Fmi::to_iso_extended_string(from_data_time) + "'" + created_stmt);
@@ -272,7 +271,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectForCache(
          ",obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value, "
          "obs.data_value_txt, obs.data_quality, obs.ctrl_status, EXTRACT(EPOCH FROM obs.created) "
          "as created, stat.station_code FROM " +
-         itsDatabaseTableName +
+         tablename +
          " obs, ext_station_v1 stat WHERE "
          "obs.prod_id=4 "
          "AND obs.prod_id=stat.prod_id AND obs.station_id=stat.station_id AND obs.data_time>='" +
@@ -289,10 +288,10 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
                                                         const DataFilter &dataFilter,
                                                         bool spatialite /* = false*/) const
 {
-  if (!itsProducerMeasurand)
+  if (!itsProducerConfig)
     return "";
 
-  std::string producerName = itsProducerMeasurand->producerId().name();
+  std::string producerName = itsProducerConfig->producerId().name();
 
   if (producerName != NETATMO_PRODUCER && producerName != ROADCLOUD_PRODUCER &&
       producerName != TECONER_PRODUCER && producerName != FMI_IOT_PRODUCER &&
@@ -336,7 +335,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
     sqlStmt += ", MAX(CASE WHEN obs.mid=";
     sqlStmt += Fmi::to_string(mid);
     sqlStmt += " THEN obs.data_value END) AS ";
-    sqlStmt += measurandFieldname(producerName, mid);
+    sqlStmt += measurandFieldname(mid);
   }
   sqlStmt += " FROM ext_obsdata_";
   sqlStmt += producerName;
@@ -375,10 +374,11 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
   return sqlStmt;
 }
 
-std::string ExternalAndMobileDBInfo::measurandFieldname(const std::string &producerName,
-                                                        int measurandId) const
+std::string ExternalAndMobileDBInfo::measurandFieldname(int measurandId) const
 {
-  if (producerName == ROADCLOUD_PRODUCER)
+  const std::string &producer = itsProducerConfig->producerId().name();
+
+  if (producer == ROADCLOUD_PRODUCER)
   {
     switch (measurandId)
     {
@@ -458,7 +458,7 @@ std::string ExternalAndMobileDBInfo::measurandFieldname(const std::string &produ
         return "";
     }
   }
-  else if (producerName == NETATMO_PRODUCER)
+  else if (producer == NETATMO_PRODUCER)
   {
     switch (measurandId)
     {
@@ -484,7 +484,7 @@ std::string ExternalAndMobileDBInfo::measurandFieldname(const std::string &produ
         return "";
     }
   }
-  else if (producerName == FMI_IOT_PRODUCER)
+  else if (producer == FMI_IOT_PRODUCER)
   {
     switch (measurandId)
     {
@@ -498,7 +498,7 @@ std::string ExternalAndMobileDBInfo::measurandFieldname(const std::string &produ
         return "";
     }
   }
-  else if (producerName == BK_HYDROMETA_PRODUCER)
+  else if (producer == BK_HYDROMETA_PRODUCER)
   {
     switch (measurandId)
     {
@@ -558,11 +558,6 @@ std::string ExternalAndMobileDBInfo::measurandFieldname(const std::string &produ
   }
 
   return "";
-}
-
-void ExternalAndMobileDBInfo::setDatabaseTableName(const std::string &tablename)
-{
-  itsDatabaseTableName = tablename;
 }
 
 }  // namespace Observation

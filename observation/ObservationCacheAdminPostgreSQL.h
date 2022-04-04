@@ -58,6 +58,10 @@ class ObservationCacheAdminPostgreSQL : public ObservationCacheAdminBase
                            boost::posix_time::ptime lastTime,
                            boost::posix_time::ptime lastCreatedTime,
                            const Fmi::TimeZones& timezones) const override;
+  void readMagnetometerCacheData(std::vector<MagnetometerDataItem>& cacheData,
+								 const boost::posix_time::ptime& startTime,
+								 const boost::posix_time::ptime& lastModifiedTime,
+								 const Fmi::TimeZones& timezones) const override;
 
   void loadStations(const std::string& serializedStationsFile) override;
 

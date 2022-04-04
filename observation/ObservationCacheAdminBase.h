@@ -55,6 +55,12 @@ class ObservationCacheAdminBase
                                    const Fmi::TimeZones& timezones) const
   {
   }
+  virtual void readMagnetometerCacheData(std::vector<MagnetometerDataItem>& cacheData,
+										 const boost::posix_time::ptime& startTime,
+										 const boost::posix_time::ptime& lastModifiedTime,
+										 const Fmi::TimeZones& timezones) const
+  {
+  }
 
   virtual void loadStations(const std::string& serializedStationsFile) = 0;
   void reloadStations();
@@ -96,6 +102,7 @@ class ObservationCacheAdminBase
   void updateBKHydrometaCache() const;
   void updateRoadCloudCache() const;
   void updateFmiIoTCache() const;
+  void updateMagnetometerCache() const;
 
   void updateFlashCacheLoop();
   void updateObservationCacheLoop();
@@ -104,6 +111,7 @@ class ObservationCacheAdminBase
   void updateBKHydrometaCacheLoop();
   void updateRoadCloudCacheLoop();
   void updateFmiIoTCacheLoop();
+  void updateMagnetometerCacheLoop();
   void updateStationsCacheLoop();
 
   void calculateStationDirection(Spine::Station& station) const;

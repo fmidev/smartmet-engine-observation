@@ -77,6 +77,7 @@ class CommonDatabaseFunctions
       const StationInfo &stationInfo,
       const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
+  
 
   virtual void fetchWeatherDataQCData(const std::string &sqlStmt,
                                       const StationInfo &stationInfo,
@@ -95,6 +96,12 @@ class CommonDatabaseFunctions
   {
     itsGetRequestedAndDataTimesteps = opt;
   }
+
+  virtual TS::TimeSeriesVectorPtr getMagnetometerData(const Settings &settings,
+													  const Fmi::TimeZones &timezones);
+  virtual TS::TimeSeriesVectorPtr getMagnetometerData(const Settings &settings,
+													  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+													  const Fmi::TimeZones &timezones) = 0;
 
  protected:
   QueryMapping buildQueryMapping(const Spine::Stations &stations,

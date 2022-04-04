@@ -17,7 +17,7 @@ namespace Observation
 class ExternalAndMobileDBInfo
 {
  public:
-  ExternalAndMobileDBInfo(const ExternalAndMobileProducerMeasurand *producerMeasurand = nullptr);
+  ExternalAndMobileDBInfo(const ExternalAndMobileProducerConfigItem *producerConfig = nullptr);
 
   std::string sqlSelect(const std::vector<int> &measurandIds,
                         const boost::posix_time::ptime &starttime,
@@ -29,9 +29,6 @@ class ExternalAndMobileDBInfo
                         const boost::posix_time::ptime &endtime,
                         const std::string &wktAreaFilter,
                         const TS::DataFilter &dataFilter) const;
-  std::string sqlSelectForCache(const std::string &producer,
-                                const boost::posix_time::ptime &from_data_time,
-                                const boost::posix_time::ptime &from_created_time) const;
   std::string sqlSelectFromCache(const std::vector<int> &measurandIds,
                                  const boost::posix_time::ptime &starttime,
                                  const boost::posix_time::ptime &endtime,
@@ -39,12 +36,14 @@ class ExternalAndMobileDBInfo
                                  const TS::DataFilter &dataFilter,
                                  bool spatialite = false) const;
 
-  std::string measurandFieldname(const std::string &producerName, int measurandId) const;
-  void setDatabaseTableName(const std::string &tablename);
+  std::string measurandFieldname(int measurandId) const;
+
+  static std::string sqlSelectForCache(const std::string& producer,
+									   const boost::posix_time::ptime &from_data_time,
+									   const boost::posix_time::ptime &from_created_time);
 
  private:
-  const ExternalAndMobileProducerMeasurand *itsProducerMeasurand{nullptr};
-  std::string itsDatabaseTableName{"ext_obsdata"};
+  const ExternalAndMobileProducerConfigItem *itsProducerConfig{nullptr};
 };
 
 }  // namespace Observation

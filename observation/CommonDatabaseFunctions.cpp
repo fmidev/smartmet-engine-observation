@@ -959,6 +959,20 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
   }
 }
 
+TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getMagnetometerData(
+    const Settings &settings,
+    const Fmi::TimeZones &timezones)
+{
+  TS::TimeSeriesGeneratorOptions opt;
+  opt.startTime = settings.starttime;
+  opt.endTime = settings.endtime;
+  opt.timeStep = settings.timestep;
+  opt.startTimeUTC = false;
+  opt.endTimeUTC = false;
+
+  return getMagnetometerData(settings, opt, timezones);
+}
+
 TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
     const Spine::Stations &stations,
     const Settings &settings,

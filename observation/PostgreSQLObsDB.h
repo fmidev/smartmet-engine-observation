@@ -4,6 +4,7 @@
 #include "DataItem.h"
 #include "FlashDataItem.h"
 #include "MobileExternalDataItem.h"
+#include "MagnetometerDataItem.h"
 #include "ParameterMap.h"
 #include "QueryResultBase.h"
 #include "Settings.h"
@@ -75,6 +76,10 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions, private boost::noncopy
                                                 boost::posix_time::ptime lastTime,
                                                 boost::posix_time::ptime lastModifiedTime,
                                                 const Fmi::TimeZones &timezones);
+  void readMagnetometerCacheDataFromPostgreSQL(std::vector<MagnetometerDataItem> &cacheData,
+											   boost::posix_time::ptime lastTime,
+											   boost::posix_time::ptime lastModifiedTime,
+											   const Fmi::TimeZones &timezones);
 
   boost::posix_time::ptime startTime;
   boost::posix_time::ptime endTime;
@@ -108,7 +113,6 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions, private boost::noncopy
 
   void getStations(Spine::Stations &stations) const;
   void readStationLocations(StationLocations &stationLocations) const;
-
  private:
   TS::TimeSeriesVectorPtr itsTimeSeriesColumns;
   LocationDataItems readObservations(const Spine::Stations &stations,

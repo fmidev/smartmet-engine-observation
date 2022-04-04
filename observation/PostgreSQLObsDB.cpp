@@ -55,8 +55,7 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
 {
   try
   {
-    ExternalAndMobileDBInfo dbInfo;
-    std::string sqlStmt = dbInfo.sqlSelectForCache(producer, lastTime, lastCreatedTime);
+    std::string sqlStmt = ExternalAndMobileDBInfo::sqlSelectForCache(producer, lastTime, lastCreatedTime);
 
     if (itsDebug)
       std::cout << "PostgreSQL: " << sqlStmt << std::endl;
@@ -183,6 +182,7 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
+
 void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
                                                   const boost::posix_time::ptime & /* startTime */,
                                                   const boost::posix_time::ptime &lastModifiedTime,
@@ -475,6 +475,81 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
+
+void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
+    std::vector<MagnetometerDataItem> &cacheData,
+    boost::posix_time::ptime lastTime,
+    boost::posix_time::ptime lastModifiedTime,
+    const Fmi::TimeZones &timezones)
+{
+  try
+  {
+    auto starttime = lastModifiedTime;
+
+    const boost::posix_time::ptime now = second_clock::universal_time();
+    auto diff = now - starttime;
+
+    // Sometimes lastModifiedTime is 1.1.1970 due to problems, disable huge updates (?? perhaps not possible fpr magnetometer data)
+    if (diff > boost::posix_time::hours(366 * 24))
+    {
+      starttime = lastTime;
+      diff = now - starttime;
+    }
+
+    const bool big_request = (diff >= boost::posix_time::hours(24));
+
+    if (big_request)
+    {
+      std::cout << (Spine::log_time_str() +
+                    " [PostgreSQLObsDB] Performing a large Magnetometer cache update starting from " +
+                    Fmi::to_simple_string(starttime))
+                << std::endl;
+    }
+
+	std::string sqlStmt = "SELECT station_id, magnetometer, level, EXTRACT(EPOCH FROM date_trunc('seconds', data_time)) AS obstime, "
+	  "x as magneto_x, y as magneto_y, z as magneto_z, t as magneto_t, f as magneto_f, data_quality,  EXTRACT(EPOCH FROM date_trunc('seconds', modified_last)) AS modtime from magnetometer_data";
+	sqlStmt += (" where modified_last >= '" + Fmi::to_iso_extended_string(starttime) + "'");
+	sqlStmt += (" AND magnetometer NOT IN ('NUR2','GAS1')");
+
+	if (itsDebug)
+      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+
+	pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+	
+	unsigned int count = 0;
+	for (auto row : result_set)
+	  {
+		if (count++ % 64 == 0)
+		  {
+			Fmi::AsyncTask::interruption_point();
+		  }
+		MagnetometerDataItem item;
+		
+		item.fmisid = as_int(row[0]);
+		item.magnetometer = row[1].as<std::string>();
+		item.level = as_int(row[2]);
+		item.data_time = boost::posix_time::from_time_t(row[3].as<time_t>());	  
+		if (!row[4].is_null())
+		  item.x = as_double(row[4]);
+		if (!row[5].is_null())
+		  item.y = as_double(row[5]);
+		if (!row[6].is_null())
+		  item.z = as_double(row[6]);
+		if (!row[7].is_null())
+		  item.t = as_double(row[7]);
+		if (!row[8].is_null())
+		  item.f = as_double(row[8]);
+		item.data_quality = as_int(row[9]);
+		item.modified_last = boost::posix_time::from_time_t(row[10].as<time_t>());	  
+		cacheData.emplace_back(item);
+	  }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
 
 /*
  * Set time interval for database query.

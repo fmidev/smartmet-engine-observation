@@ -99,6 +99,15 @@ class SpatiaLiteCache : public ObservationCache
   void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const override;
   TS::TimeSeriesVectorPtr fmiIoTValuesFromSpatiaLite(Settings &settings) const;
 
+  // Magnetometer
+  bool magnetometerIntervalIsCached(const boost::posix_time::ptime &starttime,
+									 const boost::posix_time::ptime &endtime) const override;
+  boost::posix_time::ptime getLatestMagnetometerDataTime() const override;
+  boost::posix_time::ptime getLatestMagnetometerModifiedTime() const override;
+  std::size_t fillMagnetometerCache(const MagnetometerDataItems &magnetometerCacheData) const override;
+  void cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const override;
+  TS::TimeSeriesVectorPtr magnetometerValuesFromSpatiaLite(Settings &settings) const;
+
   void shutdown() override;
 
   // This has been added for flash emulator
@@ -158,6 +167,10 @@ class SpatiaLiteCache : public ObservationCache
   mutable boost::posix_time::ptime itsFmiIoTTimeIntervalStart;
   mutable boost::posix_time::ptime itsFmiIoTTimeIntervalEnd;
 
+  mutable Spine::MutexType itsMagnetometerTimeIntervalMutex;
+  mutable boost::posix_time::ptime itsMagnetometerTimeIntervalStart;
+  mutable boost::posix_time::ptime itsMagnetometerTimeIntervalEnd;
+
   // Caches for last inserted rows to avoid duplicate inserts
   mutable InsertStatus itsDataInsertCache;
   mutable InsertStatus itsWeatherQCInsertCache;
@@ -166,6 +179,7 @@ class SpatiaLiteCache : public ObservationCache
   mutable InsertStatus itsNetAtmoInsertCache;
   mutable InsertStatus itsBKHydrometaInsertCache;
   mutable InsertStatus itsFmiIoTInsertCache;
+  mutable InsertStatus itsMagnetometerInsertCache;
 
   // Memory caches smaller than the spatialite cache itself
   std::unique_ptr<ObservationMemoryCache> itsObservationMemoryCache;

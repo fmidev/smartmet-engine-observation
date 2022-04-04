@@ -77,6 +77,16 @@ void ObservationCacheAdminPostgreSQL::readObservationCacheData(
   db->readCacheDataFromPostgreSQL(cacheData, startTime, lastModifiedTime, itsTimeZones);
 }
 
+void ObservationCacheAdminPostgreSQL::readMagnetometerCacheData(
+    std::vector<MagnetometerDataItem>& cacheData,
+    const boost::posix_time::ptime& startTime,
+    const boost::posix_time::ptime& lastModifiedTime,
+    const Fmi::TimeZones& /* timezones */) const
+{
+  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+  db->readMagnetometerCacheDataFromPostgreSQL(cacheData, startTime, lastModifiedTime, itsTimeZones);
+}
+
 void ObservationCacheAdminPostgreSQL::readFlashCacheData(
     std::vector<FlashDataItem>& cacheData,
     const boost::posix_time::ptime& startTime,

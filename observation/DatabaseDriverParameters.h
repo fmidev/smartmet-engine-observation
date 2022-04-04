@@ -34,6 +34,7 @@ struct DatabaseDriverParameters
   std::size_t roadCloudCacheUpdateInterval = 0;
   std::size_t fmiIoTCacheUpdateInterval = 0;
   std::size_t bkHydrometaCacheUpdateInterval = 0;
+  std::size_t magnetometerCacheUpdateInterval = 0;
   std::size_t stationsCacheUpdateInterval = 0;
   int updateExtraInterval = 10;  // update 10 seconds before max(modified_last) for safety
   int finCacheDuration = 0;
@@ -45,6 +46,7 @@ struct DatabaseDriverParameters
   int roadCloudCacheDuration = 0;
   int fmiIoTCacheDuration = 0;
   int bkHydrometaCacheDuration = 0;
+  int magnetometerCacheDuration = 0;
   bool quiet = false;
   bool loadStations = false;
   FlashEmulatorParameters flashEmulator;

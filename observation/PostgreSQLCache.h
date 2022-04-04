@@ -96,6 +96,14 @@ class PostgreSQLCache : public ObservationCache
       const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const override;
 
+  // Magnetometer
+  bool magnetometerIntervalIsCached(const boost::posix_time::ptime &starttime,
+                                      const boost::posix_time::ptime &endtime) const;
+  boost::posix_time::ptime getLatestMagnetometerDataTime() const;
+  boost::posix_time::ptime getLatestMagnetometerModifiedTime() const;
+  std::size_t fillMagnetometerCache(const MagnetometerDataItems &magnetometerCacheData) const;
+  void cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const;
+
   void shutdown() override;
 
  private:
