@@ -18,9 +18,9 @@ BuildRequires: gdal34-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 22.3.15
-BuildRequires: smartmet-library-locus-devel >= 22.1.31
-BuildRequires: smartmet-library-macgyver-devel >= 22.3.8
+BuildRequires: smartmet-engine-geonames-devel >= 22.3.21
+BuildRequires: smartmet-library-locus-devel >= 22.3.28
+BuildRequires: smartmet-library-macgyver-devel >= 22.3.28
 BuildRequires: smartmet-library-spine-devel >= 22.3.18
 BuildRequires: smartmet-library-timeseries-devel >= 22.3.18
 BuildRequires: sqlite3pp-devel >= 1.0.9
@@ -35,9 +35,9 @@ Requires: boost169-thread
 Requires: fmt >= 7.1.3
 Requires: gdal34-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 22.3.15
-Requires: smartmet-library-locus >= 22.1.31
-Requires: smartmet-library-macgyver >= 22.3.8
+Requires: smartmet-engine-geonames >= 22.3.21
+Requires: smartmet-library-locus >= 22.3.28
+Requires: smartmet-library-macgyver >= 22.3.28
 Requires: smartmet-library-spine >= 22.3.18
 Requires: smartmet-library-timeseries >= 22.3.18
 Requires: smartmet-server >= 21.11.25
@@ -72,7 +72,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: gdal34-devel
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 22.3.15
+#TestRequires: smartmet-engine-geonames >= 22.3.21
 #TestRequires: smartmet-library-macgyver >= 22.2.8
 #TestRequires: smartmet-library-timeseries >= 22.2.8
 #TestRequires: smartmet-library-timeseries-devel >= 22.2.18
@@ -108,7 +108,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 22.3.8
+Requires: smartmet-library-spine-devel >= 22.3.18
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
