@@ -154,6 +154,10 @@ class QueryResult : public QueryResultBase
   std::vector<ValueType> m_valueTypeOfVector;
 };
 
+template <>
+boost::posix_time::ptime
+QueryResult::castTo(const QueryResult::ValueVectorType::const_iterator value);
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
