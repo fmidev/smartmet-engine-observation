@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.4.8
+Version: 22.4.20
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -142,6 +142,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Apr 20 2022 Andris Pavenis <andris.pavenis@fmi.fi> 22.4.20-1.fmi
+- Property.cpp: fix autput of std::string
+
 * Fri Apr  8 2022 Andris Pavēnis <andris.pavenis@fmi.fi> 22.4.8-1.fmi
 - QueryResult::castTo<>: add partial specialization for boost::posix_time::ptime
 
