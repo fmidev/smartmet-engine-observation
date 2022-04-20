@@ -158,7 +158,7 @@ namespace {
         add_type<std::string>(conv,
             [](const boost::any& value, const std::string&) -> std::string
             {
-                return boost::any_cast<std::string>(value);
+                return "'" + boost::any_cast<std::string>(value) + "'";
             },
             "string");
 
