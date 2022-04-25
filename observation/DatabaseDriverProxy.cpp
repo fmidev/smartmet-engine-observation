@@ -141,6 +141,43 @@ void DatabaseDriverProxy::init(Engine *obsengine)
   }
 }
 
+void DatabaseDriverProxy::getStationGroups(StationGroups& sg) const
+{
+  try
+  {
+	// Read station groups from DB
+	if(itsStationsDriver)
+	  itsStationsDriver->getStationGroups(sg);
+	else
+	  std::cout << Spine::log_time_str()
+				<< " [DatabaseDriverProxy] Getting station groups denied, a driver for loading stations "
+		"is not set\n";
+ }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "DatabaseDriverProxy::getStationGroups function failed!");
+  }
+}
+
+void DatabaseDriverProxy::getProducerGroups(ProducerGroups& pg) const
+{
+  try
+  {
+	// Read station groups from DB
+	if(itsStationsDriver)
+	  itsStationsDriver->getProducerGroups(pg);
+	else
+	  std::cout << Spine::log_time_str()
+				<< " [DatabaseDriverProxy] Getting producer groups denied, a driver for loading stations "
+		"is not set\n";	
+ }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "DatabaseDriverProxy::getProducerGroups function failed!");
+  }
+}
+
+
 TS::TimeSeriesVectorPtr DatabaseDriverProxy::values(Settings &settings)
 {
   try

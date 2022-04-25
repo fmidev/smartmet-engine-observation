@@ -9,6 +9,8 @@
 #include "QueryResultBase.h"
 #include "Settings.h"
 #include "StationtypeConfig.h"
+#include "StationGroups.h"
+#include "ProducerGroups.h"
 #include "WeatherDataQCItem.h"
 #include <boost/atomic.hpp>
 #include <macgyver/PostgreSQLConnection.h>
@@ -113,13 +115,11 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions, private boost::noncopy
 
   void getStations(Spine::Stations &stations) const;
   void readStationLocations(StationLocations &stationLocations) const;
+  void getStationGroups(StationGroups& sg) const;
+  void getProducerGroups(ProducerGroups& pg) const;
+
  private:
   TS::TimeSeriesVectorPtr itsTimeSeriesColumns;
-  LocationDataItems readObservations(const Spine::Stations &stations,
-                                     const Settings &settings,
-                                     const StationInfo &stationInfo,
-                                     const QueryMapping &qmap,
-                                     const std::set<std::string> &stationgroup_codes);
 
   void readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
                                    const std::string &sqlStmt,

@@ -25,6 +25,9 @@ class PostgreSQLDatabaseDriverForFmiData : public PostgreSQLDatabaseDriver
   std::string id() const override;
   void makeQuery(QueryBase *qb) override;
 
+  void getStationGroups(StationGroups& sg) const override;
+  void getProducerGroups(ProducerGroups& pg) const override;
+
   TS::TimeSeriesVectorPtr values(Settings &settings) override;
 
   TS::TimeSeriesVectorPtr values(

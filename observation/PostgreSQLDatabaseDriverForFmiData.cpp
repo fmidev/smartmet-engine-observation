@@ -448,6 +448,18 @@ void PostgreSQLDatabaseDriverForFmiData::readConfig(Spine::ConfigBase &cfg)
   }
 }
 
+void PostgreSQLDatabaseDriverForFmiData::getStationGroups(StationGroups& sg) const
+{
+  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+  db->getStationGroups(sg);	
+}
+
+void PostgreSQLDatabaseDriverForFmiData::getProducerGroups(ProducerGroups& pg) const
+{
+  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+  db->getProducerGroups(pg);	
+}
+
 std::string PostgreSQLDatabaseDriverForFmiData::id() const
 {
   return "postgresql_fmi";
