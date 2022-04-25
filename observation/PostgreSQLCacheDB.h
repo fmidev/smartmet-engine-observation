@@ -403,11 +403,6 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
       const Settings &settings,
       const ParameterMapPtr &parameterMap,
       const Fmi::TimeZones &timezones);
-  LocationDataItems readObservations(const Spine::Stations &stations,
-                                     const Settings &settings,
-                                     const StationInfo &stationInfo,
-                                     const QueryMapping &qmap,
-                                     const std::set<std::string> &stationgroup_codes);
 };
 
 }  // namespace Observation

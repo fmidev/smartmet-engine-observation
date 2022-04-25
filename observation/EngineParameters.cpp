@@ -138,7 +138,6 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
   // Stationtype settings
   if(config.exists("stationtypelist"))
 	{
-	  std::cout << "stationtypelist found\n";
 	  libconfig::Setting& stationtypelist_settings = config.lookup("stationtypelist");
 	  for (int i = 0; i < stationtypelist_settings.getLength(); i++)
         {
@@ -211,6 +210,8 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
 			  else
 				stationgroupCodeVector.push_back("VOID_AND_MISSING");
 			  
+			  /*
+			  // Producer ids are now fetched from database
 			  if ((useCommonQueryMethod || stationTypeIsCached) && producerIdVector.empty())
 				{
 				  throw Fmi::Exception(BCP, "Invalid parameter value!")
@@ -219,6 +220,7 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
 										   "array for the stationtype '{}' if the useCommonQueryMethod value is true.",
 										   stationtype));
 				}
+			  */
 			  if (databaseTableName.empty() && useCommonQueryMethod)
 				{
 				  throw Fmi::Exception(BCP, "Invalid parameter value!")
@@ -238,7 +240,7 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
 	}
   else
 	{
-	  std::cout << "stationtypelist NOT found\n";
+	  throw Fmi::Exception::Trace(BCP, "Configuration error: stationtypelist missing!");
 	}
   }
   catch (...)

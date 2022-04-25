@@ -78,12 +78,9 @@ class StationtypeConfig
   /**
    * @brief Get database table name by using a stationtype.
    * @param[in] stationtype Stationtype keyword to search database table name.
-   * @exception Obs_EngineException::INVALID_PARAMETER_VALUE If there is no a match with the
-   * stationtype.
-   * @return Reference to the database table nane.
+   * @return String contaning database table name, empty string if no table name defined for stationtype
    */
-  std::shared_ptr<const DatabaseTableNameType> getDatabaseTableNameByStationtype(
-      const StationtypeType& stationtype) const;
+  std::string getDatabaseTableNameByStationtype(const StationtypeType& stationtype) const;
 
   /**
    * @brief Get a group code list by using a stationtype.
@@ -98,11 +95,9 @@ class StationtypeConfig
   /**
    * @brief Get producer id set by using a stationtype.
    * @param[in] stationtype Stationtype keyword to search producer id set.
-   * @exception Obs_EngineException::INVALID_PARAMETER_VALUE If there is no a match with the
-   * stationtype.
    * @return Reference to the producer id set match with the stationtype.
    */
-  std::shared_ptr<const ProducerIdSetType> getProducerIdSetByStationtype(
+  const ProducerIdSetType& getProducerIdSetByStationtype(
       const StationtypeType& stationtype) const;
 
   /**

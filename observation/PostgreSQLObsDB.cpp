@@ -572,103 +572,6 @@ void PostgreSQLObsDB::setTimeInterval(const ptime &theStartTime,
   }
 }
 
-LocationDataItems PostgreSQLObsDB::readObservations(const Spine::Stations &stations,
-                                                    const Settings &settings,
-                                                    const StationInfo &stationInfo,
-                                                    const QueryMapping &qmap,
-                                                    const std::set<std::string> &stationgroup_codes)
-{
-  try
-  {
-    LocationDataItems ret;
-
-    // Safety check
-    if (qmap.measurandIds.empty())
-      return ret;
-
-    std::string measurand_ids;
-    for (const auto &id : qmap.measurandIds)
-      measurand_ids += Fmi::to_string(id) + ",";
-
-    measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
-
-    auto qstations = buildSqlStationList(stations, stationgroup_codes, stationInfo);
-
-    if (qstations.empty())
-      return ret;
-
-    std::list<std::string> producer_id_str_list;
-    for (auto prodId : settings.producer_ids)
-      producer_id_str_list.emplace_back(std::to_string(prodId));
-    std::string producerIds = boost::algorithm::join(producer_id_str_list, ",");
-
-    std::string starttime = Fmi::to_iso_extended_string(settings.starttime);
-    std::string endtime = Fmi::to_iso_extended_string(settings.endtime);
-
-    std::string sqlStmt =
-        "SELECT data.station_id AS fmisid, data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM "
-        "date_trunc('seconds', data.data_time)) AS obstime, "
-        "measurand_id, data_value, data_quality, data_source "
-        "FROM observation_data_r1 data "
-        "WHERE data.station_id IN (" +
-        qstations +
-        ") "
-        "AND data.data_time >= '" +
-        starttime + "' AND data.data_time <= '" + endtime + "' AND data.measurand_id IN (" +
-        measurand_ids + ") ";
-    if (!producerIds.empty())
-      sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
-
-    sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
-    sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") +
-               " GROUP BY data.station_id, data.sensor_no, data.data_time, data.measurand_id, "
-               "data.data_value, data.data_quality, data.data_source "
-               "ORDER BY fmisid ASC, obstime ASC";
-
-    if (itsDebug)
-      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
-
-    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-
-    for (auto row : result_set)
-    {
-      Fmi::AsyncTask::interruption_point();
-      LocationDataItem obs;
-      obs.data.fmisid = as_int(row[0]);
-      obs.data.sensor_no = as_int(row[1]);
-      obs.data.data_time = boost::posix_time::from_time_t(row[2].as<time_t>());
-      obs.data.measurand_id = as_int(row[3]);
-      if (!row[4].is_null())
-        obs.data.data_value = as_double(row[4]);
-      if (!row[5].is_null())
-        obs.data.data_quality = as_int(row[5]);
-      if (!row[6].is_null())
-        obs.data.data_source = as_int(row[6]);
-      // Get latitude, longitude, elevation from station info
-      const Spine::Station &s = stationInfo.getStation(obs.data.fmisid, stationgroup_codes);
-      obs.latitude = s.latitude_out;
-      obs.longitude = s.longitude_out;
-      obs.elevation = s.station_elevation;
-      const StationLocation &sloc =
-          stationInfo.stationLocations.getLocation(obs.data.fmisid, obs.data.data_time);
-      // Get exact location, elevation
-      if (sloc.location_id != -1)
-      {
-        obs.latitude = sloc.latitude;
-        obs.longitude = sloc.longitude;
-        obs.elevation = sloc.elevation;
-      }
-
-      ret.emplace_back(obs);
-    }
-
-    return ret;
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Reading observations from PostgreSQL database failed!");
-  }
-}
 
 void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
                                              const StationInfo &stationInfo,
@@ -974,6 +877,9 @@ void PostgreSQLObsDB::readStationLocations(StationLocations &stationLocations) c
         "SELECT location_id, station_id, country_id, location_start, location_end, lon, lat, "
         "station_elevation from locations_v2";
 
+    if (itsDebug)
+      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
     for (auto row : result_set)
@@ -992,6 +898,83 @@ void PostgreSQLObsDB::readStationLocations(StationLocations &stationLocations) c
 
       stationLocations[item.fmisid].push_back(item);
     }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+void PostgreSQLObsDB::getStationGroups(StationGroups& sg) const
+{
+  try
+  {
+	// First get groups
+    std::string sqlStmt = "select group_id, group_name from station_groups_v1 where class_id in (1,81)";
+	
+    if (itsDebug)
+      std::cout << "PostgreSQL (station groups): " << sqlStmt << std::endl;
+
+	pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+
+	std::map<int, std::string> groups; // group_id -> group_name
+    for (auto row : result_set)
+	  {
+		int group_id = as_int(row[0]);
+		std::string group_name = row[1].as<std::string>();
+		groups[group_id] = group_name;
+	  }
+
+	// Then get group members
+	sqlStmt = "select group_id, station_id, valid_from, valid_to from group_members_v1";
+
+    if (itsDebug)
+      std::cout << "PostgreSQL (station group members): " << sqlStmt << std::endl;
+
+	result_set = itsDB.executeNonTransaction(sqlStmt);
+
+    for (auto row : result_set)
+	  {
+		int group_id = as_int(row[0]);
+		if(groups.find(group_id) == groups.end())
+		  continue;
+
+		int station_id = as_int(row[1]);
+		boost::posix_time::ptime starttime = boost::posix_time::time_from_string(row[2].as<std::string>());
+		boost::posix_time::ptime endtime = boost::posix_time::time_from_string(row[3].as<std::string>());
+		if(groups.find(group_id) != groups.end())
+		  {
+			const std::string& group_name = groups.at(group_id);
+			sg.addGroupPeriod(station_id, group_name, starttime, endtime);
+		  }
+	  }
+
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+void PostgreSQLObsDB::getProducerGroups(ProducerGroups& pg) const
+{
+  try
+  {
+    std::string sqlStmt = "select group_name,producer_id,membership_valid_from,membership_valid_to FROM producer_group_members_v1 where group_in_use=1 and namespace='cldb'";
+	
+	if (itsDebug)
+      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+
+	pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+
+    for (auto row : result_set)
+	  {
+		std::string group_name = row[0].as<std::string>();
+		int producer_id = as_int(row[1]);
+		boost::posix_time::ptime starttime = boost::posix_time::time_from_string(row[2].as<std::string>());
+		boost::posix_time::ptime endtime = boost::posix_time::time_from_string(row[3].as<std::string>());
+		pg.addGroupPeriod(group_name, producer_id, starttime, endtime);
+	  }
   }
   catch (...)
   {

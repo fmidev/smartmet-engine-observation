@@ -47,8 +47,15 @@ void DatabaseDriverBase::updateProducers(const EngineParametersPtr &p, Settings 
   {
     if (p->stationtypeConfig.getUseCommonQueryMethod(settings.stationtype) and
         settings.producer_ids.empty())
-      settings.producer_ids =
-          *p->stationtypeConfig.getProducerIdSetByStationtype(settings.stationtype);
+	  {	  
+		settings.producer_ids = p->stationtypeConfig.getProducerIdSetByStationtype(settings.stationtype);
+
+		// If ids from config not found try from database
+		if(settings.producer_ids.empty())
+		  settings.producer_ids = p->producerGroups.getProducerIds(settings.stationtype,
+																   settings.starttime,
+																   settings.endtime);
+	  }
   }
   catch (...)
   {
@@ -243,7 +250,7 @@ std::string DatabaseDriverBase::resolveCacheTableName(
       tablename = BK_HYDROMETA_DATA_TABLE;
     else
     {
-      tablename = *(stationtypeConfig.getDatabaseTableNameByStationtype(producer));
+      tablename = stationtypeConfig.getDatabaseTableNameByStationtype(producer);
 
       if (tablename == "observation_data_r1")
         tablename = OBSERVATION_DATA_TABLE;
@@ -253,7 +260,7 @@ std::string DatabaseDriverBase::resolveCacheTableName(
   }
   catch (...)
   {
-    // If table not found return emptystring
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 
   return tablename;
@@ -334,7 +341,7 @@ std::string DatabaseDriverBase::resolveDatabaseTableName(const std::string &prod
       tablename = EXT_OBSDATA_TABLE;
     else
     {
-      tablename = *(stationtypeConfig.getDatabaseTableNameByStationtype(producer));
+      tablename = stationtypeConfig.getDatabaseTableNameByStationtype(producer);
 
       if (tablename == "observation_data_r1")
         tablename = OBSERVATION_DATA_TABLE;
@@ -344,7 +351,7 @@ std::string DatabaseDriverBase::resolveDatabaseTableName(const std::string &prod
   }
   catch (...)
   {
-    // If table not found return emptystring
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 
   return tablename;

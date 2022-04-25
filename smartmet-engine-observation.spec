@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.4.20
+Version: 22.4.25
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -142,6 +142,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Apr 25 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.4.25-1.fmi
+- Read producer ids from database (BRAINSTORM-2297)
+- Remove useless exceptions (BRAINSTORM-2303)
+
 * Wed Apr 20 2022 Andris Pavenis <andris.pavenis@fmi.fi> 22.4.20-1.fmi
 - Property.cpp: fix autput of std::string
 

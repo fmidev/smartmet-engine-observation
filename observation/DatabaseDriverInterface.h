@@ -6,6 +6,8 @@
 #include "Settings.h"
 #include "StationSettings.h"
 #include "Utils.h"
+#include "StationGroups.h"
+#include "ProducerGroups.h"
 #include <boost/atomic.hpp>
 #include <boost/thread/condition.hpp>
 #include <macgyver/CacheStats.h>
@@ -58,6 +60,8 @@ class DatabaseDriverInterface
   virtual std::string id() const = 0;
   virtual std::string name() const = 0;
   virtual Fmi::Cache::CacheStatistics getCacheStats() const = 0;
+  virtual void getStationGroups(StationGroups& sg) const = 0;
+  virtual void getProducerGroups(ProducerGroups& pg) const = 0;
 
  protected:
   DatabaseDriverInterface() = default;
