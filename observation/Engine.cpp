@@ -77,8 +77,16 @@ void Engine::init()
                  itsEngineParameters->quiet);
       itsDatabaseDriver->init(this);
     }
-
+	
     SpecialParameters::setGeonames(getGeonames());
+	itsDatabaseDriver->getProducerGroups(itsEngineParameters->producerGroups);
+	itsEngineParameters->producerGroups.replaceProducerIds("observations_fmi", "fmi");
+
+	// Lets get station groups even if they can not be utilized for now
+	StationGroups sg;
+	itsDatabaseDriver->getStationGroups(sg);
+    auto sinfo = itsEngineParameters->stationInfo.load();
+	sinfo->setStationGroups(sg);
   }
   catch (...)
   {
@@ -536,10 +544,10 @@ ContentTable Engine::getProducerInfo(boost::optional<std::string> producer) cons
     {
       if (itsEngineParameters->stationtypeConfig.hasProducerIds(t))
       {
-        std::shared_ptr<const std::set<uint>> producers =
+        const std::set<uint>& producers =
             itsEngineParameters->stationtypeConfig.getProducerIdSetByStationtype(t);
         std::list<std::string> producer_id_list;
-        for (auto id : *producers)
+        for (auto id : producers)
           producer_id_list.emplace_back(Fmi::to_string(id));
         producer_ids = boost::algorithm::join(producer_id_list, ",");
       }

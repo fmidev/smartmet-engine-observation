@@ -8,6 +8,7 @@
 #include "ObservationCacheProxy.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
+#include "ProducerGroups.h"
 #include <boost/smart_ptr/atomic_shared_ptr.hpp>
 #include <macgyver/Cache.h>
 
@@ -43,6 +44,7 @@ struct EngineParameters
   std::map<std::string, std::string> dataQualityFilters;  // stationtype
   StationtypeConfig stationtypeConfig;
   ExternalAndMobileProducerConfig externalAndMobileProducerConfig;
+  ProducerGroups producerGroups;
 
   ParameterMapPtr parameterMap;
 

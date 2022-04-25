@@ -1,5 +1,7 @@
 #pragma once
 
+#include "StationGroups.h"
+#include "ProducerGroups.h"
 #include "DatabaseDriverParameters.h"
 #include "DatabaseStations.h"
 #include "Engine.h"
@@ -60,6 +62,9 @@ class DatabaseDriverBase
 
   virtual std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language) = 0;
+
+  virtual void getStationGroups(StationGroups& sg) const {}
+  virtual void getProducerGroups(ProducerGroups& pg) const {}
 
   virtual void shutdown() = 0;
 

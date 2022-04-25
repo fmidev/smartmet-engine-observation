@@ -13,6 +13,8 @@ namespace Engine
 {
 namespace Observation
 {
+  static StationtypeConfig::ProducerIdSetType empty_producer_id_set;
+
 StationtypeConfig::StationtypeConfig() = default;
 
 StationtypeConfig::~StationtypeConfig() = default;
@@ -60,19 +62,16 @@ void StationtypeConfig::addStationtype(const StationtypeType& stationtype,
   }
 }
 
-std::shared_ptr<const StationtypeConfig::DatabaseTableNameType>
-StationtypeConfig::getDatabaseTableNameByStationtype(const StationtypeType& stationtype) const
+std::string StationtypeConfig::getDatabaseTableNameByStationtype(const StationtypeType& stationtype) const
 {
   try
   {
     const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
     const auto it = m_stDatabaseTableNameMap.find(stationtypeLower);
     if (it == m_stDatabaseTableNameMap.end())
-      throw Fmi::Exception(BCP, "Invalid parameter value!")
-          .addDetail(
-              fmt::format("Database table name for the stationtype '{}' not found.", stationtype));
+	  return "";
 
-    return std::make_shared<DatabaseTableNameType>(it->second);
+    return it->second;
   }
   catch (...)
   {
@@ -99,7 +98,7 @@ StationtypeConfig::getGroupCodeSetByStationtype(const StationtypeType& stationty
   }
 }
 
-std::shared_ptr<const StationtypeConfig::ProducerIdSetType>
+const StationtypeConfig::ProducerIdSetType&
 StationtypeConfig::getProducerIdSetByStationtype(const StationtypeType& stationtype) const
 {
   try
@@ -107,10 +106,9 @@ StationtypeConfig::getProducerIdSetByStationtype(const StationtypeType& stationt
     const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
     const auto it = m_stProducerIdSetMap.find(stationtypeLower);
     if (it != m_stProducerIdSetMap.end())
-      return std::make_shared<ProducerIdSetType>(it->second);
-
-    throw Fmi::Exception(BCP, "Invalid parameter value!")
-        .addDetail(fmt::format("Producer id list not found for Stationtype '{}'.", stationtype));
+      return it->second;
+	
+	return empty_producer_id_set;
   }
   catch (...)
   {

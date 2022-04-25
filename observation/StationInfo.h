@@ -1,6 +1,7 @@
 #pragma once
 
 #include "StationLocation.h"
+#include "StationGroups.h"
 #include <macgyver/NearTree.h>
 #include <macgyver/NearTreeLatLon.h>
 #include <spine/Station.h>
@@ -110,9 +111,11 @@ class StationInfo
                                                  const boost::posix_time::ptime& t) const;
   Spine::TaggedFMISIDList translateLPNNToFMISID(const std::vector<int>& lpnns,
                                                 const boost::posix_time::ptime& t) const;
+  void setStationGroups(const StationGroups& sg) { itsStationGroups = sg; }
 
  private:
   void update() const;
+
   // Mapping from coordinates to stations
   using StationTree =
       Fmi::NearTree<StationNearTreeLatLon, Fmi::NearTreeLatLonDistance<StationNearTreeLatLon>>;
@@ -126,6 +129,8 @@ class StationInfo
   mutable StationIndex rwsidstations;   // rwsid --> indexes of stations
   mutable StationTree stationtree;      // search tree for nearest stations
   mutable GroupMembers members;         // group id --> indexes of stations
+
+  StationGroups itsStationGroups;
 };
 
 }  // namespace Observation
