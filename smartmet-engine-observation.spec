@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.4.25
+Version: 22.5.9
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -21,7 +21,7 @@ BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 22.3.21
 BuildRequires: smartmet-library-locus-devel >= 22.3.28
 BuildRequires: smartmet-library-macgyver-devel >= 22.3.28
-BuildRequires: smartmet-library-spine-devel >= 22.3.18
+BuildRequires: smartmet-library-spine-devel >= 22.4.29
 BuildRequires: smartmet-library-timeseries-devel >= 22.3.18
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 22.2.8
@@ -38,9 +38,9 @@ Requires: libatomic
 Requires: smartmet-engine-geonames >= 22.3.21
 Requires: smartmet-library-locus >= 22.3.28
 Requires: smartmet-library-macgyver >= 22.3.28
-Requires: smartmet-library-spine >= 22.3.18
+Requires: smartmet-library-spine >= 22.4.29
 Requires: smartmet-library-timeseries >= 22.3.18
-Requires: smartmet-server >= 21.11.25
+Requires: smartmet-server >= 22.4.28
 Requires: unixODBC
 
 %if %{defined el7}
@@ -76,7 +76,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: smartmet-library-macgyver >= 22.2.8
 #TestRequires: smartmet-library-timeseries >= 22.2.8
 #TestRequires: smartmet-library-timeseries-devel >= 22.2.18
-#TestRequires: smartmet-library-spine >= 22.3.18
+#TestRequires: smartmet-library-spine >= 22.4.29
 #TestRequires: smartmet-test-data
 
 %if 0%{rhel} >= 8
@@ -108,7 +108,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 22.3.18
+Requires: smartmet-library-spine-devel >= 22.4.29
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -142,12 +142,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Mon Apr 25 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.4.25-1.fmi
+* Mon May  9 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.5.9-1.fmi
 - Read producer ids from database (BRAINSTORM-2297)
 - Remove useless exceptions (BRAINSTORM-2303)
 
 * Wed Apr 20 2022 Andris Pavenis <andris.pavenis@fmi.fi> 22.4.20-1.fmi
-- Property.cpp: fix autput of std::string
+- Property.cpp: fix output of std::string
 
 * Fri Apr  8 2022 Andris Pavēnis <andris.pavenis@fmi.fi> 22.4.8-1.fmi
 - QueryResult::castTo<>: add partial specialization for boost::posix_time::ptime
