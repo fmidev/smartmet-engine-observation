@@ -5,6 +5,7 @@
 #include <macgyver/AnsiEscapeCodes.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
+#include <spine/Convenience.h>
 
 namespace SmartMet
 {
@@ -142,24 +143,37 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
       }
     }
 
-    unsigned int loadStationsParam = 0;
+    std::string load_stations_active_driver;
+    std::string load_stations_disabled_drivers;
     // Cache info (with same name) from different drivers are aggregated to one place
     for (auto& ddii : itsDatabaseDriverInfoItems)
-    {
+    {     
       if (ddii.parameterExists("loadStations") && ddii.getIntParameterValue("loadStations", 0) > 0)
       {
-        loadStationsParam++;
+	if(load_stations_active_driver.empty())
+	  {
+	    load_stations_active_driver = ddii.name;
+	  }
+	else
+	  {
+	    ddii.params["loadStations"] = "0";
+	    if(!load_stations_disabled_drivers.empty())
+	      load_stations_disabled_drivers += ", ";
+	    load_stations_disabled_drivers += ("'" + ddii.name + "'");
+	  }
       }
+      
       for (const auto& cii_from : ddii.itsCacheInfoItems)
         if (itsCacheInfoItems.find(cii_from.first) == itsCacheInfoItems.end())
           itsCacheInfoItems[cii_from.first] = cii_from.second;
         else
           itsCacheInfoItems[cii_from.first].mergeCacheInfo(cii_from.second);
     }
-
-    if (loadStationsParam > 1)
-      throw Fmi::Exception::Trace(
-          BCP, "Parameter loadStations defined to be true in more than one database driver!");
+    if (!load_stations_disabled_drivers.empty())
+      {
+	std::string message = (" Warning! Parameter loadStations defined to be true in more than one database driver. Stations are loaded by driver '" + load_stations_active_driver + "', not by driver " + load_stations_disabled_drivers + ".");	
+	std::cout << Spine::log_time_str() << ANSI_FG_RED << message << ANSI_FG_DEFAULT << std::endl;
+      }
   }
   catch (...)
   {
@@ -323,8 +337,10 @@ void DatabaseDriverInfo::readOracleCommonInfo(Spine::ConfigBase& cfg,
     params["flash_emulator_strokes"] = Fmi::to_string(
         cfg.get_optional_config_param<int>(common_key + ".flash_emulator.strokes_per_minute", 0));
   }
+  /*
   else
     std::cout << "Flash emulator not active in driver " << name << std::endl;
+  */
 }
 
 void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
