@@ -19,37 +19,39 @@ class QueryBase;
 
 class Engine : public SmartMet::Spine::SmartMetEngine
 {
- public:
-  Engine() = delete;
-  Engine(const std::string &configfile);
+protected:
+  Engine();
 
-  TS::TimeSeriesVectorPtr values(Settings &settings);
-  TS::TimeSeriesVectorPtr values(
+public:
+  static Engine* create(const std::string& config_name);
+
+  virtual TS::TimeSeriesVectorPtr values(Settings &settings);
+  virtual TS::TimeSeriesVectorPtr values(
       Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions);
 
-  void makeQuery(QueryBase *qb);
+  virtual void makeQuery(QueryBase *qb);
 
-  FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
+  virtual FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
                             const Spine::TaggedLocationList &locations);
-  std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
+  virtual std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language);
 
-  bool ready() const;
+  virtual bool ready() const;
 
-  Geonames::Engine *getGeonames() const;
+  virtual Geonames::Engine *getGeonames() const;
 
-  const std::shared_ptr<DBRegistry> dbRegistry() const { return itsDatabaseRegistry; }
-  void reloadStations();
-  void getStations(Spine::Stations &stations, Settings &settings);
+    virtual const std::shared_ptr<DBRegistry> dbRegistry() const;
+  virtual void reloadStations();
+  virtual void getStations(Spine::Stations &stations, Settings &settings);
 
-  void getStationsByArea(Spine::Stations &stations,
+  virtual void getStationsByArea(Spine::Stations &stations,
                          const std::string &stationtype,
                          const boost::posix_time::ptime &starttime,
                          const boost::posix_time::ptime &endtime,
                          const std::string &areaWkt);
 
-  void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings);
+  virtual void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings);
 
   /* \brief Test if the given alias name is configured and it has a field for
    * the stationType.
@@ -61,7 +63,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
    * the alias configuration block.
    */
 
-  bool isParameter(const std::string &alias, const std::string &stationType = "unknown") const;
+  virtual bool isParameter(const std::string &alias, const std::string &stationType = "unknown") const;
 
   /* \brief Test if the given alias name is configured
    * \param[in] name Alias name of a meteorological parameter.
@@ -71,7 +73,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
    * the alias configuration block.
    */
 
-  bool isParameterVariant(const std::string &name) const;
+  virtual bool isParameterVariant(const std::string &name) const;
 
   /* \brief Get a numerical identity for an given alias name.
    * \param[in] alias Alias name of a meteorological parameter (case insensitive).
@@ -79,7 +81,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
    * insensitive).
    * \return Positive integer in success and zero if there is no a match.
    */
-  uint64_t getParameterId(const std::string &alias,
+  virtual uint64_t getParameterId(const std::string &alias,
                           const std::string &stationType = "unknown") const;
 
   /* \brief Get parameter id as string for an given alias name.
@@ -89,72 +91,48 @@ class Engine : public SmartMet::Spine::SmartMetEngine
    * \return String
    */
 
-  std::string getParameterIdAsString(const std::string &alias,
+  virtual std::string getParameterIdAsString(const std::string &alias,
                                      const std::string &stationType = "unknown") const;
 
   /* \brief Get valid parameter names
    * \return Set of parameter names
    */
 
-  std::set<std::string> getValidStationTypes() const;
+  virtual std::set<std::string> getValidStationTypes() const;
 
   /* \brief Get detailed info of producer(s)
    * \param[in] producer If producer is given return info only of that producer, otherwise of all
    * producers \return Info of producer(s)
    */
-  ContentTable getProducerInfo(boost::optional<std::string> producer) const;
+  virtual ContentTable getProducerInfo(boost::optional<std::string> producer) const;
 
   /* \brief Get parameter info of producer(s)
    * \param[in] producer If producer is given return info only of that producer, otherwise of all
    * producers \return Parameter info of producer(s)
    */
-  ContentTable getParameterInfo(boost::optional<std::string> producer) const;
+  virtual ContentTable getParameterInfo(boost::optional<std::string> producer) const;
 
   /* \brief Get station info
    * \param[in] StationOptions Defines query options
    * \return The requested station info
    */
-  ContentTable getStationInfo(const StationOptions &options) const;
+  virtual ContentTable getStationInfo(const StationOptions &options) const;
 
-  MetaData metaData(const std::string &producer) const;
+  virtual MetaData metaData(const std::string &producer) const;
 
   /* \brief Translates WMO,RWID,LPNN,GEOID,Bounding box to FMISID
    * \return List of FMISIDs
    */
-  Spine::TaggedFMISIDList translateToFMISID(const boost::posix_time::ptime &starttime,
+  virtual Spine::TaggedFMISIDList translateToFMISID(const boost::posix_time::ptime &starttime,
                                             const boost::posix_time::ptime &endtime,
                                             const std::string &stationtype,
                                             const StationSettings &stationSettings) const;
 
- protected:
   void init() override;
   void shutdown() override;
 
- private:
+protected:
   ~Engine() override = default;
-
-  void initializeCache();
-  bool stationHasRightType(const Spine::Station &station, const Settings &settings);
-  void unserializeStations();
-  Settings beforeQuery(const Settings &settings,
-                       std::vector<unsigned int> &unknownParameterIndexes) const;
-  void afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
-                  const Settings &settings,
-                  const std::vector<unsigned int> &unknownParameterIndexes) const;
-
-  Fmi::Cache::CacheStatistics getCacheStats() const override;
-
-  std::string itsConfigFile;
-
-  EngineParametersPtr itsEngineParameters;
-
-  std::shared_ptr<DBRegistry> itsDatabaseRegistry;
-
-#ifdef TODO_CAUSES_SEGFAULT_AT_EXIT
-  std::unique_ptr<DatabaseDriverInterface> itsDatabaseDriver;
-#else
-  DatabaseDriverInterface *itsDatabaseDriver{nullptr};
-#endif
 };
 
 }  // namespace Observation
