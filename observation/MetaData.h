@@ -21,6 +21,7 @@ struct MetaData
   {
   }
   MetaData(const MetaData &md) = default;
+  MetaData& operator = (const MetaData &md) = default;
 
   Spine::BoundingBox bbox;
   boost::posix_time::time_period period;
