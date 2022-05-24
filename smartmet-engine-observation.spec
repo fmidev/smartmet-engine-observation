@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.5.10
+Version: 22.5.24
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -18,11 +18,11 @@ BuildRequires: gdal34-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 22.3.21
+BuildRequires: smartmet-engine-geonames-devel >= 22.5.20
 BuildRequires: smartmet-library-locus-devel >= 22.3.28
-BuildRequires: smartmet-library-macgyver-devel >= 22.3.28
-BuildRequires: smartmet-library-spine-devel >= 22.4.29
-BuildRequires: smartmet-library-timeseries-devel >= 22.3.18
+BuildRequires: smartmet-library-macgyver-devel >= 22.5.24
+BuildRequires: smartmet-library-spine-devel >= 22.5.24
+BuildRequires: smartmet-library-timeseries-devel >= 22.5.24
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 22.2.8
 BuildRequires: zlib-devel
@@ -35,12 +35,12 @@ Requires: boost169-thread
 Requires: fmt >= 7.1.3
 Requires: gdal34-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 22.3.21
+Requires: smartmet-engine-geonames >= 22.5.20
 Requires: smartmet-library-locus >= 22.3.28
-Requires: smartmet-library-macgyver >= 22.3.28
-Requires: smartmet-library-spine >= 22.4.29
-Requires: smartmet-library-timeseries >= 22.3.18
-Requires: smartmet-server >= 22.4.28
+Requires: smartmet-library-macgyver >= 22.5.24
+Requires: smartmet-library-spine >= 22.5.24
+Requires: smartmet-library-timeseries >= 22.5.24
+Requires: smartmet-server >= 22.5.16
 Requires: unixODBC
 
 %if %{defined el7}
@@ -72,11 +72,11 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: gdal34-devel
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 22.3.21
+#TestRequires: smartmet-engine-geonames >= 22.5.20
 #TestRequires: smartmet-library-macgyver >= 22.2.8
 #TestRequires: smartmet-library-timeseries >= 22.2.8
 #TestRequires: smartmet-library-timeseries-devel >= 22.2.18
-#TestRequires: smartmet-library-spine >= 22.4.29
+#TestRequires: smartmet-library-spine >= 22.5.24
 #TestRequires: smartmet-test-data
 
 %if 0%{rhel} >= 8
@@ -108,7 +108,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 22.4.29
+Requires: smartmet-library-spine-devel >= 22.5.24
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -142,6 +142,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue May 24 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.5.24-1.fmi
+- Repackaged due to NFmiArea ABI changes
+
 * Mon May 10 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.5.10-1.fmi
 - Allow loadStations=true for multiple database drivers (BRAINSTORM-2320)
 
