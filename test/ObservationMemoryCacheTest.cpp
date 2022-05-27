@@ -3,10 +3,15 @@
 #include "ObservationMemoryCache.h"
 #include "QueryMapping.h"
 #include "StationInfo.h"
-#include "catch.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <atomic>
 #include <thread>
+
+#if __cplusplus >= 201402L
+#include <catch2/catch.hpp>
+#else
+#include <catch/catch.hpp>
+#endif
 
 std::string stationFile = "/usr/share/smartmet/test/data/sqlite/stations.txt";
 SmartMet::Engine::Observation::StationInfo stationinfo(stationFile);

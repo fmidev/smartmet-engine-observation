@@ -1,5 +1,10 @@
 #define CATCH_CONFIG_MAIN
-#include "catch.hpp"
+
+#if __cplusplus >= 201402L
+#include <catch2/catch.hpp>
+#else
+#include <catch/catch.hpp>
+#endif
 
 #include "StationInfo.h"
 #include <macgyver/StringConversion.h>
