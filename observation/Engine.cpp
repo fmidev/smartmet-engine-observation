@@ -14,14 +14,21 @@
 #include <timeseries/TimeSeriesInclude.h>
 #include <timeseries/ParameterTools.h>
 
+#ifdef DEBUG_ENGINE_DISABLING
+#define DISABLE_STACKTRACE
+#else
+#define DISABLE_STACKTRACE .disableStackTrace()
+#endif
+
+#define DISABLED_MSG ": engine is disabled"
+#define REPORT_DISABLED throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG) DISABLE_STACKTRACE
+
 namespace SmartMet
 {
 namespace Engine
 {
 namespace Observation
 {
-
-#define DISABLED_MSG " is not available because of  observation engine is not enabled"
 
 Engine::Engine()
 {
@@ -47,7 +54,7 @@ Engine* Engine::create(const std::string& configfile)
 TS::TimeSeriesVectorPtr Engine::values(Settings &settings)
 {
     (void)settings;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 TS::TimeSeriesVectorPtr Engine::values(
@@ -55,13 +62,13 @@ TS::TimeSeriesVectorPtr Engine::values(
 {
     (void)settings;
     (void)timeSeriesOptions;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 void Engine::makeQuery(QueryBase *qb)
 {
     (void)qb;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 FlashCounts
@@ -71,7 +78,7 @@ Engine::getFlashCount(const boost::posix_time::ptime &starttime,
 {
     (void) starttime;
     (void) endtime;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 std::shared_ptr<std::vector<ObservableProperty>>
@@ -79,7 +86,7 @@ Engine::observablePropertyQuery(std::vector<std::string> &parameters, const std:
 {
     (void)parameters;
     (void)language;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 bool
@@ -91,13 +98,13 @@ Engine::ready() const
 Geonames::Engine *
 Engine::getGeonames() const
 {
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 const std::shared_ptr<DBRegistry>
 Engine::dbRegistry() const
 {
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 void
@@ -109,7 +116,7 @@ void
 Engine::getStations(Spine::Stations &stations, Settings &settings)
 {
     (void)settings;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 void
@@ -124,7 +131,7 @@ Engine::getStationsByArea(Spine::Stations &stations,
     (void)starttime;
     (void)endtime;
     (void)areaWkt;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 void
@@ -132,7 +139,7 @@ Engine::getStationsByBoundingBox(Spine::Stations &stations, const Settings &sett
 {
     (void)stations;
     (void)settings;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 bool
@@ -140,14 +147,14 @@ Engine::isParameter(const std::string &alias, const std::string &stationType) co
 {
     (void)alias;
     (void)stationType;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 bool
 Engine::isParameterVariant(const std::string &name) const
 {
     (void)name;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 uint64_t
@@ -156,7 +163,7 @@ Engine::getParameterId(const std::string &alias,
 {
     (void)alias;
     (void)stationType;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 std::string
@@ -165,41 +172,41 @@ Engine::getParameterIdAsString(const std::string &alias,
 {
     (void)alias;
     (void)stationType;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 std::set<std::string>
 Engine::getValidStationTypes() const
 {
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 ContentTable
 Engine::getProducerInfo(boost::optional<std::string> producer) const
 {
     (void)producer;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 ContentTable
 Engine::getParameterInfo(boost::optional<std::string> producer) const
 {
     (void)producer;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 ContentTable
 Engine::getStationInfo(const StationOptions &options) const
 {
     (void)options;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 MetaData
 Engine::metaData(const std::string &producer) const
 {
     (void)producer;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 Spine::TaggedFMISIDList
@@ -212,7 +219,7 @@ Engine::translateToFMISID(const boost::posix_time::ptime &starttime,
     (void)endtime;
     (void)stationtype;
     (void)stationSettings;
-    throw Fmi::Exception(BCP, METHOD_NAME + DISABLED_MSG);
+    REPORT_DISABLED;
 }
 
 void
