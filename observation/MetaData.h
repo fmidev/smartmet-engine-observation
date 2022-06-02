@@ -1,6 +1,7 @@
 #pragma once
 
 #include <spine/Value.h>
+#include <set>
 
 namespace SmartMet
 {
@@ -27,6 +28,7 @@ struct MetaData
   boost::posix_time::time_period period;
   bool fixedPeriodEndTime{false};
   int timestep;  // timestep in minutes
+  std::set<std::string> parameters;
 };
 
 }  // namespace Observation

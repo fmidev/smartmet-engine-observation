@@ -370,7 +370,20 @@ TS::TimeSeriesVectorPtr EngineImpl::values(
 
 MetaData EngineImpl::metaData(const std::string &producer) const
 {
-  return itsDatabaseDriver->metaData(producer);
+  auto ret = itsDatabaseDriver->metaData(producer);
+
+  for (const auto &param : *itsEngineParameters->parameterMap)
+  {
+    for (const auto &producer_param : param.second)
+    {
+	  if (producer.empty() || (producer == producer_param.first))
+      {
+		ret.parameters.insert(param.first);
+      }
+    }
+  }
+
+  return ret;
 }
 
 // Translates WMO, RWID,LPNN to FMISID
