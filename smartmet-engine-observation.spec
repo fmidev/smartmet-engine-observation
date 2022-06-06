@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.5.31
+Version: 22.6.2
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -145,6 +145,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Jun 2 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.6.2-1.fmi
+- Added parameters to MetaData structure because of EDR plugin (BRAINSTORM-2308)
+
 * Tue May 31 2022 Andris Pavēnis <andris.pavenis@fmi.fi> 22.5.31-1.fmi
 - Support engine disabling
 
