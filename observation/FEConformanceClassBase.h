@@ -2,7 +2,7 @@
 
 #include "Property.h"
 #include <boost/any.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/function.hpp>
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
@@ -47,7 +47,7 @@ class OperationMap
       std::cerr << fmt::format("{} : duplicate map key '{}'.\n", METHOD_NAME, name);
       return false;
     }
-    OperationMapValueType value = boost::bind(&T::get, opClass, ::_1, ::_2);
+    OperationMapValueType value = boost::bind(&T::get, opClass, boost::placeholders::_1, boost::placeholders::_2);
     m_ops.insert(std::make_pair(n, value));
     return true;
   }
