@@ -154,7 +154,7 @@ rm -rf $RPM_BUILD_ROOT
 * Tue May 24 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.5.24-1.fmi
 - Repackaged due to NFmiArea ABI changes
 
-* Mon May 10 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.5.10-1.fmi
+* Tue May 10 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.5.10-1.fmi
 - Allow loadStations=true for multiple database drivers (BRAINSTORM-2320)
 
 * Mon May  9 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.5.9-1.fmi
