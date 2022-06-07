@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.6.2
+Version: 22.6.7
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -145,6 +145,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Jun 7 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.6.7-1.fmi
+- Check producer_id when reading data from memory cache (BRAINSTORM-2334)
+
 * Thu Jun 2 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.6.2-1.fmi
 - Added parameters to MetaData structure because of EDR plugin (BRAINSTORM-2308)
 
