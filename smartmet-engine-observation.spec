@@ -10,36 +10,46 @@ Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
 Source0: %{name}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildRequires: boost169-devel
+
+%if 0%{?rhel} && 0%{rhel} < 9
+%define smartmet_boost boost169
+%else
+%define smartmet_boost boost
+%endif
+
+%define smartmet_fmt_min 8.1.1
+%define smartmet_fmt_max 8.2.0
+
+BuildRequires: %{smartmet_boost}-devel
 BuildRequires: bzip2-devel
-BuildRequires: fmt-devel >= 7.1.3
+BuildRequires: fmt-devel >= %{smartmet_fmt_min}, fmt-devel < %{smartmet_fmt_max}
 BuildRequires: gcc-c++
 BuildRequires: gdal34-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 22.5.24
-BuildRequires: smartmet-library-locus-devel >= 22.6.7
-BuildRequires: smartmet-library-macgyver-devel >= 22.5.24
-BuildRequires: smartmet-library-spine-devel >= 22.5.24
-BuildRequires: smartmet-library-timeseries-devel >= 22.5.24
+BuildRequires: smartmet-library-locus-devel >= 22.6.16
+BuildRequires: smartmet-library-macgyver-devel >= 22.6.16
+BuildRequires: smartmet-library-spine-devel >= 22.6.16
+BuildRequires: smartmet-library-timeseries-devel >= 22.6.16
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 22.2.8
 BuildRequires: zlib-devel
-Requires: boost169-date-time
-Requires: boost169-iostreams
-Requires: boost169-locale
-Requires: boost169-serialization
-Requires: boost169-system
-Requires: boost169-thread
-Requires: fmt >= 7.1.3
+Requires: %{smartmet_boost}-date-time
+Requires: %{smartmet_boost}-iostreams
+Requires: %{smartmet_boost}-locale
+Requires: %{smartmet_boost}-serialization
+Requires: %{smartmet_boost}-system
+Requires: %{smartmet_boost}-thread
+Requires: fmt >= %{smartmet_fmt_min}, fmt < %{smartmet_fmt_max}
 Requires: gdal34-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 22.5.24
-Requires: smartmet-library-locus >= 22.6.7
-Requires: smartmet-library-macgyver >= 22.5.24
-Requires: smartmet-library-spine >= 22.5.24
-Requires: smartmet-library-timeseries >= 22.5.24
+Requires: smartmet-library-locus >= 22.6.16
+Requires: smartmet-library-macgyver >= 22.6.16
+Requires: smartmet-library-spine >= 22.6.16
+Requires: smartmet-library-timeseries >= 22.6.16
 Requires: smartmet-server >= 22.5.24
 Requires: unixODBC
 
@@ -52,13 +62,13 @@ BuildRequires: sqlite33-devel >= 3.30.1
 #TestRequires: catch-devel >= 1.9.6
 #TestRequires: smartmet-utils-devel >= 22.2.8
 %else
-%if %{defined el8}
-Requires: libpqxx >= 6.2.5 libpqxx < 1:7.7.0
+%if 0%{?rhel} && 0%{rhel} >= 8
+Requires: libpqxx >= 7.7.0 libpqxx < 1:7.8.0
 Requires: sqlite-libs >= 3.22.0
 BuildRequires: sqlite-devel >= 3.22.0
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: catch-devel >= 2.1.3
-BuildRequires: libpqxx-devel >= 6.2.5 libpqxx-devel < 1:7.7.0
+BuildRequires: libpqxx-devel >= 7.7.0 libpqxx-devel < 1:7.8.0
 %else
 Requires: libpqxx
 BuildRequires: libpqxx-devel
@@ -76,10 +86,10 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
 #TestRequires: smartmet-engine-geonames >= 22.5.24
-#TestRequires: smartmet-library-macgyver >= 22.2.8
-#TestRequires: smartmet-library-timeseries >= 22.2.8
-#TestRequires: smartmet-library-timeseries-devel >= 22.2.18
-#TestRequires: smartmet-library-spine >= 22.5.24
+#TestRequires: smartmet-library-macgyver >= 22.6.16
+#TestRequires: smartmet-library-timeseries >= 22.6.16
+#TestRequires: smartmet-library-timeseries-devel >= 22.6.16
+#TestRequires: smartmet-library-spine >= 22.6.16
 #TestRequires: smartmet-test-data
 
 %if 0%{rhel} >= 8
@@ -111,7 +121,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 22.5.24
+Requires: smartmet-library-spine-devel >= 22.6.16
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
