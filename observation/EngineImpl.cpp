@@ -10,8 +10,8 @@
 #include <macgyver/TypeName.h>
 #include <spine/Convenience.h>
 #include <spine/Reactor.h>
-#include <timeseries/TimeSeriesInclude.h>
 #include <timeseries/ParameterTools.h>
+#include <timeseries/TimeSeriesInclude.h>
 
 namespace SmartMet
 {
@@ -21,7 +21,7 @@ namespace Observation
 {
 namespace
 {
-  using namespace Utils;
+using namespace Utils;
 
 struct CompareLocations
 {
@@ -43,8 +43,7 @@ bool string_found(const std::string &s1, const std::string &s2)
 }  // namespace
 
 EngineImpl::EngineImpl(const std::string &configfile)
-    : Engine()
-    , itsConfigFile(configfile), itsDatabaseRegistry(new DBRegistry())
+    : Engine(), itsConfigFile(configfile), itsDatabaseRegistry(new DBRegistry())
 {
 }
 
@@ -76,20 +75,21 @@ void EngineImpl::init()
 #endif
     if (itsDatabaseDriver != nullptr)
     {
-      logMessage("[Observation EngineImpl] Database driver '" + itsDatabaseDriver->name() + "' created",
-                 itsEngineParameters->quiet);
+      logMessage(
+          "[Observation EngineImpl] Database driver '" + itsDatabaseDriver->name() + "' created",
+          itsEngineParameters->quiet);
       itsDatabaseDriver->init(this);
     }
 
     SpecialParameters::setGeonames(getGeonames());
-	itsDatabaseDriver->getProducerGroups(itsEngineParameters->producerGroups);
-	itsEngineParameters->producerGroups.replaceProducerIds("observations_fmi", "fmi");
+    itsDatabaseDriver->getProducerGroups(itsEngineParameters->producerGroups);
+    itsEngineParameters->producerGroups.replaceProducerIds("observations_fmi", "fmi");
 
-	// Lets get station groups even if they can not be utilized for now
-	StationGroups sg;
-	itsDatabaseDriver->getStationGroups(sg);
+    // Lets get station groups even if they can not be utilized for now
+    StationGroups sg;
+    itsDatabaseDriver->getStationGroups(sg);
     auto sinfo = itsEngineParameters->stationInfo.load();
-	sinfo->setStationGroups(sg);
+    sinfo->setStationGroups(sg);
   }
   catch (...)
   {
@@ -124,8 +124,9 @@ void EngineImpl::unserializeStations()
       stationinfo->unserialize(itsEngineParameters->serializedStationsFile);
 
       itsEngineParameters->stationInfo.store(stationinfo);
-      logMessage("[Observation EngineImpl] Unserialized stations successfully from " + path.string(),
-                 itsEngineParameters->quiet);
+      logMessage(
+          "[Observation EngineImpl] Unserialized stations successfully from " + path.string(),
+          itsEngineParameters->quiet);
     }
     else
     {
@@ -195,10 +196,10 @@ void EngineImpl::getStations(Spine::Stations &stations, Settings &settings)
 }
 
 void EngineImpl::getStationsByArea(Spine::Stations &stations,
-                               const std::string &stationtype,
-                               const boost::posix_time::ptime &starttime,
-                               const boost::posix_time::ptime &endtime,
-                               const std::string &areaWkt)
+                                   const std::string &stationtype,
+                                   const boost::posix_time::ptime &starttime,
+                                   const boost::posix_time::ptime &endtime,
+                                   const std::string &areaWkt)
 {
   return itsDatabaseDriver->getStationsByArea(stations, stationtype, starttime, endtime, areaWkt);
 }
@@ -234,8 +235,8 @@ Geonames::Engine *EngineImpl::getGeonames() const
 }
 
 FlashCounts EngineImpl::getFlashCount(const boost::posix_time::ptime &starttime,
-                                  const boost::posix_time::ptime &endtime,
-                                  const Spine::TaggedLocationList &locations)
+                                      const boost::posix_time::ptime &endtime,
+                                      const Spine::TaggedLocationList &locations)
 {
   return itsDatabaseDriver->getFlashCount(starttime, endtime, locations);
 }
@@ -297,7 +298,7 @@ uint64_t EngineImpl::getParameterId(const std::string &alias, const std::string 
 }
 
 std::string EngineImpl::getParameterIdAsString(const std::string &alias,
-                                           const std::string &stationType) const
+                                               const std::string &stationType) const
 {
   return itsEngineParameters->getParameterIdAsString(alias, stationType);
 }
@@ -345,8 +346,8 @@ std::set<std::string> EngineImpl::getValidStationTypes() const
  * \brief Read values for given times only.
  */
 
-TS::TimeSeriesVectorPtr EngineImpl::values(
-    Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions)
+TS::TimeSeriesVectorPtr EngineImpl::values(Settings &settings,
+                                           const TS::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
   // Drop unknown parameters from parameter list and
   // store their indexes
@@ -358,8 +359,7 @@ TS::TimeSeriesVectorPtr EngineImpl::values(
   }
   Settings querySettings = beforeQuery(settings, unknownParameterIndexes);
 
-  TS::TimeSeriesVectorPtr ret =
-      itsDatabaseDriver->values(querySettings, timeSeriesOptions);
+  TS::TimeSeriesVectorPtr ret = itsDatabaseDriver->values(querySettings, timeSeriesOptions);
 
   // Insert missing values for unknown parameters and
   // arrange data order in result set
@@ -376,9 +376,9 @@ MetaData EngineImpl::metaData(const std::string &producer) const
   {
     for (const auto &producer_param : param.second)
     {
-	  if (producer.empty() || (producer == producer_param.first))
+      if (producer.empty() || (producer == producer_param.first))
       {
-		ret.parameters.insert(param.first);
+        ret.parameters.insert(param.first);
       }
     }
   }
@@ -388,15 +388,15 @@ MetaData EngineImpl::metaData(const std::string &producer) const
 
 // Translates WMO, RWID,LPNN to FMISID
 Spine::TaggedFMISIDList EngineImpl::translateToFMISID(const boost::posix_time::ptime &starttime,
-                                                  const boost::posix_time::ptime &endtime,
-                                                  const std::string &stationtype,
-                                                  const StationSettings &stationSettings) const
+                                                      const boost::posix_time::ptime &endtime,
+                                                      const std::string &stationtype,
+                                                      const StationSettings &stationSettings) const
 {
   return itsDatabaseDriver->translateToFMISID(starttime, endtime, stationtype, stationSettings);
 }
 
 Settings EngineImpl::beforeQuery(const Settings &settings,
-                             std::vector<unsigned int> &unknownParameterIndexes) const
+                                 std::vector<unsigned int> &unknownParameterIndexes) const
 {
   // LocalTimePool must be created by client plugin, because references to localtimes in the pool
   // are used in the result set and they must be valid as log as result set is processed
@@ -424,8 +424,8 @@ Settings EngineImpl::beforeQuery(const Settings &settings,
 }
 
 void EngineImpl::afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
-                        const Settings &settings,
-                        const std::vector<unsigned int> &unknownParameterIndexes) const
+                            const Settings &settings,
+                            const std::vector<unsigned int> &unknownParameterIndexes) const
 {
   if (tsvPtr->empty())
     return;
@@ -466,9 +466,7 @@ void EngineImpl::afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
   }
 
   // Create and initialize data structure for results
-  TS::TimeSeriesVectorPtr result =
-      TS::TimeSeriesVectorPtr(
-          new TS::TimeSeriesVector);
+  TS::TimeSeriesVectorPtr result = TS::TimeSeriesVectorPtr(new TS::TimeSeriesVector);
   for (unsigned int i = 0; i < tsvPtr->size(); i++)
     result->emplace_back(TS::TimeSeries(settings.localTimePool));
 
@@ -560,7 +558,7 @@ ContentTable EngineImpl::getProducerInfo(boost::optional<std::string> producer) 
     {
       if (itsEngineParameters->stationtypeConfig.hasProducerIds(t))
       {
-        const std::set<uint>& producers =
+        const std::set<uint> &producers =
             itsEngineParameters->stationtypeConfig.getProducerIdSetByStationtype(t);
         std::list<std::string> producer_id_list;
         for (auto id : producers)
@@ -891,6 +889,5 @@ Fmi::Cache::CacheStatistics EngineImpl::getCacheStats() const
 }
 
 }  // namespace Observation
-}  // namespace EngineImpl
+}  // namespace Engine
 }  // namespace SmartMet
-

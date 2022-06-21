@@ -10,7 +10,7 @@ namespace Engine
 {
 namespace Observation
 {
- using namespace Utils;
+using namespace Utils;
 
 ObservationCacheAdminBase::ObservationCacheAdminBase(const DatabaseDriverParameters& parameters,
                                                      Engine::Geonames::Engine* geonames,
@@ -72,7 +72,7 @@ void ObservationCacheAdminBase::init()
     if (cache_tables.size() > 0)
     {
       for (const auto& item : cache_tables)
-        logMessage(" Table '" + item.second + "' is cached in '" + item.first + "'...",
+        logMessage("Table '" + item.second + "' is cached in '" + item.first + "'...",
                    itsParameters.quiet);
     }
 
@@ -123,12 +123,12 @@ void ObservationCacheAdminBase::init()
         bkHydrometaCache = getCache(BK_HYDROMETA_DATA_TABLE);
         cache_set.insert(bkHydrometaCache.get());
       }
-	  else if (tablename == MAGNETOMETER_DATA_TABLE)
+      else if (tablename == MAGNETOMETER_DATA_TABLE)
       {
         magnetometerCache = getCache(MAGNETOMETER_DATA_TABLE);
         cache_set.insert(magnetometerCache.get());
       }
-   }
+    }
 
     for (auto* cache : cache_set)
     {
@@ -241,7 +241,6 @@ void ObservationCacheAdminBase::init()
                                   [this]() { updateMagnetometerCache(); });
         }
       }
-
     }
 
     // If stations info does not exist (stations.txt file  missing), load info from database
@@ -346,7 +345,6 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
       itsBackgroundTasks->add("magnetometer cache update loop",
                               [this]() { updateMagnetometerCacheLoop(); });
     }
-
   }
   catch (...)
   {
@@ -1226,27 +1224,27 @@ void ObservationCacheAdminBase::updateMagnetometerCache() const
     // The time of the last observation in the cache
     std::shared_ptr<ObservationCache> magnetometerCache = getCache(MAGNETOMETER_DATA_TABLE);
 
-/*
-    if (magnetometerCache->isFakeCache(MAGNETOMETER_DATA_TABLE))
-      return updateMagnetometerFakeCache(magnetometerCache);
-*/
+    /*
+        if (magnetometerCache->isFakeCache(MAGNETOMETER_DATA_TABLE))
+          return updateMagnetometerFakeCache(magnetometerCache);
+    */
     std::vector<MagnetometerDataItem> cacheData;
 
     // pair of data_time, modified_last
-	auto min_last_time = boost::posix_time::second_clock::universal_time() -
-	  boost::posix_time::hours(itsParameters.magnetometerCacheDuration);
-	
-	auto last_time = magnetometerCache->getLatestMagnetometerDataTime();
-	auto last_modified_time = magnetometerCache->getLatestMagnetometerModifiedTime();
-	
-	if (last_time.is_not_a_date_time())
-	  last_time = min_last_time;
-	
-	if (last_modified_time.is_not_a_date_time())
-	  last_modified_time = last_time;
-	
-	auto last_time_pair = std::pair<boost::posix_time::ptime, boost::posix_time::ptime>(last_time,
-																						last_modified_time);
+    auto min_last_time = boost::posix_time::second_clock::universal_time() -
+                         boost::posix_time::hours(itsParameters.magnetometerCacheDuration);
+
+    auto last_time = magnetometerCache->getLatestMagnetometerDataTime();
+    auto last_modified_time = magnetometerCache->getLatestMagnetometerModifiedTime();
+
+    if (last_time.is_not_a_date_time())
+      last_time = min_last_time;
+
+    if (last_modified_time.is_not_a_date_time())
+      last_modified_time = last_time;
+
+    auto last_time_pair = std::pair<boost::posix_time::ptime, boost::posix_time::ptime>(
+        last_time, last_modified_time);
 
     // Extra safety margin since the view contains 3 tables with different max(modified_last) values
     if (!last_time_pair.second.is_not_a_date_time())
@@ -1264,8 +1262,8 @@ void ObservationCacheAdminBase::updateMagnetometerCache() const
 
       if (itsTimer)
         std::cout << Spine::log_time_str() << driverName() << " database driver read "
-                  << cacheData.size() << " Magnetometer observations starting from " << last_time_pair.first
-                  << " finished in "
+                  << cacheData.size() << " Magnetometer observations starting from "
+                  << last_time_pair.first << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
                   << " ms" << std::endl;
     }
@@ -1280,7 +1278,8 @@ void ObservationCacheAdminBase::updateMagnetometerCache() const
 
       if (itsTimer)
         std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
-                  << " Magnetometer observations starting from " << last_time_pair.first << " finished in "
+                  << " Magnetometer observations starting from " << last_time_pair.first
+                  << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
                   << " ms" << std::endl;
     }
@@ -1290,7 +1289,8 @@ void ObservationCacheAdminBase::updateMagnetometerCache() const
 
     // Delete too old observations from the Cache database
     auto begin = std::chrono::high_resolution_clock::now();
-    magnetometerCache->cleanMagnetometerCache(boost::posix_time::hours(itsParameters.magnetometerCacheDuration));
+    magnetometerCache->cleanMagnetometerCache(
+        boost::posix_time::hours(itsParameters.magnetometerCacheDuration));
     auto end = std::chrono::high_resolution_clock::now();
 
     if (itsTimer)
@@ -1543,7 +1543,8 @@ void ObservationCacheAdminBase::updateMagnetometerCacheLoop()
       }
       catch (std::exception& err)
       {
-        logMessage(std::string(": updateMagnetometerCacheLoop(): ") + err.what(), itsParameters.quiet);
+        logMessage(std::string(": updateMagnetometerCacheLoop(): ") + err.what(),
+                   itsParameters.quiet);
       }
       catch (...)
       {

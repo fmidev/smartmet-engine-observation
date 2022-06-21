@@ -222,7 +222,7 @@ void DummyCache::cleanFmiIoTCache(const boost::posix_time::time_duration & /* ti
 }
 
 bool DummyCache::magnetometerIntervalIsCached(const boost::posix_time::ptime & /* starttime */,
-											  const boost::posix_time::ptime & /* endtime */) const
+                                              const boost::posix_time::ptime & /* endtime */) const
 {
   return false;
 }
@@ -243,10 +243,10 @@ std::size_t DummyCache::fillMagnetometerCache(
   return 0;
 }
 
-void DummyCache::cleanMagnetometerCache(const boost::posix_time::time_duration & /* timetokeep */) const
+void DummyCache::cleanMagnetometerCache(
+    const boost::posix_time::time_duration & /* timetokeep */) const
 {
 }
-
 
 void DummyCache::shutdown() {}
 

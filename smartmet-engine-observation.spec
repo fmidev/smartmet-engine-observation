@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.6.7
+Version: 22.6.21
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -145,6 +145,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Jun 21 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.6.21-1.fmi
+- Initialize drivers in parallel for speed
+
 * Tue Jun 7 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.6.7-1.fmi
 - Check producer_id when reading data from memory cache (BRAINSTORM-2334)
 

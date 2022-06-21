@@ -4,6 +4,7 @@
 #include "PostgreSQLDatabaseDriverForMobileData.h"
 #include "SpatiaLiteDatabaseDriver.h"
 #include <macgyver/AnsiEscapeCodes.h>
+#include <macgyver/AsyncTaskGroup.h>
 #include <macgyver/Exception.h>
 #include <spine/Convenience.h>
 
@@ -18,7 +19,9 @@ namespace Engine
 {
 namespace Observation
 {
-using driver_create_t = DatabaseDriverBase *(const std::string &, const EngineParametersPtr &, Spine::ConfigBase &);
+using driver_create_t = DatabaseDriverBase *(const std::string &,
+                                             const EngineParametersPtr &,
+                                             Spine::ConfigBase &);
 
 DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::ConfigBase &cfg)
     : itsStationtypeConfig(p->stationtypeConfig)
@@ -34,7 +37,7 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
     const std::vector<DatabaseDriverInfoItem> &ddi = p->databaseDriverInfo.getDatabaseDriverInfo();
     for (const auto &item : ddi)
     {
-	  if (!item.active)
+      if (!item.active)
         continue;
       const std::string &driver_id = item.name;
       DatabaseDriverBase *dbDriver = nullptr;
@@ -70,7 +73,7 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
 
       if (dbDriver != nullptr)
       {
-		itsDatabaseDriverSet.insert(dbDriver);
+        itsDatabaseDriverSet.insert(dbDriver);
 
         for (const auto &period_item : item.table_days)
         {
@@ -121,12 +124,28 @@ void DatabaseDriverProxy::init(Engine *obsengine)
       oracleDriverInitialized = true;
     }
 
+    // Parallel initialization for speed:
+    Fmi::AsyncTaskGroup tasks;
+
+    tasks.on_task_error(
+        [](const std::string &task_name)
+        { throw Fmi::Exception::Trace(BCP, "Operation failed").addParameter("Task", task_name); });
+
     for (const auto &dbdriver : itsDatabaseDriverSet)
     {
       // Do not init Oracle twice in case the previous if-block was executed
       if (!(oracleDriverInitialized && dbdriver == itsOracleDriver))
-        dbdriver->init(obsengine);
+      {
+        tasks.add("Init driver " + dbdriver->name(),
+                  [&dbdriver, obsengine]() { dbdriver->init(obsengine); });
+      }
+    }
 
+    tasks.wait();
+
+    // Not done in parallel for thread safe assignments:
+    for (const auto &dbdriver : itsDatabaseDriverSet)
+    {
       if (!itsStationsDriver && dbdriver->responsibleForLoadingStations())
         itsStationsDriver = dbdriver;
 
@@ -141,42 +160,43 @@ void DatabaseDriverProxy::init(Engine *obsengine)
   }
 }
 
-void DatabaseDriverProxy::getStationGroups(StationGroups& sg) const
+void DatabaseDriverProxy::getStationGroups(StationGroups &sg) const
 {
   try
   {
-	// Read station groups from DB
-	if(itsStationsDriver)
-	  itsStationsDriver->getStationGroups(sg);
-	else
-	  std::cout << Spine::log_time_str()
-				<< " [DatabaseDriverProxy] Getting station groups denied, a driver for loading stations "
-		"is not set\n";
- }
+    // Read station groups from DB
+    if (itsStationsDriver)
+      itsStationsDriver->getStationGroups(sg);
+    else
+      std::cout
+          << Spine::log_time_str()
+          << " [DatabaseDriverProxy] Getting station groups denied, a driver for loading stations "
+             "is not set\n";
+  }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "DatabaseDriverProxy::getStationGroups function failed!");
   }
 }
 
-void DatabaseDriverProxy::getProducerGroups(ProducerGroups& pg) const
+void DatabaseDriverProxy::getProducerGroups(ProducerGroups &pg) const
 {
   try
   {
-	// Read station groups from DB
-	if(itsStationsDriver)
-	  itsStationsDriver->getProducerGroups(pg);
-	else
-	  std::cout << Spine::log_time_str()
-				<< " [DatabaseDriverProxy] Getting producer groups denied, a driver for loading stations "
-		"is not set\n";	
- }
+    // Read station groups from DB
+    if (itsStationsDriver)
+      itsStationsDriver->getProducerGroups(pg);
+    else
+      std::cout
+          << Spine::log_time_str()
+          << " [DatabaseDriverProxy] Getting producer groups denied, a driver for loading stations "
+             "is not set\n";
+  }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "DatabaseDriverProxy::getProducerGroups function failed!");
   }
 }
-
 
 TS::TimeSeriesVectorPtr DatabaseDriverProxy::values(Settings &settings)
 {
@@ -203,8 +223,7 @@ TS::TimeSeriesVectorPtr DatabaseDriverProxy::values(
   {
     DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
 
-    TS::TimeSeriesVectorPtr ret =
-        pDriver->checkForEmptyQuery(settings, timeSeriesOptions);
+    TS::TimeSeriesVectorPtr ret = pDriver->checkForEmptyQuery(settings, timeSeriesOptions);
     if (ret)
       return ret;
 

@@ -9,7 +9,7 @@ namespace Engine
 {
 namespace Observation
 {
- using namespace Utils;
+using namespace Utils;
 
 PostgreSQLDatabaseDriver::PostgreSQLDatabaseDriver(const std::string &name,
                                                    const EngineParametersPtr &p,
@@ -37,21 +37,22 @@ void PostgreSQLDatabaseDriver::initializeConnectionPool()
     {
       itsConnectionsOK = true;
       logMessage(
-          "[PostgreSQLDatabaseDriver] PostgreSQL connection pool initialization "
-          "successful.",
+          "[PostgreSQLDatabaseDriver] PostgreSQL connection pool initialization successful for " +
+              itsDriverName,
           itsParameters.quiet);
     }
     else
     {
       logMessage(
-          "[PostgreSQLDatabaseDriver] PostgreSQL connection pool initialization "
-          "unsuccessful.",
+          "[PostgreSQLDatabaseDriver] PostgreSQL connection pool initialization unsuccessful for " +
+              itsDriverName,
           itsParameters.quiet);
     }
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(BCP, "PostgreSQL connection pool initialization failed!");
+    throw Fmi::Exception::Trace(
+        BCP, "PostgreSQL connection pool initialization failed for " + itsDriverName);
   }
 }
 
@@ -104,7 +105,9 @@ void PostgreSQLDatabaseDriver::init(Engine *obsengine)
 {
   try
   {
-    logMessage("[PostgreSQLDatabaseDriver] Initializing connection pool...", itsParameters.quiet);
+    logMessage(
+        "[PostgreSQLDatabaseDriver] Initializing connection pool for " + itsDriverName + "...",
+        itsParameters.quiet);
     itsObsEngine = obsengine;
     initializeConnectionPool();
 
@@ -122,7 +125,8 @@ void PostgreSQLDatabaseDriver::init(Engine *obsengine)
           new DatabaseStations(itsParameters.params, obsengine->getGeonames()));
     }
 
-    logMessage("[PostgreSQLDatabaseDriver] Connection pool ready.", itsParameters.quiet);
+    logMessage("[PostgreSQLDatabaseDriver] Connection pool ready for " + itsDriverName,
+               itsParameters.quiet);
   }
   catch (...)
   {
