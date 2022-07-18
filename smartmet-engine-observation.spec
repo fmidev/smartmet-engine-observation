@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.6.21
-Release: 2%{?dist}.fmi
+Version: 22.7.18
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -155,6 +155,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Jul 18 2022 Andris Pavēnis <andris.pavenis@fmi.fi> 22.7.18-1.fmi
+- Rebuild due to package update from PGDG (RHEL-9)
+
 * Tue Jun 21 2022 Andris Pavēnis <andris.pavenis@fmi.fi> 22.6.21-2.fmi
 - Add support for RHEL9, upgrade libpqxx to 7.7.0 (rhel8+) and fmt to 8.1.1
 
