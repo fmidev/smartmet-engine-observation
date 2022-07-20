@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.7.18
+Version: 22.7.20
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -28,10 +28,10 @@ BuildRequires: gdal34-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 22.5.24
+BuildRequires: smartmet-engine-geonames-devel >= 22.7.20
 BuildRequires: smartmet-library-locus-devel >= 22.6.16
-BuildRequires: smartmet-library-macgyver-devel >= 22.6.16
-BuildRequires: smartmet-library-spine-devel >= 22.6.16
+BuildRequires: smartmet-library-macgyver-devel >= 22.7.20
+BuildRequires: smartmet-library-spine-devel >= 22.7.20
 BuildRequires: smartmet-library-timeseries-devel >= 22.6.16
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 22.2.8
@@ -45,12 +45,12 @@ Requires: %{smartmet_boost}-thread
 Requires: fmt >= %{smartmet_fmt_min}, fmt < %{smartmet_fmt_max}
 Requires: gdal34-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 22.5.24
+Requires: smartmet-engine-geonames >= 22.7.20
 Requires: smartmet-library-locus >= 22.6.16
-Requires: smartmet-library-macgyver >= 22.6.16
-Requires: smartmet-library-spine >= 22.6.16
+Requires: smartmet-library-macgyver >= 22.7.20
+Requires: smartmet-library-spine >= 22.7.20
 Requires: smartmet-library-timeseries >= 22.6.16
-Requires: smartmet-server >= 22.5.24
+Requires: smartmet-server >= 22.7.20
 Requires: unixODBC
 
 %if %{defined el7}
@@ -86,10 +86,10 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
 #TestRequires: smartmet-engine-geonames >= 22.5.24
-#TestRequires: smartmet-library-macgyver >= 22.6.16
+#TestRequires: smartmet-library-macgyver >= 22.7.20
 #TestRequires: smartmet-library-timeseries >= 22.6.16
 #TestRequires: smartmet-library-timeseries-devel >= 22.6.16
-#TestRequires: smartmet-library-spine >= 22.6.16
+#TestRequires: smartmet-library-spine >= 22.7.20
 #TestRequires: smartmet-test-data
 
 %if 0%{rhel} >= 8
@@ -155,6 +155,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jul 20 2022 Andris Pavēnis <andris.pavenis@fmi.fi> 22.7.20-1.fmi
+- Repackage due to macgyver (AsynTaskGroup) ABI changes
+
 * Mon Jul 18 2022 Andris Pavēnis <andris.pavenis@fmi.fi> 22.7.18-1.fmi
 - Rebuild due to package update from PGDG (RHEL-9)
 
