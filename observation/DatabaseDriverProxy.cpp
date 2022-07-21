@@ -94,6 +94,11 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
                 << " Note! No active database drivers configured -> creating a dummy driver!"
                 << ANSI_FG_DEFAULT << std::endl;
     }
+
+    init_tasks.on_task_error(
+        [](const std::string &task_name)
+        { throw Fmi::Exception::Trace(BCP, "Operation failed").addParameter("Task", task_name); });
+
   }
   catch (...)
   {
@@ -116,16 +121,17 @@ void DatabaseDriverProxy::init(Engine *obsengine)
     if (itsOracleDriver && itsPostgreSQLMobileDataDriver)
     {
       // Let's initialize Oracle-driver first and fetch fmi_iot stations
-      itsOracleDriver->init(obsengine);
-      std::shared_ptr<FmiIoTStations> &stations =
-          itsPostgreSQLMobileDataDriver->getFmiIoTStations();
-      itsOracleDriver->getFMIIoTStations(stations);
-      oracleDriverInitialized = true;
+        init_tasks.add("Initialize Oracle-driver and fetch fmi_iot stations",
+            [this, obsengine] ()
+            {
+                itsOracleDriver->init(obsengine);
+                std::shared_ptr<FmiIoTStations> &stations =
+                    itsPostgreSQLMobileDataDriver->getFmiIoTStations();
+                itsOracleDriver->getFMIIoTStations(stations);
+            });
+        init_tasks.wait();
+        oracleDriverInitialized = true;
     }
-
-    init_tasks.on_task_error(
-        [](const std::string &task_name)
-        { throw Fmi::Exception::Trace(BCP, "Operation failed").addParameter("Task", task_name); });
 
     for (const auto &dbdriver : itsDatabaseDriverSet)
     {
