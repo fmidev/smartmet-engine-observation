@@ -4,7 +4,6 @@
 #include "PostgreSQLDatabaseDriverForMobileData.h"
 #include "SpatiaLiteDatabaseDriver.h"
 #include <macgyver/AnsiEscapeCodes.h>
-#include <macgyver/AsyncTaskGroup.h>
 #include <macgyver/Exception.h>
 #include <spine/Convenience.h>
 
@@ -124,10 +123,7 @@ void DatabaseDriverProxy::init(Engine *obsengine)
       oracleDriverInitialized = true;
     }
 
-    // Parallel initialization for speed:
-    Fmi::AsyncTaskGroup tasks;
-
-    tasks.on_task_error(
+    init_tasks.on_task_error(
         [](const std::string &task_name)
         { throw Fmi::Exception::Trace(BCP, "Operation failed").addParameter("Task", task_name); });
 
@@ -136,12 +132,12 @@ void DatabaseDriverProxy::init(Engine *obsengine)
       // Do not init Oracle twice in case the previous if-block was executed
       if (!(oracleDriverInitialized && dbdriver == itsOracleDriver))
       {
-        tasks.add("Init driver " + dbdriver->name(),
+        init_tasks.add("Init driver " + dbdriver->name(),
                   [&dbdriver, obsengine]() { dbdriver->init(obsengine); });
       }
     }
 
-    tasks.wait();
+    init_tasks.wait();
 
     // Not done in parallel for thread safe assignments:
     for (const auto &dbdriver : itsDatabaseDriverSet)
@@ -322,6 +318,13 @@ void DatabaseDriverProxy::getStationsByBoundingBox(Spine::Stations &stations,
 
 void DatabaseDriverProxy::shutdown()
 {
+  init_tasks.stop();
+  try {
+      init_tasks.wait();
+  } catch (...) {
+      // We are not interested about possible exceptions when shutting down
+  }
+
   for (const auto &dbdriver : itsDatabaseDriverSet)
     dbdriver->shutdown();
 }

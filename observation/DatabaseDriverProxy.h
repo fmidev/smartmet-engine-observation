@@ -4,6 +4,7 @@
 #include "DatabaseDriverContainer.h"
 #include "DatabaseDriverInterface.h"
 #include "Engine.h"
+#include <macgyver/AsyncTaskGroup.h>
 
 namespace SmartMet
 {
@@ -68,6 +69,7 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
   DatabaseDriverBase *createOracleDriver(const std::string &driver_id,
                                          const EngineParametersPtr &p,
                                          Spine::ConfigBase &cfg) const;
+  Fmi::AsyncTaskGroup init_tasks;
 };
 
 }  // namespace Observation
