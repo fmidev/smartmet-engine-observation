@@ -39,6 +39,11 @@ ObservationCacheAdminBase::~ObservationCacheAdminBase() = default;
 void ObservationCacheAdminBase::shutdown()
 {
   itsBackgroundTasks->stop();
+  try {
+      itsBackgroundTasks->wait();
+  } catch (...) {
+      // We are not interested about possible exceptions when shutting down
+  }
   itsCacheProxy->shutdown();
 }
 
