@@ -244,7 +244,7 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
     timeSeriesOptions.startTimeUTC = false;
     timeSeriesOptions.endTimeUTC = false;
 
-	//    std::shared_ptr<PostgreSQLObsDB> db =
+    //    std::shared_ptr<PostgreSQLObsDB> db =
     std::shared_ptr<PostgreSQLObsDB> db =
         itsPostgreSQLConnectionPool->getConnection(settings.debug_options);
     setSettings(settings, *db);
@@ -448,16 +448,16 @@ void PostgreSQLDatabaseDriverForFmiData::readConfig(Spine::ConfigBase &cfg)
   }
 }
 
-void PostgreSQLDatabaseDriverForFmiData::getStationGroups(StationGroups& sg) const
+void PostgreSQLDatabaseDriverForFmiData::getStationGroups(StationGroups &sg) const
 {
   std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
-  db->getStationGroups(sg);	
+  db->getStationGroups(sg);
 }
 
-void PostgreSQLDatabaseDriverForFmiData::getProducerGroups(ProducerGroups& pg) const
+void PostgreSQLDatabaseDriverForFmiData::getProducerGroups(ProducerGroups &pg) const
 {
   std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
-  db->getProducerGroups(pg);	
+  db->getProducerGroups(pg);
 }
 
 std::string PostgreSQLDatabaseDriverForFmiData::id() const

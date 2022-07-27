@@ -78,7 +78,8 @@ class StationtypeConfig
   /**
    * @brief Get database table name by using a stationtype.
    * @param[in] stationtype Stationtype keyword to search database table name.
-   * @return String contaning database table name, empty string if no table name defined for stationtype
+   * @return String contaning database table name, empty string if no table name defined for
+   * stationtype
    */
   std::string getDatabaseTableNameByStationtype(const StationtypeType& stationtype) const;
 
@@ -97,8 +98,7 @@ class StationtypeConfig
    * @param[in] stationtype Stationtype keyword to search producer id set.
    * @return Reference to the producer id set match with the stationtype.
    */
-  const ProducerIdSetType& getProducerIdSetByStationtype(
-      const StationtypeType& stationtype) const;
+  const ProducerIdSetType& getProducerIdSetByStationtype(const StationtypeType& stationtype) const;
 
   /**
    * @brief Get group code set map

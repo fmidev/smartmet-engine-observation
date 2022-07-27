@@ -4,8 +4,8 @@
 #include "ExternalAndMobileProducerConfig.h"
 #include "FlashDataItem.h"
 #include "InsertStatus.h"
-#include "MobileExternalDataItem.h"
 #include "MagnetometerDataItem.h"
+#include "MobileExternalDataItem.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
 
@@ -336,7 +336,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    * @param Magnetometer observation data to be inserted into the table
    */
   std::size_t fillMagnetometerDataCache(const MagnetometerDataItems &magnetometerCacheData,
-										InsertStatus &insertStatus);
+                                        InsertStatus &insertStatus);
 
   /**
    * @brief Delete old Magnetometer observation data from magnetometer_data table
@@ -344,21 +344,18 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    */
   void cleanMagnetometerCache(const boost::posix_time::ptime &newstarttime);
 
+  TS::TimeSeriesVectorPtr getRoadCloudData(const Settings &settings,
+                                           const Fmi::TimeZones &timezones);
 
-  TS::TimeSeriesVectorPtr getRoadCloudData(
-      const Settings &settings, const Fmi::TimeZones &timezones);
+  TS::TimeSeriesVectorPtr getNetAtmoData(const Settings &settings, const Fmi::TimeZones &timezones);
 
-  TS::TimeSeriesVectorPtr getNetAtmoData(const Settings &settings,
-                                                                  const Fmi::TimeZones &timezones);
+  TS::TimeSeriesVectorPtr getBKHydrometaData(const Settings &settings,
+                                             const Fmi::TimeZones &timezones);
 
-  TS::TimeSeriesVectorPtr getBKHydrometaData(
-      const Settings &settings, const Fmi::TimeZones &timezones);
+  TS::TimeSeriesVectorPtr getFmiIoTData(const Settings &settings, const Fmi::TimeZones &timezones);
 
-  TS::TimeSeriesVectorPtr getFmiIoTData(const Settings &settings,
-                                                                 const Fmi::TimeZones &timezones);
-
-  TS::TimeSeriesVectorPtr getFlashData(
-      const Settings &settings, const Fmi::TimeZones &timezones) override;
+  TS::TimeSeriesVectorPtr getFlashData(const Settings &settings,
+                                       const Fmi::TimeZones &timezones) override;
 
   TS::TimeSeriesVectorPtr getObservationData(
       const Spine::Stations &stations,
@@ -372,7 +369,7 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    * @brief Get the time of the last modified observation in magnetometer_data table
    * @retval boost::posix_time::ptime The time of the last modification
    */
-  
+
   boost::posix_time::ptime getLatestMagnetometerModifiedTime();
 
   /**
@@ -386,7 +383,6 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
    * @brief Get the maximum value of flash_id field
    * @retval int Maximum value of flash_id_field
    */
-
 
   void shutdown();
 
@@ -426,9 +422,10 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
       const boost::posix_time::ptime &starttime,
       const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache);
 
-  TS::TimeSeriesVectorPtr getMagnetometerData(const Settings &settings,
-											  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-											  const Fmi::TimeZones &timezones) override;
+  TS::TimeSeriesVectorPtr getMagnetometerData(
+      const Settings &settings,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Fmi::TimeZones &timezones) override;
 
  private:
   // Private members
@@ -455,8 +452,8 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
   void createBKHydrometaDataTable();
   void createMagnetometerDataTable();
 
-  TS::TimeSeriesVectorPtr getMobileAndExternalData(
-      const Settings &settings, const Fmi::TimeZones &timezones);
+  TS::TimeSeriesVectorPtr getMobileAndExternalData(const Settings &settings,
+                                                   const Fmi::TimeZones &timezones);
 
   LocationDataItems readObservationDataFromDB(const Spine::Stations &stations,
                                               const Settings &settings,

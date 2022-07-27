@@ -15,7 +15,7 @@ struct CacheInfoItem
 {
   CacheInfoItem() = default;
   CacheInfoItem(const CacheInfoItem& cii) = default;
-  CacheInfoItem& operator = (const CacheInfoItem& cii) = default;
+  CacheInfoItem& operator=(const CacheInfoItem& cii) = default;
 
   CacheInfoItem(const std::string& n, bool a, std::set<std::string> t)
       : name(n), active(a), tables(t)

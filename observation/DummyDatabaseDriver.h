@@ -22,8 +22,8 @@ class DummyDatabaseDriver : public DatabaseDriverBase
 
   void init(Engine *obsengine) override;
   TS::TimeSeriesVectorPtr values(Settings &settings) override;
-  TS::TimeSeriesVectorPtr values(
-      Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
+  TS::TimeSeriesVectorPtr values(Settings &settings,
+                                 const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
   Spine::TaggedFMISIDList translateToFMISID(const boost::posix_time::ptime &starttime,
                                             const boost::posix_time::ptime &endtime,
                                             const std::string &stationtype,
@@ -51,7 +51,6 @@ class DummyDatabaseDriver : public DatabaseDriverBase
   MetaData metaData(const std::string &) const { return MetaData(); }
   std::string id() const override { return "dummy"; }
   std::string name() const { return "dummy"; }
-
 };
 
 }  // namespace Observation

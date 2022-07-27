@@ -70,7 +70,7 @@ namespace Engine
 {
 namespace Observation
 {
- using namespace Utils;
+using namespace Utils;
 
 PostgreSQLCacheDB::PostgreSQLCacheDB(const PostgreSQLCacheParameters &options)
     : CommonPostgreSQLFunctions(
@@ -1660,20 +1660,23 @@ std::size_t PostgreSQLCacheDB::fillFmiIoTCache(
   return 0;
 }
 
-TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getRoadCloudData(
-    const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
+TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getRoadCloudData(const Settings &settings,
+                                                            const ParameterMapPtr &parameterMap,
+                                                            const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, parameterMap, timezones);
 }
 
-TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getNetAtmoData(
-    const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
+TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getNetAtmoData(const Settings &settings,
+                                                          const ParameterMapPtr &parameterMap,
+                                                          const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, parameterMap, timezones);
 }
 
-TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getFmiIoTData(
-    const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
+TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getFmiIoTData(const Settings &settings,
+                                                         const ParameterMapPtr &parameterMap,
+                                                         const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, parameterMap, timezones);
 }
@@ -1705,8 +1708,8 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
     // The desired timeseries, unless all available data if timestep=0 or latest only
     if (!settings.latest && !timeSeriesOptions.all())
     {
-      tlist = TS::TimeSeriesGenerator::generate(
-          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+      tlist = TS::TimeSeriesGenerator::generate(timeSeriesOptions,
+                                                timezones.time_zone_from_string(settings.timezone));
     }
 
     ExternalAndMobileDBInfo dbInfo(&producerConfig);
@@ -1717,7 +1720,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
     Engine::Observation::ResultSetRows rsrs =
-	  Engine::Observation::PostgreSQLCacheDB::getResultSetForMobileExternalData(
+        Engine::Observation::PostgreSQLCacheDB::getResultSetForMobileExternalData(
             result_set, itsDB.dataTypes());
 
     itsTimeFormatter.reset(Fmi::TimeFormatter::create(settings.timeformat));
@@ -2063,7 +2066,6 @@ TODO FlashCounts PostgreSQLCacheDB::getFlashCount(const boost::posix_time::ptime
   }
 }
 #endif
-
 
 void PostgreSQLCacheDB::createIndex(const std::string &table,
                                     const std::string &column,

@@ -1,19 +1,18 @@
 #pragma once
 
 #include "MetaData.h"
+#include "ProducerGroups.h"
 #include "QueryBase.h"
 #include "QueryResultBase.h"
 #include "Settings.h"
+#include "StationGroups.h"
 #include "StationSettings.h"
 #include "Utils.h"
-#include "StationGroups.h"
-#include "ProducerGroups.h"
 #include <boost/atomic.hpp>
 #include <boost/thread/condition.hpp>
 #include <macgyver/CacheStats.h>
 #include <spine/Station.h>
 #include <timeseries/TimeSeriesInclude.h>
-#include <macgyver/CacheStats.h>
 
 namespace SmartMet
 {
@@ -60,8 +59,8 @@ class DatabaseDriverInterface
   virtual std::string id() const = 0;
   virtual std::string name() const = 0;
   virtual Fmi::Cache::CacheStatistics getCacheStats() const = 0;
-  virtual void getStationGroups(StationGroups& sg) const = 0;
-  virtual void getProducerGroups(ProducerGroups& pg) const = 0;
+  virtual void getStationGroups(StationGroups &sg) const = 0;
+  virtual void getProducerGroups(ProducerGroups &pg) const = 0;
 
  protected:
   DatabaseDriverInterface() = default;

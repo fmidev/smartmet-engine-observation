@@ -52,13 +52,12 @@ class FlashMemoryCache
    */
 
   TS::TimeSeriesVectorPtr getData(const Settings& settings,
-                                                 const ParameterMapPtr& parameterMap,
-                                                 const Fmi::TimeZones& timezones) const;
+                                  const ParameterMapPtr& parameterMap,
+                                  const Fmi::TimeZones& timezones) const;
 
-
-  FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-							const boost::posix_time::ptime &endtime,
-							const Spine::TaggedLocationList &locations) const;
+  FlashCounts getFlashCount(const boost::posix_time::ptime& starttime,
+                            const boost::posix_time::ptime& endtime,
+                            const Spine::TaggedLocationList& locations) const;
 
  private:
   // The actual flash data in the cache

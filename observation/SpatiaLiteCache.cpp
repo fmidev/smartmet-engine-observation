@@ -13,7 +13,7 @@ namespace Engine
 {
 namespace Observation
 {
- using namespace Utils;
+using namespace Utils;
 
 namespace
 {
@@ -116,7 +116,7 @@ void SpatiaLiteCache::initializeConnectionPool()
       itsFmiIoTTimeIntervalEnd = end;
     }
 
-	// Magnetometer
+    // Magnetometer
     if (cacheTables.find(MAGNETOMETER_DATA_TABLE) != cacheTables.end())
     {
       auto start = db->getOldestMagnetometerDataTime();
@@ -211,15 +211,15 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-		itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
+        itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
         ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
       }
-	  else if(settings.stationtype == MAGNETO_PRODUCER &&
-			  magnetometerIntervalIsCached(settings.starttime, settings.endtime))
-		{		  
-		  itsCacheStatistics.at(MAGNETOMETER_DATA_TABLE).hit();
-		  ret = db->getMagnetometerData(settings, itsTimeZones);
-		}
+      else if (settings.stationtype == MAGNETO_PRODUCER &&
+               magnetometerIntervalIsCached(settings.starttime, settings.endtime))
+      {
+        itsCacheStatistics.at(MAGNETOMETER_DATA_TABLE).hit();
+        ret = db->getMagnetometerData(settings, itsTimeZones);
+      }
       else
       {
         bool use_memory_cache = false;
@@ -288,36 +288,36 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-		itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
+        itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
         ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
-	  else if(settings.stationtype == MAGNETO_PRODUCER &&
-			  magnetometerIntervalIsCached(settings.starttime, settings.endtime))
-		{		  
-		  itsCacheStatistics.at(MAGNETOMETER_DATA_TABLE).hit();
-		  ret = db->getMagnetometerData(settings, timeSeriesOptions, itsTimeZones);
-		}
-       else
-		 {
-		   bool use_memory_cache = false;
-		   if (itsObservationMemoryCache)
-			 {
-			   // We know that spatialite cache hits will include memory cache hits, but do not
-			   // bother to substract the memory cache hits from spatialite hits
-			   
-			   auto cache_start_time = itsObservationMemoryCache->getStartTime();
-			   use_memory_cache =
-				 (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
-			   
-			   if (use_memory_cache)
-				 itsCacheStatistics.at("observation_memory").hit();
-			   else
-				 itsCacheStatistics.at("observation_memory").miss();
-			 }
+      else if (settings.stationtype == MAGNETO_PRODUCER &&
+               magnetometerIntervalIsCached(settings.starttime, settings.endtime))
+      {
+        itsCacheStatistics.at(MAGNETOMETER_DATA_TABLE).hit();
+        ret = db->getMagnetometerData(settings, timeSeriesOptions, itsTimeZones);
+      }
+      else
+      {
+        bool use_memory_cache = false;
+        if (itsObservationMemoryCache)
+        {
+          // We know that spatialite cache hits will include memory cache hits, but do not
+          // bother to substract the memory cache hits from spatialite hits
 
-		   ret = db->getObservationData(
-										stations, settings, *sinfo, timeSeriesOptions, itsTimeZones, itsObservationMemoryCache);
-		 }
+          auto cache_start_time = itsObservationMemoryCache->getStartTime();
+          use_memory_cache =
+              (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
+
+          if (use_memory_cache)
+            itsCacheStatistics.at("observation_memory").hit();
+          else
+            itsCacheStatistics.at("observation_memory").miss();
+        }
+
+        ret = db->getObservationData(
+            stations, settings, *sinfo, timeSeriesOptions, itsTimeZones, itsObservationMemoryCache);
+      }
     }
 
     return ret;
@@ -514,7 +514,7 @@ FlashCounts SpatiaLiteCache::getFlashCount(const boost::posix_time::ptime &start
 
     // Must use disk cache instead
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
-	db->setDebug(false);
+    db->setDebug(false);
 
     return db->getFlashCount(starttime, endtime, locations);
   }
@@ -708,8 +708,7 @@ void SpatiaLiteCache::cleanRoadCloudCache(const boost::posix_time::time_duration
   }
 }
 
-TS::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpatiaLite(
-    Settings &settings) const
+TS::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpatiaLite(Settings &settings) const
 {
   try
   {
@@ -717,7 +716,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpatiaLite(
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-	itsCacheStatistics.at(ROADCLOUD_DATA_TABLE).hit();
+    itsCacheStatistics.at(ROADCLOUD_DATA_TABLE).hit();
     ret = db->getRoadCloudData(settings, itsTimeZones);
 
     return ret;
@@ -811,8 +810,7 @@ void SpatiaLiteCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
   }
 }
 
-TS::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaLite(
-    Settings &settings) const
+TS::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaLite(Settings &settings) const
 {
   try
   {
@@ -820,7 +818,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaLite(
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-	itsCacheStatistics.at(NETATMO_DATA_TABLE).hit();
+    itsCacheStatistics.at(NETATMO_DATA_TABLE).hit();
     ret = db->getNetAtmoData(settings, itsTimeZones);
 
     return ret;
@@ -926,8 +924,7 @@ void SpatiaLiteCache::cleanBKHydrometaCache(
   }
 }
 
-TS::TimeSeriesVectorPtr SpatiaLiteCache::bkHydrometaValuesFromSpatiaLite(
-    Settings &settings) const
+TS::TimeSeriesVectorPtr SpatiaLiteCache::bkHydrometaValuesFromSpatiaLite(Settings &settings) const
 {
   try
   {
@@ -935,7 +932,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::bkHydrometaValuesFromSpatiaLite(
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-	itsCacheStatistics.at(BK_HYDROMETA_DATA_TABLE).hit();
+    itsCacheStatistics.at(BK_HYDROMETA_DATA_TABLE).hit();
     ret = db->getBKHydrometaData(settings, itsTimeZones);
 
     return ret;
@@ -1040,8 +1037,7 @@ void SpatiaLiteCache::cleanFmiIoTCache(const boost::posix_time::time_duration &t
   }
 }
 
-TS::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLite(
-    Settings &settings) const
+TS::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLite(Settings &settings) const
 {
   try
   {
@@ -1049,7 +1045,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLite(
 
     std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-	itsCacheStatistics.at(FMI_IOT_DATA_TABLE).hit();
+    itsCacheStatistics.at(FMI_IOT_DATA_TABLE).hit();
     ret = db->getFmiIoTData(settings, itsTimeZones);
 
     return ret;
@@ -1208,7 +1204,7 @@ void SpatiaLiteCache::cleanWeatherDataQCCache(
 }
 
 bool SpatiaLiteCache::magnetometerIntervalIsCached(const boost::posix_time::ptime &starttime,
-												   const boost::posix_time::ptime &endtime) const
+                                                   const boost::posix_time::ptime &endtime) const
 {
   try
   {
@@ -1247,7 +1243,8 @@ boost::posix_time::ptime SpatiaLiteCache::getLatestMagnetometerModifiedTime() co
   return itsConnectionPool->getConnection()->getLatestMagnetometerModifiedTime();
 }
 
-std::size_t SpatiaLiteCache::fillMagnetometerCache(const MagnetometerDataItems &magnetometerCacheData) const
+std::size_t SpatiaLiteCache::fillMagnetometerCache(
+    const MagnetometerDataItems &magnetometerCacheData) const
 {
   try
   {
@@ -1267,9 +1264,10 @@ std::size_t SpatiaLiteCache::fillMagnetometerCache(const MagnetometerDataItems &
   }
 }
 
-void SpatiaLiteCache::cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const
+void SpatiaLiteCache::cleanMagnetometerCache(
+    const boost::posix_time::time_duration &timetokeep) const
 {
- try
+  try
   {
     // Dont clean fake cache
     if (isFakeCache(MAGNETOMETER_DATA_TABLE))
@@ -1299,7 +1297,6 @@ void SpatiaLiteCache::cleanMagnetometerCache(const boost::posix_time::time_durat
     throw Fmi::Exception::Trace(BCP, "Cleaning data cache failed!");
   }
 }
-
 
 void SpatiaLiteCache::shutdown()
 {
@@ -1345,7 +1342,6 @@ SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
 
     readConfig(cfg);
 
-
     // Verify multithreading is possible
     if (!sqlite3_threadsafe())
       throw Fmi::Exception(BCP, "Installed sqlite is not thread safe");
@@ -1371,7 +1367,8 @@ void SpatiaLiteCache::readConfig(const Spine::ConfigBase & /* cfg */)
     itsRoadCloudInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("roadCloudInsertCacheSize")));
     itsNetAtmoInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("netAtmoInsertCacheSize")));
     itsFmiIoTInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("fmiIoTInsertCacheSize")));
-    itsMagnetometerInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("magnetometerInsertCacheSize")));
+    itsMagnetometerInsertCache.resize(
+        Fmi::stoi(itsCacheInfo.params.at("magnetometerInsertCacheSize")));
 
     itsParameters.sqlite.cache_size = Fmi::stoi(itsCacheInfo.params.at("cache_size"));
     itsParameters.sqlite.threads = Fmi::stoi(itsCacheInfo.params.at("threads"));

@@ -11,7 +11,7 @@ namespace Engine
 {
 namespace Observation
 {
-  using namespace Utils;
+using namespace Utils;
 
 DatabaseDriverBase::~DatabaseDriverBase() = default;
 
@@ -47,15 +47,15 @@ void DatabaseDriverBase::updateProducers(const EngineParametersPtr &p, Settings 
   {
     if (p->stationtypeConfig.getUseCommonQueryMethod(settings.stationtype) and
         settings.producer_ids.empty())
-	  {	  
-		settings.producer_ids = p->stationtypeConfig.getProducerIdSetByStationtype(settings.stationtype);
+    {
+      settings.producer_ids =
+          p->stationtypeConfig.getProducerIdSetByStationtype(settings.stationtype);
 
-		// If ids from config not found try from database
-		if(settings.producer_ids.empty())
-		  settings.producer_ids = p->producerGroups.getProducerIds(settings.stationtype,
-																   settings.starttime,
-																   settings.endtime);
-	  }
+      // If ids from config not found try from database
+      if (settings.producer_ids.empty())
+        settings.producer_ids = p->producerGroups.getProducerIds(
+            settings.stationtype, settings.starttime, settings.endtime);
+    }
   }
   catch (...)
   {
@@ -98,8 +98,8 @@ void DatabaseDriverBase::readConfig(Spine::ConfigBase &cfg, DatabaseDriverParame
 
     if (!parameters.disableAllCacheUpdates)
     {
-      parameters.magnetometerCacheDuration =
-          driverInfo.getIntParameterValue("magnetometerCacheDuration", parameters.magnetometerCacheDuration);
+      parameters.magnetometerCacheDuration = driverInfo.getIntParameterValue(
+          "magnetometerCacheDuration", parameters.magnetometerCacheDuration);
       parameters.finCacheDuration =
           driverInfo.getIntParameterValue("finCacheDuration", parameters.finCacheDuration);
       parameters.finMemoryCacheDuration = driverInfo.getIntParameterValue(
@@ -223,7 +223,7 @@ std::shared_ptr<ObservationCache> DatabaseDriverBase::resolveCache(
   std::string tablename = resolveCacheTableName(producer, parameters->stationtypeConfig);
 
   if (tablename.empty())
-	logMessage("No cache for producer " + producer, itsQuiet);
+    logMessage("No cache for producer " + producer, itsQuiet);
 
   return parameters->observationCacheProxy->getCacheByTableName(tablename);
 }
@@ -357,8 +357,7 @@ std::string DatabaseDriverBase::resolveDatabaseTableName(const std::string &prod
   return tablename;
 }
 
-TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
-    Settings &settings) const
+TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(Settings &settings) const
 {
   try
   {
@@ -395,12 +394,10 @@ TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
     // If only fmisid and place parameters requested return timeseries with null values
     if (settings.parameters.size() == fmisidPlaceParams.size())
     {
-      result = TS::TimeSeriesVectorPtr(
-          new TS::TimeSeriesVector);
+      result = TS::TimeSeriesVectorPtr(new TS::TimeSeriesVector);
 
-      TS::TimeSeriesGenerator::LocalTimeList tlist =
-          TS::TimeSeriesGenerator::generate(
-              timeSeriesOptions, itsTimeZones.time_zone_from_string(settings.timezone));
+      TS::TimeSeriesGenerator::LocalTimeList tlist = TS::TimeSeriesGenerator::generate(
+          timeSeriesOptions, itsTimeZones.time_zone_from_string(settings.timezone));
       TS::TimeSeries ts_fmisid(settings.localTimePool);
       TS::TimeSeries ts_place(settings.localTimePool);
       for (const auto &tfmisid : settings.taggedFMISIDs)

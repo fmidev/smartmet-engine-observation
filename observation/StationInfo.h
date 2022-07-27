@@ -1,7 +1,7 @@
 #pragma once
 
-#include "StationLocation.h"
 #include "StationGroups.h"
+#include "StationLocation.h"
 #include <macgyver/NearTree.h>
 #include <macgyver/NearTreeLatLon.h>
 #include <spine/Station.h>
@@ -37,19 +37,19 @@ class StationInfo
   StationInfo() = default;
   StationInfo(const std::string& filename);
 
-  Spine::Stations stations;  // all known stations
-  StationLocations stationLocations;   // all station locations
+  Spine::Stations stations;           // all known stations
+  StationLocations stationLocations;  // all station locations
 
   void serialize(const std::string& filename) const;
   void unserialize(const std::string& filename);
 
   Spine::Stations findNearestStations(double longitude,
-                                                double latitude,
-                                                double maxdistance,
-                                                int numberofstations,
-                                                const std::set<std::string>& groups,
-                                                const boost::posix_time::ptime& starttime,
-                                                const boost::posix_time::ptime& endtime) const;
+                                      double latitude,
+                                      double maxdistance,
+                                      int numberofstations,
+                                      const std::set<std::string>& groups,
+                                      const boost::posix_time::ptime& starttime,
+                                      const boost::posix_time::ptime& endtime) const;
 
   Spine::Stations findWmoStations(const std::vector<int>& wmos) const;
   Spine::Stations findLpnnStations(const std::vector<int>& lpnns) const;
@@ -57,36 +57,34 @@ class StationInfo
   Spine::Stations findRwsidStations(const std::vector<int>& rwsids) const;
 
   Spine::Stations findFmisidStations(const std::vector<int>& fmisids,
-                                               const std::set<std::string>& groups,
-                                               const boost::posix_time::ptime& starttime,
-                                               const boost::posix_time::ptime& endtime) const;
-  Spine::Stations findFmisidStations(
-      const Spine::TaggedFMISIDList& taggedFMISIDs,
-      const std::set<std::string>& groups,
-      const boost::posix_time::ptime& starttime,
-      const boost::posix_time::ptime& endtime) const;
+                                     const std::set<std::string>& groups,
+                                     const boost::posix_time::ptime& starttime,
+                                     const boost::posix_time::ptime& endtime) const;
+  Spine::Stations findFmisidStations(const Spine::TaggedFMISIDList& taggedFMISIDs,
+                                     const std::set<std::string>& groups,
+                                     const boost::posix_time::ptime& starttime,
+                                     const boost::posix_time::ptime& endtime) const;
 
-  Spine::Stations findFmisidStations(
-      const Spine::TaggedFMISIDList& taggedFMISIDs) const;
+  Spine::Stations findFmisidStations(const Spine::TaggedFMISIDList& taggedFMISIDs) const;
 
   Spine::Stations findWmoStations(const std::vector<int>& wmos,
-                                            const std::set<std::string>& groups,
-                                            const boost::posix_time::ptime& starttime,
-                                            const boost::posix_time::ptime& endtime) const;
+                                  const std::set<std::string>& groups,
+                                  const boost::posix_time::ptime& starttime,
+                                  const boost::posix_time::ptime& endtime) const;
 
   Spine::Stations findLpnnStations(const std::vector<int>& lpnns,
-                                             const std::set<std::string>& groups,
-                                             const boost::posix_time::ptime& starttime,
-                                             const boost::posix_time::ptime& endtime) const;
+                                   const std::set<std::string>& groups,
+                                   const boost::posix_time::ptime& starttime,
+                                   const boost::posix_time::ptime& endtime) const;
 
   Spine::Stations findRwsidStations(const std::vector<int>& rwsids,
-                                              const std::set<std::string>& groups,
-                                              const boost::posix_time::ptime& starttime,
-                                              const boost::posix_time::ptime& endtime) const;
+                                    const std::set<std::string>& groups,
+                                    const boost::posix_time::ptime& starttime,
+                                    const boost::posix_time::ptime& endtime) const;
 
   Spine::Stations findStationsInGroup(const std::set<std::string>& groups,
-                                                const boost::posix_time::ptime& starttime,
-                                                const boost::posix_time::ptime& endtime) const;
+                                      const boost::posix_time::ptime& starttime,
+                                      const boost::posix_time::ptime& endtime) const;
 
   Spine::Stations findStationsInsideArea(const std::set<std::string>& groups,
                                          const boost::posix_time::ptime& starttime,
@@ -94,12 +92,12 @@ class StationInfo
                                          const std::string& wkt) const;
 
   Spine::Stations findStationsInsideBox(double minx,
-                                                  double miny,
-                                                  double maxx,
-                                                  double maxy,
-                                                  const std::set<std::string>& groups,
-                                                  const boost::posix_time::ptime& starttime,
-                                                  const boost::posix_time::ptime& endtime) const;
+                                        double miny,
+                                        double maxx,
+                                        double maxy,
+                                        const std::set<std::string>& groups,
+                                        const boost::posix_time::ptime& starttime,
+                                        const boost::posix_time::ptime& endtime) const;
 
   const Spine::Station& getStation(unsigned int fmisid, const std::set<std::string>& groups) const;
 

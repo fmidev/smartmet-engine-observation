@@ -20,24 +20,22 @@ class QueryExternalAndMobileData : public QueryBase
   ~QueryExternalAndMobileData() override;
 
   TS::TimeSeriesVectorPtr executeQuery(PostgreSQLObsDB &db,
-                                                                Settings &settings,
-                                                                const Fmi::TimeZones &timezones);
+                                       Settings &settings,
+                                       const Fmi::TimeZones &timezones);
 
-  TS::TimeSeriesVectorPtr executeQuery(
-      PostgreSQLObsDB &db,
-      Settings &settings,
-      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones);
+  TS::TimeSeriesVectorPtr executeQuery(PostgreSQLObsDB &db,
+                                       Settings &settings,
+                                       const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+                                       const Fmi::TimeZones &timezones);
 
   TS::TimeSeriesVectorPtr values(PostgreSQLObsDB &db,
-                                                          Settings &settings,
-                                                          const Fmi::TimeZones &timezones);
+                                 Settings &settings,
+                                 const Fmi::TimeZones &timezones);
 
-  TS::TimeSeriesVectorPtr values(
-      PostgreSQLObsDB &db,
-      Settings &settings,
-      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones);
+  TS::TimeSeriesVectorPtr values(PostgreSQLObsDB &db,
+                                 Settings &settings,
+                                 const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+                                 const Fmi::TimeZones &timezones);
 
  private:
   const ExternalAndMobileProducerConfig &itsProducerConfig;  // producer -> id map

@@ -219,9 +219,10 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
   return sqlStmt;
 }
 
-std::string ExternalAndMobileDBInfo::sqlSelectForCache(const std::string& producer,
-													   const boost::posix_time::ptime &from_data_time,
-													   const boost::posix_time::ptime &from_created_time)
+std::string ExternalAndMobileDBInfo::sqlSelectForCache(
+    const std::string &producer,
+    const boost::posix_time::ptime &from_data_time,
+    const boost::posix_time::ptime &from_created_time)
 {
   std::string sqlStmt;
   std::string created_stmt;

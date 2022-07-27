@@ -155,8 +155,8 @@ class QueryResult : public QueryResultBase
 };
 
 template <>
-boost::posix_time::ptime
-QueryResult::castTo(const QueryResult::ValueVectorType::const_iterator value);
+boost::posix_time::ptime QueryResult::castTo(
+    const QueryResult::ValueVectorType::const_iterator value);
 
 }  // namespace Observation
 }  // namespace Engine

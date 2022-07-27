@@ -24,8 +24,7 @@ namespace Engine
 namespace Observation
 {
 // Sort based on fmisid
-static bool sort_stations_function(const Spine::Station& s1,
-                                   const Spine::Station& s2)
+static bool sort_stations_function(const Spine::Station& s1, const Spine::Station& s2)
 {
   return (s1.fmisid < s2.fmisid);
 }
@@ -272,7 +271,7 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
         Fmi::to_string(std::round(distance * 10) / 10.0);  // round to 100 meter precision
     newstation.requestedLat = latitude;
     newstation.requestedLon = longitude;
-	Utils::calculateStationDirection(newstation);
+    Utils::calculateStationDirection(newstation);
 
     result.push_back(newstation);
   }
@@ -363,11 +362,10 @@ Spine::Stations StationInfo::findFmisidStations(const std::vector<int>& fmisids)
  */
 // ----------------------------------------------------------------------
 
-Spine::Stations StationInfo::findFmisidStations(
-    const Spine::TaggedFMISIDList& taggedFMISIDs,
-    const std::set<std::string>& groups,
-    const boost::posix_time::ptime& starttime,
-    const boost::posix_time::ptime& endtime) const
+Spine::Stations StationInfo::findFmisidStations(const Spine::TaggedFMISIDList& taggedFMISIDs,
+                                                const std::set<std::string>& groups,
+                                                const boost::posix_time::ptime& starttime,
+                                                const boost::posix_time::ptime& endtime) const
 {
   std::vector<int> fmisids;
   std::map<int, const Spine::TaggedFMISID*> fmisidMap;
@@ -407,8 +405,7 @@ Spine::Stations StationInfo::findFmisidStations(
  */
 // ----------------------------------------------------------------------
 
-Spine::Stations StationInfo::findFmisidStations(
-    const Spine::TaggedFMISIDList& taggedFMISIDs) const
+Spine::Stations StationInfo::findFmisidStations(const Spine::TaggedFMISIDList& taggedFMISIDs) const
 {
   std::vector<int> fmisids;
   std::map<int, const Spine::TaggedFMISID*> fmisidMap;

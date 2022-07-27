@@ -10,11 +10,10 @@ namespace Observation
 {
 namespace
 {
-  using namespace Utils;
+using namespace Utils;
 
 // Sort based on fmisid
-static bool sort_stations_function(const Spine::Station &s1,
-                                   const Spine::Station &s2)
+static bool sort_stations_function(const Spine::Station &s1, const Spine::Station &s2)
 {
   return (s1.fmisid < s2.fmisid);
 }

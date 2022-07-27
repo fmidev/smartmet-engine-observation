@@ -1,20 +1,20 @@
 #pragma once
 
-#include "StationGroups.h"
-#include "ProducerGroups.h"
 #include "DatabaseDriverParameters.h"
 #include "DatabaseStations.h"
 #include "Engine.h"
 #include "FmiIoTStation.h"
+#include "Keywords.h"
 #include "MetaData.h"
 #include "ObservableProperty.h"
 #include "ObservationCache.h"
+#include "ProducerGroups.h"
 #include "QueryBase.h"
 #include "QueryResultBase.h"
 #include "Settings.h"
+#include "StationGroups.h"
 #include "StationSettings.h"
 #include "Utils.h"
-#include "Keywords.h"
 #include <boost/atomic.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/condition.hpp>
@@ -63,8 +63,8 @@ class DatabaseDriverBase
   virtual std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language) = 0;
 
-  virtual void getStationGroups(StationGroups& sg) const {}
-  virtual void getProducerGroups(ProducerGroups& pg) const {}
+  virtual void getStationGroups(StationGroups &sg) const {}
+  virtual void getProducerGroups(ProducerGroups &pg) const {}
 
   virtual void shutdown() = 0;
 

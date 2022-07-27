@@ -28,9 +28,8 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
       const Fmi::TimeZones &timezones,
       const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache) override;
 
-  TS::TimeSeriesVectorPtr getFlashData(
-      const Settings &settings,
-      const Fmi::TimeZones &timezones) override;
+  TS::TimeSeriesVectorPtr getFlashData(const Settings &settings,
+                                       const Fmi::TimeZones &timezones) override;
 
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
@@ -45,10 +44,11 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
   const std::shared_ptr<Fmi::TimeFormatter> &resetTimeFormatter(const std::string &format);
 
   TS::TimeSeriesVectorPtr getMagnetometerData(const Settings &settings,
-											  const Fmi::TimeZones &timezones) override;
-  TS::TimeSeriesVectorPtr getMagnetometerData(const Settings &settings,
-											  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-											  const Fmi::TimeZones &timezones) override;
+                                              const Fmi::TimeZones &timezones) override;
+  TS::TimeSeriesVectorPtr getMagnetometerData(
+      const Settings &settings,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Fmi::TimeZones &timezones) override;
 
  protected:
   Fmi::Database::PostgreSQLConnection itsDB;

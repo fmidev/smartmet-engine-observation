@@ -3,14 +3,14 @@
 #include "CommonPostgreSQLFunctions.h"
 #include "DataItem.h"
 #include "FlashDataItem.h"
-#include "MobileExternalDataItem.h"
 #include "MagnetometerDataItem.h"
+#include "MobileExternalDataItem.h"
 #include "ParameterMap.h"
+#include "ProducerGroups.h"
 #include "QueryResultBase.h"
 #include "Settings.h"
-#include "StationtypeConfig.h"
 #include "StationGroups.h"
-#include "ProducerGroups.h"
+#include "StationtypeConfig.h"
 #include "WeatherDataQCItem.h"
 #include <boost/atomic.hpp>
 #include <macgyver/PostgreSQLConnection.h>
@@ -79,9 +79,9 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions, private boost::noncopy
                                                 boost::posix_time::ptime lastModifiedTime,
                                                 const Fmi::TimeZones &timezones);
   void readMagnetometerCacheDataFromPostgreSQL(std::vector<MagnetometerDataItem> &cacheData,
-											   boost::posix_time::ptime lastTime,
-											   boost::posix_time::ptime lastModifiedTime,
-											   const Fmi::TimeZones &timezones);
+                                               boost::posix_time::ptime lastTime,
+                                               boost::posix_time::ptime lastModifiedTime,
+                                               const Fmi::TimeZones &timezones);
 
   boost::posix_time::ptime startTime;
   boost::posix_time::ptime endTime;
@@ -115,8 +115,8 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions, private boost::noncopy
 
   void getStations(Spine::Stations &stations) const;
   void readStationLocations(StationLocations &stationLocations) const;
-  void getStationGroups(StationGroups& sg) const;
-  void getProducerGroups(ProducerGroups& pg) const;
+  void getStationGroups(StationGroups &sg) const;
+  void getProducerGroups(ProducerGroups &pg) const;
 
  private:
   TS::TimeSeriesVectorPtr itsTimeSeriesColumns;

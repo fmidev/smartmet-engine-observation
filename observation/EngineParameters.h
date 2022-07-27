@@ -6,9 +6,9 @@
 #include "ExternalAndMobileProducerConfig.h"
 #include "ObservationCache.h"
 #include "ObservationCacheProxy.h"
+#include "ProducerGroups.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
-#include "ProducerGroups.h"
 #include <boost/smart_ptr/atomic_shared_ptr.hpp>
 #include <macgyver/Cache.h>
 

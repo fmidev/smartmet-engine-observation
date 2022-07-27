@@ -60,11 +60,10 @@ bool is_data_source_field(const std::string &fieldname)
   return (fieldname.find("_data_source_sensornumber_") != std::string::npos);
 }
 
-TS::Value get_default_sensor_value(
-    const SensorData &sensor_data,
-    int /* fmisid */,
-    int /* measurand_id */,
-    DataFieldSpecifier specifier = DataFieldSpecifier::Value)
+TS::Value get_default_sensor_value(const SensorData &sensor_data,
+                                   int /* fmisid */,
+                                   int /* measurand_id */,
+                                   DataFieldSpecifier specifier = DataFieldSpecifier::Value)
 {
   for (const auto &item : sensor_data)
   {
@@ -93,10 +92,10 @@ TS::Value get_default_sensor_value(
 }
 
 TS::Value get_sensor_value(const SensorData &sensor_data,
-                                          const std::string &sensor_no,
-                                          int fmisid,
-                                          int measurand_id,
-                                          DataFieldSpecifier specifier = DataFieldSpecifier::Value)
+                           const std::string &sensor_no,
+                           int fmisid,
+                           int measurand_id,
+                           DataFieldSpecifier specifier = DataFieldSpecifier::Value)
 {
   if (sensor_data.empty())
     return TS::None();
@@ -421,11 +420,9 @@ StationTimedMeasurandData CommonDatabaseFunctions::buildStationTimedMeasurandDat
 
       boost::local_time::local_date_time obstime(obs.data.data_time, current_tz);
 
-      auto value = (obs.data.data_value ? TS::Value(*obs.data.data_value)
-                                        : TS::None());
+      auto value = (obs.data.data_value ? TS::Value(*obs.data.data_value) : TS::None());
       auto data_quality = obs.data.data_quality;
-      auto data_source = (obs.data.data_source > -1 ? TS::Value(obs.data.data_source)
-                                                    : TS::None());
+      auto data_source = (obs.data.data_source > -1 ? TS::Value(obs.data.data_source) : TS::None());
 
       bool data_from_default_sensor = (obs.data.measurand_no == 1);
 
@@ -658,8 +655,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
   {
     std::map<int, TS::TimeSeries> data_source_ts;
     std::set<boost::local_time::local_date_time> timesteps;
-    TS::LocalTimePoolPtr local_time_pool =
-        timeSeriesColumns->begin()->getLocalTimePool();
+    TS::LocalTimePoolPtr local_time_pool = timeSeriesColumns->begin()->getLocalTimePool();
     for (const auto &item : timed_measurand_data)
     {
       const auto &obstime = item.first;
@@ -698,8 +694,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
             }
           }
           if (data_source_ts.find(pos) == data_source_ts.end())
-            data_source_ts.insert(
-                std::make_pair(pos, TS::TimeSeries(local_time_pool)));
+            data_source_ts.insert(std::make_pair(pos, TS::TimeSeries(local_time_pool)));
           data_source_ts.at(pos).emplace_back(TS::TimedValue(obstime, val));
           timesteps.insert(obstime);
         }
@@ -722,8 +717,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
             }
           }
           if (data_source_ts.find(pos) == data_source_ts.end())
-            data_source_ts.insert(
-                std::make_pair(pos, TS::TimeSeries(local_time_pool)));
+            data_source_ts.insert(std::make_pair(pos, TS::TimeSeries(local_time_pool)));
           data_source_ts.at(pos).emplace_back(TS::TimedValue(obstime, val));
           timesteps.insert(obstime);
         }
@@ -742,8 +736,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
         auto obstime = val.time;
         while (time_iterator != timesteps.end() && *time_iterator < obstime)
         {
-          timeSeriesColumns->at(pos).emplace_back(
-              TS::TimedValue(*time_iterator, missing));
+          timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(*time_iterator, missing));
           time_iterator++;
         }
         if (time_iterator != timesteps.end() && *time_iterator == obstime)
@@ -753,8 +746,7 @@ void CommonDatabaseFunctions::addSpecialFieldsToTimeSeries(
       // Timesteps after last timestep in data
       while (time_iterator != timesteps.end())
       {
-        timeSeriesColumns->at(pos).emplace_back(
-            TS::TimedValue(*time_iterator, missing));
+        timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(*time_iterator, missing));
         time_iterator++;
       }
     }
@@ -828,8 +820,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
                          : itsParameterMap->getRoadAndForeignIds().stringToInteger(sparam));
           if (data.count(mid) == 0)
           {
-            timeSeriesColumns->at(pos).emplace_back(
-                TS::TimedValue(obstime, missing));
+            timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, missing));
           }
           else
           {
@@ -848,8 +839,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
               else if (special.first == "windcompass32")
                 windCompass = windCompass32(boost::get<double>(val), settings.missingtext);
               TS::Value windCompassValue = TS::Value(windCompass);
-              timeSeriesColumns->at(pos).emplace_back(
-                  TS::TimedValue(obstime, windCompassValue));
+              timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, windCompassValue));
             }
           }
         }
@@ -863,8 +853,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
 
           if (data.count(windpos) == 0 || data.count(rhpos) == 0 || data.count(temppos) == 0)
           {
-            timeSeriesColumns->at(pos).emplace_back(
-                TS::TimedValue(obstime, missing));
+            timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, missing));
           }
           else
           {
@@ -877,10 +866,8 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
             float wind =
                 boost::get<double>(get_default_sensor_value(sensor_values, fmisid, windpos));
 
-            TS::Value feelslike =
-                TS::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
-            timeSeriesColumns->at(pos).emplace_back(
-                TS::TimedValue(obstime, feelslike));
+            TS::Value feelslike = TS::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
+            timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, feelslike));
           }
         }
         else if (special.first == "smartsymbol")
@@ -892,8 +879,7 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
           if (data.count(wawapos) == 0 || data.count(totalcloudcoverpos) == 0 ||
               data.count(temppos) == 0)
           {
-            timeSeriesColumns->at(pos).emplace_back(
-                TS::TimedValue(obstime, missing));
+            timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, missing));
           }
           else
           {
@@ -909,10 +895,9 @@ void CommonDatabaseFunctions::addParameterToTimeSeries(
 
             double lat = station.latitude_out;
             double lon = station.longitude_out;
-            TS::Value smartsymbol = TS::Value(
-                *calcSmartsymbolNumber(wawa, totalcloudcover, temp, obstime, lat, lon));
-            timeSeriesColumns->at(pos).emplace_back(
-                TS::TimedValue(obstime, smartsymbol));
+            TS::Value smartsymbol =
+                TS::Value(*calcSmartsymbolNumber(wawa, totalcloudcover, temp, obstime, lat, lon));
+            timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, smartsymbol));
           }
         }
         else
@@ -949,8 +934,7 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
 {
   try
   {
-    TS::TimedValue value =
-        SpecialParameters::instance().getTimedValue(paramname, args);
+    TS::TimedValue value = SpecialParameters::instance().getTimedValue(paramname, args);
     timeSeriesColumns->at(pos).push_back(value);
   }
   catch (...)
@@ -960,8 +944,7 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
 }
 
 TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getMagnetometerData(
-    const Settings &settings,
-    const Fmi::TimeZones &timezones)
+    const Settings &settings, const Fmi::TimeZones &timezones)
 {
   TS::TimeSeriesGeneratorOptions opt;
   opt.startTime = settings.starttime;

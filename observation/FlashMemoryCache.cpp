@@ -1,6 +1,6 @@
 #include "FlashMemoryCache.h"
-#include "Utils.h"
 #include "Keywords.h"
+#include "Utils.h"
 #include <boost/optional.hpp>
 #include <macgyver/Geometry.h>
 #include <spine/Value.h>
@@ -198,10 +198,9 @@ void FlashMemoryCache::clean(const boost::posix_time::ptime& newstarttime) const
  * @timezones Global timezone information
  */
 
-TS::TimeSeriesVectorPtr FlashMemoryCache::getData(
-    const Settings& settings,
-    const ParameterMapPtr& parameterMap,
-    const Fmi::TimeZones& timezones) const
+TS::TimeSeriesVectorPtr FlashMemoryCache::getData(const Settings& settings,
+                                                  const ParameterMapPtr& parameterMap,
+                                                  const Fmi::TimeZones& timezones) const
 {
   try
   {
@@ -327,65 +326,64 @@ TS::TimeSeriesVectorPtr FlashMemoryCache::getData(
   }
 }
 
-FlashCounts FlashMemoryCache::getFlashCount(const boost::posix_time::ptime &starttime,
-											const boost::posix_time::ptime &endtime,
-											const Spine::TaggedLocationList &locations) const
+FlashCounts FlashMemoryCache::getFlashCount(const boost::posix_time::ptime& starttime,
+                                            const boost::posix_time::ptime& endtime,
+                                            const Spine::TaggedLocationList& locations) const
 {
   try
-	{
-	  FlashCounts result;
+  {
+    FlashCounts result;
 
-	  auto cache = itsFlashData.load();
-	  
-	  // Safety check
-	  if (!cache)
-		return result;
-	  
-	  // Find time interval from the cache data
-	  
-	  auto lcmp = [](const FlashDataItem& flash, const boost::posix_time::ptime& t) -> bool
-		{ return (flash.stroke_time < t); };
-	  
-	  auto pos1 = std::lower_bound(cache->begin(), cache->end(), starttime, lcmp);
-	  
-	  // Nothing to do if there is nothing with a time lower than the starttime, or if there is
-	  // nothing after it
-	  if (pos1 == cache->end() || ++pos1 == cache->end())
-		return result;
-	  
-	  auto ucmp = [](const boost::posix_time::ptime& t, const FlashDataItem& flash) -> bool
-		{ return (flash.stroke_time > t); };
-	  
-	  auto pos2 = std::upper_bound(cache->begin(), cache->end(), endtime, ucmp);
-	  
-	  // pos1...pos2 is now the inclusive range to be checked against other search conditions
-	  
-	  // Parse the bboxes only once instead of inside the below loop for every flash
-	  const auto bboxes = parse_bboxes(locations);
-	  
-	  for (auto pos = pos1; pos < pos2; ++pos)
-		{
-		  const auto& flash = *pos;
-		  
-		  if (!is_within_search_limits(flash, locations, bboxes))
-			continue;
-		  
-		  if(flash.multiplicity > 0)
-			result.flashcount++;
-		  else if(flash.multiplicity == 0)
-			result.strokecount++;
-		  if(flash.cloud_indicator == 1)
-			result.iccount++;
-		}
-    
-	  return result;
-	}
+    auto cache = itsFlashData.load();
+
+    // Safety check
+    if (!cache)
+      return result;
+
+    // Find time interval from the cache data
+
+    auto lcmp = [](const FlashDataItem& flash, const boost::posix_time::ptime& t) -> bool
+    { return (flash.stroke_time < t); };
+
+    auto pos1 = std::lower_bound(cache->begin(), cache->end(), starttime, lcmp);
+
+    // Nothing to do if there is nothing with a time lower than the starttime, or if there is
+    // nothing after it
+    if (pos1 == cache->end() || ++pos1 == cache->end())
+      return result;
+
+    auto ucmp = [](const boost::posix_time::ptime& t, const FlashDataItem& flash) -> bool
+    { return (flash.stroke_time > t); };
+
+    auto pos2 = std::upper_bound(cache->begin(), cache->end(), endtime, ucmp);
+
+    // pos1...pos2 is now the inclusive range to be checked against other search conditions
+
+    // Parse the bboxes only once instead of inside the below loop for every flash
+    const auto bboxes = parse_bboxes(locations);
+
+    for (auto pos = pos1; pos < pos2; ++pos)
+    {
+      const auto& flash = *pos;
+
+      if (!is_within_search_limits(flash, locations, bboxes))
+        continue;
+
+      if (flash.multiplicity > 0)
+        result.flashcount++;
+      else if (flash.multiplicity == 0)
+        result.strokecount++;
+      if (flash.cloud_indicator == 1)
+        result.iccount++;
+    }
+
+    return result;
+  }
   catch (...)
-	{
-	  throw Fmi::Exception::Trace(BCP, "FlashMemoryCache::getFlashCount failed");
-	}
+  {
+    throw Fmi::Exception::Trace(BCP, "FlashMemoryCache::getFlashCount failed");
+  }
 }
-
 
 }  // namespace Observation
 }  // namespace Engine

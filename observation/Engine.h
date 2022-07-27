@@ -19,21 +19,21 @@ class QueryBase;
 
 class Engine : public SmartMet::Spine::SmartMetEngine
 {
-protected:
+ protected:
   Engine();
 
-public:
-  static Engine* create(const std::string& config_name);
+ public:
+  static Engine *create(const std::string &config_name);
 
   virtual TS::TimeSeriesVectorPtr values(Settings &settings);
-  virtual TS::TimeSeriesVectorPtr values(
-      Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions);
+  virtual TS::TimeSeriesVectorPtr values(Settings &settings,
+                                         const TS::TimeSeriesGeneratorOptions &timeSeriesOptions);
 
   virtual void makeQuery(QueryBase *qb);
 
   virtual FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-                            const boost::posix_time::ptime &endtime,
-                            const Spine::TaggedLocationList &locations);
+                                    const boost::posix_time::ptime &endtime,
+                                    const Spine::TaggedLocationList &locations);
   virtual std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language);
 
@@ -41,15 +41,15 @@ public:
 
   virtual Geonames::Engine *getGeonames() const;
 
-    virtual const std::shared_ptr<DBRegistry> dbRegistry() const;
+  virtual const std::shared_ptr<DBRegistry> dbRegistry() const;
   virtual void reloadStations();
   virtual void getStations(Spine::Stations &stations, Settings &settings);
 
   virtual void getStationsByArea(Spine::Stations &stations,
-                         const std::string &stationtype,
-                         const boost::posix_time::ptime &starttime,
-                         const boost::posix_time::ptime &endtime,
-                         const std::string &areaWkt);
+                                 const std::string &stationtype,
+                                 const boost::posix_time::ptime &starttime,
+                                 const boost::posix_time::ptime &endtime,
+                                 const std::string &areaWkt);
 
   virtual void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings);
 
@@ -63,7 +63,8 @@ public:
    * the alias configuration block.
    */
 
-  virtual bool isParameter(const std::string &alias, const std::string &stationType = "unknown") const;
+  virtual bool isParameter(const std::string &alias,
+                           const std::string &stationType = "unknown") const;
 
   /* \brief Test if the given alias name is configured
    * \param[in] name Alias name of a meteorological parameter.
@@ -82,7 +83,7 @@ public:
    * \return Positive integer in success and zero if there is no a match.
    */
   virtual uint64_t getParameterId(const std::string &alias,
-                          const std::string &stationType = "unknown") const;
+                                  const std::string &stationType = "unknown") const;
 
   /* \brief Get parameter id as string for an given alias name.
    * \param[in] alias Alias name of a meteorological parameter (case insensitive).
@@ -92,7 +93,7 @@ public:
    */
 
   virtual std::string getParameterIdAsString(const std::string &alias,
-                                     const std::string &stationType = "unknown") const;
+                                             const std::string &stationType = "unknown") const;
 
   /* \brief Get valid parameter names
    * \return Set of parameter names
@@ -124,14 +125,14 @@ public:
    * \return List of FMISIDs
    */
   virtual Spine::TaggedFMISIDList translateToFMISID(const boost::posix_time::ptime &starttime,
-                                            const boost::posix_time::ptime &endtime,
-                                            const std::string &stationtype,
-                                            const StationSettings &stationSettings) const;
+                                                    const boost::posix_time::ptime &endtime,
+                                                    const std::string &stationtype,
+                                                    const StationSettings &stationSettings) const;
 
   void init() override;
   void shutdown() override;
 
-protected:
+ protected:
   ~Engine() override = default;
 };
 

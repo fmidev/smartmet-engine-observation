@@ -61,15 +61,15 @@ class CommonDatabaseFunctions
       const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache) = 0;
 
   virtual TS::TimeSeriesVectorPtr getFlashData(const Settings &settings,
-                                                              const Fmi::TimeZones &timezones) = 0;
+                                               const Fmi::TimeZones &timezones) = 0;
   virtual FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                                     const boost::posix_time::ptime &endtime,
                                     const Spine::TaggedLocationList &locations) = 0;
 
   TS::TimeSeriesVectorPtr getWeatherDataQCData(const Spine::Stations &stations,
-                                                              const Settings &settings,
-                                                              const StationInfo &stationInfo,
-                                                              const Fmi::TimeZones &timezones);
+                                               const Settings &settings,
+                                               const StationInfo &stationInfo,
+                                               const Fmi::TimeZones &timezones);
 
   TS::TimeSeriesVectorPtr getWeatherDataQCData(
       const Spine::Stations &stations,
@@ -77,7 +77,6 @@ class CommonDatabaseFunctions
       const StationInfo &stationInfo,
       const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
-  
 
   virtual void fetchWeatherDataQCData(const std::string &sqlStmt,
                                       const StationInfo &stationInfo,
@@ -98,10 +97,11 @@ class CommonDatabaseFunctions
   }
 
   virtual TS::TimeSeriesVectorPtr getMagnetometerData(const Settings &settings,
-													  const Fmi::TimeZones &timezones);
-  virtual TS::TimeSeriesVectorPtr getMagnetometerData(const Settings &settings,
-													  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-													  const Fmi::TimeZones &timezones) = 0;
+                                                      const Fmi::TimeZones &timezones);
+  virtual TS::TimeSeriesVectorPtr getMagnetometerData(
+      const Settings &settings,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Fmi::TimeZones &timezones) = 0;
 
  protected:
   QueryMapping buildQueryMapping(const Spine::Stations &stations,
@@ -128,15 +128,14 @@ class CommonDatabaseFunctions
       const Settings &settings,
       const Fmi::TimeZones &timezones,
       const StationMap &fmisid_to_station) const;
-  TS::TimeSeriesVectorPtr buildTimeseries(
-      const Spine::Stations &stations,
-      const Settings &settings,
-      const std::string &stationtype,
-      const StationMap &fmisid_to_station,
-      const StationTimedMeasurandData &station_data,
-      const QueryMapping &qmap,
-      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones) const;
+  TS::TimeSeriesVectorPtr buildTimeseries(const Spine::Stations &stations,
+                                          const Settings &settings,
+                                          const std::string &stationtype,
+                                          const StationMap &fmisid_to_station,
+                                          const StationTimedMeasurandData &station_data,
+                                          const QueryMapping &qmap,
+                                          const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+                                          const Fmi::TimeZones &timezones) const;
 
   void addSpecialFieldsToTimeSeries(
       const TS::TimeSeriesVectorPtr &timeSeriesColumns,
@@ -158,11 +157,10 @@ class CommonDatabaseFunctions
       const Spine::Station &station,
       const Settings &settings) const;
 
-  void addSpecialParameterToTimeSeries(
-      const std::string &paramname,
-      const TS::TimeSeriesVectorPtr &timeSeriesColumns,
-      const int pos,
-      const SpecialParameters::Args& args) const;
+  void addSpecialParameterToTimeSeries(const std::string &paramname,
+                                       const TS::TimeSeriesVectorPtr &timeSeriesColumns,
+                                       const int pos,
+                                       const SpecialParameters::Args &args) const;
 
   const StationtypeConfig &itsStationtypeConfig;
   const ParameterMapPtr &itsParameterMap;

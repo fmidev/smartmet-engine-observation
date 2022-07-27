@@ -128,13 +128,15 @@ std::string getStringValue(const TS::Value& tv);
 
 // ----------------------------------------------------------------------
 /*!
- * \brief Checks weather specified parameter name with specified stationtype can be found in parameterMap
+ * \brief Checks weather specified parameter name with specified stationtype can be found in
+ * parameterMap
  *
  */
 // ----------------------------------------------------------------------
 
-bool isParameter(const std::string &name, const std::string &stationType, const ParameterMap& parameterMap);
-
+bool isParameter(const std::string& name,
+                 const std::string& stationType,
+                 const ParameterMap& parameterMap);
 
 // ----------------------------------------------------------------------
 /*!
@@ -143,7 +145,7 @@ bool isParameter(const std::string &name, const std::string &stationType, const 
  */
 // ----------------------------------------------------------------------
 
-bool isParameterVariant(const std::string &name, const ParameterMap& parameterMap);
+bool isParameterVariant(const std::string& name, const ParameterMap& parameterMap);
 
 }  // namespace Utils
 }  // namespace Observation

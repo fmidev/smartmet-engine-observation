@@ -98,7 +98,6 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
     init_tasks.on_task_error(
         [](const std::string &task_name)
         { throw Fmi::Exception::Trace(BCP, "Operation failed").addParameter("Task", task_name); });
-
   }
   catch (...)
   {
@@ -121,16 +120,16 @@ void DatabaseDriverProxy::init(Engine *obsengine)
     if (itsOracleDriver && itsPostgreSQLMobileDataDriver)
     {
       // Let's initialize Oracle-driver first and fetch fmi_iot stations
-        init_tasks.add("Initialize Oracle-driver and fetch fmi_iot stations",
-            [this, obsengine] ()
-            {
-                itsOracleDriver->init(obsengine);
-                std::shared_ptr<FmiIoTStations> &stations =
-                    itsPostgreSQLMobileDataDriver->getFmiIoTStations();
-                itsOracleDriver->getFMIIoTStations(stations);
-            });
-        init_tasks.wait();
-        oracleDriverInitialized = true;
+      init_tasks.add("Initialize Oracle-driver and fetch fmi_iot stations",
+                     [this, obsengine]()
+                     {
+                       itsOracleDriver->init(obsengine);
+                       std::shared_ptr<FmiIoTStations> &stations =
+                           itsPostgreSQLMobileDataDriver->getFmiIoTStations();
+                       itsOracleDriver->getFMIIoTStations(stations);
+                     });
+      init_tasks.wait();
+      oracleDriverInitialized = true;
     }
 
     for (const auto &dbdriver : itsDatabaseDriverSet)
@@ -139,7 +138,7 @@ void DatabaseDriverProxy::init(Engine *obsengine)
       if (!(oracleDriverInitialized && dbdriver == itsOracleDriver))
       {
         init_tasks.add("Init driver " + dbdriver->name(),
-                  [&dbdriver, obsengine]() { dbdriver->init(obsengine); });
+                       [&dbdriver, obsengine]() { dbdriver->init(obsengine); });
       }
     }
 
@@ -325,10 +324,13 @@ void DatabaseDriverProxy::getStationsByBoundingBox(Spine::Stations &stations,
 void DatabaseDriverProxy::shutdown()
 {
   init_tasks.stop();
-  try {
-      init_tasks.wait();
-  } catch (...) {
-      // We are not interested about possible exceptions when shutting down
+  try
+  {
+    init_tasks.wait();
+  }
+  catch (...)
+  {
+    // We are not interested about possible exceptions when shutting down
   }
 
   for (const auto &dbdriver : itsDatabaseDriverSet)

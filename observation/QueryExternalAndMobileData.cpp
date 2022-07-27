@@ -28,10 +28,7 @@ class my_visitor : public boost::static_visitor<double>
 {
  public:
   my_visitor() = default;
-  double operator()(TS::None /* none */)
-  {
-    return static_cast<double>(kFloatMissing);
-  }
+  double operator()(TS::None /* none */) { return static_cast<double>(kFloatMissing); }
   double operator()(double luku) { return luku; }
   double operator()(const std::string & /* s */) { return static_cast<double>(kFloatMissing); }
   double operator()(int i) { return static_cast<double>(i); }
@@ -39,14 +36,12 @@ class my_visitor : public boost::static_visitor<double>
   {
     return static_cast<double>(kFloatMissing);
   }
-  double operator()(TS::LonLat /* i */)
-  {
-    return static_cast<double>(kFloatMissing);
-  }
+  double operator()(TS::LonLat /* i */) { return static_cast<double>(kFloatMissing); }
 };
 
-TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
-    PostgreSQLObsDB &db, Settings &settings, const Fmi::TimeZones &timezones)
+TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(PostgreSQLObsDB &db,
+                                                                 Settings &settings,
+                                                                 const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -66,8 +61,9 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
   }
 }
 
-TS::TimeSeriesVectorPtr QueryExternalAndMobileData::values(
-    PostgreSQLObsDB &db, Settings &settings, const Fmi::TimeZones &timezones)
+TS::TimeSeriesVectorPtr QueryExternalAndMobileData::values(PostgreSQLObsDB &db,
+                                                           Settings &settings,
+                                                           const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -103,8 +99,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
 {
   try
   {
-    TS::TimeSeriesVectorPtr ret =
-        boost::make_shared<TS::TimeSeriesVector>();
+    TS::TimeSeriesVectorPtr ret = boost::make_shared<TS::TimeSeriesVector>();
     const ExternalAndMobileProducerConfigItem &producerConfig =
         itsProducerConfig.at(settings.stationtype);
     ExternalAndMobileDBInfo dbInfo(&producerConfig);
@@ -164,12 +159,12 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
     for (unsigned int i = 0; i <= queryfields.size(); i++)
       ret->emplace_back(TS::TimeSeries(settings.localTimePool));
 
-	TS::TimeSeriesGenerator::LocalTimeList tlist;
+    TS::TimeSeriesGenerator::LocalTimeList tlist;
     // The desired timeseries, unless all available data if timestep=0 or latest only
     if (!settings.latest && !timeSeriesOptions.all())
     {
-      tlist = TS::TimeSeriesGenerator::generate(
-          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+      tlist = TS::TimeSeriesGenerator::generate(timeSeriesOptions,
+                                                timezones.time_zone_from_string(settings.timezone));
     }
     ResultSetRows rsrs =
         PostgreSQLCacheDB::getResultSetForMobileExternalData(result_set, conn.dataTypes());
