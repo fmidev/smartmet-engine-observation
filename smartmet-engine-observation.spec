@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.7.22
+Version: 22.7.27
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -28,11 +28,11 @@ BuildRequires: gdal34-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 22.7.20
+BuildRequires: smartmet-engine-geonames-devel >= 22.7.27
 BuildRequires: smartmet-library-locus-devel >= 22.6.16
-BuildRequires: smartmet-library-macgyver-devel >= 22.7.20
-BuildRequires: smartmet-library-spine-devel >= 22.7.20
-BuildRequires: smartmet-library-timeseries-devel >= 22.6.16
+BuildRequires: smartmet-library-macgyver-devel >= 22.7.27
+BuildRequires: smartmet-library-spine-devel >= 22.7.27
+BuildRequires: smartmet-library-timeseries-devel >= 22.7.27
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 22.2.8
 BuildRequires: zlib-devel
@@ -45,11 +45,11 @@ Requires: %{smartmet_boost}-thread
 Requires: fmt >= %{smartmet_fmt_min}, fmt < %{smartmet_fmt_max}
 Requires: gdal34-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 22.7.20
+Requires: smartmet-engine-geonames >= 22.7.27
 Requires: smartmet-library-locus >= 22.6.16
-Requires: smartmet-library-macgyver >= 22.7.20
-Requires: smartmet-library-spine >= 22.7.20
-Requires: smartmet-library-timeseries >= 22.6.16
+Requires: smartmet-library-macgyver >= 22.7.27
+Requires: smartmet-library-spine >= 22.7.27
+Requires: smartmet-library-timeseries >= 22.7.27
 Requires: smartmet-server >= 22.7.20
 Requires: unixODBC
 
@@ -85,11 +85,11 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: gdal34-devel
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames >= 22.5.24
-#TestRequires: smartmet-library-macgyver >= 22.7.20
-#TestRequires: smartmet-library-timeseries >= 22.6.16
-#TestRequires: smartmet-library-timeseries-devel >= 22.6.16
-#TestRequires: smartmet-library-spine >= 22.7.20
+#TestRequires: smartmet-engine-geonames
+#TestRequires: smartmet-library-macgyver
+#TestRequires: smartmet-library-timeseries
+#TestRequires: smartmet-library-timeseries-devel
+#TestRequires: smartmet-library-spine
 #TestRequires: smartmet-test-data
 
 %if 0%{rhel} >= 8
@@ -121,7 +121,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 22.6.16
+Requires: smartmet-library-spine-devel >= 22.7.27
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -155,6 +155,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jul 27 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.7.27-1.fmi
+- Repackaged since macgyver CacheStats ABI changed
+
 * Fri Jul 22 2022 Andris Pavēnis <andris.pavenis@fmi.fi> 22.7.22-1.fmi
 - Wait for async tasks to terminate at engine shutdown
 

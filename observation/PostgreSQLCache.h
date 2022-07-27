@@ -155,7 +155,11 @@ class PostgreSQLCache : public ObservationCache
   mutable boost::posix_time::ptime itsFmiIoTTimeIntervalEnd;
 
   std::unique_ptr<ObservationMemoryCache> itsObservationMemoryCache;
+
   // Cache statistics
+  void hit(const std::string &name) const;
+  void miss(const std::string &name) const;
+  mutable Spine::MutexType itsCacheStatisticsMutex;
   mutable Fmi::Cache::CacheStatistics itsCacheStatistics;
 };
 

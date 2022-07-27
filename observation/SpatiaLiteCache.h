@@ -185,7 +185,11 @@ class SpatiaLiteCache : public ObservationCache
   // Memory caches smaller than the spatialite cache itself
   std::unique_ptr<ObservationMemoryCache> itsObservationMemoryCache;
   std::unique_ptr<FlashMemoryCache> itsFlashMemoryCache;
+
   // Cache statistics
+  void hit(const std::string &name) const;
+  void miss(const std::string &name) const;
+  mutable Spine::MutexType itsCacheStatisticsMutex;
   mutable Fmi::Cache::CacheStatistics itsCacheStatistics;
 };
 
