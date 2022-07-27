@@ -62,6 +62,7 @@ TEST_CASE("Test observation memory cache in parallel (TSAN)")
                 item.modified_last = modifiedlast;
                 item.data_value = value;
                 item.fmisid = station.fmisid;
+                item.producer_id = 1;
                 items.push_back(item);
               }
               datatime += boost::posix_time::hours(6);
@@ -83,6 +84,7 @@ TEST_CASE("Test observation memory cache in parallel (TSAN)")
           settings.starttime = starttime;
           settings.endtime = endtime;
           settings.starttimeGiven = true;
+          settings.producer_ids.insert(1);
 
           SmartMet::Engine::Observation::QueryMapping qmap;
           for (int i = 0; i < measurand_count; i++)
