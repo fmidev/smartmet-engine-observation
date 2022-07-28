@@ -321,7 +321,8 @@ void SpatiaLite::createTables(const std::set<std::string> &tables)
 
 void SpatiaLite::shutdown()
 {
-  std::cout << "  -- Shutdown requested (SpatiaLite)\n";
+  // We let the SpatiaLiteConnectionPool print just one message
+  // std::cout << "  -- Shutdown requested (SpatiaLite)\n";
 }
 
 void SpatiaLite::createObservationDataTable()

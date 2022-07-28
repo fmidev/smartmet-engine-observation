@@ -51,7 +51,8 @@ CommonPostgreSQLFunctions::~CommonPostgreSQLFunctions()
 
 void CommonPostgreSQLFunctions::shutdown()
 {
-  std::cout << "  -- Shutdown requested (PostgreSQL)\n";
+  // We let the PG connection pool print just one message
+  // std::cout << "  -- Shutdown requested (PostgreSQL)\n";
   itsDB.cancel();
 }
 

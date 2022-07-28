@@ -1,9 +1,8 @@
 #include "PostgreSQLCacheConnectionPool.h"
 #include "PostgreSQLCacheParameters.h"
-#include <macgyver/Exception.h>
-
-#include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
+#include <fmt/format.h>
+#include <macgyver/Exception.h>
 
 using namespace std;
 
@@ -133,7 +132,10 @@ void PostgreSQLCacheConnectionPool::shutdown()
 {
   try
   {
-    std::cout << "  -- Shutdown requested (PostgreSQLCacheConnectionPool)\n";
+    std::cout << fmt::format(
+        "  -- Shutdown requested for PostgreSQLCacheConnectionPool with {} workers\n",
+        itsWorkerList.size());
+
     for (const auto& worker : itsWorkerList)
     {
       auto* sl = worker.get();

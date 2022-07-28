@@ -1,7 +1,6 @@
 #include "PostgreSQLObsDBConnectionPool.h"
+#include <fmt/format.h>
 #include <macgyver/Exception.h>
-
-#include <boost/foreach.hpp>
 
 using namespace std;
 
@@ -165,7 +164,10 @@ void PostgreSQLObsDBConnectionPool::shutdown()
 {
   try
   {
-    std::cout << "  -- Shutdown requested (PostgreSQLObsDBConnectionPool)\n";
+    std::cout << fmt::format(
+        "  -- Shutdown requested for PostgreSQLObsDBConnectionPool with {} workers\n",
+        itsWorkerList.size());
+
     for (auto& worker : itsWorkerList)
     {
       auto* sl = worker.get();
