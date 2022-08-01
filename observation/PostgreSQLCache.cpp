@@ -11,7 +11,7 @@ namespace Engine
 {
 namespace Observation
 {
- using namespace Utils;
+using namespace Utils;
 namespace
 {
 // Round down to HH:MM:00. Deleting an entire hour at once takes too long, and causes a major
@@ -150,12 +150,12 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-		itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
+        ++itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hits;
         ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
       }
       else
       {
-		itsCacheStatistics.at(OBSERVATION_DATA_TABLE).hit();
+        ++itsCacheStatistics.at(OBSERVATION_DATA_TABLE).hits;
 
         ret = db->getObservationData(
             stations, settings, *sinfo, itsTimeZones, itsObservationMemoryCache);
@@ -204,12 +204,12 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-		itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hit();
-		ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
+        ++itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hits;
+        ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
       else
       {
-		itsCacheStatistics.at(OBSERVATION_DATA_TABLE).hit();		
+        ++itsCacheStatistics.at(OBSERVATION_DATA_TABLE).hits;
         ret = db->getObservationData(
             stations, settings, *sinfo, timeSeriesOptions, itsTimeZones, itsObservationMemoryCache);
       }
@@ -230,7 +230,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(Settings &set
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-	itsCacheStatistics.at(FLASH_DATA_TABLE).hit();
+    ++itsCacheStatistics.at(FLASH_DATA_TABLE).hits;
     ret = db->getFlashData(settings, itsTimeZones);
 
     return ret;
@@ -248,7 +248,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings 
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-	itsCacheStatistics.at(ROADCLOUD_DATA_TABLE).hit();
+    ++itsCacheStatistics.at(ROADCLOUD_DATA_TABLE).hits;
     ret = db->getRoadCloudData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
@@ -267,7 +267,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &s
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-	itsCacheStatistics.at(NETATMO_DATA_TABLE).hit();
+    ++itsCacheStatistics.at(NETATMO_DATA_TABLE).hits;
     ret = db->getNetAtmoData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
@@ -286,7 +286,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(Settings &se
 
     std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
-	itsCacheStatistics.at(FMI_IOT_DATA_TABLE).hit();
+    ++itsCacheStatistics.at(FMI_IOT_DATA_TABLE).hits;
     ret = db->getFmiIoTData(settings, itsParameters.parameterMap, itsTimeZones);
 
     return ret;
@@ -302,24 +302,20 @@ bool PostgreSQLCache::timeIntervalIsCached(const boost::posix_time::ptime &start
 {
   try
   {
-    auto &stat = itsCacheStatistics.at(OBSERVATION_DATA_TABLE);
-
-    Spine::ReadLock lock(itsTimeIntervalMutex);
-
-    if (itsTimeIntervalStart.is_not_a_date_time() || itsTimeIntervalEnd.is_not_a_date_time())
+    bool ok = false;
     {
-      stat.miss();
-      return false;
+      Spine::ReadLock lock(itsTimeIntervalMutex);
+      // We ignore end time intentionally
+      ok = (!itsTimeIntervalStart.is_not_a_date_time() &&
+            !itsTimeIntervalEnd.is_not_a_date_time() && starttime >= itsTimeIntervalStart);
     }
 
-    // We ignore end time intentionally
-    if (starttime >= itsTimeIntervalStart)
-    {
-      stat.hit();
-      return true;
-    }
-    stat.miss();
-    return false;
+    if (ok)
+      hit(OBSERVATION_DATA_TABLE);
+    else
+      miss(OBSERVATION_DATA_TABLE);
+
+    return ok;
   }
   catch (...)
   {
@@ -332,24 +328,20 @@ bool PostgreSQLCache::flashIntervalIsCached(const boost::posix_time::ptime &star
 {
   try
   {
-    auto &stat = itsCacheStatistics.at(FLASH_DATA_TABLE);
-
-    Spine::ReadLock lock(itsFlashTimeIntervalMutex);
-    if (itsFlashTimeIntervalStart.is_not_a_date_time() ||
-        itsFlashTimeIntervalEnd.is_not_a_date_time())
+    bool ok = false;
     {
-      stat.miss();
-      return false;
+      Spine::ReadLock lock(itsFlashTimeIntervalMutex);
+      // We ignore end time intentionally
+      ok =
+          (!itsFlashTimeIntervalStart.is_not_a_date_time() &&
+           !itsFlashTimeIntervalEnd.is_not_a_date_time() && starttime >= itsFlashTimeIntervalStart);
     }
 
-    // We ignore end time intentionally
-    if (starttime >= itsFlashTimeIntervalStart)
-    {
-      stat.hit();
-      return true;
-    }
-    stat.miss();
-    return false;
+    if (ok)
+      hit(FLASH_DATA_TABLE);
+    else
+      miss(FLASH_DATA_TABLE);
+    return ok;
   }
   catch (...)
   {
@@ -362,24 +354,19 @@ bool PostgreSQLCache::timeIntervalWeatherDataQCIsCached(
 {
   try
   {
-    auto &stat = itsCacheStatistics.at(WEATHER_DATA_QC_TABLE);
-
-    Spine::ReadLock lock(itsWeatherDataQCTimeIntervalMutex);
-    if (itsWeatherDataQCTimeIntervalStart.is_not_a_date_time() ||
-        itsWeatherDataQCTimeIntervalEnd.is_not_a_date_time())
+    bool ok = false;
     {
-      stat.miss();
-      return false;
+      Spine::ReadLock lock(itsWeatherDataQCTimeIntervalMutex);
+      ok = (!itsWeatherDataQCTimeIntervalStart.is_not_a_date_time() &&
+            !itsWeatherDataQCTimeIntervalEnd.is_not_a_date_time() &&
+            starttime >= itsWeatherDataQCTimeIntervalStart);
     }
 
-    // We ignore end time intentionally
-    if (starttime >= itsWeatherDataQCTimeIntervalStart)
-    {
-      stat.hit();
-      return true;
-    }
-    stat.miss();
-    return false;
+    if (ok)
+      hit(WEATHER_DATA_QC_TABLE);
+    else
+      miss(WEATHER_DATA_QC_TABLE);
+    return ok;
   }
   catch (...)
   {
@@ -640,24 +627,22 @@ bool PostgreSQLCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &
 {
   try
   {
-    auto &stat = itsCacheStatistics.at(ROADCLOUD_DATA_TABLE);
+    bool ok = false;
 
-    Spine::ReadLock lock(itsRoadCloudTimeIntervalMutex);
-    if (itsRoadCloudTimeIntervalStart.is_not_a_date_time() &&
-        itsRoadCloudTimeIntervalEnd.is_not_a_date_time())
     {
-      stat.miss();
-      return false;
+      Spine::ReadLock lock(itsRoadCloudTimeIntervalMutex);
+      // We ignore end time intentionally
+      ok = (!itsRoadCloudTimeIntervalStart.is_not_a_date_time() &&
+            !itsRoadCloudTimeIntervalEnd.is_not_a_date_time() &&
+            starttime >= itsRoadCloudTimeIntervalStart);
     }
 
-    // We ignore end time intentionally
-    if (starttime >= itsRoadCloudTimeIntervalStart)
-    {
-      stat.hit();
-      return true;
-    }
-    stat.miss();
-    return false;
+    if (ok)
+      hit(ROADCLOUD_DATA_TABLE);
+    else
+      miss(ROADCLOUD_DATA_TABLE);
+
+    return ok;
   }
   catch (...)
   {
@@ -734,24 +719,22 @@ bool PostgreSQLCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &st
 {
   try
   {
-    auto &stat = itsCacheStatistics.at(NETATMO_DATA_TABLE);
+    bool ok = false;
 
-    Spine::ReadLock lock(itsNetAtmoTimeIntervalMutex);
-    if (itsNetAtmoTimeIntervalStart.is_not_a_date_time() ||
-        itsNetAtmoTimeIntervalEnd.is_not_a_date_time())
     {
-      stat.miss();
-      return false;
+      Spine::ReadLock lock(itsNetAtmoTimeIntervalMutex);
+      // We ignore end time intentionally
+      ok = (!itsNetAtmoTimeIntervalStart.is_not_a_date_time() &&
+            !itsNetAtmoTimeIntervalEnd.is_not_a_date_time() &&
+            starttime >= itsNetAtmoTimeIntervalStart);
     }
 
-    // We ignore end time intentionally
-    if (starttime >= itsNetAtmoTimeIntervalStart)
-    {
-      stat.hit();
-      return true;
-    }
-    stat.miss();
-    return false;
+    if (ok)
+      hit(NETATMO_DATA_TABLE);
+    else
+      miss(NETATMO_DATA_TABLE);
+
+    return ok;
   }
   catch (...)
   {
@@ -911,24 +894,20 @@ bool PostgreSQLCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &sta
 {
   try
   {
-    auto &stat = itsCacheStatistics.at(NETATMO_DATA_TABLE);
-
-    Spine::ReadLock lock(itsFmiIoTTimeIntervalMutex);
-    if (itsFmiIoTTimeIntervalStart.is_not_a_date_time() ||
-        itsFmiIoTTimeIntervalEnd.is_not_a_date_time())
+    bool ok = false;
     {
-      stat.miss();
-      return false;
+      Spine::ReadLock lock(itsFmiIoTTimeIntervalMutex);
+      // We ignore end time intentionally
+      ok = (!itsFmiIoTTimeIntervalStart.is_not_a_date_time() &&
+            !itsFmiIoTTimeIntervalEnd.is_not_a_date_time() &&
+            starttime >= itsFmiIoTTimeIntervalStart);
     }
 
-    // We ignore end time intentionally
-    if (starttime >= itsFmiIoTTimeIntervalStart)
-    {
-      stat.hit();
-      return true;
-    }
-    stat.miss();
-    return false;
+    if (ok)
+      hit(NETATMO_DATA_TABLE);
+    else
+      miss(NETATMO_DATA_TABLE);
+    return ok;
   }
   catch (...)
   {
@@ -1001,7 +980,7 @@ void PostgreSQLCache::cleanFmiIoTCache(const boost::posix_time::time_duration &t
 }
 
 bool PostgreSQLCache::magnetometerIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                      const boost::posix_time::ptime &endtime) const
+                                                   const boost::posix_time::ptime &endtime) const
 {
   return false;
 }
@@ -1016,12 +995,14 @@ boost::posix_time::ptime PostgreSQLCache::getLatestMagnetometerModifiedTime() co
   return boost::posix_time::not_a_date_time;
 }
 
-std::size_t PostgreSQLCache::fillMagnetometerCache(const MagnetometerDataItems &magnetometerCacheData) const
+std::size_t PostgreSQLCache::fillMagnetometerCache(
+    const MagnetometerDataItems &magnetometerCacheData) const
 {
   return 0;
 }
 
-void PostgreSQLCache::cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const
+void PostgreSQLCache::cleanMagnetometerCache(
+    const boost::posix_time::time_duration &timetokeep) const
 {
 }
 
@@ -1080,6 +1061,18 @@ void PostgreSQLCache::readConfig(const Spine::ConfigBase & /* cfg */)
 PostgreSQLCache::~PostgreSQLCache()
 {
   shutdown();
+}
+
+void PostgreSQLCache::hit(const std::string &name) const
+{
+  Spine::WriteLock lock(itsCacheStatisticsMutex);
+  ++itsCacheStatistics.at(name).hits;
+}
+
+void PostgreSQLCache::miss(const std::string &name) const
+{
+  Spine::WriteLock lock(itsCacheStatisticsMutex);
+  ++itsCacheStatistics.at(name).misses;
 }
 
 }  // namespace Observation

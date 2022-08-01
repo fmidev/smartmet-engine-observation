@@ -18,7 +18,9 @@ namespace Engine
 {
 namespace Observation
 {
-using driver_create_t = DatabaseDriverBase *(const std::string &, const EngineParametersPtr &, Spine::ConfigBase &);
+using driver_create_t = DatabaseDriverBase *(const std::string &,
+                                             const EngineParametersPtr &,
+                                             Spine::ConfigBase &);
 
 DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::ConfigBase &cfg)
     : itsStationtypeConfig(p->stationtypeConfig)
@@ -34,7 +36,7 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
     const std::vector<DatabaseDriverInfoItem> &ddi = p->databaseDriverInfo.getDatabaseDriverInfo();
     for (const auto &item : ddi)
     {
-	  if (!item.active)
+      if (!item.active)
         continue;
       const std::string &driver_id = item.name;
       DatabaseDriverBase *dbDriver = nullptr;
@@ -70,7 +72,7 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
 
       if (dbDriver != nullptr)
       {
-		itsDatabaseDriverSet.insert(dbDriver);
+        itsDatabaseDriverSet.insert(dbDriver);
 
         for (const auto &period_item : item.table_days)
         {
@@ -92,6 +94,10 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
                 << " Note! No active database drivers configured -> creating a dummy driver!"
                 << ANSI_FG_DEFAULT << std::endl;
     }
+
+    init_tasks.on_task_error(
+        [](const std::string &task_name)
+        { throw Fmi::Exception::Trace(BCP, "Operation failed").addParameter("Task", task_name); });
   }
   catch (...)
   {
@@ -114,10 +120,15 @@ void DatabaseDriverProxy::init(Engine *obsengine)
     if (itsOracleDriver && itsPostgreSQLMobileDataDriver)
     {
       // Let's initialize Oracle-driver first and fetch fmi_iot stations
-      itsOracleDriver->init(obsengine);
-      std::shared_ptr<FmiIoTStations> &stations =
-          itsPostgreSQLMobileDataDriver->getFmiIoTStations();
-      itsOracleDriver->getFMIIoTStations(stations);
+      init_tasks.add("Initialize Oracle-driver and fetch fmi_iot stations",
+                     [this, obsengine]()
+                     {
+                       itsOracleDriver->init(obsengine);
+                       std::shared_ptr<FmiIoTStations> &stations =
+                           itsPostgreSQLMobileDataDriver->getFmiIoTStations();
+                       itsOracleDriver->getFMIIoTStations(stations);
+                     });
+      init_tasks.wait();
       oracleDriverInitialized = true;
     }
 
@@ -125,8 +136,17 @@ void DatabaseDriverProxy::init(Engine *obsengine)
     {
       // Do not init Oracle twice in case the previous if-block was executed
       if (!(oracleDriverInitialized && dbdriver == itsOracleDriver))
-        dbdriver->init(obsengine);
+      {
+        init_tasks.add("Init driver " + dbdriver->name(),
+                       [&dbdriver, obsengine]() { dbdriver->init(obsengine); });
+      }
+    }
 
+    init_tasks.wait();
+
+    // Not done in parallel for thread safe assignments:
+    for (const auto &dbdriver : itsDatabaseDriverSet)
+    {
       if (!itsStationsDriver && dbdriver->responsibleForLoadingStations())
         itsStationsDriver = dbdriver;
 
@@ -141,42 +161,43 @@ void DatabaseDriverProxy::init(Engine *obsengine)
   }
 }
 
-void DatabaseDriverProxy::getStationGroups(StationGroups& sg) const
+void DatabaseDriverProxy::getStationGroups(StationGroups &sg) const
 {
   try
   {
-	// Read station groups from DB
-	if(itsStationsDriver)
-	  itsStationsDriver->getStationGroups(sg);
-	else
-	  std::cout << Spine::log_time_str()
-				<< " [DatabaseDriverProxy] Getting station groups denied, a driver for loading stations "
-		"is not set\n";
- }
+    // Read station groups from DB
+    if (itsStationsDriver)
+      itsStationsDriver->getStationGroups(sg);
+    else
+      std::cout
+          << Spine::log_time_str()
+          << " [DatabaseDriverProxy] Getting station groups denied, a driver for loading stations "
+             "is not set\n";
+  }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "DatabaseDriverProxy::getStationGroups function failed!");
   }
 }
 
-void DatabaseDriverProxy::getProducerGroups(ProducerGroups& pg) const
+void DatabaseDriverProxy::getProducerGroups(ProducerGroups &pg) const
 {
   try
   {
-	// Read station groups from DB
-	if(itsStationsDriver)
-	  itsStationsDriver->getProducerGroups(pg);
-	else
-	  std::cout << Spine::log_time_str()
-				<< " [DatabaseDriverProxy] Getting producer groups denied, a driver for loading stations "
-		"is not set\n";	
- }
+    // Read station groups from DB
+    if (itsStationsDriver)
+      itsStationsDriver->getProducerGroups(pg);
+    else
+      std::cout
+          << Spine::log_time_str()
+          << " [DatabaseDriverProxy] Getting producer groups denied, a driver for loading stations "
+             "is not set\n";
+  }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "DatabaseDriverProxy::getProducerGroups function failed!");
   }
 }
-
 
 TS::TimeSeriesVectorPtr DatabaseDriverProxy::values(Settings &settings)
 {
@@ -203,8 +224,7 @@ TS::TimeSeriesVectorPtr DatabaseDriverProxy::values(
   {
     DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
 
-    TS::TimeSeriesVectorPtr ret =
-        pDriver->checkForEmptyQuery(settings, timeSeriesOptions);
+    TS::TimeSeriesVectorPtr ret = pDriver->checkForEmptyQuery(settings, timeSeriesOptions);
     if (ret)
       return ret;
 
@@ -303,6 +323,16 @@ void DatabaseDriverProxy::getStationsByBoundingBox(Spine::Stations &stations,
 
 void DatabaseDriverProxy::shutdown()
 {
+  init_tasks.stop();
+  try
+  {
+    init_tasks.wait();
+  }
+  catch (...)
+  {
+    // We are not interested about possible exceptions when shutting down
+  }
+
   for (const auto &dbdriver : itsDatabaseDriverSet)
     dbdriver->shutdown();
 }

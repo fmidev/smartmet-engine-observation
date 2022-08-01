@@ -38,9 +38,9 @@ class ExternalAndMobileDBInfo
 
   std::string measurandFieldname(int measurandId) const;
 
-  static std::string sqlSelectForCache(const std::string& producer,
-									   const boost::posix_time::ptime &from_data_time,
-									   const boost::posix_time::ptime &from_created_time);
+  static std::string sqlSelectForCache(const std::string &producer,
+                                       const boost::posix_time::ptime &from_data_time,
+                                       const boost::posix_time::ptime &from_created_time);
 
  private:
   const ExternalAndMobileProducerConfigItem *itsProducerConfig{nullptr};

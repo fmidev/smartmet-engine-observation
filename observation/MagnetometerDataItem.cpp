@@ -32,19 +32,20 @@ std::size_t MagnetometerDataItem::hash_value() const
   }
 }
 
-
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
 
-std::ostream& operator<<(std::ostream& out, const SmartMet::Engine::Observation::MagnetometerDataItem& item)
+std::ostream& operator<<(std::ostream& out,
+                         const SmartMet::Engine::Observation::MagnetometerDataItem& item)
 {
-  out << Fmi::to_string(item.fmisid) << ' ' << item.magnetometer << ' ' << Fmi::to_string(item.level) << ' '
-	  << Fmi::to_iso_string(item.data_time) << ' ' << (item.x ? Fmi::to_string(*item.x) : "")
-	  << ' ' << (item.y ? Fmi::to_string(*item.y) : "")<< ' ' << (item.z ? Fmi::to_string(*item.z) : "")
-	  << ' ' << (item.t ? Fmi::to_string(*item.t) : "") << ' ' << (item.f ? Fmi::to_string(*item.f) : "")
-      << ' ' << Fmi::to_string(item.data_quality) << ' ' << Fmi::to_iso_string(item.modified_last) 
-	  << ' ' << Fmi::to_string(item.hash_value());
+  out << Fmi::to_string(item.fmisid) << ' ' << item.magnetometer << ' '
+      << Fmi::to_string(item.level) << ' ' << Fmi::to_iso_string(item.data_time) << ' '
+      << (item.x ? Fmi::to_string(*item.x) : "") << ' ' << (item.y ? Fmi::to_string(*item.y) : "")
+      << ' ' << (item.z ? Fmi::to_string(*item.z) : "") << ' '
+      << (item.t ? Fmi::to_string(*item.t) : "") << ' ' << (item.f ? Fmi::to_string(*item.f) : "")
+      << ' ' << Fmi::to_string(item.data_quality) << ' ' << Fmi::to_iso_string(item.modified_last)
+      << ' ' << Fmi::to_string(item.hash_value());
 
   return out;
 }

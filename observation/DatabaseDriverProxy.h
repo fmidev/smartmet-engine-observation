@@ -4,6 +4,7 @@
 #include "DatabaseDriverContainer.h"
 #include "DatabaseDriverInterface.h"
 #include "Engine.h"
+#include <macgyver/AsyncTaskGroup.h>
 
 namespace SmartMet
 {
@@ -22,8 +23,8 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
 
   void init(Engine *obsengine) override;
   TS::TimeSeriesVectorPtr values(Settings &settings) override;
-  TS::TimeSeriesVectorPtr values(
-      Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
+  TS::TimeSeriesVectorPtr values(Settings &settings,
+                                 const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
   Spine::TaggedFMISIDList translateToFMISID(const boost::posix_time::ptime &starttime,
                                             const boost::posix_time::ptime &endtime,
                                             const std::string &stationtype,
@@ -54,8 +55,8 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
   std::string name() const override;
 
   Fmi::Cache::CacheStatistics getCacheStats() const override;
-  void getStationGroups(StationGroups& sg) const override;
-  void getProducerGroups(ProducerGroups& pg) const override;
+  void getStationGroups(StationGroups &sg) const override;
+  void getProducerGroups(ProducerGroups &pg) const override;
 
  private:
   const StationtypeConfig &itsStationtypeConfig;
@@ -68,6 +69,7 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
   DatabaseDriverBase *createOracleDriver(const std::string &driver_id,
                                          const EngineParametersPtr &p,
                                          Spine::ConfigBase &cfg) const;
+  Fmi::AsyncTaskGroup init_tasks;
 };
 
 }  // namespace Observation

@@ -251,7 +251,6 @@ LocationDataItems ObservationMemoryCache::read_observations(
     const std::set<std::string>& stationgroup_codes,
     const QueryMapping& qmap) const
 {
-
   LocationDataItems ret;
 
   auto cache = itsObservations.load();
@@ -334,9 +333,9 @@ LocationDataItems ObservationMemoryCache::read_observations(
       if (!dataQualityOK)
         continue;
 
-	  // Check producer_id
-	  if(settings.producer_ids.find(obs->producer_id) == settings.producer_ids.end())
-		continue;
+      // Check producer_id
+      if (settings.producer_ids.find(obs->producer_id) == settings.producer_ids.end())
+        continue;
 
       // Construct LocationDataItem from the DataItem
 

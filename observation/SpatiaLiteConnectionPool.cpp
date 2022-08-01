@@ -1,9 +1,8 @@
 #include "SpatiaLiteConnectionPool.h"
 #include "SpatiaLiteCacheParameters.h"
-#include <macgyver/Exception.h>
-
-#include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
+#include <fmt/format.h>
+#include <macgyver/Exception.h>
 
 using namespace std;
 
@@ -128,7 +127,9 @@ void SpatiaLiteConnectionPool::shutdown()
 {
   try
   {
-    std::cout << "  -- Shutdown requested (SpatiaLiteConnectionPool)\n";
+    std::cout << fmt::format(
+        "  -- Shutdown requested for SpatiaLiteConnectionPool with {} workers\n",
+        itsWorkerList.size());
 
     for (const auto& worker : itsWorkerList)
     {

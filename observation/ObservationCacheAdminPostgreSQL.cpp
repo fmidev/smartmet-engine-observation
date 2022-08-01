@@ -9,7 +9,7 @@ namespace Engine
 {
 namespace Observation
 {
-  using namespace Utils;
+using namespace Utils;
 
 ObservationCacheAdminPostgreSQL::ObservationCacheAdminPostgreSQL(
     const PostgreSQLDriverParameters& p,
@@ -22,7 +22,8 @@ ObservationCacheAdminPostgreSQL::ObservationCacheAdminPostgreSQL(
   // Locations area loaded in the same driver
   if (itsParameters.loadStations)
   {
-    logMessage("[PostgeSQLDatabaseDriver] Loading locations from PostgreSQL database...",
+    logMessage("[PostgeSQLDatabaseDriver] Loading locations from PostgreSQL database " +
+                   itsParameters.driverName + "...",
                itsParameters.quiet);
 
     std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
@@ -30,7 +31,8 @@ ObservationCacheAdminPostgreSQL::ObservationCacheAdminPostgreSQL(
     // directly
     db->readStationLocations(itsParameters.params->stationInfo.load()->stationLocations);
 
-    logMessage("PostgreSQLDatabaseDriver] Locations read from PostgreSQL database.",
+    logMessage("[PostgreSQLDatabaseDriver] Locations read from PostgreSQL database " +
+                   itsParameters.driverName,
                itsParameters.quiet);
   }
 }
@@ -163,7 +165,9 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
     // Perhaps the point of above is to make sure the engine is available?
     // Moved the log message downwards accordingly.
 
-    logMessage("[PostgreSQLDatabaseDriver] Loading stations...", itsParameters.quiet);
+    logMessage(
+        "[PostgreSQLDatabaseDriver] Loading stations from " + itsParameters.driverName + "...",
+        itsParameters.quiet);
 
     auto newStationInfo = boost::make_shared<StationInfo>();
 

@@ -9,15 +9,19 @@ namespace Engine
 {
 namespace Observation
 {
-
 using Measurands = std::map<std::string, int>;  // Parameter name -> measurand id
 
 class ExternalAndMobileProducerConfigItem
 {
  public:
-  ExternalAndMobileProducerConfigItem(const ProducerId& theProducerId, const Measurands& theMeasurands, const std::string& theDatabaseTable)
-  : itsProducerId(theProducerId), itsMeasurands(theMeasurands), itsDatabaseTable(theDatabaseTable)
-  {}
+  ExternalAndMobileProducerConfigItem(const ProducerId& theProducerId,
+                                      const Measurands& theMeasurands,
+                                      const std::string& theDatabaseTable)
+      : itsProducerId(theProducerId),
+        itsMeasurands(theMeasurands),
+        itsDatabaseTable(theDatabaseTable)
+  {
+  }
 
   const ProducerId& producerId() const { return itsProducerId; }
   const Measurands& measurands() const { return itsMeasurands; }

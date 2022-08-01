@@ -98,10 +98,11 @@ class PostgreSQLCache : public ObservationCache
 
   // Magnetometer
   bool magnetometerIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                      const boost::posix_time::ptime &endtime) const override;
+                                    const boost::posix_time::ptime &endtime) const override;
   boost::posix_time::ptime getLatestMagnetometerDataTime() const override;
   boost::posix_time::ptime getLatestMagnetometerModifiedTime() const override;
-  std::size_t fillMagnetometerCache(const MagnetometerDataItems &magnetometerCacheData) const override;
+  std::size_t fillMagnetometerCache(
+      const MagnetometerDataItems &magnetometerCacheData) const override;
   void cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const override;
 
   void shutdown() override;
@@ -154,7 +155,11 @@ class PostgreSQLCache : public ObservationCache
   mutable boost::posix_time::ptime itsFmiIoTTimeIntervalEnd;
 
   std::unique_ptr<ObservationMemoryCache> itsObservationMemoryCache;
+
   // Cache statistics
+  void hit(const std::string &name) const;
+  void miss(const std::string &name) const;
+  mutable Spine::MutexType itsCacheStatisticsMutex;
   mutable Fmi::Cache::CacheStatistics itsCacheStatistics;
 };
 

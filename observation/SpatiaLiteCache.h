@@ -101,10 +101,11 @@ class SpatiaLiteCache : public ObservationCache
 
   // Magnetometer
   bool magnetometerIntervalIsCached(const boost::posix_time::ptime &starttime,
-									 const boost::posix_time::ptime &endtime) const override;
+                                    const boost::posix_time::ptime &endtime) const override;
   boost::posix_time::ptime getLatestMagnetometerDataTime() const override;
   boost::posix_time::ptime getLatestMagnetometerModifiedTime() const override;
-  std::size_t fillMagnetometerCache(const MagnetometerDataItems &magnetometerCacheData) const override;
+  std::size_t fillMagnetometerCache(
+      const MagnetometerDataItems &magnetometerCacheData) const override;
   void cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const override;
   TS::TimeSeriesVectorPtr magnetometerValuesFromSpatiaLite(Settings &settings) const;
 
@@ -184,7 +185,11 @@ class SpatiaLiteCache : public ObservationCache
   // Memory caches smaller than the spatialite cache itself
   std::unique_ptr<ObservationMemoryCache> itsObservationMemoryCache;
   std::unique_ptr<FlashMemoryCache> itsFlashMemoryCache;
+
   // Cache statistics
+  void hit(const std::string &name) const;
+  void miss(const std::string &name) const;
+  mutable Spine::MutexType itsCacheStatisticsMutex;
   mutable Fmi::Cache::CacheStatistics itsCacheStatistics;
 };
 

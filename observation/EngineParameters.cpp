@@ -133,115 +133,118 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
 {
   try
   {
-  libconfig::Config& config = cfg.get_config();
+    libconfig::Config &config = cfg.get_config();
 
-  // Stationtype settings
-  if(config.exists("stationtypelist"))
-	{
-	  libconfig::Setting& stationtypelist_settings = config.lookup("stationtypelist");
-	  for (int i = 0; i < stationtypelist_settings.getLength(); i++)
+    // Stationtype settings
+    if (config.exists("stationtypelist"))
+    {
+      libconfig::Setting &stationtypelist_settings = config.lookup("stationtypelist");
+      for (int i = 0; i < stationtypelist_settings.getLength(); i++)
+      {
+        libconfig::Setting &stationtype_settings = stationtypelist_settings[i];
+
+        if (!stationtype_settings.exists("stationtype"))
+          throw Fmi::Exception(
+              BCP,
+              "Invalid stationtypelist configuration. Mandatory setting 'stationtype' missing!");
+
+        auto stationtype = std::string("");
+        auto databaseTableName = std::string("");
+        std::vector<uint> producerIdVector;
+
+        stationtype_settings.lookupValue("stationtype", stationtype);
+        stationtype_settings.lookupValue("databaseTableName", databaseTableName);
+        if (stationtype_settings.exists("producerIds"))
+          producerIdVector =
+              cfg.get_mandatory_config_array<uint>(stationtype_settings, "producerIds");
+
+        // Mobile and external producers
+        if (stationtype == "roadcloud" || stationtype == "teconer" || stationtype == "netatmo" ||
+            stationtype == "fmi_iot" || stationtype == "bk_hydrometa")
         {
-          libconfig::Setting& stationtype_settings = stationtypelist_settings[i];
+          if (producerIdVector.empty())
+            throw Fmi::Exception(BCP, "Invalid parameter value!")
+                .addDetail(fmt::format(
+                    "One producer id must be defined for external and mobile producers ",
+                    stationtype));
 
+          if (databaseTableName.empty())
+            databaseTableName = "ext_obsdata";
 
-		  if(!stationtype_settings.exists("stationtype"))
-			throw Fmi::Exception(BCP, "Invalid stationtypelist configuration. Mandatory setting 'stationtype' missing!");
+          // Sort out measurands for mobile and external producers
+          Measurands measurands;
+          ParameterMap::NameToStationParameterMap::const_iterator iter;
+          for (iter = parameterMap->begin(); iter != parameterMap->end(); iter++)
+          {
+            std::string parameter_name = iter->first;
+            for (const auto &i : iter->second)
+            {
+              if (stationtype == i.first)
+              {
+                std::string parameter_id = i.second;
 
-		  auto stationtype = std::string("");
-		  auto databaseTableName = std::string("");
-          std::vector<uint> producerIdVector;
+                // Only measurands added here (parameter_id is integer)
+                if (std::string::npos != parameter_id.find_first_not_of("0123456789"))
+                  continue;
 
-		  stationtype_settings.lookupValue("stationtype", stationtype);
-		  stationtype_settings.lookupValue("databaseTableName", databaseTableName);
-		  if(stationtype_settings.exists("producerIds"))
-			producerIdVector = cfg.get_mandatory_config_array<uint>(stationtype_settings, "producerIds");
-		  
-		  // Mobile and external producers
-		  if(stationtype == "roadcloud" 
-			 || stationtype == "teconer"
-			 || stationtype == "netatmo"
-			 || stationtype == "fmi_iot"
-			 || stationtype == "bk_hydrometa")
-			{
-			  if(producerIdVector.empty())
-				throw Fmi::Exception(BCP, "Invalid parameter value!")
-				  .addDetail(fmt::format(
-										 "One producer id must be defined for external and mobile producers ",
-										 stationtype));
+                measurands.insert(std::make_pair(parameter_name, Fmi::stoi(parameter_id)));
+              }
+            }
+          }
+          externalAndMobileProducerConfig.insert(
+              std::make_pair(stationtype,
+                             ExternalAndMobileProducerConfigItem(
+                                 producerIdVector.front(), measurands, databaseTableName)));
+          continue;
+        }
+        else
+        {
+          auto useCommonQueryMethod = false;
+          auto stationTypeIsCached = false;
+          std::vector<std::string> stationgroupCodeVector;
 
-			  if(databaseTableName.empty())
-				databaseTableName = "ext_obsdata";
+          stationtype_settings.lookupValue("useCommonQueryMethod", useCommonQueryMethod);
+          stationtype_settings.lookupValue("cached", stationTypeIsCached);
 
-			  // Sort out measurands for mobile and external producers
-			  Measurands measurands;
-			  ParameterMap::NameToStationParameterMap::const_iterator iter;
-			  for (iter = parameterMap->begin(); iter != parameterMap->end(); iter++)
-				{
-				  std::string parameter_name = iter->first;
-				  for (const auto &i : iter->second)
-					{
-					  if( stationtype == i.first)
-						{
-						  std::string parameter_id = i.second;
-						  
-						  // Only measurands added here (parameter_id is integer)
-						  if (std::string::npos != parameter_id.find_first_not_of("0123456789"))
-							continue;
-						  
-						  measurands.insert(std::make_pair(parameter_name, Fmi::stoi(parameter_id)));
-						}
-					}
-				}
-			  externalAndMobileProducerConfig.insert(std::make_pair(
-																	stationtype, ExternalAndMobileProducerConfigItem(producerIdVector.front(), measurands, databaseTableName)));
-			  continue;
-			}
-		  else
-			{
-			  auto useCommonQueryMethod = false;
-			  auto stationTypeIsCached = false;
-			  std::vector<std::string> stationgroupCodeVector;
-			  
-			  stationtype_settings.lookupValue("useCommonQueryMethod", useCommonQueryMethod);
-			  stationtype_settings.lookupValue("cached", stationTypeIsCached);
-			  
-			  if(stationtype_settings.exists("stationGroups"))
-				stationgroupCodeVector = cfg.get_mandatory_config_array<std::string>(stationtype_settings, "stationGroups");
-			  else
-				stationgroupCodeVector.push_back("VOID_AND_MISSING");
-			  
-			  /*
-			  // Producer ids are now fetched from database
-			  if ((useCommonQueryMethod || stationTypeIsCached) && producerIdVector.empty())
-				{
-				  throw Fmi::Exception(BCP, "Invalid parameter value!")
-					.addDetail(fmt::format(
-										   "At least one producer id must be defined into producerIds "
-										   "array for the stationtype '{}' if the useCommonQueryMethod value is true.",
-										   stationtype));
-				}
-			  */
-			  if (databaseTableName.empty() && useCommonQueryMethod)
-				{
-				  throw Fmi::Exception(BCP, "Invalid parameter value!")
-					.addDetail(fmt::format("databaseTableName parameter definition is required for the "
-										   "stationtype '{}' if the useCommonQueryMethod value is true.",
-										   stationtype));
-				}
-			  
-			  stationtypeConfig.addStationtype(stationtype, stationgroupCodeVector);
-			  stationtypeConfig.setUseCommonQueryMethod(stationtype, useCommonQueryMethod);
-			}
-		  if(!producerIdVector.empty())
-			stationtypeConfig.setProducerIds(stationtype, producerIdVector);
-		  if(!databaseTableName.empty())
-			stationtypeConfig.setDatabaseTableName(stationtype, databaseTableName);
-		}
-	}
-  else
-	{
-	  throw Fmi::Exception::Trace(BCP, "Configuration error: stationtypelist missing!");
-	}
+          if (stationtype_settings.exists("stationGroups"))
+            stationgroupCodeVector =
+                cfg.get_mandatory_config_array<std::string>(stationtype_settings, "stationGroups");
+          else
+            stationgroupCodeVector.push_back("VOID_AND_MISSING");
+
+          /*
+          // Producer ids are now fetched from database
+          if ((useCommonQueryMethod || stationTypeIsCached) && producerIdVector.empty())
+                {
+                  throw Fmi::Exception(BCP, "Invalid parameter value!")
+                        .addDetail(fmt::format(
+                                                                   "At least one producer id must be
+          defined into producerIds " "array for the stationtype '{}' if the useCommonQueryMethod
+          value is true.", stationtype));
+                }
+          */
+          if (databaseTableName.empty() && useCommonQueryMethod)
+          {
+            throw Fmi::Exception(BCP, "Invalid parameter value!")
+                .addDetail(
+                    fmt::format("databaseTableName parameter definition is required for the "
+                                "stationtype '{}' if the useCommonQueryMethod value is true.",
+                                stationtype));
+          }
+
+          stationtypeConfig.addStationtype(stationtype, stationgroupCodeVector);
+          stationtypeConfig.setUseCommonQueryMethod(stationtype, useCommonQueryMethod);
+        }
+        if (!producerIdVector.empty())
+          stationtypeConfig.setProducerIds(stationtype, producerIdVector);
+        if (!databaseTableName.empty())
+          stationtypeConfig.setDatabaseTableName(stationtype, databaseTableName);
+      }
+    }
+    else
+    {
+      throw Fmi::Exception::Trace(BCP, "Configuration error: stationtypelist missing!");
+    }
   }
   catch (...)
   {
@@ -253,7 +256,7 @@ bool EngineParameters::isParameter(const std::string &alias, const std::string &
 {
   try
   {
-	return Utils::isParameter(alias, stationType, *parameterMap);
+    return Utils::isParameter(alias, stationType, *parameterMap);
   }
   catch (...)
   {
@@ -265,7 +268,7 @@ bool EngineParameters::isParameterVariant(const std::string &name) const
 {
   try
   {
-	return Utils::isParameterVariant(name, *parameterMap);
+    return Utils::isParameterVariant(name, *parameterMap);
   }
   catch (...)
   {
@@ -281,8 +284,8 @@ std::string EngineParameters::getParameterIdAsString(const std::string &alias,
     std::string parameterAliasName = Fmi::ascii_tolower_copy(alias);
     Utils::removePrefix(parameterAliasName, "qc_");
     std::string stationTypeLowerCase = Fmi::ascii_tolower_copy(stationType);
-	
-	return parameterMap->getParameter(parameterAliasName, stationTypeLowerCase);
+
+    return parameterMap->getParameter(parameterAliasName, stationTypeLowerCase);
   }
   catch (...)
   {

@@ -1,7 +1,7 @@
 #include "Engine.h"
-#include "EngineImpl.h"
 #include "DBRegistry.h"
 #include "DatabaseDriverFactory.h"
+#include "EngineImpl.h"
 #include "ObservationCacheFactory.h"
 #include "SpecialParameters.h"
 #include <boost/algorithm/string.hpp>
@@ -11,8 +11,8 @@
 #include <macgyver/TypeName.h>
 #include <spine/Convenience.h>
 #include <spine/Reactor.h>
-#include <timeseries/TimeSeriesInclude.h>
 #include <timeseries/ParameterTools.h>
+#include <timeseries/TimeSeriesInclude.h>
 
 #ifdef DEBUG_ENGINE_DISABLING
 #define DISABLE_STACKTRACE
@@ -29,21 +29,22 @@ namespace Engine
 {
 namespace Observation
 {
+Engine::Engine() {}
 
-Engine::Engine()
+Engine *Engine::create(const std::string &configfile)
 {
-}
-
-Engine* Engine::create(const std::string& configfile)
-{
-  try {
-      SmartMet::Spine::ConfigBase cfg(configfile);
-      bool disabled = cfg.get_optional_config_param<bool>("disabled", false);
-      if (disabled) {
-          return new SmartMet::Engine::Observation::Engine();
-      } else {
-          return new SmartMet::Engine::Observation::EngineImpl(configfile);
-      }
+  try
+  {
+    SmartMet::Spine::ConfigBase cfg(configfile);
+    bool disabled = cfg.get_optional_config_param<bool>("disabled", false);
+    if (disabled)
+    {
+      return new SmartMet::Engine::Observation::Engine();
+    }
+    else
+    {
+      return new SmartMet::Engine::Observation::EngineImpl(configfile);
+    }
   }
   catch (...)
   {
@@ -53,189 +54,161 @@ Engine* Engine::create(const std::string& configfile)
 
 TS::TimeSeriesVectorPtr Engine::values(Settings &settings)
 {
-    (void)settings;
-    REPORT_DISABLED;
+  (void)settings;
+  REPORT_DISABLED;
 }
 
-TS::TimeSeriesVectorPtr Engine::values(
-      Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions)
+TS::TimeSeriesVectorPtr Engine::values(Settings &settings,
+                                       const TS::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
-    (void)settings;
-    (void)timeSeriesOptions;
-    REPORT_DISABLED;
+  (void)settings;
+  (void)timeSeriesOptions;
+  REPORT_DISABLED;
 }
 
 void Engine::makeQuery(QueryBase *qb)
 {
-    (void)qb;
-    REPORT_DISABLED;
+  (void)qb;
+  REPORT_DISABLED;
 }
 
-FlashCounts
-Engine::getFlashCount(const boost::posix_time::ptime &starttime,
-                            const boost::posix_time::ptime &endtime,
-                            const Spine::TaggedLocationList &locations)
+FlashCounts Engine::getFlashCount(const boost::posix_time::ptime &starttime,
+                                  const boost::posix_time::ptime &endtime,
+                                  const Spine::TaggedLocationList &locations)
 {
-    (void) starttime;
-    (void) endtime;
-    REPORT_DISABLED;
+  (void)starttime;
+  (void)endtime;
+  REPORT_DISABLED;
 }
 
-std::shared_ptr<std::vector<ObservableProperty>>
-Engine::observablePropertyQuery(std::vector<std::string> &parameters, const std::string language)
+std::shared_ptr<std::vector<ObservableProperty>> Engine::observablePropertyQuery(
+    std::vector<std::string> &parameters, const std::string language)
 {
-    (void)parameters;
-    (void)language;
-    REPORT_DISABLED;
+  (void)parameters;
+  (void)language;
+  REPORT_DISABLED;
 }
 
-bool
-Engine::ready() const
+bool Engine::ready() const
 {
-    return true;
+  return true;
 }
 
-Geonames::Engine *
-Engine::getGeonames() const
+Geonames::Engine *Engine::getGeonames() const
 {
-    REPORT_DISABLED;
+  REPORT_DISABLED;
 }
 
-const std::shared_ptr<DBRegistry>
-Engine::dbRegistry() const
+const std::shared_ptr<DBRegistry> Engine::dbRegistry() const
 {
-    REPORT_DISABLED;
+  REPORT_DISABLED;
 }
 
-void
-Engine::reloadStations()
+void Engine::reloadStations() {}
+
+void Engine::getStations(Spine::Stations &stations, Settings &settings)
 {
+  (void)settings;
+  REPORT_DISABLED;
 }
 
-void
-Engine::getStations(Spine::Stations &stations, Settings &settings)
+void Engine::getStationsByArea(Spine::Stations &stations,
+                               const std::string &stationtype,
+                               const boost::posix_time::ptime &starttime,
+                               const boost::posix_time::ptime &endtime,
+                               const std::string &areaWkt)
 {
-    (void)settings;
-    REPORT_DISABLED;
+  (void)stations;
+  (void)stationtype;
+  (void)starttime;
+  (void)endtime;
+  (void)areaWkt;
+  REPORT_DISABLED;
 }
 
-void
-Engine::getStationsByArea(Spine::Stations &stations,
-                         const std::string &stationtype,
-                         const boost::posix_time::ptime &starttime,
-                         const boost::posix_time::ptime &endtime,
-                         const std::string &areaWkt)
+void Engine::getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings)
 {
-    (void)stations;
-    (void)stationtype;
-    (void)starttime;
-    (void)endtime;
-    (void)areaWkt;
-    REPORT_DISABLED;
+  (void)stations;
+  (void)settings;
+  REPORT_DISABLED;
 }
 
-void
-Engine::getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings)
+bool Engine::isParameter(const std::string &alias, const std::string &stationType) const
 {
-    (void)stations;
-    (void)settings;
-    REPORT_DISABLED;
+  (void)alias;
+  (void)stationType;
+  REPORT_DISABLED;
 }
 
-bool
-Engine::isParameter(const std::string &alias, const std::string &stationType) const
+bool Engine::isParameterVariant(const std::string &name) const
 {
-    (void)alias;
-    (void)stationType;
-    REPORT_DISABLED;
+  (void)name;
+  REPORT_DISABLED;
 }
 
-bool
-Engine::isParameterVariant(const std::string &name) const
+uint64_t Engine::getParameterId(const std::string &alias, const std::string &stationType) const
 {
-    (void)name;
-    REPORT_DISABLED;
+  (void)alias;
+  (void)stationType;
+  REPORT_DISABLED;
 }
 
-uint64_t
-Engine::getParameterId(const std::string &alias,
-                       const std::string &stationType) const
+std::string Engine::getParameterIdAsString(const std::string &alias,
+                                           const std::string &stationType) const
 {
-    (void)alias;
-    (void)stationType;
-    REPORT_DISABLED;
+  (void)alias;
+  (void)stationType;
+  REPORT_DISABLED;
 }
 
-std::string
-Engine::getParameterIdAsString(const std::string &alias,
-                               const std::string &stationType) const
+std::set<std::string> Engine::getValidStationTypes() const
 {
-    (void)alias;
-    (void)stationType;
-    REPORT_DISABLED;
+  REPORT_DISABLED;
 }
 
-std::set<std::string>
-Engine::getValidStationTypes() const
+ContentTable Engine::getProducerInfo(boost::optional<std::string> producer) const
 {
-    REPORT_DISABLED;
+  (void)producer;
+  REPORT_DISABLED;
 }
 
-ContentTable
-Engine::getProducerInfo(boost::optional<std::string> producer) const
+ContentTable Engine::getParameterInfo(boost::optional<std::string> producer) const
 {
-    (void)producer;
-    REPORT_DISABLED;
+  (void)producer;
+  REPORT_DISABLED;
 }
 
-ContentTable
-Engine::getParameterInfo(boost::optional<std::string> producer) const
+ContentTable Engine::getStationInfo(const StationOptions &options) const
 {
-    (void)producer;
-    REPORT_DISABLED;
+  (void)options;
+  REPORT_DISABLED;
 }
 
-ContentTable
-Engine::getStationInfo(const StationOptions &options) const
+MetaData Engine::metaData(const std::string &producer) const
 {
-    (void)options;
-    REPORT_DISABLED;
+  (void)producer;
+  REPORT_DISABLED;
 }
 
-MetaData
-Engine::metaData(const std::string &producer) const
+Spine::TaggedFMISIDList Engine::translateToFMISID(const boost::posix_time::ptime &starttime,
+                                                  const boost::posix_time::ptime &endtime,
+                                                  const std::string &stationtype,
+                                                  const StationSettings &stationSettings) const
 {
-    (void)producer;
-    REPORT_DISABLED;
+  (void)starttime;
+  (void)endtime;
+  (void)stationtype;
+  (void)stationSettings;
+  REPORT_DISABLED;
 }
 
-Spine::TaggedFMISIDList
-Engine::translateToFMISID(const boost::posix_time::ptime &starttime,
-                          const boost::posix_time::ptime &endtime,
-                          const std::string &stationtype,
-                          const StationSettings &stationSettings) const
-{
-    (void)starttime;
-    (void)endtime;
-    (void)stationtype;
-    (void)stationSettings;
-    REPORT_DISABLED;
-}
+void Engine::init() {}
 
-void
-Engine::init()
-{
-}
-
-void
-Engine::shutdown()
-{
-}
+void Engine::shutdown() {}
 
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
-
 
 // DYNAMIC MODULE CREATION TOOLS
 
@@ -248,4 +221,3 @@ extern "C" const char *engine_name()
 {
   return "Observation";
 }
-

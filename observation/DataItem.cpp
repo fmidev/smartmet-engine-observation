@@ -19,7 +19,7 @@ std::size_t DataItem::hash_value() const
     Fmi::hash_combine(hash, Fmi::hash_value(producer_id));
     Fmi::hash_combine(hash, Fmi::hash_value(measurand_no));
     Fmi::hash_combine(hash, Fmi::hash_value(data_time));
-    Fmi::hash_combine(hash, Fmi::hash_value(get_value()));
+    Fmi::hash_combine(hash, Fmi::hash_value(data_value));
     Fmi::hash_combine(hash, Fmi::hash_value(data_quality));
     Fmi::hash_combine(hash, Fmi::hash_value(data_source));
     Fmi::hash_combine(hash, Fmi::hash_value(modified_last));

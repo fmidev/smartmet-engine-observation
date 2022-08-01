@@ -1,11 +1,11 @@
 #include "Property.h"
-#include <tuple>
 #include <boost/algorithm/string/join.hpp>
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TypeMap.h>
 #include <macgyver/TypeName.h>
+#include <tuple>
 
 namespace ba = boost::algorithm;
 
@@ -70,121 +70,112 @@ Base::NameType Base::getExpression(const NameType& viewName,
   }
 }
 
-namespace {
-    typedef std::function<std::string(const boost::any&, const std::string)> value2str_t;
+namespace
+{
+typedef std::function<std::string(const boost::any&, const std::string)> value2str_t;
 
-    struct TypeConv
-    {
-        value2str_t convert;
-        std::string name;
-        bool is_vector;
-    };
+struct TypeConv
+{
+  value2str_t convert;
+  std::string name;
+  bool is_vector;
+};
 
-    template <typename ValueType>
-    std::string value_vect2str(const boost::any& value, const std::string& database, value2str_t conv)
-    {
-        std::vector<std::string> parts;
-        const std::vector<ValueType>& args = boost::any_cast<std::vector<ValueType> >(value);
-        std::transform(
-            args.begin(),
-            args.end(),
-            std::back_inserter(parts),
-            [&database, &conv](const ValueType& x) { return conv(x, database); });
-        return "(" + ba::join(parts, std::string(", ")) + ")";
-    }
-
-    template <typename ValueType>
-    void add_type(Fmi::TypeMap<TypeConv>& type_map, value2str_t f, const std::string& type_name)
-    {
-        type_map.add<ValueType>({f, type_name, false});
-        type_map.add<std::vector<ValueType> >(
-            {
-                [f](const boost::any& value, const std::string& database) -> std::string
-                {
-                    return value_vect2str<ValueType>(value, database, f);
-                },
-                type_name,
-                true
-            });
-    }
-
-    template <typename ValueType>
-    void add_type(Fmi::TypeMap<TypeConv>& type_map, const std::string& type_name)
-    {
-        const auto f = [](const boost::any& value, const std::string&) -> std::string
-                       {
-                           return Fmi::to_string(boost::any_cast<ValueType>(value));
-                       };
-        type_map.add<ValueType>({f, type_name, false});
-        type_map.add<std::vector<ValueType> >(
-            {
-                [f](const boost::any& value, const std::string& database) -> std::string
-                {
-                    return value_vect2str<ValueType>(value, database, f);
-                },
-                type_name,
-                true
-            });
-    }
-
-    template <typename ValueType>
-    Fmi::TypeMap<TypeConv>& add_types(Fmi::TypeMap<TypeConv>& type_map, const std::string& type_name)
-    {
-        add_type<ValueType>(type_map, type_name);
-        return type_map;
-    }
-
-    template <typename ValueType, typename... RemainingTypes>
-    typename std::enable_if<(sizeof...(RemainingTypes) > 0), Fmi::TypeMap<TypeConv>& >::type
-    add_types(Fmi::TypeMap<TypeConv>& type_map, const std::string& type_name)
-    {
-        add_type<ValueType>(type_map, type_name);
-        if (sizeof...(RemainingTypes) > 0) {
-            add_types<RemainingTypes...>(type_map, type_name);
-        }
-        return type_map;
-    }
-
-    Fmi::TypeMap<TypeConv> create_value_to_string_converter()
-    {
-        Fmi::TypeMap<TypeConv> conv;
-
-        add_types<int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t>(conv, "int");
-
-        add_types<float>(conv, "float");
-
-        add_types<double>(conv, "double");
-
-        add_type<std::string>(conv,
-            [](const boost::any& value, const std::string&) -> std::string
-            {
-                return "'" + boost::any_cast<std::string>(value) + "'";
-            },
-            "string");
-
-        add_type<boost::posix_time::ptime>(conv,
-            [](const boost::any& value, const std::string& database) -> std::string
-            {
-                if (database == "oracle")
-                    return "TO_DATE('" +
-                        boost::posix_time::to_simple_string(
-                            boost::any_cast<boost::posix_time::ptime>(value)) +
-                        "','YYYY-MM-DD HH24:MI:SS')";
-                else  // PostgreSQL
-                    return boost::posix_time::to_simple_string(
-                        boost::any_cast<boost::posix_time::ptime>(value));
-            },
-            "ptime");
-        return conv;
-    };
-
-    Fmi::TypeMap<TypeConv>& get_value_to_string_converter_map()
-    {
-        static auto converter_map = create_value_to_string_converter();
-        return converter_map;
-    }
-
+template <typename ValueType>
+std::string value_vect2str(const boost::any& value, const std::string& database, value2str_t conv)
+{
+  std::vector<std::string> parts;
+  const std::vector<ValueType>& args = boost::any_cast<std::vector<ValueType> >(value);
+  std::transform(args.begin(),
+                 args.end(),
+                 std::back_inserter(parts),
+                 [&database, &conv](const ValueType& x) { return conv(x, database); });
+  return "(" + ba::join(parts, std::string(", ")) + ")";
 }
+
+template <typename ValueType>
+void add_type(Fmi::TypeMap<TypeConv>& type_map, value2str_t f, const std::string& type_name)
+{
+  type_map.add<ValueType>({f, type_name, false});
+  type_map.add<std::vector<ValueType> >(
+      {[f](const boost::any& value, const std::string& database) -> std::string
+       { return value_vect2str<ValueType>(value, database, f); },
+       type_name,
+       true});
+}
+
+template <typename ValueType>
+void add_type(Fmi::TypeMap<TypeConv>& type_map, const std::string& type_name)
+{
+  const auto f = [](const boost::any& value, const std::string&) -> std::string
+  { return Fmi::to_string(boost::any_cast<ValueType>(value)); };
+  type_map.add<ValueType>({f, type_name, false});
+  type_map.add<std::vector<ValueType> >(
+      {[f](const boost::any& value, const std::string& database) -> std::string
+       { return value_vect2str<ValueType>(value, database, f); },
+       type_name,
+       true});
+}
+
+template <typename ValueType>
+Fmi::TypeMap<TypeConv>& add_types(Fmi::TypeMap<TypeConv>& type_map, const std::string& type_name)
+{
+  add_type<ValueType>(type_map, type_name);
+  return type_map;
+}
+
+template <typename ValueType, typename... RemainingTypes>
+typename std::enable_if<(sizeof...(RemainingTypes) > 0), Fmi::TypeMap<TypeConv>&>::type add_types(
+    Fmi::TypeMap<TypeConv>& type_map, const std::string& type_name)
+{
+  add_type<ValueType>(type_map, type_name);
+  if (sizeof...(RemainingTypes) > 0)
+  {
+    add_types<RemainingTypes...>(type_map, type_name);
+  }
+  return type_map;
+}
+
+Fmi::TypeMap<TypeConv> create_value_to_string_converter()
+{
+  Fmi::TypeMap<TypeConv> conv;
+
+  add_types<int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t>(conv, "int");
+
+  add_types<float>(conv, "float");
+
+  add_types<double>(conv, "double");
+
+  add_type<std::string>(
+      conv,
+      [](const boost::any& value, const std::string&) -> std::string
+      { return "'" + boost::any_cast<std::string>(value) + "'"; },
+      "string");
+
+  add_type<boost::posix_time::ptime>(
+      conv,
+      [](const boost::any& value, const std::string& database) -> std::string
+      {
+        if (database == "oracle")
+          return "TO_DATE('" +
+                 boost::posix_time::to_simple_string(
+                     boost::any_cast<boost::posix_time::ptime>(value)) +
+                 "','YYYY-MM-DD HH24:MI:SS')";
+        else  // PostgreSQL
+          return boost::posix_time::to_simple_string(
+              boost::any_cast<boost::posix_time::ptime>(value));
+      },
+      "ptime");
+  return conv;
+};
+
+Fmi::TypeMap<TypeConv>& get_value_to_string_converter_map()
+{
+  static auto converter_map = create_value_to_string_converter();
+  return converter_map;
+}
+
+}  // namespace
 
 Base::NameType Base::toWhatString(const boost::any& value,
                                   const std::string& database /*= "oracle"*/) const
@@ -197,14 +188,17 @@ Base::NameType Base::toWhatString(const boost::any& value,
 
     try
     {
-       const auto& conv_info = converter_map [value];
-       converter = conv_info.convert;
-    } catch (...) {
-       throw Fmi::Exception::Trace(BCP, "Warning: " + METHOD_NAME + ": Unsupported data type "
-           + Fmi::demangle_cpp_type_name(value.type().name()));
+      const auto& conv_info = converter_map[value];
+      converter = conv_info.convert;
+    }
+    catch (...)
+    {
+      throw Fmi::Exception::Trace(BCP,
+                                  "Warning: " + METHOD_NAME + ": Unsupported data type " +
+                                      Fmi::demangle_cpp_type_name(value.type().name()));
     }
 
-    return converter (value, database);
+    return converter(value, database);
   }
   catch (...)
   {
@@ -218,7 +212,7 @@ Base::NameType Base::getValueTypeString() const
 
   try
   {
-    return converter_map [m_toWhat] . name;
+    return converter_map[m_toWhat].name;
   }
   catch (...)
   {
@@ -230,12 +224,13 @@ void Base::set(const NameType& property, const boost::any& toWhat, const NameTyp
 {
   // Verify that provided value (toWhat) is compatible with operation
   static auto converter_map = get_value_to_string_converter_map();
-  const auto& conv_info = converter_map [toWhat];
-  if (conv_info.is_vector ^ has_vector_argument()) {
+  const auto& conv_info = converter_map[toWhat];
+  if (conv_info.is_vector ^ has_vector_argument())
+  {
     throw Fmi::Exception(BCP,
-        std::string("Argument type conflict - required ")
-        + (has_vector_argument() ? "vector" : "scalar")
-        + ", got " + (conv_info.is_vector ? "vector" : "scalar"));
+                         std::string("Argument type conflict - required ") +
+                             (has_vector_argument() ? "vector" : "scalar") + ", got " +
+                             (conv_info.is_vector ? "vector" : "scalar"));
   }
 
   m_property = property;

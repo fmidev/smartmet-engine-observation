@@ -13,7 +13,7 @@ namespace Engine
 {
 namespace Observation
 {
-  static StationtypeConfig::ProducerIdSetType empty_producer_id_set;
+static StationtypeConfig::ProducerIdSetType empty_producer_id_set;
 
 StationtypeConfig::StationtypeConfig() = default;
 
@@ -62,14 +62,15 @@ void StationtypeConfig::addStationtype(const StationtypeType& stationtype,
   }
 }
 
-std::string StationtypeConfig::getDatabaseTableNameByStationtype(const StationtypeType& stationtype) const
+std::string StationtypeConfig::getDatabaseTableNameByStationtype(
+    const StationtypeType& stationtype) const
 {
   try
   {
     const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
     const auto it = m_stDatabaseTableNameMap.find(stationtypeLower);
     if (it == m_stDatabaseTableNameMap.end())
-	  return "";
+      return "";
 
     return it->second;
   }
@@ -98,8 +99,8 @@ StationtypeConfig::getGroupCodeSetByStationtype(const StationtypeType& stationty
   }
 }
 
-const StationtypeConfig::ProducerIdSetType&
-StationtypeConfig::getProducerIdSetByStationtype(const StationtypeType& stationtype) const
+const StationtypeConfig::ProducerIdSetType& StationtypeConfig::getProducerIdSetByStationtype(
+    const StationtypeType& stationtype) const
 {
   try
   {
@@ -107,8 +108,8 @@ StationtypeConfig::getProducerIdSetByStationtype(const StationtypeType& stationt
     const auto it = m_stProducerIdSetMap.find(stationtypeLower);
     if (it != m_stProducerIdSetMap.end())
       return it->second;
-	
-	return empty_producer_id_set;
+
+    return empty_producer_id_set;
   }
   catch (...)
   {

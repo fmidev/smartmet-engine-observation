@@ -23,7 +23,7 @@ class MagnetometerDataItem
   boost::optional<double> z;
   boost::optional<double> t;
   boost::optional<double> f;
-  int data_quality{2}; // TODO
+  int data_quality{2};  // TODO
   boost::posix_time::ptime modified_last;
 
   std::size_t hash_value() const;
@@ -35,4 +35,5 @@ using MagnetometerDataItems = std::vector<MagnetometerDataItem>;
 }  // namespace Engine
 }  // namespace SmartMet
 
-std::ostream& operator<<(std::ostream& out, const SmartMet::Engine::Observation::MagnetometerDataItem& item);
+std::ostream& operator<<(std::ostream& out,
+                         const SmartMet::Engine::Observation::MagnetometerDataItem& item);

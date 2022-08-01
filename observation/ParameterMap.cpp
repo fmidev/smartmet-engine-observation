@@ -6,7 +6,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 std::string ParameterMap::getParameter(const std::string& name,
                                        const std::string& stationtype) const
 {
@@ -14,9 +13,10 @@ std::string ParameterMap::getParameter(const std::string& name,
   {
     const StationParameters& stationparams = params.at(name);
     if (stationparams.find(stationtype) != stationparams.end())
-	  return stationparams.at(stationtype);
-	else if (stationtype != MAIN_MEASURAND_ID && stationparams.find(DEFAULT_STATIONTYPE) != stationparams.end())
-	  return stationparams.at(DEFAULT_STATIONTYPE);
+      return stationparams.at(stationtype);
+    else if (stationtype != MAIN_MEASURAND_ID &&
+             stationparams.find(DEFAULT_STATIONTYPE) != stationparams.end())
+      return stationparams.at(DEFAULT_STATIONTYPE);
   }
 
   return std::string();

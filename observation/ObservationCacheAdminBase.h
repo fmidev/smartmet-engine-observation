@@ -56,9 +56,9 @@ class ObservationCacheAdminBase
   {
   }
   virtual void readMagnetometerCacheData(std::vector<MagnetometerDataItem>& cacheData,
-										 const boost::posix_time::ptime& startTime,
-										 const boost::posix_time::ptime& lastModifiedTime,
-										 const Fmi::TimeZones& timezones) const
+                                         const boost::posix_time::ptime& startTime,
+                                         const boost::posix_time::ptime& lastModifiedTime,
+                                         const Fmi::TimeZones& timezones) const
   {
   }
 

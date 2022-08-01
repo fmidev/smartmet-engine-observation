@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Engine.h"
 #include "DatabaseDriverInterface.h"
+#include "Engine.h"
 #include "EngineParameters.h"
 #include "ObservationCache.h"
 #include "StationOptions.h"
@@ -13,7 +13,6 @@ namespace Engine
 {
 namespace Observation
 {
-
 class EngineImpl : public Engine
 {
  public:
@@ -21,8 +20,8 @@ class EngineImpl : public Engine
   EngineImpl(const std::string &configfile);
 
   TS::TimeSeriesVectorPtr values(Settings &settings) override;
-  TS::TimeSeriesVectorPtr values(
-      Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
+  TS::TimeSeriesVectorPtr values(Settings &settings,
+                                 const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
 
   void makeQuery(QueryBase *qb) override;
 
@@ -36,7 +35,7 @@ class EngineImpl : public Engine
 
   Geonames::Engine *getGeonames() const override;
 
-  const std::shared_ptr<DBRegistry> dbRegistry() const  override{ return itsDatabaseRegistry; }
+  const std::shared_ptr<DBRegistry> dbRegistry() const override { return itsDatabaseRegistry; }
   void reloadStations() override;
   void getStations(Spine::Stations &stations, Settings &settings) override;
 
@@ -58,7 +57,8 @@ class EngineImpl : public Engine
    * the alias configuration block.
    */
 
-  bool isParameter(const std::string &alias, const std::string &stationType = "unknown") const override;
+  bool isParameter(const std::string &alias,
+                   const std::string &stationType = "unknown") const override;
 
   /* \brief Test if the given alias name is configured
    * \param[in] name Alias name of a meteorological parameter.

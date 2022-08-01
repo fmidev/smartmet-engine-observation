@@ -47,7 +47,8 @@ class OperationMap
       std::cerr << fmt::format("{} : duplicate map key '{}'.\n", METHOD_NAME, name);
       return false;
     }
-    OperationMapValueType value = boost::bind(&T::get, opClass, boost::placeholders::_1, boost::placeholders::_2);
+    OperationMapValueType value =
+        boost::bind(&T::get, opClass, boost::placeholders::_1, boost::placeholders::_2);
     m_ops.insert(std::make_pair(n, value));
     return true;
   }

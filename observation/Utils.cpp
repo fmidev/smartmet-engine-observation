@@ -629,8 +629,7 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
 
 TS::TimeSeriesVectorPtr initializeResultVector(const Settings& settings)
 {
-  TS::TimeSeriesVectorPtr ret =
-      boost::make_shared<TS::TimeSeriesVector>();
+  TS::TimeSeriesVectorPtr ret = boost::make_shared<TS::TimeSeriesVector>();
 
   // Set timeseries objects for each requested parameter
   for (unsigned int i = 0; i < settings.parameters.size(); i++)
@@ -684,7 +683,9 @@ std::string getStringValue(const TS::Value& tv)
   throw Fmi::Exception(BCP, "Failed to extract FMISID (double/int/string) from variant");
 }
 
-bool isParameter(const std::string &name, const std::string &stationType, const ParameterMap& parameterMap)
+bool isParameter(const std::string& name,
+                 const std::string& stationType,
+                 const ParameterMap& parameterMap)
 {
   try
   {
@@ -705,7 +706,7 @@ bool isParameter(const std::string &name, const std::string &stationType, const 
     auto stationTypeMapPtr = namePtr->second.find(stationTypeLowerCase);
 
     if (stationTypeMapPtr == namePtr->second.end())
-	  stationTypeMapPtr = namePtr->second.find(DEFAULT_STATIONTYPE);
+      stationTypeMapPtr = namePtr->second.find(DEFAULT_STATIONTYPE);
     if (stationTypeMapPtr == namePtr->second.end())
       return false;
 
@@ -717,7 +718,7 @@ bool isParameter(const std::string &name, const std::string &stationType, const 
   }
 }
 
-bool isParameterVariant(const std::string &name, const ParameterMap& parameterMap)
+bool isParameterVariant(const std::string& name, const ParameterMap& parameterMap)
 {
   try
   {
@@ -736,7 +737,6 @@ bool isParameterVariant(const std::string &name, const ParameterMap& parameterMa
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
-
 
 }  // namespace Utils
 }  // namespace Observation

@@ -21,7 +21,7 @@ namespace Engine
 {
 namespace Observation
 {
-  using namespace Utils;
+using namespace Utils;
 
 PostgreSQLObsDB::PostgreSQLObsDB(
     const Fmi::Database::PostgreSQLConnectionOptions &connectionOptions,
@@ -55,7 +55,8 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
 {
   try
   {
-    std::string sqlStmt = ExternalAndMobileDBInfo::sqlSelectForCache(producer, lastTime, lastCreatedTime);
+    std::string sqlStmt =
+        ExternalAndMobileDBInfo::sqlSelectForCache(producer, lastTime, lastCreatedTime);
 
     if (itsDebug)
       std::cout << "PostgreSQL: " << sqlStmt << std::endl;
@@ -489,7 +490,8 @@ void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
     const boost::posix_time::ptime now = second_clock::universal_time();
     auto diff = now - starttime;
 
-    // Sometimes lastModifiedTime is 1.1.1970 due to problems, disable huge updates (?? perhaps not possible fpr magnetometer data)
+    // Sometimes lastModifiedTime is 1.1.1970 due to problems, disable huge updates (?? perhaps not
+    // possible fpr magnetometer data)
     if (diff > boost::posix_time::hours(366 * 24))
     {
       starttime = lastTime;
@@ -500,56 +502,60 @@ void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
 
     if (big_request)
     {
-      std::cout << (Spine::log_time_str() +
-                    " [PostgreSQLObsDB] Performing a large Magnetometer cache update starting from " +
-                    Fmi::to_simple_string(starttime))
-                << std::endl;
+      std::cout
+          << (Spine::log_time_str() +
+              " [PostgreSQLObsDB] Performing a large Magnetometer cache update starting from " +
+              Fmi::to_simple_string(starttime))
+          << std::endl;
     }
 
-	std::string sqlStmt = "SELECT station_id, magnetometer, level, EXTRACT(EPOCH FROM date_trunc('seconds', data_time)) AS obstime, "
-	  "x as magneto_x, y as magneto_y, z as magneto_z, t as magneto_t, f as magneto_f, data_quality,  EXTRACT(EPOCH FROM date_trunc('seconds', modified_last)) AS modtime from magnetometer_data";
-	sqlStmt += (" where modified_last >= '" + Fmi::to_iso_extended_string(starttime) + "'");
-	sqlStmt += (" AND magnetometer NOT IN ('NUR2','GAS1')");
+    std::string sqlStmt =
+        "SELECT station_id, magnetometer, level, EXTRACT(EPOCH FROM date_trunc('seconds', "
+        "data_time)) AS obstime, "
+        "x as magneto_x, y as magneto_y, z as magneto_z, t as magneto_t, f as magneto_f, "
+        "data_quality,  EXTRACT(EPOCH FROM date_trunc('seconds', modified_last)) AS modtime from "
+        "magnetometer_data";
+    sqlStmt += (" where modified_last >= '" + Fmi::to_iso_extended_string(starttime) + "'");
+    sqlStmt += (" AND magnetometer NOT IN ('NUR2','GAS1')");
 
-	if (itsDebug)
+    if (itsDebug)
       std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
-	pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-	
-	unsigned int count = 0;
-	for (auto row : result_set)
-	  {
-		if (count++ % 64 == 0)
-		  {
-			Fmi::AsyncTask::interruption_point();
-		  }
-		MagnetometerDataItem item;
-		
-		item.fmisid = as_int(row[0]);
-		item.magnetometer = row[1].as<std::string>();
-		item.level = as_int(row[2]);
-		item.data_time = boost::posix_time::from_time_t(row[3].as<time_t>());	  
-		if (!row[4].is_null())
-		  item.x = as_double(row[4]);
-		if (!row[5].is_null())
-		  item.y = as_double(row[5]);
-		if (!row[6].is_null())
-		  item.z = as_double(row[6]);
-		if (!row[7].is_null())
-		  item.t = as_double(row[7]);
-		if (!row[8].is_null())
-		  item.f = as_double(row[8]);
-		item.data_quality = as_int(row[9]);
-		item.modified_last = boost::posix_time::from_time_t(row[10].as<time_t>());	  
-		cacheData.emplace_back(item);
-	  }
+    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+
+    unsigned int count = 0;
+    for (auto row : result_set)
+    {
+      if (count++ % 64 == 0)
+      {
+        Fmi::AsyncTask::interruption_point();
+      }
+      MagnetometerDataItem item;
+
+      item.fmisid = as_int(row[0]);
+      item.magnetometer = row[1].as<std::string>();
+      item.level = as_int(row[2]);
+      item.data_time = boost::posix_time::from_time_t(row[3].as<time_t>());
+      if (!row[4].is_null())
+        item.x = as_double(row[4]);
+      if (!row[5].is_null())
+        item.y = as_double(row[5]);
+      if (!row[6].is_null())
+        item.z = as_double(row[6]);
+      if (!row[7].is_null())
+        item.t = as_double(row[7]);
+      if (!row[8].is_null())
+        item.f = as_double(row[8]);
+      item.data_quality = as_int(row[9]);
+      item.modified_last = boost::posix_time::from_time_t(row[10].as<time_t>());
+      cacheData.emplace_back(item);
+    }
   }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
-
 
 /*
  * Set time interval for database query.
@@ -571,7 +577,6 @@ void PostgreSQLObsDB::setTimeInterval(const ptime &theStartTime,
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
-
 
 void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
                                              const StationInfo &stationInfo,
@@ -905,50 +910,52 @@ void PostgreSQLObsDB::readStationLocations(StationLocations &stationLocations) c
   }
 }
 
-void PostgreSQLObsDB::getStationGroups(StationGroups& sg) const
+void PostgreSQLObsDB::getStationGroups(StationGroups &sg) const
 {
   try
   {
-	// First get groups
-    std::string sqlStmt = "select group_id, group_name from station_groups_v1 where class_id in (1,81)";
-	
+    // First get groups
+    std::string sqlStmt =
+        "select group_id, group_name from station_groups_v1 where class_id in (1,81)";
+
     if (itsDebug)
       std::cout << "PostgreSQL (station groups): " << sqlStmt << std::endl;
 
-	pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
-	std::map<int, std::string> groups; // group_id -> group_name
+    std::map<int, std::string> groups;  // group_id -> group_name
     for (auto row : result_set)
-	  {
-		int group_id = as_int(row[0]);
-		std::string group_name = row[1].as<std::string>();
-		groups[group_id] = group_name;
-	  }
+    {
+      int group_id = as_int(row[0]);
+      std::string group_name = row[1].as<std::string>();
+      groups[group_id] = group_name;
+    }
 
-	// Then get group members
-	sqlStmt = "select group_id, station_id, valid_from, valid_to from group_members_v1";
+    // Then get group members
+    sqlStmt = "select group_id, station_id, valid_from, valid_to from group_members_v1";
 
     if (itsDebug)
       std::cout << "PostgreSQL (station group members): " << sqlStmt << std::endl;
 
-	result_set = itsDB.executeNonTransaction(sqlStmt);
+    result_set = itsDB.executeNonTransaction(sqlStmt);
 
     for (auto row : result_set)
-	  {
-		int group_id = as_int(row[0]);
-		if(groups.find(group_id) == groups.end())
-		  continue;
+    {
+      int group_id = as_int(row[0]);
+      if (groups.find(group_id) == groups.end())
+        continue;
 
-		int station_id = as_int(row[1]);
-		boost::posix_time::ptime starttime = boost::posix_time::time_from_string(row[2].as<std::string>());
-		boost::posix_time::ptime endtime = boost::posix_time::time_from_string(row[3].as<std::string>());
-		if(groups.find(group_id) != groups.end())
-		  {
-			const std::string& group_name = groups.at(group_id);
-			sg.addGroupPeriod(station_id, group_name, starttime, endtime);
-		  }
-	  }
-
+      int station_id = as_int(row[1]);
+      boost::posix_time::ptime starttime =
+          boost::posix_time::time_from_string(row[2].as<std::string>());
+      boost::posix_time::ptime endtime =
+          boost::posix_time::time_from_string(row[3].as<std::string>());
+      if (groups.find(group_id) != groups.end())
+      {
+        const std::string &group_name = groups.at(group_id);
+        sg.addGroupPeriod(station_id, group_name, starttime, endtime);
+      }
+    }
   }
   catch (...)
   {
@@ -956,25 +963,29 @@ void PostgreSQLObsDB::getStationGroups(StationGroups& sg) const
   }
 }
 
-void PostgreSQLObsDB::getProducerGroups(ProducerGroups& pg) const
+void PostgreSQLObsDB::getProducerGroups(ProducerGroups &pg) const
 {
   try
   {
-    std::string sqlStmt = "select group_name,producer_id,membership_valid_from,membership_valid_to FROM producer_group_members_v1 where group_in_use=1 and namespace='cldb'";
-	
-	if (itsDebug)
+    std::string sqlStmt =
+        "select group_name,producer_id,membership_valid_from,membership_valid_to FROM "
+        "producer_group_members_v1 where group_in_use=1 and namespace='cldb'";
+
+    if (itsDebug)
       std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
-	pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
     for (auto row : result_set)
-	  {
-		std::string group_name = row[0].as<std::string>();
-		int producer_id = as_int(row[1]);
-		boost::posix_time::ptime starttime = boost::posix_time::time_from_string(row[2].as<std::string>());
-		boost::posix_time::ptime endtime = boost::posix_time::time_from_string(row[3].as<std::string>());
-		pg.addGroupPeriod(group_name, producer_id, starttime, endtime);
-	  }
+    {
+      std::string group_name = row[0].as<std::string>();
+      int producer_id = as_int(row[1]);
+      boost::posix_time::ptime starttime =
+          boost::posix_time::time_from_string(row[2].as<std::string>());
+      boost::posix_time::ptime endtime =
+          boost::posix_time::time_from_string(row[3].as<std::string>());
+      pg.addGroupPeriod(group_name, producer_id, starttime, endtime);
+    }
   }
   catch (...)
   {

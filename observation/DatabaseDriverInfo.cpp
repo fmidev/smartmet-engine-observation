@@ -147,22 +147,22 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
     std::string load_stations_disabled_drivers;
     // Cache info (with same name) from different drivers are aggregated to one place
     for (auto& ddii : itsDatabaseDriverInfoItems)
-    {     
+    {
       if (ddii.parameterExists("loadStations") && ddii.getIntParameterValue("loadStations", 0) > 0)
       {
-	if(load_stations_active_driver.empty())
-	  {
-	    load_stations_active_driver = ddii.name;
-	  }
-	else
-	  {
-	    ddii.params["loadStations"] = "0";
-	    if(!load_stations_disabled_drivers.empty())
-	      load_stations_disabled_drivers += ", ";
-	    load_stations_disabled_drivers += ("'" + ddii.name + "'");
-	  }
+        if (load_stations_active_driver.empty())
+        {
+          load_stations_active_driver = ddii.name;
+        }
+        else
+        {
+          ddii.params["loadStations"] = "0";
+          if (!load_stations_disabled_drivers.empty())
+            load_stations_disabled_drivers += ", ";
+          load_stations_disabled_drivers += ("'" + ddii.name + "'");
+        }
       }
-      
+
       for (const auto& cii_from : ddii.itsCacheInfoItems)
         if (itsCacheInfoItems.find(cii_from.first) == itsCacheInfoItems.end())
           itsCacheInfoItems[cii_from.first] = cii_from.second;
@@ -170,10 +170,14 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
           itsCacheInfoItems[cii_from.first].mergeCacheInfo(cii_from.second);
     }
     if (!load_stations_disabled_drivers.empty())
-      {
-	std::string message = (" Warning! Parameter loadStations defined to be true in more than one database driver. Stations are loaded by driver '" + load_stations_active_driver + "', not by driver " + load_stations_disabled_drivers + ".");	
-	std::cout << Spine::log_time_str() << ANSI_FG_RED << message << ANSI_FG_DEFAULT << std::endl;
-      }
+    {
+      std::string message =
+          (" Warning! Parameter loadStations defined to be true in more than one database driver. "
+           "Stations are loaded by driver '" +
+           load_stations_active_driver + "', not by driver " + load_stations_disabled_drivers +
+           ".");
+      std::cout << Spine::log_time_str() << ANSI_FG_RED << message << ANSI_FG_DEFAULT << std::endl;
+    }
   }
   catch (...)
   {
@@ -393,14 +397,15 @@ void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
         cfg.get_optional_config_param<std::size_t>(common_key + ".finCacheUpdateInterval", 0));
     params["extCacheUpdateInterval"] = Fmi::to_string(
         cfg.get_optional_config_param<std::size_t>(common_key + ".extCacheUpdateInterval", 0));
-    params["magnetometerCacheUpdateInterval"] = Fmi::to_string(
-        cfg.get_optional_config_param<std::size_t>(common_key + ".magnetometerCacheUpdateInterval", 0));
+    params["magnetometerCacheUpdateInterval"] =
+        Fmi::to_string(cfg.get_optional_config_param<std::size_t>(
+            common_key + ".magnetometerCacheUpdateInterval", 0));
     params["flashCacheUpdateInterval"] = Fmi::to_string(
         cfg.get_optional_config_param<std::size_t>(common_key + ".flashCacheUpdateInterval", 0));
     params["updateExtraInterval"] = Fmi::to_string(
         cfg.get_optional_config_param<std::size_t>(common_key + ".updateExtraInterval", 10));
-    params["magnetometerCacheDuration"] =
-        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".magnetometerCacheDuration", 0));
+    params["magnetometerCacheDuration"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".magnetometerCacheDuration", 0));
     params["finCacheDuration"] =
         Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finCacheDuration", 0));
     params["finMemoryCacheDuration"] = Fmi::to_string(
@@ -560,8 +565,8 @@ void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
       cfg.get_optional_config_param<int>(common_key + ".bkHydrometaInsertCacheSize", 0));
   params["fmiIoTInsertCacheSize"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".fmiIoTInsertCacheSize", 0));
-  params["magnetometerInsertCacheSize"] =
-      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".magnetometerInsertCacheSize", 0));
+  params["magnetometerInsertCacheSize"] = Fmi::to_string(
+      cfg.get_optional_config_param<int>(common_key + ".magnetometerInsertCacheSize", 0));
 }
 
 /*!

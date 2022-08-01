@@ -296,20 +296,17 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
    */
   void cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime);
 
-  TS::TimeSeriesVectorPtr getRoadCloudData(
-      const Settings &settings,
-      const ParameterMapPtr &parameterMap,
-      const Fmi::TimeZones &timezones);
+  TS::TimeSeriesVectorPtr getRoadCloudData(const Settings &settings,
+                                           const ParameterMapPtr &parameterMap,
+                                           const Fmi::TimeZones &timezones);
 
-  TS::TimeSeriesVectorPtr getNetAtmoData(
-      const Settings &settings,
-      const ParameterMapPtr &parameterMap,
-      const Fmi::TimeZones &timezones);
+  TS::TimeSeriesVectorPtr getNetAtmoData(const Settings &settings,
+                                         const ParameterMapPtr &parameterMap,
+                                         const Fmi::TimeZones &timezones);
 
-  TS::TimeSeriesVectorPtr getFmiIoTData(
-      const Settings &settings,
-      const ParameterMapPtr &parameterMap,
-      const Fmi::TimeZones &timezones);
+  TS::TimeSeriesVectorPtr getFmiIoTData(const Settings &settings,
+                                        const ParameterMapPtr &parameterMap,
+                                        const Fmi::TimeZones &timezones);
 
   void shutdown();
 
@@ -358,25 +355,23 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
   std::string stationType(const std::string &type);
   std::string stationType(Spine::Station &station);
 
-  void addSpecialParameterToTimeSeries(
-      const std::string &paramname,
-      TS::TimeSeriesVectorPtr &timeSeriesColumns,
-      const Spine::Station &station,
-      const int pos,
-      const std::string stationtype,
-      const boost::local_time::local_date_time &obstime);
+  void addSpecialParameterToTimeSeries(const std::string &paramname,
+                                       TS::TimeSeriesVectorPtr &timeSeriesColumns,
+                                       const Spine::Station &station,
+                                       const int pos,
+                                       const std::string stationtype,
+                                       const boost::local_time::local_date_time &obstime);
 
-  void addParameterToTimeSeries(
-      TS::TimeSeriesVectorPtr &timeSeriesColumns,
-      const std::pair<boost::local_time::local_date_time,
-                      std::map<std::string, TS::Value>> &dataItem,
-      const std::map<std::string, int> &specialPositions,
-      const std::map<std::string, std::string> &parameterNameMap,
-      const std::map<std::string, int> &timeseriesPositions,
-      const ParameterMapPtr &parameterMap,
-      const std::string &stationtype,
-      const Spine::Station &station,
-      const std::string &missingtext);
+  void addParameterToTimeSeries(TS::TimeSeriesVectorPtr &timeSeriesColumns,
+                                const std::pair<boost::local_time::local_date_time,
+                                                std::map<std::string, TS::Value>> &dataItem,
+                                const std::map<std::string, int> &specialPositions,
+                                const std::map<std::string, std::string> &parameterNameMap,
+                                const std::map<std::string, int> &timeseriesPositions,
+                                const ParameterMapPtr &parameterMap,
+                                const std::string &stationtype,
+                                const Spine::Station &station,
+                                const std::string &missingtext);
 
   boost::posix_time::ptime getLatestTimeFromTable(std::string tablename, std::string time_field);
   boost::posix_time::ptime getOldestTimeFromTable(std::string tablename, std::string time_field);
@@ -399,10 +394,9 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::nonco
   void dropIndex(const std::string &idx_name, bool transaction = false) const;
 
   boost::posix_time::ptime getTime(const std::string &timeQuery) const;
-  TS::TimeSeriesVectorPtr getMobileAndExternalData(
-      const Settings &settings,
-      const ParameterMapPtr &parameterMap,
-      const Fmi::TimeZones &timezones);
+  TS::TimeSeriesVectorPtr getMobileAndExternalData(const Settings &settings,
+                                                   const ParameterMapPtr &parameterMap,
+                                                   const Fmi::TimeZones &timezones);
 };
 
 }  // namespace Observation

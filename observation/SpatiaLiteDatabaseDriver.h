@@ -28,8 +28,8 @@ class SpatiaLiteDatabaseDriver : public DatabaseDriverBase
 
   TS::TimeSeriesVectorPtr values(Settings &settings) override;
 
-  TS::TimeSeriesVectorPtr values(
-      Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
+  TS::TimeSeriesVectorPtr values(Settings &settings,
+                                 const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
 
   std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string language) override;
