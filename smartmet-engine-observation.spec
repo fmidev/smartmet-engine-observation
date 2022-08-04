@@ -69,7 +69,7 @@ Requires: sqlite-libs >= 3.22.0
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: libspatialite50-devel
 BuildRequires: librttopo-devel
-#TestRequires: sqlite-devel >= 3.22.0#TestRequires: sqlite-devel >= 3.22.0
+#TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: catch-devel >= 2.1.3
 BuildRequires: libpqxx-devel >= 7.7.0 libpqxx-devel < 1:7.8.0
 %else
