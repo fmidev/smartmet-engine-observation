@@ -59,6 +59,7 @@ BuildRequires: libpqxx-devel < 1:7.0
 Requires: sqlite33-libs >= 3.30.1
 BuildRequires: sqlite33-devel >= 3.30.1
 BuildRequires: libspatialite43-devel
+#TestRequires: libspatialite43-devel
 #TestRequires: sqlite33-devel >= 3.30.1
 #TestRequires: catch-devel >= 1.9.6
 #TestRequires: smartmet-utils-devel >= 22.2.8
@@ -69,6 +70,8 @@ Requires: sqlite-libs >= 3.22.0
 BuildRequires: sqlite-devel >= 3.22.0
 BuildRequires: libspatialite50-devel
 BuildRequires: librttopo-devel
+#TestRequires: libspatialite50-devel
+#TestRequires: librttopo-devel
 #TestRequires: sqlite-devel >= 3.22.0
 #TestRequires: catch-devel >= 2.1.3
 BuildRequires: libpqxx-devel >= 7.7.0 libpqxx-devel < 1:7.8.0
