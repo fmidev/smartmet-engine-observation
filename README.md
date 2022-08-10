@@ -7,6 +7,6 @@ server is written in C++.
 
 Instructions so far are mostly work-in-progress:
 
-* [Configuring Observation Engine](docs/Configuring-Observation-Engine)
-* [Configuring Observation Parameters](docs/Configuring-Observation-Parameters)
-* [How To Add Weather Stations](docs/How-To-Add-Weather-Stations)
+* [Configuring Observation Engine](docs/Configuring-Observation-Engine.md)
+* [Configuring Observation Parameters](docs/Configuring-Observation-Parameters.md)
+* [How To Add Weather Stations](docs/How-To-Add-Weather-Stations.md)
