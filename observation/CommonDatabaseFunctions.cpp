@@ -527,11 +527,14 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
     }
 
     std::set<int> not_null_columns;
+    std::map<int, std::string> continuous;
 
     for (const auto &item : qmap.specialPositions)
     {
       if (TimeSeries::is_special_parameter(item.first))
         not_null_columns.insert(item.second);
+      if (SpecialParameters::instance().is_supported(item.first))
+          continuous.emplace(item.second, item.first);
     }
 
     TS::TimeSeriesVectorPtr resultVector = initializeResultVector(settings);
@@ -547,6 +550,9 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
         //		       std::cout << "Station not found for " << fmisid << std::endl;
         continue;
       }
+
+      const auto& station = fmisid_to_station.at(fmisid);
+
       for (const auto &data : timed_measurand_data)
       {
         if (valid_timesteps.find(data.first) == valid_timesteps.end())
@@ -565,7 +571,7 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
                                  qmap.parameterNameIdMap,
                                  qmap.timeseriesPositionsString,
                                  stationtype,
-                                 fmisid_to_station.at(fmisid),
+                                 station,
                                  settings);
       }
 
@@ -603,11 +609,32 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
 
         TS::TimeSeries new_ts(settings.localTimePool);
         auto timestep_iter = valid_timesteps.cbegin();
+
+        // TODO: This is rather ugly and perhaps not very efficient.
+        //       Perhaps could be optimized sometimes
+        const auto fill_missing = [&]() -> void
+                                  {
+                                      auto it = continuous.find(i);
+                                      if (it != continuous.end()) {
+                                          boost::local_time::local_date_time now(
+                                              boost::posix_time::second_clock::universal_time(),
+                                              timestep_iter->zone());
+                                          SpecialParameters::Args args(station, stationtype,
+                                              *timestep_iter, now, settings.timezone, &settings);
+                                          const auto value = SpecialParameters::instance()
+                                              .getTimedValue(it->second, args);
+                                          new_ts.emplace_back(value);
+                                      } else {
+                                          new_ts.emplace_back(TS::TimedValue(
+                                                  *timestep_iter, missing_value));
+                                      }
+                                  };
+
         for (auto &timed_value : ts)
         {
           while (*timestep_iter < timed_value.time && timestep_iter != valid_timesteps.cend())
           {
-            new_ts.emplace_back(TS::TimedValue(*timestep_iter, missing_value));
+            fill_missing();
             timestep_iter++;
           }
           new_ts.push_back(timed_value);
@@ -620,7 +647,7 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::buildTimeseries(
 
         while (timestep_iter != valid_timesteps.cend())
         {
-          new_ts.emplace_back(TS::TimedValue(*timestep_iter, missing_value));
+          fill_missing();
           timestep_iter++;
         }
         /*
