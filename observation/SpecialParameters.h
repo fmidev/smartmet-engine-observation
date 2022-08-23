@@ -83,6 +83,8 @@ class SpecialParameters
 
   TS::Value getValue(const std::string& param_name, const Args& args) const;
 
+  bool is_supported(const std::string& param_name) const;
+
   TS::TimedValue getTimedValue(const std::string& param_name, const Args& args) const;
 
   TS::TimedValue getTimedValue(const Spine::Station& station,

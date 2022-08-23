@@ -48,6 +48,11 @@ TS::Value SpecialParameters::getValue(const std::string& param_name,
   }
 }
 
+bool SpecialParameters::is_supported(const std::string& param_name) const
+{
+  return handler_map.count(param_name) > 0;
+}
+
 TS::TimedValue SpecialParameters::getTimedValue(const std::string& param_name,
                                                 const Args& args) const
 {
