@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.8.29
+Version: 22.9.9
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -28,11 +28,11 @@ BuildRequires: gdal34-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 22.7.27
-BuildRequires: smartmet-library-locus-devel >= 22.6.16
-BuildRequires: smartmet-library-macgyver-devel >= 22.7.27
-BuildRequires: smartmet-library-spine-devel >= 22.7.27
-BuildRequires: smartmet-library-timeseries-devel >= 22.7.27
+BuildRequires: smartmet-engine-geonames-devel >= 22.8.25
+BuildRequires: smartmet-library-locus-devel >= 22.6.17
+BuildRequires: smartmet-library-macgyver-devel >= 22.8.23
+BuildRequires: smartmet-library-spine-devel >= 22.9.5
+BuildRequires: smartmet-library-timeseries-devel >= 22.9.9
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 22.2.8
 BuildRequires: zlib-devel
@@ -45,12 +45,12 @@ Requires: %{smartmet_boost}-thread
 Requires: fmt >= %{smartmet_fmt_min}, fmt < %{smartmet_fmt_max}
 Requires: gdal34-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 22.7.27
-Requires: smartmet-library-locus >= 22.6.16
-Requires: smartmet-library-macgyver >= 22.7.27
-Requires: smartmet-library-spine >= 22.7.27
-Requires: smartmet-library-timeseries >= 22.7.27
-Requires: smartmet-server >= 22.7.20
+Requires: smartmet-engine-geonames >= 22.8.25
+Requires: smartmet-library-locus >= 22.6.17
+Requires: smartmet-library-macgyver >= 22.8.23
+Requires: smartmet-library-spine >= 22.9.5
+Requires: smartmet-library-timeseries >= 22.9.9
+Requires: smartmet-server >= 22.8.19
 Requires: unixODBC
 
 %if %{defined el7}
@@ -129,7 +129,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 22.7.27
+Requires: smartmet-library-spine-devel >= 22.9.5
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Sep  9 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.9.9-1.fmi
+- Repackaged since TimeSeries library ABI changed
+
 * Mon Aug 29 2022 Andris Pavēnis <andris.pavenis@fmi.fi> 22.8.29-1.fmi
 - Fix filling missing values of special parameters
 
