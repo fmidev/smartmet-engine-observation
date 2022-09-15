@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.9.9
+Version: 22.9.15
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Sep 15 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.9.15-1.fmi
+- New parameters for producer fmi_iot (BRAINSTORM-2404)
+
 * Fri Sep  9 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.9.9-1.fmi
 - Repackaged since TimeSeries library ABI changed
 

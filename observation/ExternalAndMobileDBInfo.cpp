@@ -490,11 +490,35 @@ std::string ExternalAndMobileDBInfo::measurandFieldname(int measurandId) const
     switch (measurandId)
     {
       case 49:
-        return "relative_humidity";
+        return "rh";
       case 8164:
-        return "pressure";
+        return "pa";
       case 8165:
-        return "temperature";
+        return "ta";
+      case 113093:
+        return "t_ext2";
+      case 113094:
+        return "t_internal_tech";
+      case 113095:
+        return "v_bat";
+      case 113096:
+        return "t_ext";
+      case 113097:
+        return "solar_rad";
+      case 113098:
+        return "prec";
+      case 113099:
+        return "ws";
+      case 113100:
+        return "wd";
+      case 113101:
+        return "ws_max";
+      case 113102:
+        return "p0";
+      case 113103:
+        return "ws_n";
+      case 113104:
+        return "ws_e";
       default:
         return "";
     }
