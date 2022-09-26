@@ -971,7 +971,7 @@ void CommonDatabaseFunctions::addSpecialParameterToTimeSeries(
 }
 
 TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getMagnetometerData(
-    const Settings &settings, const Fmi::TimeZones &timezones)
+const Spine::Stations &stations, const Settings &settings, const StationInfo &stationInfo, const Fmi::TimeZones &timezones)
 {
   TS::TimeSeriesGeneratorOptions opt;
   opt.startTime = settings.starttime;
@@ -980,7 +980,7 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getMagnetometerData(
   opt.startTimeUTC = false;
   opt.endTimeUTC = false;
 
-  return getMagnetometerData(settings, opt, timezones);
+  return getMagnetometerData(stations, settings, stationInfo, opt, timezones);
 }
 
 TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
@@ -1185,6 +1185,91 @@ std::string CommonDatabaseFunctions::getWeatherDataQCParams(
   params = trimCommasFromEnd(params);
   return params;
 }
+
+TimestepsByFMISID CommonDatabaseFunctions::getValidTimeSteps(const Settings &settings,
+															 const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+															 const Fmi::TimeZones &timezones,
+															 std::map<int, TS::TimeSeriesVectorPtr>& fmisid_results) const
+{
+  
+  // Resolve timesteps for each fmisid
+  std::map<int, std::set<boost::local_time::local_date_time>> fmisid_timesteps;
+
+    if (timeSeriesOptions.all() && !settings.latest)
+    {
+	  // std::cout << "**** ALL timesteps in data \n";
+      // All timesteps
+      for (const auto &item : fmisid_results)
+      {
+        int fmisid = item.first;
+        const auto &ts_vector = *item.second;
+        for (const auto &item2 : ts_vector)
+		  for (const auto &item3 : item2)
+			{
+			  fmisid_timesteps[fmisid].insert(item3.time);
+			}
+      }
+    }
+    else if (settings.latest)
+    {
+	  // std::cout << "**** LATEST timesteps\n";
+      // Latest timestep
+      for (const auto &item : fmisid_results)
+      {
+        int fmisid = item.first;
+        const auto &ts_vector = *item.second;
+        for (const auto &item2 : ts_vector)
+		  for (const auto &item3 : item2)
+			{
+			  fmisid_timesteps[fmisid].insert(item3.time);
+			  break;
+			}
+      }
+    }
+    else if (!timeSeriesOptions.all() && !settings.latest &&
+             itsGetRequestedAndDataTimesteps == AdditionalTimestepOption::RequestedAndDataTimesteps)
+    {
+	  // std::cout << "**** ALL timesteps in data + listed timesteps\n";
+      // All FMISDS must have all timesteps in data and all listed timesteps
+      std::set<int> fmisids;
+      std::set<boost::local_time::local_date_time> timesteps;
+      for (const auto &item : fmisid_results)
+      {
+        int fmisid = item.first;
+        fmisids.insert(fmisid);
+        const auto &ts_vector = *item.second;
+        for (const auto &item2 : ts_vector)
+		  for (const auto &item3 : item2)
+			{
+			  timesteps.insert(item3.time);
+			}
+      }
+
+      const auto tlist = TS::TimeSeriesGenerator::generate(
+          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+
+      timesteps.insert(tlist.begin(), tlist.end());
+
+      for (const auto &fmisid : fmisids)
+        fmisid_timesteps[fmisid].insert(timesteps.begin(), timesteps.end());
+    }
+    else
+    {
+	  //	  std::cout << "**** LISTED timesteps\n";
+      // Listed timesteps
+      const auto tlist = TS::TimeSeriesGenerator::generate(
+          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+
+      for (const auto &item : fmisid_results)
+      {
+        int fmisid = item.first;
+		fmisid_timesteps[fmisid].insert(tlist.begin(), tlist.end());
+      }
+    }
+
+	return fmisid_timesteps;
+}
+
 
 }  // namespace Observation
 }  // namespace Engine

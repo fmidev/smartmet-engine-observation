@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.9.15
+Version: 22.9.27
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Sep 27 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.9.27-1.fmi
+- Added support for magnetometer observations via WFS-plugin (BRAINSTORM-2279)
+
 * Thu Sep 15 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.9.15-1.fmi
 - New parameters for producer fmi_iot (BRAINSTORM-2404)
 
