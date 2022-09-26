@@ -42,13 +42,11 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
   Fmi::Database::PostgreSQLConnection &getConnection() { return itsDB; }
   const std::shared_ptr<Fmi::TimeFormatter> &getTimeFormatter() const { return itsTimeFormatter; }
   const std::shared_ptr<Fmi::TimeFormatter> &resetTimeFormatter(const std::string &format);
-
-  TS::TimeSeriesVectorPtr getMagnetometerData(const Settings &settings,
-                                              const Fmi::TimeZones &timezones) override;
-  TS::TimeSeriesVectorPtr getMagnetometerData(
-      const Settings &settings,
-      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones) override;
+  TS::TimeSeriesVectorPtr getMagnetometerData(const Spine::Stations &stations,
+											  const Settings &settings,
+											  const StationInfo &stationInfo,
+											  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+											  const Fmi::TimeZones &timezones) override;
 
  protected:
   Fmi::Database::PostgreSQLConnection itsDB;

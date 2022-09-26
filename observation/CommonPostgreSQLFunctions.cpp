@@ -532,7 +532,7 @@ const std::shared_ptr<Fmi::TimeFormatter> &CommonPostgreSQLFunctions::resetTimeF
     const std::string &format)
 {
   try
-  {
+	{
     itsTimeFormatter.reset(Fmi::TimeFormatter::create(format));
     return itsTimeFormatter;
   }
@@ -543,13 +543,9 @@ const std::shared_ptr<Fmi::TimeFormatter> &CommonPostgreSQLFunctions::resetTimeF
 }
 
 TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
-    const Settings &settings, const Fmi::TimeZones &timezones)
-{
-  return CommonDatabaseFunctions::getMagnetometerData(settings, timezones);
-}
-
-TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
+    const Spine::Stations &stations,
     const Settings &settings,
+	const StationInfo &stationInfo,
     const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
@@ -571,6 +567,12 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
                                         [](const std::string &a, const std::string &b)
                                         { return a.empty() ? b : a + ',' + b; });
 
+  // Resolve stationgroup codes
+  std::set<std::string> stationgroup_codes;
+  auto stationgroupCodeSet =
+	itsStationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
+  stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
+
   // Measurands
   std::set<std::string> measurand_ids;
   // Positions
@@ -578,13 +580,15 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
   unsigned int pos = 0;
   for (const auto &p : settings.parameters)
   {
-    auto sparam = itsParameterMap->getParameter(p.name(), MAGNETO_PRODUCER);
+    std::string name = p.name();
+    boost::to_lower(name, std::locale::classic());
+
+    auto sparam = itsParameterMap->getParameter(name, MAGNETO_PRODUCER);
     if (!sparam.empty())
       measurand_ids.insert(sparam);
 
-    std::string name = p.name();
-    boost::to_lower(name, std::locale::classic());
     timeseriesPositions[name] = pos;
+
     pos++;
   }
 
@@ -630,9 +634,11 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
   //   110 | F       |          673 | MAGN_PT10S_AVG
 
   std::set<boost::local_time::local_date_time> timesteps_inserted;
+  std::set<int> fmisidit;
   for (auto row : result_set)
   {
     int fmisid = as_int(row[0]);
+	fmisidit.insert(fmisid);
     // Initialize result vector and timestep set
     if (fmisid_results.find(fmisid) == fmisid_results.end())
     {
@@ -643,8 +649,8 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
     TS::Value station_id_value = as_int(row[0]);
     TS::Value magnetometer_id_value = row[1].as<std::string>();
     int level = as_int(row[2]);
-    boost::posix_time::ptime date_time = boost::posix_time::from_time_t(row[3].as<time_t>());
-    boost::local_time::local_date_time localtime(date_time, localtz);
+    boost::posix_time::ptime data_time = boost::posix_time::from_time_t(row[3].as<time_t>());
+    boost::local_time::local_date_time localtime(data_time, localtz);
     TS::Value magneto_x_value;
     TS::Value magneto_y_value;
     TS::Value magneto_z_value;
@@ -664,6 +670,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
 
     auto &result = *(fmisid_results[fmisid]);
     auto &timesteps = fmisid_timesteps[fmisid];
+	const Spine::Station &s = stationInfo.getStation(fmisid, stationgroup_codes);
 
     auto x_parameter_name = itsParameterMap->getParameterName(
         (level == 10 ? "667" : (level == 60 ? "668" : "MISSING")), MAGNETO_PRODUCER);
@@ -691,48 +698,62 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
       result[timeseriesPositions.at(f_parameter_name)].push_back(
           TS::TimedValue(localtime, magneto_f_value));
     if (timeseriesPositions.find("data_quality") != timeseriesPositions.end())
-      result[timeseriesPositions.at("data_quality")].push_back(
-          TS::TimedValue(localtime, data_quality_value));
+      result[timeseriesPositions.at("data_quality")].push_back(TS::TimedValue(localtime, data_quality_value));
     if (timeseriesPositions.find("fmisid") != timeseriesPositions.end())
       result[timeseriesPositions.at("fmisid")].push_back(
           TS::TimedValue(localtime, station_id_value));
     if (timeseriesPositions.find("magnetometer_id") != timeseriesPositions.end())
       result[timeseriesPositions.at("magnetometer_id")].push_back(
           TS::TimedValue(localtime, magnetometer_id_value));
+    if (timeseriesPositions.find("stationlon") != timeseriesPositions.end())
+      result[timeseriesPositions.at("stationlon")].push_back(
+          TS::TimedValue(localtime, s.longitude_out));
+    if (timeseriesPositions.find("stationlat") != timeseriesPositions.end())
+      result[timeseriesPositions.at("stationlat")].push_back(
+          TS::TimedValue(localtime, s.latitude_out));
+    if (timeseriesPositions.find("elevation") != timeseriesPositions.end())
+	  {
+		const StationLocation &sloc = stationInfo.stationLocations.getLocation(fmisid, data_time);
+		// Get exact location, elevation
+		if (sloc.location_id != -1)
+		  {
+			if (timeseriesPositions.find("stationlon") != timeseriesPositions.end())
+			  result[timeseriesPositions.at("stationlon")].push_back(TS::TimedValue(localtime, sloc.longitude));
+			if (timeseriesPositions.find("stationlat") != timeseriesPositions.end())
+			  result[timeseriesPositions.at("stationlat")].push_back(TS::TimedValue(localtime, sloc.latitude));
+			result[timeseriesPositions.at("elevation")].push_back(TS::TimedValue(localtime, sloc.elevation));
+		  }
+	  }
 
     timesteps.insert(localtime);
   }
 
-  // Add missing timesteps
-  for (const auto &item : fmisid_timesteps)
-  {
-    const auto &fmisid = item.first;
-    const auto &timesteps = item.second;
-    auto &db_results = *(fmisid_results[fmisid]);
-    for (auto &ts : db_results)
-    {
-      std::map<boost::local_time::local_date_time, TS::TimedValue> db_values;
-      for (const auto &ts_value : ts)
-        db_values.insert(std::make_pair(ts_value.time, ts_value));
+  // Get valid timesteps based on data and request
+  auto valid_timesteps_per_fmisid = getValidTimeSteps(settings, timeSeriesOptions, timezones, fmisid_results);
 
-      TS::TimeSeries new_ts(ts.getLocalTimePool());
-      for (const auto &timestep : timesteps)
-      {
-        if (db_values.find(timestep) != db_values.end())
-          new_ts.push_back(db_values.at(timestep));
-        else
-          new_ts.push_back(TS::TimedValue(timestep, TS::None()));
-      }
-      ts = new_ts;
-    }
-  }
-
-  // Add final results to return structure fmisuid by fmisid
+  // Set data for each valid timestep
   for (const auto &item : fmisid_results)
   {
+	auto fmisid = item.first;
+	auto valid_timesteps =valid_timesteps_per_fmisid.at(fmisid);
     const auto &ts_vector = *item.second;
-    for (unsigned int i = 0; i < ts_vector.size(); i++)
-      ret->at(i).insert(ret->at(i).end(), ts_vector.at(i).begin(), ts_vector.at(i).end());
+	for (unsigned int i = 0; i < ts_vector.size(); i++)
+	  {
+		auto ts = ts_vector.at(i);
+		std::map<boost::local_time::local_date_time, TS::TimedValue> data;
+		for(unsigned int j = 0; j < ts.size(); j++)
+		  {			
+			auto timed_value = ts.at(j);
+			data.insert(std::make_pair(timed_value.time, timed_value));
+		  }
+		for(const auto& timestep : valid_timesteps)
+		  {
+			if(data.find(timestep) != data.end())
+			  ret->at(i).push_back(data.at(timestep));
+			else
+			  ret->at(i).push_back(TS::TimedValue(timestep, TS::None()));
+		  }
+	  }
   }
 
   return ret;

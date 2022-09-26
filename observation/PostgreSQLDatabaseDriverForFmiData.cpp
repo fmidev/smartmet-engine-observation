@@ -206,6 +206,7 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
     if (settings.useDataCache)
     {
       auto cache = resolveCache(settings.stationtype, itsParameters.params);
+
       if (cache && cache->dataAvailableInCache(settings))
       {
         return cache->valuesFromCache(settings);
@@ -265,7 +266,7 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
     else if (tablename == FLASH_DATA_TABLE)
       return db->getFlashData(settings, itsTimeZones);
     else if (tablename == MAGNETOMETER_DATA_TABLE)
-      return db->getMagnetometerData(settings, itsTimeZones);
+      return db->getMagnetometerData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
 
     return ret;
   }
@@ -360,7 +361,7 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
     else if (tablename == FLASH_DATA_TABLE)
       return db->getFlashData(settings, itsTimeZones);
     else if (tablename == MAGNETOMETER_DATA_TABLE)
-      return db->getMagnetometerData(settings, itsTimeZones);
+      return db->getMagnetometerData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
 
     return ret;
   }
