@@ -218,7 +218,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
                magnetometerIntervalIsCached(settings.starttime, settings.endtime))
       {
         hit(MAGNETOMETER_DATA_TABLE);
-        ret = db->getMagnetometerData(settings, itsTimeZones);
+        ret = db->getMagnetometerData(stations, settings, *sinfo, itsTimeZones);
       }
       else
       {
@@ -295,7 +295,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
                magnetometerIntervalIsCached(settings.starttime, settings.endtime))
       {
         hit(MAGNETOMETER_DATA_TABLE);
-        ret = db->getMagnetometerData(settings, timeSeriesOptions, itsTimeZones);
+        ret = db->getMagnetometerData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
       else
       {

@@ -22,6 +22,8 @@ namespace Engine
 namespace Observation
 {
 using StationMap = std::map<int, Spine::Station>;
+using TimestepsByFMISID = std::map<int, std::set<boost::local_time::local_date_time>>;
+
 
 enum class AdditionalTimestepOption
 {
@@ -96,12 +98,15 @@ class CommonDatabaseFunctions
     itsGetRequestedAndDataTimesteps = opt;
   }
 
-  virtual TS::TimeSeriesVectorPtr getMagnetometerData(const Settings &settings,
+  virtual TS::TimeSeriesVectorPtr getMagnetometerData(const Spine::Stations &stations,
+													  const Settings &settings,
+													  const StationInfo &stationInfo,
                                                       const Fmi::TimeZones &timezones);
-  virtual TS::TimeSeriesVectorPtr getMagnetometerData(
-      const Settings &settings,
-      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones) = 0;
+  virtual TS::TimeSeriesVectorPtr getMagnetometerData(const Spine::Stations &stations,
+													  const Settings &settings,
+													  const StationInfo &stationInfo,
+													  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+													  const Fmi::TimeZones &timezones) = 0;
 
  protected:
   QueryMapping buildQueryMapping(const Spine::Stations &stations,
@@ -161,6 +166,11 @@ class CommonDatabaseFunctions
                                        const TS::TimeSeriesVectorPtr &timeSeriesColumns,
                                        const int pos,
                                        const SpecialParameters::Args &args) const;
+
+  TimestepsByFMISID getValidTimeSteps(const Settings &settings,
+									  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+									  const Fmi::TimeZones &timezones,
+									  std::map<int, TS::TimeSeriesVectorPtr>& fmisid_results) const;
 
   const StationtypeConfig &itsStationtypeConfig;
   const ParameterMapPtr &itsParameterMap;
