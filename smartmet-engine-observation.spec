@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.9.27
+Version: 22.10.4
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -28,11 +28,11 @@ BuildRequires: gdal34-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 22.8.25
+BuildRequires: smartmet-engine-geonames-devel >= 22.10.4
 BuildRequires: smartmet-library-locus-devel >= 22.6.17
 BuildRequires: smartmet-library-macgyver-devel >= 22.8.23
 BuildRequires: smartmet-library-spine-devel >= 22.9.5
-BuildRequires: smartmet-library-timeseries-devel >= 22.9.9
+BuildRequires: smartmet-library-timeseries-devel >= 22.10.4
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 22.2.8
 BuildRequires: zlib-devel
@@ -45,11 +45,11 @@ Requires: %{smartmet_boost}-thread
 Requires: fmt >= %{smartmet_fmt_min}, fmt < %{smartmet_fmt_max}
 Requires: gdal34-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 22.8.25
+Requires: smartmet-engine-geonames >= 22.10.4
 Requires: smartmet-library-locus >= 22.6.17
 Requires: smartmet-library-macgyver >= 22.8.23
 Requires: smartmet-library-spine >= 22.9.5
-Requires: smartmet-library-timeseries >= 22.9.9
+Requires: smartmet-library-timeseries >= 22.10.4
 Requires: smartmet-server >= 22.8.19
 Requires: unixODBC
 
@@ -163,7 +163,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Tue Sep 27 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.9.27-1.fmi
+* Tue Oct  4 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.10.4-1.fmi
 - Added support for magnetometer observations via WFS-plugin (BRAINSTORM-2279)
 
 * Thu Sep 15 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.9.15-1.fmi
