@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.10.4
+Version: 22.10.5
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -28,7 +28,7 @@ BuildRequires: gdal34-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 22.10.4
+BuildRequires: smartmet-engine-geonames-devel >= 22.10.5
 BuildRequires: smartmet-library-locus-devel >= 22.6.17
 BuildRequires: smartmet-library-macgyver-devel >= 22.8.23
 BuildRequires: smartmet-library-spine-devel >= 22.9.5
@@ -45,12 +45,12 @@ Requires: %{smartmet_boost}-thread
 Requires: fmt >= %{smartmet_fmt_min}, fmt < %{smartmet_fmt_max}
 Requires: gdal34-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 22.10.4
+Requires: smartmet-engine-geonames >= 22.10.5
 Requires: smartmet-library-locus >= 22.6.17
 Requires: smartmet-library-macgyver >= 22.8.23
 Requires: smartmet-library-spine >= 22.9.5
 Requires: smartmet-library-timeseries >= 22.10.4
-Requires: smartmet-server >= 22.8.19
+Requires: smartmet-server >= 22.10.5
 Requires: unixODBC
 
 %if %{defined el7}
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Oct  5 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.10.5-1.fmi
+- Do not use boost::noncopyable
+
 * Tue Oct  4 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.10.4-1.fmi
 - Added support for magnetometer observations via WFS-plugin (BRAINSTORM-2279)
 

@@ -10,7 +10,6 @@
 #include "MobileExternalDataItem.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
-
 #include <macgyver/PostgreSQLConnection.h>
 #include <string>
 
@@ -39,9 +38,12 @@ struct cached_data
   std::vector<boost::optional<double>> sensor_nosAll;
 };
 
-class PostgreSQLCacheDB : public CommonPostgreSQLFunctions, private boost::noncopyable
+class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
 {
  public:
+  PostgreSQLCacheDB() = delete;
+  PostgreSQLCacheDB(const PostgreSQLCacheDB &other) = delete;
+  PostgreSQLCacheDB &operator=(const PostgreSQLCacheDB &other) = delete;
   PostgreSQLCacheDB(const PostgreSQLCacheParameters &options);
 
   /**

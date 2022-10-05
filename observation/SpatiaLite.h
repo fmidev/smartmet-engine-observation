@@ -44,9 +44,12 @@ class ObservationMemoryCache;
 
 struct QueryMapping;
 
-class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
+class SpatiaLite : public CommonDatabaseFunctions
 {
  public:
+  SpatiaLite() = delete;
+  SpatiaLite(const SpatiaLite &other) = delete;
+  SpatiaLite &operator=(const SpatiaLite &other) = delete;
   SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheParameters &options);
 
   ~SpatiaLite() override;
@@ -423,11 +426,11 @@ class SpatiaLite : public CommonDatabaseFunctions, private boost::noncopyable
       const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache);
 
   TS::TimeSeriesVectorPtr getMagnetometerData(
-											  const Spine::Stations &stations,
-											  const Settings &settings,
-											  const StationInfo &stationInfo,
-											  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-											  const Fmi::TimeZones &timezones) override;
+      const Spine::Stations &stations,
+      const Settings &settings,
+      const StationInfo &stationInfo,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Fmi::TimeZones &timezones) override;
 
  private:
   // Private members
