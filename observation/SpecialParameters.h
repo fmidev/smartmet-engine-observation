@@ -2,7 +2,7 @@
 
 #include "Settings.h"
 #include <boost/optional.hpp>
-#include <macgyver/Astronomy.h>
+// #include <macgyver/Astronomy.h>
 #include <macgyver/TimeFormatter.h>
 #include <macgyver/TimeZoneFactory.h>
 #include <spine/Location.h>
@@ -55,22 +55,14 @@ class SpecialParameters
 
     virtual ~Args() = default;
 
-    const Fmi::Astronomy::solar_position_t& get_solar_position() const;
-    const Fmi::Astronomy::solar_time_t& get_solar_time() const;
-    const Fmi::Astronomy::lunar_time_t& get_lunar_time() const;
     Spine::LocationPtr get_location(Geonames::Engine* engine) const;
     const std::string& get_tz_name() const
     {
       return timeZone == "localtime" ? station.timezone : timeZone;
     }
-    boost::local_time::time_zone_ptr get_tz() const;
 
    private:
-    mutable std::unique_ptr<Fmi::Astronomy::solar_position_t> solar_position;
-    mutable std::unique_ptr<Fmi::Astronomy::solar_time_t> solar_time;
-    mutable std::unique_ptr<Fmi::Astronomy::lunar_time_t> lunar_time;
     mutable boost::optional<Spine::LocationPtr> location_ptr;
-    mutable boost::local_time::time_zone_ptr tz;
   };
 
  private:

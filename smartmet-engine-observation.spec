@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.10.5
-Release: 1%{?dist}.fmi
+Version: 22.10.10
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -32,9 +32,9 @@ BuildRequires: smartmet-engine-geonames-devel >= 22.10.5
 BuildRequires: smartmet-library-locus-devel >= 22.6.17
 BuildRequires: smartmet-library-macgyver-devel >= 22.8.23
 BuildRequires: smartmet-library-spine-devel >= 22.9.5
-BuildRequires: smartmet-library-timeseries-devel >= 22.10.4
+BuildRequires: smartmet-library-timeseries-devel >= 22.10.10
 BuildRequires: sqlite3pp-devel >= 1.0.9
-BuildRequires: smartmet-utils-devel >= 22.2.8
+BuildRequires: smartmet-utils-devel >= 22.10.7
 BuildRequires: zlib-devel
 Requires: %{smartmet_boost}-date-time
 Requires: %{smartmet_boost}-iostreams
@@ -49,7 +49,7 @@ Requires: smartmet-engine-geonames >= 22.10.5
 Requires: smartmet-library-locus >= 22.6.17
 Requires: smartmet-library-macgyver >= 22.8.23
 Requires: smartmet-library-spine >= 22.9.5
-Requires: smartmet-library-timeseries >= 22.10.4
+Requires: smartmet-library-timeseries >= 22.10.10
 Requires: smartmet-server >= 22.10.5
 Requires: unixODBC
 
@@ -62,7 +62,7 @@ BuildRequires: libspatialite43-devel
 #TestRequires: libspatialite43-devel
 #TestRequires: sqlite33-devel >= 3.30.1
 #TestRequires: catch-devel >= 1.9.6
-#TestRequires: smartmet-utils-devel >= 22.2.8
+#TestRequires: smartmet-utils-devel >= 22.10.7
 %else
 %if 0%{?rhel} && 0%{rhel} >= 8
 Requires: libpqxx >= 7.7.0 libpqxx < 1:7.8.0
@@ -163,6 +163,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Oct 10 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.10.10-2.fmi
+- Restored longitude, latitude, lon and lat special parameters for the benefit of WMS and other plugins
+
+* Mon Oct 10 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.10.10-1.fmi
+- Removed obsolete special parameter handling code which is now in TimeSeries library
+
 * Wed Oct  5 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.10.5-1.fmi
 - Do not use boost::noncopyable
 
