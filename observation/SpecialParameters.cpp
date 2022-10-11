@@ -157,6 +157,40 @@ SpecialParameters::SpecialParameters()
     }
   };
 
+  // BEGIN: Things that should perhaps not be here
+
+  handler_map[ISOTIME_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
+  { return Fmi::to_iso_string(d.obstime.utc_time()); };
+
+  handler_map[LOCALTIME_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
+  {
+    const boost::posix_time::ptime utc = d.obstime.utc_time();
+    auto& tzf = Fmi::TimeZoneFactory::instance();
+    boost::local_time::time_zone_ptr tz = tzf.time_zone_from_string(d.station.timezone);
+    return boost::local_time::local_date_time(utc, tz);
+  };
+
+  handler_map[UTCTIME_PARAM] =
+      handler_map[UTC_PARAM] = [this](const SpecialParameters::Args& d) -> TS::Value
+  {
+    boost::local_time::local_date_time utc(d.obstime.utc_time(), utc_tz);
+    return utc;
+  };
+
+  handler_map[MODEL_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
+  { return d.stationType; };
+
+  // modtime is only for timeseries compatibility
+  handler_map["modtime"] = [](const SpecialParameters::Args& d) -> TS::Value { return ""; };
+
+  handler_map[GEOID_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
+  { return d.station.geoid; };
+
+  handler_map[ELEVATION_PARAM] = handler_map[STATION_ELEVATION_PARAM] =
+      [](const SpecialParameters::Args& d) -> TS::Value { return d.station.station_elevation; };
+
+  // END: Things that should perhaps not be here.
+
   handler_map[ORIGINTIME_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
   { return d.origintime; };
 
