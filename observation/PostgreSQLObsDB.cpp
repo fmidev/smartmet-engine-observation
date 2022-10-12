@@ -352,12 +352,6 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
       std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
     readFlashCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
-
-    // Report the next big request after we successfully read some *new* data. Note that
-    // we may keep reading the last flash again and again since the same second is read
-    // again just in case there are new flashes for the same second.
-    if (!cacheData.empty() && cacheData.back().stroke_time > lastModifiedTime)
-      bigFlashRequestReported = false;
   }
   catch (...)
   {

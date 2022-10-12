@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.10.11
+Version: 22.10.12
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -32,7 +32,7 @@ BuildRequires: smartmet-engine-geonames-devel >= 22.10.5
 BuildRequires: smartmet-library-locus-devel >= 22.6.17
 BuildRequires: smartmet-library-macgyver-devel >= 22.8.23
 BuildRequires: smartmet-library-spine-devel >= 22.9.5
-BuildRequires: smartmet-library-timeseries-devel >= 22.10.10
+BuildRequires: smartmet-library-timeseries-devel >= 22.10.12
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 22.10.7
 BuildRequires: zlib-devel
@@ -49,7 +49,7 @@ Requires: smartmet-engine-geonames >= 22.10.5
 Requires: smartmet-library-locus >= 22.6.17
 Requires: smartmet-library-macgyver >= 22.8.23
 Requires: smartmet-library-spine >= 22.9.5
-Requires: smartmet-library-timeseries >= 22.10.10
+Requires: smartmet-library-timeseries >= 22.10.12
 Requires: smartmet-server >= 22.10.5
 Requires: unixODBC
 
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Oct 12 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.10.12-1.fmi
+- Removed unnecessary repeated messages on large flash cache updates
+
 * Tue Oct 11 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.10.11-1.fmi
 - Restored more special parameters for the benefit of the WFS plugin
 
