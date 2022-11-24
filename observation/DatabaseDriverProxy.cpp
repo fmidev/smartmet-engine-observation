@@ -205,7 +205,11 @@ TS::TimeSeriesVectorPtr DatabaseDriverProxy::values(Settings &settings)
   {
     DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
 
+	if (settings.debug_options & Settings::DUMP_SETTINGS)
+	  std::cout << "Database driver: " << pDriver->name() << std::endl;
+
     TS::TimeSeriesVectorPtr ret = pDriver->checkForEmptyQuery(settings);
+
     if (ret)
       return ret;
 
@@ -224,7 +228,11 @@ TS::TimeSeriesVectorPtr DatabaseDriverProxy::values(
   {
     DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
 
+	if (settings.debug_options & Settings::DUMP_SETTINGS)
+	  std::cout << "Database driver: " << pDriver->name() << std::endl;
+
     TS::TimeSeriesVectorPtr ret = pDriver->checkForEmptyQuery(settings, timeSeriesOptions);
+
     if (ret)
       return ret;
 

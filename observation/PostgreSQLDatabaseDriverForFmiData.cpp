@@ -238,6 +238,10 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
 
     Spine::Stations stations;
     itsDatabaseStations->getStations(stations, settings);
+    // Return empty data if no stations found
+    if (stations.empty())
+      return ret;
+
     TS::TimeSeriesGeneratorOptions timeSeriesOptions;
     timeSeriesOptions.startTime = settings.starttime;
     timeSeriesOptions.endTime = settings.endtime;
@@ -341,6 +345,10 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
 
     Spine::Stations stations;
     getStations(stations, settings);
+    // Return empty data if no stations found
+    if (stations.empty())
+      return ret;
+
     std::shared_ptr<PostgreSQLObsDB> db =
         itsPostgreSQLConnectionPool->getConnection(settings.debug_options);
     setSettings(settings, *db);
