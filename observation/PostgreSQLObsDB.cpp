@@ -21,6 +21,12 @@ namespace Engine
 {
 namespace Observation
 {
+// This is global so that different threads will not repeat the same task.
+// No locking is used, we assume different threads are so out of sync so
+// that an atomic will do here.
+
+std::atomic<bool> bigFlashRequestReported{false};
+
 using namespace Utils;
 
 PostgreSQLObsDB::PostgreSQLObsDB(
@@ -324,11 +330,11 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
     {
       if (!bigFlashRequestReported)
       {
+        bigFlashRequestReported = true;
         std::cout << (Spine::log_time_str() +
                       " [PostgreSQLObsDB] Performing a large FLASH cache update starting from " +
                       Fmi::to_simple_string(lastModifiedTime))
                   << std::endl;
-        bigFlashRequestReported = true;
       }
     }
 

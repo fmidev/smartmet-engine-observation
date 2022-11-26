@@ -96,7 +96,6 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
   std::string timeZone;
   bool allPlaces{false};
   bool latest{false};
-  bool bigFlashRequestReported{false};
 
   void resetTimeSeries() { itsTimeSeriesColumns.reset(); }
   void setTimeInterval(const boost::posix_time::ptime &starttime,
