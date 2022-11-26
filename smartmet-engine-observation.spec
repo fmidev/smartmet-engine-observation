@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.11.24
+Version: 22.11.26
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -30,9 +30,9 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 22.10.5
 BuildRequires: smartmet-library-locus-devel >= 22.6.17
-BuildRequires: smartmet-library-macgyver-devel >= 22.8.23
-BuildRequires: smartmet-library-spine-devel >= 22.9.5
-BuildRequires: smartmet-library-timeseries-devel >= 22.10.12
+BuildRequires: smartmet-library-macgyver-devel >= 22.10.20
+BuildRequires: smartmet-library-spine-devel >= 22.11.25
+BuildRequires: smartmet-library-timeseries-devel >= 22.10.25
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 22.10.7
 BuildRequires: zlib-devel
@@ -47,10 +47,10 @@ Requires: gdal34-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 22.10.5
 Requires: smartmet-library-locus >= 22.6.17
-Requires: smartmet-library-macgyver >= 22.8.23
-Requires: smartmet-library-spine >= 22.9.5
-Requires: smartmet-library-timeseries >= 22.10.12
-Requires: smartmet-server >= 22.10.5
+Requires: smartmet-library-macgyver >= 22.10.20
+Requires: smartmet-library-spine >= 22.11.25
+Requires: smartmet-library-timeseries >= 22.10.25
+Requires: smartmet-server >= 22.11.7
 Requires: unixODBC
 
 %if %{defined el7}
@@ -129,7 +129,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 22.9.5
+Requires: smartmet-library-spine-devel >= 22.11.25
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -163,7 +163,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Thu Nov 24 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.11.24-1.fmi
+* Sat Nov 26 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.11.26-1.fmi
 - Don't do database query with empty station list (BRAINSTORM-2478)
 
 * Wed Oct 12 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.10.12-1.fmi
