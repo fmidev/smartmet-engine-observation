@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.11.26
+Version: 22.11.29
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Nov 29 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.11.29-1.fmi
+- Flash query must not check empty station list (BRAINSTORM-2490)
+
 * Sat Nov 26 2022 Mika Heiskanen <mika.heiskanen@fmi.fi> - 22.11.26-1.fmi
 - Don't do database query with empty station list (BRAINSTORM-2478)
 

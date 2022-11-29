@@ -236,12 +236,6 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
       return ret;
     }
 
-    Spine::Stations stations;
-    itsDatabaseStations->getStations(stations, settings);
-    // Return empty data if no stations found
-    if (stations.empty())
-      return ret;
-
     TS::TimeSeriesGeneratorOptions timeSeriesOptions;
     timeSeriesOptions.startTime = settings.starttime;
     timeSeriesOptions.endTime = settings.endtime;
@@ -260,6 +254,14 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
 
     auto info = itsParameters.params->stationInfo.load();
 
+    Spine::Stations stations;
+    // Return empty data if no stations found, except for flash
+    if (tablename != FLASH_DATA_TABLE)
+	  {
+		getStations(stations, settings);
+		if (stations.empty())
+		  return ret;
+	  }
     std::unique_ptr<ObservationMemoryCache> dummy;
 
     if (tablename == OBSERVATION_DATA_TABLE)
@@ -343,12 +345,6 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
       return ret;
     }
 
-    Spine::Stations stations;
-    getStations(stations, settings);
-    // Return empty data if no stations found
-    if (stations.empty())
-      return ret;
-
     std::shared_ptr<PostgreSQLObsDB> db =
         itsPostgreSQLConnectionPool->getConnection(settings.debug_options);
     setSettings(settings, *db);
@@ -359,6 +355,14 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
 
     auto info = itsParameters.params->stationInfo.load();
 
+    Spine::Stations stations;
+    // Return empty data if no stations found, except for flash
+    if (tablename != FLASH_DATA_TABLE)
+	  {
+		getStations(stations, settings);
+		if (stations.empty())
+		  return ret;
+	  }
     std::unique_ptr<ObservationMemoryCache> dummy;
 
     if (tablename == OBSERVATION_DATA_TABLE)
