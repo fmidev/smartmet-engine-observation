@@ -3016,7 +3016,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
           query += " AND PtDistWithin((SELECT GeomFromText('POINT(" + lon + " " + lat +
                    ")', 4326)), flash.stroke_location, " + radius + ") = 1 ";
         }
-        if (tloc.loc->type == Spine::Location::BoundingBox)
+        if (tloc.loc->type == Spine::Location::BoundingBox && settings.boundingBox.empty())
         {
           std::string bboxString = tloc.loc->name;
           Spine::BoundingBox bbox(bboxString);
@@ -3027,6 +3027,12 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
         }
       }
     }
+    if (!settings.boundingBox.empty())
+	  {
+		query += "AND MbrWithin(flash.stroke_location, BuildMbr(" + Fmi::to_string(settings.boundingBox.at("minx")) +
+		  ", " + Fmi::to_string(settings.boundingBox.at("miny")) + ", " + Fmi::to_string(settings.boundingBox.at("maxx")) + ", " +
+		  Fmi::to_string(settings.boundingBox.at("maxy")) + ")) ";
+	  }
 
     query += "ORDER BY flash.stroke_time ASC, flash.stroke_time_fraction ASC;";
 
