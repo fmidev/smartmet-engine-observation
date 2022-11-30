@@ -322,7 +322,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
           sqlStmt += " AND ST_DistanceSphere(ST_GeomFromText('POINT(" + lon + " " + lat +
                      ")', 4326), flash.stroke_location) <= " + radius;
         }
-        if (tloc.loc->type == Spine::Location::BoundingBox)
+        if (tloc.loc->type == Spine::Location::BoundingBox && settings.boundingBox.empty())
         {
           std::string bboxString = tloc.loc->name;
           Spine::BoundingBox bbox(bboxString);
@@ -333,6 +333,12 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
         }
       }
     }
+    if (!settings.boundingBox.empty())
+    {	  
+	  sqlStmt += (" AND ST_Within(flash.stroke_location, ST_MakeEnvelope(" +
+				  Fmi::to_string(settings.boundingBox.at("minx")) + ", " + Fmi::to_string(settings.boundingBox.at("miny")) + ", " +
+				  Fmi::to_string(settings.boundingBox.at("maxx")) + ", " + Fmi::to_string(settings.boundingBox.at("maxy")) + ", 4326)) ");
+	}
 
     if (itsIsCacheDatabase)
       sqlStmt += " ORDER BY flash.stroke_time ASC, flash.stroke_time_fraction;";
