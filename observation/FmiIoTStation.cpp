@@ -10,7 +10,12 @@ namespace Observation
 {
 bool operator<(const FmiIoTStation& lhs, const FmiIoTStation& rhs)
 {
-  return lhs.station_id < rhs.station_id;
+  return ((lhs.station_id < rhs.station_id) || (lhs.valid_from < rhs.valid_from) || (lhs.valid_to < rhs.valid_to));
+}
+
+bool operator==(const FmiIoTStation& lhs, const FmiIoTStation& rhs)
+{
+  return ((lhs.station_id == rhs.station_id) && (lhs.valid_from == rhs.valid_from) && (lhs.valid_to == rhs.valid_to));
 }
 
 const FmiIoTStation emptyStation;

@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 22.11.30
+Version: 22.12.8
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Dec 8 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.12.8-1.fmi
+- Fixed handling of Fmi IoT stations (BRAINSTORM-2494)
+
 * Wed Nov 30 2022 Anssi Reponen <anssi.reponen@fmi.fi> - 22.11.30-1.fmi
 - In flash query read bounding box from settings.boundingBox instead of from loc->name
 
