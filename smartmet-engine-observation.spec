@@ -50,7 +50,7 @@ Requires: smartmet-library-locus >= 22.6.17
 Requires: smartmet-library-macgyver >= 22.10.20
 Requires: smartmet-library-spine >= 22.11.25
 Requires: smartmet-library-timeseries >= 22.10.25
-Requires: smartmet-server >= 22.11.7
+Requires: smartmet-server >= 22.11.28
 Requires: unixODBC
 
 %if %{defined el7}
