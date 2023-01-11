@@ -2,11 +2,11 @@
 
 #include "CommonPostgreSQLFunctions.h"
 #include "DataItem.h"
+#include "MovingLocationItem.h"
 #include "ExternalAndMobileDBInfo.h"
 #include "ExternalAndMobileProducerConfig.h"
 #include "FlashDataItem.h"
 #include "InsertStatus.h"
-#include "LocationItem.h"
 #include "MobileExternalDataItem.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
@@ -118,6 +118,14 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
    * @param[in] cacheData Data from observation_data.
    */
   std::size_t fillDataCache(const DataItems &cacheData);
+
+  /**
+   * @brief Update moving_locations with data from Oracle's
+   *        moving_locations table which is used to store data
+   *        from stations maintained by FMI.
+   * @param[in] cacheData Data from moving_locations
+   */
+  std::size_t fillMovingLocationsCache(const MovingLocationItems &cacheData);
 
   /**
    * @brief Update weather_data_qc with data from Oracle's respective table

@@ -608,6 +608,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
 {
   try
   {
+	//	std::cout << "ObservationCacheAdminBase::updateObservationCache";
     if (Spine::Reactor::isShuttingDown() || itsParameters.disableAllCacheUpdates)
       return;
 
@@ -618,6 +619,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
       return updateObservationFakeCache(observationCache);
 
     std::vector<DataItem> cacheData;
+    std::vector<MovingLocationItem> cacheDataMovingLocations;
 
     // pair of data_time, modified_last
     auto last_time_pair = getLatestObservationTime(observationCache);
@@ -634,6 +636,9 @@ void ObservationCacheAdminBase::updateObservationCache() const
       readObservationCacheData(
           cacheData, last_time_pair.first, last_time_pair.second, itsTimeZones);
 
+      readMovingStationsCacheData(
+          cacheDataMovingLocations, last_time_pair.first, last_time_pair.second, itsTimeZones);
+
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
@@ -649,14 +654,15 @@ void ObservationCacheAdminBase::updateObservationCache() const
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
+      auto count_moving_locations = observationCache->fillMovingLocationsCache(cacheDataMovingLocations);
       auto count = observationCache->fillDataCache(cacheData);
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
         std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
-                  << " FIN observations starting from " << last_time_pair.first << " finished in "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " FIN observations and " << count_moving_locations << " moving locations, starting from " 
+				  << last_time_pair.first << " finished in " 
+				  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
     }
 
     if (Spine::Reactor::isShuttingDown())

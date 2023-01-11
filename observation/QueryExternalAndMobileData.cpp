@@ -127,10 +127,6 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
       std::vector<std::string> station_ids;
       for (const auto &item : validStations)
       {
-		// Lasse Latva slackissä: Sillai mä mietin, että olis kaksi tuottajaa, 
-		// vaikka itmf joka sisältää ne tiesää-IoT-asemaverkon eli 1201:n anturit ja 
-		// sitten fmi-iot joka sisältää kaikki (ei ko.rajoitusehtoa). Tuo lienee simppelimpi käyttäjälle.
-		// https://jira.fmi.fi/browse/INSPIRE-909?focusedCommentId=312142&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#comment-312142
         if (settings.stationtype_specifier == "itmf")
         {
           if (item->target_group_id == 1201)

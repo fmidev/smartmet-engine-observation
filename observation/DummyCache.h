@@ -45,6 +45,7 @@ class DummyCache : public ObservationCache
   boost::posix_time::ptime getLatestObservationModifiedTime() const override;
   boost::posix_time::ptime getLatestObservationTime() const override;
   std::size_t fillDataCache(const DataItems &cacheData) const override;
+  std::size_t fillMovingLocationsCache(const MovingLocationItems &cacheData) const override;
   void cleanDataCache(const boost::posix_time::time_duration &timetokeep,
                       const boost::posix_time::time_duration &timetokeep_memory) const override;
 
@@ -92,6 +93,11 @@ class DummyCache : public ObservationCache
   std::size_t fillMagnetometerCache(
       const MagnetometerDataItems &magnetometerCacheData) const override;
   void cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const override;
+  void getMovingStations(Spine::Stations &stations,
+						 const std::string &stationtype,
+						 const boost::posix_time::ptime &startTime,
+						 const boost::posix_time::ptime &endTime,
+						 const std::string &wkt) const override;
 
   void shutdown() override;
 

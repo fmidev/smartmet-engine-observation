@@ -451,8 +451,8 @@ void EngineImpl::afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
       fmisid_index = i;
       break;
     }
-
-  if (fmisid_index < 0)
+ 
+  if (fmisid_index < 0 || settings.taggedFMISIDs.empty())
     return;
 
   const TS::TimeSeries &fmisid_vector = tsvPtr->at(fmisid_index);

@@ -47,8 +47,11 @@ int to_epoch(const boost::posix_time::ptime pt)
 {
   if (pt.is_not_a_date_time())
     return 0;
-
-  return (pt - ptime_epoch_start).total_seconds();
+  
+  auto ret = (pt - ptime_epoch_start).total_seconds();
+  if(ret > std::numeric_limits<int>::max())
+	ret = std::numeric_limits<int>::max();
+  return ret;
 }
 
 template <typename Clock, typename Duration>
@@ -291,7 +294,10 @@ void SpatiaLite::createTables(const std::set<std::string> &tables)
     // No locking needed during initialization phase
     initSpatialMetaData();
     if (tables.find(OBSERVATION_DATA_TABLE) != tables.end())
-      createObservationDataTable();
+	  {
+		createObservationDataTable();
+		createMovingLocationsDataTable();
+	  }
     if (tables.find(WEATHER_DATA_QC_TABLE) != tables.end())
       createWeatherDataQCTable();
     if (tables.find(FLASH_DATA_TABLE) != tables.end())
@@ -323,6 +329,30 @@ void SpatiaLite::shutdown()
 {
   // We let the SpatiaLiteConnectionPool print just one message
   // std::cout << "  -- Shutdown requested (SpatiaLite)\n";
+}
+
+void SpatiaLite::createMovingLocationsDataTable()
+{
+  try
+  {
+    itsDB.execute(
+        "CREATE TABLE IF NOT EXISTS moving_locations("
+        "station_id INTEGER NOT NULL, "
+        "sdate INTEGER NOT NULL, "
+        "edate INTEGER NOT NULL, "
+        "lon REAL, "
+        "lat REAL, "
+        "elev INTEGER,"
+        "PRIMARY KEY (station_id, sdate, edate))");
+
+    itsDB.execute("CREATE INDEX IF NOT EXISTS moving_locations_station_id_idx ON moving_locations(station_id);");
+    itsDB.execute("CREATE INDEX IF NOT EXISTS moving_locations_sdate_idx ON moving_locations(sdate);");
+    itsDB.execute("CREATE INDEX IF NOT EXISTS moving_locations_edate_idx ON moving_locations(edate);");
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Creation of observation_data table failed!");
+  }
 }
 
 void SpatiaLite::createObservationDataTable()
@@ -1338,6 +1368,28 @@ void SpatiaLite::cleanDataCache(const ptime &newstarttime)
   }
 }
 
+void SpatiaLite::cleanMovingLocationsCache(const ptime &newstarttime)
+{
+  try
+  {
+    auto oldest = getOldestObservationTime();
+    if (newstarttime <= oldest)
+      return;
+
+    auto epoch_time = to_epoch(newstarttime);
+
+    Spine::WriteLock lock(write_mutex);
+    sqlite3pp::command cmd(itsDB, "DELETE FROM moving_locations WHERE edate < :timestring");
+
+    cmd.bind(":timestring", epoch_time);
+    cmd.execute();
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Cleaning of moving_locations cache failed!");
+  }
+}
+
 void SpatiaLite::cleanWeatherDataQCCache(const ptime &newstarttime)
 {
   try
@@ -1715,6 +1767,106 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
         new_hashes.clear();
         data_times.clear();
         modified_last_times.clear();
+      }
+    }
+
+    return new_item_count;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Filling of data cache failed!");
+  }
+}
+
+std::size_t SpatiaLite::fillMovingLocationsCache(const MovingLocationItems &cacheData, InsertStatus &insertStatus)
+{
+  try
+  {
+    std::size_t new_item_count = 0;
+
+    if (cacheData.empty())
+      return new_item_count;
+
+    const char *sqltemplate =
+        "INSERT OR REPLACE INTO moving_locations "
+        "(station_id, sdate, edate, lon, lat, elev) "
+        "VALUES "
+        "(:station_id,:sdate,:edate,:lon,:lat,:elev);";
+
+    // Loop over all observations, inserting only new items in groups to the cache
+
+    std::vector<std::size_t> new_items;
+    std::vector<std::size_t> new_hashes;
+    std::vector<int> sdates;
+    std::vector<int> edates;
+
+    for (std::size_t pos = 0; pos < cacheData.size(); ++pos)
+    {
+      // Abort if so requested
+      if (Spine::Reactor::isShuttingDown())
+        return 0;
+
+      const auto &item = cacheData[pos];
+      const auto hash = item.hash_value();
+
+      if (!insertStatus.exists(hash))
+      {
+        new_items.push_back(pos);
+        new_hashes.push_back(hash);
+      }
+
+      // Insert a block if necessary
+
+      const bool block_full = (new_items.size() >= itsMaxInsertSize);
+      const bool last_item = (pos == cacheData.size() - 1);
+
+      if (!new_items.empty() && (block_full || last_item))
+      {
+        const auto insert_size = new_items.size();
+
+        // Prepare strings outside the lock to minimize lock time
+        sdates.reserve(insert_size);
+        edates.reserve(insert_size);
+
+        for (std::size_t i = 0; i < insert_size; i++)
+        {
+          const auto &obs = cacheData[new_items[i]];
+          sdates.emplace_back(to_epoch(obs.sdate));
+          edates.emplace_back(to_epoch(obs.edate));
+        }
+
+        {
+          Spine::WriteLock lock(write_mutex);
+
+          sqlite3pp::transaction xct(itsDB);
+          sqlite3pp::command cmd(itsDB, sqltemplate);
+
+          for (std::size_t i = 0; i < insert_size; i++)
+          {
+            const auto &item = cacheData[new_items[i]];
+            cmd.bind(":station_id", item.station_id);
+            cmd.bind(":sdate", sdates[i]);
+            cmd.bind(":edate", edates[i]);
+            cmd.bind(":lon", item.lon);
+            cmd.bind(":lat", item.lat);
+            cmd.bind(":elev", item.elev);
+            cmd.execute();
+            cmd.reset();
+          }
+          xct.commit();
+          // lock is released
+        }
+
+        // Update insert status, giving readers some time to obtain a read lock
+        for (const auto &hash : new_hashes)
+          insertStatus.add(hash);
+
+        new_item_count += insert_size;
+
+        new_items.clear();
+        new_hashes.clear();
+        sdates.clear();
+        edates.clear();
       }
     }
 
@@ -3276,7 +3428,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getObservationData(
 
     // This maps measurand_id and the parameter position in TimeSeriesVector
 
-    auto qmap = buildQueryMapping(stations, settings, itsParameterMap, stationtype, false);
+    auto qmap = buildQueryMapping(settings, stationtype, false);
 
     // Resolve stationgroup codes
     std::set<std::string> stationgroup_codes;
@@ -3312,8 +3464,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getObservationData(
     StationTimedMeasurandData station_data =
         buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
 
-    return buildTimeseries(stations,
-                           settings,
+    return buildTimeseries(settings,
                            stationtype,
                            fmisid_to_station,
                            station_data,
@@ -3323,7 +3474,133 @@ TS::TimeSeriesVectorPtr SpatiaLite::getObservationData(
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(BCP, "Getting cached data failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting cached data from SpatiLite failed!");
+  }
+}
+
+TS::TimeSeriesVectorPtr SpatiaLite::getObservationDataForMovingStations(
+																		const Settings &settings,
+																		const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+																		const Fmi::TimeZones &timezones)
+{
+  try
+  {
+    // This maps measurand_id and the parameter position in TimeSeriesVector
+    auto qmap = buildQueryMapping(settings, settings.stationtype, false);
+
+    // Resolve stationgroup codes
+    std::set<std::string> stationgroup_codes;
+    auto stationgroupCodeSet = itsStationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
+    stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
+
+    LocationDataItems observations = readObservationDataOfMovingStationsFromDB(settings, qmap, stationgroup_codes);
+
+    StationMap fmisid_to_station;
+    for (auto item : observations)
+	  {
+		Spine::Station station;
+		station.station_id= item.data.fmisid;
+		station.fmisid = item.data.fmisid;
+		station.longitude_out = item.longitude;
+		station.latitude_out = item.latitude;
+		station.station_elevation = item.elevation;
+		fmisid_to_station[station.station_id] = station;
+	  }
+	
+    StationTimedMeasurandData station_data =
+	  buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
+	
+    return buildTimeseries(settings,
+						   settings.stationtype,
+						   fmisid_to_station,
+						   station_data,
+						   qmap,
+						   timeSeriesOptions,
+						   timezones);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Getting cached data from SpatiaLite database failed!");
+  }
+}
+
+LocationDataItems SpatiaLite::readObservationDataOfMovingStationsFromDB(
+																		const Settings &settings,
+																		const QueryMapping &qmap,
+																		const std::set<std::string> &stationgroup_codes)
+{
+  try
+  {
+    LocationDataItems ret;
+
+    // Safety check
+    if (qmap.measurandIds.empty())
+      return ret;
+
+    std::string measurand_ids;
+    for (const auto &id : qmap.measurandIds)
+      measurand_ids += Fmi::to_string(id) + ",";
+    measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
+
+    std::vector<std::string> producer_id_vector;
+    for (const auto& prod_id : settings.producer_ids)
+      producer_id_vector.emplace_back(Fmi::to_string(prod_id));
+    std::string producerIds = boost::algorithm::join(producer_id_vector, ",");
+
+    std::vector<std::string> fmisid_vector;
+	for(const auto& item : settings.taggedFMISIDs)
+	  fmisid_vector.emplace_back(Fmi::to_string(item.fmisid));
+	auto fmisids = boost::algorithm::join(fmisid_vector, ",");
+
+    std::string starttime = Fmi::to_string(to_epoch(settings.starttime));
+    std::string endtime = Fmi::to_string(to_epoch(settings.endtime));
+
+    std::string sqlStmt =
+	  "SELECT data.fmisid, data.sensor_no, data.data_time, data.measurand_id, data.data_value, "
+	  "data.data_quality, data.data_source, m.lon, m.lat, m.elev FROM observation_data "
+	  "data JOIN moving_locations m ON (m.station_id = data.fmisid and data.data_time between m.sdate and m.edate) "
+	  "AND data.fmisid IN (" + fmisids + ") "
+	  "AND data.data_time >= " + starttime + " AND data.data_time <= " + endtime + " AND data.measurand_id IN (" + measurand_ids + ") ";
+	if (!producerIds.empty())
+	  sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");	  
+	sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
+	sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") +
+	  " GROUP BY data.fmisid, data.sensor_no, data.data_time, data.measurand_id, "
+	  "data.data_value, data.data_quality, data.data_source, m.lon, m.lat, m.elev "
+	  "ORDER BY data.fmisid ASC, data.data_time ASC";
+	
+	if (itsDebug)
+      std::cout << "SpatiaLite: " << sqlStmt  << std::endl;
+
+    sqlite3pp::query qry(itsDB, sqlStmt.c_str());
+
+    for (const auto &row : qry)
+    {
+      if (row.column_type(4) == SQLITE_NULL)  // data_value
+        continue;
+      if (row.column_type(5) == SQLITE_NULL)  // data_quality
+        continue;
+
+	  LocationDataItem obs;
+	  obs.data.fmisid = row.get<int>(0);
+	  obs.data.sensor_no = row.get<int>(1);
+      time_t data_time = row.get<int>(2);
+	  obs.data.data_time = boost::posix_time::from_time_t(data_time);
+	  obs.data.measurand_id = row.get<int>(3);
+	  obs.data.data_value = row.get<double>(4);
+	  obs.data.data_quality = row.get<double>(5);
+	  obs.data.data_source = row.get<double>(6);
+	  obs.longitude = row.get<double>(7);
+	  obs.latitude = row.get<double>(8);
+	  obs.elevation = row.get<double>(9);
+      ret.emplace_back(obs);
+    }
+
+	return ret;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Fetching data from SpatiaLite database failed!");
   }
 }
 
@@ -3515,6 +3792,41 @@ std::string SpatiaLite::getWeatherDataQCParams(const std::set<std::string> &para
     params += Fmi::to_string(int_parameter);
   }
   return params;
+}
+
+void SpatiaLite::getMovingStations(Spine::Stations &stations,
+								   const std::string &stationtype,
+								   const boost::posix_time::ptime &startTime,
+								   const boost::posix_time::ptime &endTime,
+								   const std::string &wkt)
+{
+  try
+  {
+	auto sdate = Fmi::to_string(to_epoch(startTime));
+	auto edate = Fmi::to_string(to_epoch(endTime));
+
+	std::string sqlStmt = ("SELECT distinct station_id FROM moving_locations_v1 WHERE ((sdate BETWEEN "+sdate+" AND "+edate+") OR (edate BETWEEN "+sdate+" AND "+edate+") OR (sdate <= "+sdate+" AND edate >="+edate+")) AND ST_Contains(ST_GeomFromText('"+wkt+"'),ST_MakePoint(lon, lat))");
+
+    if (itsDebug)
+      std::cout << "SpatiaLite: " << sqlStmt << std::endl;
+
+    sqlite3pp::query qry(itsDB, sqlStmt.c_str());
+
+    DataItems observations;
+
+    for (const auto &row : qry)
+    {
+		Spine::Station station;
+		station.station_id = row.get<int>(0);
+		station.fmisid = station.station_id;
+		stations.push_back(station);
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+
 }
 
 }  // namespace Observation

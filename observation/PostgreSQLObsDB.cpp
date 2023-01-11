@@ -2,11 +2,13 @@
 #include "AsDouble.h"
 #include "ExternalAndMobileDBInfo.h"
 #include "PostgreSQLCacheDB.h"
+#include "Keywords.h"
 #include "Utils.h"
 #include <boost/functional/hash.hpp>
 #include <macgyver/AsyncTask.h>
 #include <macgyver/Exception.h>
 #include <spine/Convenience.h>
+#include <gis/OGR.h>
 
 // #define MYDEBUG 1
 
@@ -124,6 +126,43 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
   }
 }
 
+void PostgreSQLObsDB::readMovingStationsCacheDataFromPostgreSQL(std::vector<MovingLocationItem> &cacheData,
+																const boost::posix_time::ptime &startTime,
+																const boost::posix_time::ptime &/*lastModifiedTime*/,
+																const Fmi::TimeZones &timezones)
+{
+  try
+  {
+    std::string sqlStmt =
+        "SELECT station_id, EXTRACT(EPOCH FROM date_trunc('seconds', sdate)), EXTRACT(EPOCH FROM date_trunc('seconds', edate)), lon, lat, elev "
+        "FROM moving_locations_v1 data WHERE edate >= '" +  Fmi::to_iso_extended_string(startTime) + "' ORDER BY station_id ASC, sdate ASC";
+
+	if (itsDebug)
+      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+
+    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+
+    for (auto row : result_set)
+    {
+      Fmi::AsyncTask::interruption_point();
+
+      MovingLocationItem item;
+      item.station_id = as_int(row[0]);
+      item.sdate = boost::posix_time::from_time_t(row[1].as<time_t>());
+      item.edate = boost::posix_time::from_time_t(row[2].as<time_t>());
+      item.lon = as_double(row[3]);
+      item.lat = as_double(row[4]);
+      item.elev = as_double(row[5]);
+      cacheData.emplace_back(item);
+	}
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+
 void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
                                                   const std::string &sqlStmt,
                                                   const Fmi::TimeZones & /* timezones */)
@@ -152,7 +191,7 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
       item.modified_last = boost::posix_time::from_time_t(row[9].as<time_t>());
 
       cacheData.emplace_back(item);
-    }
+	}
   }
   catch (...)
   {
@@ -992,6 +1031,38 @@ void PostgreSQLObsDB::getProducerGroups(ProducerGroups &pg) const
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
+
+void PostgreSQLObsDB::getMovingStations(Spine::Stations &stations,
+										const std::string &stationtype,
+										const boost::posix_time::ptime &startTime,
+										const boost::posix_time::ptime &endTime,
+										const std::string &wkt) const
+{
+  try
+  {
+	auto sdate = Fmi::to_iso_extended_string(startTime);
+	auto edate = Fmi::to_iso_extended_string(endTime);
+	std::string sqlStmt = ("SELECT distinct station_id FROM moving_locations_v1 WHERE ((sdate BETWEEN '"+sdate+"' AND '"+edate+"') OR (edate BETWEEN '"+sdate+"' AND '"+edate+"') OR (sdate <= '"+sdate+"' AND edate >='"+edate+"')) AND ST_Contains(ST_GeomFromText('"+wkt+"'),ST_MakePoint(lon, lat))");
+
+	//	std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+
+    auto result_set = itsDB.executeNonTransaction(sqlStmt);	
+
+    for (const auto& row : result_set)
+	  {
+		Spine::Station station;
+		station.station_id = row[0].as<int>();
+		station.fmisid = station.station_id;
+		stations.push_back(station);
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+
+}
+
 
 }  // namespace Observation
 }  // namespace Engine

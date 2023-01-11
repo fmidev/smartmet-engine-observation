@@ -168,6 +168,24 @@ FlashCounts SpatiaLiteDatabaseDriver::getFlashCount(
   }
 }
 
+void SpatiaLiteDatabaseDriver::getMovingStationsByArea(Spine::Stations &stations,
+													   const std::string &stationtype,
+													   const boost::posix_time::ptime &starttime,
+													   const boost::posix_time::ptime &endtime,
+													   const std::string &wkt) const
+{
+  try
+  {
+	auto cache = resolveCache(stationtype, itsParameters.params);
+	if (cache)
+	  cache->getMovingStations(stations, stationtype, starttime, endtime, wkt);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Reading data from cache failed!");
+  }
+}
+
 std::shared_ptr<std::vector<ObservableProperty>> SpatiaLiteDatabaseDriver::observablePropertyQuery(
     std::vector<std::string> & /* parameters */, const std::string /* language */)
 {

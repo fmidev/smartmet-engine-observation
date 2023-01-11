@@ -28,6 +28,11 @@ class DummyDatabaseDriver : public DatabaseDriverBase
                                             const boost::posix_time::ptime &endtime,
                                             const std::string &stationtype,
                                             const StationSettings &stationSettings) const override;
+  void getMovingStationsByArea(Spine::Stations &stations,
+							   const std::string &stationtype,
+							   const boost::posix_time::ptime &starttime,
+							   const boost::posix_time::ptime &endtime,
+							   const std::string &wkt) const override;
   void makeQuery(QueryBase *) override {}
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,

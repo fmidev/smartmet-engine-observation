@@ -22,8 +22,6 @@ class PostgreSQLDatabaseDriver : public DatabaseDriverBase
   void shutdown() override;
   virtual void init(Engine *obsengine) override;
   Geonames::Engine *getGeonames() const;
-  std::shared_ptr<FmiIoTStations> &getFmiIoTStations() { return itsParameters.fmiIoTStations; }
-  //  void setOracleDriver(DatabaseDriverBase *dbDriver) { itsOracleDriver = dbDriver; }
   void reloadStations() override;
 
  protected:
@@ -38,7 +36,6 @@ class PostgreSQLDatabaseDriver : public DatabaseDriverBase
   boost::atomic_shared_ptr<ObservationCacheAdminPostgreSQL> itsObservationCacheAdmin;
   PostgreSQLDriverParameters itsParameters;
   Engine *itsObsEngine{nullptr};
-  //  DatabaseDriverBase *itsOracleDriver;
 };
 
 }  // namespace Observation

@@ -523,6 +523,27 @@ std::size_t PostgreSQLCache::fillDataCache(const DataItems &cacheData) const
   }
 }
 
+std::size_t PostgreSQLCache::fillMovingLocationsCache(const MovingLocationItems &cacheData) const
+{
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillMovingLocationsCache(cacheData);
+
+    // Update what really now really is in the database
+    auto start = conn->getOldestObservationTime();
+    auto end = conn->getLatestObservationTime();
+    Spine::WriteLock lock(itsTimeIntervalMutex);
+    itsTimeIntervalStart = start;
+    itsTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Filling data cache failed!");
+  }
+}
+
 void PostgreSQLCache::cleanDataCache(
     const boost::posix_time::time_duration &timetokeep,
     const boost::posix_time::time_duration & /* timetokeep_memory */) const
@@ -1061,6 +1082,14 @@ void PostgreSQLCache::readConfig(const Spine::ConfigBase & /* cfg */)
 PostgreSQLCache::~PostgreSQLCache()
 {
   shutdown();
+}
+
+void PostgreSQLCache::getMovingStations(Spine::Stations &stations,
+										const std::string &stationtype,
+										const boost::posix_time::ptime &startTime,
+										const boost::posix_time::ptime &endTime,
+										const std::string &wkt) const
+{
 }
 
 void PostgreSQLCache::hit(const std::string &name) const

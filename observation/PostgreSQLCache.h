@@ -52,6 +52,7 @@ class PostgreSQLCache : public ObservationCache
   boost::posix_time::ptime getLatestObservationModifiedTime() const override;
   boost::posix_time::ptime getLatestObservationTime() const override;
   std::size_t fillDataCache(const DataItems &cacheData) const override;
+  std::size_t fillMovingLocationsCache(const MovingLocationItems &cacheData) const override;
   void cleanDataCache(const boost::posix_time::time_duration &timetokeep,
                       const boost::posix_time::time_duration &timetokeep_memory) const override;
   boost::posix_time::ptime getLatestWeatherDataQCTime() const override;
@@ -106,6 +107,12 @@ class PostgreSQLCache : public ObservationCache
   void cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const override;
 
   void shutdown() override;
+
+  void getMovingStations(Spine::Stations &stations,
+						 const std::string &stationtype,
+						 const boost::posix_time::ptime &startTime,
+						 const boost::posix_time::ptime &endTime,
+						 const std::string &wkt) const override;
 
  private:
   std::unique_ptr<PostgreSQLCacheConnectionPool> itsConnectionPool;

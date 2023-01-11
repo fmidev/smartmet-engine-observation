@@ -15,6 +15,12 @@ class ObservationCacheAdminSpatiaLite : public ObservationCacheAdminBase
                                   SmartMet::Engine::Geonames::Engine* geonames,
                                   std::atomic<bool>& conn_ok,
                                   bool timer);
+  void readMovingStationsCacheData(std::vector<MovingLocationItem>& cacheData,
+								  const boost::posix_time::ptime& startTime,
+								   const boost::posix_time::ptime& lastModifiedTime,
+								   const Fmi::TimeZones& timezones) const override
+  {
+  }
   void readObservationCacheData(std::vector<DataItem>& cacheData,
                                 const boost::posix_time::time_period& dataPeriod,
                                 const std::string& fmisid,
