@@ -20,6 +20,11 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
 
   void shutdown();
 
+  TS::TimeSeriesVectorPtr getObservationDataForMovingStations(
+      const Settings &settings,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Fmi::TimeZones &timezones) override;
+
   TS::TimeSeriesVectorPtr getObservationData(
       const Spine::Stations &stations,
       const Settings &settings,
@@ -58,12 +63,15 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
   std::shared_ptr<Fmi::TimeFormatter> itsTimeFormatter;
 
  private:
-  LocationDataItems readObservationDataFromDB(
-      const Spine::Stations &stations,
-      const Settings &settings,
-      const StationInfo &stationInfo,
-      const QueryMapping &qmap,
-      const std::set<std::string> &stationgroup_codes) const;
+  LocationDataItems readObservationDataFromDB(const Spine::Stations &stations,
+											  const Settings &settings,
+											  const StationInfo &stationInfo,
+											  const QueryMapping &qmap,
+											  const std::set<std::string> &stationgroup_codes) const;
+
+  LocationDataItems readObservationDataOfMovingStationsFromDB(const Settings &settings,
+															  const QueryMapping &qmap,
+															  const std::set<std::string> &stationgroup_codes) const;
 };
 
 }  // namespace Observation

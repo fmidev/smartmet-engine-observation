@@ -252,9 +252,33 @@ Spine::TaggedFMISIDList DatabaseDriverProxy::translateToFMISID(
 {
   try
   {
-    if (itsTranslateToFMISIDDriver)
-      return itsTranslateToFMISIDDriver->translateToFMISID(
-          starttime, endtime, stationtype, stationSettings);
+	if(stationtype == ICEBUOY_PRODUCER || stationtype == COPERNICUS_PRODUCER)
+	  {
+		Spine::TaggedFMISIDList ret;
+		if(!stationSettings.fmisids.empty())
+		  {
+			for(const auto& fmisid : stationSettings.fmisids)
+				ret.emplace_back(Fmi::to_string(fmisid), fmisid);
+		  }
+		else if(!stationSettings.bounding_box_settings.empty())
+		  {
+			auto& bbox = stationSettings.bounding_box_settings;
+			std::string wktString = ("POLYGON(("+Fmi::to_string(bbox.at("minx"))+" "+Fmi::to_string(bbox.at("miny"))+","+
+									 Fmi::to_string(bbox.at("minx"))+" "+Fmi::to_string(bbox.at("maxy"))+","+
+									 Fmi::to_string(bbox.at("maxx"))+" "+Fmi::to_string(bbox.at("maxy"))+","+
+									 Fmi::to_string(bbox.at("maxx"))+" "+Fmi::to_string(bbox.at("miny"))+","+
+									 Fmi::to_string(bbox.at("minx"))+" "+Fmi::to_string(bbox.at("miny"))+"))");
+			
+			DatabaseDriverBase *pDriver = resolveDatabaseDriverByProducer(stationtype);
+			Spine::Stations stations;
+			pDriver->getMovingStationsByArea(stations, stationtype, starttime, endtime, wktString);
+			for(const auto& station : stations)
+			  ret.emplace_back(Fmi::to_string(station.fmisid), station.fmisid);							  
+		  }	   
+		return ret;
+	  }
+    else if (itsTranslateToFMISIDDriver)
+      return itsTranslateToFMISIDDriver->translateToFMISID(starttime, endtime, stationtype, stationSettings);
     else
       throw Fmi::Exception::Trace(BCP, "DatabaseDriverProxy::translateToFMISID function failed!");
   }
@@ -318,8 +342,19 @@ void DatabaseDriverProxy::getStationsByArea(Spine::Stations &stations,
                                             const boost::posix_time::ptime &endtime,
                                             const std::string &wkt) const
 {
-  DatabaseDriverBase *pDriver = resolveDatabaseDriverByProducer(stationtype);
-  return pDriver->getStationsByArea(stations, stationtype, starttime, endtime, wkt);
+  Settings settings;
+  settings.stationtype = stationtype;
+  settings.starttime = starttime;
+  settings.endtime = endtime;
+  DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
+  if(stationtype == ICEBUOY_PRODUCER || stationtype == COPERNICUS_PRODUCER)
+	{
+	  pDriver->getMovingStationsByArea(stations, stationtype, starttime, endtime, wkt);
+	}
+  else
+	{
+	  pDriver->getStationsByArea(stations, stationtype, starttime, endtime, wkt);
+	}
 }
 
 void DatabaseDriverProxy::getStationsByBoundingBox(Spine::Stations &stations,

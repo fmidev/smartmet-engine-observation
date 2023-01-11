@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommonPostgreSQLFunctions.h"
+#include "MovingLocationItem.h"
 #include "DataItem.h"
 #include "FlashDataItem.h"
 #include "MagnetometerDataItem.h"
@@ -54,7 +55,6 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
                                          boost::posix_time::ptime lastTime,
                                          boost::posix_time::ptime lastCreatedTime,
                                          const Fmi::TimeZones &timezones);
-
   void readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
                                    const boost::posix_time::time_period &dataPeriod,
                                    const std::string &fmisid,
@@ -68,7 +68,10 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
                                                 const std::string &fmisid,
                                                 const std::string &measurandId,
                                                 const Fmi::TimeZones &timezones);
-
+  void readMovingStationsCacheDataFromPostgreSQL(std::vector<MovingLocationItem> &cacheData,
+												 const boost::posix_time::ptime &startTime,
+												 const boost::posix_time::ptime &lastModifiedTime,
+												 const Fmi::TimeZones &timezones);
   void readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
                                    const boost::posix_time::ptime &startTime,
                                    const boost::posix_time::ptime &lastModifiedTime,
@@ -121,6 +124,12 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
   void getStationGroups(StationGroups &sg) const;
   void getProducerGroups(ProducerGroups &pg) const;
 
+  void getMovingStations(Spine::Stations &stations,
+						 const std::string &stationtype,
+						 const boost::posix_time::ptime &startTime,
+						 const boost::posix_time::ptime &endTime,
+						 const std::string &wkt) const;
+	
  private:
   TS::TimeSeriesVectorPtr itsTimeSeriesColumns;
 

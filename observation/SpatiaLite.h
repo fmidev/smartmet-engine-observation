@@ -2,6 +2,7 @@
 
 #include "CommonDatabaseFunctions.h"
 #include "ExternalAndMobileProducerConfig.h"
+#include "MovingLocationItem.h"
 #include "FlashDataItem.h"
 #include "InsertStatus.h"
 #include "MagnetometerDataItem.h"
@@ -132,6 +133,14 @@ class SpatiaLite : public CommonDatabaseFunctions
    * @param[in] cacheData Data from observation_data.
    */
   std::size_t fillDataCache(const DataItems &cacheData, InsertStatus &insertStatus);
+  /**
+   * @brief Update moving_locations with data from Oracle's
+   *        moving_locations table which is used to store data
+   *        from stations maintained by FMI.
+   * @param[in] cacheData Data from moving_locations
+   */
+  std::size_t fillMovingLocationsCache(const MovingLocationItems &cacheData, InsertStatus &insertStatus);
+
 
   /**
    * @brief Update weather_data_qc with data from Oracle's respective table
@@ -166,6 +175,13 @@ class SpatiaLite : public CommonDatabaseFunctions
    * @param[in] newstarttime_memory
    */
   void cleanDataCache(const boost::posix_time::ptime &newstarttime);
+
+  /**
+   * @brief Delete everything from moving_locations table which (edate) is older than the given duration
+   * @param[in] newstarttime
+   * @param[in] newstarttime_memory
+   */
+  void cleanMovingLocationsCache(const boost::posix_time::ptime &newstarttime);
 
   /**
    * @brief Delete everything from weather_data_qc table which
@@ -361,12 +377,23 @@ class SpatiaLite : public CommonDatabaseFunctions
                                        const Fmi::TimeZones &timezones) override;
 
   TS::TimeSeriesVectorPtr getObservationData(
-      const Spine::Stations &stations,
-      const Settings &settings,
-      const StationInfo &stationInfo,
-      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones,
-      const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache) override;
+											 const Spine::Stations &stations,
+											 const Settings &settings,
+											 const StationInfo &stationInfo,
+											 const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+											 const Fmi::TimeZones &timezones,
+											 const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache) override;
+
+  TS::TimeSeriesVectorPtr getObservationDataForMovingStations(
+															  const Settings &settings,
+															  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+															  const Fmi::TimeZones &timezones) override;
+
+  LocationDataItems readObservationDataOfMovingStationsFromDB(
+															  const Settings &settings,
+															  const QueryMapping &qmap,
+															  const std::set<std::string> &stationgroup_codes);
+
 
   /**
    * @brief Get the time of the last modified observation in magnetometer_data table
@@ -432,6 +459,11 @@ class SpatiaLite : public CommonDatabaseFunctions
       const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones) override;
 
+  void getMovingStations(Spine::Stations &stations,
+						 const std::string &stationtype,
+						 const boost::posix_time::ptime &startTime,
+						 const boost::posix_time::ptime &endTime,
+						 const std::string &wkt);
  private:
   // Private members
   sqlite3pp::database itsDB;
@@ -448,6 +480,7 @@ class SpatiaLite : public CommonDatabaseFunctions
                                                   const std::string &time_field);
 
   void initSpatialMetaData();
+  void createMovingLocationsDataTable();
   void createObservationDataTable();
   void createWeatherDataQCTable();
   void createFlashDataTable();

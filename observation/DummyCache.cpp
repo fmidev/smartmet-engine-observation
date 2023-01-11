@@ -89,6 +89,11 @@ std::size_t DummyCache::fillDataCache(const DataItems &cacheData) const
   return 0;
 }
 
+std::size_t DummyCache::fillMovingLocationsCache(const MovingLocationItems &cacheData) const
+{
+  return 0;
+}
+
 void DummyCache::cleanDataCache(
     const boost::posix_time::time_duration & /* timetokeep */,
     const boost::posix_time::time_duration & /* timetokeep_memory */) const
@@ -245,6 +250,14 @@ std::size_t DummyCache::fillMagnetometerCache(
 
 void DummyCache::cleanMagnetometerCache(
     const boost::posix_time::time_duration & /* timetokeep */) const
+{
+}
+
+void DummyCache::getMovingStations(Spine::Stations &stations,
+								   const std::string &stationtype,
+								   const boost::posix_time::ptime &startTime,
+								   const boost::posix_time::ptime &endTime,
+								   const std::string &wkt) const
 {
 }
 

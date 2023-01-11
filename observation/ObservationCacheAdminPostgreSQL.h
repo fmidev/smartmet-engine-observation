@@ -19,7 +19,6 @@ class ObservationCacheAdminPostgreSQL : public ObservationCacheAdminBase
                                   Geonames::Engine* geonames,
                                   std::atomic<bool>& conn_ok,
                                   bool timer);
-
   void readObservationCacheData(std::vector<DataItem>& cacheData,
                                 const boost::posix_time::time_period& dataPeriod,
                                 const std::string& fmisid,
@@ -33,11 +32,15 @@ class ObservationCacheAdminPostgreSQL : public ObservationCacheAdminBase
                                   const std::string& fmisid,
                                   const std::string& measuradId,
                                   const Fmi::TimeZones& timezones) const override;
-
+  void readMovingStationsCacheData(std::vector<MovingLocationItem>& cacheData,
+								  const boost::posix_time::ptime& startTime,
+								   const boost::posix_time::ptime& lastModifiedTime,
+								   const Fmi::TimeZones& timezones) const override;
   void readObservationCacheData(std::vector<DataItem>& cacheData,
                                 const boost::posix_time::ptime& startTime,
                                 const boost::posix_time::ptime& lastModifiedTime,
                                 const Fmi::TimeZones& timezones) const override;
+
   void readWeatherDataQCCacheData(std::vector<WeatherDataQCItem>& cacheData,
                                   const boost::posix_time::ptime& startTime,
                                   const boost::posix_time::ptime& lastModifiedTime,

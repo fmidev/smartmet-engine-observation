@@ -990,7 +990,19 @@ std::size_t PostgreSQLCacheDB::fillDataCache(const DataItems &cacheData)
   {
     throw Fmi::Exception::Trace(BCP, "Filling of data cache failed!");
   }
-}  // namespace Observation
+}
+
+std::size_t PostgreSQLCacheDB::fillMovingLocationsCache(const MovingLocationItems &/*cacheData*/)
+{
+  try
+  {
+	return 0;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Filling moving locations cache failed!");
+  }
+}
 
 std::size_t PostgreSQLCacheDB::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData)
 {

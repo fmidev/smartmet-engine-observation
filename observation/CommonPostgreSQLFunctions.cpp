@@ -56,6 +56,51 @@ void CommonPostgreSQLFunctions::shutdown()
   itsDB.cancel();
 }
 
+TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationDataForMovingStations(const Settings &settings,
+																					   const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+																					   const Fmi::TimeZones &timezones)
+{
+  try
+  {
+    // This maps measurand_id and the parameter position in TimeSeriesVector
+    auto qmap = buildQueryMapping(settings, settings.stationtype, false);
+
+    // Resolve stationgroup codes
+    std::set<std::string> stationgroup_codes;
+    auto stationgroupCodeSet = itsStationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
+    stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
+
+    LocationDataItems observations = readObservationDataOfMovingStationsFromDB(settings, qmap, stationgroup_codes);
+
+    StationMap fmisid_to_station;
+    for (auto item : observations)
+	  {
+		Spine::Station station;
+		station.station_id= item.data.fmisid;
+		station.fmisid = item.data.fmisid;
+		station.longitude_out = item.longitude;
+		station.latitude_out = item.latitude;
+		station.station_elevation = item.elevation;
+		fmisid_to_station[station.station_id] = station;
+	  }
+	
+    StationTimedMeasurandData station_data =
+	  buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
+	
+    return buildTimeseries(settings,
+						   settings.stationtype,
+						   fmisid_to_station,
+						   station_data,
+						   qmap,
+						   timeSeriesOptions,
+						   timezones);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Fetching data from PostgreSQL database failed!");
+  }
+}
+
 TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationData(
     const Spine::Stations &stations,
     const Settings &settings,
@@ -72,7 +117,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationData(
       stationtype = "observations_fmi";
 
     // This maps measurand_id and the parameter position in TimeSeriesVector
-    auto qmap = buildQueryMapping(stations, settings, itsParameterMap, stationtype, false);
+    auto qmap = buildQueryMapping(settings, stationtype, false);
 
     // Resolve stationgroup codes
     std::set<std::string> stationgroup_codes;
@@ -92,14 +137,145 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationData(
     StationTimedMeasurandData station_data =
         buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
 
-    return buildTimeseries(stations,
-                           settings,
+    return buildTimeseries(settings,
                            stationtype,
                            fmisid_to_station,
                            station_data,
                            qmap,
                            timeSeriesOptions,
                            timezones);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Fetching data from PostgreSQL database failed!");
+  }
+}
+
+LocationDataItems CommonPostgreSQLFunctions::readObservationDataOfMovingStationsFromDB(
+    const Settings &settings,
+    const QueryMapping &qmap,
+    const std::set<std::string> &stationgroup_codes) const
+{
+  try
+  {
+    LocationDataItems ret;
+
+	auto wktString = settings.wktArea;
+	if(wktString.empty())
+	  {
+		if(!settings.boundingBox.empty())
+		  wktString = ("POLYGON(("+Fmi::to_string(settings.boundingBox.at("minx"))+" "+Fmi::to_string(settings.boundingBox.at("miny"))+","+
+					   Fmi::to_string(settings.boundingBox.at("minx"))+" "+Fmi::to_string(settings.boundingBox.at("maxy"))+","+
+					   Fmi::to_string(settings.boundingBox.at("maxx"))+" "+Fmi::to_string(settings.boundingBox.at("maxy"))+","+
+					   Fmi::to_string(settings.boundingBox.at("maxx"))+" "+Fmi::to_string(settings.boundingBox.at("miny"))+","+
+					   Fmi::to_string(settings.boundingBox.at("minx"))+" "+Fmi::to_string(settings.boundingBox.at("miny"))+"))");
+
+	  }
+
+    // Safety check
+    if (qmap.measurandIds.empty())
+      return ret;
+
+    std::string measurand_ids;
+    for (const auto &id : qmap.measurandIds)
+      measurand_ids += Fmi::to_string(id) + ",";
+    measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
+
+    std::vector<std::string> producer_id_vector;
+    for (const auto& prod_id : settings.producer_ids)
+      producer_id_vector.emplace_back(Fmi::to_string(prod_id));
+    std::string producerIds = boost::algorithm::join(producer_id_vector, ",");
+
+    std::vector<std::string> fmisid_vector;
+	for(const auto& item : settings.taggedFMISIDs)
+	  fmisid_vector.emplace_back(Fmi::to_string(item.fmisid));
+	auto fmisids = boost::algorithm::join(fmisid_vector, ",");
+
+	if(fmisids.empty() && wktString.empty())
+	  throw Fmi::Exception::Trace(BCP, "Fetching data from PostgreSQL database failed, no fmisids or area given!");
+
+    std::string starttime = Fmi::to_iso_extended_string(settings.starttime);
+    std::string endtime = Fmi::to_iso_extended_string(settings.endtime);
+
+    std::string sqlStmt;
+    if (itsIsCacheDatabase)
+    {
+      sqlStmt =
+		"SELECT data.fmisid AS fmisid, data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM "
+		"data.data_time) AS obstime, "
+		"measurand_id, data_value, data_quality, data_source "
+		"FROM observation_data data WHERE ";
+	  if(!fmisids.empty())
+		sqlStmt += "data.fmisid IN (" + fmisids + ") ";
+	  if(!wktString.empty())
+		{
+		  if(!fmisids.empty())
+			sqlStmt += " AND ";		  
+		  sqlStmt += ("ST_Contains(ST_GeomFromText('"+wktString+"',4326),ST_SetSRID(ST_MakePoint(m.lon, m.lat),4326)) ");
+		}
+	  sqlStmt += "AND data.data_time >= '" +
+          starttime + "' AND data.data_time <= '" + endtime + "' AND data.measurand_id IN (" +
+          measurand_ids + ") ";
+      if (!producerIds.empty())
+        sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
+
+      sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
+      sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") +
+                 " GROUP BY data.fmisid, data.sensor_no, data.data_time, data.measurand_id, "
+                 "data.data_value, data.data_quality, data.data_source "
+                 "ORDER BY fmisid ASC, obstime ASC";
+    }
+    else
+    {
+      sqlStmt =
+		"SELECT data.station_id AS fmisid, data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM "
+		"date_trunc('seconds', data.data_time)) AS obstime, "
+		"data.measurand_id, data.data_value, data.data_quality, data.data_source, m.lon, m.lat, m.elev "
+		"FROM observation_data_r1 data JOIN moving_locations_v1 m ON (m.station_id = data.station_id and data.data_time between m.sdate and m.edate) WHERE ";
+	  if(!fmisids.empty())
+		sqlStmt += "data.station_id IN (" + fmisids + ") ";
+	  if(!wktString.empty())
+		{
+		  if(!fmisids.empty())
+			sqlStmt += " AND ";		  
+		  sqlStmt += ("ST_Contains(ST_GeomFromText('"+wktString+"',4326),ST_SetSRID(ST_MakePoint(m.lon, m.lat),4326)) ");
+		}
+	  sqlStmt += "AND data.data_time >= '" + starttime + "' AND data.data_time <= '" + endtime + "' AND data.measurand_id IN (" + measurand_ids + ") ";
+      if (!producerIds.empty())
+        sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");	  
+      sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
+      sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") +
+                 " GROUP BY data.station_id, data.sensor_no, data.data_time, data.measurand_id, "
+                 "data.data_value, data.data_quality, data.data_source, m.lon, m.lat, m.elev "
+                 "ORDER BY fmisid ASC, obstime ASC";
+    }
+
+    if (itsDebug)
+      std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
+                << std::endl;
+
+    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+
+    for (auto row : result_set)
+    {
+      LocationDataItem obs;
+      obs.data.fmisid = as_int(row[0]);
+      obs.data.sensor_no = as_int(row[1]);
+      obs.data.data_time = boost::posix_time::from_time_t(row[2].as<time_t>());
+      obs.data.measurand_id = as_int(row[3]);
+      if (!row[4].is_null())
+        obs.data.data_value = as_double(row[4]);
+      if (!row[5].is_null())
+        obs.data.data_quality = as_int(row[5]);
+      if (!row[6].is_null())
+        obs.data.data_source = as_int(row[6]);
+      obs.longitude = as_double(row[7]);
+      obs.latitude = as_double(row[8]);
+      obs.elevation = as_double(row[9]);
+      ret.emplace_back(obs);
+    }
+
+	return ret;
   }
   catch (...)
   {

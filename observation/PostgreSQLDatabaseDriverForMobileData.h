@@ -38,7 +38,13 @@ class PostgreSQLDatabaseDriverForMobileData : public PostgreSQLDatabaseDriver
                          const boost::posix_time::ptime &starttime,
                          const boost::posix_time::ptime &endtime,
                          const std::string &wkt) const override;
+  void getMovingStationsByArea(Spine::Stations &stations,
+							   const std::string &stationtype,
+							   const boost::posix_time::ptime &startTime,
+							   const boost::posix_time::ptime &endTime,
+							   const std::string &wkt) const override;
   void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const override;
+  std::shared_ptr<FmiIoTStations> &getFmiIoTStations() { return itsParameters.fmiIoTStations; }
 
  private:
   void setSettings(Settings &settings, PostgreSQLObsDB &db);

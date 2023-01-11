@@ -28,6 +28,10 @@ class ObservationCacheAdminBase
                                           const std::string& fmisid,
                                           const std::string& measuradId,
                                           const Fmi::TimeZones& timezones) const = 0;
+  virtual void readMovingStationsCacheData(std::vector<MovingLocationItem>& cacheData,
+                                        const boost::posix_time::ptime& startTime,
+                                        const boost::posix_time::ptime& lastModifiedTime,
+                                        const Fmi::TimeZones& timezones) const = 0;
   virtual void readObservationCacheData(std::vector<DataItem>& cacheData,
                                         const boost::posix_time::ptime& startTime,
                                         const boost::posix_time::ptime& lastModifiedTime,

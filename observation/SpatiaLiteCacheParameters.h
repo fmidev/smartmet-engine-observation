@@ -1,9 +1,9 @@
 #pragma once
 
 #include "DataItem.h"
+#include "MovingLocationItem.h"
 #include "EngineParameters.h"
 #include "FlashDataItem.h"
-#include "LocationItem.h"
 #include "Settings.h"
 #include "SpatiaLiteOptions.h"
 #include "Utils.h"

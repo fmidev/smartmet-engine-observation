@@ -41,6 +41,11 @@ class PostgreSQLDatabaseDriverForFmiData : public PostgreSQLDatabaseDriver
                          const boost::posix_time::ptime &starttime,
                          const boost::posix_time::ptime &endtime,
                          const std::string &wkt) const override;
+  void getMovingStationsByArea(Spine::Stations &stations,
+							   const std::string &stationtype,
+							   const boost::posix_time::ptime &startTime,
+							   const boost::posix_time::ptime &endTime,
+							   const std::string &wkt) const override;
   void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const override;
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,

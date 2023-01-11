@@ -52,6 +52,7 @@ class SpatiaLiteCache : public ObservationCache
   boost::posix_time::ptime getLatestObservationModifiedTime() const override;
   boost::posix_time::ptime getLatestObservationTime() const override;
   std::size_t fillDataCache(const DataItems &cacheData) const override;
+  std::size_t fillMovingLocationsCache(const MovingLocationItems &cacheData) const override;
   void cleanDataCache(const boost::posix_time::time_duration &timetokeep,
                       const boost::posix_time::time_duration &timetokeep_memory) const override;
   boost::posix_time::ptime getLatestWeatherDataQCTime() const override;
@@ -133,6 +134,12 @@ class SpatiaLiteCache : public ObservationCache
   TS::TimeSeriesVectorPtr flashValuesFromSpatiaLite(Settings &settings) const;
   void readConfig(const Spine::ConfigBase &cfg);
 
+  void getMovingStations(Spine::Stations &stations,
+						 const std::string &stationtype,
+						 const boost::posix_time::ptime &startTime,
+						 const boost::posix_time::ptime &endTime,
+						 const std::string &wkt) const override;
+
   std::unique_ptr<SpatiaLiteConnectionPool> itsConnectionPool;
   Fmi::TimeZones itsTimeZones;
 
@@ -174,6 +181,7 @@ class SpatiaLiteCache : public ObservationCache
 
   // Caches for last inserted rows to avoid duplicate inserts
   mutable InsertStatus itsDataInsertCache;
+  mutable InsertStatus itsMovingLocationsInsertCache;
   mutable InsertStatus itsWeatherQCInsertCache;
   mutable InsertStatus itsFlashInsertCache;
   mutable InsertStatus itsRoadCloudInsertCache;

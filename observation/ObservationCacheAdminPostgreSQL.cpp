@@ -69,6 +69,16 @@ void ObservationCacheAdminPostgreSQL::readWeatherDataQCCacheData(
       cacheData, dataPeriod, fmisid, measurandId, itsTimeZones);
 }
 
+void ObservationCacheAdminPostgreSQL::readMovingStationsCacheData(
+    std::vector<MovingLocationItem>& cacheData,
+    const boost::posix_time::ptime& startTime,
+    const boost::posix_time::ptime& lastModifiedTime,
+    const Fmi::TimeZones& /* timezones */) const
+{
+  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+  db->readMovingStationsCacheDataFromPostgreSQL(cacheData, startTime, lastModifiedTime, itsTimeZones);
+}
+
 void ObservationCacheAdminPostgreSQL::readObservationCacheData(
     std::vector<DataItem>& cacheData,
     const boost::posix_time::ptime& startTime,
