@@ -1,14 +1,15 @@
 #include "PostgreSQLObsDB.h"
 #include "AsDouble.h"
 #include "ExternalAndMobileDBInfo.h"
-#include "PostgreSQLCacheDB.h"
 #include "Keywords.h"
+#include "PostgreSQLCacheDB.h"
 #include "Utils.h"
 #include <boost/functional/hash.hpp>
+#include <fmt/format.h>
+#include <gis/OGR.h>
 #include <macgyver/AsyncTask.h>
 #include <macgyver/Exception.h>
 #include <spine/Convenience.h>
-#include <gis/OGR.h>
 
 // #define MYDEBUG 1
 
@@ -126,18 +127,21 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
   }
 }
 
-void PostgreSQLObsDB::readMovingStationsCacheDataFromPostgreSQL(std::vector<MovingLocationItem> &cacheData,
-																const boost::posix_time::ptime &startTime,
-																const boost::posix_time::ptime &/*lastModifiedTime*/,
-																const Fmi::TimeZones &timezones)
+void PostgreSQLObsDB::readMovingStationsCacheDataFromPostgreSQL(
+    std::vector<MovingLocationItem> &cacheData,
+    const boost::posix_time::ptime &startTime,
+    const boost::posix_time::ptime & /*lastModifiedTime*/,
+    const Fmi::TimeZones &timezones)
 {
   try
   {
     std::string sqlStmt =
-        "SELECT station_id, EXTRACT(EPOCH FROM date_trunc('seconds', sdate)), EXTRACT(EPOCH FROM date_trunc('seconds', edate)), lon, lat, elev "
-        "FROM moving_locations_v1 data WHERE edate >= '" +  Fmi::to_iso_extended_string(startTime) + "' ORDER BY station_id ASC, sdate ASC";
+        "SELECT station_id, EXTRACT(EPOCH FROM date_trunc('seconds', sdate)), EXTRACT(EPOCH FROM "
+        "date_trunc('seconds', edate)), lon, lat, elev "
+        "FROM moving_locations_v1 data WHERE edate >= '" +
+        Fmi::to_iso_extended_string(startTime) + "' ORDER BY station_id ASC, sdate ASC";
 
-	if (itsDebug)
+    if (itsDebug)
       std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
@@ -154,14 +158,13 @@ void PostgreSQLObsDB::readMovingStationsCacheDataFromPostgreSQL(std::vector<Movi
       item.lat = as_double(row[4]);
       item.elev = as_double(row[5]);
       cacheData.emplace_back(item);
-	}
+    }
   }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
-
 
 void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
                                                   const std::string &sqlStmt,
@@ -191,7 +194,7 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
       item.modified_last = boost::posix_time::from_time_t(row[9].as<time_t>());
 
       cacheData.emplace_back(item);
-	}
+    }
   }
   catch (...)
   {
@@ -327,22 +330,39 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
 {
   try
   {
-    std::string sqlStmt =
-        "SELECT EXTRACT(EPOCH FROM date_trunc('seconds', stroke_time)) as stroke_time, nseconds as "
-        "nanoseconds, flash_id, "
-        "multiplicity, peak_current, "
-        "sensors, freedom_degree, ellipse_angle, ellipse_major, "
-        "ellipse_minor, chi_square, rise_time, ptz_time, cloud_indicator, "
-        "angle_indicator, signal_indicator, timing_indicator, stroke_status, "
-        "data_source,  EXTRACT(EPOCH FROM date_trunc('seconds', created)) as created, "
-        "EXTRACT(EPOCH "
-        "FROM date_trunc('seconds', modified_last)) as modified_last, modified_by, "
-        "ST_X(stroke_location) longitude, "
-        "ST_Y(stroke_location) AS latitude "
-        "FROM flashdata flash "
-        "WHERE stroke_time BETWEEN '" +
-        Fmi::to_iso_extended_string(dataPeriod.begin()) + "'  AND '" +
-        Fmi::to_iso_extended_string(dataPeriod.last()) + "' ORDER BY stroke_time, flash_id";
+    // clang-format off
+    std::string sqlStmt = fmt::format(R"SQL(
+SELECT Extract(epoch FROM Date_trunc('seconds', stroke_time))   AS stroke_time,
+       nseconds                                                 AS nanoseconds,
+       flash_id,
+       multiplicity,
+       peak_current,
+       sensors,
+       freedom_degree,
+       ellipse_angle,
+       ellipse_major,
+       ellipse_minor,
+       chi_square,
+       rise_time,
+       ptz_time,
+       cloud_indicator,
+       angle_indicator,
+       signal_indicator,
+       timing_indicator,
+       stroke_status,
+       data_source,
+       Extract(epoch FROM Date_trunc('seconds', created))       AS created,
+       Extract(epoch FROM Date_trunc('seconds', modified_last)) AS modified_last,
+       modified_by,
+       St_x(stroke_location)                                    longitude,
+       St_y(stroke_location)                                    AS latitude
+FROM   flashdata flash
+WHERE  stroke_time BETWEEN '{}' AND '{}'
+ORDER  BY stroke_time,
+          flash_id;)SQL",
+    Fmi::to_iso_extended_string(dataPeriod.begin()),
+    Fmi::to_iso_extended_string(dataPeriod.last()));
+    // clang-format on
 
     return readFlashCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
   }
@@ -795,65 +815,140 @@ void PostgreSQLObsDB::getStations(Spine::Stations &stations) const
 {
   try
   {
-    string sqlStmt =
-        "SELECT DISTINCT tg.group_name AS group_code, t.target_id AS station_id, t.access_policy "
-        "AS "
-        "access_policy_id, t.target_status AS station_status_id, t.language_code AS language_code, "
-        "t.target_formal_name AS station_formal_name, t.target_start AS station_start, "
-        "MIN(tgm.valid_from) OVER(PARTITION BY t.target_id, tg.group_name) AS valid_from, "
-        "MAX(tgm.valid_to) OVER(PARTITION BY t.target_id, tg.group_name) AS valid_to, t.target_end "
-        "AS station_end, t.target_category, t.stationary, FIRST_VALUE(lpnn.member_code) "
-        "OVER(PARTITION BY t.target_id ORDER BY lpnn.membership_start DESC) AS lpnn, "
-        "FIRST_VALUE(wmon.member_code) OVER(PARTITION BY t.target_id ORDER BY "
-        "wmon.membership_start "
-        "DESC) AS wmon, ROUND(FIRST_VALUE(ST_X(geom)::numeric) OVER(PARTITION BY t.target_id ORDER "
-        "BY l.location_start DESC), 5) AS last_longitude, ROUND(FIRST_VALUE(ST_Y(geom)::numeric) "
-        "OVER(PARTITION BY t.target_id ORDER BY l.location_start DESC), 5) AS last_latitude, "
-        "COUNT(l.location_id) OVER(PARTITION BY t.target_id) AS locations, t.modified_last, "
-        "t.modified_by, tg.rgb as rgb, tg.group_class_id FROM target_group_t1 tg JOIN "
-        "target_group_member_t1 tgm ON (tgm.target_group_id = tg.target_group_id) JOIN target_t1 t "
-        "ON(t.target_id = tgm.target_id) JOIN location_t1 l ON(l.target_id = t.target_id) LEFT "
-        "OUTER "
-        "JOIN network_member_t1 lpnn ON(lpnn.target_id = t.target_id AND lpnn.network_id = 10) "
-        "LEFT "
-        "OUTER JOIN network_member_t1 wmon ON(wmon.target_id = t.target_id AND wmon.network_id = "
-        "20) "
-        "WHERE tg.group_class_id IN(1, 81) AND tg.group_name "
-        "IN('STUKRAD','STUKAIR','RWSFIN','AIRQCOMM','AIRQUAL','ASC','AVI','AWS','BUOY','CLIM','"
-        "COMM',"
-        "'EXTAIRQUAL','EXTASC','EXTAVI','EXTAWS','EXTBUOY','EXTFLASH','EXTFROST','EXTICE','"
-        "EXTMAGNET'"
-        ",'EXTMAREO','EXTMAST','EXTRADACT','EXTRWS','EXTRWYWS','EXTSNOW','EXTSOUNDING','EXTSYNOP','"
-        "EXTWATER','EXTWIND','FLASH','HTB','ICE','MAGNET','MAREO','MAST','PREC','RADACT','RADAR','"
-        "RESEARCH','RWS','SEA','SHIP','SOLAR','SOUNDING','SYNOP') UNION ALL SELECT DISTINCT "
-        "tg.group_code, t.target_id AS station_id, t.access_policy AS access_policy_id, "
-        "t.target_status AS station_status_id, t.language_code AS language_code, "
-        "t.target_formal_name AS station_formal_name, t.target_start AS station_start, "
-        "MIN(tgm.membership_start) OVER(PARTITION BY t.target_id, tg.group_code) AS valid_from, "
-        "MAX(tgm.membership_end) OVER(PARTITION BY t.target_id, tg.group_code) AS valid_to, "
-        "t.target_end AS station_end, t.target_category, t.stationary, "
-        "FIRST_VALUE(lpnn.member_code) "
-        "OVER(PARTITION BY t.target_id ORDER BY lpnn.membership_start DESC) AS lpnn, "
-        "FIRST_VALUE(wmon.member_code) OVER(PARTITION BY t.target_id ORDER BY "
-        "wmon.membership_start "
-        "DESC) AS wmon, ROUND(FIRST_VALUE(ST_X(geom)::numeric) OVER(PARTITION BY t.target_id ORDER "
-        "BY l.location_start DESC), 5) AS last_longitude, ROUND(FIRST_VALUE(ST_Y(geom)::numeric) "
-        "OVER(PARTITION BY t.target_id ORDER BY l.location_start DESC), 5) AS last_latitude, "
-        "COUNT(l.location_id) OVER(PARTITION BY t.target_id) AS locations, t.modified_last, "
-        "t.modified_by, tg.rgb as rgb, tg.group_class_id FROM network_t1 tg JOIN network_member_t1 "
-        "tgm ON (tgm.network_id = tg.network_id) JOIN target_t1 t ON(t.target_id = tgm.target_id) "
-        "JOIN location_t1 l ON(l.target_id = t.target_id) LEFT OUTER JOIN network_member_t1 lpnn "
-        "ON "
-        "(lpnn.target_id = t.target_id AND lpnn.network_id = 10) LEFT OUTER JOIN network_member_t1 "
-        "wmon ON (wmon.target_id = t.target_id AND wmon.network_id = 20) WHERE tg.group_class_id "
-        "IN(1, 81) AND tg.group_code "
-        "IN('STUKRAD','STUKAIR','RWSFIN','AIRQCOMM','AIRQUAL','ASC','AVI','AWS','BUOY','CLIM','"
-        "COMM',"
-        "'EXTAIRQUAL','EXTASC','EXTAVI','EXTAWS','EXTBUOY','EXTFLASH','EXTFROST','EXTICE','"
-        "EXTMAGNET'"
-        ",'EXTMAREO','EXTMAST','EXTRADACT','EXTRWS','EXTRWYWS','EXTSNOW','EXTSOUNDING','EXTSYNOP','"
-        "EXTWATER','EXTWIND','FLASH','HTB','ICE','MAGNET','MAREO','MAST','PREC','RADACT','RADAR','"
-        "RESEARCH','RWS','SEA','SHIP','SOLAR','SOUNDING','SYNOP');";
+    // clang-format off
+    string sqlStmt = R"SQL(
+SELECT DISTINCT tg.group_name                                 AS group_code,
+                t.target_id                                   AS station_id,
+                t.access_policy                               AS access_policy_id,
+                t.target_status                               AS station_status_id,
+                t.language_code                               AS language_code,
+                t.target_formal_name                          AS station_formal_name,
+                t.target_start                                AS station_start,
+                Min(tgm.valid_from)
+                  over(
+                    PARTITION BY t.target_id, tg.group_name)  AS valid_from,
+                Max(tgm.valid_to)
+                  over(
+                    PARTITION BY t.target_id, tg.group_name)  AS valid_to,
+                t.target_end                                  AS station_end,
+                t.target_category,
+                t.stationary,
+                First_value(lpnn.member_code)
+                  over(
+                    PARTITION BY t.target_id
+                    ORDER BY lpnn.membership_start DESC)      AS lpnn,
+                First_value(wmon.member_code)
+                  over(
+                    PARTITION BY t.target_id
+                    ORDER BY wmon.membership_start DESC)      AS wmon,
+                Round(First_value(St_x(geom) :: NUMERIC)
+                        over(
+                          PARTITION BY t.target_id
+                          ORDER BY l.location_start DESC), 5) AS last_longitude,
+                Round(First_value(St_y(geom) :: NUMERIC)
+                        over(
+                          PARTITION BY t.target_id
+                          ORDER BY l.location_start DESC), 5) AS last_latitude,
+                Count(l.location_id)
+                  over(
+                    PARTITION BY t.target_id)                 AS locations,
+                t.modified_last,
+                t.modified_by,
+                tg.rgb                                        AS rgb,
+                tg.group_class_id
+FROM   target_group_t1 tg
+       join target_group_member_t1 tgm
+         ON ( tgm.target_group_id = tg.target_group_id )
+       join target_t1 t
+         ON( t.target_id = tgm.target_id )
+       join location_t1 l
+         ON( l.target_id = t.target_id )
+       left outer join network_member_t1 lpnn
+                    ON( lpnn.target_id = t.target_id
+                        AND lpnn.network_id = 10 )
+       left outer join network_member_t1 wmon
+                    ON( wmon.target_id = t.target_id
+                        AND wmon.network_id = 20 )
+WHERE  tg.group_class_id IN( 1, 81 )
+       AND tg.group_name IN( 'STUKRAD', 'STUKAIR', 'RWSFIN', 'AIRQCOMM',
+                             'AIRQUAL', 'ASC', 'AVI', 'AWS',
+                             'BUOY', 'CLIM', ' COMM', 'EXTAIRQUAL',
+                             'EXTASC', 'EXTAVI', 'EXTAWS', 'EXTBUOY',
+                             'EXTFLASH', 'EXTFROST', 'EXTICE', ' EXTMAGNET',
+                             'EXTMAREO', 'EXTMAST', 'EXTRADACT', 'EXTRWS',
+                             'EXTRWYWS', 'EXTSNOW', 'EXTSOUNDING', 'EXTSYNOP',
+                             ' EXTWATER', 'EXTWIND', 'FLASH', 'HTB',
+                             'ICE', 'MAGNET', 'MAREO', 'MAST',
+                             'PREC', 'RADACT', 'RADAR', ' RESEARCH',
+                             'RWS', 'SEA', 'SHIP', 'SOLAR',
+                             'SOUNDING', 'SYNOP' )
+UNION ALL
+SELECT DISTINCT tg.group_code,
+                t.target_id                                   AS station_id,
+                t.access_policy                               AS access_policy_id,
+                t.target_status                               AS station_status_id,
+                t.language_code                               AS language_code,
+                t.target_formal_name                          AS station_formal_name,
+                t.target_start                                AS station_start,
+                Min(tgm.membership_start)
+                  over(
+                    PARTITION BY t.target_id, tg.group_code)  AS valid_from,
+                Max(tgm.membership_end)
+                  over(
+                    PARTITION BY t.target_id, tg.group_code)  AS valid_to,
+                t.target_end                                  AS station_end,
+                t.target_category,
+                t.stationary,
+                First_value(lpnn.member_code)
+                  over(
+                    PARTITION BY t.target_id
+                    ORDER BY lpnn.membership_start DESC)      AS lpnn,
+                First_value(wmon.member_code)
+                  over(
+                    PARTITION BY t.target_id
+                    ORDER BY wmon.membership_start DESC)      AS wmon,
+                Round(First_value(St_x(geom) :: NUMERIC)
+                        over(
+                          PARTITION BY t.target_id
+                          ORDER BY l.location_start DESC), 5) AS last_longitude,
+                Round(First_value(St_y(geom) :: NUMERIC)
+                        over(
+                          PARTITION BY t.target_id
+                          ORDER BY l.location_start DESC), 5) AS last_latitude,
+                Count(l.location_id)
+                  over(
+                    PARTITION BY t.target_id)                 AS locations,
+                t.modified_last,
+                t.modified_by,
+                tg.rgb                                        AS rgb,
+                tg.group_class_id
+FROM   network_t1 tg
+       join network_member_t1 tgm
+         ON ( tgm.network_id = tg.network_id )
+       join target_t1 t
+         ON( t.target_id = tgm.target_id )
+       join location_t1 l
+         ON( l.target_id = t.target_id )
+       left outer join network_member_t1 lpnn
+                    ON ( lpnn.target_id = t.target_id
+                         AND lpnn.network_id = 10 )
+       left outer join network_member_t1 wmon
+                    ON ( wmon.target_id = t.target_id
+                         AND wmon.network_id = 20 )
+WHERE  tg.group_class_id IN( 1, 81 )
+       AND tg.group_code IN( 'STUKRAD', 'STUKAIR', 'RWSFIN', 'AIRQCOMM',
+                             'AIRQUAL', 'ASC', 'AVI', 'AWS',
+                             'BUOY', 'CLIM', ' COMM', 'EXTAIRQUAL',
+                             'EXTASC', 'EXTAVI', 'EXTAWS', 'EXTBUOY',
+                             'EXTFLASH', 'EXTFROST', 'EXTICE', ' EXTMAGNET',
+                             'EXTMAREO', 'EXTMAST', 'EXTRADACT', 'EXTRWS',
+                             'EXTRWYWS', 'EXTSNOW', 'EXTSOUNDING', 'EXTSYNOP',
+                             ' EXTWATER', 'EXTWIND', 'FLASH', 'HTB',
+                             'ICE', 'MAGNET', 'MAREO', 'MAST',
+                             'PREC', 'RADACT', 'RADAR', ' RESEARCH',
+                             'RWS', 'SEA', 'SHIP', 'SOLAR',
+                             'SOUNDING', 'SYNOP' );)SQL";
+    // clang-format on
 
     if (itsDebug)
       std::cout << "PostgreSQL: " << sqlStmt << std::endl;
@@ -1033,36 +1128,38 @@ void PostgreSQLObsDB::getProducerGroups(ProducerGroups &pg) const
 }
 
 void PostgreSQLObsDB::getMovingStations(Spine::Stations &stations,
-										const std::string &stationtype,
-										const boost::posix_time::ptime &startTime,
-										const boost::posix_time::ptime &endTime,
-										const std::string &wkt) const
+                                        const std::string &stationtype,
+                                        const boost::posix_time::ptime &startTime,
+                                        const boost::posix_time::ptime &endTime,
+                                        const std::string &wkt) const
 {
   try
   {
-	auto sdate = Fmi::to_iso_extended_string(startTime);
-	auto edate = Fmi::to_iso_extended_string(endTime);
-	std::string sqlStmt = ("SELECT distinct station_id FROM moving_locations_v1 WHERE ((sdate BETWEEN '"+sdate+"' AND '"+edate+"') OR (edate BETWEEN '"+sdate+"' AND '"+edate+"') OR (sdate <= '"+sdate+"' AND edate >='"+edate+"')) AND ST_Contains(ST_GeomFromText('"+wkt+"'),ST_MakePoint(lon, lat))");
+    auto sdate = Fmi::to_iso_extended_string(startTime);
+    auto edate = Fmi::to_iso_extended_string(endTime);
+    std::string sqlStmt =
+        ("SELECT distinct station_id FROM moving_locations_v1 WHERE ((sdate BETWEEN '" + sdate +
+         "' AND '" + edate + "') OR (edate BETWEEN '" + sdate + "' AND '" + edate +
+         "') OR (sdate <= '" + sdate + "' AND edate >='" + edate +
+         "')) AND ST_Contains(ST_GeomFromText('" + wkt + "'),ST_MakePoint(lon, lat))");
 
-	//	std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+    //	std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
-    auto result_set = itsDB.executeNonTransaction(sqlStmt);	
+    auto result_set = itsDB.executeNonTransaction(sqlStmt);
 
-    for (const auto& row : result_set)
-	  {
-		Spine::Station station;
-		station.station_id = row[0].as<int>();
-		station.fmisid = station.station_id;
-		stations.push_back(station);
+    for (const auto &row : result_set)
+    {
+      Spine::Station station;
+      station.station_id = row[0].as<int>();
+      station.fmisid = station.station_id;
+      stations.push_back(station);
     }
   }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
-
 }
-
 
 }  // namespace Observation
 }  // namespace Engine
