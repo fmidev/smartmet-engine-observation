@@ -1,7 +1,7 @@
 #include "QueryParamsBase.h"
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
-#include <sstream>
+#include <macgyver/StringConversion.h>
 
 namespace SmartMet
 {
@@ -47,8 +47,8 @@ void QueryParamsBase::setTimeRange(const pt::ptime& beginTime, const pt::ptime& 
     if (beginTime > endTime)
       throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("Invalid time interval {} - {}",
-                                 pt::to_simple_string(beginTime),
-                                 pt::to_simple_string(endTime)));
+                                 Fmi::to_simple_string(beginTime),
+                                 Fmi::to_simple_string(endTime)));
 
     m_beginTime = beginTime;
     m_endTime = endTime;
@@ -103,7 +103,7 @@ std::string QueryParamsBase::formattedTime(const pt::ptime& t, const std::string
     std::string fT;
     if (format == "YYYY-MM-DD HH24:MI:SS")
     {
-      fT = pt::to_simple_string(t);
+      fT = Fmi::to_simple_string(t);
       if ((fT != "not-a-date-time") and (fT != "+infinity") and (fT != "-infinity") and (fT != ""))
         return fT;
     }

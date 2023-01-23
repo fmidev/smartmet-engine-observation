@@ -769,7 +769,7 @@ void PostgreSQLObsDB::translateToIdFunction(Spine::Stations &stations, int net_i
     std::string sqlStmt = (sqlStmtStart + Fmi::to_string(static_cast<int>(s.station_id)));
     // For RWSID dont use date
     if (net_id != 30)
-      sqlStmt += (+",'" + boost::posix_time::to_simple_string(s.station_start) + "'");
+      sqlStmt += (+",'" + Fmi::to_simple_string(s.station_start) + "'");
     sqlStmt += ")";
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
@@ -984,8 +984,8 @@ WHERE  tg.group_class_id IN( 1, 81 )
       s.station_formal_name = row[5].as<std::string>();
       station_start = row[6].as<std::string>();
       station_end = row[9].as<std::string>();
-      s.station_start = boost::posix_time::time_from_string(row[7].as<std::string>());
-      s.station_end = boost::posix_time::time_from_string(row[8].as<std::string>());
+      s.station_start = Fmi::TimeParser::parse(row[7].as<std::string>());
+      s.station_end = Fmi::TimeParser::parse(row[8].as<std::string>());
       s.target_category = as_int(row[10]);
       s.stationary = row[11].as<std::string>();
       if (!row[12].is_null())
@@ -996,7 +996,7 @@ WHERE  tg.group_class_id IN( 1, 81 )
         s.longitude_out = as_double(row[14]);
       if (!row[15].is_null())
         s.latitude_out = as_double(row[15]);
-      s.modified_last = boost::posix_time::time_from_string(row[17].as<std::string>());
+      s.modified_last = Fmi::TimeParser::parse(row[17].as<std::string>());
       s.modified_by = as_int(row[18]);
 
       stations.push_back(s);
@@ -1029,8 +1029,8 @@ void PostgreSQLObsDB::readStationLocations(StationLocations &stationLocations) c
       item.location_id = as_int(row[0]);
       item.fmisid = as_int(row[1]);
       item.country_id = as_int(row[2]);
-      item.location_start = boost::posix_time::time_from_string(row[3].as<std::string>());
-      item.location_end = boost::posix_time::time_from_string(row[4].as<std::string>());
+      item.location_start = Fmi::TimeParser::parse(row[3].as<std::string>());
+      item.location_end = Fmi::TimeParser::parse(row[4].as<std::string>());
       item.longitude = as_double(row[5]);
       item.latitude = as_double(row[6]);
       item.elevation = as_double(row[7]);
@@ -1080,10 +1080,8 @@ void PostgreSQLObsDB::getStationGroups(StationGroups &sg) const
         continue;
 
       int station_id = as_int(row[1]);
-      boost::posix_time::ptime starttime =
-          boost::posix_time::time_from_string(row[2].as<std::string>());
-      boost::posix_time::ptime endtime =
-          boost::posix_time::time_from_string(row[3].as<std::string>());
+      boost::posix_time::ptime starttime = Fmi::TimeParser::parse(row[2].as<std::string>());
+      boost::posix_time::ptime endtime = Fmi::TimeParser::parse(row[3].as<std::string>());
       if (groups.find(group_id) != groups.end())
       {
         const std::string &group_name = groups.at(group_id);
@@ -1114,10 +1112,8 @@ void PostgreSQLObsDB::getProducerGroups(ProducerGroups &pg) const
     {
       std::string group_name = row[0].as<std::string>();
       int producer_id = as_int(row[1]);
-      boost::posix_time::ptime starttime =
-          boost::posix_time::time_from_string(row[2].as<std::string>());
-      boost::posix_time::ptime endtime =
-          boost::posix_time::time_from_string(row[3].as<std::string>());
+      boost::posix_time::ptime starttime = Fmi::TimeParser::parse(row[2].as<std::string>());
+      boost::posix_time::ptime endtime = Fmi::TimeParser::parse(row[3].as<std::string>());
       pg.addGroupPeriod(group_name, producer_id, starttime, endtime);
     }
   }

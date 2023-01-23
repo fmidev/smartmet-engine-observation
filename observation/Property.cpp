@@ -158,12 +158,10 @@ Fmi::TypeMap<TypeConv> create_value_to_string_converter()
       {
         if (database == "oracle")
           return "TO_DATE('" +
-                 boost::posix_time::to_simple_string(
-                     boost::any_cast<boost::posix_time::ptime>(value)) +
+                 Fmi::to_simple_string(boost::any_cast<boost::posix_time::ptime>(value)) +
                  "','YYYY-MM-DD HH24:MI:SS')";
         else  // PostgreSQL
-          return boost::posix_time::to_simple_string(
-              boost::any_cast<boost::posix_time::ptime>(value));
+          return Fmi::to_simple_string(boost::any_cast<boost::posix_time::ptime>(value));
       },
       "ptime");
   return conv;

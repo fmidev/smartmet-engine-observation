@@ -1,5 +1,6 @@
 #include "DatabaseDriverContainer.h"
 #include <macgyver/Exception.h>
+#include <macgyver/StringConversion.h>
 
 namespace SmartMet
 {
@@ -70,7 +71,8 @@ DatabaseDriverBase *DatabaseDriverContainer::resolveDriver(
     throw Fmi::Exception::Trace(
         BCP,
         "Error! No database driver found for requested table and period: " + tablename + " -> " +
-            boost::posix_time::to_simple_string(requested_period));
+            Fmi::to_simple_string(requested_period.begin()) + '/' +
+            Fmi::to_simple_string(requested_period.end()));
   }
   catch (...)
   {
