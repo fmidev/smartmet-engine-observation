@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.1.11
+Version: 23.1.24
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -31,10 +31,10 @@ BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 22.12.21
 BuildRequires: smartmet-library-locus-devel >= 22.12.16
 BuildRequires: smartmet-library-macgyver-devel >= 22.12.16
-BuildRequires: smartmet-library-spine-devel >= 22.12.2
+BuildRequires: smartmet-library-spine-devel >= 23.1.16
 BuildRequires: smartmet-library-timeseries-devel >= 22.10.25
 BuildRequires: sqlite3pp-devel >= 1.0.9
-BuildRequires: smartmet-utils-devel >= 22.12.14
+BuildRequires: smartmet-utils-devel >= 23.1.19
 BuildRequires: zlib-devel
 Requires: %{smartmet_boost}-date-time
 Requires: %{smartmet_boost}-iostreams
@@ -48,7 +48,7 @@ Requires: libatomic
 Requires: smartmet-engine-geonames >= 22.12.21
 Requires: smartmet-library-locus >= 22.12.16
 Requires: smartmet-library-macgyver >= 22.12.16
-Requires: smartmet-library-spine >= 22.12.2
+Requires: smartmet-library-spine >= 23.1.16
 Requires: smartmet-library-timeseries >= 22.10.25
 Requires: smartmet-server >= 23.1.10
 Requires: unixODBC
@@ -62,7 +62,7 @@ BuildRequires: libspatialite43-devel
 #TestRequires: libspatialite43-devel
 #TestRequires: sqlite33-devel >= 3.30.1
 #TestRequires: catch-devel >= 1.9.6
-#TestRequires: smartmet-utils-devel >= 22.12.14
+#TestRequires: smartmet-utils-devel >= 23.1.19
 %else
 %if 0%{?rhel} && 0%{rhel} >= 8
 Requires: libpqxx >= 7.7.0 libpqxx < 1:7.8.0
@@ -129,7 +129,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 22.12.2
+Requires: smartmet-library-spine-devel >= 23.1.16
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Jan 24 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.1.24-1.fmi
+- Use string conversion functions from macgyver to avoid std::locale locks
+
 * Wed Jan 11 2023 Anssi Reponen <anssi.reponen@fmi.fi> - 23.1.11-1.fmi
 - Added support for moving stations icebuoy and copernicus (BRAINSTORM-2409)
 
