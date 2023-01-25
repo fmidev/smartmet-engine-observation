@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.1.24
+Version: 23.1.25
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -31,7 +31,7 @@ BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 22.12.21
 BuildRequires: smartmet-library-locus-devel >= 22.12.16
 BuildRequires: smartmet-library-macgyver-devel >= 22.12.16
-BuildRequires: smartmet-library-spine-devel >= 23.1.16
+BuildRequires: smartmet-library-spine-devel >= 23.1.25
 BuildRequires: smartmet-library-timeseries-devel >= 22.10.25
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 23.1.19
@@ -48,7 +48,7 @@ Requires: libatomic
 Requires: smartmet-engine-geonames >= 22.12.21
 Requires: smartmet-library-locus >= 22.12.16
 Requires: smartmet-library-macgyver >= 22.12.16
-Requires: smartmet-library-spine >= 23.1.16
+Requires: smartmet-library-spine >= 23.1.25
 Requires: smartmet-library-timeseries >= 22.10.25
 Requires: smartmet-server >= 23.1.10
 Requires: unixODBC
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jan 25 2023 Anssi Reponen <anssi.reponen@fmi.fi> - 23.1.25-1.fmi
+- Added support for request size limits (BRAINSTORM-2443)
+
 * Tue Jan 24 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.1.24-1.fmi
 - Use string conversion functions from macgyver to avoid std::locale locks
 

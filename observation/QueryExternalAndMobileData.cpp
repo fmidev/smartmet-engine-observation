@@ -169,6 +169,9 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
     ResultSetRows rsrs =
         PostgreSQLCacheDB::getResultSetForMobileExternalData(result_set, conn.dataTypes());
 
+	std::set<std::string> locations;
+	std::set<boost::local_time::local_date_time> obstimes;
+	size_t n_elements = 0;	
     for (auto rsr : rsrs)
     {
       boost::local_time::local_date_time obstime =
@@ -243,6 +246,15 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
           ret->at(index).emplace_back(TS::TimedValue(obstime, value));
         }
         index++;
+
+		n_elements += ret->size();
+		if(longitudeValue && latitudeValue)
+		  locations.insert(Fmi::to_string(*longitudeValue)+Fmi::to_string(*latitudeValue));
+		obstimes.insert(obstime);
+		
+		check_request_limit(settings.requestLimits, locations.size(), Spine::RequestLimitMember::LOCATIONS);
+		check_request_limit(settings.requestLimits, obstimes.size(), Spine::RequestLimitMember::TIMESTEPS);
+		check_request_limit(settings.requestLimits, n_elements, Spine::RequestLimitMember::ELEMENTS);				
       }
     }
     return ret;

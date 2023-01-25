@@ -107,7 +107,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
   void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
-                              const QueryMapping &qmap,
+							  const Spine::RequestLimits& requestLimits,									  
                               WeatherDataQCData &weatherDataQCData) override;
   std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,
