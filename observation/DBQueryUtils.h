@@ -6,6 +6,7 @@
 #include "QueryMapping.h"
 #include "Settings.h"
 #include "StationInfo.h"
+#include <spine/RequestLimits.h>
 #include <macgyver/TimeZones.h>
 #include <timeseries/TimeSeriesInclude.h>
 
@@ -62,8 +63,9 @@ virtual StationMap mapQueryStations(const Spine::Stations &stations, const std::
 
 // Build fmisid1,fmisid2,... list
 virtual std::string buildSqlStationList(const Spine::Stations &stations,
-										  const std::set<std::string> &stationgroup_codes,
-										  const StationInfo &stationInfo) const;
+										const std::set<std::string> &stationgroup_codes,
+										const StationInfo &stationInfo,
+										const Spine::RequestLimits& requestLimits) const;
 
 std::string getSensorQueryCondition(const std::map<int, std::set<int>> &sensorNumberToMeasurandIds) const;
 

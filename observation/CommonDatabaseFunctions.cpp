@@ -154,7 +154,7 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
 
     WeatherDataQCData weatherDataQCData;
 
-    fetchWeatherDataQCData(query, stationInfo, stationgroup_codes, qmap, weatherDataQCData);
+    fetchWeatherDataQCData(query, stationInfo, stationgroup_codes, settings.requestLimits, weatherDataQCData);
 
     StationTimedMeasurandData station_data;
 

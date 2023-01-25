@@ -440,7 +440,7 @@ class SpatiaLite : public CommonDatabaseFunctions
   void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
-                              const QueryMapping &qmap,
+							  const Spine::RequestLimits& requestLimits,									  
                               WeatherDataQCData &cacheData) override;
   std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,

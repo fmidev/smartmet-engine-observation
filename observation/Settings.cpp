@@ -87,7 +87,13 @@ std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings&
   out << "timeformat: " << settings.timeformat << std::endl;
   out << "timestring: " << settings.timestring << std::endl;
   out << "timezone: " << settings.timezone << std::endl;
-  out << "wktArea: " << settings.wktArea << std::endl;
+  std::string wktString = settings.wktArea;
+  if (wktString.size() > 50)
+  {
+    wktString.resize(50);
+    wktString += " ... ";
+  }
+  std::cout << "wktArea: " << wktString << std::endl;
   out << "starttime: " << settings.starttime << std::endl;
   out << "endtime: " << settings.endtime << std::endl;
   out << "maxdistance: " << settings.maxdistance << std::endl;
@@ -98,6 +104,13 @@ std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings&
   out << "starttimeGiven: " << settings.starttimeGiven << std::endl;
   out << "useCommonQueryMethod: " << settings.useCommonQueryMethod << std::endl;
   out << "useDataCache: " << settings.useDataCache << std::endl;
+  out << "preventDatabaseQuery: " << settings.preventDatabaseQuery << std::endl;
+  out << "requestLimits.maxlocations: " << settings.requestLimits.maxlocations << std::endl;
+  out << "requestLimits.maxparameters: " << settings.requestLimits.maxparameters << std::endl;
+  out << "requestLimits.maxtimes: " << settings.requestLimits.maxtimes << std::endl;
+  out << "requestLimits.maxlevels: " << settings.requestLimits.maxlevels << std::endl;
+  out << "requestLimits.maxelements: " << settings.requestLimits.maxelements << std::endl;
+  out << "debug_options: " << settings.debug_options << std::endl;
 
   return out;
 }

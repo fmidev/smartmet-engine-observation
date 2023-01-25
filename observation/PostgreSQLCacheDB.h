@@ -337,11 +337,11 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
 
   static ResultSetRows getResultSetForMobileExternalData(
       const pqxx::result &pgResultSet, const std::map<unsigned int, std::string> &pgDataTypes);
-
+  
   void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
-                              const QueryMapping &qmap,
+							  const Spine::RequestLimits& requestLimits,
                               WeatherDataQCData &cacheData) override;
   std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,

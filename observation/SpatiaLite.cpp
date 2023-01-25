@@ -112,7 +112,7 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
 
     measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
 
-    auto qstations = buildSqlStationList(stations, stationgroup_codes, stationInfo);
+    auto qstations = buildSqlStationList(stations, stationgroup_codes, stationInfo, settings.requestLimits);
 
     if (qstations.empty())
       return ret;
@@ -154,6 +154,8 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
 
     sqlite3pp::query qry(itsDB, sqlStmt.c_str());
 
+	std::set<int> fmisids;
+	std::set<boost::posix_time::ptime> obstimes;
     for (const auto &row : qry)
     {
       LocationDataItem obs;
@@ -186,7 +188,14 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
         obs.data.data_source = row.get<int>(7);
 
       ret.emplace_back(obs);
-    }
+
+	  fmisids.insert(obs.data.fmisid);
+	  obstimes.insert(obs.data.data_time);
+    	  	  
+	  check_request_limit(settings.requestLimits, fmisids.size(), Spine::RequestLimitMember::LOCATIONS);
+	  check_request_limit(settings.requestLimits, obstimes.size(), Spine::RequestLimitMember::TIMESTEPS);
+	  check_request_limit(settings.requestLimits, ret.size(), Spine::RequestLimitMember::ELEMENTS);
+	}
 
     return ret;
   }
@@ -3201,6 +3210,9 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
       // Spine::ReadLock lock(write_mutex);
       sqlite3pp::query qry(itsDB, query.c_str());
 
+	  std::set<std::string> locations;
+	  std::set<boost::posix_time::ptime> obstimes;
+	  size_t n_elements = 0;
       for (auto row : qry)
       {
         map<std::string, TS::Value> result;
@@ -3260,6 +3272,14 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
             timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(localtime, val));
           }
         }
+
+		n_elements += timeSeriesColumns->size();
+		locations.insert(Fmi::to_string(longitude)+Fmi::to_string(latitude));
+		obstimes.insert(utctime);
+
+		check_request_limit(settings.requestLimits, locations.size(), Spine::RequestLimitMember::LOCATIONS);
+		check_request_limit(settings.requestLimits, obstimes.size(), Spine::RequestLimitMember::TIMESTEPS);
+		check_request_limit(settings.requestLimits, n_elements, Spine::RequestLimitMember::ELEMENTS);		
       }
     }
 
@@ -3661,13 +3681,15 @@ void SpatiaLite::initObservationMemoryCache(
 void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
                                         const StationInfo &stationInfo,
                                         const std::set<std::string> &stationgroup_codes,
-                                        const QueryMapping & /* qmap */,
+										const Spine::RequestLimits& requestLimits,									  
                                         WeatherDataQCData &cacheData)
 {
   try
   {
     sqlite3pp::query qry(itsDB, sqlStmt.c_str());
 
+	std::set<int> fmisids;
+	std::set<boost::posix_time::ptime> obstimes;
     for (const auto &row : qry)
     {
       boost::optional<int> fmisid = row.get<int>(0);
@@ -3705,6 +3727,14 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
       cacheData.data_valuesAll.push_back(data_value);
       cacheData.sensor_nosAll.push_back(sensor_no);
       cacheData.data_qualityAll.push_back(data_quality);
+
+	  if(fmisid)
+		fmisids.insert(*fmisid);
+	  obstimes.insert(obstime);
+
+	  check_request_limit(requestLimits, fmisids.size(), Spine::RequestLimitMember::LOCATIONS);
+	  check_request_limit(requestLimits, obstimes.size(), Spine::RequestLimitMember::TIMESTEPS);
+	  check_request_limit(requestLimits, cacheData.data_valuesAll.size(), Spine::RequestLimitMember::ELEMENTS);
     }
   }
   catch (...)

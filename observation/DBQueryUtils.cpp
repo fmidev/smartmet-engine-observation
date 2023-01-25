@@ -976,7 +976,8 @@ StationMap DBQueryUtils::mapQueryStations(const Spine::Stations &stations,
 // Build fmisid1,fmisid2,... list
 std::string DBQueryUtils::buildSqlStationList(const Spine::Stations &stations,
 											  const std::set<std::string> &stationgroup_codes,
-											  const StationInfo &stationInfo) const
+											  const StationInfo &stationInfo,
+											  const Spine::RequestLimits& requestLimits) const
 {
   try
   {
@@ -987,6 +988,8 @@ std::string DBQueryUtils::buildSqlStationList(const Spine::Stations &stations,
       if (stationInfo.belongsToGroup(s.station_id, stationgroup_codes))
         station_ids.insert(Fmi::to_string(s.station_id));
     }
+	check_request_limit(requestLimits, station_ids.size(), Spine::RequestLimitMember::LOCATIONS);
+
     return std::accumulate(std::begin(station_ids),
                            std::end(station_ids),
                            std::string{},

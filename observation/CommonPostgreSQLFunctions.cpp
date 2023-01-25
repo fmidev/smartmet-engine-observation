@@ -304,7 +304,7 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
 
     measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
 
-    auto qstations = buildSqlStationList(stations, stationgroup_codes, stationInfo);
+    auto qstations = buildSqlStationList(stations, stationgroup_codes, stationInfo, settings.requestLimits);
 
     if (qstations.empty())
       return ret;
@@ -369,6 +369,8 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
+	std::set<boost::posix_time::ptime> obstimes;
+	std::set<int> fmisids;
     for (auto row : result_set)
     {
       LocationDataItem obs;
@@ -398,6 +400,12 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
       }
 
       ret.emplace_back(obs);
+	  obstimes.insert(obs.data.data_time);
+	  fmisids.insert(obs.data.fmisid);
+
+	  check_request_limit(settings.requestLimits, fmisids.size(), Spine::RequestLimitMember::LOCATIONS);
+	  check_request_limit(settings.requestLimits, obstimes.size(), Spine::RequestLimitMember::TIMESTEPS);
+	  check_request_limit(settings.requestLimits, ret.size(), Spine::RequestLimitMember::ELEMENTS);
     }
 
     return ret;
@@ -530,6 +538,9 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
     double longitude = std::numeric_limits<double>::max();
     double latitude = std::numeric_limits<double>::max();
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+	std::set<std::string> locations;
+	std::set<boost::posix_time::ptime> obstimes;
+	size_t n_elements = 0;	
     for (auto row : result_set)
     {
       std::map<std::string, TS::Value> result;
@@ -591,6 +602,14 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
           timeSeriesColumns->at(pos).push_back(TS::TimedValue(localtime, val));
         }
       }
+
+	  n_elements += timeSeriesColumns->size();
+	  locations.insert(Fmi::to_string(longitude)+Fmi::to_string(latitude));
+	  obstimes.insert(stroke_time);
+
+	  check_request_limit(settings.requestLimits, locations.size(), Spine::RequestLimitMember::LOCATIONS);
+	  check_request_limit(settings.requestLimits, obstimes.size(), Spine::RequestLimitMember::TIMESTEPS);
+	  check_request_limit(settings.requestLimits, n_elements, Spine::RequestLimitMember::ELEMENTS);		
     }
 
     return timeSeriesColumns;
