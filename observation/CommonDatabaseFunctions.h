@@ -69,7 +69,7 @@ class CommonDatabaseFunctions : public DBQueryUtils
   virtual void fetchWeatherDataQCData(const std::string &sqlStmt,
                                       const StationInfo &stationInfo,
                                       const std::set<std::string> &stationgroup_codes,
-									  const Spine::RequestLimits& requestLimits,									  
+									  const TS::RequestLimits& requestLimits,									  
                                       WeatherDataQCData &weatherDataQCData) = 0;
 
   const StationtypeConfig &getStationtypeConfig() const { return itsStationtypeConfig; }

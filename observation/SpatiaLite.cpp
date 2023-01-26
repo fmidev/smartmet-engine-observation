@@ -192,9 +192,9 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
 	  fmisids.insert(obs.data.fmisid);
 	  obstimes.insert(obs.data.data_time);
     	  	  
-	  check_request_limit(settings.requestLimits, fmisids.size(), Spine::RequestLimitMember::LOCATIONS);
-	  check_request_limit(settings.requestLimits, obstimes.size(), Spine::RequestLimitMember::TIMESTEPS);
-	  check_request_limit(settings.requestLimits, ret.size(), Spine::RequestLimitMember::ELEMENTS);
+	  check_request_limit(settings.requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
+	  check_request_limit(settings.requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
+	  check_request_limit(settings.requestLimits, ret.size(), TS::RequestLimitMember::ELEMENTS);
 	}
 
     return ret;
@@ -3277,9 +3277,9 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
 		locations.insert(Fmi::to_string(longitude)+Fmi::to_string(latitude));
 		obstimes.insert(utctime);
 
-		check_request_limit(settings.requestLimits, locations.size(), Spine::RequestLimitMember::LOCATIONS);
-		check_request_limit(settings.requestLimits, obstimes.size(), Spine::RequestLimitMember::TIMESTEPS);
-		check_request_limit(settings.requestLimits, n_elements, Spine::RequestLimitMember::ELEMENTS);		
+		check_request_limit(settings.requestLimits, locations.size(), TS::RequestLimitMember::LOCATIONS);
+		check_request_limit(settings.requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
+		check_request_limit(settings.requestLimits, n_elements, TS::RequestLimitMember::ELEMENTS);		
       }
     }
 
@@ -3681,7 +3681,7 @@ void SpatiaLite::initObservationMemoryCache(
 void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
                                         const StationInfo &stationInfo,
                                         const std::set<std::string> &stationgroup_codes,
-										const Spine::RequestLimits& requestLimits,									  
+										const TS::RequestLimits& requestLimits,									  
                                         WeatherDataQCData &cacheData)
 {
   try
@@ -3732,9 +3732,9 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
 		fmisids.insert(*fmisid);
 	  obstimes.insert(obstime);
 
-	  check_request_limit(requestLimits, fmisids.size(), Spine::RequestLimitMember::LOCATIONS);
-	  check_request_limit(requestLimits, obstimes.size(), Spine::RequestLimitMember::TIMESTEPS);
-	  check_request_limit(requestLimits, cacheData.data_valuesAll.size(), Spine::RequestLimitMember::ELEMENTS);
+	  check_request_limit(requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
+	  check_request_limit(requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
+	  check_request_limit(requestLimits, cacheData.data_valuesAll.size(), TS::RequestLimitMember::ELEMENTS);
     }
   }
   catch (...)
