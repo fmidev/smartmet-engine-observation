@@ -403,9 +403,9 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
 	  obstimes.insert(obs.data.data_time);
 	  fmisids.insert(obs.data.fmisid);
 
-	  check_request_limit(settings.requestLimits, fmisids.size(), Spine::RequestLimitMember::LOCATIONS);
-	  check_request_limit(settings.requestLimits, obstimes.size(), Spine::RequestLimitMember::TIMESTEPS);
-	  check_request_limit(settings.requestLimits, ret.size(), Spine::RequestLimitMember::ELEMENTS);
+	  check_request_limit(settings.requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
+	  check_request_limit(settings.requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
+	  check_request_limit(settings.requestLimits, ret.size(), TS::RequestLimitMember::ELEMENTS);
     }
 
     return ret;
@@ -607,9 +607,9 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
 	  locations.insert(Fmi::to_string(longitude)+Fmi::to_string(latitude));
 	  obstimes.insert(stroke_time);
 
-	  check_request_limit(settings.requestLimits, locations.size(), Spine::RequestLimitMember::LOCATIONS);
-	  check_request_limit(settings.requestLimits, obstimes.size(), Spine::RequestLimitMember::TIMESTEPS);
-	  check_request_limit(settings.requestLimits, n_elements, Spine::RequestLimitMember::ELEMENTS);		
+	  check_request_limit(settings.requestLimits, locations.size(), TS::RequestLimitMember::LOCATIONS);
+	  check_request_limit(settings.requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
+	  check_request_limit(settings.requestLimits, n_elements, TS::RequestLimitMember::ELEMENTS);		
     }
 
     return timeSeriesColumns;

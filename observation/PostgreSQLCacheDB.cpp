@@ -2177,7 +2177,7 @@ ResultSetRows PostgreSQLCacheDB::getResultSetForMobileExternalData(
 void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
                                                const StationInfo &stationInfo,
                                                const std::set<std::string> &stationgroup_codes,
-											   const Spine::RequestLimits& requestLimits,									  											   
+											   const TS::RequestLimits& requestLimits,									  											   
                                                WeatherDataQCData &cacheData)
 {
   try
@@ -2233,9 +2233,9 @@ void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
 		fmisids.insert(*fmisid);
 	  obstimes.insert(obstime);
 
-	  check_request_limit(requestLimits, obstimes.size(), Spine::RequestLimitMember::TIMESTEPS);
-	  check_request_limit(requestLimits, fmisids.size(), Spine::RequestLimitMember::LOCATIONS);
-	  check_request_limit(requestLimits, cacheData.data_valuesAll.size(), Spine::RequestLimitMember::ELEMENTS);
+	  check_request_limit(requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
+	  check_request_limit(requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
+	  check_request_limit(requestLimits, cacheData.data_valuesAll.size(), TS::RequestLimitMember::ELEMENTS);
     }
   }
   catch (...)

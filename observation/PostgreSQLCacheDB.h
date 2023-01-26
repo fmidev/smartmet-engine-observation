@@ -341,7 +341,7 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
   void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
-							  const Spine::RequestLimits& requestLimits,
+							  const TS::RequestLimits& requestLimits,
                               WeatherDataQCData &cacheData) override;
   std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,

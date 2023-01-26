@@ -252,9 +252,9 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
 		  locations.insert(Fmi::to_string(*longitudeValue)+Fmi::to_string(*latitudeValue));
 		obstimes.insert(obstime);
 		
-		check_request_limit(settings.requestLimits, locations.size(), Spine::RequestLimitMember::LOCATIONS);
-		check_request_limit(settings.requestLimits, obstimes.size(), Spine::RequestLimitMember::TIMESTEPS);
-		check_request_limit(settings.requestLimits, n_elements, Spine::RequestLimitMember::ELEMENTS);				
+		check_request_limit(settings.requestLimits, locations.size(), TS::RequestLimitMember::LOCATIONS);
+		check_request_limit(settings.requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
+		check_request_limit(settings.requestLimits, n_elements, TS::RequestLimitMember::ELEMENTS);				
       }
     }
     return ret;

@@ -8,7 +8,6 @@
 #include <spine/Location.h>
 #include <spine/Parameter.h>
 #include <spine/Station.h>
-#include <spine/RequestLimits.h>
 #include <timeseries/TimeSeriesInclude.h>
 #include <locale>
 #include <ostream>
@@ -67,7 +66,7 @@ class Settings
   bool useDataCache = true;           // default is true
   bool preventDatabaseQuery = false;
   TS::LocalTimePoolPtr localTimePool{nullptr};
-  Spine::RequestLimits requestLimits;
+  TS::RequestLimits requestLimits;
   // 0 or more bits from DebugOptions to enable debugging features
   uint32_t debug_options = 0;
 };
