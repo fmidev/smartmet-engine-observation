@@ -717,7 +717,7 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
         continue;
       if (check_type && !string_found(s.station_type, options.type))
         continue;
-      if (check_name && !string_found(s.station_formal_name, options.name))
+      if (check_name && !string_found(s.station_formal_name_fi, options.name))
         continue;
       if (check_iso2 && !string_found(s.iso2, options.iso2))
         continue;
@@ -820,7 +820,7 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
         // Row number
         resultTable->set(column++, row, Fmi::to_string(row + 1));
         // Name
-        resultTable->set(column++, row, s.station_formal_name);
+        resultTable->set(column++, row, s.station_formal_name("fi"));
         // Type
         resultTable->set(column++, row, location_item.second);
         // FMISID

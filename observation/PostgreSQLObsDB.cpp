@@ -827,13 +827,14 @@ void PostgreSQLObsDB::getStations(Spine::Stations &stations) const
   try
   {
     // clang-format off
-    string sqlStmt = R"SQL(
-SELECT DISTINCT tg.group_name                                 AS group_code,
+    string sqlStmt = R"SQL(SELECT DISTINCT tg.group_name                                 AS group_code,
                 t.target_id                                   AS station_id,
                 t.access_policy                               AS access_policy_id,
                 t.target_status                               AS station_status_id,
                 t.language_code                               AS language_code,
                 t.target_formal_name                          AS station_formal_name,
+                svname.target_formal_name                     AS sv_formal_name,
+                enname.target_formal_name                     AS en_formal_name,
                 t.target_start                                AS station_start,
                 Min(tgm.valid_from)
                   over(
@@ -880,6 +881,10 @@ FROM   target_group_t1 tg
        left outer join network_member_t1 wmon
                     ON( wmon.target_id = t.target_id
                         AND wmon.network_id = 20 )
+       left outer join target_tl1 svname
+                    ON ( svname.language_code = 'sv' and svname.target_id = t.target_id )
+       left outer join target_tl1 enname
+                    ON ( enname.language_code = 'en' and enname.target_id = t.target_id )
 WHERE  tg.group_class_id IN( 1, 81 )
        AND tg.group_name IN( 'STUKRAD', 'STUKAIR', 'RWSFIN', 'AIRQCOMM',
                              'AIRQUAL', 'ASC', 'AVI', 'AWS',
@@ -900,6 +905,8 @@ SELECT DISTINCT tg.group_code,
                 t.target_status                               AS station_status_id,
                 t.language_code                               AS language_code,
                 t.target_formal_name                          AS station_formal_name,
+                svname.target_formal_name                     AS sv_formal_name,
+                enname.target_formal_name                     AS en_formal_name,
                 t.target_start                                AS station_start,
                 Min(tgm.membership_start)
                   over(
@@ -946,6 +953,10 @@ FROM   network_t1 tg
        left outer join network_member_t1 wmon
                     ON ( wmon.target_id = t.target_id
                          AND wmon.network_id = 20 )
+       left outer join target_tl1 svname
+                    ON ( svname.language_code = 'sv' and svname.target_id = t.target_id )
+       left outer join target_tl1 enname
+                    ON ( enname.language_code = 'en' and enname.target_id = t.target_id )
 WHERE  tg.group_class_id IN( 1, 81 )
        AND tg.group_code IN( 'STUKRAD', 'STUKAIR', 'RWSFIN', 'AIRQCOMM',
                              'AIRQUAL', 'ASC', 'AVI', 'AWS',
@@ -961,7 +972,7 @@ WHERE  tg.group_class_id IN( 1, 81 )
                              'SOUNDING', 'SYNOP' );)SQL";
     // clang-format on
 
-    if (itsDebug)
+	if (itsDebug)
       std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
@@ -977,7 +988,7 @@ WHERE  tg.group_class_id IN( 1, 81 )
       // Skip private stations unless EXTRWYWS (runway stations)
       if (s.access_policy_id != 0 && s.station_type != "EXTRWYWS")
       {
-        // std::cerr << "PROTECTED station " << station_id << " " << station_formal_name << " of
+        // std::cerr << "PROTECTED station " << station_id << " " << station_formal_name_fi << " of
         // type " << station_type << std::endl;
         continue;
       }
@@ -992,24 +1003,27 @@ WHERE  tg.group_class_id IN( 1, 81 )
 
       s.station_status_id = as_int(row[3]);
       s.language_code = row[4].as<std::string>();
-      s.station_formal_name = row[5].as<std::string>();
-      station_start = row[6].as<std::string>();
-      station_end = row[9].as<std::string>();
-      s.station_start = Fmi::TimeParser::parse(row[7].as<std::string>());
-      s.station_end = Fmi::TimeParser::parse(row[8].as<std::string>());
-      s.target_category = as_int(row[10]);
-      s.stationary = row[11].as<std::string>();
-      if (!row[12].is_null())
-        s.lpnn = as_int(row[12]);
-      if (!row[13].is_null())
-        s.wmo = as_int(row[13]);
+      s.station_formal_name_fi = row[5].as<std::string>();
+      if (!row[6].is_null())
+		s.station_formal_name_sv = row[6].as<std::string>();
+      if (!row[7].is_null())
+		s.station_formal_name_en = row[7].as<std::string>();
+      station_start = row[8].as<std::string>();
+      station_end = row[11].as<std::string>();
+      s.station_start = Fmi::TimeParser::parse(row[9].as<std::string>());
+      s.station_end = Fmi::TimeParser::parse(row[10].as<std::string>());
+      s.target_category = as_int(row[12]);
+      s.stationary = row[13].as<std::string>();
       if (!row[14].is_null())
-        s.longitude_out = as_double(row[14]);
+        s.lpnn = as_int(row[14]);
       if (!row[15].is_null())
-        s.latitude_out = as_double(row[15]);
-      s.modified_last = Fmi::TimeParser::parse(row[17].as<std::string>());
-      s.modified_by = as_int(row[18]);
-
+        s.wmo = as_int(row[15]);
+      if (!row[16].is_null())
+        s.longitude_out = as_double(row[16]);
+      if (!row[17].is_null())
+        s.latitude_out = as_double(row[17]);
+      s.modified_last = Fmi::TimeParser::parse(row[19].as<std::string>());
+      s.modified_by = as_int(row[20]);
       stations.push_back(s);
     }
   }
