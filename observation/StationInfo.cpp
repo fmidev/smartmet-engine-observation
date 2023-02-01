@@ -248,8 +248,8 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
             {
               if (lhs.first != rhs.first)
                 return lhs.first < rhs.first;
-              return (this->stations.at(lhs.second).station_formal_name <
-                      this->stations.at(rhs.second).station_formal_name);
+              return (this->stations.at(lhs.second).station_formal_name_fi <
+                      this->stations.at(rhs.second).station_formal_name_fi);
             });
 
   // Accept only max count stations

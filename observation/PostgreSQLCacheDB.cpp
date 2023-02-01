@@ -1931,7 +1931,7 @@ void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(
       timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, obstime));
 
     else if (paramname == "station_name" || paramname == "stationname")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.station_formal_name));
+	  timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.station_formal_name_fi));
 
     else if (paramname == "fmisid")
       timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.station_id));
