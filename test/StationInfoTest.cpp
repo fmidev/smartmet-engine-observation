@@ -33,35 +33,25 @@ TEST_CASE("Test station and data searches")
     {
       auto station = stationinfo.getStation(station_id, stationgroup_codes);
       REQUIRE(station.fmisid == station_id);
-      REQUIRE(station.station_formal_name == "Helsinki Kaisaniemi");
+      REQUIRE(station.station_formal_name_fi == "Helsinki Kaisaniemi");
     }
     SECTION("1 station is searched by coordinates")
     {
       int numberofstations = 1;
 
-      auto stations = stationinfo.findNearestStations(lon,
-                                                      lat,
-                                                      maxdistance,
-                                                      numberofstations,
-                                                      stationgroup_codes,
-                                                      starttime,
-                                                      endtime);
+      auto stations = stationinfo.findNearestStations(
+          lon, lat, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
       REQUIRE(stations.size() == 1);
       REQUIRE(stations.back().fmisid == station_id);
-      REQUIRE(stations.back().station_formal_name == "Helsinki Kaisaniemi");
+      REQUIRE(stations.back().station_formal_name_fi == "Helsinki Kaisaniemi");
       REQUIRE(Fmi::stod(stations.back().distance) < 0.1);
     }
     SECTION("5 stations are searched by coordinates")
     {
       int numberofstations = 5;
 
-      auto stations = stationinfo.findNearestStations(lon,
-                                                      lat,
-                                                      maxdistance,
-                                                      numberofstations,
-                                                      stationgroup_codes,
-                                                      starttime,
-                                                      endtime);
+      auto stations = stationinfo.findNearestStations(
+          lon, lat, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
 
       REQUIRE(stations.size() == 5);
       REQUIRE(stations[0].fmisid == 100971);
@@ -76,7 +66,6 @@ TEST_CASE("Test station and data searches")
       auto stations = stationinfo.findStationsInGroup(stationgroup_codes, starttime, endtime);
       REQUIRE(stations.size() == 170);
     }
-
   }
 
   SECTION("Using EXTRWS group")
@@ -92,52 +81,37 @@ TEST_CASE("Test station and data searches")
     {
       auto station = stationinfo.getStation(station_id, stationgroup_codes);
       REQUIRE(station.fmisid == station_id);
-      REQUIRE(station.station_formal_name == "kt51 Inkoo R");
+      REQUIRE(station.station_formal_name_fi == "kt51 Inkoo R");
     }
     SECTION("1 station is searched by coordinates")
     {
       int numberofstations = 1;
 
-      auto stations = stationinfo.findNearestStations(lon,
-                                                      lat,
-                                                      maxdistance,
-                                                      numberofstations,
-                                                      stationgroup_codes,
-                                                      starttime,
-                                                      endtime);
+      auto stations = stationinfo.findNearestStations(
+          lon, lat, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
       REQUIRE(stations.size() == 1);
       REQUIRE(stations.back().fmisid == station_id);
-      REQUIRE(stations.back().station_formal_name == "kt51 Inkoo R");
+      REQUIRE(stations.back().station_formal_name_fi == "kt51 Inkoo R");
       REQUIRE(Fmi::stod(stations.back().distance) < 0.1);
     }
 
     SECTION("1 station is searched by coordinates, first one alphabetically is chosen")
     {
       int numberofstations = 1;
-      auto stations = stationinfo.findNearestStations(25.6116,
-                                                      60.9783,
-                                                      maxdistance,
-                                                      numberofstations,
-                                                      stationgroup_codes,
-                                                      starttime,
-                                                      endtime);
+      auto stations = stationinfo.findNearestStations(
+          25.6116, 60.9783, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
       REQUIRE(stations.size() == 1);
       REQUIRE(stations.back().fmisid == 100205);
-      REQUIRE(stations.back().station_formal_name == "vt12 Lahti Opt");
+      REQUIRE(stations.back().station_formal_name_fi == "vt12 Lahti Opt");
       REQUIRE(Fmi::stod(stations.back().distance) < 0.2);
     }
-    
+
     SECTION("5 stations are searched by coordinates")
     {
       int numberofstations = 5;
 
-      auto stations = stationinfo.findNearestStations(lon,
-                                                      lat,
-                                                      maxdistance,
-                                                      numberofstations,
-                                                      stationgroup_codes,
-                                                      starttime,
-                                                      endtime);
+      auto stations = stationinfo.findNearestStations(
+          lon, lat, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
 
       REQUIRE(stations.size() == 5);
       REQUIRE(stations[0].fmisid == 100013);
@@ -167,20 +141,14 @@ TEST_CASE("Test station and data searches")
       {
         int numberofstations = 1;
 
-        auto stations = stationinfo.findNearestStations(lon,
-                                                        lat,
-                                                        maxdistance,
-                                                        numberofstations,
-                                                        stationgroup_codes,
-                                                        starttime,
-                                                        endtime);
+        auto stations = stationinfo.findNearestStations(
+            lon, lat, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
         REQUIRE(stations.size() == 1);
         REQUIRE(stations.back().fmisid == station_id);
-        REQUIRE(stations.back().station_formal_name == "Hemling");
+        REQUIRE(stations.back().station_formal_name_fi == "Hemling");
         REQUIRE(stations.back().geoid == geoid);
         REQUIRE(Fmi::stod(stations.back().distance) <= 0.1);
       }
-
     }
   }
 }
