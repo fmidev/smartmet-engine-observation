@@ -290,8 +290,8 @@ void DatabaseDriverBase::getStationsByArea(Spine::Stations &stations,
 {
   try
   {
-	itsDatabaseStations->getStationsByArea(stations, stationtype, starttime, endtime, wkt);
-	stations = removeDuplicateStations(stations);
+    itsDatabaseStations->getStationsByArea(stations, stationtype, starttime, endtime, wkt);
+    stations = removeDuplicateStations(stations);
   }
   catch (...)
   {
@@ -339,8 +339,8 @@ std::string DatabaseDriverBase::resolveDatabaseTableName(const std::string &prod
     else if (producer == NETATMO_PRODUCER || producer == ROADCLOUD_PRODUCER ||
              producer == FMI_IOT_PRODUCER || producer == BK_HYDROMETA_PRODUCER)
       tablename = EXT_OBSDATA_TABLE;
-    else if(producer == ICEBUOY_PRODUCER || producer == COPERNICUS_PRODUCER)
-        tablename = OBSERVATION_DATA_TABLE;
+    else if (producer == ICEBUOY_PRODUCER || producer == COPERNICUS_PRODUCER)
+      tablename = OBSERVATION_DATA_TABLE;
     else
     {
       tablename = stationtypeConfig.getDatabaseTableNameByStationtype(producer);

@@ -109,10 +109,10 @@ class PostgreSQLCache : public ObservationCache
   void shutdown() override;
 
   void getMovingStations(Spine::Stations &stations,
-						 const std::string &stationtype,
-						 const boost::posix_time::ptime &startTime,
-						 const boost::posix_time::ptime &endTime,
-						 const std::string &wkt) const override;
+                         const std::string &stationtype,
+                         const boost::posix_time::ptime &startTime,
+                         const boost::posix_time::ptime &endTime,
+                         const std::string &wkt) const override;
 
  private:
   std::unique_ptr<PostgreSQLCacheConnectionPool> itsConnectionPool;

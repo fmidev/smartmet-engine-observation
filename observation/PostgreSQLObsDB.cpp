@@ -640,15 +640,15 @@ void PostgreSQLObsDB::setTimeInterval(const ptime &theStartTime,
 void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
                                              const StationInfo &stationInfo,
                                              const std::set<std::string> &stationgroup_codes,
-											 const TS::RequestLimits& requestLimits,									  
+                                             const TS::RequestLimits &requestLimits,
                                              WeatherDataQCData &cacheData)
 {
   try
   {
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
-	std::set<int> fmisids;
-	std::set<boost::posix_time::ptime> obstimes;
+    std::set<int> fmisids;
+    std::set<boost::posix_time::ptime> obstimes;
     for (auto row : result_set)
     {
       Fmi::AsyncTask::interruption_point();
@@ -693,13 +693,14 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       cacheData.sensor_nosAll.push_back(sensor_no);
       cacheData.data_qualityAll.push_back(data_quality);
 
-	  if(fmisid)
-		fmisids.insert(*fmisid);
-	  obstimes.insert(obstime);
+      if (fmisid)
+        fmisids.insert(*fmisid);
+      obstimes.insert(obstime);
 
-	  check_request_limit(requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
-	  check_request_limit(requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
-	  check_request_limit(requestLimits, cacheData.data_valuesAll.size(), TS::RequestLimitMember::ELEMENTS);
+      check_request_limit(requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
+      check_request_limit(requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
+      check_request_limit(
+          requestLimits, cacheData.data_valuesAll.size(), TS::RequestLimitMember::ELEMENTS);
     }
   }
   catch (...)
@@ -972,7 +973,7 @@ WHERE  tg.group_class_id IN( 1, 81 )
                              'SOUNDING', 'SYNOP' );)SQL";
     // clang-format on
 
-	if (itsDebug)
+    if (itsDebug)
       std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
@@ -1005,9 +1006,9 @@ WHERE  tg.group_class_id IN( 1, 81 )
       s.language_code = row[4].as<std::string>();
       s.station_formal_name_fi = row[5].as<std::string>();
       if (!row[6].is_null())
-		s.station_formal_name_sv = row[6].as<std::string>();
+        s.station_formal_name_sv = row[6].as<std::string>();
       if (!row[7].is_null())
-		s.station_formal_name_en = row[7].as<std::string>();
+        s.station_formal_name_en = row[7].as<std::string>();
       station_start = row[8].as<std::string>();
       station_end = row[11].as<std::string>();
       s.station_start = Fmi::TimeParser::parse(row[9].as<std::string>());

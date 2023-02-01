@@ -25,54 +25,58 @@ enum class AdditionalTimestepOption
 
 class DBQueryUtils
 {
-public:
-DBQueryUtils(const ParameterMapPtr &pm) : itsParameterMap(pm) {}
+ public:
+  DBQueryUtils(const ParameterMapPtr &pm) : itsParameterMap(pm) {}
 
-// If timesteps requested, timeseries must have all requested and data timesteps (because of
-// aggregation) but wms, wfs must have only requested timesteps
-void setAdditionalTimestepOption(AdditionalTimestepOption opt);
-const ParameterMapPtr &getParameterMap() const { return itsParameterMap; }
-void setDebug(bool state) { itsDebug = state; }
-bool getDebug() const { return itsDebug; }
+  // If timesteps requested, timeseries must have all requested and data timesteps (because of
+  // aggregation) but wms, wfs must have only requested timesteps
+  void setAdditionalTimestepOption(AdditionalTimestepOption opt);
+  const ParameterMapPtr &getParameterMap() const { return itsParameterMap; }
+  void setDebug(bool state) { itsDebug = state; }
+  bool getDebug() const { return itsDebug; }
 
-protected:
-virtual QueryMapping buildQueryMapping(const Settings &settings,
-										 const std::string &stationtype,
-										 bool isWeatherDataQCTable) const;
+ protected:
+  virtual QueryMapping buildQueryMapping(const Settings &settings,
+                                         const std::string &stationtype,
+                                         bool isWeatherDataQCTable) const;
 
-virtual StationTimedMeasurandData buildStationTimedMeasurandData(const LocationDataItems &observations,
-																   const Settings &settings,
-																   const Fmi::TimeZones &timezones,
-																   const StationMap &fmisid_to_station) const;
+  virtual StationTimedMeasurandData buildStationTimedMeasurandData(
+      const LocationDataItems &observations,
+      const Settings &settings,
+      const Fmi::TimeZones &timezones,
+      const StationMap &fmisid_to_station) const;
 
-virtual TS::TimeSeriesVectorPtr buildTimeseries(const Settings &settings,
-												  const std::string &stationtype,
-												  const StationMap &fmisid_to_station,
-												  const StationTimedMeasurandData &station_data,
-												  const QueryMapping &qmap,
-												  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-												  const Fmi::TimeZones &timezones) const;
+  virtual TS::TimeSeriesVectorPtr buildTimeseries(
+      const Settings &settings,
+      const std::string &stationtype,
+      const StationMap &fmisid_to_station,
+      const StationTimedMeasurandData &station_data,
+      const QueryMapping &qmap,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Fmi::TimeZones &timezones) const;
 
-virtual TimestepsByFMISID getValidTimeSteps(const Settings &settings,
-											  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-											  const Fmi::TimeZones &timezones,
-											  std::map<int, TS::TimeSeriesVectorPtr>& fmisid_results) const;
+  virtual TimestepsByFMISID getValidTimeSteps(
+      const Settings &settings,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Fmi::TimeZones &timezones,
+      std::map<int, TS::TimeSeriesVectorPtr> &fmisid_results) const;
 
-virtual StationMap mapQueryStations(const Spine::Stations &stations, const std::set<int> &observed_fmisids) const;
+  virtual StationMap mapQueryStations(const Spine::Stations &stations,
+                                      const std::set<int> &observed_fmisids) const;
 
-// Build fmisid1,fmisid2,... list
-virtual std::string buildSqlStationList(const Spine::Stations &stations,
-										const std::set<std::string> &stationgroup_codes,
-										const StationInfo &stationInfo,
-										const TS::RequestLimits& requestLimits) const;
+  // Build fmisid1,fmisid2,... list
+  virtual std::string buildSqlStationList(const Spine::Stations &stations,
+                                          const std::set<std::string> &stationgroup_codes,
+                                          const StationInfo &stationInfo,
+                                          const TS::RequestLimits &requestLimits) const;
 
-std::string getSensorQueryCondition(const std::map<int, std::set<int>> &sensorNumberToMeasurandIds) const;
+  std::string getSensorQueryCondition(
+      const std::map<int, std::set<int>> &sensorNumberToMeasurandIds) const;
 
+  const ParameterMapPtr &itsParameterMap;
+  bool itsDebug{false};
 
-const ParameterMapPtr &itsParameterMap;
-bool itsDebug{false};
-
-private:
+ private:
   AdditionalTimestepOption itsGetRequestedAndDataTimesteps{
       AdditionalTimestepOption::RequestedAndDataTimesteps};
 };

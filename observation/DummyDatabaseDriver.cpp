@@ -31,11 +31,11 @@ Spine::TaggedFMISIDList DummyDatabaseDriver::translateToFMISID(
   return Spine::TaggedFMISIDList();
 }
 
-void DummyDatabaseDriver::getMovingStationsByArea(Spine::Stations &/*stations*/,
-												  const std::string &/*stationtype*/,
-												  const boost::posix_time::ptime &/*starttime*/,
-												  const boost::posix_time::ptime &/*endtime*/,
-												  const std::string &/*wkt*/) const
+void DummyDatabaseDriver::getMovingStationsByArea(Spine::Stations & /*stations*/,
+                                                  const std::string & /*stationtype*/,
+                                                  const boost::posix_time::ptime & /*starttime*/,
+                                                  const boost::posix_time::ptime & /*endtime*/,
+                                                  const std::string & /*wkt*/) const
 {
 }
 

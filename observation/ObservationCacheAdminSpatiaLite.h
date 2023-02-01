@@ -16,9 +16,9 @@ class ObservationCacheAdminSpatiaLite : public ObservationCacheAdminBase
                                   std::atomic<bool>& conn_ok,
                                   bool timer);
   void readMovingStationsCacheData(std::vector<MovingLocationItem>& cacheData,
-								  const boost::posix_time::ptime& startTime,
-								   const boost::posix_time::ptime& lastModifiedTime,
-								   const Fmi::TimeZones& timezones) const override
+                                   const boost::posix_time::ptime& startTime,
+                                   const boost::posix_time::ptime& lastModifiedTime,
+                                   const Fmi::TimeZones& timezones) const override
   {
   }
   void readObservationCacheData(std::vector<DataItem>& cacheData,

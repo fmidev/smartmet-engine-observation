@@ -1,11 +1,11 @@
 #pragma once
 
 #include "CommonPostgreSQLFunctions.h"
-#include "MovingLocationItem.h"
 #include "DataItem.h"
 #include "FlashDataItem.h"
 #include "MagnetometerDataItem.h"
 #include "MobileExternalDataItem.h"
+#include "MovingLocationItem.h"
 #include "ParameterMap.h"
 #include "ProducerGroups.h"
 #include "QueryResultBase.h"
@@ -69,9 +69,9 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
                                                 const std::string &measurandId,
                                                 const Fmi::TimeZones &timezones);
   void readMovingStationsCacheDataFromPostgreSQL(std::vector<MovingLocationItem> &cacheData,
-												 const boost::posix_time::ptime &startTime,
-												 const boost::posix_time::ptime &lastModifiedTime,
-												 const Fmi::TimeZones &timezones);
+                                                 const boost::posix_time::ptime &startTime,
+                                                 const boost::posix_time::ptime &lastModifiedTime,
+                                                 const Fmi::TimeZones &timezones);
   void readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
                                    const boost::posix_time::ptime &startTime,
                                    const boost::posix_time::ptime &lastModifiedTime,
@@ -107,7 +107,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
   void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
-							  const TS::RequestLimits& requestLimits,									  
+                              const TS::RequestLimits &requestLimits,
                               WeatherDataQCData &weatherDataQCData) override;
   std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,
@@ -125,11 +125,11 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
   void getProducerGroups(ProducerGroups &pg) const;
 
   void getMovingStations(Spine::Stations &stations,
-						 const std::string &stationtype,
-						 const boost::posix_time::ptime &startTime,
-						 const boost::posix_time::ptime &endTime,
-						 const std::string &wkt) const;
-	
+                         const std::string &stationtype,
+                         const boost::posix_time::ptime &startTime,
+                         const boost::posix_time::ptime &endTime,
+                         const std::string &wkt) const;
+
  private:
   TS::TimeSeriesVectorPtr itsTimeSeriesColumns;
 

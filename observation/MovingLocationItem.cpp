@@ -27,15 +27,16 @@ std::size_t MovingLocationItem::hash_value() const
   }
 }
 
-
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
 
-std::ostream& operator<<(std::ostream& out, const SmartMet::Engine::Observation::MovingLocationItem& item)
+std::ostream& operator<<(std::ostream& out,
+                         const SmartMet::Engine::Observation::MovingLocationItem& item)
 {
   out << Fmi::to_iso_string(item.station_id) << ' ' << Fmi::to_iso_string(item.sdate) << ' '
       << Fmi::to_iso_string(item.edate) << ' ' << Fmi::to_string(item.lon) << ' '
-      << Fmi::to_string(item.lat) << ' ' << Fmi::to_string(item.elev)  << ' ' << Fmi::to_string(item.hash_value());
+      << Fmi::to_string(item.lat) << ' ' << Fmi::to_string(item.elev) << ' '
+      << Fmi::to_string(item.hash_value());
   return out;
 }

@@ -368,8 +368,8 @@ void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
         Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".locationCacheSize", 0));
     params["dataInsertCacheSize"] =
         Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".dataInsertCacheSize", 0));
-    params["movingLocationsInsertCacheSize"] =
-        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".movingLocationsInsertCacheSize", 0));
+    params["movingLocationsInsertCacheSize"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".movingLocationsInsertCacheSize", 0));
     params["weatherDataQCInsertCacheSize"] = Fmi::to_string(
         cfg.get_optional_config_param<int>(common_key + ".weatherDataQCInsertCacheSize", 0));
     params["flashInsertCacheSize"] =
@@ -557,8 +557,8 @@ void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".locationCacheSize"));
   params["dataInsertCacheSize"] =
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".dataInsertCacheSize"));
-  params["movingLocationsInsertCacheSize"] =
-	Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".movingLocationsInsertCacheSize", 0));
+  params["movingLocationsInsertCacheSize"] = Fmi::to_string(
+      cfg.get_optional_config_param<int>(common_key + ".movingLocationsInsertCacheSize", 0));
   params["weatherDataQCInsertCacheSize"] = Fmi::to_string(
       cfg.get_mandatory_config_param<int>(common_key + ".weatherDataQCInsertCacheSize"));
   params["flashInsertCacheSize"] =

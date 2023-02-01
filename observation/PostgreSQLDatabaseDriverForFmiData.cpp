@@ -256,22 +256,24 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
 
     Spine::Stations stations;
     // Return empty data if no stations found, except for flash
-    if (tablename != FLASH_DATA_TABLE && (settings.stationtype != ICEBUOY_PRODUCER && settings.stationtype != COPERNICUS_PRODUCER))
-	  {
-		getStations(stations, settings);
-		if (stations.empty())
-		  return ret;
-	  }
+    if (tablename != FLASH_DATA_TABLE &&
+        (settings.stationtype != ICEBUOY_PRODUCER && settings.stationtype != COPERNICUS_PRODUCER))
+    {
+      getStations(stations, settings);
+      if (stations.empty())
+        return ret;
+    }
     std::unique_ptr<ObservationMemoryCache> dummy;
 
     if (tablename == OBSERVATION_DATA_TABLE)
-	  {
-		// If producer == icebuoy or extship -> 
-		if(settings.stationtype == ICEBUOY_PRODUCER || settings.stationtype == COPERNICUS_PRODUCER)
-		  return db->getObservationDataForMovingStations(settings, timeSeriesOptions, itsTimeZones);
-		else
-		  return db->getObservationData(stations, settings, *info, timeSeriesOptions, itsTimeZones, dummy);
-	  }
+    {
+      // If producer == icebuoy or extship ->
+      if (settings.stationtype == ICEBUOY_PRODUCER || settings.stationtype == COPERNICUS_PRODUCER)
+        return db->getObservationDataForMovingStations(settings, timeSeriesOptions, itsTimeZones);
+      else
+        return db->getObservationData(
+            stations, settings, *info, timeSeriesOptions, itsTimeZones, dummy);
+    }
     else if (tablename == WEATHER_DATA_QC_TABLE)
       return db->getWeatherDataQCData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
     else if (tablename == FLASH_DATA_TABLE)
@@ -361,24 +363,26 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
     auto info = itsParameters.params->stationInfo.load();
 
     Spine::Stations stations;
-	getStations(stations, settings);
+    getStations(stations, settings);
     // Return empty data if no stations found, except for flash
-    if (tablename != FLASH_DATA_TABLE && (settings.stationtype != ICEBUOY_PRODUCER && settings.stationtype != COPERNICUS_PRODUCER))
-	  {
-		if (stations.empty())
-		  return ret;
-	  }
+    if (tablename != FLASH_DATA_TABLE &&
+        (settings.stationtype != ICEBUOY_PRODUCER && settings.stationtype != COPERNICUS_PRODUCER))
+    {
+      if (stations.empty())
+        return ret;
+    }
 
     std::unique_ptr<ObservationMemoryCache> dummy;
 
     if (tablename == OBSERVATION_DATA_TABLE)
-	  {
-		// If producer == icebuoy or extship -> 
-		if(settings.stationtype == ICEBUOY_PRODUCER || settings.stationtype == COPERNICUS_PRODUCER)
-		  return db->getObservationDataForMovingStations(settings, timeSeriesOptions, itsTimeZones);
-		else
-		  return db->getObservationData(stations, settings, *info, timeSeriesOptions, itsTimeZones, dummy);
-	  }
+    {
+      // If producer == icebuoy or extship ->
+      if (settings.stationtype == ICEBUOY_PRODUCER || settings.stationtype == COPERNICUS_PRODUCER)
+        return db->getObservationDataForMovingStations(settings, timeSeriesOptions, itsTimeZones);
+      else
+        return db->getObservationData(
+            stations, settings, *info, timeSeriesOptions, itsTimeZones, dummy);
+    }
     else if (tablename == WEATHER_DATA_QC_TABLE)
       return db->getWeatherDataQCData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
     else if (tablename == FLASH_DATA_TABLE)
@@ -409,16 +413,17 @@ void PostgreSQLDatabaseDriverForFmiData::getStationsByArea(
   itsDatabaseStations->getStationsByArea(stations, stationtype, starttime, endtime, wkt);
 }
 
-void PostgreSQLDatabaseDriverForFmiData::getMovingStationsByArea(Spine::Stations &stations,
-																 const std::string &stationtype,
-																 const boost::posix_time::ptime &starttime,
-																 const boost::posix_time::ptime &endtime,
-																 const std::string &wkt) const
+void PostgreSQLDatabaseDriverForFmiData::getMovingStationsByArea(
+    Spine::Stations &stations,
+    const std::string &stationtype,
+    const boost::posix_time::ptime &starttime,
+    const boost::posix_time::ptime &endtime,
+    const std::string &wkt) const
 {
- try
+  try
   {
-    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();	
-	db->getMovingStations(stations, stationtype, starttime, endtime, wkt);
+    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+    db->getMovingStations(stations, stationtype, starttime, endtime, wkt);
   }
   catch (...)
   {

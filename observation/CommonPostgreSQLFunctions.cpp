@@ -56,9 +56,10 @@ void CommonPostgreSQLFunctions::shutdown()
   itsDB.cancel();
 }
 
-TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationDataForMovingStations(const Settings &settings,
-																					   const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-																					   const Fmi::TimeZones &timezones)
+TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationDataForMovingStations(
+    const Settings &settings,
+    const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -67,33 +68,35 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationDataForMovingSt
 
     // Resolve stationgroup codes
     std::set<std::string> stationgroup_codes;
-    auto stationgroupCodeSet = itsStationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
+    auto stationgroupCodeSet =
+        itsStationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
     stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
 
-    LocationDataItems observations = readObservationDataOfMovingStationsFromDB(settings, qmap, stationgroup_codes);
+    LocationDataItems observations =
+        readObservationDataOfMovingStationsFromDB(settings, qmap, stationgroup_codes);
 
     StationMap fmisid_to_station;
     for (auto item : observations)
-	  {
-		Spine::Station station;
-		station.station_id= item.data.fmisid;
-		station.fmisid = item.data.fmisid;
-		station.longitude_out = item.longitude;
-		station.latitude_out = item.latitude;
-		station.station_elevation = item.elevation;
-		fmisid_to_station[station.station_id] = station;
-	  }
-	
+    {
+      Spine::Station station;
+      station.station_id = item.data.fmisid;
+      station.fmisid = item.data.fmisid;
+      station.longitude_out = item.longitude;
+      station.latitude_out = item.latitude;
+      station.station_elevation = item.elevation;
+      fmisid_to_station[station.station_id] = station;
+    }
+
     StationTimedMeasurandData station_data =
-	  buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
-	
+        buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
+
     return buildTimeseries(settings,
-						   settings.stationtype,
-						   fmisid_to_station,
-						   station_data,
-						   qmap,
-						   timeSeriesOptions,
-						   timezones);
+                           settings.stationtype,
+                           fmisid_to_station,
+                           station_data,
+                           qmap,
+                           timeSeriesOptions,
+                           timezones);
   }
   catch (...)
   {
@@ -137,13 +140,8 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationData(
     StationTimedMeasurandData station_data =
         buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
 
-    return buildTimeseries(settings,
-                           stationtype,
-                           fmisid_to_station,
-                           station_data,
-                           qmap,
-                           timeSeriesOptions,
-                           timezones);
+    return buildTimeseries(
+        settings, stationtype, fmisid_to_station, station_data, qmap, timeSeriesOptions, timezones);
   }
   catch (...)
   {
@@ -160,17 +158,21 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataOfMovingStations
   {
     LocationDataItems ret;
 
-	auto wktString = settings.wktArea;
-	if(wktString.empty())
-	  {
-		if(!settings.boundingBox.empty())
-		  wktString = ("POLYGON(("+Fmi::to_string(settings.boundingBox.at("minx"))+" "+Fmi::to_string(settings.boundingBox.at("miny"))+","+
-					   Fmi::to_string(settings.boundingBox.at("minx"))+" "+Fmi::to_string(settings.boundingBox.at("maxy"))+","+
-					   Fmi::to_string(settings.boundingBox.at("maxx"))+" "+Fmi::to_string(settings.boundingBox.at("maxy"))+","+
-					   Fmi::to_string(settings.boundingBox.at("maxx"))+" "+Fmi::to_string(settings.boundingBox.at("miny"))+","+
-					   Fmi::to_string(settings.boundingBox.at("minx"))+" "+Fmi::to_string(settings.boundingBox.at("miny"))+"))");
-
-	  }
+    auto wktString = settings.wktArea;
+    if (wktString.empty())
+    {
+      if (!settings.boundingBox.empty())
+        wktString = ("POLYGON((" + Fmi::to_string(settings.boundingBox.at("minx")) + " " +
+                     Fmi::to_string(settings.boundingBox.at("miny")) + "," +
+                     Fmi::to_string(settings.boundingBox.at("minx")) + " " +
+                     Fmi::to_string(settings.boundingBox.at("maxy")) + "," +
+                     Fmi::to_string(settings.boundingBox.at("maxx")) + " " +
+                     Fmi::to_string(settings.boundingBox.at("maxy")) + "," +
+                     Fmi::to_string(settings.boundingBox.at("maxx")) + " " +
+                     Fmi::to_string(settings.boundingBox.at("miny")) + "," +
+                     Fmi::to_string(settings.boundingBox.at("minx")) + " " +
+                     Fmi::to_string(settings.boundingBox.at("miny")) + "))");
+    }
 
     // Safety check
     if (qmap.measurandIds.empty())
@@ -182,17 +184,18 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataOfMovingStations
     measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
 
     std::vector<std::string> producer_id_vector;
-    for (const auto& prod_id : settings.producer_ids)
+    for (const auto &prod_id : settings.producer_ids)
       producer_id_vector.emplace_back(Fmi::to_string(prod_id));
     std::string producerIds = boost::algorithm::join(producer_id_vector, ",");
 
     std::vector<std::string> fmisid_vector;
-	for(const auto& item : settings.taggedFMISIDs)
-	  fmisid_vector.emplace_back(Fmi::to_string(item.fmisid));
-	auto fmisids = boost::algorithm::join(fmisid_vector, ",");
+    for (const auto &item : settings.taggedFMISIDs)
+      fmisid_vector.emplace_back(Fmi::to_string(item.fmisid));
+    auto fmisids = boost::algorithm::join(fmisid_vector, ",");
 
-	if(fmisids.empty() && wktString.empty())
-	  throw Fmi::Exception::Trace(BCP, "Fetching data from PostgreSQL database failed, no fmisids or area given!");
+    if (fmisids.empty() && wktString.empty())
+      throw Fmi::Exception::Trace(
+          BCP, "Fetching data from PostgreSQL database failed, no fmisids or area given!");
 
     std::string starttime = Fmi::to_iso_extended_string(settings.starttime);
     std::string endtime = Fmi::to_iso_extended_string(settings.endtime);
@@ -201,21 +204,21 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataOfMovingStations
     if (itsIsCacheDatabase)
     {
       sqlStmt =
-		"SELECT data.fmisid AS fmisid, data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM "
-		"data.data_time) AS obstime, "
-		"measurand_id, data_value, data_quality, data_source "
-		"FROM observation_data data WHERE ";
-	  if(!fmisids.empty())
-		sqlStmt += "data.fmisid IN (" + fmisids + ") ";
-	  if(!wktString.empty())
-		{
-		  if(!fmisids.empty())
-			sqlStmt += " AND ";		  
-		  sqlStmt += ("ST_Contains(ST_GeomFromText('"+wktString+"',4326),ST_SetSRID(ST_MakePoint(m.lon, m.lat),4326)) ");
-		}
-	  sqlStmt += "AND data.data_time >= '" +
-          starttime + "' AND data.data_time <= '" + endtime + "' AND data.measurand_id IN (" +
-          measurand_ids + ") ";
+          "SELECT data.fmisid AS fmisid, data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM "
+          "data.data_time) AS obstime, "
+          "measurand_id, data_value, data_quality, data_source "
+          "FROM observation_data data WHERE ";
+      if (!fmisids.empty())
+        sqlStmt += "data.fmisid IN (" + fmisids + ") ";
+      if (!wktString.empty())
+      {
+        if (!fmisids.empty())
+          sqlStmt += " AND ";
+        sqlStmt += ("ST_Contains(ST_GeomFromText('" + wktString +
+                    "',4326),ST_SetSRID(ST_MakePoint(m.lon, m.lat),4326)) ");
+      }
+      sqlStmt += "AND data.data_time >= '" + starttime + "' AND data.data_time <= '" + endtime +
+                 "' AND data.measurand_id IN (" + measurand_ids + ") ";
       if (!producerIds.empty())
         sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
 
@@ -228,21 +231,25 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataOfMovingStations
     else
     {
       sqlStmt =
-		"SELECT data.station_id AS fmisid, data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM "
-		"date_trunc('seconds', data.data_time)) AS obstime, "
-		"data.measurand_id, data.data_value, data.data_quality, data.data_source, m.lon, m.lat, m.elev "
-		"FROM observation_data_r1 data JOIN moving_locations_v1 m ON (m.station_id = data.station_id and data.data_time between m.sdate and m.edate) WHERE ";
-	  if(!fmisids.empty())
-		sqlStmt += "data.station_id IN (" + fmisids + ") ";
-	  if(!wktString.empty())
-		{
-		  if(!fmisids.empty())
-			sqlStmt += " AND ";		  
-		  sqlStmt += ("ST_Contains(ST_GeomFromText('"+wktString+"',4326),ST_SetSRID(ST_MakePoint(m.lon, m.lat),4326)) ");
-		}
-	  sqlStmt += "AND data.data_time >= '" + starttime + "' AND data.data_time <= '" + endtime + "' AND data.measurand_id IN (" + measurand_ids + ") ";
+          "SELECT data.station_id AS fmisid, data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM "
+          "date_trunc('seconds', data.data_time)) AS obstime, "
+          "data.measurand_id, data.data_value, data.data_quality, data.data_source, m.lon, m.lat, "
+          "m.elev "
+          "FROM observation_data_r1 data JOIN moving_locations_v1 m ON (m.station_id = "
+          "data.station_id and data.data_time between m.sdate and m.edate) WHERE ";
+      if (!fmisids.empty())
+        sqlStmt += "data.station_id IN (" + fmisids + ") ";
+      if (!wktString.empty())
+      {
+        if (!fmisids.empty())
+          sqlStmt += " AND ";
+        sqlStmt += ("ST_Contains(ST_GeomFromText('" + wktString +
+                    "',4326),ST_SetSRID(ST_MakePoint(m.lon, m.lat),4326)) ");
+      }
+      sqlStmt += "AND data.data_time >= '" + starttime + "' AND data.data_time <= '" + endtime +
+                 "' AND data.measurand_id IN (" + measurand_ids + ") ";
       if (!producerIds.empty())
-        sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");	  
+        sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
       sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
       sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") +
                  " GROUP BY data.station_id, data.sensor_no, data.data_time, data.measurand_id, "
@@ -275,7 +282,7 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataOfMovingStations
       ret.emplace_back(obs);
     }
 
-	return ret;
+    return ret;
   }
   catch (...)
   {
@@ -304,7 +311,8 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
 
     measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
 
-    auto qstations = buildSqlStationList(stations, stationgroup_codes, stationInfo, settings.requestLimits);
+    auto qstations =
+        buildSqlStationList(stations, stationgroup_codes, stationInfo, settings.requestLimits);
 
     if (qstations.empty())
       return ret;
@@ -369,8 +377,8 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
-	std::set<boost::posix_time::ptime> obstimes;
-	std::set<int> fmisids;
+    std::set<boost::posix_time::ptime> obstimes;
+    std::set<int> fmisids;
     for (auto row : result_set)
     {
       LocationDataItem obs;
@@ -400,12 +408,14 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
       }
 
       ret.emplace_back(obs);
-	  obstimes.insert(obs.data.data_time);
-	  fmisids.insert(obs.data.fmisid);
+      obstimes.insert(obs.data.data_time);
+      fmisids.insert(obs.data.fmisid);
 
-	  check_request_limit(settings.requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
-	  check_request_limit(settings.requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
-	  check_request_limit(settings.requestLimits, ret.size(), TS::RequestLimitMember::ELEMENTS);
+      check_request_limit(
+          settings.requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
+      check_request_limit(
+          settings.requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
+      check_request_limit(settings.requestLimits, ret.size(), TS::RequestLimitMember::ELEMENTS);
     }
 
     return ret;
@@ -518,11 +528,13 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
       }
     }
     if (!settings.boundingBox.empty())
-    {	  
-	  sqlStmt += (" AND ST_Within(flash.stroke_location, ST_MakeEnvelope(" +
-				  Fmi::to_string(settings.boundingBox.at("minx")) + ", " + Fmi::to_string(settings.boundingBox.at("miny")) + ", " +
-				  Fmi::to_string(settings.boundingBox.at("maxx")) + ", " + Fmi::to_string(settings.boundingBox.at("maxy")) + ", 4326)) ");
-	}
+    {
+      sqlStmt += (" AND ST_Within(flash.stroke_location, ST_MakeEnvelope(" +
+                  Fmi::to_string(settings.boundingBox.at("minx")) + ", " +
+                  Fmi::to_string(settings.boundingBox.at("miny")) + ", " +
+                  Fmi::to_string(settings.boundingBox.at("maxx")) + ", " +
+                  Fmi::to_string(settings.boundingBox.at("maxy")) + ", 4326)) ");
+    }
 
     if (itsIsCacheDatabase)
       sqlStmt += " ORDER BY flash.stroke_time ASC, flash.stroke_time_fraction;";
@@ -538,9 +550,9 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
     double longitude = std::numeric_limits<double>::max();
     double latitude = std::numeric_limits<double>::max();
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-	std::set<std::string> locations;
-	std::set<boost::posix_time::ptime> obstimes;
-	size_t n_elements = 0;	
+    std::set<std::string> locations;
+    std::set<boost::posix_time::ptime> obstimes;
+    size_t n_elements = 0;
     for (auto row : result_set)
     {
       std::map<std::string, TS::Value> result;
@@ -603,13 +615,15 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
         }
       }
 
-	  n_elements += timeSeriesColumns->size();
-	  locations.insert(Fmi::to_string(longitude)+Fmi::to_string(latitude));
-	  obstimes.insert(stroke_time);
+      n_elements += timeSeriesColumns->size();
+      locations.insert(Fmi::to_string(longitude) + Fmi::to_string(latitude));
+      obstimes.insert(stroke_time);
 
-	  check_request_limit(settings.requestLimits, locations.size(), TS::RequestLimitMember::LOCATIONS);
-	  check_request_limit(settings.requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
-	  check_request_limit(settings.requestLimits, n_elements, TS::RequestLimitMember::ELEMENTS);		
+      check_request_limit(
+          settings.requestLimits, locations.size(), TS::RequestLimitMember::LOCATIONS);
+      check_request_limit(
+          settings.requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
+      check_request_limit(settings.requestLimits, n_elements, TS::RequestLimitMember::ELEMENTS);
     }
 
     return timeSeriesColumns;
@@ -733,7 +747,7 @@ const std::shared_ptr<Fmi::TimeFormatter> &CommonPostgreSQLFunctions::resetTimeF
     const std::string &format)
 {
   try
-	{
+  {
     itsTimeFormatter.reset(Fmi::TimeFormatter::create(format));
     return itsTimeFormatter;
   }
@@ -746,7 +760,7 @@ const std::shared_ptr<Fmi::TimeFormatter> &CommonPostgreSQLFunctions::resetTimeF
 TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
     const Spine::Stations &stations,
     const Settings &settings,
-	const StationInfo &stationInfo,
+    const StationInfo &stationInfo,
     const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
@@ -771,7 +785,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
   // Resolve stationgroup codes
   std::set<std::string> stationgroup_codes;
   auto stationgroupCodeSet =
-	itsStationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
+      itsStationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
   stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
 
   // Measurands
@@ -790,8 +804,9 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
       measurand_ids.insert(sparam);
 
     timeseriesPositions[name] = pos;
-	if(name == "fmisid" || name == "magnetometer_id" || name == "stationlon" || name == "stationlat" || name == "elevation")
-	  data_independent_positions.insert(pos);
+    if (name == "fmisid" || name == "magnetometer_id" || name == "stationlon" ||
+        name == "stationlat" || name == "elevation")
+      data_independent_positions.insert(pos);
 
     pos++;
   }
@@ -842,7 +857,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
   for (auto row : result_set)
   {
     int fmisid = as_int(row[0]);
-	fmisidit.insert(fmisid);
+    fmisidit.insert(fmisid);
     // Initialize result vector and timestep set
     if (fmisid_results.find(fmisid) == fmisid_results.end())
     {
@@ -872,11 +887,11 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
     if (!row[8].is_null())
       magneto_f_value = as_double(row[8]);
     if (!row[9].is_null())
-	  data_quality_value = as_int(row[9]);
+      data_quality_value = as_int(row[9]);
 
     auto &result = *(fmisid_results[fmisid]);
     auto &timesteps = fmisid_timesteps[fmisid];
-	const Spine::Station &s = stationInfo.getStation(fmisid, stationgroup_codes);
+    const Spine::Station &s = stationInfo.getStation(fmisid, stationgroup_codes);
 
     auto x_parameter_name = itsParameterMap->getParameterName(
         (level == 10 ? "667" : (level == 60 ? "668" : "MISSING")), MAGNETO_PRODUCER);
@@ -904,7 +919,8 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
       result[timeseriesPositions.at(f_parameter_name)].push_back(
           TS::TimedValue(localtime, magneto_f_value));
     if (timeseriesPositions.find("data_quality") != timeseriesPositions.end())
-      result[timeseriesPositions.at("data_quality")].push_back(TS::TimedValue(localtime, data_quality_value));
+      result[timeseriesPositions.at("data_quality")].push_back(
+          TS::TimedValue(localtime, data_quality_value));
     if (timeseriesPositions.find("fmisid") != timeseriesPositions.end())
       result[timeseriesPositions.at("fmisid")].push_back(
           TS::TimedValue(localtime, station_id_value));
@@ -918,53 +934,57 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
       result[timeseriesPositions.at("stationlat")].push_back(
           TS::TimedValue(localtime, s.latitude_out));
     if (timeseriesPositions.find("elevation") != timeseriesPositions.end())
-	  {
-		const StationLocation &sloc = stationInfo.stationLocations.getLocation(fmisid, data_time);
-		// Get exact location, elevation
-		if (sloc.location_id != -1)
-		  {
-			if (timeseriesPositions.find("stationlon") != timeseriesPositions.end())
-			  result[timeseriesPositions.at("stationlon")].push_back(TS::TimedValue(localtime, sloc.longitude));
-			if (timeseriesPositions.find("stationlat") != timeseriesPositions.end())
-			  result[timeseriesPositions.at("stationlat")].push_back(TS::TimedValue(localtime, sloc.latitude));
-			result[timeseriesPositions.at("elevation")].push_back(TS::TimedValue(localtime, sloc.elevation));
-		  }
-	  }
+    {
+      const StationLocation &sloc = stationInfo.stationLocations.getLocation(fmisid, data_time);
+      // Get exact location, elevation
+      if (sloc.location_id != -1)
+      {
+        if (timeseriesPositions.find("stationlon") != timeseriesPositions.end())
+          result[timeseriesPositions.at("stationlon")].push_back(
+              TS::TimedValue(localtime, sloc.longitude));
+        if (timeseriesPositions.find("stationlat") != timeseriesPositions.end())
+          result[timeseriesPositions.at("stationlat")].push_back(
+              TS::TimedValue(localtime, sloc.latitude));
+        result[timeseriesPositions.at("elevation")].push_back(
+            TS::TimedValue(localtime, sloc.elevation));
+      }
+    }
 
     timesteps.insert(localtime);
   }
 
   // Get valid timesteps based on data and request
-  auto valid_timesteps_per_fmisid = getValidTimeSteps(settings, timeSeriesOptions, timezones, fmisid_results);
+  auto valid_timesteps_per_fmisid =
+      getValidTimeSteps(settings, timeSeriesOptions, timezones, fmisid_results);
 
   // Set data for each valid timestep
   for (const auto &item : fmisid_results)
   {
-	auto fmisid = item.first;
-	auto valid_timesteps =valid_timesteps_per_fmisid.at(fmisid);
+    auto fmisid = item.first;
+    auto valid_timesteps = valid_timesteps_per_fmisid.at(fmisid);
     const auto &ts_vector = *item.second;
-	for (unsigned int i = 0; i < ts_vector.size(); i++)
-	  {
-		auto ts = ts_vector.at(i);
-		std::map<boost::local_time::local_date_time, TS::TimedValue> data;
-		for(unsigned int j = 0; j < ts.size(); j++)
-		  {			
-			auto timed_value = ts.at(j);
-			data.insert(std::make_pair(timed_value.time, timed_value));
-		  }
-		for(const auto& timestep : valid_timesteps)
-		  {
-			if(data.find(timestep) != data.end())
-			  ret->at(i).push_back(data.at(timestep));
-			else
-			  {
-				if(data_independent_positions.find(i) != data_independent_positions.end())
-				  ret->at(i).push_back(ts.at(0));
-				else
-				  ret->at(i).push_back(TS::TimedValue(timestep, TS::None()));
-			  }
-		  }
-	  }
+    for (unsigned int i = 0; i < ts_vector.size(); i++)
+    {
+      auto ts = ts_vector.at(i);
+      std::map<boost::local_time::local_date_time, TS::TimedValue> data;
+      for (unsigned int j = 0; j < ts.size(); j++)
+      {
+        auto timed_value = ts.at(j);
+        data.insert(std::make_pair(timed_value.time, timed_value));
+      }
+      for (const auto &timestep : valid_timesteps)
+      {
+        if (data.find(timestep) != data.end())
+          ret->at(i).push_back(data.at(timestep));
+        else
+        {
+          if (data_independent_positions.find(i) != data_independent_positions.end())
+            ret->at(i).push_back(ts.at(0));
+          else
+            ret->at(i).push_back(TS::TimedValue(timestep, TS::None()));
+        }
+      }
+    }
   }
 
   return ret;
