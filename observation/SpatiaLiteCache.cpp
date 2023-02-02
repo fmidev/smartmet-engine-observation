@@ -220,15 +220,16 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
         hit(MAGNETOMETER_DATA_TABLE);
         ret = db->getMagnetometerData(stations, settings, *sinfo, itsTimeZones);
       }
-      else if(settings.stationtype == ICEBUOY_PRODUCER || settings.stationtype == COPERNICUS_PRODUCER)
+      else if (settings.stationtype == ICEBUOY_PRODUCER ||
+               settings.stationtype == COPERNICUS_PRODUCER)
       {
-		TS::TimeSeriesGeneratorOptions timeSeriesOptions;
-		timeSeriesOptions.startTime = settings.starttime;
-		timeSeriesOptions.endTime = settings.endtime;		
-		return db->getObservationDataForMovingStations(settings, timeSeriesOptions, itsTimeZones);
-	  }
+        TS::TimeSeriesGeneratorOptions timeSeriesOptions;
+        timeSeriesOptions.startTime = settings.starttime;
+        timeSeriesOptions.endTime = settings.endtime;
+        return db->getObservationDataForMovingStations(settings, timeSeriesOptions, itsTimeZones);
+      }
       else
-      {		
+      {
         bool use_memory_cache = false;
         if (itsObservationMemoryCache)
         {
@@ -278,13 +279,12 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
     if (settings.stationtype == FLASH_PRODUCER)
       return flashValuesFromSpatiaLite(settings);
 
-	if(settings.stationtype == ICEBUOY_PRODUCER || settings.stationtype == COPERNICUS_PRODUCER)
-      {
-		std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
-		db->setDebug(settings.debug_options);
-		return db->getObservationDataForMovingStations(settings, timeSeriesOptions, itsTimeZones);
-	  }
-
+    if (settings.stationtype == ICEBUOY_PRODUCER || settings.stationtype == COPERNICUS_PRODUCER)
+    {
+      std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+      db->setDebug(settings.debug_options);
+      return db->getObservationDataForMovingStations(settings, timeSeriesOptions, itsTimeZones);
+    }
 
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
@@ -1092,22 +1092,22 @@ std::size_t SpatiaLiteCache::fillMovingLocationsCache(const MovingLocationItems 
   try
   {
     // Update memory cache first
-	/*
-    if (itsObservationMemoryCache)
-      itsObservationMemoryCache->fill(cacheData);
-	*/
+    /*
+if (itsObservationMemoryCache)
+  itsObservationMemoryCache->fill(cacheData);
+    */
 
     auto conn = itsConnectionPool->getConnection();
     auto sz = conn->fillMovingLocationsCache(cacheData, itsMovingLocationsInsertCache);
-	// itsTimeIntervalStart, itsTimeIntervalEnd are updated in fillDataCache()
-	/*
-    // Update what really now really is in the database
-    auto start = conn->getOldestObservationTime();
-    auto end = conn->getLatestObservationTime();
-    Spine::WriteLock lock(itsTimeIntervalMutex);
-    itsTimeIntervalStart = start;
-    itsTimeIntervalEnd = end;
-	*/
+    // itsTimeIntervalStart, itsTimeIntervalEnd are updated in fillDataCache()
+    /*
+// Update what really now really is in the database
+auto start = conn->getOldestObservationTime();
+auto end = conn->getLatestObservationTime();
+Spine::WriteLock lock(itsTimeIntervalMutex);
+itsTimeIntervalStart = start;
+itsTimeIntervalEnd = end;
+    */
     return sz;
   }
   catch (...)
@@ -1371,7 +1371,8 @@ void SpatiaLiteCache::readConfig(const Spine::ConfigBase & /* cfg */)
     itsParameters.maxInsertSize = Fmi::stoi(itsCacheInfo.params.at("maxInsertSize"));
 
     itsDataInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("dataInsertCacheSize")));
-    itsMovingLocationsInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("movingLocationsInsertCacheSize")));
+    itsMovingLocationsInsertCache.resize(
+        Fmi::stoi(itsCacheInfo.params.at("movingLocationsInsertCacheSize")));
     itsWeatherQCInsertCache.resize(
         Fmi::stoi(itsCacheInfo.params.at("weatherDataQCInsertCacheSize")));
     itsFlashInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("flashInsertCacheSize")));
@@ -1412,12 +1413,13 @@ SpatiaLiteCache::~SpatiaLiteCache()
 }
 
 void SpatiaLiteCache::getMovingStations(Spine::Stations &stations,
-										const std::string &stationtype,
-										const boost::posix_time::ptime &startTime,
-										const boost::posix_time::ptime &endTime,
-										const std::string &wkt) const
+                                        const std::string &stationtype,
+                                        const boost::posix_time::ptime &startTime,
+                                        const boost::posix_time::ptime &endTime,
+                                        const std::string &wkt) const
 {
-  itsConnectionPool->getConnection()->getMovingStations(stations,stationtype,startTime,endTime,wkt);
+  itsConnectionPool->getConnection()->getMovingStations(
+      stations, stationtype, startTime, endTime, wkt);
 }
 
 void SpatiaLiteCache::hit(const std::string &name) const

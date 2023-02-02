@@ -2,11 +2,11 @@
 
 #include "CommonDatabaseFunctions.h"
 #include "ExternalAndMobileProducerConfig.h"
-#include "MovingLocationItem.h"
 #include "FlashDataItem.h"
 #include "InsertStatus.h"
 #include "MagnetometerDataItem.h"
 #include "MobileExternalDataItem.h"
+#include "MovingLocationItem.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
 
@@ -139,8 +139,8 @@ class SpatiaLite : public CommonDatabaseFunctions
    *        from stations maintained by FMI.
    * @param[in] cacheData Data from moving_locations
    */
-  std::size_t fillMovingLocationsCache(const MovingLocationItems &cacheData, InsertStatus &insertStatus);
-
+  std::size_t fillMovingLocationsCache(const MovingLocationItems &cacheData,
+                                       InsertStatus &insertStatus);
 
   /**
    * @brief Update weather_data_qc with data from Oracle's respective table
@@ -177,7 +177,8 @@ class SpatiaLite : public CommonDatabaseFunctions
   void cleanDataCache(const boost::posix_time::ptime &newstarttime);
 
   /**
-   * @brief Delete everything from moving_locations table which (edate) is older than the given duration
+   * @brief Delete everything from moving_locations table which (edate) is older than the given
+   * duration
    * @param[in] newstarttime
    * @param[in] newstarttime_memory
    */
@@ -377,23 +378,22 @@ class SpatiaLite : public CommonDatabaseFunctions
                                        const Fmi::TimeZones &timezones) override;
 
   TS::TimeSeriesVectorPtr getObservationData(
-											 const Spine::Stations &stations,
-											 const Settings &settings,
-											 const StationInfo &stationInfo,
-											 const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-											 const Fmi::TimeZones &timezones,
-											 const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache) override;
+      const Spine::Stations &stations,
+      const Settings &settings,
+      const StationInfo &stationInfo,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Fmi::TimeZones &timezones,
+      const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache) override;
 
   TS::TimeSeriesVectorPtr getObservationDataForMovingStations(
-															  const Settings &settings,
-															  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-															  const Fmi::TimeZones &timezones) override;
+      const Settings &settings,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Fmi::TimeZones &timezones) override;
 
   LocationDataItems readObservationDataOfMovingStationsFromDB(
-															  const Settings &settings,
-															  const QueryMapping &qmap,
-															  const std::set<std::string> &stationgroup_codes);
-
+      const Settings &settings,
+      const QueryMapping &qmap,
+      const std::set<std::string> &stationgroup_codes);
 
   /**
    * @brief Get the time of the last modified observation in magnetometer_data table
@@ -440,7 +440,7 @@ class SpatiaLite : public CommonDatabaseFunctions
   void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
-							  const TS::RequestLimits& requestLimits,									  
+                              const TS::RequestLimits &requestLimits,
                               WeatherDataQCData &cacheData) override;
   std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,
@@ -460,10 +460,11 @@ class SpatiaLite : public CommonDatabaseFunctions
       const Fmi::TimeZones &timezones) override;
 
   void getMovingStations(Spine::Stations &stations,
-						 const std::string &stationtype,
-						 const boost::posix_time::ptime &startTime,
-						 const boost::posix_time::ptime &endTime,
-						 const std::string &wkt);
+                         const std::string &stationtype,
+                         const boost::posix_time::ptime &startTime,
+                         const boost::posix_time::ptime &endTime,
+                         const std::string &wkt);
+
  private:
   // Private members
   sqlite3pp::database itsDB;

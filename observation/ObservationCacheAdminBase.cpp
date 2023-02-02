@@ -608,7 +608,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
 {
   try
   {
-	//	std::cout << "ObservationCacheAdminBase::updateObservationCache";
+    //	std::cout << "ObservationCacheAdminBase::updateObservationCache";
     if (Spine::Reactor::isShuttingDown() || itsParameters.disableAllCacheUpdates)
       return;
 
@@ -654,15 +654,17 @@ void ObservationCacheAdminBase::updateObservationCache() const
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
-      auto count_moving_locations = observationCache->fillMovingLocationsCache(cacheDataMovingLocations);
+      auto count_moving_locations =
+          observationCache->fillMovingLocationsCache(cacheDataMovingLocations);
       auto count = observationCache->fillDataCache(cacheData);
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
         std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
-                  << " FIN observations and " << count_moving_locations << " moving locations, starting from " 
-				  << last_time_pair.first << " finished in " 
-				  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
+                  << " FIN observations and " << count_moving_locations
+                  << " moving locations, starting from " << last_time_pair.first << " finished in "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
+                  << " ms" << std::endl;
     }
 
     if (Spine::Reactor::isShuttingDown())

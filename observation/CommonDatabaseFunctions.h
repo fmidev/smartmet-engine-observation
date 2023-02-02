@@ -1,9 +1,9 @@
 #pragma once
 
 #include "DBQueryUtils.h"
-#include "WeatherDataQCData.h"
 #include "StationtypeConfig.h"
 #include "Utils.h"
+#include "WeatherDataQCData.h"
 
 namespace SmartMet
 {
@@ -17,7 +17,7 @@ class CommonDatabaseFunctions : public DBQueryUtils
 {
  public:
   CommonDatabaseFunctions(const StationtypeConfig &stc, const ParameterMapPtr &pm)
-	: DBQueryUtils(pm), itsStationtypeConfig(stc)
+      : DBQueryUtils(pm), itsStationtypeConfig(stc)
   {
   }
 
@@ -26,7 +26,6 @@ class CommonDatabaseFunctions : public DBQueryUtils
   virtual std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                                      const std::string &params,
                                                      const std::string &station_ids) const = 0;
-
 
   virtual TS::TimeSeriesVectorPtr getObservationDataForMovingStations(
       const Settings &settings,
@@ -69,21 +68,22 @@ class CommonDatabaseFunctions : public DBQueryUtils
   virtual void fetchWeatherDataQCData(const std::string &sqlStmt,
                                       const StationInfo &stationInfo,
                                       const std::set<std::string> &stationgroup_codes,
-									  const TS::RequestLimits& requestLimits,									  
+                                      const TS::RequestLimits &requestLimits,
                                       WeatherDataQCData &weatherDataQCData) = 0;
 
   const StationtypeConfig &getStationtypeConfig() const { return itsStationtypeConfig; }
 
   virtual std::string getWeatherDataQCParams(const std::set<std::string> &param_set) const;
   virtual TS::TimeSeriesVectorPtr getMagnetometerData(const Spine::Stations &stations,
-													  const Settings &settings,
-													  const StationInfo &stationInfo,
+                                                      const Settings &settings,
+                                                      const StationInfo &stationInfo,
                                                       const Fmi::TimeZones &timezones);
-  virtual TS::TimeSeriesVectorPtr getMagnetometerData(const Spine::Stations &stations,
-													  const Settings &settings,
-													  const StationInfo &stationInfo,
-													  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-													  const Fmi::TimeZones &timezones) = 0;
+  virtual TS::TimeSeriesVectorPtr getMagnetometerData(
+      const Spine::Stations &stations,
+      const Settings &settings,
+      const StationInfo &stationInfo,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Fmi::TimeZones &timezones) = 0;
 
  protected:
   const StationtypeConfig &itsStationtypeConfig;

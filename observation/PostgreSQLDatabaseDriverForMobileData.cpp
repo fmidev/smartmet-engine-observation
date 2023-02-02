@@ -334,11 +334,12 @@ void PostgreSQLDatabaseDriverForMobileData::getStations(Spine::Stations &station
 {
 }
 
-void PostgreSQLDatabaseDriverForMobileData::getMovingStationsByArea(Spine::Stations &stations,
-																	const std::string &stationtype,
-																	const boost::posix_time::ptime &startTime,
-																	const boost::posix_time::ptime &endTime,
-																	const std::string &wkt) const
+void PostgreSQLDatabaseDriverForMobileData::getMovingStationsByArea(
+    Spine::Stations &stations,
+    const std::string &stationtype,
+    const boost::posix_time::ptime &startTime,
+    const boost::posix_time::ptime &endTime,
+    const std::string &wkt) const
 {
 }
 

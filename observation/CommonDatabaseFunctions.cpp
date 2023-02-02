@@ -17,7 +17,10 @@ namespace Observation
 using namespace Utils;
 
 TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getMagnetometerData(
-const Spine::Stations &stations, const Settings &settings, const StationInfo &stationInfo, const Fmi::TimeZones &timezones)
+    const Spine::Stations &stations,
+    const Settings &settings,
+    const StationInfo &stationInfo,
+    const Fmi::TimeZones &timezones)
 {
   TS::TimeSeriesGeneratorOptions opt;
   opt.startTime = settings.starttime;
@@ -154,7 +157,8 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
 
     WeatherDataQCData weatherDataQCData;
 
-    fetchWeatherDataQCData(query, stationInfo, stationgroup_codes, settings.requestLimits, weatherDataQCData);
+    fetchWeatherDataQCData(
+        query, stationInfo, stationgroup_codes, settings.requestLimits, weatherDataQCData);
 
     StationTimedMeasurandData station_data;
 
@@ -185,17 +189,12 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
       bool data_from_default_sensor = (sensor_no == 1);
 
       station_data[fmisid][obstime][measurand_id][sensor_no] =
-		DataWithQuality(val, val_quality, TS::None(), data_from_default_sensor);
+          DataWithQuality(val, val_quality, TS::None(), data_from_default_sensor);
       i++;
     }
 
-    return buildTimeseries(settings,
-                           stationtype,
-                           fmisid_to_station,
-                           station_data,
-                           qmap,
-                           timeSeriesOptions,
-                           timezones);
+    return buildTimeseries(
+        settings, stationtype, fmisid_to_station, station_data, qmap, timeSeriesOptions, timezones);
   }
   catch (...)
   {

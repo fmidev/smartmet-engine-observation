@@ -33,9 +33,9 @@ class ObservationCacheAdminPostgreSQL : public ObservationCacheAdminBase
                                   const std::string& measuradId,
                                   const Fmi::TimeZones& timezones) const override;
   void readMovingStationsCacheData(std::vector<MovingLocationItem>& cacheData,
-								  const boost::posix_time::ptime& startTime,
-								   const boost::posix_time::ptime& lastModifiedTime,
-								   const Fmi::TimeZones& timezones) const override;
+                                   const boost::posix_time::ptime& startTime,
+                                   const boost::posix_time::ptime& lastModifiedTime,
+                                   const Fmi::TimeZones& timezones) const override;
   void readObservationCacheData(std::vector<DataItem>& cacheData,
                                 const boost::posix_time::ptime& startTime,
                                 const boost::posix_time::ptime& lastModifiedTime,

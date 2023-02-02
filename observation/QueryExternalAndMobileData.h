@@ -35,7 +35,7 @@ class QueryExternalAndMobileData : public QueryBase
   TS::TimeSeriesVectorPtr executeQuery(PostgreSQLObsDB &db,
                                        Settings &settings,
                                        const Fmi::TimeZones &timezones);
-  
+
   TS::TimeSeriesVectorPtr executeQuery(PostgreSQLObsDB &db,
                                        Settings &settings,
                                        const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,

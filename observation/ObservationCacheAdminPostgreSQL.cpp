@@ -76,7 +76,8 @@ void ObservationCacheAdminPostgreSQL::readMovingStationsCacheData(
     const Fmi::TimeZones& /* timezones */) const
 {
   std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
-  db->readMovingStationsCacheDataFromPostgreSQL(cacheData, startTime, lastModifiedTime, itsTimeZones);
+  db->readMovingStationsCacheDataFromPostgreSQL(
+      cacheData, startTime, lastModifiedTime, itsTimeZones);
 }
 
 void ObservationCacheAdminPostgreSQL::readObservationCacheData(

@@ -15,7 +15,7 @@ namespace Observation
 class MovingLocationItem
 {
  public:
-  int station_id = 0;  
+  int station_id = 0;
   boost::posix_time::ptime sdate;
   boost::posix_time::ptime edate;
   double lon;
@@ -31,4 +31,5 @@ using MovingLocationItems = std::vector<MovingLocationItem>;
 }  // namespace Engine
 }  // namespace SmartMet
 
-std::ostream& operator<<(std::ostream& out, const SmartMet::Engine::Observation::MovingLocationItem& item);
+std::ostream& operator<<(std::ostream& out,
+                         const SmartMet::Engine::Observation::MovingLocationItem& item);

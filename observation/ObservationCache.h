@@ -2,12 +2,11 @@
 
 #include "CacheInfoItem.h"
 #include "DataItem.h"
-#include "MovingLocationItem.h"
 #include "FlashDataItem.h"
 #include "Keywords.h"
-#include "MovingLocationItem.h"
 #include "MagnetometerDataItem.h"
 #include "MobileExternalDataItem.h"
+#include "MovingLocationItem.h"
 #include "Settings.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
@@ -58,7 +57,8 @@ class ObservationCache
   virtual boost::posix_time::ptime getLatestObservationModifiedTime() const = 0;
   virtual boost::posix_time::ptime getLatestObservationTime() const = 0;
   virtual std::size_t fillDataCache(const DataItems &cacheData) const = 0;
-  virtual std::size_t fillMovingLocationsCache(const MovingLocationItems &cacheDataMovingLocations) const = 0;
+  virtual std::size_t fillMovingLocationsCache(
+      const MovingLocationItems &cacheDataMovingLocations) const = 0;
 
   virtual void cleanDataCache(const boost::posix_time::time_duration &timetokeep,
                               const boost::posix_time::time_duration &timetokeep_memory) const = 0;
@@ -126,11 +126,10 @@ class ObservationCache
       const std::string &tablename) const;
 
   virtual void getMovingStations(Spine::Stations &stations,
-								 const std::string &stationtype,
-								 const boost::posix_time::ptime &startTime,
-								 const boost::posix_time::ptime &endTime,
-								 const std::string &wkt) const = 0;
-
+                                 const std::string &stationtype,
+                                 const boost::posix_time::ptime &startTime,
+                                 const boost::posix_time::ptime &endTime,
+                                 const std::string &wkt) const = 0;
 
  protected:
   ObservationCache(const CacheInfoItem &ci);

@@ -992,11 +992,11 @@ std::size_t PostgreSQLCacheDB::fillDataCache(const DataItems &cacheData)
   }
 }
 
-std::size_t PostgreSQLCacheDB::fillMovingLocationsCache(const MovingLocationItems &/*cacheData*/)
+std::size_t PostgreSQLCacheDB::fillMovingLocationsCache(const MovingLocationItems & /*cacheData*/)
 {
   try
   {
-	return 0;
+    return 0;
   }
   catch (...)
   {
@@ -1931,8 +1931,8 @@ void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(
       timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, obstime));
 
     else if (paramname == "station_name" || paramname == "stationname")
-	  timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.station_formal_name_fi));
-
+      timeSeriesColumns->at(pos).emplace_back(
+          TS::TimedValue(obstime, station.station_formal_name_fi));
     else if (paramname == "fmisid")
       timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.station_id));
 
@@ -2177,16 +2177,15 @@ ResultSetRows PostgreSQLCacheDB::getResultSetForMobileExternalData(
 void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
                                                const StationInfo &stationInfo,
                                                const std::set<std::string> &stationgroup_codes,
-											   const TS::RequestLimits& requestLimits,									  											   
+                                               const TS::RequestLimits &requestLimits,
                                                WeatherDataQCData &cacheData)
 {
   try
   {
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
-
-	std::set<int> fmisids;
-	std::set<boost::posix_time::ptime> obstimes;
+    std::set<int> fmisids;
+    std::set<boost::posix_time::ptime> obstimes;
     for (auto row : result_set)
     {
       boost::optional<int> fmisid = as_int(row[0]);
@@ -2229,13 +2228,14 @@ void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       cacheData.sensor_nosAll.push_back(sensor_no);
       cacheData.data_qualityAll.push_back(data_quality);
 
-	  if(fmisid)
-		fmisids.insert(*fmisid);
-	  obstimes.insert(obstime);
+      if (fmisid)
+        fmisids.insert(*fmisid);
+      obstimes.insert(obstime);
 
-	  check_request_limit(requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
-	  check_request_limit(requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
-	  check_request_limit(requestLimits, cacheData.data_valuesAll.size(), TS::RequestLimitMember::ELEMENTS);
+      check_request_limit(requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
+      check_request_limit(requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
+      check_request_limit(
+          requestLimits, cacheData.data_valuesAll.size(), TS::RequestLimitMember::ELEMENTS);
     }
   }
   catch (...)

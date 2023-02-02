@@ -1,8 +1,8 @@
 #include "DBQueryUtils.h"
-#include "Utils.h"
 #include "SpecialParameters.h"
-#include <timeseries/ParameterTools.h>
+#include "Utils.h"
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
+#include <timeseries/ParameterTools.h>
 
 namespace SmartMet
 {
@@ -136,13 +136,14 @@ bool isDataSourceOrDataQualityField(const std::string &fieldname)
   return (isDataSourceField(fieldname) || isDataQualityField(fieldname));
 }
 
-void addSpecialFieldsToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColumns,
-								  int fmisid,
-								  const TimedMeasurandData &timed_measurand_data,
-								  const std::set<boost::local_time::local_date_time> &valid_timesteps,
-								  const std::map<std::string, int> &specialPositions,
-								  const std::map<std::string, std::string> &parameterNameMap,
-								  bool addDataSourceField)
+void addSpecialFieldsToTimeSeries(
+    const TS::TimeSeriesVectorPtr &timeSeriesColumns,
+    int fmisid,
+    const TimedMeasurandData &timed_measurand_data,
+    const std::set<boost::local_time::local_date_time> &valid_timesteps,
+    const std::map<std::string, int> &specialPositions,
+    const std::map<std::string, std::string> &parameterNameMap,
+    bool addDataSourceField)
 {
   // Add *data_source- and data_quality-fields
   try
@@ -255,9 +256,9 @@ void addSpecialFieldsToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColum
 }
 
 void addSpecialParameterToTimeSeries(const std::string &paramname,
-									 const TS::TimeSeriesVectorPtr &timeSeriesColumns,
-									 const int pos,
-									 const SpecialParameters::Args &args)
+                                     const TS::TimeSeriesVectorPtr &timeSeriesColumns,
+                                     const int pos,
+                                     const SpecialParameters::Args &args)
 {
   try
   {
@@ -270,16 +271,17 @@ void addSpecialParameterToTimeSeries(const std::string &paramname,
   }
 }
 
-void addParameterToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColumns,
-							  const std::pair<boost::local_time::local_date_time, MeasurandData> &dataItem,
-							  int fmisid,
-							  const std::map<std::string, int> &specialPositions,
-							  const std::map<std::string, int> &parameterNameIdMap,
-							  const std::map<std::string, int> &timeseriesPositions,
-							  const std::string &stationtype,
-							  const Spine::Station &station,
-							  const Settings &settings,
-							  const ParameterMapPtr &parameterMap)
+void addParameterToTimeSeries(
+    const TS::TimeSeriesVectorPtr &timeSeriesColumns,
+    const std::pair<boost::local_time::local_date_time, MeasurandData> &dataItem,
+    int fmisid,
+    const std::map<std::string, int> &specialPositions,
+    const std::map<std::string, int> &parameterNameIdMap,
+    const std::map<std::string, int> &timeseriesPositions,
+    const std::string &stationtype,
+    const Spine::Station &station,
+    const Settings &settings,
+    const ParameterMapPtr &parameterMap)
 {
   try
   {
@@ -319,25 +321,25 @@ void addParameterToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColumns,
       int pos = special.second;
       try
       {
-        if (boost::algorithm::starts_with(special.first, "longitude") || 
-			boost::algorithm::starts_with(special.first, "latitude") || 
-			boost::algorithm::starts_with(special.first, "elevation"))
-		  {
-			int mid = 0;
-			if(boost::algorithm::starts_with(special.first, "longitude"))
-			  mid = LONGITUDE_MEASURAND_ID;
-			else if(boost::algorithm::starts_with(special.first, "latitude"))
-			  mid = LATITUDE_MEASURAND_ID;
-			else if(boost::algorithm::starts_with(special.first, "elevation"))
-			  mid = ELEVATION_MEASURAND_ID;
+        if (boost::algorithm::starts_with(special.first, "longitude") ||
+            boost::algorithm::starts_with(special.first, "latitude") ||
+            boost::algorithm::starts_with(special.first, "elevation"))
+        {
+          int mid = 0;
+          if (boost::algorithm::starts_with(special.first, "longitude"))
+            mid = LONGITUDE_MEASURAND_ID;
+          else if (boost::algorithm::starts_with(special.first, "latitude"))
+            mid = LATITUDE_MEASURAND_ID;
+          else if (boost::algorithm::starts_with(special.first, "elevation"))
+            mid = ELEVATION_MEASURAND_ID;
 
-			if(mid > 0)
-			  {
-				const auto &sensor_values = data.at(mid);
-				TS::Value val = get_default_sensor_value(sensor_values, fmisid, mid);
-				timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, val));
-			  }
-		  }
+          if (mid > 0)
+          {
+            const auto &sensor_values = data.at(mid);
+            TS::Value val = get_default_sensor_value(sensor_values, fmisid, mid);
+            timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, val));
+          }
+        }
         else if (boost::algorithm::starts_with(special.first, "windcompass"))
         {
           // Have to get wind direction first
@@ -457,12 +459,12 @@ void addParameterToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColumns,
 }  // namespace
 
 QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
-											 const std::string &stationtype,
-											 bool isWeatherDataQCTable) const
+                                             const std::string &stationtype,
+                                             bool isWeatherDataQCTable) const
 {
   try
   {
-	//	std::cout << "DbQueryUtils::buildQueryMapping" << std::endl;
+    //	std::cout << "DbQueryUtils::buildQueryMapping" << std::endl;
 
     QueryMapping ret;
 
@@ -471,7 +473,6 @@ QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
     for (const Spine::Parameter &p : settings.parameters)
     {
       std::string name = p.name();
-
 
       if (not_special(p))
       {
@@ -544,7 +545,8 @@ QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
           if (!isWeatherDataQCTable)
           {
             auto nparam1 = Fmi::stoi(itsParameterMap->getParameter("windspeedms", stationtype));
-            auto nparam2 = Fmi::stoi(itsParameterMap->getParameter("relativehumidity", stationtype));
+            auto nparam2 =
+                Fmi::stoi(itsParameterMap->getParameter("relativehumidity", stationtype));
             auto nparam3 = Fmi::stoi(itsParameterMap->getParameter("temperature", stationtype));
             ret.measurandIds.push_back(nparam1);
             ret.measurandIds.push_back(nparam2);
@@ -580,10 +582,11 @@ QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
   }
 }
 
-StationTimedMeasurandData DBQueryUtils::buildStationTimedMeasurandData(const LocationDataItems &observations,
-																	   const Settings &settings,
-																	   const Fmi::TimeZones &timezones,
-																	   const StationMap &fmisid_to_station) const
+StationTimedMeasurandData DBQueryUtils::buildStationTimedMeasurandData(
+    const LocationDataItems &observations,
+    const Settings &settings,
+    const Fmi::TimeZones &timezones,
+    const StationMap &fmisid_to_station) const
 {
   StationTimedMeasurandData ret;
 
@@ -617,13 +620,13 @@ StationTimedMeasurandData DBQueryUtils::buildStationTimedMeasurandData(const Loc
       bool data_from_default_sensor = (obs.data.measurand_no == 1);
 
       ret[fmisid][obstime][obs.data.measurand_id][obs.data.sensor_no] =
-		DataWithQuality(value, data_quality, data_source, data_from_default_sensor);
-      ret[fmisid][obstime][LONGITUDE_MEASURAND_ID][obs.data.sensor_no] =
-		DataWithQuality(TS::Value(obs.longitude), data_quality, data_source, data_from_default_sensor);
-      ret[fmisid][obstime][LATITUDE_MEASURAND_ID][obs.data.sensor_no] =
-		DataWithQuality(TS::Value(obs.latitude), data_quality, data_source, data_from_default_sensor);
-      ret[fmisid][obstime][ELEVATION_MEASURAND_ID][obs.data.sensor_no] =
-		DataWithQuality(TS::Value(obs.elevation), data_quality, data_source, data_from_default_sensor);
+          DataWithQuality(value, data_quality, data_source, data_from_default_sensor);
+      ret[fmisid][obstime][LONGITUDE_MEASURAND_ID][obs.data.sensor_no] = DataWithQuality(
+          TS::Value(obs.longitude), data_quality, data_source, data_from_default_sensor);
+      ret[fmisid][obstime][LATITUDE_MEASURAND_ID][obs.data.sensor_no] = DataWithQuality(
+          TS::Value(obs.latitude), data_quality, data_source, data_from_default_sensor);
+      ret[fmisid][obstime][ELEVATION_MEASURAND_ID][obs.data.sensor_no] = DataWithQuality(
+          TS::Value(obs.elevation), data_quality, data_source, data_from_default_sensor);
     }
   }
   catch (...)
@@ -729,7 +732,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
       if (TimeSeries::is_special_parameter(item.first))
         not_null_columns.insert(item.second);
       if (SpecialParameters::instance().is_supported(item.first))
-		continuous.emplace(item.second, item.first);
+        continuous.emplace(item.second, item.first);
     }
 
     TS::TimeSeriesVectorPtr resultVector = initializeResultVector(settings);
@@ -746,7 +749,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
         continue;
       }
 
-      const auto& station = fmisid_to_station.at(fmisid);
+      const auto &station = fmisid_to_station.at(fmisid);
 
       for (const auto &data : timed_measurand_data)
       {
@@ -768,7 +771,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
                                  stationtype,
                                  station,
                                  settings,
-								 itsParameterMap);
+                                 itsParameterMap);
       }
 
       if (addDataSourceField)
@@ -809,22 +812,22 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
         // TODO: This is rather ugly and perhaps not very efficient.
         //       Perhaps could be optimized sometimes
         const auto fill_missing = [&]() -> void
-                                  {
-                                      auto it = continuous.find(i);
-                                      if (it != continuous.end()) {
-                                          boost::local_time::local_date_time now(
-                                              boost::posix_time::second_clock::universal_time(),
-                                              timestep_iter->zone());
-                                          SpecialParameters::Args args(station, stationtype,
-                                              *timestep_iter, now, settings.timezone, &settings);
-                                          const auto value = SpecialParameters::instance()
-                                              .getTimedValue(it->second, args);
-                                          new_ts.emplace_back(value);
-                                      } else {
-                                          new_ts.emplace_back(TS::TimedValue(
-                                                  *timestep_iter, missing_value));
-                                      }
-                                  };
+        {
+          auto it = continuous.find(i);
+          if (it != continuous.end())
+          {
+            boost::local_time::local_date_time now(
+                boost::posix_time::second_clock::universal_time(), timestep_iter->zone());
+            SpecialParameters::Args args(
+                station, stationtype, *timestep_iter, now, settings.timezone, &settings);
+            const auto value = SpecialParameters::instance().getTimedValue(it->second, args);
+            new_ts.emplace_back(value);
+          }
+          else
+          {
+            new_ts.emplace_back(TS::TimedValue(*timestep_iter, missing_value));
+          }
+        };
 
         for (auto &timed_value : ts)
         {
@@ -864,97 +867,97 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
   }
 }
 
-TimestepsByFMISID DBQueryUtils::getValidTimeSteps(const Settings &settings,
-												  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-												  const Fmi::TimeZones &timezones,
-												  std::map<int, TS::TimeSeriesVectorPtr>& fmisid_results) const
+TimestepsByFMISID DBQueryUtils::getValidTimeSteps(
+    const Settings &settings,
+    const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const Fmi::TimeZones &timezones,
+    std::map<int, TS::TimeSeriesVectorPtr> &fmisid_results) const
 {
-  
   // Resolve timesteps for each fmisid
   std::map<int, std::set<boost::local_time::local_date_time>> fmisid_timesteps;
 
-    if (timeSeriesOptions.all() && !settings.latest)
+  if (timeSeriesOptions.all() && !settings.latest)
+  {
+    // std::cout << "**** ALL timesteps in data \n";
+    // All timesteps
+    for (const auto &item : fmisid_results)
     {
-	  // std::cout << "**** ALL timesteps in data \n";
-      // All timesteps
-      for (const auto &item : fmisid_results)
-      {
-        int fmisid = item.first;
-        const auto &ts_vector = *item.second;
-        for (const auto &item2 : ts_vector)
-		  for (const auto &item3 : item2)
-			{
-			  fmisid_timesteps[fmisid].insert(item3.time);
-			}
-      }
+      int fmisid = item.first;
+      const auto &ts_vector = *item.second;
+      for (const auto &item2 : ts_vector)
+        for (const auto &item3 : item2)
+        {
+          fmisid_timesteps[fmisid].insert(item3.time);
+        }
     }
-    else if (settings.latest)
+  }
+  else if (settings.latest)
+  {
+    // std::cout << "**** LATEST timesteps\n";
+    // Latest timestep
+    for (const auto &item : fmisid_results)
     {
-	  // std::cout << "**** LATEST timesteps\n";
-      // Latest timestep
-      for (const auto &item : fmisid_results)
-      {
-        int fmisid = item.first;
-        const auto &ts_vector = *item.second;
-        for (const auto &item2 : ts_vector)
-		  for (const auto &item3 : item2)
-			{
-			  fmisid_timesteps[fmisid].insert(item3.time);
-			  break;
-			}
-      }
+      int fmisid = item.first;
+      const auto &ts_vector = *item.second;
+      for (const auto &item2 : ts_vector)
+        for (const auto &item3 : item2)
+        {
+          fmisid_timesteps[fmisid].insert(item3.time);
+          break;
+        }
     }
-    else if (!timeSeriesOptions.all() && !settings.latest &&
-             itsGetRequestedAndDataTimesteps == AdditionalTimestepOption::RequestedAndDataTimesteps)
+  }
+  else if (!timeSeriesOptions.all() && !settings.latest &&
+           itsGetRequestedAndDataTimesteps == AdditionalTimestepOption::RequestedAndDataTimesteps)
+  {
+    // std::cout << "**** ALL timesteps in data + listed timesteps\n";
+    // All FMISDS must have all timesteps in data and all listed timesteps
+    std::set<int> fmisids;
+    std::set<boost::local_time::local_date_time> timesteps;
+    for (const auto &item : fmisid_results)
     {
-	  // std::cout << "**** ALL timesteps in data + listed timesteps\n";
-      // All FMISDS must have all timesteps in data and all listed timesteps
-      std::set<int> fmisids;
-      std::set<boost::local_time::local_date_time> timesteps;
-      for (const auto &item : fmisid_results)
-      {
-        int fmisid = item.first;
-        fmisids.insert(fmisid);
-        const auto &ts_vector = *item.second;
-        for (const auto &item2 : ts_vector)
-		  for (const auto &item3 : item2)
-			{
-			  timesteps.insert(item3.time);
-			}
-      }
-
-      const auto tlist = TS::TimeSeriesGenerator::generate(
-          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
-
-      timesteps.insert(tlist.begin(), tlist.end());
-
-      for (const auto &fmisid : fmisids)
-        fmisid_timesteps[fmisid].insert(timesteps.begin(), timesteps.end());
-    }
-    else
-    {
-	  //	  std::cout << "**** LISTED timesteps\n";
-      // Listed timesteps
-      const auto tlist = TS::TimeSeriesGenerator::generate(
-          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
-
-      for (const auto &item : fmisid_results)
-      {
-        int fmisid = item.first;
-		fmisid_timesteps[fmisid].insert(tlist.begin(), tlist.end());
-      }
+      int fmisid = item.first;
+      fmisids.insert(fmisid);
+      const auto &ts_vector = *item.second;
+      for (const auto &item2 : ts_vector)
+        for (const auto &item3 : item2)
+        {
+          timesteps.insert(item3.time);
+        }
     }
 
-	return fmisid_timesteps;
+    const auto tlist = TS::TimeSeriesGenerator::generate(
+        timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+
+    timesteps.insert(tlist.begin(), tlist.end());
+
+    for (const auto &fmisid : fmisids)
+      fmisid_timesteps[fmisid].insert(timesteps.begin(), timesteps.end());
+  }
+  else
+  {
+    //	  std::cout << "**** LISTED timesteps\n";
+    // Listed timesteps
+    const auto tlist = TS::TimeSeriesGenerator::generate(
+        timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+
+    for (const auto &item : fmisid_results)
+    {
+      int fmisid = item.first;
+      fmisid_timesteps[fmisid].insert(tlist.begin(), tlist.end());
+    }
+  }
+
+  return fmisid_timesteps;
 }
 
-void DBQueryUtils::setAdditionalTimestepOption(AdditionalTimestepOption opt) 
+void DBQueryUtils::setAdditionalTimestepOption(AdditionalTimestepOption opt)
 {
-  itsGetRequestedAndDataTimesteps = opt; 
+  itsGetRequestedAndDataTimesteps = opt;
 }
 
 StationMap DBQueryUtils::mapQueryStations(const Spine::Stations &stations,
-										  const std::set<int> &observed_fmisids) const
+                                          const std::set<int> &observed_fmisids) const
 {
   try
   {
@@ -975,9 +978,9 @@ StationMap DBQueryUtils::mapQueryStations(const Spine::Stations &stations,
 
 // Build fmisid1,fmisid2,... list
 std::string DBQueryUtils::buildSqlStationList(const Spine::Stations &stations,
-											  const std::set<std::string> &stationgroup_codes,
-											  const StationInfo &stationInfo,
-											  const TS::RequestLimits& requestLimits) const
+                                              const std::set<std::string> &stationgroup_codes,
+                                              const StationInfo &stationInfo,
+                                              const TS::RequestLimits &requestLimits) const
 {
   try
   {
@@ -988,7 +991,7 @@ std::string DBQueryUtils::buildSqlStationList(const Spine::Stations &stations,
       if (stationInfo.belongsToGroup(s.station_id, stationgroup_codes))
         station_ids.insert(Fmi::to_string(s.station_id));
     }
-	check_request_limit(requestLimits, station_ids.size(), TS::RequestLimitMember::LOCATIONS);
+    check_request_limit(requestLimits, station_ids.size(), TS::RequestLimitMember::LOCATIONS);
 
     return std::accumulate(std::begin(station_ids),
                            std::end(station_ids),
@@ -1002,45 +1005,46 @@ std::string DBQueryUtils::buildSqlStationList(const Spine::Stations &stations,
   }
 }
 
-std::string DBQueryUtils::getSensorQueryCondition(const std::map<int, std::set<int>> &sensorNumberToMeasurandIds) const
+std::string DBQueryUtils::getSensorQueryCondition(
+    const std::map<int, std::set<int>> &sensorNumberToMeasurandIds) const
 {
   try
   {
-	std::string ret;
-	
-	std::string sensorNumberCondition;
-	bool defaultSensorRequested = false;
-	for (const auto &item : sensorNumberToMeasurandIds)
-	  {
-		if (item.first == -1)
-		  {
-			defaultSensorRequested = true;
-			continue;
-		  }
-		for (const auto &mid : item.second)
-		  {
-			if (sensorNumberCondition.size() > 0)
-			  sensorNumberCondition += " OR ";
-			sensorNumberCondition += ("(data.sensor_no = " + Fmi::to_string(item.first) +
-									  " AND data.measurand_id = " + Fmi::to_string(mid) + ") ");
-		  }
-	  }
-	if (!sensorNumberCondition.empty())
-	  {
-		ret += "AND (" + sensorNumberCondition;
-		// If no sensor number given get default
-		if (defaultSensorRequested)
-		  {
-			ret += "OR data.measurand_no = 1";
-		  }
-		ret += ") ";
-	  }
-	else
-	  {
-		ret += "AND data.measurand_no = 1 ";
-	  }
-	
-	return ret;
+    std::string ret;
+
+    std::string sensorNumberCondition;
+    bool defaultSensorRequested = false;
+    for (const auto &item : sensorNumberToMeasurandIds)
+    {
+      if (item.first == -1)
+      {
+        defaultSensorRequested = true;
+        continue;
+      }
+      for (const auto &mid : item.second)
+      {
+        if (sensorNumberCondition.size() > 0)
+          sensorNumberCondition += " OR ";
+        sensorNumberCondition += ("(data.sensor_no = " + Fmi::to_string(item.first) +
+                                  " AND data.measurand_id = " + Fmi::to_string(mid) + ") ");
+      }
+    }
+    if (!sensorNumberCondition.empty())
+    {
+      ret += "AND (" + sensorNumberCondition;
+      // If no sensor number given get default
+      if (defaultSensorRequested)
+      {
+        ret += "OR data.measurand_no = 1";
+      }
+      ret += ") ";
+    }
+    else
+    {
+      ret += "AND data.measurand_no = 1 ";
+    }
+
+    return ret;
   }
   catch (...)
   {

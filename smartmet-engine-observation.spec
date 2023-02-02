@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 23.2.1
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -32,7 +32,7 @@ BuildRequires: smartmet-engine-geonames-devel >= 23.1.18
 BuildRequires: smartmet-library-locus-devel >= 22.12.16
 BuildRequires: smartmet-library-macgyver-devel >= 22.12.16
 BuildRequires: smartmet-library-spine-devel >= 23.2.1
-BuildRequires: smartmet-library-timeseries-devel >= 23.1.26
+BuildRequires: smartmet-library-timeseries-devel >= 23.1.31
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 23.1.19
 BuildRequires: zlib-devel
@@ -49,8 +49,8 @@ Requires: smartmet-engine-geonames >= 23.1.18
 Requires: smartmet-library-locus >= 22.12.16
 Requires: smartmet-library-macgyver >= 22.12.16
 Requires: smartmet-library-spine >= 23.2.1
-Requires: smartmet-library-timeseries >= 23.1.26
-Requires: smartmet-server >= 23.1.10
+Requires: smartmet-library-timeseries >= 23.1.31
+Requires: smartmet-server >= 23.2.1
 Requires: unixODBC
 
 %if %{defined el7}
@@ -163,6 +163,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Feb  1 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.2.1-2.fmi
+- Fixed default sqlite database to include moving locations
+- Fixed default stations.txt to include translations
+
 * Wed Feb 1 2023 Anssi Reponen <anssi.reponen@fmi.fi> - 23.2.1-1.fmi
 - Added language support for station names (BRAINSTORM-2514)
 

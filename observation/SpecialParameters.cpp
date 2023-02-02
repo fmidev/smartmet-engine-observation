@@ -153,7 +153,7 @@ SpecialParameters::SpecialParameters()
       if (d.station.requestedName.length() > 0)
         return d.station.requestedName;
       else
-		return d.station.station_formal_name(d.settings->language);
+        return d.station.station_formal_name(d.settings->language);
     }
   };
 
@@ -228,9 +228,7 @@ SpecialParameters::SpecialParameters()
 
   handler_map[STATIONNAME_PARAM] =
       handler_map[STATION_NAME_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
-  {
-	return d.station.station_formal_name(d.settings->language);
-  };
+  { return d.station.station_formal_name(d.settings->language); };
 
   handler_map[STATIONTYPE_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
   { return d.stationType; };

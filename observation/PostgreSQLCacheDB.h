@@ -2,12 +2,12 @@
 
 #include "CommonPostgreSQLFunctions.h"
 #include "DataItem.h"
-#include "MovingLocationItem.h"
 #include "ExternalAndMobileDBInfo.h"
 #include "ExternalAndMobileProducerConfig.h"
 #include "FlashDataItem.h"
 #include "InsertStatus.h"
 #include "MobileExternalDataItem.h"
+#include "MovingLocationItem.h"
 #include "Utils.h"
 #include "WeatherDataQCItem.h"
 #include <macgyver/PostgreSQLConnection.h>
@@ -337,11 +337,11 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
 
   static ResultSetRows getResultSetForMobileExternalData(
       const pqxx::result &pgResultSet, const std::map<unsigned int, std::string> &pgDataTypes);
-  
+
   void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
-							  const TS::RequestLimits& requestLimits,
+                              const TS::RequestLimits &requestLimits,
                               WeatherDataQCData &cacheData) override;
   std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,

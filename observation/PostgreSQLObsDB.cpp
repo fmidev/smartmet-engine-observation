@@ -640,15 +640,15 @@ void PostgreSQLObsDB::setTimeInterval(const ptime &theStartTime,
 void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
                                              const StationInfo &stationInfo,
                                              const std::set<std::string> &stationgroup_codes,
-											 const TS::RequestLimits& requestLimits,									  
+                                             const TS::RequestLimits &requestLimits,
                                              WeatherDataQCData &cacheData)
 {
   try
   {
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
-	std::set<int> fmisids;
-	std::set<boost::posix_time::ptime> obstimes;
+    std::set<int> fmisids;
+    std::set<boost::posix_time::ptime> obstimes;
     for (auto row : result_set)
     {
       Fmi::AsyncTask::interruption_point();
@@ -693,13 +693,14 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       cacheData.sensor_nosAll.push_back(sensor_no);
       cacheData.data_qualityAll.push_back(data_quality);
 
-	  if(fmisid)
-		fmisids.insert(*fmisid);
-	  obstimes.insert(obstime);
+      if (fmisid)
+        fmisids.insert(*fmisid);
+      obstimes.insert(obstime);
 
-	  check_request_limit(requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
-	  check_request_limit(requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
-	  check_request_limit(requestLimits, cacheData.data_valuesAll.size(), TS::RequestLimitMember::ELEMENTS);
+      check_request_limit(requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
+      check_request_limit(requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
+      check_request_limit(
+          requestLimits, cacheData.data_valuesAll.size(), TS::RequestLimitMember::ELEMENTS);
     }
   }
   catch (...)
