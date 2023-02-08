@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.2.1
+Version: 23.2.8
 Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Feb 8 2023 Anssi Reponen <anssi.reponen@fmi.fi> - 23.2.8-1.fmi
+- Create moving_locations cache table together with observation_data table
+
 * Wed Feb  1 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.2.1-2.fmi
 - Fixed default sqlite database to include moving locations
 - Fixed default stations.txt to include translations
