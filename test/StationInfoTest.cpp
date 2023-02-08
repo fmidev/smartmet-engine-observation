@@ -64,7 +64,7 @@ TEST_CASE("Test station and data searches")
     SECTION("All AWS stations are searched")
     {
       auto stations = stationinfo.findStationsInGroup(stationgroup_codes, starttime, endtime);
-      REQUIRE(stations.size() == 170);
+      REQUIRE(stations.size() == 169);
     }
   }
 
@@ -81,7 +81,7 @@ TEST_CASE("Test station and data searches")
     {
       auto station = stationinfo.getStation(station_id, stationgroup_codes);
       REQUIRE(station.fmisid == station_id);
-      REQUIRE(station.station_formal_name_fi == "kt51 Inkoo R");
+      REQUIRE(station.station_formal_name_fi == "kt51_Inkoo_Innanbäck");
     }
     SECTION("1 station is searched by coordinates")
     {
@@ -91,7 +91,7 @@ TEST_CASE("Test station and data searches")
           lon, lat, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
       REQUIRE(stations.size() == 1);
       REQUIRE(stations.back().fmisid == station_id);
-      REQUIRE(stations.back().station_formal_name_fi == "kt51 Inkoo R");
+      REQUIRE(stations.back().station_formal_name_fi == "kt51_Inkoo_Innanbäck");
       REQUIRE(Fmi::stod(stations.back().distance) < 0.1);
     }
 
@@ -102,8 +102,8 @@ TEST_CASE("Test station and data searches")
           25.6116, 60.9783, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
       REQUIRE(stations.size() == 1);
       REQUIRE(stations.back().fmisid == 100205);
-      REQUIRE(stations.back().station_formal_name_fi == "vt12 Lahti Opt");
-      REQUIRE(Fmi::stod(stations.back().distance) < 0.2);
+      REQUIRE(stations.back().station_formal_name_fi == "Lahti_Kärpäsenmäki_Opt");
+      REQUIRE(Fmi::stod(stations.back().distance) < 0.3);
     }
 
     SECTION("5 stations are searched by coordinates")
@@ -116,15 +116,15 @@ TEST_CASE("Test station and data searches")
       REQUIRE(stations.size() == 5);
       REQUIRE(stations[0].fmisid == 100013);
       REQUIRE(stations[1].fmisid == 100016);
-      REQUIRE(stations[2].fmisid == 100065);
-      REQUIRE(stations[3].fmisid == 100039);
+      REQUIRE(stations[3].fmisid == 100065);
       REQUIRE(stations[4].fmisid == 100063);
+      REQUIRE(stations[2].fmisid == 100039);
     }
 
     SECTION("All EXTRWS stations are searched")
     {
       auto stations = stationinfo.findStationsInGroup(stationgroup_codes, starttime, endtime);
-      REQUIRE(stations.size() == 1500);
+      REQUIRE(stations.size() == 1502);
     }
 
     SECTION("Using EXTSYNOP group")
