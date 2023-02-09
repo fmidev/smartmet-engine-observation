@@ -19,7 +19,7 @@ class PostgreSQLObsDBConnectionPool
 
   bool initializePool(const StationtypeConfig& stc, const ParameterMapPtr& pm);
 
-  std::shared_ptr<PostgreSQLObsDB> getConnection(bool debug = false);
+  std::shared_ptr<PostgreSQLObsDB> getConnection(bool debug);
   void releaseConnection(int connectionId);
   PostgreSQLObsDBConnectionPool(PostgreSQLDatabaseDriver* driver);
   bool addService(const Fmi::Database::PostgreSQLConnectionOptions& connectionOptions,

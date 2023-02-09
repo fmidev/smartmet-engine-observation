@@ -158,7 +158,7 @@ void PostgreSQLDatabaseDriverForFmiData::makeQuery(QueryBase *qb)
 
     try
     {
-      std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+      std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
       db->get(sqlStatement, result, itsTimeZones);
 
       if (not cacheResult)
@@ -422,7 +422,7 @@ void PostgreSQLDatabaseDriverForFmiData::getMovingStationsByArea(
 {
   try
   {
-    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
     db->getMovingStations(stations, stationtype, starttime, endtime, wkt);
   }
   catch (...)
@@ -453,7 +453,8 @@ FlashCounts PostgreSQLDatabaseDriverForFmiData::getFlashCount(
       return cache->getFlashCount(starttime, endtime, locations);
     }
 
-    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+    std::shared_ptr<PostgreSQLObsDB> db =
+        itsPostgreSQLConnectionPool->getConnection(settings.debug_options);
     return db->getFlashCount(starttime, endtime, locations);
   }
   catch (...)
@@ -470,7 +471,7 @@ PostgreSQLDatabaseDriverForFmiData::observablePropertyQuery(std::vector<std::str
   {
     QueryObservablePropertyPostgreSQL qop;
 
-    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
 
     return qop.executeQuery(
         *db, "metadata", parameters, itsParameters.params->parameterMap, language);
@@ -496,13 +497,13 @@ void PostgreSQLDatabaseDriverForFmiData::readConfig(Spine::ConfigBase &cfg)
 
 void PostgreSQLDatabaseDriverForFmiData::getStationGroups(StationGroups &sg) const
 {
-  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
   db->getStationGroups(sg);
 }
 
 void PostgreSQLDatabaseDriverForFmiData::getProducerGroups(ProducerGroups &pg) const
 {
-  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
   db->getProducerGroups(pg);
 }
 

@@ -894,7 +894,7 @@ WHERE  tg.group_class_id IN( 1, 81 )
                              'EXTFLASH', 'EXTFROST', 'EXTICE', ' EXTMAGNET',
                              'EXTMAREO', 'EXTMAST', 'EXTRADACT', 'EXTRWS',
                              'EXTRWYWS', 'EXTSNOW', 'EXTSOUNDING', 'EXTSYNOP',
-                             ' EXTWATER', 'EXTWIND', 'FLASH', 'HTB',
+                             'EXTWATER', 'EXTWIND', 'FLASH', 'HTB',
                              'ICE', 'MAGNET', 'MAREO', 'MAST',
                              'PREC', 'RADACT', 'RADAR', ' RESEARCH',
                              'RWS', 'SEA', 'SHIP', 'SOLAR',
@@ -966,14 +966,14 @@ WHERE  tg.group_class_id IN( 1, 81 )
                              'EXTFLASH', 'EXTFROST', 'EXTICE', ' EXTMAGNET',
                              'EXTMAREO', 'EXTMAST', 'EXTRADACT', 'EXTRWS',
                              'EXTRWYWS', 'EXTSNOW', 'EXTSOUNDING', 'EXTSYNOP',
-                             ' EXTWATER', 'EXTWIND', 'FLASH', 'HTB',
+                             'EXTWATER', 'EXTWIND', 'FLASH', 'HTB',
                              'ICE', 'MAGNET', 'MAREO', 'MAST',
                              'PREC', 'RADACT', 'RADAR', ' RESEARCH',
                              'RWS', 'SEA', 'SHIP', 'SOLAR',
                              'SOUNDING', 'SYNOP' );)SQL";
     // clang-format on
 
-	if (itsDebug)
+    if (itsDebug)
       std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
@@ -1006,9 +1006,9 @@ WHERE  tg.group_class_id IN( 1, 81 )
       s.language_code = row[4].as<std::string>();
       s.station_formal_name_fi = row[5].as<std::string>();
       if (!row[6].is_null())
-		s.station_formal_name_sv = row[6].as<std::string>();
+        s.station_formal_name_sv = row[6].as<std::string>();
       if (!row[7].is_null())
-		s.station_formal_name_en = row[7].as<std::string>();
+        s.station_formal_name_en = row[7].as<std::string>();
       station_start = row[8].as<std::string>();
       station_end = row[11].as<std::string>();
       s.station_start = Fmi::TimeParser::parse(row[9].as<std::string>());

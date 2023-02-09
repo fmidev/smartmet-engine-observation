@@ -164,7 +164,7 @@ void PostgreSQLDatabaseDriverForMobileData::makeQuery(QueryBase *qb)
         itsParameters.connectionPoolSize.begin(), itsParameters.connectionPoolSize.end(), 0);
     for (int counter = 1; counter <= poolSize; ++counter)
     {
-      db = itsPostgreSQLConnectionPool->getConnection();
+      db = itsPostgreSQLConnectionPool->getConnection(false);
 
       if (db and db->isConnected())
         break;
@@ -250,7 +250,7 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(Settings &
       return boost::make_shared<TS::TimeSeriesVector>();
     }
 
-    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(settings.debug_options);
     setSettings(settings, *db);
 
     QueryExternalAndMobileData extdata(itsParameters.externalAndMobileProducerConfig,
@@ -315,7 +315,7 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(
       return boost::make_shared<TS::TimeSeriesVector>();
     }
 
-    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection();
+    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(settings.debug_options);
     setSettings(settings, *db);
 
     QueryExternalAndMobileData extdata(itsParameters.externalAndMobileProducerConfig,
