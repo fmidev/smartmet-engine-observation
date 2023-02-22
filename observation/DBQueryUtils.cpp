@@ -4,6 +4,8 @@
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <timeseries/ParameterTools.h>
 
+#include <timeseries/TimeSeriesOutput.h>
+
 namespace SmartMet
 {
 namespace Engine
@@ -425,9 +427,11 @@ void addParameterToTimeSeries(
 
             double lat = station.latitude_out;
             double lon = station.longitude_out;
-            TS::Value smartsymbol =
-                TS::Value(*calcSmartsymbolNumber(wawa, totalcloudcover, temp, obstime, lat, lon));
-            timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, smartsymbol));
+            auto value = calcSmartsymbolNumber(wawa, totalcloudcover, temp, obstime, lat, lon);
+            if (!value)
+              timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, missing));
+            else
+              timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, TS::Value(*value)));
           }
         }
         else
@@ -724,13 +728,10 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
         addDataQualityField = true;
     }
 
-    std::set<int> not_null_columns;
     std::map<int, std::string> continuous;
 
     for (const auto &item : qmap.specialPositions)
     {
-      if (TimeSeries::is_special_parameter(item.first))
-        not_null_columns.insert(item.second);
       if (SpecialParameters::instance().is_supported(item.first))
         continuous.emplace(item.second, item.first);
     }
@@ -801,10 +802,6 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
         auto &ts = resultVector->at(i);
 
         TS::Value missing_value = TS::None();
-        if (ts.size() > 0 && not_null_columns.find(i) != not_null_columns.end())
-        {
-          missing_value = ts.back().value;
-        }
 
         TS::TimeSeries new_ts(settings.localTimePool);
         auto timestep_iter = valid_timesteps.cbegin();
@@ -820,7 +817,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
                 boost::posix_time::second_clock::universal_time(), timestep_iter->zone());
             SpecialParameters::Args args(
                 station, stationtype, *timestep_iter, now, settings.timezone, &settings);
-            const auto value = SpecialParameters::instance().getTimedValue(it->second, args);
+            auto value = SpecialParameters::instance().getTimedValue(it->second, args);
             new_ts.emplace_back(value);
           }
           else

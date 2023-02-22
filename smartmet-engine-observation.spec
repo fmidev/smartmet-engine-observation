@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.2.9
+Version: 23.2.22
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -30,7 +30,7 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 23.1.18
 BuildRequires: smartmet-library-locus-devel >= 22.12.16
-BuildRequires: smartmet-library-macgyver-devel >= 22.12.16
+BuildRequires: smartmet-library-macgyver-devel >= 23.2.8
 BuildRequires: smartmet-library-spine-devel >= 23.2.8
 BuildRequires: smartmet-library-timeseries-devel >= 23.1.31
 BuildRequires: sqlite3pp-devel >= 1.0.9
@@ -47,7 +47,7 @@ Requires: gdal34-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 23.1.18
 Requires: smartmet-library-locus >= 22.12.16
-Requires: smartmet-library-macgyver >= 22.12.16
+Requires: smartmet-library-macgyver >= 23.2.8
 Requires: smartmet-library-spine >= 23.2.8
 Requires: smartmet-library-timeseries >= 23.1.31
 Requires: smartmet-server >= 23.2.1
@@ -163,6 +163,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Feb 22 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.2.22-1.fmi
+- Fixed SmartSymbol calculation to handle missing values
+- Do not alter the missing value special parameter columns
+
 * Thu Feb  9 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.2.9-1.fmi
 - Fixed EXTWATER stations to work
 - Improved support for debug=1 : print more SQL queries
