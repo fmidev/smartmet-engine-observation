@@ -169,7 +169,7 @@ void PostgreSQLCacheDB::createWeatherDataQCTable()
         "obstime timestamp NOT NULL, "
         "parameter INTEGER NOT NULL, "
         "sensor_no INTEGER NOT NULL, "
-        "value REAL NOT NULL, "
+        "value REAL, "
         "flag INTEGER NOT NULL, "
         "modified_last timestamp default NULL, "
         "PRIMARY KEY (obstime, fmisid, parameter, sensor_no));");

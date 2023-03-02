@@ -306,10 +306,10 @@ void SpatiaLite::createTables(const std::set<std::string> &tables)
     // No locking needed during initialization phase
     initSpatialMetaData();
     if (tables.find(OBSERVATION_DATA_TABLE) != tables.end())
-	  {
-		createObservationDataTable();
-		createMovingLocationsDataTable();
-	  }
+    {
+      createObservationDataTable();
+      createMovingLocationsDataTable();
+    }
     if (tables.find(WEATHER_DATA_QC_TABLE) != tables.end())
       createWeatherDataQCTable();
     if (tables.find(FLASH_DATA_TABLE) != tables.end())
@@ -475,7 +475,7 @@ void SpatiaLite::createWeatherDataQCTable()
         "obstime INTEGER NOT NULL, "
         "parameter INTEGER NOT NULL, "
         "sensor_no INTEGER NOT NULL, "
-        "value REAL NOT NULL, "
+        "value REAL, "
         "flag INTEGER NOT NULL, "
         "modified_last INTEGER, "
         "PRIMARY KEY (obstime, fmisid, parameter, sensor_no));");

@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.2.22
+Version: 23.3.2
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -28,10 +28,10 @@ BuildRequires: gdal34-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 23.1.18
-BuildRequires: smartmet-library-locus-devel >= 22.12.16
-BuildRequires: smartmet-library-macgyver-devel >= 23.2.8
-BuildRequires: smartmet-library-spine-devel >= 23.2.8
+BuildRequires: smartmet-engine-geonames-devel >= 23.2.27
+BuildRequires: smartmet-library-locus-devel >= 23.2.27
+BuildRequires: smartmet-library-macgyver-devel >= 23.2.27
+BuildRequires: smartmet-library-spine-devel >= 23.2.27
 BuildRequires: smartmet-library-timeseries-devel >= 23.1.31
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 23.1.19
@@ -45,10 +45,10 @@ Requires: %{smartmet_boost}-thread
 Requires: fmt >= %{smartmet_fmt_min}, fmt < %{smartmet_fmt_max}
 Requires: gdal34-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 23.1.18
-Requires: smartmet-library-locus >= 22.12.16
-Requires: smartmet-library-macgyver >= 23.2.8
-Requires: smartmet-library-spine >= 23.2.8
+Requires: smartmet-engine-geonames >= 23.2.27
+Requires: smartmet-library-locus >= 23.2.27
+Requires: smartmet-library-macgyver >= 23.2.27
+Requires: smartmet-library-spine >= 23.2.27
 Requires: smartmet-library-timeseries >= 23.1.31
 Requires: smartmet-server >= 23.2.1
 Requires: unixODBC
@@ -129,7 +129,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 23.2.8
+Requires: smartmet-library-spine-devel >= 23.2.27
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Mar  2 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.3.2-1.fmi
+- Fixed weather_data_qc cache data value to be possibly NULL
+
 * Wed Feb 22 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.2.22-1.fmi
 - Fixed SmartSymbol calculation to handle missing values
 - Do not alter the missing value special parameter columns
