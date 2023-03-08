@@ -51,6 +51,17 @@ enum class DataFieldSpecifier
   DataSource
 };
 
+
+int get_mid(const std::string& param_name , const std::string& stationtype, const ParameterMapPtr &parameterMap)
+{
+  auto sparam = parameterMap->getParameter(param_name, stationtype);
+
+  if(stationtype == "foreign" || stationtype == "road")
+	return parameterMap->getRoadAndForeignIds().stringToInteger(sparam);
+
+  return Fmi::stoi(sparam);
+}
+
 template <typename Container, typename Key>
 bool exists(const Container &container, const Key &key)
 {
@@ -321,6 +332,7 @@ void addParameterToTimeSeries(
     for (const auto &special : specialPositions)
     {
       int pos = special.second;
+
       try
       {
         if (boost::algorithm::starts_with(special.first, "longitude") ||
@@ -420,7 +432,7 @@ void addParameterToTimeSeries(
                 boost::get<double>(get_default_sensor_value(sensor_values, fmisid, temppos));
             sensor_values = data.at(totalcloudcoverpos);
             int totalcloudcover = static_cast<int>(boost::get<double>(
-                get_default_sensor_value(sensor_values, fmisid, totalcloudcoverpos)));
+																	  get_default_sensor_value(sensor_values, fmisid, totalcloudcoverpos)));
             sensor_values = data.at(wawapos);
             int wawa = static_cast<int>(
                 boost::get<double>(get_default_sensor_value(sensor_values, fmisid, wawapos)));
@@ -434,7 +446,59 @@ void addParameterToTimeSeries(
               timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, TS::Value(*value)));
           }
         }
-        else
+        else if (special.first == "cloudceiling" || special.first == "cloudceilingft" || special.first == "cloudceilinghft")
+        {
+          int cla1_pos = get_mid("cla1_pt1m_acc", stationtype, parameterMap);
+          int cla2_pos = get_mid("cla2_pt1m_acc", stationtype, parameterMap);
+          int cla3_pos = get_mid("cla3_pt1m_acc", stationtype, parameterMap);
+          int cla4_pos = get_mid("cla4_pt1m_acc", stationtype, parameterMap);
+          int cla5_pos = get_mid("cla5_pt1m_acc", stationtype, parameterMap);
+          int clhb1_pos = get_mid("clhb1_pt1m_instant", stationtype, parameterMap);
+          int clhb2_pos = get_mid("clhb2_pt1m_instant", stationtype, parameterMap);
+          int clhb3_pos = get_mid("clhb3_pt1m_instant", stationtype, parameterMap);
+          int clhb4_pos = get_mid("clhb4_pt1m_instant", stationtype, parameterMap);
+          int clh5_pos = get_mid("clh5_pt1m_instant", stationtype, parameterMap);
+		  
+		  std::vector<int> cla_pos_vector;
+		  std::vector<int> clhb_pos_vector;
+		  cla_pos_vector.push_back(cla1_pos);
+		  cla_pos_vector.push_back(cla2_pos);
+		  cla_pos_vector.push_back(cla3_pos);
+		  cla_pos_vector.push_back(cla4_pos);
+		  cla_pos_vector.push_back(cla5_pos);
+		  clhb_pos_vector.push_back(clhb1_pos);
+		  clhb_pos_vector.push_back(clhb2_pos);
+		  clhb_pos_vector.push_back(clhb3_pos);
+		  clhb_pos_vector.push_back(clhb4_pos);
+		  clhb_pos_vector.push_back(clh5_pos);
+
+		  TS::Value cloudceiling_value = TS::None();
+		  for(unsigned int i = 0; i < 5; i++)
+			{
+			  auto cla_pos = cla_pos_vector.at(i);
+			  auto clhb_pos = clhb_pos_vector.at(i);
+
+			  if(data.count(cla_pos) > 0 && data.count(clhb_pos) > 0)
+				{
+				  auto cla_sensor_values = data.at(cla_pos);
+				  auto clhb_sensor_values = data.at(clhb_pos);
+
+				  double cla_val =	boost::get<double>(get_default_sensor_value(cla_sensor_values, fmisid, cla_pos));
+				  double clhb_val =	boost::get<double>(get_default_sensor_value(clhb_sensor_values, fmisid, clhb_pos));
+				  if(cla_val >= 5 && cla_val <= 9)
+					{
+					  if(special.first == "cloudceilingft")
+						clhb_val = (clhb_val * 3.28);
+					  else if(special.first == "cloudceilinghft")
+						clhb_val = (clhb_val * 0.0328);					  
+					  cloudceiling_value = clhb_val;
+					  break;
+					}
+				}
+			}
+		  timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, cloudceiling_value));
+        }
+		else
         {
           std::string fieldname = special.first;
           if (isDataSourceOrDataQualityField(fieldname))
@@ -569,6 +633,33 @@ QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
             ret.measurandIds.push_back(nparam2);
             ret.measurandIds.push_back(nparam3);
           }
+          ret.specialPositions[name] = pos;
+        }
+        else if (name.find("cloudceiling") != std::string::npos || name.find("cloudceilingft") != std::string::npos || name.find("cloudceilinghft") != std::string::npos)
+        {
+          if (!isWeatherDataQCTable)
+			{
+			  auto nparam1 = Fmi::stoi(itsParameterMap->getParameter("cla1_pt1m_acc", stationtype));
+			  auto nparam2 = Fmi::stoi(itsParameterMap->getParameter("cla2_pt1m_acc", stationtype));
+			  auto nparam3 = Fmi::stoi(itsParameterMap->getParameter("cla3_pt1m_acc", stationtype));
+			  auto nparam4 = Fmi::stoi(itsParameterMap->getParameter("cla4_pt1m_acc", stationtype));
+			  auto nparam5 = Fmi::stoi(itsParameterMap->getParameter("cla5_pt1m_acc", stationtype));
+			  auto nparam6 = Fmi::stoi(itsParameterMap->getParameter("clhb1_pt1m_instant", stationtype));
+			  auto nparam7 = Fmi::stoi(itsParameterMap->getParameter("clhb2_pt1m_instant", stationtype));
+			  auto nparam8 = Fmi::stoi(itsParameterMap->getParameter("clhb3_pt1m_instant", stationtype));
+			  auto nparam9 = Fmi::stoi(itsParameterMap->getParameter("clhb4_pt1m_instant", stationtype));
+			  auto nparam10 = Fmi::stoi(itsParameterMap->getParameter("clh5_pt1m_instant", stationtype));
+			  ret.measurandIds.push_back(nparam1);
+			  ret.measurandIds.push_back(nparam2);
+			  ret.measurandIds.push_back(nparam3);
+			  ret.measurandIds.push_back(nparam4);
+			  ret.measurandIds.push_back(nparam5);
+			  ret.measurandIds.push_back(nparam6);
+			  ret.measurandIds.push_back(nparam7);
+			  ret.measurandIds.push_back(nparam8);
+			  ret.measurandIds.push_back(nparam9);
+			  ret.measurandIds.push_back(nparam10);
+			}
           ret.specialPositions[name] = pos;
         }
         else
@@ -713,7 +804,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
         fmisid_timesteps[item.first].insert(tlist.begin(), tlist.end());
     }
 
-    //	  std::cout << "station_data:\n" << station_data << std::endl;
+	// std::cout << "station_data:\n" << station_data << std::endl;
 
     TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
