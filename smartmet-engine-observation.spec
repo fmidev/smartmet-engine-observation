@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.3.2
+Version: 23.3.8
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Mar 3 2023  Anssi Reponen <anssi.reponen@fmi.fi> - 23.3.8-1.fmi
+- Added handling of new metaparameters: CloudCeiling,CloudCeilingFT,CloudCeilingHFT (BRAINSTORM-2556)
+
 * Thu Mar  2 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.3.2-1.fmi
 - Fixed weather_data_qc cache data value to be possibly NULL
 
