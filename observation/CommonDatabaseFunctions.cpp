@@ -139,6 +139,21 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
 
           specialPositions[name] = pos;
         }
+        else if (name == "cloudceiling" || name == "cloudceilingft" || name == "cloudceilinghft")
+        {
+          param_set.insert(itsParameterMap->getParameter("cla1_pt1m_acc", stationtype));
+          param_set.insert(itsParameterMap->getParameter("cla2_pt1m_acc", stationtype));
+          param_set.insert(itsParameterMap->getParameter("cla3_pt1m_acc", stationtype));
+          param_set.insert(itsParameterMap->getParameter("cla4_pt1m_acc", stationtype));
+          param_set.insert(itsParameterMap->getParameter("cla5_pt1m_acc", stationtype));
+          param_set.insert(itsParameterMap->getParameter("clhb1_pt1m_instant", stationtype));
+          param_set.insert(itsParameterMap->getParameter("clhb2_pt1m_instant", stationtype));
+          param_set.insert(itsParameterMap->getParameter("clhb3_pt1m_instant", stationtype));
+          param_set.insert(itsParameterMap->getParameter("clhb4_pt1m_instant", stationtype));
+          param_set.insert(itsParameterMap->getParameter("clh5_pt1m_instant", stationtype));
+
+          specialPositions[name] = pos;
+        }
         else
         {
           specialPositions[name] = pos;
