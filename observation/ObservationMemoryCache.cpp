@@ -11,6 +11,14 @@ namespace Engine
 {
 namespace Observation
 {
+ObservationMemoryCache::~ObservationMemoryCache()
+{
+  for (const auto& item : *itsObservations.load())
+  {
+    delete item.second;
+  }
+}
+
 // After the cache has been initialized, we store the time of the
 // latest deleted observations instead of the actual last
 // observation.

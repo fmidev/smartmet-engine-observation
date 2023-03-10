@@ -23,6 +23,8 @@ class StationInfo;
 class ObservationMemoryCache
 {
  public:
+  virtual ~ObservationMemoryCache();
+
   /**
    * @brief Get the starting time of the cache
    * @retval The starting time of the data, or is_not_a_date_time if not initialized yet
