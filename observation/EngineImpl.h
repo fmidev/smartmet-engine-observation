@@ -147,11 +147,7 @@ class EngineImpl : public Engine
 
   std::shared_ptr<DBRegistry> itsDatabaseRegistry;
 
-#ifdef TODO_CAUSES_SEGFAULT_AT_EXIT
   std::unique_ptr<DatabaseDriverInterface> itsDatabaseDriver;
-#else
-  DatabaseDriverInterface *itsDatabaseDriver{nullptr};
-#endif
 };
 
 }  // namespace Observation

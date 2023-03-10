@@ -68,12 +68,8 @@ void EngineImpl::init()
     itsEngineParameters->observationCacheProxy =
         ObservationCacheFactory::create(itsEngineParameters, cfg);
 
-#ifdef TODO_CAUSES_SEGFAULT_AT_EXIT
     itsDatabaseDriver.reset(DatabaseDriverFactory::create(itsEngineParameters, cfg));
-#else
-    itsDatabaseDriver = DatabaseDriverFactory::create(itsEngineParameters, cfg);
-#endif
-    if (itsDatabaseDriver != nullptr)
+    if (itsDatabaseDriver)
     {
       logMessage(
           "[Observation EngineImpl] Database driver '" + itsDatabaseDriver->name() + "' created",
