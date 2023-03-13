@@ -471,6 +471,7 @@ class SpatiaLite : public CommonDatabaseFunctions
   std::string srid;
   std::size_t itsConnectionId;
   std::size_t itsMaxInsertSize;
+  void* cache;
   const ExternalAndMobileProducerConfig &itsExternalAndMobileProducerConfig;
 
   bool itsReadOnly = false;

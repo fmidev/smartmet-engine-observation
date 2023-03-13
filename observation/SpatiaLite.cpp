@@ -247,7 +247,7 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
     // better, for best speed we
     // choose off (0), since this is only a cache.
     //    options += " synchronous=" + synchronous;
-    void *cache = sqlite_api::spatialite_alloc_connection();
+    cache = sqlite_api::spatialite_alloc_connection();
     sqlite_api::spatialite_init_ex(itsDB.sqlite3_handle(), cache, 0);
 
     std::string journalModePragma = "PRAGMA journal_mode=" + options.sqlite.journal_mode;
@@ -294,7 +294,10 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
   }
 }
 
-SpatiaLite::~SpatiaLite() = default;
+SpatiaLite::~SpatiaLite()
+{
+  sqlite_api::spatialite_cleanup_ex(cache);
+};
 
 void SpatiaLite::createTables(const std::set<std::string> &tables)
 {
