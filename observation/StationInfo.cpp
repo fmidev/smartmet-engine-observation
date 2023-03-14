@@ -582,7 +582,7 @@ Spine::Stations StationInfo::findStationsInsideArea(const std::set<std::string>&
     Spine::Stations groupStations = findStationsInGroup(groups, starttime, endtime);
     // Create area geometry from wkt-string
     std::shared_ptr<OGRGeometry> areaGeometry(Fmi::OGR::createFromWkt(wkt, 4326),
-        &OGRGeometryFactory::destroyGeometry);
+                                              &OGRGeometryFactory::destroyGeometry);
     // Create spatial refernce to be used below
     OGRSpatialReference srs;
     srs.importFromEPSGA(4326);
