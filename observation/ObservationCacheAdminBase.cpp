@@ -1646,6 +1646,9 @@ void ObservationCacheAdminBase::addInfoToStations(Spine::Stations& stations,
 
   for (Spine::Station& station : stations)
   {
+    if (Spine::Reactor::isShuttingDown())
+      return;
+
     if (locations.find(station.fmisid) != locations.end())
     {
       const Spine::LocationPtr& place = locations.at(station.fmisid);
@@ -1664,8 +1667,13 @@ void ObservationCacheAdminBase::addInfoToStations(Spine::Stations& stations,
 
   // Update info of the remainig stations
   for (Spine::Station& station : stations)
+  {
+    if (Spine::Reactor::isShuttingDown())
+      throw Fmi::Exception(BCP,
+                           "[ObservationCacheAdminBase] Station updates aborted due to shutdown");
     if (processed_stations.find(station.fmisid) == processed_stations.end())
       addInfoToStation(station, language);
+  }
 }
 
 void ObservationCacheAdminBase::reloadStations()
