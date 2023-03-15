@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.3.14
-Release: 2%{?dist}.fmi
+Version: 23.3.15
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Mar 15 2023 Anssi Reponen <mika.heiskanen@fmi.fi> - 23.3.15-1.fmi
+- Fixed result when only fmisid and place is queried
+
 * Tue Mar 14 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.3.14-2.fmi
 - Memory leak fixes
 - Improved shutdown for station metadata update loops
