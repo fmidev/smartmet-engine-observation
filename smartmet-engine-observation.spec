@@ -32,7 +32,7 @@ BuildRequires: smartmet-engine-geonames-devel >= 23.2.27
 BuildRequires: smartmet-library-locus-devel >= 23.3.7
 BuildRequires: smartmet-library-macgyver-devel >= 23.3.3
 BuildRequires: smartmet-library-spine-devel >= 23.3.14
-BuildRequires: smartmet-library-timeseries-devel >= 23.3.14
+BuildRequires: smartmet-library-timeseries-devel >= 23.3.15
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: smartmet-utils-devel >= 23.1.19
 BuildRequires: zlib-devel
@@ -49,7 +49,7 @@ Requires: smartmet-engine-geonames >= 23.2.27
 Requires: smartmet-library-locus >= 23.3.7
 Requires: smartmet-library-macgyver >= 23.3.3
 Requires: smartmet-library-spine >= 23.3.14
-Requires: smartmet-library-timeseries >= 23.3.14
+Requires: smartmet-library-timeseries >= 23.3.15
 Requires: smartmet-server >= 23.3.6
 Requires: unixODBC
 
@@ -165,6 +165,7 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Wed Mar 15 2023 Anssi Reponen <mika.heiskanen@fmi.fi> - 23.3.15-1.fmi
 - Fixed result when only fmisid and place is queried
+- Silenced several compiler warnings
 
 * Tue Mar 14 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.3.14-2.fmi
 - Memory leak fixes
