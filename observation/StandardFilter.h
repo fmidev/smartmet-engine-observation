@@ -36,7 +36,7 @@ class StandardFilter : public MinimumStandardFilter
   StandardFilter(const StandardFilter& other) = delete;
   StandardFilter operator=(const StandardFilter& other) = delete;
 
-  virtual std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
+  std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
       const NameType& field, const NameType& operationName, const boost::any& toWhat) override;
 };
 
@@ -60,7 +60,7 @@ class ExtendedStandardFilter : public StandardFilter
   ExtendedStandardFilter(const ExtendedStandardFilter& other) = delete;
   ExtendedStandardFilter operator=(const ExtendedStandardFilter& other) = delete;
 
-  explicit ExtendedStandardFilter() : StandardFilter()
+  explicit ExtendedStandardFilter()
   {
     // Extension operations to StandardFilter.
     FEConformanceClassBase::add("PropertyMinuteValueModuloIsEqualToZero",

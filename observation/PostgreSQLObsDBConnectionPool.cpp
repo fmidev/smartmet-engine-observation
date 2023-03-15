@@ -125,8 +125,7 @@ std::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(
             itsWorkerList[pos]->setConnectionId(pos);
             itsWorkerList[pos]->setDebug(debug);
             itsLastConnectionID = pos;
-            return std::shared_ptr<PostgreSQLObsDB>(itsWorkerList[pos].get(),
-                                                    Releaser<PostgreSQLObsDB>(this));
+            return {itsWorkerList[pos].get(), Releaser<PostgreSQLObsDB>(this)};
           }
         }
       }
@@ -137,11 +136,9 @@ std::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(
         throw Fmi::Exception(
             BCP, "Could not get a database connection. All the database connections are in use!");
       }
-      else
-      {
-        // The timeout counter above assumes the sleep time here is one second. Should be rewritten.
-        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
-      }
+
+      // The timeout counter above assumes the sleep time here is one second. Should be rewritten.
+      boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
     }
 
     // NEVER EXECUTED:

@@ -26,16 +26,16 @@ void DummyCache::initializeCaches(int /* finCacheDuration */,
 
 TS::TimeSeriesVectorPtr DummyCache::valuesFromCache(Settings & /* settings */)
 {
-  return TS::TimeSeriesVectorPtr();
+  return {};
 }
 
 TS::TimeSeriesVectorPtr DummyCache::valuesFromCache(
     Settings & /* settings */, const TS::TimeSeriesGeneratorOptions & /* timeSeriesOptions */)
 {
-  return TS::TimeSeriesVectorPtr();
+  return {};
 }
 
-bool DummyCache::dataAvailableInCache(const Settings &settings) const
+bool DummyCache::dataAvailableInCache(const Settings & /* settings */) const
 {
   return false;
 }
@@ -50,7 +50,7 @@ FlashCounts DummyCache::getFlashCount(const boost::posix_time::ptime & /* startt
                                       const boost::posix_time::ptime & /* endtime */,
                                       const Spine::TaggedLocationList & /* locations */) const
 {
-  return FlashCounts();
+  return {};
 }
 
 boost::posix_time::ptime DummyCache::getLatestFlashModifiedTime() const
@@ -84,12 +84,12 @@ boost::posix_time::ptime DummyCache::getLatestObservationTime() const
   return boost::posix_time::not_a_date_time;
 }
 
-std::size_t DummyCache::fillDataCache(const DataItems &cacheData) const
+std::size_t DummyCache::fillDataCache(const DataItems & /* cacheData */) const
 {
   return 0;
 }
 
-std::size_t DummyCache::fillMovingLocationsCache(const MovingLocationItems &cacheData) const
+std::size_t DummyCache::fillMovingLocationsCache(const MovingLocationItems & /* cacheData */) const
 {
   return 0;
 }

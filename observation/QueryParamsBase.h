@@ -15,11 +15,13 @@ namespace pt = boost::posix_time;
 class QueryParamsBase
 {
  public:
-  explicit QueryParamsBase() : m_usingTimeRange(false) {}
+  QueryParamsBase() : m_usingTimeRange(false) {}
   virtual ~QueryParamsBase();
 
   QueryParamsBase& operator=(const QueryParamsBase& other) = delete;
   QueryParamsBase(const QueryParamsBase& other) = delete;
+  QueryParamsBase& operator=(QueryParamsBase&& other) = delete;
+  QueryParamsBase(QueryParamsBase&& other) = delete;
 
   /**
    *  \brief Get formatted time string.
@@ -65,7 +67,7 @@ class QueryParamsBase
 
   pt::ptime m_beginTime;
   pt::ptime m_endTime;
-  bool m_usingTimeRange;
+  bool m_usingTimeRange = false;
   struct Spine::BoundingBox m_bbox;
 };
 

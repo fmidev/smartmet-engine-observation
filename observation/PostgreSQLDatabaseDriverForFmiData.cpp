@@ -163,7 +163,7 @@ void PostgreSQLDatabaseDriverForFmiData::makeQuery(QueryBase *qb)
 
       if (not cacheResult)
       {
-        itsParameters.params->queryResultBaseCache.insert(sqlStatement, std::move(result));
+        itsParameters.params->queryResultBaseCache.insert(sqlStatement, result);
       }
     }
     catch (...)
@@ -270,15 +270,15 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
       // If producer == icebuoy or extship ->
       if (settings.stationtype == ICEBUOY_PRODUCER || settings.stationtype == COPERNICUS_PRODUCER)
         return db->getObservationDataForMovingStations(settings, timeSeriesOptions, itsTimeZones);
-      else
-        return db->getObservationData(
-            stations, settings, *info, timeSeriesOptions, itsTimeZones, dummy);
+
+      return db->getObservationData(
+          stations, settings, *info, timeSeriesOptions, itsTimeZones, dummy);
     }
-    else if (tablename == WEATHER_DATA_QC_TABLE)
+    if (tablename == WEATHER_DATA_QC_TABLE)
       return db->getWeatherDataQCData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
-    else if (tablename == FLASH_DATA_TABLE)
+    if (tablename == FLASH_DATA_TABLE)
       return db->getFlashData(settings, itsTimeZones);
-    else if (tablename == MAGNETOMETER_DATA_TABLE)
+    if (tablename == MAGNETOMETER_DATA_TABLE)
       return db->getMagnetometerData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
 
     return ret;

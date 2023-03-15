@@ -32,7 +32,7 @@ class DBRegistryConfig
   //                      and other strings are replaced with empty string)
   using FieldValueTypeMapType = std::map<NameType, NameType>;
 
-  DBRegistryConfig(std::shared_ptr<Spine::ConfigBase> config);
+  DBRegistryConfig(const std::shared_ptr<Spine::ConfigBase>& config);
 
   /**
    * @brief Get the table (view) name.
@@ -55,8 +55,8 @@ class DBRegistryConfig
     const auto it = m_fieldValueTypeMap.find(upperCase);
     if (it != m_fieldValueTypeMap.end())
       return it->second;
-    else
-      return "";
+
+    return {};
   }
 
   /**

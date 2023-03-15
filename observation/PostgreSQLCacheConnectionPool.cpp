@@ -82,8 +82,7 @@ std::shared_ptr<PostgreSQLCacheDB> PostgreSQLCacheConnectionPool::getConnection(
           {
             itsWorkingList[i] = 1;
             itsWorkerList[i]->setConnectionId(i);
-            return std::shared_ptr<PostgreSQLCacheDB>(itsWorkerList[i].get(),
-                                                      Releaser<PostgreSQLCacheDB>(this));
+            return {itsWorkerList[i].get(), Releaser<PostgreSQLCacheDB>(this)};
           }
         }
       }

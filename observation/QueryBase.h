@@ -15,7 +15,7 @@ class QueryResult;
 class QueryBase
 {
  public:
-  QueryBase();
+  QueryBase() = default;
 
   virtual ~QueryBase();
 
@@ -28,10 +28,7 @@ class QueryBase
    *  @brief Get a reference with null value to a container to store data.
    *  @return Null pointer.
    */
-  virtual std::shared_ptr<QueryResult> getQueryResultContainer()
-  {
-    return std::shared_ptr<QueryResult>();
-  }
+  virtual std::shared_ptr<QueryResult> getQueryResultContainer() { return {}; }
 
  private:
 };

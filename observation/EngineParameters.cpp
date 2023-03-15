@@ -210,7 +210,7 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
             stationgroupCodeVector =
                 cfg.get_mandatory_config_array<std::string>(stationtype_settings, "stationGroups");
           else
-            stationgroupCodeVector.push_back("VOID_AND_MISSING");
+            stationgroupCodeVector.emplace_back("VOID_AND_MISSING");
 
           /*
           // Producer ids are now fetched from database

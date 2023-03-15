@@ -37,10 +37,8 @@ TS::Value SpecialParameters::getValue(const std::string& param_name,
       exception.addDetail(msg);
       throw exception;
     }
-    else
-    {
-      return it->second(args);
-    }
+
+    return it->second(args);
   }
   catch (...)
   {
@@ -59,7 +57,7 @@ TS::TimedValue SpecialParameters::getTimedValue(const std::string& param_name,
   try
   {
     TS::Value value = getValue(param_name, args);
-    return TS::TimedValue(args.obstime, value);
+    return {args.obstime, value};
   }
   catch (...)
   {
@@ -145,16 +143,12 @@ SpecialParameters::SpecialParameters()
   {
     auto loc = d.get_location(itsGeonames);
     if (loc)
-    {
       return loc->name;
-    }
-    else
-    {
-      if (d.station.requestedName.length() > 0)
-        return d.station.requestedName;
-      else
-        return d.station.station_formal_name(d.settings->language);
-    }
+
+    if (d.station.requestedName.length() > 0)
+      return d.station.requestedName;
+
+    return d.station.station_formal_name(d.settings->language);
   };
 
   // BEGIN: Things that should perhaps not be here
@@ -181,7 +175,7 @@ SpecialParameters::SpecialParameters()
   { return d.stationType; };
 
   // modtime is only for timeseries compatibility
-  handler_map["modtime"] = [](const SpecialParameters::Args& d) -> TS::Value { return ""; };
+  handler_map["modtime"] = [](const SpecialParameters::Args& /* d */) -> TS::Value { return ""; };
 
   handler_map[GEOID_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
   { return d.station.geoid; };
@@ -208,7 +202,8 @@ SpecialParameters::SpecialParameters()
   };
 
   // FIXME: is this correct?
-  handler_map[SENSOR_NO_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value { return 1; };
+  handler_map[SENSOR_NO_PARAM] = [](const SpecialParameters::Args& /* d */) -> TS::Value
+  { return 1; };
 
   // FIXME: Station::stationary on std::string. Pitäisikö olla bool vai int?
   handler_map[STATIONARY_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
@@ -237,8 +232,8 @@ SpecialParameters::SpecialParameters()
   {
     if (d.timeZone == "localtime")
       return d.station.timezone;
-    else
-      return d.timeZone;
+
+    return d.timeZone;
   };
 
   handler_map[WMO_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value

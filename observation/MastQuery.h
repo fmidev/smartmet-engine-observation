@@ -58,7 +58,7 @@ class MastQuery : public QueryBase
  private:
   // SQL statement parts contructed in setQueryParams method
   // used lated in getSQLStatement method.
-  int m_selectSize;
+  int m_selectSize = 0;
   std::string m_select;
   std::string m_from;
   std::string m_where;

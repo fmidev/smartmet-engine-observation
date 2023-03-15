@@ -20,7 +20,7 @@ namespace
 boost::posix_time::ptime round_down_to_cache_clean_interval(const boost::posix_time::ptime &t)
 {
   auto secs = (t.time_of_day().total_seconds() / 60) * 60;
-  return boost::posix_time::ptime(t.date(), boost::posix_time::seconds(secs));
+  return {t.date(), boost::posix_time::seconds(secs)};
 }
 
 }  // namespace
@@ -387,19 +387,19 @@ bool PostgreSQLCache::dataAvailableInCache(const Settings &settings) const
     {
       return timeIntervalIsCached(settings.starttime, settings.endtime);
     }
-    else if ((settings.stationtype == "road" || settings.stationtype == "foreign"))
+    if ((settings.stationtype == "road" || settings.stationtype == "foreign"))
       return timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime);
 
-    else if (settings.stationtype == FLASH_PRODUCER)
+    if (settings.stationtype == FLASH_PRODUCER)
       return flashIntervalIsCached(settings.starttime, settings.endtime);
 
-    else if (settings.stationtype == ROADCLOUD_PRODUCER)
+    if (settings.stationtype == ROADCLOUD_PRODUCER)
       return roadCloudIntervalIsCached(settings.starttime, settings.endtime);
 
-    else if (settings.stationtype == NETATMO_PRODUCER)
+    if (settings.stationtype == NETATMO_PRODUCER)
       return netAtmoIntervalIsCached(settings.starttime, settings.endtime);
 
-    else if (settings.stationtype == FMI_IOT_PRODUCER)
+    if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTIntervalIsCached(settings.starttime, settings.endtime);
 
     // Either the stationtype is not cached or the requested time interval is
@@ -1000,8 +1000,9 @@ void PostgreSQLCache::cleanFmiIoTCache(const boost::posix_time::time_duration &t
   }
 }
 
-bool PostgreSQLCache::magnetometerIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                                   const boost::posix_time::ptime &endtime) const
+bool PostgreSQLCache::magnetometerIntervalIsCached(
+    const boost::posix_time::ptime & /* starttime */,
+    const boost::posix_time::ptime & /* endtime */) const
 {
   return false;
 }
@@ -1017,7 +1018,7 @@ boost::posix_time::ptime PostgreSQLCache::getLatestMagnetometerModifiedTime() co
 }
 
 std::size_t PostgreSQLCache::fillMagnetometerCache(
-    const MagnetometerDataItems &magnetometerCacheData) const
+    const MagnetometerDataItems & /* magnetometerCacheData */) const
 {
   return 0;
 }

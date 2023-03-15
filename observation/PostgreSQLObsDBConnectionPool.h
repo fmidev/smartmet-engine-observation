@@ -16,6 +16,11 @@ class PostgreSQLObsDBConnectionPool
 {
  public:
   ~PostgreSQLObsDBConnectionPool() = default;
+  PostgreSQLObsDBConnectionPool() = delete;
+  PostgreSQLObsDBConnectionPool(const PostgreSQLObsDBConnectionPool& other) = delete;
+  PostgreSQLObsDBConnectionPool(PostgreSQLObsDBConnectionPool&& other) = delete;
+  PostgreSQLObsDBConnectionPool& operator=(const PostgreSQLObsDBConnectionPool& other) = delete;
+  PostgreSQLObsDBConnectionPool& operator=(PostgreSQLObsDBConnectionPool&& other) = delete;
 
   bool initializePool(const StationtypeConfig& stc, const ParameterMapPtr& pm);
 

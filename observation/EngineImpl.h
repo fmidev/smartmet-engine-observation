@@ -29,7 +29,7 @@ class EngineImpl : public Engine
                             const boost::posix_time::ptime &endtime,
                             const Spine::TaggedLocationList &locations) override;
   std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
-      std::vector<std::string> &parameters, const std::string language) override;
+      std::vector<std::string> &parameters, const std::string &language) override;
 
   bool ready() const override;
 
@@ -99,7 +99,7 @@ class EngineImpl : public Engine
    * \param[in] producer If producer is given return info only of that producer, otherwise of all
    * producers \return Info of producer(s)
    */
-  ContentTable getProducerInfo(boost::optional<std::string> producer) const override;
+  ContentTable getProducerInfo(const boost::optional<std::string> &producer) const override;
 
   /* \brief Get parameter info of producer(s)
    * \param[in] producer If producer is given return info only of that producer, otherwise of all

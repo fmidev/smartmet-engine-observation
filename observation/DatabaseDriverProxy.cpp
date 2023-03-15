@@ -108,8 +108,7 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
 DatabaseDriverProxy::~DatabaseDriverProxy()
 {
   for (auto *driver : itsDatabaseDriverSet)
-    if (driver != nullptr)
-      delete driver;
+    delete driver;
 }
 
 void DatabaseDriverProxy::init(Engine *obsengine)
@@ -262,7 +261,7 @@ Spine::TaggedFMISIDList DatabaseDriverProxy::translateToFMISID(
       }
       else if (!stationSettings.bounding_box_settings.empty())
       {
-        auto &bbox = stationSettings.bounding_box_settings;
+        const auto &bbox = stationSettings.bounding_box_settings;
         std::string wktString =
             ("POLYGON((" + Fmi::to_string(bbox.at("minx")) + " " + Fmi::to_string(bbox.at("miny")) +
              "," + Fmi::to_string(bbox.at("minx")) + " " + Fmi::to_string(bbox.at("maxy")) + "," +
@@ -278,11 +277,12 @@ Spine::TaggedFMISIDList DatabaseDriverProxy::translateToFMISID(
       }
       return ret;
     }
-    else if (itsTranslateToFMISIDDriver)
+
+    if (itsTranslateToFMISIDDriver)
       return itsTranslateToFMISIDDriver->translateToFMISID(
           starttime, endtime, stationtype, stationSettings);
-    else
-      throw Fmi::Exception::Trace(BCP, "DatabaseDriverProxy::translateToFMISID function failed!");
+
+    throw Fmi::Exception::Trace(BCP, "DatabaseDriverProxy::translateToFMISID function failed!");
   }
   catch (...)
   {

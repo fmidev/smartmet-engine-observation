@@ -30,7 +30,13 @@ namespace Observation
 class DatabaseDriverBase
 {
  public:
-  DatabaseDriverBase(const std::string &name) : itsDriverName(name) {}
+  DatabaseDriverBase(std::string name) : itsDriverName(std::move(name)) {}
+
+  DatabaseDriverBase() = delete;
+  DatabaseDriverBase(const DatabaseDriverBase &other) = delete;
+  DatabaseDriverBase(DatabaseDriverBase &&other) = delete;
+  DatabaseDriverBase &operator=(const DatabaseDriverBase &other) = delete;
+  DatabaseDriverBase &operator=(DatabaseDriverBase &&other) = delete;
 
   virtual ~DatabaseDriverBase();
   virtual void init(SmartMet::Engine::Observation::Engine *obsengine) = 0;
@@ -62,7 +68,7 @@ class DatabaseDriverBase
                                     const boost::posix_time::ptime & /* endtime */,
                                     const Spine::TaggedLocationList & /* locations */) const
   {
-    return FlashCounts();
+    return {};
   }
 
   virtual std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(

@@ -21,6 +21,14 @@ class PostgreSQLDatabaseDriverForFmiData : public PostgreSQLDatabaseDriver
                                      const EngineParametersPtr &p,
                                      Spine::ConfigBase &cfg);
 
+  PostgreSQLDatabaseDriverForFmiData() = delete;
+  PostgreSQLDatabaseDriverForFmiData(const PostgreSQLDatabaseDriverForFmiData &other) = delete;
+  PostgreSQLDatabaseDriverForFmiData(PostgreSQLDatabaseDriverForFmiData &&other) = delete;
+  PostgreSQLDatabaseDriverForFmiData &operator=(const PostgreSQLDatabaseDriverForFmiData &other) =
+      delete;
+  PostgreSQLDatabaseDriverForFmiData &operator=(PostgreSQLDatabaseDriverForFmiData &&other) =
+      delete;
+
   void init(Engine *obsengine) override;
   std::string id() const override;
   void makeQuery(QueryBase *qb) override;

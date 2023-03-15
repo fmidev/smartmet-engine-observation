@@ -29,7 +29,7 @@ namespace Engine
 {
 namespace Observation
 {
-Engine::Engine() {}
+Engine::Engine() = default;
 
 Engine *Engine::create(const std::string &configfile)
 {
@@ -38,13 +38,9 @@ Engine *Engine::create(const std::string &configfile)
     SmartMet::Spine::ConfigBase cfg(configfile);
     bool disabled = cfg.get_optional_config_param<bool>("disabled", false);
     if (disabled)
-    {
       return new SmartMet::Engine::Observation::Engine();
-    }
-    else
-    {
-      return new SmartMet::Engine::Observation::EngineImpl(configfile);
-    }
+
+    return new SmartMet::Engine::Observation::EngineImpl(configfile);
   }
   catch (...)
   {
@@ -82,7 +78,7 @@ FlashCounts Engine::getFlashCount(const boost::posix_time::ptime &starttime,
 }
 
 std::shared_ptr<std::vector<ObservableProperty>> Engine::observablePropertyQuery(
-    std::vector<std::string> &parameters, const std::string language)
+    std::vector<std::string> &parameters, const std::string &language)
 {
   (void)parameters;
   (void)language;
@@ -106,7 +102,7 @@ const std::shared_ptr<DBRegistry> Engine::dbRegistry() const
 
 void Engine::reloadStations() {}
 
-void Engine::getStations(Spine::Stations &stations, Settings &settings)
+void Engine::getStations(Spine::Stations & /* stations */, Settings &settings)
 {
   (void)settings;
   REPORT_DISABLED;
@@ -166,7 +162,7 @@ std::set<std::string> Engine::getValidStationTypes() const
   REPORT_DISABLED;
 }
 
-ContentTable Engine::getProducerInfo(boost::optional<std::string> producer) const
+ContentTable Engine::getProducerInfo(const boost::optional<std::string> &producer) const
 {
   (void)producer;
   REPORT_DISABLED;

@@ -26,6 +26,7 @@ enum class AdditionalTimestepOption
 class DBQueryUtils
 {
  public:
+  virtual ~DBQueryUtils();
   DBQueryUtils(const ParameterMapPtr &pm) : itsParameterMap(pm) {}
 
   // If timesteps requested, timeseries must have all requested and data timesteps (because of

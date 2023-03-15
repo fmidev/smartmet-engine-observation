@@ -22,6 +22,9 @@ class ParameterMap
  public:
   ParameterMap() = default;
   ParameterMap(const ParameterMap&) = delete;
+  ParameterMap(ParameterMap&&) = delete;
+  ParameterMap& operator=(const ParameterMap&) = delete;
+  ParameterMap& operator=(ParameterMap&&) = delete;
 
   using StationParameters = std::map<std::string, std::string>;
   using NameToStationParameterMap = std::map<std::string, StationParameters>;
@@ -30,7 +33,7 @@ class ParameterMap
   std::string getParameterName(const std::string& id, const std::string& stationtype) const;
 
   void addStationParameterMap(const std::string& name,
-                              std::map<std::string, std::string> stationparams);
+                              const std::map<std::string, std::string>& stationparams);
   const StationParameters& at(const std::string& name) const;
   NameToStationParameterMap::const_iterator find(const std::string& name) const;
 

@@ -35,7 +35,9 @@ class QueryResult : public QueryResultBase
   ~QueryResult() override;
 
   QueryResult() = delete;
+  QueryResult(QueryResult&& other) = delete;
   QueryResult& operator=(const QueryResult& other) = delete;
+  QueryResult& operator=(QueryResult& other) = delete;
 
   ValueVectorType::const_iterator begin(const std::string& valueVectorName);
   ValueVectorType::const_iterator end(const std::string& valueVectorName);

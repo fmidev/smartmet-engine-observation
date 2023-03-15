@@ -9,17 +9,19 @@ namespace Observation
 std::string ParameterMap::getParameter(const std::string& name,
                                        const std::string& stationtype) const
 {
-  if (params.find(name) != params.end())
-  {
-    const StationParameters& stationparams = params.at(name);
-    if (stationparams.find(stationtype) != stationparams.end())
-      return stationparams.at(stationtype);
-    else if (stationtype != MAIN_MEASURAND_ID &&
-             stationparams.find(DEFAULT_STATIONTYPE) != stationparams.end())
-      return stationparams.at(DEFAULT_STATIONTYPE);
-  }
+  if (params.find(name) == params.end())
+    return {};
 
-  return std::string();
+  const StationParameters& stationparams = params.at(name);
+
+  if (stationparams.find(stationtype) != stationparams.end())
+    return stationparams.at(stationtype);
+
+  if (stationtype != MAIN_MEASURAND_ID &&
+      stationparams.find(DEFAULT_STATIONTYPE) != stationparams.end())
+    return stationparams.at(DEFAULT_STATIONTYPE);
+
+  return {};
 }
 
 // params_id_map
@@ -32,12 +34,12 @@ std::string ParameterMap::getParameterName(const std::string& id,
     if (stationparams.find(id) != stationparams.end())
       return stationparams.at(id);
   }
-  return std::string();
+  return {};
 }
 
 // stationtype -> id -> name
 void ParameterMap::addStationParameterMap(const std::string& name,
-                                          std::map<std::string, std::string> stationparams)
+                                          const std::map<std::string, std::string>& stationparams)
 {
   params.insert(make_pair(name, stationparams));
 

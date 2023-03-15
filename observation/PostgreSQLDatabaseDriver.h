@@ -20,7 +20,7 @@ class PostgreSQLDatabaseDriver : public DatabaseDriverBase
 {
  public:
   void shutdown() override;
-  virtual void init(Engine *obsengine) override;
+  void init(Engine *obsengine) override;
   Geonames::Engine *getGeonames() const;
   void reloadStations() override;
 

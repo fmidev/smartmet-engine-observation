@@ -93,7 +93,7 @@ class SpecialParameters
   static SpecialParameters& mutable_instance();
 
  private:
-  typedef std::function<TS::Value(const Args&)> parameter_handler_t;
+  using parameter_handler_t = std::function<TS::Value(const Args&)>;
 
   std::map<std::string, parameter_handler_t> handler_map;
   Geonames::Engine* itsGeonames;

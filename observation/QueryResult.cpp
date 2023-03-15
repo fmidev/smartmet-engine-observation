@@ -487,21 +487,16 @@ boost::posix_time::ptime QueryResult::castTo(
     const QueryResult::ValueVectorType::const_iterator value)
 {
   if (value->empty())
-  {
-    return boost::posix_time::ptime();
-  }
-  else if (value->type() == typeid(boost::posix_time::ptime))
-  {
+    return {};
+
+  if (value->type() == typeid(boost::posix_time::ptime))
     return boost::any_cast<boost::posix_time::ptime>(*value);
-  }
-  else
-  {
-    throw Fmi::Exception(BCP,
-                         "QueryResult::castTo<boost::posix_time::ptime>:"
-                         " cannot convert " +
-                             Fmi::demangle_cpp_type_name(value->type().name()) +
-                             " to boost::posix_time::ptime");
-  }
+
+  throw Fmi::Exception(BCP,
+                       "QueryResult::castTo<boost::posix_time::ptime>:"
+                       " cannot convert " +
+                           Fmi::demangle_cpp_type_name(value->type().name()) +
+                           " to boost::posix_time::ptime");
 }
 
 }  // namespace Observation

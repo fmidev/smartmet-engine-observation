@@ -18,6 +18,7 @@ class QueryExternalAndMobileData : public QueryBase
                              const std::shared_ptr<FmiIoTStations> &stations);
 
   ~QueryExternalAndMobileData() override;
+  QueryExternalAndMobileData() = delete;
 
   TS::TimeSeriesVectorPtr values(PostgreSQLObsDB &db,
                                  Settings &settings,

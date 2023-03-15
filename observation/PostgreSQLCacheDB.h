@@ -41,10 +41,12 @@ struct cached_data
 class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
 {
  public:
+  PostgreSQLCacheDB(const PostgreSQLCacheParameters &options);
   PostgreSQLCacheDB() = delete;
   PostgreSQLCacheDB(const PostgreSQLCacheDB &other) = delete;
   PostgreSQLCacheDB &operator=(const PostgreSQLCacheDB &other) = delete;
-  PostgreSQLCacheDB(const PostgreSQLCacheParameters &options);
+  PostgreSQLCacheDB(PostgreSQLCacheDB &&other) = delete;
+  PostgreSQLCacheDB &operator=(PostgreSQLCacheDB &&other) = delete;
 
   /**
    * @brief Get the time of the newest observation in observation_data table
@@ -369,7 +371,7 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
                                        TS::TimeSeriesVectorPtr &timeSeriesColumns,
                                        const Spine::Station &station,
                                        const int pos,
-                                       const std::string stationtype,
+                                       const std::string &stationtype,
                                        const boost::local_time::local_date_time &obstime);
 
   void addParameterToTimeSeries(TS::TimeSeriesVectorPtr &timeSeriesColumns,
@@ -383,8 +385,10 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
                                 const Spine::Station &station,
                                 const std::string &missingtext);
 
-  boost::posix_time::ptime getLatestTimeFromTable(std::string tablename, std::string time_field);
-  boost::posix_time::ptime getOldestTimeFromTable(std::string tablename, std::string time_field);
+  boost::posix_time::ptime getLatestTimeFromTable(const std::string &tablename,
+                                                  const std::string &time_field);
+  boost::posix_time::ptime getOldestTimeFromTable(const std::string &tablename,
+                                                  const std::string &time_field);
 
   void createStationTable();
   void createStationGroupsTable();

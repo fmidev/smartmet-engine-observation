@@ -68,8 +68,8 @@ class OperationMap
     if (it == m_ops.end())
       throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("Operation '{}' not found.", name));
-    else
-      return it->second;
+
+    return it->second;
   }
 
  private:

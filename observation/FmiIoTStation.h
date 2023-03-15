@@ -14,15 +14,14 @@ namespace Observation
 struct FmiIoTStation
 {
   FmiIoTStation() = default;
-  FmiIoTStation(const FmiIoTStation& s) = default;
-  FmiIoTStation(const std::string& id,
+  FmiIoTStation(std::string id,
                 int tgid,
                 double lon,
                 double lat,
                 double elev,
                 const boost::posix_time::ptime& from,
                 const boost::posix_time::ptime& to)
-      : station_id(id),
+      : station_id(std::move(id)),
         target_group_id(tgid),
         longitude(lon),
         latitude(lat),

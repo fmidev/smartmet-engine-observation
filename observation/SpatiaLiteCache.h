@@ -26,6 +26,12 @@ class SpatiaLiteCache : public ObservationCache
                   const Spine::ConfigBase &cfg);
   ~SpatiaLiteCache() override;
 
+  SpatiaLiteCache() = delete;
+  SpatiaLiteCache(const SpatiaLiteCache &other) = delete;
+  SpatiaLiteCache(SpatiaLiteCache &&other) = delete;
+  SpatiaLiteCache &operator=(const SpatiaLiteCache &other) = delete;
+  SpatiaLiteCache &operator=(SpatiaLiteCache &&other) = delete;
+
   void initializeConnectionPool() override;
   void initializeCaches(int finCacheDuration,
                         int finMemoryCacheDuration,

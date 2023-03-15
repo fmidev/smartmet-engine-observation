@@ -42,9 +42,9 @@ class VerifiableMessageQueryParams : public QueryParamsBase
   using SelectNameListType = std::list<SelectNameType>;
   using TableNameType = DBRegistryConfig::NameType;
 
-  explicit VerifiableMessageQueryParams(const std::shared_ptr<DBRegistryConfig> dbrConfig);
+  explicit VerifiableMessageQueryParams(const std::shared_ptr<DBRegistryConfig> &dbrConfig);
 
-  ~VerifiableMessageQueryParams();
+  ~VerifiableMessageQueryParams() override;
 
   VerifiableMessageQueryParams &operator=(const VerifiableMessageQueryParams &other) = delete;
   VerifiableMessageQueryParams(const VerifiableMessageQueryParams &other) = delete;

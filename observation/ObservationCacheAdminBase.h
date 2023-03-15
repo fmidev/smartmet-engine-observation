@@ -15,6 +15,12 @@ namespace Observation
 class ObservationCacheAdminBase
 {
  public:
+  ObservationCacheAdminBase() = delete;
+  ObservationCacheAdminBase(const ObservationCacheAdminBase& other) = delete;
+  ObservationCacheAdminBase(ObservationCacheAdminBase&& other) = delete;
+  ObservationCacheAdminBase& operator=(const ObservationCacheAdminBase& other) = delete;
+  ObservationCacheAdminBase& operator=(ObservationCacheAdminBase&& other) = delete;
+
   virtual void readObservationCacheData(std::vector<DataItem>& cacheData,
                                         const boost::posix_time::time_period& dataPeriod,
                                         const std::string& fmisid,

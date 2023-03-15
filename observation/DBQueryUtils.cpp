@@ -81,7 +81,7 @@ TS::Value get_default_sensor_value(const SensorData &sensor_data,
 {
   for (const auto &item : sensor_data)
   {
-    if (item.second.is_default_sensor_data == true)
+    if (item.second.is_default_sensor_data)
     {
       if (specifier == DataFieldSpecifier::Value)
         return item.second.value;
@@ -184,7 +184,7 @@ void addSpecialFieldsToTimeSeries(
           auto masterParamName = fieldname.substr(0, fieldname.find("_data_source_sensornumber_"));
           if (!masterParamName.empty())
             masterParamName = masterParamName.substr(0, masterParamName.length());
-          std::string sensor_number = fieldname.substr(fieldname.rfind("_") + 1);
+          std::string sensor_number = fieldname.substr(fieldname.rfind('_') + 1);
           for (const auto &item : parameterNameMap)
           {
             if (boost::algorithm::starts_with(item.first, masterParamName + "_sensornumber_"))
@@ -210,7 +210,7 @@ void addSpecialFieldsToTimeSeries(
         else if (!addDataSourceField && isDataQualityField(fieldname))
         {
           // Handle data_quality field
-          std::string sensor_number = fieldname.substr(fieldname.rfind("_") + 1);
+          std::string sensor_number = fieldname.substr(fieldname.rfind('_') + 1);
           for (const auto &pn : parameterNameMap)
           {
             int measurand_id = Fmi::stoi(pn.second);
@@ -264,8 +264,8 @@ void addSpecialFieldsToTimeSeries(
   {
     if (addDataSourceField)
       throw Fmi::Exception::Trace(BCP, "Adding special data source to time series failed!");
-    else
-      throw Fmi::Exception::Trace(BCP, "Adding special data quality to time series failed!");
+
+    throw Fmi::Exception::Trace(BCP, "Adding special data quality to time series failed!");
   }
 }
 
@@ -315,7 +315,7 @@ void addParameterToTimeSeries(
         std::string name_plus_snumber = parameter_item.first;
         std::string sensor_no = "default";
         if (name_plus_snumber.find("_sensornumber_") != std::string::npos)
-          sensor_no = name_plus_snumber.substr(name_plus_snumber.rfind("_") + 1);
+          sensor_no = name_plus_snumber.substr(name_plus_snumber.rfind('_') + 1);
         val = get_sensor_value(
             sensor_values, sensor_no, fmisid, parameter_id, DataFieldSpecifier::Value);
       }
@@ -529,6 +529,8 @@ void addParameterToTimeSeries(
 }
 
 }  // namespace
+
+DBQueryUtils::~DBQueryUtils() = default;
 
 QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
                                              const std::string &stationtype,

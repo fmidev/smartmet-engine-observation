@@ -26,6 +26,12 @@ class ObservationCache
  public:
   virtual ~ObservationCache();
 
+  ObservationCache() = default;
+  ObservationCache(const ObservationCache &other) = delete;
+  ObservationCache(ObservationCache &&other) = delete;
+  ObservationCache &operator=(const ObservationCache &other) = delete;
+  ObservationCache &operator=(ObservationCache &&other) = delete;
+
   virtual void initializeConnectionPool() = 0;
   virtual void initializeCaches(int finCacheDuration,
                                 int finMemoryCacheDuration,
@@ -109,10 +115,7 @@ class ObservationCache
       const MagnetometerDataItems &magnetometerCacheData) const = 0;
   virtual void cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const = 0;
 
-  virtual Fmi::Cache::CacheStatistics getCacheStats() const
-  {
-    return Fmi::Cache::CacheStatistics();
-  }
+  virtual Fmi::Cache::CacheStatistics getCacheStats() const { return {}; }
 
   virtual void shutdown() = 0;
 

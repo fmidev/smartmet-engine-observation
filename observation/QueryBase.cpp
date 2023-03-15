@@ -8,8 +8,6 @@ namespace Observation
 {
 using namespace std;
 
-QueryBase::QueryBase() = default;
-
 QueryBase::~QueryBase() = default;
 
 }  // namespace Observation

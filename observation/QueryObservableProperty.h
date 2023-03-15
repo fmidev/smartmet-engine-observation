@@ -20,15 +20,20 @@ class QueryObservableProperty : public QueryBase
 
   ~QueryObservableProperty() override;
 
+  QueryObservableProperty(const QueryObservableProperty& other) = default;
+  QueryObservableProperty(QueryObservableProperty&& other) = default;
+  QueryObservableProperty& operator=(const QueryObservableProperty& other) = default;
+  QueryObservableProperty& operator=(QueryObservableProperty&& other) = default;
+
  protected:
   using ParameterIdMapType = std::multimap<int, std::string>;
   using ParameterVectorType = std::vector<std::string>;
   using StationTypeType = std::string;
 
-  void solveMeasurandIds(const ParameterVectorType &parameters,
-                         const ParameterMapPtr &parameterMap,
-                         const StationTypeType &stationType,
-                         ParameterIdMapType &parameterIds) const;
+  void solveMeasurandIds(const ParameterVectorType& parameters,
+                         const ParameterMapPtr& parameterMap,
+                         const StationTypeType& stationType,
+                         ParameterIdMapType& parameterIds) const;
 };
 
 }  // namespace Observation

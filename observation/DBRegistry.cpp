@@ -86,7 +86,7 @@ std::shared_ptr<DBRegistryConfig> DBRegistry::dbRegistryConfig(const std::string
         return config;
     }
 
-    return std::shared_ptr<DBRegistryConfig>();
+    return {};
   }
   catch (...)
   {

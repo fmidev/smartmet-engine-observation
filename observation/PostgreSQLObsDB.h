@@ -31,13 +31,15 @@ class PostgreSQLDatabaseDriver;
 class PostgreSQLObsDB : public CommonPostgreSQLFunctions
 {
  public:
-  PostgreSQLObsDB() = delete;
-  PostgreSQLObsDB(const PostgreSQLObsDB &other) = delete;
-  PostgreSQLObsDB &operator=(const PostgreSQLObsDB &other) = delete;
-
   PostgreSQLObsDB(const Fmi::Database::PostgreSQLConnectionOptions &connectionOptions,
                   const StationtypeConfig &stc,
                   const ParameterMapPtr &pm);
+
+  PostgreSQLObsDB() = delete;
+  PostgreSQLObsDB(const PostgreSQLObsDB &other) = delete;
+  PostgreSQLObsDB &operator=(const PostgreSQLObsDB &other) = delete;
+  PostgreSQLObsDB(PostgreSQLObsDB &&other) = delete;
+  PostgreSQLObsDB &operator=(PostgreSQLObsDB &&other) = delete;
 
   /**
    *  @brief Execute SQL statement and get the result.

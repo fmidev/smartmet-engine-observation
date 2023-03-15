@@ -13,11 +13,11 @@ namespace Observation
 class PostgreSQLCacheConnectionPool
 {
  public:
-  ~PostgreSQLCacheConnectionPool() = default;
   std::shared_ptr<PostgreSQLCacheDB> getConnection();
 
   void releaseConnection(int connectionId);
 
+  PostgreSQLCacheConnectionPool() = delete;
   PostgreSQLCacheConnectionPool(const PostgreSQLCacheParameters& options);
 
   void shutdown();

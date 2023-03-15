@@ -14,12 +14,12 @@ using Measurands = std::map<std::string, int>;  // Parameter name -> measurand i
 class ExternalAndMobileProducerConfigItem
 {
  public:
-  ExternalAndMobileProducerConfigItem(const ProducerId& theProducerId,
-                                      const Measurands& theMeasurands,
-                                      const std::string& theDatabaseTable)
-      : itsProducerId(theProducerId),
-        itsMeasurands(theMeasurands),
-        itsDatabaseTable(theDatabaseTable)
+  ExternalAndMobileProducerConfigItem(ProducerId theProducerId,
+                                      Measurands theMeasurands,
+                                      std::string theDatabaseTable)
+      : itsProducerId(std::move(theProducerId)),
+        itsMeasurands(std::move(theMeasurands)),
+        itsDatabaseTable(std::move(theDatabaseTable))
   {
   }
 

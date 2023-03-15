@@ -12,7 +12,7 @@ namespace Engine
 {
 namespace Observation
 {
-DBRegistryConfig::DBRegistryConfig(std::shared_ptr<Spine::ConfigBase> config)
+DBRegistryConfig::DBRegistryConfig(const std::shared_ptr<Spine::ConfigBase>& config)
 {
   try
   {

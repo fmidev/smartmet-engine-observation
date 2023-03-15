@@ -7,7 +7,7 @@ namespace Engine
 {
 namespace Observation
 {
-MinimumStandardFilter::MinimumStandardFilter() : FEConformanceClassBase()
+MinimumStandardFilter::MinimumStandardFilter()
 {
   try
   {

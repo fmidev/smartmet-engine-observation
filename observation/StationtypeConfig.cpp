@@ -183,8 +183,7 @@ void StationtypeConfig::setUseCommonQueryMethod(const StationtypeType& stationty
   {
     // Checking that the stationtype has added.
     const StationtypeType stationtypeLower = Fmi::ascii_tolower_copy(stationtype);
-    STGroupCodeSetMapType::const_iterator stGroupCodeSetMapIt =
-        m_stationtypeMap.find(stationtypeLower);
+    auto stGroupCodeSetMapIt = m_stationtypeMap.find(stationtypeLower);
     if (stGroupCodeSetMapIt == m_stationtypeMap.end())
       throw Fmi::Exception(BCP, "Invalid parameter value!")
           .addDetail(fmt::format(

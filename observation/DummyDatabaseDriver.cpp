@@ -28,7 +28,7 @@ Spine::TaggedFMISIDList DummyDatabaseDriver::translateToFMISID(
     const std::string & /* stationtype */,
     const StationSettings & /* stationSettings */) const
 {
-  return Spine::TaggedFMISIDList();
+  return {};
 }
 
 void DummyDatabaseDriver::getMovingStationsByArea(Spine::Stations & /*stations*/,
@@ -43,7 +43,7 @@ FlashCounts DummyDatabaseDriver::getFlashCount(const boost::posix_time::ptime &,
                                                const boost::posix_time::ptime &,
                                                const Spine::TaggedLocationList &) const
 {
-  return FlashCounts();
+  return {};
 }
 
 std::shared_ptr<std::vector<ObservableProperty>> DummyDatabaseDriver::observablePropertyQuery(

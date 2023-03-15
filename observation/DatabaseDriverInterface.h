@@ -28,6 +28,11 @@ class DatabaseDriverInterface
  public:
   virtual ~DatabaseDriverInterface();
 
+  DatabaseDriverInterface(const DatabaseDriverInterface &other) = delete;
+  DatabaseDriverInterface(DatabaseDriverInterface &&other) = delete;
+  DatabaseDriverInterface &operator=(const DatabaseDriverInterface &other) = delete;
+  DatabaseDriverInterface &operator=(DatabaseDriverInterface &&other) = delete;
+
   virtual void init(Engine *obsengine) = 0;
   virtual TS::TimeSeriesVectorPtr values(Settings &settings) = 0;
   virtual TS::TimeSeriesVectorPtr values(

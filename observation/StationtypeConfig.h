@@ -35,6 +35,8 @@ class StationtypeConfig
 
   StationtypeConfig& operator=(const StationtypeConfig& other) = delete;
   StationtypeConfig(const StationtypeConfig& other) = delete;
+  StationtypeConfig& operator=(StationtypeConfig&& other) = delete;
+  StationtypeConfig(StationtypeConfig&& other) = delete;
 
   /**
    * @brief Add an stationtype configuration.

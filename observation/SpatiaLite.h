@@ -48,10 +48,13 @@ struct QueryMapping;
 class SpatiaLite : public CommonDatabaseFunctions
 {
  public:
+  SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheParameters &options);
+
   SpatiaLite() = delete;
   SpatiaLite(const SpatiaLite &other) = delete;
   SpatiaLite &operator=(const SpatiaLite &other) = delete;
-  SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheParameters &options);
+  SpatiaLite(SpatiaLite &&other) = delete;
+  SpatiaLite &operator=(SpatiaLite &&other) = delete;
 
   ~SpatiaLite() override;
 

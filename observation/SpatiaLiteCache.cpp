@@ -23,7 +23,7 @@ namespace
 boost::posix_time::ptime round_down_to_cache_clean_interval(const boost::posix_time::ptime &t)
 {
   auto secs = (t.time_of_day().total_seconds() / 60) * 60;
-  return boost::posix_time::ptime(t.date(), boost::posix_time::seconds(secs));
+  return {t.date(), boost::posix_time::seconds(secs)};
 }
 
 }  // namespace
@@ -1218,8 +1218,8 @@ void SpatiaLiteCache::cleanWeatherDataQCCache(
   }
 }
 
-bool SpatiaLiteCache::magnetometerIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                                   const boost::posix_time::ptime &endtime) const
+bool SpatiaLiteCache::magnetometerIntervalIsCached(
+    const boost::posix_time::ptime &starttime, const boost::posix_time::ptime & /* endtime */) const
 {
   try
   {

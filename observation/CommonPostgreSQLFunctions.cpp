@@ -110,7 +110,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationData(
     const StationInfo &stationInfo,
     const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones,
-    const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache)
+    const std::unique_ptr<ObservationMemoryCache> & /* observationMemoryCache */)
 {
   try
   {
@@ -152,7 +152,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationData(
 LocationDataItems CommonPostgreSQLFunctions::readObservationDataOfMovingStationsFromDB(
     const Settings &settings,
     const QueryMapping &qmap,
-    const std::set<std::string> &stationgroup_codes) const
+    const std::set<std::string> & /* stationgroup_codes */) const
 {
   try
   {
@@ -676,7 +676,7 @@ FlashCounts CommonPostgreSQLFunctions::getFlashCount(const boost::posix_time::pt
           std::unique_ptr<OGRGeometry> circle;
           circle.reset(Fmi::OGR::expandGeometry(geom, tloc.loc->radius * 1000));
           OGRGeometryFactory::destroyGeometry(geom);
-          std::string circleWkt = Fmi::OGR::exportToWkt(*circle.get());
+          std::string circleWkt = Fmi::OGR::exportToWkt(*circle);
 
           sqlStmt +=
               " AND ST_Within(flash.stroke_location, ST_GeomFromText('" + circleWkt + "',4326))";
@@ -758,7 +758,7 @@ const std::shared_ptr<Fmi::TimeFormatter> &CommonPostgreSQLFunctions::resetTimeF
 }
 
 TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
-    const Spine::Stations &stations,
+    const Spine::Stations & /* stations */,
     const Settings &settings,
     const StationInfo &stationInfo,
     const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,

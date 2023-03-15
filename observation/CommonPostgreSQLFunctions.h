@@ -18,6 +18,12 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
                             const ParameterMapPtr &pm);
   ~CommonPostgreSQLFunctions() override;
 
+  CommonPostgreSQLFunctions() = delete;
+  CommonPostgreSQLFunctions(const CommonPostgreSQLFunctions &other) = delete;
+  CommonPostgreSQLFunctions(CommonPostgreSQLFunctions &&other) = delete;
+  CommonPostgreSQLFunctions &operator=(const CommonPostgreSQLFunctions &other) = delete;
+  CommonPostgreSQLFunctions &operator=(CommonPostgreSQLFunctions &&other) = delete;
+
   void shutdown();
 
   TS::TimeSeriesVectorPtr getObservationDataForMovingStations(

@@ -8,7 +8,7 @@ namespace Engine
 {
 namespace Observation
 {
-MastQueryParams::MastQueryParams(const std::shared_ptr<DBRegistryConfig> dbrConfig)
+MastQueryParams::MastQueryParams(const std::shared_ptr<DBRegistryConfig>& dbrConfig)
     : m_distinct(false)
 {
   try
@@ -34,7 +34,7 @@ MastQueryParams::~MastQueryParams() = default;
 
 void MastQueryParams::addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfigJoinOn,
                                       const NameType& joinOnField,
-                                      const int& typeOfJoin)
+                                      int typeOfJoin)
 {
   try
   {
@@ -50,7 +50,7 @@ void MastQueryParams::addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfi
 
 void MastQueryParams::addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfigJoinOn,
                                       const std::list<NameType>& joinOnFields,
-                                      const int& typeOfJoin)
+                                      int typeOfJoin)
 {
   try
   {

@@ -72,7 +72,7 @@ Base::NameType Base::getExpression(const NameType& viewName,
 
 namespace
 {
-typedef std::function<std::string(const boost::any&, const std::string)> value2str_t;
+using value2str_t = std::function<std::string(const boost::any&, const std::string)>;
 
 struct TypeConv
 {
@@ -160,8 +160,8 @@ Fmi::TypeMap<TypeConv> create_value_to_string_converter()
           return "TO_DATE('" +
                  Fmi::to_simple_string(boost::any_cast<boost::posix_time::ptime>(value)) +
                  "','YYYY-MM-DD HH24:MI:SS')";
-        else  // PostgreSQL
-          return Fmi::to_simple_string(boost::any_cast<boost::posix_time::ptime>(value));
+        // PostgreSQL
+        return Fmi::to_simple_string(boost::any_cast<boost::posix_time::ptime>(value));
       },
       "ptime");
   return conv;
@@ -292,8 +292,8 @@ Base::NameType MinuteValueModuloIsEqualToZero::getValueTypeString() const
         (getToWhat()).type() == typeid(int64_t) or (getToWhat()).type() == typeid(uint16_t) or
         (getToWhat()).type() == typeid(uint32_t) or (getToWhat()).type() == typeid(uint64_t))
       return "ptime";
-    else
-      return "unknown";
+
+    return "unknown";
   }
   catch (...)
   {

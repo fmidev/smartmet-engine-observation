@@ -238,7 +238,7 @@ FlashCounts EngineImpl::getFlashCount(const boost::posix_time::ptime &starttime,
 }
 
 std::shared_ptr<std::vector<ObservableProperty>> EngineImpl::observablePropertyQuery(
-    std::vector<std::string> &parameters, const std::string language)
+    std::vector<std::string> &parameters, const std::string &language)
 {
   // Remove possible sensor numbers
   std::vector<std::string> parameter_names;
@@ -498,10 +498,10 @@ void EngineImpl::afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
         throw Fmi::Exception::Trace(BCP, "Internal error indexing data");
       }
 
-      TS::TimedValueVector::const_iterator it_first = ts.begin();
+      auto it_first = ts.begin();
       for (unsigned int i = 0; i < firstIndex; i++)
         it_first++;
-      TS::TimedValueVector::const_iterator it_last = it_first;
+      auto it_last = it_first;
       for (unsigned int i = 0; i < numberOfRows; i++)
         it_last++;
 
@@ -519,7 +519,7 @@ void EngineImpl::reloadStations()
   itsDatabaseDriver->reloadStations();
 }
 
-ContentTable EngineImpl::getProducerInfo(boost::optional<std::string> producer) const
+ContentTable EngineImpl::getProducerInfo(const boost::optional<std::string> &producer) const
 {
   boost::shared_ptr<Spine::Table> resultTable(new Spine::Table);
 

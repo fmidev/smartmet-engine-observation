@@ -57,7 +57,7 @@ class MastQueryParams : public QueryParamsBase
    * @exception Obs_EngineException::OPERATION_PROCESSING_FAILED DB registry configuration is not
    * set.
    */
-  explicit MastQueryParams(const std::shared_ptr<DBRegistryConfig> dbrConfig);
+  explicit MastQueryParams(const std::shared_ptr<DBRegistryConfig>& dbrConfig);
 
   ~MastQueryParams() override;
 
@@ -73,10 +73,10 @@ class MastQueryParams : public QueryParamsBase
    */
   void addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfig,
                        const NameType& field,
-                       const int& typeOfJoin = 0);
+                       int typeOfJoin = 0);
   void addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfig,
                        const std::list<NameType>& fields,
-                       const int& typeOfJoin = 0);
+                       int typeOfJoin = 0);
 
   /**
    * @brief Add a field name to get data from a table defined in DBRegistryConfig.
@@ -168,7 +168,7 @@ class MastQueryParams : public QueryParamsBase
   std::shared_ptr<FEConformanceClassBase> m_conformanceClass;
   JoinOnListTupleVectorType m_joinOnListTupleVector;
   OrderByVectorType m_orderByVector;
-  bool m_distinct;
+  bool m_distinct = false;
 };
 
 }  // namespace Observation

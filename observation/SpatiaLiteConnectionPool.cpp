@@ -78,7 +78,7 @@ std::shared_ptr<SpatiaLite> SpatiaLiteConnectionPool::getConnection()
           {
             itsWorkingList[i] = 1;
             itsWorkerList[i]->setConnectionId(i);
-            return std::shared_ptr<SpatiaLite>(itsWorkerList[i].get(), Releaser<SpatiaLite>(this));
+            return {itsWorkerList[i].get(), Releaser<SpatiaLite>(this)};
           }
         }
       }

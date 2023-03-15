@@ -2900,7 +2900,7 @@ void SpatiaLite::cleanMagnetometerCache(const ptime &newstarttime)
 }
 
 TS::TimeSeriesVectorPtr SpatiaLite::getMagnetometerData(
-    const Spine::Stations &stations,
+    const Spine::Stations & /* stations */,
     const Settings &settings,
     const StationInfo &stationInfo,
     const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
@@ -3479,7 +3479,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getObservationData(
 
     // Should we use the cache?
 
-    bool use_memory_cache = (observationMemoryCache.get() != nullptr);
+    bool use_memory_cache = (observationMemoryCache != nullptr);
 
     if (use_memory_cache)
     {
@@ -3746,7 +3746,7 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
       cacheData.latitudesAll.push_back(latitude);
       cacheData.longitudesAll.push_back(longitude);
       cacheData.elevationsAll.push_back(elevation);
-      cacheData.parametersAll.push_back(parameter);
+      cacheData.parametersAll.emplace_back(parameter);
       cacheData.data_valuesAll.push_back(data_value);
       cacheData.sensor_nosAll.push_back(sensor_no);
       cacheData.data_qualityAll.push_back(data_quality);
@@ -3849,7 +3849,7 @@ std::string SpatiaLite::getWeatherDataQCParams(const std::set<std::string> &para
 }
 
 void SpatiaLite::getMovingStations(Spine::Stations &stations,
-                                   const std::string &stationtype,
+                                   const std::string & /* stationtype */,
                                    const boost::posix_time::ptime &startTime,
                                    const boost::posix_time::ptime &endTime,
                                    const std::string &wkt)

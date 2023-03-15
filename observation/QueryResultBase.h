@@ -39,7 +39,7 @@ class QueryResultBase
 #pragma clang diagnostic ignored "-Wunused-parameter"
 #endif
   explicit QueryResultBase(const size_t& numberOfValueVectors) {}
-  explicit QueryResultBase(const QueryResultBase& other) {}
+  explicit QueryResultBase(const QueryResultBase& other) = default;
   virtual ~QueryResultBase();
 #ifdef __llvm__
 #pragma clang diagnostic pop

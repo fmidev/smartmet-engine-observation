@@ -697,15 +697,15 @@ boost::posix_time::ptime PostgreSQLCacheDB::getLatestFmiIoTCreatedTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestTimeFromTable(const std::string tablename,
-                                                                   const std::string time_field)
+boost::posix_time::ptime PostgreSQLCacheDB::getLatestTimeFromTable(const std::string &tablename,
+                                                                   const std::string &time_field)
 {
   std::string stmt = ("SELECT MAX(" + time_field + ") FROM " + tablename);
   return getTime(stmt);
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getOldestTimeFromTable(const std::string tablename,
-                                                                   const std::string time_field)
+boost::posix_time::ptime PostgreSQLCacheDB::getOldestTimeFromTable(const std::string &tablename,
+                                                                   const std::string &time_field)
 {
   std::string stmt = ("SELECT MIN(" + time_field + ") FROM " + tablename);
   return getTime(stmt);
@@ -1922,7 +1922,7 @@ void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(
     TS::TimeSeriesVectorPtr &timeSeriesColumns,
     const Spine::Station &station,
     const int pos,
-    const std::string stationtype,
+    const std::string &stationtype,
     const boost::local_time::local_date_time &obstime)
 {
   try

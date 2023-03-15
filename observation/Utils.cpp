@@ -69,7 +69,7 @@ std::string trimCommasFromEnd(const std::string& what)
 {
   try
   {
-    size_t end = what.find_last_not_of(",");
+    size_t end = what.find_last_not_of(',');
     return what.substr(0, end + 1);
   }
   catch (...)
@@ -196,10 +196,10 @@ std::string parseParameterName(const std::string& parameter)
     removePrefix(name, "qc_");
 
     // No understrike
-    if (name.find_last_of("_") == std::string::npos)
+    if (name.find_last_of('_') == std::string::npos)
       return name;
 
-    size_t startpos = name.find_last_of("_");
+    size_t startpos = name.find_last_of('_');
     size_t endpos = name.length();
 
     int length = boost::numeric_cast<int>(endpos - startpos - 1);
@@ -228,7 +228,7 @@ int parseSensorNumber(const std::string& parameter)
   {
     int defaultSensorNumber = 1;
     std::string sensorNumber;
-    std::size_t startpos = parameter.find_last_of("_");
+    std::size_t startpos = parameter.find_last_of('_');
     std::size_t endpos = parameter.length();
     int length = boost::numeric_cast<int>(endpos - startpos - 1);
 
@@ -287,7 +287,7 @@ boost::posix_time::ptime day_start(const boost::posix_time::ptime& t)
 {
   if (t.is_not_a_date_time() || t.is_special())
     return t;
-  return boost::posix_time::ptime(t.date(), boost::posix_time::hours(0));
+  return {t.date(), boost::posix_time::hours(0)};
 }
 
 // ----------------------------------------------------------------------
@@ -415,16 +415,7 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
     if (cloudiness <= 9)
       smartsymbol = 14;
   }
-  else if (wawa == 60)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 31;
-    else if (cloudiness <= 7)
-      smartsymbol = 34;
-    else if (cloudiness <= 9)
-      smartsymbol = 37;
-  }
-  else if (wawa == 61)
+  else if (wawa == 60 || wawa == 61)
   {
     if (cloudiness <= 5)
       smartsymbol = 31;
@@ -474,7 +465,7 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
     else if (cloudiness <= 9)
       smartsymbol = 48;
   }
-  else if (wawa == 70)
+  else if (wawa == 70 || wawa == 71)
   {
     if (cloudiness <= 5)
       smartsymbol = 51;
@@ -483,16 +474,7 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
     else if (cloudiness <= 9)
       smartsymbol = 57;
   }
-  else if (wawa == 71)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 51;
-    else if (cloudiness <= 7)
-      smartsymbol = 54;
-    else if (cloudiness <= 9)
-      smartsymbol = 57;
-  }
-  else if (wawa == 72)
+  else if (wawa == 72 || wawa == 75)
   {
     if (cloudiness <= 5)
       smartsymbol = 52;
@@ -501,7 +483,7 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
     else if (cloudiness <= 9)
       smartsymbol = 58;
   }
-  else if (wawa == 73)
+  else if (wawa == 73 || wawa == 76)
   {
     if (cloudiness <= 5)
       smartsymbol = 53;
@@ -519,30 +501,7 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
     else if (cloudiness <= 9)
       smartsymbol = 57;
   }
-  else if (wawa == 75)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 52;
-    else if (cloudiness <= 7)
-      smartsymbol = 55;
-    else if (cloudiness <= 9)
-      smartsymbol = 58;
-  }
-  else if (wawa == 76)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 53;
-    else if (cloudiness <= 7)
-      smartsymbol = 56;
-    else if (cloudiness <= 9)
-      smartsymbol = 59;
-  }
-  else if (wawa == 77)
-  {
-    if (cloudiness <= 9)
-      smartsymbol = 57;
-  }
-  else if (wawa == 78)
+  else if (wawa == 77 || wawa == 78)
   {
     if (cloudiness <= 9)
       smartsymbol = 57;

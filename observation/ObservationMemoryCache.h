@@ -25,6 +25,12 @@ class ObservationMemoryCache
  public:
   virtual ~ObservationMemoryCache();
 
+  ObservationMemoryCache() = default;
+  ObservationMemoryCache(const ObservationMemoryCache &other) = default;
+  ObservationMemoryCache(ObservationMemoryCache &&other) = default;
+  ObservationMemoryCache &operator=(const ObservationMemoryCache &other) = default;
+  ObservationMemoryCache &operator=(ObservationMemoryCache &&other) = default;
+
   /**
    * @brief Get the starting time of the cache
    * @retval The starting time of the data, or is_not_a_date_time if not initialized yet

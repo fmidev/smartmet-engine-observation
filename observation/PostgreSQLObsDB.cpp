@@ -130,8 +130,8 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
 void PostgreSQLObsDB::readMovingStationsCacheDataFromPostgreSQL(
     std::vector<MovingLocationItem> &cacheData,
     const boost::posix_time::ptime &startTime,
-    const boost::posix_time::ptime & /*lastModifiedTime*/,
-    const Fmi::TimeZones &timezones)
+    const boost::posix_time::ptime & /* lastModifiedTime */,
+    const Fmi::TimeZones & /* timezones */)
 {
   try
   {
@@ -540,7 +540,7 @@ void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
     std::vector<MagnetometerDataItem> &cacheData,
     boost::posix_time::ptime lastTime,
     boost::posix_time::ptime lastModifiedTime,
-    const Fmi::TimeZones &timezones)
+    const Fmi::TimeZones & /* timezones */)
 {
   try
   {
@@ -980,7 +980,6 @@ WHERE  tg.group_class_id IN( 1, 81 )
 
     for (auto row : result_set)
     {
-      std::string station_start, station_end;
       Spine::Station s;
       s.station_type = row[0].as<std::string>();
       s.station_id = as_int(row[1]);
@@ -1009,8 +1008,8 @@ WHERE  tg.group_class_id IN( 1, 81 )
         s.station_formal_name_sv = row[6].as<std::string>();
       if (!row[7].is_null())
         s.station_formal_name_en = row[7].as<std::string>();
-      station_start = row[8].as<std::string>();
-      station_end = row[11].as<std::string>();
+      auto station_start = row[8].as<std::string>();
+      auto station_end = row[11].as<std::string>();
       s.station_start = Fmi::TimeParser::parse(row[9].as<std::string>());
       s.station_end = Fmi::TimeParser::parse(row[10].as<std::string>());
       s.target_category = as_int(row[12]);
@@ -1087,7 +1086,7 @@ void PostgreSQLObsDB::getStationGroups(StationGroups &sg) const
     for (auto row : result_set)
     {
       int group_id = as_int(row[0]);
-      std::string group_name = row[1].as<std::string>();
+      auto group_name = row[1].as<std::string>();
       groups[group_id] = group_name;
     }
 
@@ -1136,7 +1135,7 @@ void PostgreSQLObsDB::getProducerGroups(ProducerGroups &pg) const
 
     for (auto row : result_set)
     {
-      std::string group_name = row[0].as<std::string>();
+      auto group_name = row[0].as<std::string>();
       int producer_id = as_int(row[1]);
       boost::posix_time::ptime starttime = Fmi::TimeParser::parse(row[2].as<std::string>());
       boost::posix_time::ptime endtime = Fmi::TimeParser::parse(row[3].as<std::string>());
@@ -1150,7 +1149,7 @@ void PostgreSQLObsDB::getProducerGroups(ProducerGroups &pg) const
 }
 
 void PostgreSQLObsDB::getMovingStations(Spine::Stations &stations,
-                                        const std::string &stationtype,
+                                        const std::string & /* stationtype */,
                                         const boost::posix_time::ptime &startTime,
                                         const boost::posix_time::ptime &endTime,
                                         const std::string &wkt) const

@@ -62,7 +62,7 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
       for (int j = 0; j < num; ++j)
       {
         std::string tablename = tables[j];
-        if (tablename.find(":") != std::string::npos)
+        if (tablename.find(':') != std::string::npos)
         {
           std::vector<std::string> parts;
           boost::algorithm::split(parts, tablename, boost::algorithm::is_any_of(":"));

@@ -32,11 +32,11 @@ class my_visitor : public boost::static_visitor<double>
   double operator()(double luku) { return luku; }
   double operator()(const std::string & /* s */) { return static_cast<double>(kFloatMissing); }
   double operator()(int i) { return static_cast<double>(i); }
-  double operator()(boost::local_time::local_date_time /* i */)
+  double operator()(const boost::local_time::local_date_time & /* i */)
   {
     return static_cast<double>(kFloatMissing);
   }
-  double operator()(TS::LonLat /* i */) { return static_cast<double>(kFloatMissing); }
+  double operator()(const TS::LonLat & /* i */) { return static_cast<double>(kFloatMissing); }
 };
 
 TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(PostgreSQLObsDB &db,

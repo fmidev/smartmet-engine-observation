@@ -23,6 +23,12 @@ class CommonDatabaseFunctions : public DBQueryUtils
 
   virtual ~CommonDatabaseFunctions() = default;
 
+  CommonDatabaseFunctions() = delete;
+  CommonDatabaseFunctions(const CommonDatabaseFunctions &other) = delete;
+  CommonDatabaseFunctions(CommonDatabaseFunctions &&other) = delete;
+  CommonDatabaseFunctions &operator=(const CommonDatabaseFunctions &other) = delete;
+  CommonDatabaseFunctions &operator=(CommonDatabaseFunctions &&other) = delete;
+
   virtual std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                                      const std::string &params,
                                                      const std::string &station_ids) const = 0;

@@ -8,7 +8,7 @@ namespace Engine
 namespace Observation
 {
 VerifiableMessageQueryParams::VerifiableMessageQueryParams(
-    const std::shared_ptr<DBRegistryConfig> dbrConfig)
+    const std::shared_ptr<DBRegistryConfig>& dbrConfig)
     : m_dbrConfig(dbrConfig)
 {
   try

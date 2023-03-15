@@ -54,9 +54,9 @@ class ProducerId
     itsIdInt = id;
   }
 
-  int itsIdInt{0};
-  std::string itsIdString{""};
-  std::string itsName{""};
+  int itsIdInt = 0;
+  std::string itsIdString;
+  std::string itsName;
 };
 
 }  // namespace Observation

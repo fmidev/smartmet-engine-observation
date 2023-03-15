@@ -25,12 +25,12 @@ namespace Observation
 struct DatabaseDriverInfoItem
 {
   DatabaseDriverInfoItem() = default;
-  DatabaseDriverInfoItem(const std::string& n,
+  DatabaseDriverInfoItem(std::string n,
                          bool a,
-                         const std::set<std::string>& t,
-                         const std::map<std::string, int>& td,
+                         std::set<std::string> t,
+                         std::map<std::string, int>& td,
                          const std::set<std::string>& c)
-      : name(n), active(a), tables(t), table_days(td)
+      : name(std::move(n)), active(a), tables(std::move(t)), table_days(std::move(td))
   {
     parseCacheInfo(c);
   }
