@@ -420,8 +420,8 @@ TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
         }
         else
         {
-          result->emplace_back(ts_place);
           result->emplace_back(ts_fmisid);
+          result->emplace_back(ts_place);
         }
       }
       else
