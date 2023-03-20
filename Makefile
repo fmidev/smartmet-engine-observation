@@ -112,6 +112,12 @@ rpm: clean $(SPEC).spec
 	rpmbuild -tb $(SPEC).tar.gz
 	rm -f $(SPEC).tar.gz
 
+test-headers:
+	ok=true; OPTIMIZE=-O0; for header in $(SUBNAME)/*.h ; do \
+	   echo Testing $$header; \
+	   echo "#include \"$$header\"" | $(CXX) -S -x c++ $(CFLAGS) $(INCLUDES) - -o /dev/null || ok=false; \
+	done; $$ok
+
 .SUFFIXES: $(SUFFIXES) .cpp
 
 obj/%.o: %.cpp
