@@ -1,10 +1,12 @@
 #pragma once
 
-#include "DatabaseDriverInterface.h"
 #include "EngineParameters.h"
-#include "ObservationCache.h"
+#include "MetaData.h"
+#include "ObservableProperty.h"
 #include "StationOptions.h"
+#include "StationSettings.h"
 #include <spine/Table.h>
+#include <spine/TableFormatter.h>
 
 namespace SmartMet
 {
