@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.3.15
+Version: 23.3.21
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Mar 21 2023 Andris Pavēnis <andris.pavenis@fmi.fi> 23.3.21-1.fmi
+- Allow disabling engine by not providing its configuration file
+
 * Wed Mar 15 2023 Anssi Reponen <mika.heiskanen@fmi.fi> - 23.3.15-1.fmi
 - Fixed result when only fmisid and place is queried
 - Silenced several compiler warnings
