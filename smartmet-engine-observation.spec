@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.3.21
+Version: 23.3.22
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -28,7 +28,7 @@ BuildRequires: gdal34-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 23.2.27
+BuildRequires: smartmet-engine-geonames-devel >= 23.3.16
 BuildRequires: smartmet-library-locus-devel >= 23.3.7
 BuildRequires: smartmet-library-macgyver-devel >= 23.3.3
 BuildRequires: smartmet-library-spine-devel >= 23.3.14
@@ -45,12 +45,12 @@ Requires: %{smartmet_boost}-thread
 Requires: fmt >= %{smartmet_fmt_min}, fmt < %{smartmet_fmt_max}
 Requires: gdal34-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 23.2.27
+Requires: smartmet-engine-geonames >= 23.3.16
 Requires: smartmet-library-locus >= 23.3.7
 Requires: smartmet-library-macgyver >= 23.3.3
 Requires: smartmet-library-spine >= 23.3.14
 Requires: smartmet-library-timeseries >= 23.3.15
-Requires: smartmet-server >= 23.3.6
+Requires: smartmet-server >= 23.3.21
 Requires: unixODBC
 
 %if %{defined el7}
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Mar 22 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.3.22-1.fmi
+- Silenced several compiler warnings (including ones on possibly undefined behaviour)
+
 * Tue Mar 21 2023 Andris Pavēnis <andris.pavenis@fmi.fi> 23.3.21-1.fmi
 - Allow disabling engine by not providing its configuration file
 
