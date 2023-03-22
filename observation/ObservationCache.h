@@ -26,7 +26,7 @@ class ObservationCache
  public:
   virtual ~ObservationCache();
 
-  ObservationCache() = default;
+  ObservationCache() = delete;  // because there is a const reference data member
   ObservationCache(const ObservationCache &other) = delete;
   ObservationCache(ObservationCache &&other) = delete;
   ObservationCache &operator=(const ObservationCache &other) = delete;

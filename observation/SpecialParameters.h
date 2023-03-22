@@ -92,7 +92,6 @@ class SpecialParameters
  private:
   static SpecialParameters& mutable_instance();
 
- private:
   using parameter_handler_t = std::function<TS::Value(const Args&)>;
 
   std::map<std::string, parameter_handler_t> handler_map;

@@ -900,7 +900,7 @@ std::size_t PostgreSQLCacheDB::fillDataCache(const DataItems &cacheData)
         Spine::WriteLock lock(observation_data_write_mutex);
         std::vector<std::size_t> observationsToUpdate = new_items;
 
-        while (observationsToUpdate.size() > 0)
+        while (!observationsToUpdate.empty())
         {
           const auto &last_item = cacheData[observationsToUpdate.back()];
           std::vector<std::string> values_vector;
@@ -1050,7 +1050,7 @@ std::size_t PostgreSQLCacheDB::fillWeatherDataQCCache(const WeatherDataQCItems &
       {
         Spine::WriteLock lock(weather_data_qc_write_mutex);
         std::vector<std::size_t> weatherDataToUpdate = new_items;
-        while (weatherDataToUpdate.size() > 0)
+        while (!weatherDataToUpdate.empty())
         {
           const auto &last_item = cacheData[weatherDataToUpdate.back()];
           std::vector<std::string> values_vector;
@@ -1181,7 +1181,7 @@ std::size_t PostgreSQLCacheDB::fillFlashDataCache(const FlashDataItems &flashCac
         Spine::WriteLock lock(flash_data_write_mutex);
         std::vector<std::size_t> flashesToUpdate = new_items;
 
-        while (flashesToUpdate.size() > 0)
+        while (!flashesToUpdate.empty())
         {
           const auto &last_item = flashCacheData[flashesToUpdate.back()];
           std::vector<std::string> values_vector;
@@ -1351,7 +1351,7 @@ std::size_t PostgreSQLCacheDB::fillRoadCloudCache(
         Spine::WriteLock lock(roadcloud_data_write_mutex);
         std::vector<std::size_t> mobileDataToUpdate = new_items;
 
-        while (mobileDataToUpdate.size() > 0)
+        while (!mobileDataToUpdate.empty())
         {
           const auto &last_item = mobileExternalCacheData[mobileDataToUpdate.back()];
           std::vector<std::string> values_vector;
@@ -1529,7 +1529,7 @@ std::size_t PostgreSQLCacheDB::fillNetAtmoCache(
         Spine::WriteLock lock(netatmo_data_write_mutex);
         std::vector<std::size_t> mobileDataToUpdate = new_items;
 
-        while (mobileDataToUpdate.size() > 0)
+        while (!mobileDataToUpdate.empty())
         {
           const auto &last_item = mobileExternalCacheData[mobileDataToUpdate.back()];
           std::vector<std::string> values_vector;
@@ -2113,7 +2113,7 @@ ResultSetRows PostgreSQLCacheDB::getResultSetForMobileExternalData(
 {
   ResultSetRows ret;
 
-  if (pgResultSet.size() == 0)
+  if (pgResultSet.empty())
     return ret;
 
   try

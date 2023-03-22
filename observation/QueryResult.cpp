@@ -437,7 +437,7 @@ void QueryResult::set(const size_t& valueVectorId, const ValueType& value)
           .addDetail("QueryResult::set : value vector index is out of range.");
 
     // Store the first value and compare its type with the following ones.
-    if (m_valueContainer[valueVectorId].size() == 0)
+    if (m_valueContainer[valueVectorId].empty())
     {
       m_valueTypeOfVector[valueVectorId] = value;
     }

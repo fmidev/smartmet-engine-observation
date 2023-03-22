@@ -10,7 +10,7 @@ namespace
 {
 void print_vector(const std::vector<int>& data, const std::string& header, std::ostream& out)
 {
-  if (data.size() == 0)
+  if (data.empty())
     return;
 
   out << header << std::endl;
@@ -21,7 +21,7 @@ void print_vector(const std::vector<int>& data, const std::string& header, std::
 
 std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings& settings)
 {
-  if (settings.parameters.size() > 0)
+  if (!settings.parameters.empty())
   {
     out << "parameters:" << std::endl;
     unsigned int i = 0;
@@ -31,7 +31,7 @@ std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings&
   else
     out << "parameters: none" << std::endl;
 
-  if (settings.taggedLocations.size() > 0)
+  if (!settings.taggedLocations.empty())
   {
     out << "taggedLocations:" << std::endl;
     unsigned int i = 0;
@@ -45,7 +45,7 @@ std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings&
 
   print_vector(settings.hours, "hours", out);
   print_vector(settings.weekdays, "weekdays", out);
-  if (settings.taggedFMISIDs.size() > 0)
+  if (!settings.taggedFMISIDs.empty())
   {
     out << "fmisids" << std::endl;
     for (const auto& item : settings.taggedFMISIDs)
@@ -56,7 +56,7 @@ std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings&
 
   out << "locale: " << settings.locale.name() << std::endl;
 
-  if (settings.boundingBox.size() > 0)
+  if (!settings.boundingBox.empty())
   {
     out << "boundingBox:" << std::endl;
     for (const auto& item : settings.boundingBox)
@@ -69,7 +69,7 @@ std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings&
     settings.dataFilter.print();
   }
 
-  if (settings.producer_ids.size() > 0)
+  if (!settings.producer_ids.empty())
   {
     out << "producer_ids:" << std::endl;
     for (auto item : settings.producer_ids)

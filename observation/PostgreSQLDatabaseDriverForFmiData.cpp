@@ -28,7 +28,9 @@ PostgreSQLDatabaseDriverForFmiData::PostgreSQLDatabaseDriverForFmiData(const std
                                                                        Spine::ConfigBase &cfg)
     : PostgreSQLDatabaseDriver(name, p, cfg)
 {
-  setlocale(LC_NUMERIC, "en_US.utf8");
+  if (setlocale(LC_NUMERIC, "en_US.utf8") == nullptr)
+    throw Fmi::Exception(
+        BCP, "PostgreSQL database driver for FMI data failed to set locale to en_US.utf8");
 
   readConfig(cfg);
 }

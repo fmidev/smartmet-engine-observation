@@ -5,14 +5,14 @@
 #include <boost/make_shared.hpp>
 #include <macgyver/PostgreSQLConnection.h>
 
-class FmiIoTStations;
-
 namespace SmartMet
 {
 namespace Engine
 {
 namespace Observation
 {
+class FmiIoTStations;
+
 struct PostgreSQLDriverParameters : public DatabaseDriverParameters
 {
   PostgreSQLDriverParameters(const std::string& drivername, const EngineParametersPtr& p)

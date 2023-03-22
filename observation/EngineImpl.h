@@ -16,6 +16,7 @@ namespace Observation
 class EngineImpl : public Engine
 {
  public:
+  ~EngineImpl() override = default;
   EngineImpl() = delete;
   EngineImpl(const std::string &configfile);
 
@@ -128,8 +129,6 @@ class EngineImpl : public Engine
   void shutdown() override;
 
  private:
-  ~EngineImpl() override = default;
-
   void initializeCache();
   bool stationHasRightType(const Spine::Station &station, const Settings &settings);
   void unserializeStations();

@@ -27,7 +27,9 @@ PostgreSQLDatabaseDriverForMobileData::PostgreSQLDatabaseDriverForMobileData(
     const std::string &name, const EngineParametersPtr &p, Spine::ConfigBase &cfg)
     : PostgreSQLDatabaseDriver(name, p, cfg)
 {
-  setlocale(LC_NUMERIC, "en_US.utf8");
+  if (setlocale(LC_NUMERIC, "en_US.utf8") == nullptr)
+    throw Fmi::Exception(
+        BCP, "PostgreSQL database driver for mobile data failed to set locale to en_US.utf8");
 
   readConfig(cfg);
 
@@ -189,7 +191,7 @@ void PostgreSQLDatabaseDriverForMobileData::makeQuery(QueryBase *qb)
 
       if (not cacheResult)
       {
-        itsParameters.params->queryResultBaseCache.insert(sqlStatement, std::move(result));
+        itsParameters.params->queryResultBaseCache.insert(sqlStatement, result);
       }
     }
     catch (...)

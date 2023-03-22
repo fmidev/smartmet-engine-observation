@@ -10,7 +10,7 @@ namespace Observation
 StandardFilter::~StandardFilter() = default;
 ExtendedStandardFilter::~ExtendedStandardFilter() = default;
 
-StandardFilter::StandardFilter() : MinimumStandardFilter()
+StandardFilter::StandardFilter()
 {
   try
   {

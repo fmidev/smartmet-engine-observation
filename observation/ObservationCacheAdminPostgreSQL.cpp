@@ -285,8 +285,7 @@ ObservationCacheAdminPostgreSQL::getLatestObservationTime(
   if (last_modified_time.is_not_a_date_time())
     last_modified_time = last_time;
 
-  return std::pair<boost::posix_time::ptime, boost::posix_time::ptime>(last_time,
-                                                                       last_modified_time);
+  return {last_time, last_modified_time};
 }
 
 std::map<std::string, boost::posix_time::ptime> ObservationCacheAdminPostgreSQL::getLatestFlashTime(

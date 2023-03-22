@@ -15,7 +15,7 @@ namespace pt = boost::posix_time;
 class QueryParamsBase
 {
  public:
-  QueryParamsBase() : m_usingTimeRange(false) {}
+  QueryParamsBase() = default;
   virtual ~QueryParamsBase();
 
   QueryParamsBase& operator=(const QueryParamsBase& other) = delete;

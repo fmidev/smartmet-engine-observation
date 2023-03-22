@@ -92,10 +92,7 @@ class DatabaseDriverBase
   TS::TimeSeriesVectorPtr checkForEmptyQuery(
       Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) const;
 
-  virtual Fmi::Cache::CacheStatistics getCacheStats() const
-  {
-    return Fmi::Cache::CacheStatistics();
-  }
+  virtual Fmi::Cache::CacheStatistics getCacheStats() const { return {}; }
 
  protected:
   void parameterSanityCheck(const std::string &stationtype,

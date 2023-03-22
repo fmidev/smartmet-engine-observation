@@ -21,7 +21,7 @@ class CommonDatabaseFunctions : public DBQueryUtils
   {
   }
 
-  virtual ~CommonDatabaseFunctions() = default;
+  ~CommonDatabaseFunctions() override = default;
 
   CommonDatabaseFunctions() = delete;
   CommonDatabaseFunctions(const CommonDatabaseFunctions &other) = delete;

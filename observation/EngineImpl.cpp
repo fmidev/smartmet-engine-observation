@@ -43,7 +43,7 @@ bool string_found(const std::string &s1, const std::string &s2)
 }  // namespace
 
 EngineImpl::EngineImpl(const std::string &configfile)
-    : Engine(), itsConfigFile(configfile), itsDatabaseRegistry(new DBRegistry())
+    : itsConfigFile(configfile), itsDatabaseRegistry(new DBRegistry())
 {
 }
 

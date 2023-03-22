@@ -15,6 +15,7 @@ namespace Observation
 class ObservationCacheAdminBase
 {
  public:
+  virtual ~ObservationCacheAdminBase();
   ObservationCacheAdminBase() = delete;
   ObservationCacheAdminBase(const ObservationCacheAdminBase& other) = delete;
   ObservationCacheAdminBase(ObservationCacheAdminBase&& other) = delete;
@@ -83,8 +84,6 @@ class ObservationCacheAdminBase
                             SmartMet::Engine::Geonames::Engine* geonames,
                             std::atomic<bool>& conn_ok,
                             bool timer);
-
-  virtual ~ObservationCacheAdminBase();
 
   void addInfoToStations(Spine::Stations& stations, const std::string& language) const;
 

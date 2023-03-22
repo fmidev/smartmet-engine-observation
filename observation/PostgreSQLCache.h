@@ -25,6 +25,12 @@ class PostgreSQLCache : public ObservationCache
                   const Spine::ConfigBase &cfg);
   ~PostgreSQLCache() override;
 
+  PostgreSQLCache() = delete;
+  PostgreSQLCache(const PostgreSQLCache &other) = delete;
+  PostgreSQLCache(PostgreSQLCache &&other) = delete;
+  PostgreSQLCache &operator=(const PostgreSQLCache &other) = delete;
+  PostgreSQLCache &operator=(PostgreSQLCache &&other) = delete;
+
   void initializeConnectionPool() override;
   void initializeCaches(int finCacheDuration,
                         int finMemoryCacheDuration,
@@ -106,7 +112,7 @@ class PostgreSQLCache : public ObservationCache
       const MagnetometerDataItems &magnetometerCacheData) const override;
   void cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const override;
 
-  void shutdown() override;
+  void shutdown() final;
 
   void getMovingStations(Spine::Stations &stations,
                          const std::string &stationtype,

@@ -77,7 +77,7 @@ void ObservationCacheAdminBase::init()
       }
     }
 
-    if (cache_tables.size() > 0)
+    if (!cache_tables.empty())
     {
       for (const auto& item : cache_tables)
         logMessage("Table '" + item.second + "' is cached in '" + item.first + "'...",
@@ -255,7 +255,7 @@ void ObservationCacheAdminBase::init()
     if (itsParameters.loadStations)
     {
       auto sinfo = itsParameters.params->stationInfo.load();
-      if (sinfo->stations.size() == 0)
+      if (sinfo->stations.empty())
       {
         std::cout << Spine::log_time_str() << driverName()
                   << " Stations info missing, loading from database! " << std::endl;
@@ -474,7 +474,7 @@ void ObservationCacheAdminBase::emulateFlashCacheUpdate(
   if (Spine::Reactor::isShuttingDown())
     return;
 
-  if (cacheData.size() > 0)
+  if (!cacheData.empty())
   {
     total_count += cache->fillFlashDataCache(cacheData);
     std::cout << "Added " << cacheData.size() << " flashes to database, total number of flashes #"

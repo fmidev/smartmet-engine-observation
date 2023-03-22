@@ -465,7 +465,7 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
     else if (cloudiness <= 9)
       smartsymbol = 48;
   }
-  else if (wawa == 70 || wawa == 71)
+  else if (wawa == 70 || wawa == 71 || wawa == 74)
   {
     if (cloudiness <= 5)
       smartsymbol = 51;
@@ -474,7 +474,7 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
     else if (cloudiness <= 9)
       smartsymbol = 57;
   }
-  else if (wawa == 72 || wawa == 75)
+  else if (wawa == 72 || wawa == 75 || wawa == 86)
   {
     if (cloudiness <= 5)
       smartsymbol = 52;
@@ -483,7 +483,7 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
     else if (cloudiness <= 9)
       smartsymbol = 58;
   }
-  else if (wawa == 73 || wawa == 76)
+  else if (wawa == 73 || wawa == 76 || wawa == 87)
   {
     if (cloudiness <= 5)
       smartsymbol = 53;
@@ -491,15 +491,6 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
       smartsymbol = 56;
     else if (cloudiness <= 9)
       smartsymbol = 59;
-  }
-  else if (wawa == 74)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 51;
-    else if (cloudiness <= 7)
-      smartsymbol = 54;
-    else if (cloudiness <= 9)
-      smartsymbol = 57;
   }
   else if (wawa == 77 || wawa == 78)
   {
@@ -544,24 +535,6 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
       smartsymbol = 54;
     else if (cloudiness <= 9)
       smartsymbol = 57;
-  }
-  else if (wawa == 86)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 52;
-    else if (cloudiness <= 7)
-      smartsymbol = 55;
-    else if (cloudiness <= 9)
-      smartsymbol = 58;
-  }
-  else if (wawa == 87)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 53;
-    else if (cloudiness <= 7)
-      smartsymbol = 56;
-    else if (cloudiness <= 9)
-      smartsymbol = 59;
   }
   else if (wawa == 89)
   {

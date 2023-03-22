@@ -9,7 +9,6 @@ namespace Engine
 namespace Observation
 {
 MastQueryParams::MastQueryParams(const std::shared_ptr<DBRegistryConfig>& dbrConfig)
-    : m_distinct(false)
 {
   try
   {

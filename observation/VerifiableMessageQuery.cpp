@@ -35,7 +35,7 @@ std::string VerifiableMessageQuery::getSQLStatement(
     if (m_returnOnlyLatest)
     {
       // Checking that there is at least one station selected.
-      if (m_stationIDs.size() == 0)
+      if (m_stationIDs.empty())
       {
         std::cerr << "warning: "
                      "SmartMet::Engine::Observation::VerifiableMessageQuery::"
@@ -91,7 +91,7 @@ std::shared_ptr<QueryResult> VerifiableMessageQuery::getQueryResultContainer()
   {
     if (not m_queryResult)
     {
-      if (m_select.size() > 0)
+      if (!m_select.empty())
         m_queryResult.reset(new QueryResult(m_select.size()));
     }
 

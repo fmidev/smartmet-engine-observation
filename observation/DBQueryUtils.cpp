@@ -530,8 +530,6 @@ void addParameterToTimeSeries(
 
 }  // namespace
 
-DBQueryUtils::~DBQueryUtils() = default;
-
 QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
                                              const std::string &stationtype,
                                              bool isWeatherDataQCTable) const
@@ -897,7 +895,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
                                      false);
 
       // If no results found return from here
-      if (resultVector->size() == 0 || resultVector->at(0).size() == 0)
+      if (resultVector->empty() || resultVector->at(0).empty())
         return timeSeriesColumns;
 
       // All possible missing timesteps
@@ -942,7 +940,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
         }
 
         if (timestep_iter != valid_timesteps.cend() &&
-            (new_ts.size() > 0 && *timestep_iter == new_ts.back().time))
+            (!new_ts.empty() && *timestep_iter == new_ts.back().time))
           timestep_iter++;
 
         while (timestep_iter != valid_timesteps.cend())
@@ -1124,7 +1122,7 @@ std::string DBQueryUtils::getSensorQueryCondition(
       }
       for (const auto &mid : item.second)
       {
-        if (sensorNumberCondition.size() > 0)
+        if (!sensorNumberCondition.empty())
           sensorNumberCondition += " OR ";
         sensorNumberCondition += ("(data.sensor_no = " + Fmi::to_string(item.first) +
                                   " AND data.measurand_id = " + Fmi::to_string(mid) + ") ");

@@ -20,6 +20,7 @@ static const std::string MAIN_MEASURAND_ID = "main_measurand_id";
 class ParameterMap
 {
  public:
+  ~ParameterMap() = default;
   ParameterMap() = default;
   ParameterMap(const ParameterMap&) = delete;
   ParameterMap(ParameterMap&&) = delete;

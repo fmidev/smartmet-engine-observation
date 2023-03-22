@@ -116,7 +116,7 @@ class SpatiaLiteCache : public ObservationCache
   void cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const override;
   TS::TimeSeriesVectorPtr magnetometerValuesFromSpatiaLite(Settings &settings) const;
 
-  void shutdown() override;
+  void shutdown() final;
 
   // This has been added for flash emulator
   int getMaxFlashId() const override;

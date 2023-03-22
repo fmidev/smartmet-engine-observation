@@ -32,12 +32,12 @@ void add_where_conditions(std::string &sqlStmt,
   }
 
   std::string mids;
-  if (measurandIds.size() > 0)
+  if (!measurandIds.empty())
   {
     sqlStmt += " AND obs.mid IN (";
     for (auto i : measurandIds)
     {
-      if (mids.size() > 0)
+      if (!mids.empty())
         mids += ",";
       mids += std::to_string(i);
     }
@@ -101,7 +101,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
          "obs.prod_id=stat.prod_id and "
          "obs.station_id=stat.station_id and obs.prod_id=");
     sqlStmt += producerId;
-    if (station_ids.size() > 0)
+    if (!station_ids.empty())
     {
       std::string requested_stations;
       for (auto const &s : station_ids)

@@ -21,7 +21,7 @@ namespace Observation
 class MastQuery : public QueryBase
 {
  public:
-  explicit MastQuery();
+  MastQuery() = default;
 
   ~MastQuery() override;
 

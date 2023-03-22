@@ -96,7 +96,7 @@ DBRegistryConfig::DBRegistryConfig(const std::shared_ptr<Spine::ConfigBase>& con
         m_fieldValueTypeMap.insert(std::pair<NameType, NameType>(fieldName, ""));
     }
 
-    if (m_fieldNameMap.size() == 0)
+    if (m_fieldNameMap.empty())
     {
       Fmi::Exception exception(
           BCP, "At least one field must be defined in the configuration file!", nullptr);

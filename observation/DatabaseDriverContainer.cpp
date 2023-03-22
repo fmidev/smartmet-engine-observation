@@ -43,7 +43,7 @@ DatabaseDriverBase *DatabaseDriverContainer::resolveDriver(
     // Sort to ascending order and return the first driver that matches 'max_days' criterion
     std::sort(driver_days.begin(), driver_days.end(), sort_function);
 
-    if (driver_days.size() > 0)
+    if (!driver_days.empty())
     {
       // If no starttime / endtime given, return the first driver
       if (starttime.is_not_a_date_time() || endtime.is_not_a_date_time())

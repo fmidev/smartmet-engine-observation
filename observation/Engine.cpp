@@ -36,28 +36,24 @@ Engine *Engine::create(const std::string &configfile)
 {
   try
   {
-    const bool disabled =
-        [&configfile]()
-        {
-            const char* name = "SmartMet::Engine::Observation::Engine::create";
-            if (configfile.empty())
-            {
-              std::cout << Spine::log_time_str() << ' '
-                        << ANSI_FG_RED << name
-                        << ": configuration file not specified or its name is empty string: "
-                        << "engine disabled." << ANSI_FG_DEFAULT << std::endl;
-              return true;
-            }
+    const bool disabled = [&configfile]()
+    {
+      const char *name = "SmartMet::Engine::Observation::Engine::create";
+      if (configfile.empty())
+      {
+        std::cout << Spine::log_time_str() << ' ' << ANSI_FG_RED << name
+                  << ": configuration file not specified or its name is empty string: "
+                  << "engine disabled." << ANSI_FG_DEFAULT << std::endl;
+        return true;
+      }
 
-            SmartMet::Spine::ConfigBase cfg(configfile);
-            const bool result = cfg.get_optional_config_param<bool>("disabled", false);
-            if (result)
-              std::cout << Spine::log_time_str() << ' '
-                        << ANSI_FG_RED << name << ": engine disabled"
-                        << ANSI_FG_DEFAULT << std::endl;
-            return result;
-        }
-        ();
+      SmartMet::Spine::ConfigBase cfg(configfile);
+      const bool result = cfg.get_optional_config_param<bool>("disabled", false);
+      if (result)
+        std::cout << Spine::log_time_str() << ' ' << ANSI_FG_RED << name << ": engine disabled"
+                  << ANSI_FG_DEFAULT << std::endl;
+      return result;
+    }();
 
     if (disabled)
       return new SmartMet::Engine::Observation::Engine();
@@ -90,12 +86,10 @@ void Engine::makeQuery(QueryBase *qb)
   REPORT_DISABLED;
 }
 
-FlashCounts Engine::getFlashCount(const boost::posix_time::ptime &starttime,
-                                  const boost::posix_time::ptime &endtime,
-                                  const Spine::TaggedLocationList &locations)
+FlashCounts Engine::getFlashCount(const boost::posix_time::ptime & /*starttime */,
+                                  const boost::posix_time::ptime & /* endtime */,
+                                  const Spine::TaggedLocationList & /*locations */)
 {
-  (void)starttime;
-  (void)endtime;
   REPORT_DISABLED;
 }
 

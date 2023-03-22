@@ -85,7 +85,7 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
     }
 
     // If no active driver configured create dummy driver
-    if (itsDatabaseDriverContainer.size() == 0)
+    if (itsDatabaseDriverContainer.empty())
     {
       auto *dbDriver = new DummyDatabaseDriver("dummy", p);
       itsDatabaseDriverSet.insert(dbDriver);

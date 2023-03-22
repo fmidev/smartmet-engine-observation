@@ -25,6 +25,8 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   Engine();
 
  public:
+  ~Engine() override = default;
+
   static Engine *create(const std::string &config_name);
 
   virtual TS::TimeSeriesVectorPtr values(Settings &settings);
@@ -133,9 +135,6 @@ class Engine : public SmartMet::Spine::SmartMetEngine
 
   void init() override;
   void shutdown() override;
-
- protected:
-  ~Engine() override = default;
 };
 
 }  // namespace Observation

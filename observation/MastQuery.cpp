@@ -9,8 +9,6 @@ namespace Engine
 {
 namespace Observation
 {
-MastQuery::MastQuery() : m_selectSize(0) {}
-
 MastQuery::~MastQuery() = default;
 
 std::string MastQuery::getSQLStatement(const std::string &database /*= "oracle"*/) const
@@ -99,10 +97,10 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
 
     for (const auto &op : *om)
     {
-      if (op.second.size() == 0)
+      if (op.second.empty())
         continue;
 
-      if (m_where.size() > 0)
+      if (!m_where.empty())
       {
         m_where.append(" and ");
         m_wherePostgreSQL.append(" and ");
@@ -138,7 +136,7 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
         qParams->getJoinOnListTupleVector();
     m_from.append(" ").append(qParams->getTableName()).append(" ").append(qParams->getTableName());
 
-    if (joinOnListTupleVector->size() > 0)
+    if (!joinOnListTupleVector->empty())
     {
       auto joinOnIt = joinOnListTupleVector->cbegin();
       for (; joinOnIt != joinOnListTupleVector->cend(); ++joinOnIt)

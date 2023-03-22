@@ -79,7 +79,7 @@ TS::TimedValue SpecialParameters::getTimedValue(
     const SpecialParameters::Args args(
         station, stationType, obstime, origintime, timeZone, settings);
     TS::Value value = getValue(parameter, args);
-    return TS::TimedValue(obstime, value);
+    return {obstime, value};
   }
   catch (...)
   {

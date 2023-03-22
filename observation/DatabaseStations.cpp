@@ -198,7 +198,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
 
   auto info = itsObservationEngineParameters->stationInfo.load();
 
-  if (stationSettings.wmos.size() > 0)
+  if (!stationSettings.wmos.empty())
   {
     if (stationtype == "road")
     {
@@ -210,22 +210,22 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
     }
   }
 
-  if (stationSettings.lpnns.size() > 0)
+  if (!stationSettings.lpnns.empty())
     lpnns = info->translateLPNNToFMISID(stationSettings.lpnns, endtime);
 
-  if (stationSettings.geoid_settings.geoids.size() > 0)
+  if (!stationSettings.geoid_settings.geoids.empty())
     geoids =
         translateGeoIdsToFMISID(starttime, endtime, stationtype, stationSettings.geoid_settings);
 
-  if (wmos.size() > 0)
+  if (!wmos.empty())
   {
     result.insert(result.end(), wmos.begin(), wmos.end());
   }
 
-  if (lpnns.size() > 0)
+  if (!lpnns.empty())
     result.insert(result.end(), lpnns.begin(), lpnns.end());
 
-  if (geoids.size() > 0)
+  if (!geoids.empty())
     result.insert(result.end(), geoids.begin(), geoids.end());
 
   // FMISIDs need no conversion
@@ -233,7 +233,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
     result.emplace_back(Fmi::to_string(id), id);
 
   // Bounding box
-  if (stationSettings.bounding_box_settings.size() > 0)
+  if (!stationSettings.bounding_box_settings.empty())
   {
     Spine::Stations stations;
     getStationsByBoundingBox(

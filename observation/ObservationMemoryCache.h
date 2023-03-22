@@ -26,10 +26,10 @@ class ObservationMemoryCache
   virtual ~ObservationMemoryCache();
 
   ObservationMemoryCache() = default;
-  ObservationMemoryCache(const ObservationMemoryCache &other) = default;
-  ObservationMemoryCache(ObservationMemoryCache &&other) = default;
-  ObservationMemoryCache &operator=(const ObservationMemoryCache &other) = default;
-  ObservationMemoryCache &operator=(ObservationMemoryCache &&other) = default;
+  ObservationMemoryCache(const ObservationMemoryCache &other) = delete;
+  ObservationMemoryCache(ObservationMemoryCache &&other) = delete;
+  ObservationMemoryCache &operator=(const ObservationMemoryCache &other) = delete;
+  ObservationMemoryCache &operator=(ObservationMemoryCache &&other) = delete;
 
   /**
    * @brief Get the starting time of the cache
