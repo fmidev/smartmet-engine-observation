@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.3.22
+Version: 23.4.3
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Apr  3 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.4.3-1.fmi
+- Catch exceptions from illegal dates while reading station metadata from the database
+
 * Wed Mar 22 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.3.22-1.fmi
 - Silenced several compiler warnings (including ones on possibly undefined behaviour)
 
