@@ -1050,17 +1050,23 @@ void PostgreSQLObsDB::readStationLocations(StationLocations &stationLocations) c
     {
       if (row[5].is_null() || row[6].is_null() || row[7].is_null())
         continue;
-      StationLocation item;
-      item.location_id = as_int(row[0]);
-      item.fmisid = as_int(row[1]);
-      item.country_id = as_int(row[2]);
-      item.location_start = Fmi::TimeParser::parse(row[3].as<std::string>());
-      item.location_end = Fmi::TimeParser::parse(row[4].as<std::string>());
-      item.longitude = as_double(row[5]);
-      item.latitude = as_double(row[6]);
-      item.elevation = as_double(row[7]);
-
-      stationLocations[item.fmisid].push_back(item);
+      try
+      {
+        StationLocation item;
+        item.location_id = as_int(row[0]);
+        item.fmisid = as_int(row[1]);
+        item.country_id = as_int(row[2]);
+        item.location_start = Fmi::TimeParser::parse(row[3].as<std::string>());
+        item.location_end = Fmi::TimeParser::parse(row[4].as<std::string>());
+        item.longitude = as_double(row[5]);
+        item.latitude = as_double(row[6]);
+        item.elevation = as_double(row[7]);
+        stationLocations[item.fmisid].push_back(item);
+      }
+      catch (Fmi::Exception &e)
+      {
+        std::cerr << "Warning while reading station metadata: " << e.what() << std::endl;
+      }
     }
   }
   catch (...)
