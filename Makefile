@@ -72,7 +72,8 @@ profile: all
 $(LIBFILE): $(OBJS)
 	$(CXX) $(LFLAGS) -shared -rdynamic -o $(LIBFILE) $(OBJS) $(LIBS)
 	@echo Checking $(LIBFILE) for unresolved references
-	@if ldd -r $(LIBFILE) 2>&1 | c++filt | grep "^undefined symbol" | grep -v SmartMet::Engine::Geonames ; \
+	@if ldd -r $(LIBFILE) 2>&1 | c++filt | grep "^undefined symbol" | grep -v SmartMet::Engine::Geonames |\
+                        grep -Pv ':\ __(?:(?:a|t|ub)san_|sanitizer_)'; \
 		then rm -v $(LIBFILE); \
 		exit 1; \
 	fi
