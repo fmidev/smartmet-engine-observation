@@ -743,6 +743,36 @@ StationTimedMeasurandData DBQueryUtils::buildStationTimedMeasurandData(
   return ret;
 }
 
+boost::local_time::local_date_time find_wanted_time(const TimedMeasurandData &timed_measurand_data,
+                                                    const Settings &settings)
+{
+  if (timed_measurand_data.size() == 1)  // speed optimization if there is only one choice
+    return timed_measurand_data.begin()->first;
+
+  if (*settings.wantedtime <= settings.starttime)  // earliest time
+    return timed_measurand_data.begin()->first;
+
+  if (*settings.wantedtime >= settings.endtime)  // latest time
+    return timed_measurand_data.rbegin()->first;
+
+  // Look for the closest time
+
+  auto best_time = timed_measurand_data.begin()->first;
+  auto best_diff = std::abs((best_time.utc_time() - *settings.wantedtime).total_seconds());
+
+  for (const auto &tmp : timed_measurand_data)
+  {
+    auto diff = std::abs((tmp.first.utc_time() - *settings.wantedtime).total_seconds());
+    if (diff < best_diff)
+    {
+      best_diff = diff;
+      best_time = tmp.first;
+    }
+  }
+
+  return best_time;
+}
+
 TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
     const Settings &settings,
     const std::string &stationtype,
@@ -756,7 +786,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
   {
     // Resolve timesteps for each fmisid
     std::map<int, std::set<boost::local_time::local_date_time>> fmisid_timesteps;
-    if (timeSeriesOptions.all() && !settings.latest)
+    if (timeSeriesOptions.all() && !settings.wantedtime)
     {
       // std::cout << "**** ALL timesteps in data \n";
       // All timesteps
@@ -770,19 +800,19 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
         }
       }
     }
-    else if (settings.latest)
+    else if (settings.wantedtime)
     {
-      // std::cout << "**** LATEST timesteps\n";
-      // Latest timestep
+      // std::cout << "**** WANTED timestep\n";
+
       for (const auto &item : station_data)
       {
         int fmisid = item.first;
         const auto &timed_measurand_data = item.second;
-        const auto obstime = timed_measurand_data.rbegin()->first;
+        auto obstime = find_wanted_time(timed_measurand_data, settings);
         fmisid_timesteps[fmisid].insert(obstime);
       }
     }
-    else if (!timeSeriesOptions.all() && !settings.latest &&
+    else if (!timeSeriesOptions.all() && !settings.wantedtime &&
              itsGetRequestedAndDataTimesteps == AdditionalTimestepOption::RequestedAndDataTimesteps)
     {
       // std::cout << "**** ALL timesteps in data + listed timesteps\n";
@@ -975,7 +1005,7 @@ TimestepsByFMISID DBQueryUtils::getValidTimeSteps(
   // Resolve timesteps for each fmisid
   std::map<int, std::set<boost::local_time::local_date_time>> fmisid_timesteps;
 
-  if (timeSeriesOptions.all() && !settings.latest)
+  if (timeSeriesOptions.all() && !settings.wantedtime)
   {
     // std::cout << "**** ALL timesteps in data \n";
     // All timesteps
@@ -990,23 +1020,41 @@ TimestepsByFMISID DBQueryUtils::getValidTimeSteps(
         }
     }
   }
-  else if (settings.latest)
+  else if (settings.wantedtime)
   {
-    // std::cout << "**** LATEST timesteps\n";
-    // Latest timestep
+    // std::cout << "**** WANTED timestep\n";
+
     for (const auto &item : fmisid_results)
     {
       int fmisid = item.first;
       const auto &ts_vector = *item.second;
       for (const auto &item2 : ts_vector)
-        for (const auto &item3 : item2)
+      {
+        if (item2.size() == 1 ||
+            *settings.wantedtime <= settings.starttime)  // quick select for earliest time
+          fmisid_timesteps[fmisid].insert(item2.front().time);
+        else if (*settings.wantedtime >= settings.endtime)  // quick select for latest time
+          fmisid_timesteps[fmisid].insert(item2.back().time);
+        else
         {
-          fmisid_timesteps[fmisid].insert(item3.time);
-          break;
+          // Find closest time
+          auto best_time = item2.front().time;
+          auto best_diff = std::abs((*settings.wantedtime - best_time.utc_time()).total_seconds());
+          for (const auto &item3 : item2)
+          {
+            auto diff = std::abs((*settings.wantedtime - item3.time.utc_time()).total_seconds());
+            if (diff < best_diff)
+            {
+              best_diff = diff;
+              best_time = item3.time;
+            }
+          }
+          fmisid_timesteps[fmisid].insert(best_time);
         }
+      }
     }
   }
-  else if (!timeSeriesOptions.all() && !settings.latest &&
+  else if (!timeSeriesOptions.all() && !settings.wantedtime &&
            itsGetRequestedAndDataTimesteps == AdditionalTimestepOption::RequestedAndDataTimesteps)
   {
     // std::cout << "**** ALL timesteps in data + listed timesteps\n";

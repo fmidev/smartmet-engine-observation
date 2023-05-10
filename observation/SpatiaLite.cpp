@@ -1599,8 +1599,8 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMobileAndExternalData(const Settings &set
     timeSeriesOptions.endTime = settings.endtime;
     TS::TimeSeriesGenerator::LocalTimeList tlist;
 
-    // The desired timeseries, unless all available data if timestep=0 or latest only
-    if (!settings.latest && !timeSeriesOptions.all())
+    // The desired timeseries, unless all available data if timestep=0 or wanted time only
+    if (!settings.wantedtime && !timeSeriesOptions.all())
     {
       tlist = TS::TimeSeriesGenerator::generate(timeSeriesOptions,
                                                 timezones.time_zone_from_string(settings.timezone));
@@ -3778,7 +3778,7 @@ std::string SpatiaLite::sqlSelectFromWeatherDataQCData(const Settings &settings,
     auto starttime = to_epoch(settings.starttime);
     auto endtime = to_epoch(settings.endtime);
 
-    if (settings.latest)
+    if (settings.wantedtime)
     {
       sqlStmt =
           "SELECT data.fmisid AS fmisid, MAX(data.obstime) AS obstime, "

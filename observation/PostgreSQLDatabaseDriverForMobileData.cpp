@@ -45,24 +45,20 @@ void PostgreSQLDatabaseDriverForMobileData::setSettings(Settings &settings, Post
     db.stationType = settings.stationtype;
     db.maxDistance = settings.maxdistance;
     db.allPlaces = settings.allplaces;
-    db.latest = settings.latest;
+    db.wantedTime = settings.wantedtime;
 
     boost::posix_time::ptime startTime =
         boost::posix_time::second_clock::universal_time() - boost::posix_time::hours(24);
     boost::posix_time::ptime endTime = boost::posix_time::second_clock::universal_time();
     int timeStep = 1;
     if (!settings.starttime.is_not_a_date_time())
-    {
       startTime = settings.starttime;
-    }
+
     if (!settings.endtime.is_not_a_date_time())
-    {
       endTime = settings.endtime;
-    }
+
     if (settings.timestep >= 0)
-    {
       timeStep = settings.timestep;
-    }
 
     // PostgreSQL SQL is wrong to use timeStep>60 around DST changes
     if (timeStep > 60)
@@ -76,13 +72,9 @@ void PostgreSQLDatabaseDriverForMobileData::setSettings(Settings &settings, Post
     db.setTimeInterval(startTime, endTime, timeStep);
 
     if (!settings.timeformat.empty())
-    {
       db.resetTimeFormatter(settings.timeformat);
-    }
     else
-    {
       db.resetTimeFormatter(db.timeFormat);
-    }
   }
   catch (...)
   {

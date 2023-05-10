@@ -94,13 +94,13 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
 
   boost::posix_time::ptime startTime;
   boost::posix_time::ptime endTime;
+  boost::optional<boost::posix_time::ptime> wantedTime;
   std::string timeFormat;
   int timeStep;
   double maxDistance;
   std::string stationType;
   std::string timeZone;
   bool allPlaces{false};
-  bool latest{false};
 
   void resetTimeSeries() { itsTimeSeriesColumns.reset(); }
   void setTimeInterval(const boost::posix_time::ptime &starttime,

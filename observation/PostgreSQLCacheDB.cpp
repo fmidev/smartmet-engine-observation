@@ -1717,8 +1717,8 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
     timeSeriesOptions.startTime = settings.starttime;
     timeSeriesOptions.endTime = settings.endtime;
     TS::TimeSeriesGenerator::LocalTimeList tlist;
-    // The desired timeseries, unless all available data if timestep=0 or latest only
-    if (!settings.latest && !timeSeriesOptions.all())
+    // The desired timeseries, unless all available data if timestep=0 or specific wanted time only
+    if (!settings.wantedtime && !timeSeriesOptions.all())
     {
       tlist = TS::TimeSeriesGenerator::generate(timeSeriesOptions,
                                                 timezones.time_zone_from_string(settings.timezone));
@@ -2253,7 +2253,7 @@ std::string PostgreSQLCacheDB::sqlSelectFromWeatherDataQCData(const Settings &se
   {
     std::string sqlStmt;
 
-    if (settings.latest)
+    if (settings.wantedtime)
     {
       sqlStmt =
           "SELECT data.fmisid AS fmisid, EXTRACT(EPOCH FROM MAX(data.obstime)) AS obstime, "

@@ -96,11 +96,14 @@ std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings&
   std::cout << "wktArea: " << wktString << std::endl;
   out << "starttime: " << settings.starttime << std::endl;
   out << "endtime: " << settings.endtime << std::endl;
+  if (settings.wantedtime)
+    out << "wantedtime: " << *settings.wantedtime << std::endl;
+  else
+    out << "wantedtime: -" << std::endl;
   out << "maxdistance: " << settings.maxdistance << std::endl;
   out << "numberofstations: " << settings.numberofstations << std::endl;
   out << "timestep: " << settings.timestep << std::endl;
   out << "allplaces: " << settings.allplaces << std::endl;
-  out << "latest: " << settings.latest << std::endl;
   out << "starttimeGiven: " << settings.starttimeGiven << std::endl;
   out << "useCommonQueryMethod: " << settings.useCommonQueryMethod << std::endl;
   out << "useDataCache: " << settings.useDataCache << std::endl;

@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.4.27
+Version: 23.5.10
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -28,13 +28,13 @@ BuildRequires: gdal34-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 23.3.16
+BuildRequires: smartmet-engine-geonames-devel >= 23.4.27
 BuildRequires: smartmet-library-locus-devel >= 23.3.7
-BuildRequires: smartmet-library-macgyver-devel >= 23.3.3
-BuildRequires: smartmet-library-spine-devel >= 23.3.14
+BuildRequires: smartmet-library-macgyver-devel >= 23.4.27
+BuildRequires: smartmet-library-spine-devel >= 23.4.27
 BuildRequires: smartmet-library-timeseries-devel >= 23.3.15
 BuildRequires: sqlite3pp-devel >= 1.0.9
-BuildRequires: smartmet-utils-devel >= 23.1.19
+BuildRequires: smartmet-utils-devel >= 23.4.28
 BuildRequires: zlib-devel
 Requires: %{smartmet_boost}-date-time
 Requires: %{smartmet_boost}-iostreams
@@ -45,12 +45,12 @@ Requires: %{smartmet_boost}-thread
 Requires: fmt >= %{smartmet_fmt_min}, fmt < %{smartmet_fmt_max}
 Requires: gdal34-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 23.3.16
+Requires: smartmet-engine-geonames >= 23.4.27
 Requires: smartmet-library-locus >= 23.3.7
-Requires: smartmet-library-macgyver >= 23.3.3
-Requires: smartmet-library-spine >= 23.3.14
+Requires: smartmet-library-macgyver >= 23.4.27
+Requires: smartmet-library-spine >= 23.4.27
 Requires: smartmet-library-timeseries >= 23.3.15
-Requires: smartmet-server >= 23.3.21
+Requires: smartmet-server >= 23.4.27
 Requires: unixODBC
 
 %if %{defined el7}
@@ -62,7 +62,7 @@ BuildRequires: libspatialite43-devel
 #TestRequires: libspatialite43-devel
 #TestRequires: sqlite33-devel >= 3.30.1
 #TestRequires: catch-devel >= 1.9.6
-#TestRequires: smartmet-utils-devel >= 23.1.19
+#TestRequires: smartmet-utils-devel >= 23.4.28
 %else
 %if 0%{?rhel} && 0%{rhel} >= 8
 Requires: libpqxx >= 7.7.0 libpqxx < 1:7.8.0
@@ -129,7 +129,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 23.3.14
+Requires: smartmet-library-spine-devel >= 23.4.27
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed May 10 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.5.10-1.fmi
+- Improved code to look for observations closest to the desired time instead of just the latest time
+
 * Thu Apr 27 2023 Andris Pavēnis <andris.pavenis@fmi.fi> 23.4.27-1.fmi
 - Repackage due to macgyver ABI changes (AsyncTask, AsyncTaskGroup)
 

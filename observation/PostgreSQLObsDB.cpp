@@ -627,7 +627,7 @@ void PostgreSQLObsDB::setTimeInterval(const ptime &theStartTime,
   try
   {
     //    exactStartTime = theStartTime;
-    timeStep = (latest ? 1 : theTimeStep);
+    timeStep = (wantedTime ? 1 : theTimeStep);
     startTime = theStartTime;
     endTime = theEndTime;
   }
@@ -718,7 +718,7 @@ std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(const Settings &sett
   {
     std::string sqlStmt;
 
-    if (settings.latest)
+    if (settings.wantedtime)
     {
       sqlStmt =
           "SELECT data.fmisid AS fmisid, EXTRACT(EPOCH FROM MAX(data.obstime)) AS obstime, "

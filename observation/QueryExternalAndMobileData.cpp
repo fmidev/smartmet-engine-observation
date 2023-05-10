@@ -160,8 +160,8 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
       ret->emplace_back(TS::TimeSeries(settings.localTimePool));
 
     TS::TimeSeriesGenerator::LocalTimeList tlist;
-    // The desired timeseries, unless all available data if timestep=0 or latest only
-    if (!settings.latest && !timeSeriesOptions.all())
+    // The desired timeseries, unless all available data if timestep=0 or a specific time only
+    if (!settings.wantedtime && !timeSeriesOptions.all())
     {
       tlist = TS::TimeSeriesGenerator::generate(timeSeriesOptions,
                                                 timezones.time_zone_from_string(settings.timezone));
