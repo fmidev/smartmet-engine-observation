@@ -5,6 +5,7 @@
 #include "ObservableProperty.h"
 #include "StationOptions.h"
 #include "StationSettings.h"
+#include "MeasurandInfo.h"
 #include <spine/Table.h>
 #include <spine/TableFormatter.h>
 
@@ -133,6 +134,11 @@ class Engine : public SmartMet::Spine::SmartMetEngine
                                                     const std::string &stationtype,
                                                     const StationSettings &stationSettings) const;
 
+   /* \brief Get measurand info
+   * \return ProducerMeasurand info
+   */ 
+  virtual const ProducerMeasurandInfo& getMeasurandInfo() const;
+ 
   void init() override;
   void shutdown() override;
 };

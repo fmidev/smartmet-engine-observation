@@ -336,7 +336,10 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
 
     // Database query prevented
     if (settings.preventDatabaseQuery)
-      return ret;
+	  {
+		std::cerr << "[PostgreSQLDatabaseDriverForFmiData] values(): Database queries prevented!" << std::endl;
+		return ret;
+	  }
 
     if (!itsConnectionsOK)
     {
@@ -499,6 +502,12 @@ void PostgreSQLDatabaseDriverForFmiData::getProducerGroups(ProducerGroups &pg) c
 {
   std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
   db->getProducerGroups(pg);
+}
+
+MeasurandInfo PostgreSQLDatabaseDriverForFmiData::getMeasurandInfo() const
+{
+  std::shared_ptr<PostgreSQLObsDB> db =	itsPostgreSQLConnectionPool->getConnection(false);
+  return db->getMeasurandInfo(itsParameters.params);
 }
 
 std::string PostgreSQLDatabaseDriverForFmiData::id() const

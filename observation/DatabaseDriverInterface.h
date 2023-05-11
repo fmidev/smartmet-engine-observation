@@ -1,5 +1,6 @@
 #pragma once
 
+#include "MeasurandInfo.h"
 #include "MetaData.h"
 #include "ProducerGroups.h"
 #include "QueryBase.h"
@@ -66,6 +67,7 @@ class DatabaseDriverInterface
   virtual Fmi::Cache::CacheStatistics getCacheStats() const = 0;
   virtual void getStationGroups(StationGroups &sg) const = 0;
   virtual void getProducerGroups(ProducerGroups &pg) const = 0;
+  virtual MeasurandInfo getMeasurandInfo() const = 0;
 
  protected:
   DatabaseDriverInterface() = default;
