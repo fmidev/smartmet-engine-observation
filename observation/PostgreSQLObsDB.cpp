@@ -1188,6 +1188,137 @@ void PostgreSQLObsDB::getMovingStations(Spine::Stations &stations,
   }
 }
 
+MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(const EngineParametersPtr &engineParameters) const
+{
+  try
+  {
+    MeasurandInfo ret;
+
+    std::string sqlStmt = "select measurand_id,measurand_code,aggregate_period,aggregate_function,combined_code,instant_value,measurand_name,measurand_desc,base_phenomenon,measurand_period,measurand_layer,standard_level,measurand_unit from measurands_v1";
+
+    if (itsDebug)
+      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+
+    auto result_set = itsDB.executeNonTransaction(sqlStmt);
+	//    auto producers = engineParameters->producerGroups.getProducerGroups();
+    for (const auto &row : result_set)
+    {
+      measurand_info mi;
+      mi.measurand_id = Fmi::to_string(row[0].as<int>());
+      mi.measurand_code = row[1].as<std::string>();
+      mi.aggregate_period = row[2].as<std::string>();
+      mi.aggregate_function = row[3].as<std::string>();
+      mi.combined_code = row[4].as<std::string>();
+      auto instant_value = row[5].as<std::string>();
+      mi.instant_value = (instant_value == "Y");
+      measurand_text mt;
+      mt.measurand_name = row[6].as<std::string>();
+      mt.measurand_desc = row[7].as<std::string>();
+      mi.translations["fi"] = mt;
+      mi.base_phenomenon = row[8].as<std::string>();
+      mi.measurand_period = row[9].as<std::string>();
+      mi.measurand_layer = row[10].as<std::string>();
+      if (!row[11].is_null())
+        mi.standard_level = row[11].as<double>();
+      if (!row[12].is_null())
+        mi.measurand_unit = row[12].as<std::string>();
+      ret[mi.measurand_id] = mi;
+    }
+
+	// Producers
+	sqlStmt = "select distinct measurand_id,producer_id from configurations_v2 order by measurand_id asc";
+
+    if (itsDebug)
+      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+
+    result_set = itsDB.executeNonTransaction(sqlStmt);
+    for (const auto &row : result_set)
+    {
+	  int mid = row[0].as<int>();
+	  int producer_id = row[1].as<int>();
+	  auto measurand_id = Fmi::to_string(mid);
+	  if(ret.find(measurand_id) != ret.end())
+		{
+		  auto& minfo = ret.at(measurand_id);
+		  minfo.producers.insert(producer_id);
+		}
+	}
+
+    // Translations
+    sqlStmt =
+        "select measurand_id,language_code, measurand_label,measurand_name,measurand_long_name from measurand_v1l";
+    result_set = itsDB.executeNonTransaction(sqlStmt);
+    for (const auto &row : result_set)
+    {
+      auto measurand_id = Fmi::to_string(row[0].as<int>());
+      if (ret.find(measurand_id) != ret.end())
+      {
+        measurand_text mt;
+        auto language_code = row[1].as<std::string>();
+        if (!row[2].is_null())
+          mt.measurand_label = row[2].as<std::string>();
+        if (!row[3].is_null())
+          mt.measurand_name = row[3].as<std::string>();
+        if (!row[4].is_null())
+          mt.measurand_desc = row[4].as<std::string>();
+
+        auto &m_info = ret.at(measurand_id);
+        m_info.translations[language_code] = mt;
+      }
+    }
+
+    // WEATHER_DATA_QC table parameters from MEASURAND_t1
+    sqlStmt =
+        "select measurand_code,measurand_name,unit_symbol,measurand_label,language_code from "
+        "MEASURAND_T1";
+    result_set = itsDB.executeNonTransaction(sqlStmt);
+    for (const auto &row : result_set)
+    {
+      auto measurand_id = row[0].as<std::string>();
+	  boost::algorithm::to_lower(measurand_id);
+      measurand_text mt;
+      if (!row[1].is_null())
+      {
+        mt.measurand_name = row[1].as<std::string>();
+        mt.measurand_desc = row[1].as<std::string>();
+      }
+      if (!row[3].is_null())
+        mt.measurand_label = row[3].as<std::string>();
+	  std::string measurand_unit;
+	  if (!row[2].is_null())
+		measurand_unit = row[2].as<std::string>();
+
+      std::string language_code = "fi";
+      if (!row[4].is_null())
+        language_code = row[4].as<std::string>();
+
+      if (ret.find(measurand_id) == ret.end())
+      {
+        measurand_info mi;
+        mi.measurand_id = measurand_id;
+        mi.measurand_code = measurand_id;
+		mi.measurand_unit = measurand_unit;
+        mi.translations[language_code] = mt;
+        ret[mi.measurand_id] = mi;
+      }
+      else
+      {
+        auto &mi = ret.at(measurand_id);
+		if(mi.translations.find(language_code) == mi.translations.end())
+		  {
+			mi.translations[language_code] = mt;
+		  }
+      }
+    }
+
+    return ret;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

@@ -12,6 +12,7 @@
 #include "Settings.h"
 #include "StationGroups.h"
 #include "StationtypeConfig.h"
+#include "EngineParameters.h"
 #include "WeatherDataQCItem.h"
 #include <boost/atomic.hpp>
 #include <macgyver/PostgreSQLConnection.h>
@@ -131,6 +132,8 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
                          const boost::posix_time::ptime &startTime,
                          const boost::posix_time::ptime &endTime,
                          const std::string &wkt) const;
+
+  MeasurandInfo getMeasurandInfo(const EngineParametersPtr& engineParameters) const;
 
  private:
   TS::TimeSeriesVectorPtr itsTimeSeriesColumns;

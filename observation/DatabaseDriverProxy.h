@@ -57,6 +57,7 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
   Fmi::Cache::CacheStatistics getCacheStats() const override;
   void getStationGroups(StationGroups &sg) const override;
   void getProducerGroups(ProducerGroups &pg) const override;
+  MeasurandInfo getMeasurandInfo() const override;
 
  private:
   const StationtypeConfig &itsStationtypeConfig;

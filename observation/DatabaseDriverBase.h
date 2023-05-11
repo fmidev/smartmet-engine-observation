@@ -94,6 +94,8 @@ class DatabaseDriverBase
 
   virtual Fmi::Cache::CacheStatistics getCacheStats() const { return {}; }
 
+  virtual MeasurandInfo getMeasurandInfo() const { return MeasurandInfo(); }
+
  protected:
   void parameterSanityCheck(const std::string &stationtype,
                             const std::vector<Spine::Parameter> &parameters,

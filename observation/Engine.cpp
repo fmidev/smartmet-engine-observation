@@ -214,6 +214,11 @@ Spine::TaggedFMISIDList Engine::translateToFMISID(const boost::posix_time::ptime
   REPORT_DISABLED;
 }
 
+const ProducerMeasurandInfo &Engine::getMeasurandInfo() const
+{
+  REPORT_DISABLED;
+}
+
 void Engine::init() {}
 
 void Engine::shutdown() {}

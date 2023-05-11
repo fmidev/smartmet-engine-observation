@@ -86,6 +86,9 @@ void EngineImpl::init()
     itsDatabaseDriver->getStationGroups(sg);
     auto sinfo = itsEngineParameters->stationInfo.load();
     sinfo->setStationGroups(sg);
+
+	// Get measurand info from DB
+	initMeasurandInfo();
   }
   catch (...)
   {
@@ -882,6 +885,86 @@ Fmi::Cache::CacheStatistics EngineImpl::getCacheStats() const
   ret.insert(private_caches.begin(), private_caches.end());
 
   return ret;
+}
+
+std::set<uint> EngineImpl::getProducerIds(const std::string &producer) const
+{
+  try
+  {
+	std::set<uint> ret;
+	auto endtime = boost::posix_time::second_clock::universal_time();
+	auto starttime = (endtime - boost::posix_time::hours(168)); // 7*24: one week
+	// Read from DB
+	ret = itsEngineParameters->producerGroups.getProducerIds(producer, starttime, endtime);
+
+	if(ret.empty())
+	  {
+		// Read from config file
+		const auto& producerIdSetMap = itsEngineParameters->stationtypeConfig.getProducerIdSetMap();		
+		if(producerIdSetMap.find(producer) != producerIdSetMap.end())
+		  ret = producerIdSetMap.at(producer);
+	  }
+
+	return ret;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed");
+  }
+}
+
+void EngineImpl::initMeasurandInfo()
+{
+  auto m_info = itsDatabaseDriver->getMeasurandInfo();
+
+  // producer_id -> measurands
+  std::map<uint, std::set<const measurand_info*>> producer_id_measurands;
+  for(const auto& item : m_info)
+	{
+	  for(const auto& producer_id : item.second.producers)
+		{
+		  producer_id_measurands[producer_id].insert(&item.second);
+		}
+	}
+
+  auto producers = getValidStationTypes();
+
+  // Producers
+  for(const auto& producer : producers)
+	{
+	  MeasurandInfo mi;
+	  // Producer ids of a producer
+	  auto producer_ids = getProducerIds(producer);
+	  for(auto id : producer_ids)
+		{
+		  if(producer_id_measurands.find(id) != producer_id_measurands.end())
+			{
+			  auto measurands = producer_id_measurands.at(id);
+			  for(const auto& m : measurands)
+				{
+				  if(isParameter(m->measurand_code, producer))
+					{
+					  auto parameter_name = m->measurand_code;
+					  boost::algorithm::to_lower(parameter_name);
+					  mi[parameter_name] = *m;
+					}
+				  if(isParameter(m->combined_code, producer))
+					{
+					  auto parameter_name = m->combined_code;
+					  boost::algorithm::to_lower(parameter_name);
+					  mi[parameter_name] = *m;
+					}
+				}
+			}
+		}
+	  if(!mi.empty())
+		itsMeasurandInfo[producer] = mi;
+	}
+}
+
+const ProducerMeasurandInfo& EngineImpl::getMeasurandInfo() const
+{
+  return itsMeasurandInfo;
 }
 
 }  // namespace Observation

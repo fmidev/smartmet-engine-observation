@@ -521,6 +521,14 @@ Fmi::Cache::CacheStatistics DatabaseDriverProxy::getCacheStats() const
   return ret;
 }
 
+MeasurandInfo DatabaseDriverProxy::getMeasurandInfo() const
+{
+  if(itsStationsDriver)
+	return itsStationsDriver->getMeasurandInfo();
+  
+  return MeasurandInfo();
+}
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

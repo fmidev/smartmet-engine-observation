@@ -123,6 +123,10 @@ class EngineImpl : public Engine
                                             const boost::posix_time::ptime &endtime,
                                             const std::string &stationtype,
                                             const StationSettings &stationSettings) const override;
+  /* \brief get measurand info from database
+   * \return ProducerMeasurandInfo
+   */
+  const ProducerMeasurandInfo& getMeasurandInfo() const override;
 
  protected:
   void init() override;
@@ -140,9 +144,18 @@ class EngineImpl : public Engine
 
   Fmi::Cache::CacheStatistics getCacheStats() const override;
 
+  /* \brief get producer ids from engine parameters
+   * \return Set of producer ids
+   */
+  std::set<uint> getProducerIds(const std::string &producer) const;
+
+  void initMeasurandInfo();
+
   std::string itsConfigFile;
 
   EngineParametersPtr itsEngineParameters;
+
+  ProducerMeasurandInfo itsMeasurandInfo;
 
   std::shared_ptr<DBRegistry> itsDatabaseRegistry;
 
