@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.5.11
+Version: 23.5.16
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue May 16 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.5.16-1.fmi
+- Improved exception tracking
+
 * Thu May 11 2023 Anssi Reponen <anssi.reponen@fmi.fi> - 23.5.11-1.fmi
 - Fetch measurand info from database, EDR metadata uses that info
 
