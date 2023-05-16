@@ -87,8 +87,8 @@ void EngineImpl::init()
     auto sinfo = itsEngineParameters->stationInfo.load();
     sinfo->setStationGroups(sg);
 
-	// Get measurand info from DB
-	initMeasurandInfo();
+    // Get measurand info from DB
+    initMeasurandInfo();
   }
   catch (...)
   {
@@ -243,37 +243,51 @@ FlashCounts EngineImpl::getFlashCount(const boost::posix_time::ptime &starttime,
 std::shared_ptr<std::vector<ObservableProperty>> EngineImpl::observablePropertyQuery(
     std::vector<std::string> &parameters, const std::string &language)
 {
-  // Remove possible sensor numbers
-  std::vector<std::string> parameter_names;
-  for (const auto &p : parameters)
+  try
   {
-    if (p.find("(:") != std::string::npos)
-      parameter_names.emplace_back(p.substr(0, p.find("(:")));
-    else
-      parameter_names.push_back(p);
-  }
+    // Remove possible sensor numbers
+    std::vector<std::string> parameter_names;
+    for (const auto &p : parameters)
+    {
+      if (p.find("(:") != std::string::npos)
+        parameter_names.emplace_back(p.substr(0, p.find("(:")));
+      else
+        parameter_names.push_back(p);
+    }
 
-  return itsDatabaseDriver->observablePropertyQuery(parameter_names, language);
+    return itsDatabaseDriver->observablePropertyQuery(parameter_names, language);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
 TS::TimeSeriesVectorPtr EngineImpl::values(Settings &settings)
 {
-  // Drop unknown parameters from parameter list and
-  // store their indexes
-  std::vector<unsigned int> unknownParameterIndexes;
-  if (settings.debug_options & Settings::DUMP_SETTINGS)
+  try
   {
-    std::cout << "EngineImpl::Observation::Settings:\n" << settings << std::endl;
+    // Drop unknown parameters from parameter list and
+    // store their indexes
+    std::vector<unsigned int> unknownParameterIndexes;
+    if (settings.debug_options & Settings::DUMP_SETTINGS)
+    {
+      std::cout << "EngineImpl::Observation::Settings:\n" << settings << std::endl;
+    }
+    Settings querySettings = beforeQuery(settings, unknownParameterIndexes);
+
+    TS::TimeSeriesVectorPtr ret = itsDatabaseDriver->values(querySettings);
+
+    // Insert missing values for unknown parameters and
+    // arrange data order in result set
+    afterQuery(ret, settings, unknownParameterIndexes);
+
+    return ret;
   }
-  Settings querySettings = beforeQuery(settings, unknownParameterIndexes);
-
-  TS::TimeSeriesVectorPtr ret = itsDatabaseDriver->values(querySettings);
-
-  // Insert missing values for unknown parameters and
-  // arrange data order in result set
-  afterQuery(ret, settings, unknownParameterIndexes);
-
-  return ret;
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
 void EngineImpl::makeQuery(QueryBase *qb)
@@ -348,41 +362,54 @@ std::set<std::string> EngineImpl::getValidStationTypes() const
 TS::TimeSeriesVectorPtr EngineImpl::values(Settings &settings,
                                            const TS::TimeSeriesGeneratorOptions &timeSeriesOptions)
 {
-  // Drop unknown parameters from parameter list and
-  // store their indexes
-  std::vector<unsigned int> unknownParameterIndexes;
-  if (settings.debug_options & Settings::DUMP_SETTINGS)
-  {
-    std::cout << "EngineImpl::Observation::Settings:\n" << settings << std::endl;
-    std::cout << "TS::TimeSeriesGeneratorOptions:\n" << timeSeriesOptions << std::endl;
+  try
+  {  // Drop unknown parameters from parameter list and
+    // store their indexes
+    std::vector<unsigned int> unknownParameterIndexes;
+    if (settings.debug_options & Settings::DUMP_SETTINGS)
+    {
+      std::cout << "EngineImpl::Observation::Settings:\n" << settings << std::endl;
+      std::cout << "TS::TimeSeriesGeneratorOptions:\n" << timeSeriesOptions << std::endl;
+    }
+    Settings querySettings = beforeQuery(settings, unknownParameterIndexes);
+
+    TS::TimeSeriesVectorPtr ret = itsDatabaseDriver->values(querySettings, timeSeriesOptions);
+
+    // Insert missing values for unknown parameters and
+    // arrange data order in result set
+    afterQuery(ret, settings, unknownParameterIndexes);
+
+    return ret;
   }
-  Settings querySettings = beforeQuery(settings, unknownParameterIndexes);
-
-  TS::TimeSeriesVectorPtr ret = itsDatabaseDriver->values(querySettings, timeSeriesOptions);
-
-  // Insert missing values for unknown parameters and
-  // arrange data order in result set
-  afterQuery(ret, settings, unknownParameterIndexes);
-
-  return ret;
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
 MetaData EngineImpl::metaData(const std::string &producer) const
 {
-  auto ret = itsDatabaseDriver->metaData(producer);
-
-  for (const auto &param : *itsEngineParameters->parameterMap)
+  try
   {
-    for (const auto &producer_param : param.second)
+    auto ret = itsDatabaseDriver->metaData(producer);
+
+    for (const auto &param : *itsEngineParameters->parameterMap)
     {
-      if (producer.empty() || (producer == producer_param.first))
+      for (const auto &producer_param : param.second)
       {
-        ret.parameters.insert(param.first);
+        if (producer.empty() || (producer == producer_param.first))
+        {
+          ret.parameters.insert(param.first);
+        }
       }
     }
-  }
 
-  return ret;
+    return ret;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
 // Translates WMO, RWID,LPNN to FMISID
@@ -397,124 +424,138 @@ Spine::TaggedFMISIDList EngineImpl::translateToFMISID(const boost::posix_time::p
 Settings EngineImpl::beforeQuery(const Settings &settings,
                                  std::vector<unsigned int> &unknownParameterIndexes) const
 {
-  // LocalTimePool must be created by client plugin, because references to localtimes in the pool
-  // are used in the result set and they must be valid as log as result set is processed
-  if (settings.localTimePool == nullptr)
-    throw Fmi::Exception::Trace(BCP, "Observation::Settings::localTimePool can not be null!!!");
-
-  // Copy original settings
-  Settings ret = settings;
-  // Clear parameter list
-  ret.parameters.clear();
-  // Add known parameters back to list and store indexes of unknown parameters
-  for (unsigned int i = 0; i < settings.parameters.size(); i++)
+  try
   {
-    const auto &p = settings.parameters.at(i);
-    std::string pname = Fmi::ascii_tolower_copy(p.name());
-    if (!isParameter(pname, settings.stationtype) && !TimeSeries::is_special_parameter(pname))
-    {
-      unknownParameterIndexes.push_back(i);
-      continue;
-    }
-    ret.parameters.push_back(p);
-  }
+    // LocalTimePool must be created by client plugin, because references to localtimes in the pool
+    // are used in the result set and they must be valid as log as result set is processed
+    if (settings.localTimePool == nullptr)
+      throw Fmi::Exception::Trace(BCP, "Observation::Settings::localTimePool can not be null!!!");
 
-  return ret;
+    // Copy original settings
+    Settings ret = settings;
+    // Clear parameter list
+    ret.parameters.clear();
+    // Add known parameters back to list and store indexes of unknown parameters
+    for (unsigned int i = 0; i < settings.parameters.size(); i++)
+    {
+      const auto &p = settings.parameters.at(i);
+      std::string pname = Fmi::ascii_tolower_copy(p.name());
+      if (!isParameter(pname, settings.stationtype) && !TimeSeries::is_special_parameter(pname))
+      {
+        unknownParameterIndexes.push_back(i);
+        continue;
+      }
+      ret.parameters.push_back(p);
+    }
+
+    return ret;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
 void EngineImpl::afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
                             const Settings &settings,
                             const std::vector<unsigned int> &unknownParameterIndexes) const
 {
-  if (tsvPtr->empty())
-    return;
-
-  if (!unknownParameterIndexes.empty())
+  try
   {
-    // Take copy of the first time series
-    TS::TimeSeries ts = tsvPtr->at(0);
-    // Set values in all timestesps to TS::None()
-    for (auto &timedvalue : ts)
-      timedvalue.value = TS::None();
-    // Insert the nullified times series to time series vector
-    for (auto index : unknownParameterIndexes)
-      tsvPtr->insert(tsvPtr->begin() + index, ts);
-  }
+    if (tsvPtr->empty())
+      return;
 
-  // Arrange resultset in the right order
-  // Find out FMISID column
-  int fmisid_index = -1;
-  for (unsigned int i = 0; i < settings.parameters.size(); i++)
-    if (settings.parameters[i].name() == "fmisid")
+    if (!unknownParameterIndexes.empty())
     {
-      fmisid_index = i;
-      break;
+      // Take copy of the first time series
+      TS::TimeSeries ts = tsvPtr->at(0);
+      // Set values in all timestesps to TS::None()
+      for (auto &timedvalue : ts)
+        timedvalue.value = TS::None();
+      // Insert the nullified times series to time series vector
+      for (auto index : unknownParameterIndexes)
+        tsvPtr->insert(tsvPtr->begin() + index, ts);
     }
 
-  if (fmisid_index < 0 || settings.taggedFMISIDs.empty())
-    return;
-
-  const TS::TimeSeries &fmisid_vector = tsvPtr->at(fmisid_index);
-  std::map<std::string, std::vector<int>> fmisid_mapped_indexes;
-  // Sort out data indexes per each FMISID
-  for (unsigned int i = 0; i < fmisid_vector.size(); i++)
-  {
-    const TS::Value &value = fmisid_vector.at(i).value;
-    std::string fmisid = getStringValue(value);
-    fmisid_mapped_indexes[fmisid].push_back(i);
-  }
-
-  // Create and initialize data structure for results
-  TS::TimeSeriesVectorPtr result = TS::TimeSeriesVectorPtr(new TS::TimeSeriesVector);
-  for (unsigned int i = 0; i < tsvPtr->size(); i++)
-    result->emplace_back(TS::TimeSeries(settings.localTimePool));
-
-  // FMISIDs are in right order in settings.taggedFMISIDs list
-  // Iterate the list and copy data from original data structure to result structure
-  for (const auto &id : settings.taggedFMISIDs)
-  {
-    std::string fmisid = Fmi::to_string(id.fmisid);
-    if (fmisid_mapped_indexes.find(fmisid) == fmisid_mapped_indexes.end())
-      continue;
-    const auto &indexes = fmisid_mapped_indexes.at(fmisid);
-    if (indexes.empty())
-      continue;
-    unsigned int firstIndex = indexes.front();
-    unsigned int numberOfRows = indexes.size();
-
-    for (unsigned int i = 0; i < tsvPtr->size(); i++)
-    {
-      const TS::TimeSeries &ts = tsvPtr->at(i);
-
-      TS::TimeSeries &resultVector = result->at(i);
-
-      // Prevent referencing past the end of source data
-
-      if (firstIndex + numberOfRows > ts.size())
+    // Arrange resultset in the right order
+    // Find out FMISID column
+    int fmisid_index = -1;
+    for (unsigned int i = 0; i < settings.parameters.size(); i++)
+      if (settings.parameters[i].name() == "fmisid")
       {
-        std::cout << "obsengine afterQuery: indexing error: fmisid=" << fmisid
-                  << " firstIndex=" << firstIndex << " numberOfRows=" << numberOfRows
-                  << " ts.size()=" << ts.size() << " settings=" << settings
-                  << " resultVector=" << resultVector << " ts=" << ts << " i=" << i
-                  << " tsvPtr->size()=" << tsvPtr->size();
-
-        throw Fmi::Exception::Trace(BCP, "Internal error indexing data");
+        fmisid_index = i;
+        break;
       }
 
-      auto it_first = ts.begin();
-      for (unsigned int i = 0; i < firstIndex; i++)
-        it_first++;
-      auto it_last = it_first;
-      for (unsigned int i = 0; i < numberOfRows; i++)
-        it_last++;
+    if (fmisid_index < 0 || settings.taggedFMISIDs.empty())
+      return;
 
-      //      resultVector.insert(resultVector.end(), ts.begin() + firstIndex, ts.begin() +
-      //      firstIndex + numberOfRows);
-      resultVector.insert(resultVector.end(), it_first, it_last);
+    const TS::TimeSeries &fmisid_vector = tsvPtr->at(fmisid_index);
+    std::map<std::string, std::vector<int>> fmisid_mapped_indexes;
+    // Sort out data indexes per each FMISID
+    for (unsigned int i = 0; i < fmisid_vector.size(); i++)
+    {
+      const TS::Value &value = fmisid_vector.at(i).value;
+      std::string fmisid = getStringValue(value);
+      fmisid_mapped_indexes[fmisid].push_back(i);
     }
-  }
 
-  tsvPtr = result;
+    // Create and initialize data structure for results
+    TS::TimeSeriesVectorPtr result = TS::TimeSeriesVectorPtr(new TS::TimeSeriesVector);
+    for (unsigned int i = 0; i < tsvPtr->size(); i++)
+      result->emplace_back(TS::TimeSeries(settings.localTimePool));
+
+    // FMISIDs are in right order in settings.taggedFMISIDs list
+    // Iterate the list and copy data from original data structure to result structure
+    for (const auto &id : settings.taggedFMISIDs)
+    {
+      std::string fmisid = Fmi::to_string(id.fmisid);
+      if (fmisid_mapped_indexes.find(fmisid) == fmisid_mapped_indexes.end())
+        continue;
+      const auto &indexes = fmisid_mapped_indexes.at(fmisid);
+      if (indexes.empty())
+        continue;
+      unsigned int firstIndex = indexes.front();
+      unsigned int numberOfRows = indexes.size();
+
+      for (unsigned int i = 0; i < tsvPtr->size(); i++)
+      {
+        const TS::TimeSeries &ts = tsvPtr->at(i);
+
+        TS::TimeSeries &resultVector = result->at(i);
+
+        // Prevent referencing past the end of source data
+
+        if (firstIndex + numberOfRows > ts.size())
+        {
+          std::cout << "obsengine afterQuery: indexing error: fmisid=" << fmisid
+                    << " firstIndex=" << firstIndex << " numberOfRows=" << numberOfRows
+                    << " ts.size()=" << ts.size() << " settings=" << settings
+                    << " resultVector=" << resultVector << " ts=" << ts << " i=" << i
+                    << " tsvPtr->size()=" << tsvPtr->size();
+
+          throw Fmi::Exception::Trace(BCP, "Internal error indexing data");
+        }
+
+        auto it_first = ts.begin();
+        for (unsigned int i = 0; i < firstIndex; i++)
+          it_first++;
+        auto it_last = it_first;
+        for (unsigned int i = 0; i < numberOfRows; i++)
+          it_last++;
+
+        //      resultVector.insert(resultVector.end(), ts.begin() + firstIndex, ts.begin() +
+        //      firstIndex + numberOfRows);
+        resultVector.insert(resultVector.end(), it_first, it_last);
+      }
+    }
+
+    tsvPtr = result;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
 void EngineImpl::reloadStations()
@@ -524,132 +565,146 @@ void EngineImpl::reloadStations()
 
 ContentTable EngineImpl::getProducerInfo(const boost::optional<std::string> &producer) const
 {
-  boost::shared_ptr<Spine::Table> resultTable(new Spine::Table);
-
-  std::set<std::string> station_types = getValidStationTypes();
-
-  if (producer)
+  try
   {
-    if (station_types.find(*producer) == station_types.end())
-      return std::make_pair(resultTable, Spine::TableFormatter::Names());
+    boost::shared_ptr<Spine::Table> resultTable(new Spine::Table);
 
-    station_types.clear();
-    station_types.insert(*producer);
-  }
+    std::set<std::string> station_types = getValidStationTypes();
 
-  Spine::TableFormatter::Names headers{"#", "Producer", "ProducerId", "StationGroups"};
-
-  unsigned int row = 0;
-  for (const auto &t : station_types)
-  {
-    if (t.empty())
-      continue;
-
-    std::string producer_ids;
-    std::string group_codes;
-
-    if (itsEngineParameters->isExternalOrMobileProducer(t))
+    if (producer)
     {
-      producer_ids = Fmi::to_string(
-          itsEngineParameters->externalAndMobileProducerConfig.at(t).producerId().asInt());
-    }
-    else
-    {
-      if (itsEngineParameters->stationtypeConfig.hasProducerIds(t))
-      {
-        const std::set<uint> &producers =
-            itsEngineParameters->stationtypeConfig.getProducerIdSetByStationtype(t);
-        std::list<std::string> producer_id_list;
-        for (auto id : producers)
-          producer_id_list.emplace_back(Fmi::to_string(id));
-        producer_ids = boost::algorithm::join(producer_id_list, ",");
-      }
-      if (itsEngineParameters->stationtypeConfig.hasGroupCodes(t))
-      {
-        std::shared_ptr<const std::set<std::string>> group_code_set =
-            itsEngineParameters->stationtypeConfig.getGroupCodeSetByStationtype(t);
-        group_codes = boost::algorithm::join(*group_code_set, ",");
-      }
+      if (station_types.find(*producer) == station_types.end())
+        return std::make_pair(resultTable, Spine::TableFormatter::Names());
+
+      station_types.clear();
+      station_types.insert(*producer);
     }
 
-    int column = 0;
+    Spine::TableFormatter::Names headers{"#", "Producer", "ProducerId", "StationGroups"};
 
-    // Row number
-    resultTable->set(column, row, Fmi::to_string(row + 1));
-    ++column;
+    unsigned int row = 0;
+    for (const auto &t : station_types)
+    {
+      if (t.empty())
+        continue;
 
-    // Producer
-    resultTable->set(column, row, t);
-    ++column;
+      std::string producer_ids;
+      std::string group_codes;
 
-    // Producer ids
-    resultTable->set(column, row, producer_ids);
-    ++column;
+      if (itsEngineParameters->isExternalOrMobileProducer(t))
+      {
+        producer_ids = Fmi::to_string(
+            itsEngineParameters->externalAndMobileProducerConfig.at(t).producerId().asInt());
+      }
+      else
+      {
+        if (itsEngineParameters->stationtypeConfig.hasProducerIds(t))
+        {
+          const std::set<uint> &producers =
+              itsEngineParameters->stationtypeConfig.getProducerIdSetByStationtype(t);
+          std::list<std::string> producer_id_list;
+          for (auto id : producers)
+            producer_id_list.emplace_back(Fmi::to_string(id));
+          producer_ids = boost::algorithm::join(producer_id_list, ",");
+        }
+        if (itsEngineParameters->stationtypeConfig.hasGroupCodes(t))
+        {
+          std::shared_ptr<const std::set<std::string>> group_code_set =
+              itsEngineParameters->stationtypeConfig.getGroupCodeSetByStationtype(t);
+          group_codes = boost::algorithm::join(*group_code_set, ",");
+        }
+      }
 
-    // Station groups
-    resultTable->set(column, row, group_codes);
+      int column = 0;
 
-    row++;
+      // Row number
+      resultTable->set(column, row, Fmi::to_string(row + 1));
+      ++column;
+
+      // Producer
+      resultTable->set(column, row, t);
+      ++column;
+
+      // Producer ids
+      resultTable->set(column, row, producer_ids);
+      ++column;
+
+      // Station groups
+      resultTable->set(column, row, group_codes);
+
+      row++;
+    }
+
+    return std::make_pair(resultTable, headers);
   }
-
-  return std::make_pair(resultTable, headers);
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
 ContentTable EngineImpl::getParameterInfo(boost::optional<std::string> producer) const
 {
-  boost::shared_ptr<Spine::Table> resultTable(new Spine::Table);
-
-  if (producer)
+  try
   {
-    std::set<std::string> station_types = getValidStationTypes();
-    if (station_types.find(*producer) == station_types.end())
-      return std::make_pair(resultTable, Spine::TableFormatter::Names());
-  }
+    boost::shared_ptr<Spine::Table> resultTable(new Spine::Table);
 
-  /*
-  std::set<std::string> newbase_parameters;
-  NFmiEnumConverter converter;
-  for (int i = kFmiBadParameter; i < kFmiLastParameter; i++)
-  {
-    std::string param_name = converter.ToString(i);
-    if (param_name.empty())
-      continue;
-
-    newbase_parameters.insert(Fmi::ascii_tolower_copy(param_name));
-  }
-  */
-
-  Spine::TableFormatter::Names headers{"#", "Parameter", "Producer", "ParameterId"};
-
-  unsigned int row = 0;
-  unsigned int param_counter = 1;
-  for (const auto &param : *itsEngineParameters->parameterMap)
-  {
-    auto param_counter_str = Fmi::to_string(param_counter);
-
-    for (const auto &producer_param : param.second)
+    if (producer)
     {
-      unsigned int column = 0;
-
-      // Param counter
-      resultTable->set(column++, row, param_counter_str);
-      // Parameter
-      resultTable->set(column++, row, param.first);
-
-      if (!producer || (*producer == producer_param.first))
-      {
-        // Producer
-        resultTable->set(column++, row, producer_param.first);
-        // Parameter id
-        resultTable->set(column, row, producer_param.second);
-      }
-      row++;
+      std::set<std::string> station_types = getValidStationTypes();
+      if (station_types.find(*producer) == station_types.end())
+        return std::make_pair(resultTable, Spine::TableFormatter::Names());
     }
 
-    param_counter++;
-  }
+    /*
+    std::set<std::string> newbase_parameters;
+    NFmiEnumConverter converter;
+    for (int i = kFmiBadParameter; i < kFmiLastParameter; i++)
+    {
+      std::string param_name = converter.ToString(i);
+      if (param_name.empty())
+        continue;
 
-  return std::make_pair(resultTable, headers);
+      newbase_parameters.insert(Fmi::ascii_tolower_copy(param_name));
+    }
+    */
+
+    Spine::TableFormatter::Names headers{"#", "Parameter", "Producer", "ParameterId"};
+
+    unsigned int row = 0;
+    unsigned int param_counter = 1;
+    for (const auto &param : *itsEngineParameters->parameterMap)
+    {
+      auto param_counter_str = Fmi::to_string(param_counter);
+
+      for (const auto &producer_param : param.second)
+      {
+        unsigned int column = 0;
+
+        // Param counter
+        resultTable->set(column++, row, param_counter_str);
+        // Parameter
+        resultTable->set(column++, row, param.first);
+
+        if (!producer || (*producer == producer_param.first))
+        {
+          // Producer
+          resultTable->set(column++, row, producer_param.first);
+          // Parameter id
+          resultTable->set(column, row, producer_param.second);
+        }
+        row++;
+      }
+
+      param_counter++;
+    }
+
+    return std::make_pair(resultTable, headers);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
 ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
@@ -891,21 +946,21 @@ std::set<uint> EngineImpl::getProducerIds(const std::string &producer) const
 {
   try
   {
-	std::set<uint> ret;
-	auto endtime = boost::posix_time::second_clock::universal_time();
-	auto starttime = (endtime - boost::posix_time::hours(168)); // 7*24: one week
-	// Read from DB
-	ret = itsEngineParameters->producerGroups.getProducerIds(producer, starttime, endtime);
+    std::set<uint> ret;
+    auto endtime = boost::posix_time::second_clock::universal_time();
+    auto starttime = (endtime - boost::posix_time::hours(168));  // 7*24: one week
+    // Read from DB
+    ret = itsEngineParameters->producerGroups.getProducerIds(producer, starttime, endtime);
 
-	if(ret.empty())
-	  {
-		// Read from config file
-		const auto& producerIdSetMap = itsEngineParameters->stationtypeConfig.getProducerIdSetMap();		
-		if(producerIdSetMap.find(producer) != producerIdSetMap.end())
-		  ret = producerIdSetMap.at(producer);
-	  }
+    if (ret.empty())
+    {
+      // Read from config file
+      const auto &producerIdSetMap = itsEngineParameters->stationtypeConfig.getProducerIdSetMap();
+      if (producerIdSetMap.find(producer) != producerIdSetMap.end())
+        ret = producerIdSetMap.at(producer);
+    }
 
-	return ret;
+    return ret;
   }
   catch (...)
   {
@@ -915,54 +970,61 @@ std::set<uint> EngineImpl::getProducerIds(const std::string &producer) const
 
 void EngineImpl::initMeasurandInfo()
 {
-  auto m_info = itsDatabaseDriver->getMeasurandInfo();
+  try
+  {
+    auto m_info = itsDatabaseDriver->getMeasurandInfo();
 
-  // producer_id -> measurands
-  std::map<uint, std::set<const measurand_info*>> producer_id_measurands;
-  for(const auto& item : m_info)
-	{
-	  for(const auto& producer_id : item.second.producers)
-		{
-		  producer_id_measurands[producer_id].insert(&item.second);
-		}
-	}
+    // producer_id -> measurands
+    std::map<uint, std::set<const measurand_info *>> producer_id_measurands;
+    for (const auto &item : m_info)
+    {
+      for (const auto &producer_id : item.second.producers)
+      {
+        producer_id_measurands[producer_id].insert(&item.second);
+      }
+    }
 
-  auto producers = getValidStationTypes();
+    auto producers = getValidStationTypes();
 
-  // Producers
-  for(const auto& producer : producers)
-	{
-	  MeasurandInfo mi;
-	  // Producer ids of a producer
-	  auto producer_ids = getProducerIds(producer);
-	  for(auto id : producer_ids)
-		{
-		  if(producer_id_measurands.find(id) != producer_id_measurands.end())
-			{
-			  auto measurands = producer_id_measurands.at(id);
-			  for(const auto& m : measurands)
-				{
-				  if(isParameter(m->measurand_code, producer))
-					{
-					  auto parameter_name = m->measurand_code;
-					  boost::algorithm::to_lower(parameter_name);
-					  mi[parameter_name] = *m;
-					}
-				  if(isParameter(m->combined_code, producer))
-					{
-					  auto parameter_name = m->combined_code;
-					  boost::algorithm::to_lower(parameter_name);
-					  mi[parameter_name] = *m;
-					}
-				}
-			}
-		}
-	  if(!mi.empty())
-		itsMeasurandInfo[producer] = mi;
-	}
+    // Producers
+    for (const auto &producer : producers)
+    {
+      MeasurandInfo mi;
+      // Producer ids of a producer
+      auto producer_ids = getProducerIds(producer);
+      for (auto id : producer_ids)
+      {
+        if (producer_id_measurands.find(id) != producer_id_measurands.end())
+        {
+          auto measurands = producer_id_measurands.at(id);
+          for (const auto &m : measurands)
+          {
+            if (isParameter(m->measurand_code, producer))
+            {
+              auto parameter_name = m->measurand_code;
+              boost::algorithm::to_lower(parameter_name);
+              mi[parameter_name] = *m;
+            }
+            if (isParameter(m->combined_code, producer))
+            {
+              auto parameter_name = m->combined_code;
+              boost::algorithm::to_lower(parameter_name);
+              mi[parameter_name] = *m;
+            }
+          }
+        }
+      }
+      if (!mi.empty())
+        itsMeasurandInfo[producer] = mi;
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
-const ProducerMeasurandInfo& EngineImpl::getMeasurandInfo() const
+const ProducerMeasurandInfo &EngineImpl::getMeasurandInfo() const
 {
   return itsMeasurandInfo;
 }
