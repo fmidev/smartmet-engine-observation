@@ -34,21 +34,9 @@ struct measurand_info
 	  standard_level(boost::none),
 	  measurand_unit("")
   {}
-  measurand_info(const measurand_info& mi)
-	: measurand_id(mi.measurand_id),
-	  measurand_code(mi.measurand_code),
-	  aggregate_period(mi.aggregate_period),
-	  aggregate_function(mi.aggregate_function),
-	  combined_code(mi.combined_code),
-	  instant_value(mi.instant_value),
-	  translations(mi.translations),
-	  base_phenomenon(mi.base_phenomenon),
-	  measurand_period(mi.measurand_period),
-	  measurand_layer(mi.measurand_layer),
-	  standard_level(mi.standard_level),
-	  measurand_unit(mi.measurand_unit),
-	  producers(mi.producers)
-  {}
+  measurand_info(const measurand_info& mi) = default;
+  measurand_info& operator = (const measurand_info& mi) = default;
+
   std::string measurand_id; // Can be integer of string, e.g 137,'ILMA'
   std::string measurand_code;
   std::string aggregate_period;
