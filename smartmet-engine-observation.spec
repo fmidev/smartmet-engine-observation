@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.5.16
+Version: 23.5.23
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -163,6 +163,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue May 23 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.5.23-1.fmi
+- Do large cache updates in blocks of specific time interval to reduce database load
+- Improved sqlite cache fill speed
+- Fixed error in a PostgreSQL cache retrieval method
+
 * Tue May 16 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.5.16-1.fmi
 - Improved exception tracking
 
