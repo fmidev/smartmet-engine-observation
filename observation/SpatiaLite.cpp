@@ -1907,7 +1907,7 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
       return new_item_count;
 
     const char *sqltemplate =
-        "INSERT OR IGNORE INTO weather_data_qc"
+        "INSERT OR IGNORE INTO weather_data_qc "
         "VALUES (:fmisid,:obstime,:parameter,:sensor_no,:value,:flag,:modified_last)";
 
     // Loop over all observations, inserting only new items in groups to the cache
