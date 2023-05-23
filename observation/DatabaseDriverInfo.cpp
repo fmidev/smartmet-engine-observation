@@ -329,6 +329,12 @@ void DatabaseDriverInfo::readOracleCommonInfo(Spine::ConfigBase& cfg,
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashCacheDuration", 0));
   params["flashMemoryCacheDuration"] = Fmi::to_string(
       cfg.get_optional_config_param<int>(common_key + ".flashMemoryCacheDuration", 0));
+
+  params["finCacheUpdateSize"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finCacheUpdateSize", 0));
+  params["extCacheUpdateSize"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extCacheUpdateSize", 0));
+
   params["stationsCacheUpdateInterval"] = Fmi::to_string(
       cfg.get_optional_config_param<std::size_t>(common_key + ".stationsCacheUpdateInterval", 0));
 
@@ -418,6 +424,12 @@ void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
         Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashCacheDuration", 0));
     params["flashMemoryCacheDuration"] = Fmi::to_string(
         cfg.get_optional_config_param<int>(common_key + ".flashMemoryCacheDuration", 0));
+
+    params["finCacheUpdateSize"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finCacheUpdateSize", 0));
+    params["extCacheUpdateSize"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extCacheUpdateSize", 0));
+
     params["stationsCacheUpdateInterval"] = Fmi::to_string(
         cfg.get_optional_config_param<std::size_t>(common_key + ".stationsCacheUpdateInterval", 0));
   }

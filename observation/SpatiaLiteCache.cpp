@@ -1079,6 +1079,7 @@ std::size_t SpatiaLiteCache::fillDataCache(const DataItems &cacheData) const
     Spine::WriteLock lock(itsTimeIntervalMutex);
     itsTimeIntervalStart = start;
     itsTimeIntervalEnd = end;
+    std::cout << "Cache now contains data from " << start << " to " << end << std::endl;
     return sz;
   }
   catch (...)

@@ -47,6 +47,8 @@ struct DatabaseDriverParameters
   int fmiIoTCacheDuration = 0;
   int bkHydrometaCacheDuration = 0;
   int magnetometerCacheDuration = 0;
+  int finCacheUpdateSize = 0;  // in hours, zero for unlimited size
+  int extCacheUpdateSize = 0;
   bool quiet = false;
   bool loadStations = false;
   FlashEmulatorParameters flashEmulator;

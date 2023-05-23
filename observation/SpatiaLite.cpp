@@ -1694,13 +1694,11 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
     if (cacheData.empty())
       return new_item_count;
 
+    // Use schema column order for improved speed
     const char *sqltemplate =
-        "INSERT OR REPLACE INTO observation_data "
-        "(fmisid, sensor_no, measurand_id, producer_id, measurand_no, data_time, modified_last, "
-        "data_value, data_quality, data_source) "
-        "VALUES "
-        "(:fmisid,:sensor_no,:measurand_id,:producer_id,:measurand_no,:data_time, :modified_last, "
-        ":data_value,:data_quality,:data_source);";
+        "INSERT OR REPLACE INTO observation_data VALUES "
+        "(:fmisid, :sensor_no, :data_time, :measurand_id, :producer_id, :measurand_no, "
+        ":data_value, :data_quality, :data_source, :modified_last);";
 
     // Loop over all observations, inserting only new items in groups to the cache
 
@@ -1755,11 +1753,10 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
             const auto &item = cacheData[new_items[i]];
             cmd.bind(":fmisid", item.fmisid);
             cmd.bind(":sensor_no", item.sensor_no);
+            cmd.bind(":data_time", data_times[i]);
             cmd.bind(":measurand_id", item.measurand_id);
             cmd.bind(":producer_id", item.producer_id);
             cmd.bind(":measurand_no", item.measurand_no);
-            cmd.bind(":data_time", data_times[i]);
-            cmd.bind(":modified_last", modified_last_times[i]);
             if (item.data_value)
               cmd.bind(":data_value", *item.data_value);
             else
@@ -1769,8 +1766,9 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
               cmd.bind(":data_source", item.data_source);
             else
               cmd.bind(":data_source");  // NULL
+            cmd.bind(":modified_last", modified_last_times[i]);
             cmd.execute();
-            cmd.reset();
+            // No need to cmd.reset() here since we always override the previous bindings
           }
           xct.commit();
           // lock is released
@@ -1910,7 +1908,6 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
 
     const char *sqltemplate =
         "INSERT OR IGNORE INTO weather_data_qc"
-        "(fmisid, obstime, parameter, sensor_no, value, flag, modified_last)"
         "VALUES (:fmisid,:obstime,:parameter,:sensor_no,:value,:flag,:modified_last)";
 
     // Loop over all observations, inserting only new items in groups to the cache
@@ -1982,7 +1979,7 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
             cmd.bind(":flag", item.flag);
             cmd.bind(":modified_last", modified_last_times[i]);
             cmd.execute();
-            cmd.reset();
+            // No need to cmd.reset() here since we always override the previous bindings
           }
           xct.commit();
           // lock is released

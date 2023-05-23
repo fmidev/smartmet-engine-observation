@@ -62,6 +62,9 @@ int parseSensorNumber(const std::string& parameter);
 
 Spine::Stations removeDuplicateStations(Spine::Stations& stations);
 
+// Rounded to seconds
+boost::posix_time::ptime utc_second_clock();
+
 // ----------------------------------------------------------------------
 /*!
  * \brief Round down the given time to start of day

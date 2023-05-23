@@ -217,12 +217,12 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
         "modified_last)) as modified_last "
         "FROM observation_data_r1 data WHERE data_time >= '" +
         Fmi::to_iso_extended_string(dataPeriod.begin()) + "' AND data_time <= '" +
-        Fmi::to_iso_extended_string(dataPeriod.last()) + ",";
+        Fmi::to_iso_extended_string(dataPeriod.end()) + "'";
     if (!measurandId.empty())
       sqlStmt += (" AND measurand_id IN (" + measurandId + ")");
     if (!fmisid.empty())
       sqlStmt += (" AND station_id IN (" + fmisid + ")");
-    sqlStmt += " AND data_value IS NOT NULL ORDER BY station_id ASC, data_time ASC";
+    sqlStmt += " ORDER BY station_id ASC, data_time ASC";
 
     return readCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
   }
@@ -361,7 +361,7 @@ WHERE  stroke_time BETWEEN '{}' AND '{}'
 ORDER  BY stroke_time,
           flash_id;)SQL",
     Fmi::to_iso_extended_string(dataPeriod.begin()),
-    Fmi::to_iso_extended_string(dataPeriod.last()));
+    Fmi::to_iso_extended_string(dataPeriod.end()));
     // clang-format on
 
     return readFlashCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
@@ -476,7 +476,7 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
          "modified_last)) as modified_last from "
          "weather_data_qc where obstime >= '" +
          Fmi::to_iso_extended_string(dataPeriod.begin()) + "' AND obstime <= '" +
-         Fmi::to_iso_extended_string(dataPeriod.last()) + "'  AND value IS NOT NULL");
+         Fmi::to_iso_extended_string(dataPeriod.end()) + "'  AND value IS NOT NULL");
     if (!measurandId.empty())
       sqlStmt += (" AND parameter IN (" + measurandId + ")");
     if (!fmisid.empty())
@@ -1194,13 +1194,17 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(const EngineParametersPtr &engin
   {
     MeasurandInfo ret;
 
-    std::string sqlStmt = "select measurand_id,measurand_code,aggregate_period,aggregate_function,combined_code,instant_value,measurand_name,measurand_desc,base_phenomenon,measurand_period,measurand_layer,standard_level,measurand_unit from measurands_v1";
+    std::string sqlStmt =
+        "select "
+        "measurand_id,measurand_code,aggregate_period,aggregate_function,combined_code,instant_"
+        "value,measurand_name,measurand_desc,base_phenomenon,measurand_period,measurand_layer,"
+        "standard_level,measurand_unit from measurands_v1";
 
     if (itsDebug)
       std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
     auto result_set = itsDB.executeNonTransaction(sqlStmt);
-	//    auto producers = engineParameters->producerGroups.getProducerGroups();
+    //    auto producers = engineParameters->producerGroups.getProducerGroups();
     for (const auto &row : result_set)
     {
       measurand_info mi;
@@ -1225,8 +1229,9 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(const EngineParametersPtr &engin
       ret[mi.measurand_id] = mi;
     }
 
-	// Producers
-	sqlStmt = "select distinct measurand_id,producer_id from configurations_v2 order by measurand_id asc";
+    // Producers
+    sqlStmt =
+        "select distinct measurand_id,producer_id from configurations_v2 order by measurand_id asc";
 
     if (itsDebug)
       std::cout << "PostgreSQL: " << sqlStmt << std::endl;
@@ -1234,19 +1239,20 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(const EngineParametersPtr &engin
     result_set = itsDB.executeNonTransaction(sqlStmt);
     for (const auto &row : result_set)
     {
-	  int mid = row[0].as<int>();
-	  int producer_id = row[1].as<int>();
-	  auto measurand_id = Fmi::to_string(mid);
-	  if(ret.find(measurand_id) != ret.end())
-		{
-		  auto& minfo = ret.at(measurand_id);
-		  minfo.producers.insert(producer_id);
-		}
-	}
+      int mid = row[0].as<int>();
+      int producer_id = row[1].as<int>();
+      auto measurand_id = Fmi::to_string(mid);
+      if (ret.find(measurand_id) != ret.end())
+      {
+        auto &minfo = ret.at(measurand_id);
+        minfo.producers.insert(producer_id);
+      }
+    }
 
     // Translations
     sqlStmt =
-        "select measurand_id,language_code, measurand_label,measurand_name,measurand_long_name from measurand_v1l";
+        "select measurand_id,language_code, measurand_label,measurand_name,measurand_long_name "
+        "from measurand_v1l";
     result_set = itsDB.executeNonTransaction(sqlStmt);
     for (const auto &row : result_set)
     {
@@ -1275,7 +1281,7 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(const EngineParametersPtr &engin
     for (const auto &row : result_set)
     {
       auto measurand_id = row[0].as<std::string>();
-	  boost::algorithm::to_lower(measurand_id);
+      boost::algorithm::to_lower(measurand_id);
       measurand_text mt;
       if (!row[1].is_null())
       {
@@ -1284,9 +1290,9 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(const EngineParametersPtr &engin
       }
       if (!row[3].is_null())
         mt.measurand_label = row[3].as<std::string>();
-	  std::string measurand_unit;
-	  if (!row[2].is_null())
-		measurand_unit = row[2].as<std::string>();
+      std::string measurand_unit;
+      if (!row[2].is_null())
+        measurand_unit = row[2].as<std::string>();
 
       std::string language_code = "fi";
       if (!row[4].is_null())
@@ -1297,17 +1303,17 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(const EngineParametersPtr &engin
         measurand_info mi;
         mi.measurand_id = measurand_id;
         mi.measurand_code = measurand_id;
-		mi.measurand_unit = measurand_unit;
+        mi.measurand_unit = measurand_unit;
         mi.translations[language_code] = mt;
         ret[mi.measurand_id] = mi;
       }
       else
       {
         auto &mi = ret.at(measurand_id);
-		if(mi.translations.find(language_code) == mi.translations.end())
-		  {
-			mi.translations[language_code] = mt;
-		  }
+        if (mi.translations.find(language_code) == mi.translations.end())
+        {
+          mi.translations[language_code] = mt;
+        }
       }
     }
 

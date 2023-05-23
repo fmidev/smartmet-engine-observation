@@ -110,6 +110,10 @@ void DatabaseDriverBase::readConfig(Spine::ConfigBase &cfg, DatabaseDriverParame
           driverInfo.getIntParameterValue("flashCacheDuration", parameters.flashCacheDuration);
       parameters.flashMemoryCacheDuration = driverInfo.getIntParameterValue(
           "flashMemoryCacheDuration", parameters.flashMemoryCacheDuration);
+      parameters.finCacheUpdateSize =
+          driverInfo.getIntParameterValue("finCacheUpdateSize", parameters.finCacheUpdateSize);
+      parameters.extCacheUpdateSize =
+          driverInfo.getIntParameterValue("extCacheUpdateSize", parameters.extCacheUpdateSize);
     }
 
     if (driverInfo.getStringParameterValue("flash_emulator_active", "false") == "true")

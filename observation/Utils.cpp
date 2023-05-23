@@ -277,6 +277,12 @@ Spine::Stations removeDuplicateStations(Spine::Stations& stations)
   }
 }
 
+boost::posix_time::ptime utc_second_clock()
+{
+  auto now = boost::posix_time::second_clock::universal_time();
+  return {now.date(), boost::posix_time::seconds(now.time_of_day().total_seconds())};
+}
+
 // ----------------------------------------------------------------------
 /*!
  * \brief Round down the given time to start of day

@@ -633,8 +633,35 @@ void ObservationCacheAdminBase::updateObservationCache() const
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
-      readObservationCacheData(
-          cacheData, last_time_pair.first, last_time_pair.second, itsTimeZones);
+
+      // Read in bloks of finCacheUpdateSize to reduce database load
+
+      const auto now = Utils::utc_second_clock();
+
+      const auto length = itsParameters.finCacheUpdateSize;
+      if (length == 0 || now - last_time_pair.second < boost::posix_time::hours(length))
+      {
+        // Small update, use a modified_last search
+        readObservationCacheData(
+            cacheData, last_time_pair.first, last_time_pair.second, itsTimeZones);
+      }
+      else
+      {
+        // Large update, use a data_time interval search
+
+        std::string fmisid;       // all by default
+        std::string measurandId;  // all by default
+
+        auto t1 = last_time_pair.first;  // latest data_time in cache
+
+        while (t1 < now)
+        {
+          auto t2 = t1 + boost::posix_time::hours(length);
+          boost::posix_time::time_period period(t1, t2);
+          readObservationCacheData(cacheData, period, fmisid, measurandId, itsTimeZones);
+          t1 = t2;
+        }
+      }
 
       readMovingStationsCacheData(
           cacheDataMovingLocations, last_time_pair.first, last_time_pair.second, itsTimeZones);
@@ -742,8 +769,34 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
     {
       auto begin = std::chrono::high_resolution_clock::now();
 
-      readWeatherDataQCCacheData(
-          cacheData, last_time_pair.first, last_time_pair.second, itsTimeZones);
+      // Read in blocks of extCacheUpdateSize to reduce database load
+
+      const auto now = Utils::utc_second_clock();
+
+      const auto length = itsParameters.extCacheUpdateSize;
+      if (length == 0 || now - last_time_pair.second < boost::posix_time::hours(length))
+      {
+        // Small update, use a modified_last search
+        readWeatherDataQCCacheData(
+            cacheData, last_time_pair.first, last_time_pair.second, itsTimeZones);
+      }
+      else
+      {
+        // Large update, use a data_time interval search
+
+        std::string fmisid;       // all by default
+        std::string measurandId;  // all by default
+
+        auto t1 = last_time_pair.first;  // latest data_time in cache
+
+        while (t1 < now)
+        {
+          auto t2 = t1 + boost::posix_time::hours(length);
+          boost::posix_time::time_period period(t1, t2);
+          readWeatherDataQCCacheData(cacheData, period, fmisid, measurandId, itsTimeZones);
+          t1 = t2;
+        }
+      }
 
       auto end = std::chrono::high_resolution_clock::now();
 
