@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.5.23
+Version: 23.6.1
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -30,7 +30,7 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 23.4.27
 BuildRequires: smartmet-library-locus-devel >= 23.3.7
-BuildRequires: smartmet-library-macgyver-devel >= 23.4.27
+BuildRequires: smartmet-library-macgyver-devel >= 23.5.24
 BuildRequires: smartmet-library-spine-devel >= 23.4.27
 BuildRequires: smartmet-library-timeseries-devel >= 23.3.15
 BuildRequires: sqlite3pp-devel >= 1.0.9
@@ -47,10 +47,10 @@ Requires: gdal34-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 23.4.27
 Requires: smartmet-library-locus >= 23.3.7
-Requires: smartmet-library-macgyver >= 23.4.27
+Requires: smartmet-library-macgyver >= 23.5.24
 Requires: smartmet-library-spine >= 23.4.27
 Requires: smartmet-library-timeseries >= 23.3.15
-Requires: smartmet-server >= 23.4.27
+Requires: smartmet-server >= 23.5.19
 Requires: unixODBC
 
 %if %{defined el7}
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Jun  1 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.6.1-1.fmi
+- Added support for stationgroups subset requests
+
 * Tue May 23 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.5.23-1.fmi
 - Do large cache updates in blocks of specific time interval to reduce database load
 - Improved sqlite cache fill speed
