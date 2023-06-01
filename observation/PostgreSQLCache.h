@@ -115,9 +115,7 @@ class PostgreSQLCache : public ObservationCache
   void shutdown() final;
 
   void getMovingStations(Spine::Stations &stations,
-                         const std::string &stationtype,
-                         const boost::posix_time::ptime &startTime,
-                         const boost::posix_time::ptime &endTime,
+                         const Settings &settings,
                          const std::string &wkt) const override;
 
  private:

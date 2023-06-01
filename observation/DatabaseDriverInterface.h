@@ -39,10 +39,7 @@ class DatabaseDriverInterface
   virtual TS::TimeSeriesVectorPtr values(
       Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) = 0;
   virtual Spine::TaggedFMISIDList translateToFMISID(
-      const boost::posix_time::ptime &starttime,
-      const boost::posix_time::ptime &endtime,
-      const std::string &stationtype,
-      const StationSettings &stationSettings) const = 0;
+      const Settings &settings, const StationSettings &stationSettings) const = 0;
   virtual void makeQuery(QueryBase *qb) = 0;
   virtual FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                                     const boost::posix_time::ptime &endtime,
@@ -52,9 +49,7 @@ class DatabaseDriverInterface
 
   virtual void getStations(Spine::Stations &stations, const Settings &settings) const = 0;
   virtual void getStationsByArea(Spine::Stations &stations,
-                                 const std::string &stationtype,
-                                 const boost::posix_time::ptime &starttime,
-                                 const boost::posix_time::ptime &endtime,
+                                 const Settings &settings,
                                  const std::string &areaWkt) const = 0;
   virtual void getStationsByBoundingBox(Spine::Stations &stations,
                                         const Settings &settings) const = 0;

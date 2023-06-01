@@ -463,9 +463,7 @@ class SpatiaLite : public CommonDatabaseFunctions
       const Fmi::TimeZones &timezones) override;
 
   void getMovingStations(Spine::Stations &stations,
-                         const std::string &stationtype,
-                         const boost::posix_time::ptime &startTime,
-                         const boost::posix_time::ptime &endTime,
+                         const Settings &settings,
                          const std::string &wkt);
 
  private:

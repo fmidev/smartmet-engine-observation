@@ -2,6 +2,7 @@
 
 #include "CommonPostgreSQLFunctions.h"
 #include "DataItem.h"
+#include "EngineParameters.h"
 #include "FlashDataItem.h"
 #include "MagnetometerDataItem.h"
 #include "MobileExternalDataItem.h"
@@ -12,7 +13,6 @@
 #include "Settings.h"
 #include "StationGroups.h"
 #include "StationtypeConfig.h"
-#include "EngineParameters.h"
 #include "WeatherDataQCItem.h"
 #include <boost/atomic.hpp>
 #include <macgyver/PostgreSQLConnection.h>
@@ -128,12 +128,10 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
   void getProducerGroups(ProducerGroups &pg) const;
 
   void getMovingStations(Spine::Stations &stations,
-                         const std::string &stationtype,
-                         const boost::posix_time::ptime &startTime,
-                         const boost::posix_time::ptime &endTime,
+                         const Settings &settings,
                          const std::string &wkt) const;
 
-  MeasurandInfo getMeasurandInfo(const EngineParametersPtr& engineParameters) const;
+  MeasurandInfo getMeasurandInfo(const EngineParametersPtr &engineParameters) const;
 
  private:
   TS::TimeSeriesVectorPtr itsTimeSeriesColumns;

@@ -1085,11 +1085,9 @@ PostgreSQLCache::~PostgreSQLCache()
   shutdown();
 }
 
-void PostgreSQLCache::getMovingStations(Spine::Stations &stations,
-                                        const std::string &stationtype,
-                                        const boost::posix_time::ptime &startTime,
-                                        const boost::posix_time::ptime &endTime,
-                                        const std::string &wkt) const
+void PostgreSQLCache::getMovingStations(Spine::Stations & /*stations*/,
+                                        const Settings & /*settings*/,
+                                        const std::string & /*wkt*/) const
 {
 }
 

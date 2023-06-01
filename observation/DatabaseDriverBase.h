@@ -47,18 +47,12 @@ class DatabaseDriverBase
   virtual TS::TimeSeriesVectorPtr values(
       Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) = 0;
   virtual void getMovingStationsByArea(Spine::Stations &stations,
-                                       const std::string &stationtype,
-                                       const boost::posix_time::ptime &starttime,
-                                       const boost::posix_time::ptime &endtime,
+                                       const Settings &settings,
                                        const std::string &wkt) const = 0;
-  virtual Spine::TaggedFMISIDList translateToFMISID(const boost::posix_time::ptime &starttime,
-                                                    const boost::posix_time::ptime &endtime,
-                                                    const std::string &stationtype,
+  virtual Spine::TaggedFMISIDList translateToFMISID(const Settings &settings,
                                                     const StationSettings &stationSettings) const;
   virtual void getStationsByArea(Spine::Stations &stations,
-                                 const std::string &stationtype,
-                                 const boost::posix_time::ptime &starttime,
-                                 const boost::posix_time::ptime &endtime,
+                                 const Settings &settings,
                                  const std::string &wkt) const;
   virtual void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const;
 

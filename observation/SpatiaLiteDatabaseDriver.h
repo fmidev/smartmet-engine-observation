@@ -35,9 +35,7 @@ class SpatiaLiteDatabaseDriver : public DatabaseDriverBase
       std::vector<std::string> &parameters, const std::string language) override;
 
   void getMovingStationsByArea(Spine::Stations &stations,
-                               const std::string &stationtype,
-                               const boost::posix_time::ptime &starttime,
-                               const boost::posix_time::ptime &endtime,
+                               const Settings &settings,
                                const std::string &wkt) const override;
 
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,

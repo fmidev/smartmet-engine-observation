@@ -3846,15 +3846,13 @@ std::string SpatiaLite::getWeatherDataQCParams(const std::set<std::string> &para
 }
 
 void SpatiaLite::getMovingStations(Spine::Stations &stations,
-                                   const std::string & /* stationtype */,
-                                   const boost::posix_time::ptime &startTime,
-                                   const boost::posix_time::ptime &endTime,
+                                   const Settings &settings,
                                    const std::string &wkt)
 {
   try
   {
-    auto sdate = Fmi::to_string(to_epoch(startTime));
-    auto edate = Fmi::to_string(to_epoch(endTime));
+    auto sdate = Fmi::to_string(to_epoch(settings.starttime));
+    auto edate = Fmi::to_string(to_epoch(settings.endtime));
 
     std::string sqlStmt =
         ("SELECT distinct station_id FROM moving_locations_v1 WHERE ((sdate BETWEEN " + sdate +

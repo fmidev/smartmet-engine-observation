@@ -118,58 +118,42 @@ const std::shared_ptr<DBRegistry> Engine::dbRegistry() const
 
 void Engine::reloadStations() {}
 
-void Engine::getStations(Spine::Stations & /* stations */, Settings &settings)
+void Engine::getStations(Spine::Stations & /*stations*/, const Settings & /*settings*/)
 {
-  (void)settings;
   REPORT_DISABLED;
 }
 
-void Engine::getStationsByArea(Spine::Stations &stations,
-                               const std::string &stationtype,
-                               const boost::posix_time::ptime &starttime,
-                               const boost::posix_time::ptime &endtime,
-                               const std::string &areaWkt)
+void Engine::getStationsByArea(Spine::Stations & /*stations*/,
+                               const Settings & /*settings*/,
+                               const std::string & /*areaWkt*/)
 {
-  (void)stations;
-  (void)stationtype;
-  (void)starttime;
-  (void)endtime;
-  (void)areaWkt;
   REPORT_DISABLED;
 }
 
-void Engine::getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings)
+void Engine::getStationsByBoundingBox(Spine::Stations & /*stations*/, const Settings & /*settings*/)
 {
-  (void)stations;
-  (void)settings;
   REPORT_DISABLED;
 }
 
-bool Engine::isParameter(const std::string &alias, const std::string &stationType) const
+bool Engine::isParameter(const std::string & /*alias*/, const std::string & /*stationType*/) const
 {
-  (void)alias;
-  (void)stationType;
   REPORT_DISABLED;
 }
 
-bool Engine::isParameterVariant(const std::string &name) const
+bool Engine::isParameterVariant(const std::string & /*name*/) const
 {
-  (void)name;
   REPORT_DISABLED;
 }
 
-uint64_t Engine::getParameterId(const std::string &alias, const std::string &stationType) const
+uint64_t Engine::getParameterId(const std::string & /*alias*/,
+                                const std::string & /*stationType*/) const
 {
-  (void)alias;
-  (void)stationType;
   REPORT_DISABLED;
 }
 
-std::string Engine::getParameterIdAsString(const std::string &alias,
-                                           const std::string &stationType) const
+std::string Engine::getParameterIdAsString(const std::string & /*alias*/,
+                                           const std::string & /*stationType*/) const
 {
-  (void)alias;
-  (void)stationType;
   REPORT_DISABLED;
 }
 
@@ -178,39 +162,29 @@ std::set<std::string> Engine::getValidStationTypes() const
   REPORT_DISABLED;
 }
 
-ContentTable Engine::getProducerInfo(const boost::optional<std::string> &producer) const
+ContentTable Engine::getProducerInfo(const boost::optional<std::string> & /*producer*/) const
 {
-  (void)producer;
   REPORT_DISABLED;
 }
 
-ContentTable Engine::getParameterInfo(boost::optional<std::string> producer) const
+ContentTable Engine::getParameterInfo(boost::optional<std::string> /*producer*/) const
 {
-  (void)producer;
   REPORT_DISABLED;
 }
 
-ContentTable Engine::getStationInfo(const StationOptions &options) const
+ContentTable Engine::getStationInfo(const StationOptions & /*options*/) const
 {
-  (void)options;
   REPORT_DISABLED;
 }
 
-MetaData Engine::metaData(const std::string &producer) const
+MetaData Engine::metaData(const std::string & /*producer*/) const
 {
-  (void)producer;
   REPORT_DISABLED;
 }
 
-Spine::TaggedFMISIDList Engine::translateToFMISID(const boost::posix_time::ptime &starttime,
-                                                  const boost::posix_time::ptime &endtime,
-                                                  const std::string &stationtype,
-                                                  const StationSettings &stationSettings) const
+Spine::TaggedFMISIDList Engine::translateToFMISID(const Settings & /*settings*/,
+                                                  const StationSettings & /*stationSettings*/) const
 {
-  (void)starttime;
-  (void)endtime;
-  (void)stationtype;
-  (void)stationSettings;
   REPORT_DISABLED;
 }
 
@@ -229,7 +203,7 @@ void Engine::shutdown() {}
 
 // DYNAMIC MODULE CREATION TOOLS
 
-extern "C" void *engine_class_creator(const char *configfile, void * /* user_data */)
+extern "C" void *engine_class_creator(const char *configfile, void * /*user_data*/)
 {
   return SmartMet::Engine::Observation::Engine::create(configfile);
 }

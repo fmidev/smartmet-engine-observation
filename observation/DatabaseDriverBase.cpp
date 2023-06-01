@@ -271,14 +271,11 @@ std::string DatabaseDriverBase::resolveCacheTableName(
 }
 
 Spine::TaggedFMISIDList DatabaseDriverBase::translateToFMISID(
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime,
-    const std::string &stationtype,
-    const StationSettings &stationSettings) const
+    const Settings &settings, const StationSettings &stationSettings) const
 {
   try
   {
-    return itsDatabaseStations->translateToFMISID(starttime, endtime, stationtype, stationSettings);
+    return itsDatabaseStations->translateToFMISID(settings, stationSettings);
   }
   catch (...)
   {
@@ -287,14 +284,12 @@ Spine::TaggedFMISIDList DatabaseDriverBase::translateToFMISID(
 }
 
 void DatabaseDriverBase::getStationsByArea(Spine::Stations &stations,
-                                           const std::string &stationtype,
-                                           const boost::posix_time::ptime &starttime,
-                                           const boost::posix_time::ptime &endtime,
+                                           const Settings &settings,
                                            const std::string &wkt) const
 {
   try
   {
-    itsDatabaseStations->getStationsByArea(stations, stationtype, starttime, endtime, wkt);
+    itsDatabaseStations->getStationsByArea(stations, settings, wkt);
     stations = removeDuplicateStations(stations);
   }
   catch (...)
@@ -308,7 +303,7 @@ void DatabaseDriverBase::getStationsByBoundingBox(Spine::Stations &stations,
 {
   try
   {
-    itsDatabaseStations->getStationsByBoundingBox(stations, settings);
+    itsDatabaseStations->getStationsByBoundingBox(stations, settings, settings.boundingBox);
     stations = removeDuplicateStations(stations);
   }
   catch (...)

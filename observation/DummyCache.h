@@ -94,9 +94,7 @@ class DummyCache : public ObservationCache
       const MagnetometerDataItems &magnetometerCacheData) const override;
   void cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const override;
   void getMovingStations(Spine::Stations &stations,
-                         const std::string &stationtype,
-                         const boost::posix_time::ptime &startTime,
-                         const boost::posix_time::ptime &endTime,
+                         const Settings &settings,
                          const std::string &wkt) const override;
 
   void shutdown() override;

@@ -38,12 +38,10 @@ class EngineImpl : public Engine
 
   const std::shared_ptr<DBRegistry> dbRegistry() const override { return itsDatabaseRegistry; }
   void reloadStations() override;
-  void getStations(Spine::Stations &stations, Settings &settings) override;
+  void getStations(Spine::Stations &stations, const Settings &settings) override;
 
   void getStationsByArea(Spine::Stations &stations,
-                         const std::string &stationtype,
-                         const boost::posix_time::ptime &starttime,
-                         const boost::posix_time::ptime &endtime,
+                         const Settings &settings,
                          const std::string &areaWkt) override;
 
   void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) override;
@@ -119,14 +117,12 @@ class EngineImpl : public Engine
   /* \brief Translates WMO,RWID,LPNN,GEOID,Bounding box to FMISID
    * \return List of FMISIDs
    */
-  Spine::TaggedFMISIDList translateToFMISID(const boost::posix_time::ptime &starttime,
-                                            const boost::posix_time::ptime &endtime,
-                                            const std::string &stationtype,
+  Spine::TaggedFMISIDList translateToFMISID(const Settings &settings,
                                             const StationSettings &stationSettings) const override;
   /* \brief get measurand info from database
    * \return ProducerMeasurandInfo
    */
-  const ProducerMeasurandInfo& getMeasurandInfo() const override;
+  const ProducerMeasurandInfo &getMeasurandInfo() const override;
 
  protected:
   void init() override;

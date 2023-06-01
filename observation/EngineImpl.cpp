@@ -189,23 +189,21 @@ bool EngineImpl::stationHasRightType(const Spine::Station &station, const Settin
   }
 }
 
-void EngineImpl::getStations(Spine::Stations &stations, Settings &settings)
+void EngineImpl::getStations(Spine::Stations &stations, const Settings &settings)
 {
   return itsDatabaseDriver->getStations(stations, settings);
 }
 
 void EngineImpl::getStationsByArea(Spine::Stations &stations,
-                                   const std::string &stationtype,
-                                   const boost::posix_time::ptime &starttime,
-                                   const boost::posix_time::ptime &endtime,
+                                   const Settings &settings,
                                    const std::string &areaWkt)
 {
-  return itsDatabaseDriver->getStationsByArea(stations, stationtype, starttime, endtime, areaWkt);
+  itsDatabaseDriver->getStationsByArea(stations, settings, areaWkt);
 }
 
 void EngineImpl::getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings)
 {
-  return itsDatabaseDriver->getStationsByBoundingBox(stations, settings);
+  itsDatabaseDriver->getStationsByBoundingBox(stations, settings);
 }
 
 void EngineImpl::initializeCache()
@@ -413,12 +411,10 @@ MetaData EngineImpl::metaData(const std::string &producer) const
 }
 
 // Translates WMO, RWID,LPNN to FMISID
-Spine::TaggedFMISIDList EngineImpl::translateToFMISID(const boost::posix_time::ptime &starttime,
-                                                      const boost::posix_time::ptime &endtime,
-                                                      const std::string &stationtype,
+Spine::TaggedFMISIDList EngineImpl::translateToFMISID(const Settings &settings,
                                                       const StationSettings &stationSettings) const
 {
-  return itsDatabaseDriver->translateToFMISID(starttime, endtime, stationtype, stationSettings);
+  return itsDatabaseDriver->translateToFMISID(settings, stationSettings);
 }
 
 Settings EngineImpl::beforeQuery(const Settings &settings,

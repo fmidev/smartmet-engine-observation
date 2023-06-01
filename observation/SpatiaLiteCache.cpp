@@ -1413,13 +1413,10 @@ SpatiaLiteCache::~SpatiaLiteCache()
 }
 
 void SpatiaLiteCache::getMovingStations(Spine::Stations &stations,
-                                        const std::string &stationtype,
-                                        const boost::posix_time::ptime &startTime,
-                                        const boost::posix_time::ptime &endTime,
+                                        const Settings &settings,
                                         const std::string &wkt) const
 {
-  itsConnectionPool->getConnection()->getMovingStations(
-      stations, stationtype, startTime, endTime, wkt);
+  itsConnectionPool->getConnection()->getMovingStations(stations, settings, wkt);
 }
 
 void SpatiaLiteCache::hit(const std::string &name) const

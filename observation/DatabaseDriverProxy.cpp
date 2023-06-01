@@ -244,14 +244,11 @@ TS::TimeSeriesVectorPtr DatabaseDriverProxy::values(
 }
 
 Spine::TaggedFMISIDList DatabaseDriverProxy::translateToFMISID(
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime,
-    const std::string &stationtype,
-    const StationSettings &stationSettings) const
+    const Settings &settings, const StationSettings &stationSettings) const
 {
   try
   {
-    if (stationtype == ICEBUOY_PRODUCER || stationtype == COPERNICUS_PRODUCER)
+    if (settings.stationtype == ICEBUOY_PRODUCER || settings.stationtype == COPERNICUS_PRODUCER)
     {
       Spine::TaggedFMISIDList ret;
       if (!stationSettings.fmisids.empty())
@@ -269,9 +266,9 @@ Spine::TaggedFMISIDList DatabaseDriverProxy::translateToFMISID(
              Fmi::to_string(bbox.at("maxx")) + " " + Fmi::to_string(bbox.at("miny")) + "," +
              Fmi::to_string(bbox.at("minx")) + " " + Fmi::to_string(bbox.at("miny")) + "))");
 
-        DatabaseDriverBase *pDriver = resolveDatabaseDriverByProducer(stationtype);
+        DatabaseDriverBase *pDriver = resolveDatabaseDriverByProducer(settings.stationtype);
         Spine::Stations stations;
-        pDriver->getMovingStationsByArea(stations, stationtype, starttime, endtime, wktString);
+        pDriver->getMovingStationsByArea(stations, settings, wktString);
         for (const auto &station : stations)
           ret.emplace_back(Fmi::to_string(station.fmisid), station.fmisid);
       }
@@ -279,8 +276,7 @@ Spine::TaggedFMISIDList DatabaseDriverProxy::translateToFMISID(
     }
 
     if (itsTranslateToFMISIDDriver)
-      return itsTranslateToFMISIDDriver->translateToFMISID(
-          starttime, endtime, stationtype, stationSettings);
+      return itsTranslateToFMISIDDriver->translateToFMISID(settings, stationSettings);
 
     throw Fmi::Exception::Trace(BCP, "DatabaseDriverProxy::translateToFMISID function failed!");
   }
@@ -339,24 +335,14 @@ void DatabaseDriverProxy::reloadStations()
 }
 
 void DatabaseDriverProxy::getStationsByArea(Spine::Stations &stations,
-                                            const std::string &stationtype,
-                                            const boost::posix_time::ptime &starttime,
-                                            const boost::posix_time::ptime &endtime,
+                                            const Settings &settings,
                                             const std::string &wkt) const
 {
-  Settings settings;
-  settings.stationtype = stationtype;
-  settings.starttime = starttime;
-  settings.endtime = endtime;
   DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
-  if (stationtype == ICEBUOY_PRODUCER || stationtype == COPERNICUS_PRODUCER)
-  {
-    pDriver->getMovingStationsByArea(stations, stationtype, starttime, endtime, wkt);
-  }
+  if (settings.stationtype == ICEBUOY_PRODUCER || settings.stationtype == COPERNICUS_PRODUCER)
+    pDriver->getMovingStationsByArea(stations, settings, wkt);
   else
-  {
-    pDriver->getStationsByArea(stations, stationtype, starttime, endtime, wkt);
-  }
+    pDriver->getStationsByArea(stations, settings, wkt);
 }
 
 void DatabaseDriverProxy::getStationsByBoundingBox(Spine::Stations &stations,
@@ -523,9 +509,9 @@ Fmi::Cache::CacheStatistics DatabaseDriverProxy::getCacheStats() const
 
 MeasurandInfo DatabaseDriverProxy::getMeasurandInfo() const
 {
-  if(itsStationsDriver)
-	return itsStationsDriver->getMeasurandInfo();
-  
+  if (itsStationsDriver)
+    return itsStationsDriver->getMeasurandInfo();
+
   return MeasurandInfo();
 }
 

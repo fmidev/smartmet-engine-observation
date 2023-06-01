@@ -141,9 +141,7 @@ class SpatiaLiteCache : public ObservationCache
   void readConfig(const Spine::ConfigBase &cfg);
 
   void getMovingStations(Spine::Stations &stations,
-                         const std::string &stationtype,
-                         const boost::posix_time::ptime &startTime,
-                         const boost::posix_time::ptime &endTime,
+                         const Settings &settings,
                          const std::string &wkt) const override;
 
   std::unique_ptr<SpatiaLiteConnectionPool> itsConnectionPool;

@@ -1155,15 +1155,13 @@ void PostgreSQLObsDB::getProducerGroups(ProducerGroups &pg) const
 }
 
 void PostgreSQLObsDB::getMovingStations(Spine::Stations &stations,
-                                        const std::string & /* stationtype */,
-                                        const boost::posix_time::ptime &startTime,
-                                        const boost::posix_time::ptime &endTime,
+                                        const Settings &settings,
                                         const std::string &wkt) const
 {
   try
   {
-    auto sdate = Fmi::to_iso_extended_string(startTime);
-    auto edate = Fmi::to_iso_extended_string(endTime);
+    auto sdate = Fmi::to_iso_extended_string(settings.starttime);
+    auto edate = Fmi::to_iso_extended_string(settings.endtime);
     std::string sqlStmt =
         ("SELECT distinct station_id FROM moving_locations_v1 WHERE ((sdate BETWEEN '" + sdate +
          "' AND '" + edate + "') OR (edate BETWEEN '" + sdate + "' AND '" + edate +

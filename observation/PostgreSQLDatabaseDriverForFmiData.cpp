@@ -336,10 +336,11 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
 
     // Database query prevented
     if (settings.preventDatabaseQuery)
-	  {
-		std::cerr << "[PostgreSQLDatabaseDriverForFmiData] values(): Database queries prevented!" << std::endl;
-		return ret;
-	  }
+    {
+      std::cerr << "[PostgreSQLDatabaseDriverForFmiData] values(): Database queries prevented!"
+                << std::endl;
+      return ret;
+    }
 
     if (!itsConnectionsOK)
     {
@@ -400,27 +401,21 @@ void PostgreSQLDatabaseDriverForFmiData::getStations(Spine::Stations &stations,
 {
   itsDatabaseStations->getStations(stations, settings);
 }
-void PostgreSQLDatabaseDriverForFmiData::getStationsByArea(
-    Spine::Stations &stations,
-    const std::string &stationtype,
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime,
-    const std::string &wkt) const
+void PostgreSQLDatabaseDriverForFmiData::getStationsByArea(Spine::Stations &stations,
+                                                           const Settings &settings,
+                                                           const std::string &wkt) const
 {
-  itsDatabaseStations->getStationsByArea(stations, stationtype, starttime, endtime, wkt);
+  itsDatabaseStations->getStationsByArea(stations, settings, wkt);
 }
 
-void PostgreSQLDatabaseDriverForFmiData::getMovingStationsByArea(
-    Spine::Stations &stations,
-    const std::string &stationtype,
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime,
-    const std::string &wkt) const
+void PostgreSQLDatabaseDriverForFmiData::getMovingStationsByArea(Spine::Stations &stations,
+                                                                 const Settings &settings,
+                                                                 const std::string &wkt) const
 {
   try
   {
     std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
-    db->getMovingStations(stations, stationtype, starttime, endtime, wkt);
+    db->getMovingStations(stations, settings, wkt);
   }
   catch (...)
   {
@@ -431,7 +426,7 @@ void PostgreSQLDatabaseDriverForFmiData::getMovingStationsByArea(
 void PostgreSQLDatabaseDriverForFmiData::getStationsByBoundingBox(Spine::Stations &stations,
                                                                   const Settings &settings) const
 {
-  itsDatabaseStations->getStationsByBoundingBox(stations, settings);
+  itsDatabaseStations->getStationsByBoundingBox(stations, settings, settings.boundingBox);
 }
 
 FlashCounts PostgreSQLDatabaseDriverForFmiData::getFlashCount(
@@ -506,7 +501,7 @@ void PostgreSQLDatabaseDriverForFmiData::getProducerGroups(ProducerGroups &pg) c
 
 MeasurandInfo PostgreSQLDatabaseDriverForFmiData::getMeasurandInfo() const
 {
-  std::shared_ptr<PostgreSQLObsDB> db =	itsPostgreSQLConnectionPool->getConnection(false);
+  std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
   return db->getMeasurandInfo(itsParameters.params);
 }
 

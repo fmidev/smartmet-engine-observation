@@ -1,11 +1,11 @@
 #pragma once
 
 #include "EngineParameters.h"
+#include "MeasurandInfo.h"
 #include "MetaData.h"
 #include "ObservableProperty.h"
 #include "StationOptions.h"
 #include "StationSettings.h"
-#include "MeasurandInfo.h"
 #include <spine/Table.h>
 #include <spine/TableFormatter.h>
 
@@ -48,12 +48,10 @@ class Engine : public SmartMet::Spine::SmartMetEngine
 
   virtual const std::shared_ptr<DBRegistry> dbRegistry() const;
   virtual void reloadStations();
-  virtual void getStations(Spine::Stations &stations, Settings &settings);
+  virtual void getStations(Spine::Stations &stations, const Settings &settings);
 
   virtual void getStationsByArea(Spine::Stations &stations,
-                                 const std::string &stationtype,
-                                 const boost::posix_time::ptime &starttime,
-                                 const boost::posix_time::ptime &endtime,
+                                 const Settings &settings,
                                  const std::string &areaWkt);
 
   virtual void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings);
@@ -129,16 +127,14 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   /* \brief Translates WMO,RWID,LPNN,GEOID,Bounding box to FMISID
    * \return List of FMISIDs
    */
-  virtual Spine::TaggedFMISIDList translateToFMISID(const boost::posix_time::ptime &starttime,
-                                                    const boost::posix_time::ptime &endtime,
-                                                    const std::string &stationtype,
+  virtual Spine::TaggedFMISIDList translateToFMISID(const Settings &settings,
                                                     const StationSettings &stationSettings) const;
 
-   /* \brief Get measurand info
+  /* \brief Get measurand info
    * \return ProducerMeasurand info
-   */ 
-  virtual const ProducerMeasurandInfo& getMeasurandInfo() const;
- 
+   */
+  virtual const ProducerMeasurandInfo &getMeasurandInfo() const;
+
   void init() override;
   void shutdown() override;
 };

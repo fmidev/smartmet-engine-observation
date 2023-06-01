@@ -57,27 +57,19 @@ Spine::Stations findNearestStations(const StationInfo &info,
 }
 }  // namespace
 
-void DatabaseStations::getStationsByBoundingBox(Spine::Stations &stations,
-                                                const Settings &settings) const
-{
-  getStationsByBoundingBox(
-      stations, settings.starttime, settings.endtime, settings.stationtype, settings.boundingBox);
-}
-
 void DatabaseStations::getStationsByArea(Spine::Stations &stations,
-                                         const std::string &stationtype,
-                                         const boost::posix_time::ptime &starttime,
-                                         const boost::posix_time::ptime &endtime,
+                                         const Settings &settings,
                                          const std::string &wkt) const
 {
   try
   {
     StationtypeConfig::GroupCodeSetType stationgroup_codes;
-    getStationGroups(stationgroup_codes, stationtype);
+    getStationGroups(stationgroup_codes, settings.stationtype, settings.stationgroups);
 
     auto info = itsObservationEngineParameters->stationInfo.load();
 
-    stations = info->findStationsInsideArea(stationgroup_codes, starttime, endtime, wkt);
+    stations =
+        info->findStationsInsideArea(stationgroup_codes, settings.starttime, settings.endtime, wkt);
 
     // Sort in ascending fmisid order
     std::sort(stations.begin(), stations.end(), sort_stations_function);
@@ -89,16 +81,14 @@ void DatabaseStations::getStationsByArea(Spine::Stations &stations,
 }
 
 void DatabaseStations::getStationsByBoundingBox(Spine::Stations &stations,
-                                                const boost::posix_time::ptime &starttime,
-                                                const boost::posix_time::ptime &endtime,
-                                                const std::string &stationtype,
+                                                const Settings &settings,
                                                 const BoundingBoxSettings &bboxSettings) const
 {
   try
   {
     StationtypeConfig::GroupCodeSetType stationgroup_codes;
 
-    getStationGroups(stationgroup_codes, stationtype);
+    getStationGroups(stationgroup_codes, settings.stationtype, settings.stationgroups);
 
     auto info = itsObservationEngineParameters->stationInfo.load();
 
@@ -109,8 +99,8 @@ void DatabaseStations::getStationsByBoundingBox(Spine::Stations &stations,
                                                      bboxSettings.at("maxx"),
                                                      bboxSettings.at("maxy"),
                                                      stationgroup_codes,
-                                                     starttime,
-                                                     endtime);
+                                                     settings.starttime,
+                                                     settings.endtime);
       for (const auto &station : stationList)
         stations.push_back(station);
 
@@ -130,16 +120,13 @@ void DatabaseStations::getStationsByBoundingBox(Spine::Stations &stations,
 
 // Translates geoids to fmisid
 Spine::TaggedFMISIDList DatabaseStations::translateGeoIdsToFMISID(
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime,
-    const std::string &stationtype,
-    const GeoIdSettings &geoidSettings) const
+    const Settings &settings, const GeoIdSettings &geoidSettings) const
 {
   Spine::TaggedFMISIDList ret;
 
   StationtypeConfig::GroupCodeSetType stationgroup_codes;
 
-  getStationGroups(stationgroup_codes, stationtype);
+  getStationGroups(stationgroup_codes, settings.stationtype, settings.stationgroups);
 
   Locus::QueryOptions opts;
   opts.SetLanguage(geoidSettings.language);
@@ -168,8 +155,8 @@ Spine::TaggedFMISIDList DatabaseStations::translateGeoIdsToFMISID(
                                             geoidSettings.maxdistance,
                                             geoidSettings.numberofstations,
                                             stationgroup_codes,
-                                            starttime,
-                                            endtime);
+                                            settings.starttime,
+                                            settings.endtime);
 
         for (Spine::Station &s : stations)
           ret.emplace_back(Fmi::to_string(geoid), s.fmisid);
@@ -181,15 +168,12 @@ Spine::TaggedFMISIDList DatabaseStations::translateGeoIdsToFMISID(
 }
 
 Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime,
-    const std::string &stationtype,
-    const StationSettings &stationSettings) const
+    const Settings &settings, const StationSettings &stationSettings) const
 {
   Spine::TaggedFMISIDList result;
 
-  if (stationtype == NETATMO_PRODUCER || stationtype == ROADCLOUD_PRODUCER ||
-      stationtype == FMI_IOT_PRODUCER)
+  if (settings.stationtype == NETATMO_PRODUCER || settings.stationtype == ROADCLOUD_PRODUCER ||
+      settings.stationtype == FMI_IOT_PRODUCER)
     return result;
 
   Spine::TaggedFMISIDList wmos;
@@ -200,27 +184,20 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
 
   if (!stationSettings.wmos.empty())
   {
-    if (stationtype == "road")
-    {
-      wmos = info->translateRWSIDToFMISID(stationSettings.wmos, endtime);
-    }
+    if (settings.stationtype == "road")
+      wmos = info->translateRWSIDToFMISID(stationSettings.wmos, settings.endtime);
     else
-    {
-      wmos = info->translateWMOToFMISID(stationSettings.wmos, endtime);
-    }
+      wmos = info->translateWMOToFMISID(stationSettings.wmos, settings.endtime);
   }
 
   if (!stationSettings.lpnns.empty())
-    lpnns = info->translateLPNNToFMISID(stationSettings.lpnns, endtime);
+    lpnns = info->translateLPNNToFMISID(stationSettings.lpnns, settings.endtime);
 
   if (!stationSettings.geoid_settings.geoids.empty())
-    geoids =
-        translateGeoIdsToFMISID(starttime, endtime, stationtype, stationSettings.geoid_settings);
+    geoids = translateGeoIdsToFMISID(settings, stationSettings.geoid_settings);
 
   if (!wmos.empty())
-  {
     result.insert(result.end(), wmos.begin(), wmos.end());
-  }
 
   if (!lpnns.empty())
     result.insert(result.end(), lpnns.begin(), lpnns.end());
@@ -236,8 +213,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
   if (!stationSettings.bounding_box_settings.empty())
   {
     Spine::Stations stations;
-    getStationsByBoundingBox(
-        stations, starttime, endtime, stationtype, stationSettings.bounding_box_settings);
+    getStationsByBoundingBox(stations, settings, stationSettings.bounding_box_settings);
     std::string bboxTag = DatabaseStations::getTag(stationSettings.bounding_box_settings);
     for (const auto &s : stations)
       result.emplace_back(bboxTag, s.fmisid);
@@ -260,7 +236,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
       else
       {
         StationtypeConfig::GroupCodeSetType stationgroup_codes;
-        getStationGroups(stationgroup_codes, stationtype);
+        getStationGroups(stationgroup_codes, settings.stationtype, settings.stationgroups);
 
         auto stations = findNearestStations(*info,
                                             nss.longitude,
@@ -268,8 +244,8 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
                                             nss.maxdistance,
                                             nss.numberofstations,
                                             stationgroup_codes,
-                                            starttime,
-                                            endtime);
+                                            settings.starttime,
+                                            settings.endtime);
 
         if (!stations.empty())
         {
@@ -297,13 +273,21 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
 }
 
 void DatabaseStations::getStationGroups(std::set<std::string> &stationgroup_codes,
-                                        const std::string &stationtype) const
+                                        const std::string &stationtype,
+                                        const std::set<std::string> &stationgroups) const
 {
   try
   {
     auto stationgroupCodeSet =
         itsObservationEngineParameters->stationtypeConfig.getGroupCodeSetByStationtype(stationtype);
-    stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
+
+    // Use all if there is no desired subgroup, otherwise use set intersection only
+    if (stationgroups.empty())
+      stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
+    else
+      for (const auto &desired_group : stationgroups)
+        if (stationgroupCodeSet->find(desired_group) != stationgroupCodeSet->end())
+          stationgroup_codes.insert(desired_group);
   }
   catch (...)
   {
@@ -321,7 +305,7 @@ void DatabaseStations::getStations(Spine::Stations &stations, const Settings &se
     {
       // Convert the stationtype in the setting to station group codes. Cache
       // station search is using the codes.
-      getStationGroups(stationgroup_codes, settings.stationtype);
+      getStationGroups(stationgroup_codes, settings.stationtype, settings.stationgroups);
     }
     catch (...)
     {
@@ -336,11 +320,9 @@ void DatabaseStations::getStations(Spine::Stations &stations, const Settings &se
 #endif
     // Get all stations by different methods
 
-    // 1) get all places for given station type or
-    // get nearest stations by named locations (i.e. by its coordinates)
-    // We are also getting all stations for a stationtype, don't bother to
-    // continue with other means
-    // to find stations.
+    // get all places for given station type or get nearest stations by named locations (i.e. by its
+    // coordinates) We are also getting all stations for a stationtype, don't bother to continue
+    // with other means to find stations.
 
     auto info = itsObservationEngineParameters->stationInfo.load();
     // All stations
