@@ -1768,7 +1768,8 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
               cmd.bind(":data_source");  // NULL
             cmd.bind(":modified_last", modified_last_times[i]);
             cmd.execute();
-            // No need to cmd.reset() here since we always override the previous bindings
+            // Must reset, previous values cannot be replaced
+            cmd.reset();
           }
           xct.commit();
           // lock is released
@@ -1979,7 +1980,8 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
             cmd.bind(":flag", item.flag);
             cmd.bind(":modified_last", modified_last_times[i]);
             cmd.execute();
-            // No need to cmd.reset() here since we always override the previous bindings
+            // Must reset, previous values cannot be replaced
+            cmd.reset();
           }
           xct.commit();
           // lock is released

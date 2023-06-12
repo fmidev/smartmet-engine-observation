@@ -658,6 +658,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
         {
           auto t2 = t1 + boost::posix_time::hours(length);
           boost::posix_time::time_period period(t1, t2);
+          std::cout << "Reading FIN period " << period << "\n";
           readObservationCacheData(cacheData, period, fmisid, measurandId, itsTimeZones);
           t1 = t2;
         }
