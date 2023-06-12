@@ -70,7 +70,7 @@ profile: all
 # Note: CC instead of CXX since clang++ does not find -latomic
 
 $(LIBFILE): $(OBJS)
-	$(CXX) $(LFLAGS) -shared -rdynamic -o $(LIBFILE) $(OBJS) $(LIBS)
+	$(CC) $(LFLAGS) -shared -rdynamic -o $(LIBFILE) $(OBJS) $(LIBS)
 	@echo Checking $(LIBFILE) for unresolved references
 	@if ldd -r $(LIBFILE) 2>&1 | c++filt | grep "^undefined symbol" | grep -v SmartMet::Engine::Geonames |\
                         grep -Pv ':\ __(?:(?:a|t|ub)san_|sanitizer_)'; \
