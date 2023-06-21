@@ -12,6 +12,7 @@
 #include <macgyver/TypeName.h>
 #include <spine/Convenience.h>
 #include <fstream>
+#include <unordered_set>
 
 namespace SmartMet
 {
@@ -258,15 +259,21 @@ Spine::Stations removeDuplicateStations(Spine::Stations& stations)
 {
   try
   {
+    std::unordered_set<int> used_ids;
+
     std::vector<int> ids;
+    ids.reserve(stations.size());
+
     Spine::Stations noDuplicates;
     for (const Spine::Station& s : stations)
     {
-      if (std::find(ids.begin(), ids.end(), s.station_id) == ids.end())
+      if (used_ids.find(s.station_id) == used_ids.end())
       {
         noDuplicates.push_back(s);
         // BUG? Why is station_id double?
-        ids.push_back(boost::numeric_cast<int>(s.station_id));
+        int id = boost::numeric_cast<int>(s.station_id);
+        ids.push_back(id);
+        used_ids.insert(id);
       }
     }
     return noDuplicates;

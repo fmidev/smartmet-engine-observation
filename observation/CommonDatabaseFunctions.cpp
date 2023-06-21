@@ -75,10 +75,11 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
       if (stationInfo.belongsToGroup(s.fmisid, stationgroup_codes))
       {
         fmisid_to_station.insert(std::make_pair(s.station_id, s));
-        qstations += Fmi::to_string(s.station_id) + ",";
+        auto id = boost::numeric_cast<int>(s.station_id);  // legacy double slows down to_string
+        qstations += Fmi::to_string(id) + ",";
       }
     }
-    qstations = qstations.substr(0, qstations.length() - 1);
+    qstations.pop_back();  // remove extra comma
 
     // This maps measurand_id and the parameter position in TimeSeriesVector
     std::map<std::string, int> timeseriesPositions;

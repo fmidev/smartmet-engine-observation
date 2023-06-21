@@ -1,6 +1,7 @@
 #include "DatabaseStations.h"
 #include "StationtypeConfig.h"
 #include "Utils.h"
+#include <fmt/format.h>
 
 namespace SmartMet
 {
@@ -351,32 +352,20 @@ void DatabaseStations::getStations(Spine::Stations &stations, const Settings &se
 
 std::string DatabaseStations::getTag(const BoundingBoxSettings &bboxSettings)
 {
-  std::string ret;
-
-  ret += Fmi::to_string(bboxSettings.at("minx"));
-  ret += ",";
-  ret += Fmi::to_string(bboxSettings.at("miny"));
-  ret += ",";
-  ret += Fmi::to_string(bboxSettings.at("maxx"));
-  ret += ",";
-  ret += Fmi::to_string(bboxSettings.at("maxy"));
-
-  return ret;
+  return fmt::format("{},{},{},{}",
+                     bboxSettings.at("minx"),
+                     bboxSettings.at("miny"),
+                     bboxSettings.at("maxx"),
+                     bboxSettings.at("maxy"));
 }
 
 std::string DatabaseStations::getTag(const NearestStationSettings &nearestStationSettings)
 {
-  std::string ret;
-
-  ret += Fmi::to_string(nearestStationSettings.longitude);
-  ret += ",";
-  ret += Fmi::to_string(nearestStationSettings.latitude);
-  ret += ",";
-  ret += Fmi::to_string(nearestStationSettings.maxdistance);
-  ret += ",";
-  ret += Fmi::to_string(nearestStationSettings.numberofstations);
-
-  return ret;
+  return fmt::format("{},{},{},{}",
+                     nearestStationSettings.longitude,
+                     nearestStationSettings.latitude,
+                     nearestStationSettings.maxdistance,
+                     nearestStationSettings.numberofstations);
 }
 
 }  // namespace Observation
