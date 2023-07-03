@@ -54,7 +54,7 @@ class PostgreSQLDatabaseDriverForFmiData : public PostgreSQLDatabaseDriver
   FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
                             const boost::posix_time::ptime &endtime,
                             const Spine::TaggedLocationList &locations) const override;
-  MeasurandInfo getMeasurandInfo() const;
+  MeasurandInfo getMeasurandInfo() const override;
 
  private:
   void setSettings(Settings &settings, PostgreSQLObsDB &db);
