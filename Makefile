@@ -20,9 +20,6 @@ DEFINES = -DUNIX -D_REENTRANT
 
 CFLAGS += -Wno-pedantic
 
-# Older GCC won't accept newer standards in linker options, and we're using CC due to -latomic issues
-LFLAGS = $(filter-out -std=c++%, $(CFLAGS))
-
 INCLUDES += -isystem $(includedir)/mysql
 
 LIBS += $(REQUIRED_LIBS) \
@@ -67,10 +64,8 @@ debug: all
 release: all
 profile: all
 
-# Note: CC instead of CXX since clang++ does not find -latomic
-
 $(LIBFILE): $(OBJS)
-	$(CC) $(LFLAGS) -shared -rdynamic -o $(LIBFILE) $(OBJS) $(LIBS)
+	$(CXX) $(CFLAGS) -shared -rdynamic -o $(LIBFILE) $(OBJS) $(LIBS)
 	@echo Checking $(LIBFILE) for unresolved references
 	@if ldd -r $(LIBFILE) 2>&1 | c++filt | grep "^undefined symbol" | grep -v SmartMet::Engine::Geonames |\
                         grep -Pv ':\ __(?:(?:a|t|ub)san_|sanitizer_)'; \
