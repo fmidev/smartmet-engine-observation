@@ -261,9 +261,6 @@ Spine::Stations removeDuplicateStations(Spine::Stations& stations)
   {
     std::unordered_set<int> used_ids;
 
-    std::vector<int> ids;
-    ids.reserve(stations.size());
-
     Spine::Stations noDuplicates;
     for (const Spine::Station& s : stations)
     {
@@ -272,7 +269,6 @@ Spine::Stations removeDuplicateStations(Spine::Stations& stations)
         noDuplicates.push_back(s);
         // BUG? Why is station_id double?
         int id = boost::numeric_cast<int>(s.station_id);
-        ids.push_back(id);
         used_ids.insert(id);
       }
     }
