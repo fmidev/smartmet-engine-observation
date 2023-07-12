@@ -18,7 +18,7 @@ class EngineImpl : public Engine
  public:
   ~EngineImpl() override = default;
   EngineImpl() = delete;
-  EngineImpl(const std::string &configfile);
+  explicit EngineImpl(const std::string &configfile);
 
   TS::TimeSeriesVectorPtr values(Settings &settings) override;
   TS::TimeSeriesVectorPtr values(Settings &settings,
@@ -36,7 +36,7 @@ class EngineImpl : public Engine
 
   Geonames::Engine *getGeonames() const override;
 
-  const std::shared_ptr<DBRegistry> dbRegistry() const override { return itsDatabaseRegistry; }
+  std::shared_ptr<DBRegistry> dbRegistry() const override { return itsDatabaseRegistry; }
   void reloadStations() override;
   void getStations(Spine::Stations &stations, const Settings &settings) override;
 
@@ -104,7 +104,7 @@ class EngineImpl : public Engine
    * \param[in] producer If producer is given return info only of that producer, otherwise of all
    * producers \return Parameter info of producer(s)
    */
-  ContentTable getParameterInfo(boost::optional<std::string> producer) const override;
+  ContentTable getParameterInfo(const boost::optional<std::string> &producer) const override;
 
   /* \brief Get station info
    * \param[in] StationOptions Defines query options
@@ -130,13 +130,9 @@ class EngineImpl : public Engine
 
  private:
   void initializeCache();
-  bool stationHasRightType(const Spine::Station &station, const Settings &settings);
   void unserializeStations();
   Settings beforeQuery(const Settings &settings,
                        std::vector<unsigned int> &unknownParameterIndexes) const;
-  void afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
-                  const Settings &settings,
-                  const std::vector<unsigned int> &unknownParameterIndexes) const;
 
   Fmi::Cache::CacheStatistics getCacheStats() const override;
 

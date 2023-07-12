@@ -13,14 +13,14 @@ class StationLocation
  public:
   int location_id = -1;
   int fmisid = -1;
-  int country_id;
+  int country_id = -1;
   boost::posix_time::ptime location_start{boost::posix_time::not_a_date_time};
   boost::posix_time::ptime location_end{boost::posix_time::not_a_date_time};
   double longitude = -1;
   double latitude = -1;
   double x = -1;
   double y = -1;
-  double elevation;
+  double elevation = -1;
   std::string time_zone_name;
   std::string time_zone_abbrev;
 

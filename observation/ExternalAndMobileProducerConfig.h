@@ -23,6 +23,8 @@ class ExternalAndMobileProducerConfigItem
   {
   }
 
+  ExternalAndMobileProducerConfigItem(ExternalAndMobileProducerConfigItem&& other) = default;
+
   const ProducerId& producerId() const { return itsProducerId; }
   const Measurands& measurands() const { return itsMeasurands; }
   const std::string& databaseTable() const { return itsDatabaseTable; }

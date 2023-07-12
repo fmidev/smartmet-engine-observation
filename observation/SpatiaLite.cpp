@@ -892,7 +892,6 @@ void SpatiaLite::initSpatialMetaData()
     // http://www.gaia-gis.it/gaia-sins/spatialite-cookbook/html/metadata.html
 
     // Check whether the table exists already
-    std::string name;
     sqlite3pp::query qry(itsDB,
                          "SELECT name FROM sqlite_master WHERE type='table' AND name "
                          "= 'spatial_ref_sys'");
@@ -1750,20 +1749,20 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
 
           for (std::size_t i = 0; i < insert_size; i++)
           {
-            const auto &item = cacheData[new_items[i]];
-            cmd.bind(":fmisid", item.fmisid);
-            cmd.bind(":sensor_no", item.sensor_no);
+            const auto &data = cacheData[new_items[i]];
+            cmd.bind(":fmisid", data.fmisid);
+            cmd.bind(":sensor_no", data.sensor_no);
             cmd.bind(":data_time", data_times[i]);
-            cmd.bind(":measurand_id", item.measurand_id);
-            cmd.bind(":producer_id", item.producer_id);
-            cmd.bind(":measurand_no", item.measurand_no);
-            if (item.data_value)
-              cmd.bind(":data_value", *item.data_value);
+            cmd.bind(":measurand_id", data.measurand_id);
+            cmd.bind(":producer_id", data.producer_id);
+            cmd.bind(":measurand_no", data.measurand_no);
+            if (data.data_value)
+              cmd.bind(":data_value", *data.data_value);
             else
               cmd.bind(":data_value");  // NULL
-            cmd.bind(":data_quality", item.data_quality);
-            if (item.data_source >= 0)
-              cmd.bind(":data_source", item.data_source);
+            cmd.bind(":data_quality", data.data_quality);
+            if (data.data_source >= 0)
+              cmd.bind(":data_source", data.data_source);
             else
               cmd.bind(":data_source");  // NULL
             cmd.bind(":modified_last", modified_last_times[i]);
@@ -1776,8 +1775,8 @@ std::size_t SpatiaLite::fillDataCache(const DataItems &cacheData, InsertStatus &
         }
 
         // Update insert status, giving readers some time to obtain a read lock
-        for (const auto &hash : new_hashes)
-          insertStatus.add(hash);
+        for (const auto &new_hash : new_hashes)
+          insertStatus.add(new_hash);
 
         new_item_count += insert_size;
 
@@ -1862,13 +1861,13 @@ std::size_t SpatiaLite::fillMovingLocationsCache(const MovingLocationItems &cach
 
           for (std::size_t i = 0; i < insert_size; i++)
           {
-            const auto &item = cacheData[new_items[i]];
-            cmd.bind(":station_id", item.station_id);
+            const auto &data = cacheData[new_items[i]];
+            cmd.bind(":station_id", data.station_id);
             cmd.bind(":sdate", sdates[i]);
             cmd.bind(":edate", edates[i]);
-            cmd.bind(":lon", item.lon);
-            cmd.bind(":lat", item.lat);
-            cmd.bind(":elev", item.elev);
+            cmd.bind(":lon", data.lon);
+            cmd.bind(":lat", data.lat);
+            cmd.bind(":elev", data.elev);
             cmd.execute();
             cmd.reset();
           }
@@ -1877,8 +1876,8 @@ std::size_t SpatiaLite::fillMovingLocationsCache(const MovingLocationItems &cach
         }
 
         // Update insert status, giving readers some time to obtain a read lock
-        for (const auto &hash : new_hashes)
-          insertStatus.add(hash);
+        for (auto new_hash : new_hashes)
+          insertStatus.add(new_hash);
 
         new_item_count += insert_size;
 
@@ -1967,17 +1966,17 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
 
           for (std::size_t i = 0; i < insert_size; i++)
           {
-            const auto &item = cacheData[new_items[i]];
+            const auto &data = cacheData[new_items[i]];
 
-            cmd.bind(":fmisid", item.fmisid);
+            cmd.bind(":fmisid", data.fmisid);
             cmd.bind(":obstime", data_times[i]);
             cmd.bind(":parameter", parameter_ids[i]);
-            cmd.bind(":sensor_no", item.sensor_no);
-            if (item.value)
-              cmd.bind(":value", *item.value);
+            cmd.bind(":sensor_no", data.sensor_no);
+            if (data.value)
+              cmd.bind(":value", *data.value);
             else
               cmd.bind(":value");  // NULL
-            cmd.bind(":flag", item.flag);
+            cmd.bind(":flag", data.flag);
             cmd.bind(":modified_last", modified_last_times[i]);
             cmd.execute();
             // Must reset, previous values cannot be replaced
@@ -1988,8 +1987,8 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
         }
 
         // Update insert status, giving readers some time to obtain a read lock
-        for (const auto &hash : new_hashes)
-          insertStatus.add(hash);
+        for (auto new_hash : new_hashes)
+          insertStatus.add(new_hash);
 
         new_item_count += insert_size;
 
@@ -2106,7 +2105,7 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &cacheData,
 
           for (std::size_t i = 0; i < insert_size; i++)
           {
-            const auto &item = cacheData[new_items[i]];
+            const auto &data = cacheData[new_items[i]];
 
             // @todo There is no simple way to optionally set possible NULL values.
             // Find out later how to do it.
@@ -2114,28 +2113,28 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &cacheData,
             try
             {
               cmd.bind(":timestring", stroke_times[i]);
-              cmd.bind(":stroke_time_fraction", item.stroke_time_fraction);
-              cmd.bind(":flash_id", static_cast<int>(item.flash_id));
-              cmd.bind(":multiplicity", item.multiplicity);
-              cmd.bind(":peak_current", item.peak_current);
-              cmd.bind(":sensors", item.sensors);
-              cmd.bind(":freedom_degree", item.freedom_degree);
-              cmd.bind(":ellipse_angle", item.ellipse_angle);
-              cmd.bind(":ellipse_major", item.ellipse_major);
-              cmd.bind(":ellipse_minor", item.ellipse_minor);
-              cmd.bind(":chi_square", item.chi_square);
-              cmd.bind(":rise_time", item.rise_time);
-              cmd.bind(":ptz_time", item.ptz_time);
-              cmd.bind(":cloud_indicator", item.cloud_indicator);
-              cmd.bind(":angle_indicator", item.angle_indicator);
-              cmd.bind(":signal_indicator", item.signal_indicator);
-              cmd.bind(":timing_indicator", item.timing_indicator);
-              cmd.bind(":stroke_status", item.stroke_status);
-              cmd.bind(":data_source", item.data_source);
+              cmd.bind(":stroke_time_fraction", data.stroke_time_fraction);
+              cmd.bind(":flash_id", static_cast<int>(data.flash_id));
+              cmd.bind(":multiplicity", data.multiplicity);
+              cmd.bind(":peak_current", data.peak_current);
+              cmd.bind(":sensors", data.sensors);
+              cmd.bind(":freedom_degree", data.freedom_degree);
+              cmd.bind(":ellipse_angle", data.ellipse_angle);
+              cmd.bind(":ellipse_major", data.ellipse_major);
+              cmd.bind(":ellipse_minor", data.ellipse_minor);
+              cmd.bind(":chi_square", data.chi_square);
+              cmd.bind(":rise_time", data.rise_time);
+              cmd.bind(":ptz_time", data.ptz_time);
+              cmd.bind(":cloud_indicator", data.cloud_indicator);
+              cmd.bind(":angle_indicator", data.angle_indicator);
+              cmd.bind(":signal_indicator", data.signal_indicator);
+              cmd.bind(":timing_indicator", data.timing_indicator);
+              cmd.bind(":stroke_status", data.stroke_status);
+              cmd.bind(":data_source", data.data_source);
               cmd.bind(":created", created_times[i]);
               cmd.bind(":modified_last", modified_last_times[i]);
-              std::string stroke_point = "POINT(" + Fmi::to_string("%.10g", item.longitude) + " " +
-                                         Fmi::to_string("%.10g", item.latitude) + ")";
+              std::string stroke_point = "POINT(" + Fmi::to_string("%.10g", data.longitude) + " " +
+                                         Fmi::to_string("%.10g", data.latitude) + ")";
               cmd.bind(":stroke_point", stroke_point, sqlite3pp::nocopy);
               cmd.execute();
               cmd.reset();
@@ -2152,8 +2151,8 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &cacheData,
         }
 
         // Update insert status, giving readers some time to obtain a read lock
-        for (const auto &hash : new_hashes)
-          insertStatus.add(hash);
+        for (auto new_hash : new_hashes)
+          insertStatus.add(new_hash);
 
         new_item_count += insert_size;
 
@@ -3139,7 +3138,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
     map<string, int> specialPositions;
 
     string param;
-    unsigned int pos = 0;
+    unsigned int param_pos = 0;
     for (const Spine::Parameter &p : settings.parameters)
     {
       std::string name = p.name();
@@ -3150,23 +3149,21 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
         {
           std::string pname = itsParameterMap->getParameter(name, stationtype);
           boost::to_lower(pname, std::locale::classic());
-          timeseriesPositions[pname] = pos;
+          timeseriesPositions[pname] = param_pos;
           param += pname + ",";
         }
       }
       else
       {
-        specialPositions[name] = pos;
+        specialPositions[name] = param_pos;
       }
-      pos++;
+      param_pos++;
     }
 
     param = trimCommasFromEnd(param);
 
     auto starttimeString = Fmi::to_string(to_epoch(settings.starttime));
     auto endtimeString = Fmi::to_string(to_epoch(settings.endtime));
-
-    std::string distancequery;
 
     std::string query;
     query =
@@ -3220,7 +3217,6 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
 
     TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
-    int stroke_time = 0;
     double longitude = std::numeric_limits<double>::max();
     double latitude = std::numeric_limits<double>::max();
 
@@ -3236,7 +3232,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
         map<std::string, TS::Value> result;
 
         // These will be always in this order
-        stroke_time = row.get<int>(0);
+        int stroke_time = row.get<int>(0);
         // int stroke_time_fraction = row.get<int>(1);
         // int flash_id = row.get<int>(2);
         longitude = Fmi::stod(row.get<string>(3));
@@ -3266,7 +3262,6 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
         auto localtz = timezones.time_zone_from_string(settings.timezone);
         local_date_time localtime = local_date_time(utctime, localtz);
 
-        std::pair<string, int> p;
         for (const auto &p : timeseriesPositions)
         {
           std::string name = p.first;
@@ -3564,7 +3559,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getObservationDataForMovingStations(
 LocationDataItems SpatiaLite::readObservationDataOfMovingStationsFromDB(
     const Settings &settings,
     const QueryMapping &qmap,
-    const std::set<std::string> &stationgroup_codes)
+    const std::set<std::string> & /* stationgroup_codes */)
 {
   try
   {

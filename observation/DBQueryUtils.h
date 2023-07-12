@@ -27,7 +27,7 @@ class DBQueryUtils
 {
  public:
   virtual ~DBQueryUtils() = default;
-  DBQueryUtils(const ParameterMapPtr &pm) : itsParameterMap(pm) {}
+  explicit DBQueryUtils(const ParameterMapPtr &pm) : itsParameterMap(pm) {}
 
   // If timesteps requested, timeseries must have all requested and data timesteps (because of
   // aggregation) but wms, wfs must have only requested timesteps
@@ -71,8 +71,8 @@ class DBQueryUtils
                                           const StationInfo &stationInfo,
                                           const TS::RequestLimits &requestLimits) const;
 
-  std::string getSensorQueryCondition(
-      const std::map<int, std::set<int>> &sensorNumberToMeasurandIds) const;
+  static std::string getSensorQueryCondition(
+      const std::map<int, std::set<int>> &sensorNumberToMeasurandIds);
 
   const ParameterMapPtr &itsParameterMap;
   bool itsDebug{false};

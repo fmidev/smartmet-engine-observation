@@ -111,7 +111,7 @@ Geonames::Engine *Engine::getGeonames() const
   REPORT_DISABLED;
 }
 
-const std::shared_ptr<DBRegistry> Engine::dbRegistry() const
+std::shared_ptr<DBRegistry> Engine::dbRegistry() const
 {
   REPORT_DISABLED;
 }
@@ -167,7 +167,7 @@ ContentTable Engine::getProducerInfo(const boost::optional<std::string> & /*prod
   REPORT_DISABLED;
 }
 
-ContentTable Engine::getParameterInfo(boost::optional<std::string> /*producer*/) const
+ContentTable Engine::getParameterInfo(const boost::optional<std::string> & /*producer*/) const
 {
   REPORT_DISABLED;
 }

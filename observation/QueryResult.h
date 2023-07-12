@@ -59,10 +59,10 @@ class QueryResult : public QueryResultBase
    *            if referenced value type conversion is not supported.
    */
   static std::string toString(const ValueVectorType::const_iterator value,
-                              const uint32_t& precision = 0);
+                              std::uint32_t precision = 0);
 
   template <typename T>
-  static T castTo(const ValueVectorType::const_iterator value)
+  static T castTo(const ValueVectorType::const_iterator& value)
   {
     try
     {
@@ -104,8 +104,8 @@ class QueryResult : public QueryResultBase
     }
   }
 
-  static std::pair<double, double> minMax(const ValueVectorType::const_iterator begin,
-                                          const ValueVectorType::const_iterator end);
+  static std::pair<double, double> minMax(const ValueVectorType::const_iterator& begin,
+                                          const ValueVectorType::const_iterator& end);
 
   // The method follow the guidelines of the base class.
   void getValueVectorData(const size_t& valueVectorId, ValueVectorType& outValueVector) override;
@@ -132,7 +132,7 @@ class QueryResult : public QueryResultBase
 
   std::string getValueVectorName(const size_t& valueVectorId) override;
 
-  bool set(const std::shared_ptr<QueryResultBase> other) override;
+  bool set(const std::shared_ptr<QueryResultBase>& other) override;
 
   // The method follow the guidelines of the base class.
   void set(const size_t& valueVectorId, const ValueType& value) override;
@@ -158,7 +158,7 @@ class QueryResult : public QueryResultBase
 
 template <>
 boost::posix_time::ptime QueryResult::castTo(
-    const QueryResult::ValueVectorType::const_iterator value);
+    const QueryResult::ValueVectorType::const_iterator& value);
 
 }  // namespace Observation
 }  // namespace Engine

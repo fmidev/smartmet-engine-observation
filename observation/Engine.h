@@ -46,7 +46,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
 
   virtual Geonames::Engine *getGeonames() const;
 
-  virtual const std::shared_ptr<DBRegistry> dbRegistry() const;
+  virtual std::shared_ptr<DBRegistry> dbRegistry() const;
   virtual void reloadStations();
   virtual void getStations(Spine::Stations &stations, const Settings &settings);
 
@@ -114,7 +114,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
    * \param[in] producer If producer is given return info only of that producer, otherwise of all
    * producers \return Parameter info of producer(s)
    */
-  virtual ContentTable getParameterInfo(boost::optional<std::string> producer) const;
+  virtual ContentTable getParameterInfo(const boost::optional<std::string> &producer) const;
 
   /* \brief Get station info
    * \param[in] StationOptions Defines query options

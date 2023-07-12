@@ -95,7 +95,7 @@ size_t QueryResult::size(const std::string& valueVectorName)
 }
 
 std::string QueryResult::toString(const ValueVectorType::const_iterator value,
-                                  const uint32_t& precision)
+                                  std::uint32_t precision)
 {
   try
   {
@@ -139,8 +139,8 @@ std::string QueryResult::toString(const ValueVectorType::const_iterator value,
   }
 }
 
-std::pair<double, double> QueryResult::minMax(const ValueVectorType::const_iterator beginIt,
-                                              const ValueVectorType::const_iterator endIt)
+std::pair<double, double> QueryResult::minMax(const ValueVectorType::const_iterator& beginIt,
+                                              const ValueVectorType::const_iterator& endIt)
 {
   try
   {
@@ -368,7 +368,7 @@ std::string QueryResult::getValueVectorName(const size_t& valueVectorId)
   }
 }
 
-bool QueryResult::set(const std::shared_ptr<QueryResultBase> input)
+bool QueryResult::set(const std::shared_ptr<QueryResultBase>& input)
 {
   try
   {
@@ -484,7 +484,7 @@ size_t QueryResult::size() const
 
 template <>
 boost::posix_time::ptime QueryResult::castTo(
-    const QueryResult::ValueVectorType::const_iterator value)
+    const QueryResult::ValueVectorType::const_iterator& value)
 {
   if (value->empty())
     return {};

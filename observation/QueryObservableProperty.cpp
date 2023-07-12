@@ -14,7 +14,7 @@ void QueryObservableProperty::solveMeasurandIds(
     const QueryObservableProperty::ParameterVectorType &parameters,
     const ParameterMapPtr &parameterMap,
     const QueryObservableProperty::StationTypeType &stationType,
-    QueryObservableProperty::ParameterIdMapType &parameterIDs) const
+    QueryObservableProperty::ParameterIdMapType &parameterIDs)
 {
   try
   {

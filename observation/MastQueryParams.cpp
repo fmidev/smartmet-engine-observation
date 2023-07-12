@@ -31,7 +31,7 @@ MastQueryParams::MastQueryParams(const std::shared_ptr<DBRegistryConfig>& dbrCon
 
 MastQueryParams::~MastQueryParams() = default;
 
-void MastQueryParams::addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfigJoinOn,
+void MastQueryParams::addJoinOnConfig(const std::shared_ptr<DBRegistryConfig>& dbrConfigJoinOn,
                                       const NameType& joinOnField,
                                       int typeOfJoin)
 {
@@ -47,7 +47,7 @@ void MastQueryParams::addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfi
   }
 }
 
-void MastQueryParams::addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfigJoinOn,
+void MastQueryParams::addJoinOnConfig(const std::shared_ptr<DBRegistryConfig>& dbrConfigJoinOn,
                                       const std::list<NameType>& joinOnFields,
                                       int typeOfJoin)
 {
@@ -319,7 +319,7 @@ MastQueryParams::NameType MastQueryParams::getTableName() const
   }
 }
 
-const std::shared_ptr<MastQueryParams::FieldMapType> MastQueryParams::getFieldMap() const
+std::shared_ptr<MastQueryParams::FieldMapType> MastQueryParams::getFieldMap() const
 {
   try
   {
@@ -331,7 +331,7 @@ const std::shared_ptr<MastQueryParams::FieldMapType> MastQueryParams::getFieldMa
   }
 }
 
-const std::shared_ptr<MastQueryParams::FieldAliasMapType> MastQueryParams::getFieldAliasMap() const
+std::shared_ptr<MastQueryParams::FieldAliasMapType> MastQueryParams::getFieldAliasMap() const
 {
   try
   {

@@ -32,7 +32,7 @@ class SpatiaLiteDatabaseDriver : public DatabaseDriverBase
                                  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
 
   std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
-      std::vector<std::string> &parameters, const std::string language) override;
+      std::vector<std::string> &parameters, const std::string &language) override;
 
   void getMovingStationsByArea(Spine::Stations &stations,
                                const Settings &settings,

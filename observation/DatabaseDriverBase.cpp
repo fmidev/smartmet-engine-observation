@@ -13,55 +13,44 @@ namespace Observation
 {
 using namespace Utils;
 
-DatabaseDriverBase::~DatabaseDriverBase() = default;
+namespace
+{
+std::string resolveCacheTableName(const std::string &producer,
+                                  const StationtypeConfig &stationtypeConfig)
 
-void DatabaseDriverBase::parameterSanityCheck(const std::string &stationtype,
-                                              const std::vector<Spine::Parameter> &parameters,
-                                              const ParameterMap &parameterMap) const
 {
   try
   {
-    // Do sanity check for the parameters
-    for (const Spine::Parameter &p : parameters)
-    {
-      if (not_special(p))
-      {
-        std::string name = parseParameterName(p.name());
-        if (!isParameter(name, stationtype, parameterMap) &&
-            !isParameterVariant(name, parameterMap))
-        {
-          throw Fmi::Exception(BCP, "No parameter name " + name + " configured.");
-        }
-      }
-    }
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Sanity check for parameters failed!");
-  }
-}
+    if (producer == FLASH_PRODUCER)
+      return FLASH_DATA_TABLE;
+    if (producer == MAGNETO_PRODUCER)
+      return MAGNETOMETER_DATA_TABLE;
+    if (producer == NETATMO_PRODUCER)
+      return NETATMO_DATA_TABLE;
+    if (producer == ROADCLOUD_PRODUCER)
+      return ROADCLOUD_DATA_TABLE;
+    if (producer == FMI_IOT_PRODUCER)
+      return FMI_IOT_DATA_TABLE;
+    if (producer == BK_HYDROMETA_PRODUCER)
+      return BK_HYDROMETA_DATA_TABLE;
 
-void DatabaseDriverBase::updateProducers(const EngineParametersPtr &p, Settings &settings) const
-{
-  try
-  {
-    if (p->stationtypeConfig.getUseCommonQueryMethod(settings.stationtype) and
-        settings.producer_ids.empty())
-    {
-      settings.producer_ids =
-          p->stationtypeConfig.getProducerIdSetByStationtype(settings.stationtype);
+    auto tablename = stationtypeConfig.getDatabaseTableNameByStationtype(producer);
 
-      // If ids from config not found try from database
-      if (settings.producer_ids.empty())
-        settings.producer_ids = p->producerGroups.getProducerIds(
-            settings.stationtype, settings.starttime, settings.endtime);
-    }
+    if (tablename == "observation_data_r1")
+      return OBSERVATION_DATA_TABLE;
+    if (tablename == "weather_data_qc")
+      return WEATHER_DATA_QC_TABLE;
+    return "";
   }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
+
+}  // namespace
+
+DatabaseDriverBase::~DatabaseDriverBase() = default;
 
 void DatabaseDriverBase::readConfig(Spine::ConfigBase &cfg, DatabaseDriverParameters &parameters)
 {
@@ -232,44 +221,6 @@ std::shared_ptr<ObservationCache> DatabaseDriverBase::resolveCache(
   return parameters->observationCacheProxy->getCacheByTableName(tablename);
 }
 
-std::string DatabaseDriverBase::resolveCacheTableName(
-    const std::string &producer, const StationtypeConfig &stationtypeConfig) const
-
-{
-  std::string tablename;
-
-  try
-  {
-    if (producer == FLASH_PRODUCER)
-      tablename = FLASH_DATA_TABLE;
-    else if (producer == MAGNETO_PRODUCER)
-      tablename = MAGNETOMETER_DATA_TABLE;
-    else if (producer == NETATMO_PRODUCER)
-      tablename = NETATMO_DATA_TABLE;
-    else if (producer == ROADCLOUD_PRODUCER)
-      tablename = ROADCLOUD_DATA_TABLE;
-    else if (producer == FMI_IOT_PRODUCER)
-      tablename = FMI_IOT_DATA_TABLE;
-    else if (producer == BK_HYDROMETA_PRODUCER)
-      tablename = BK_HYDROMETA_DATA_TABLE;
-    else
-    {
-      tablename = stationtypeConfig.getDatabaseTableNameByStationtype(producer);
-
-      if (tablename == "observation_data_r1")
-        tablename = OBSERVATION_DATA_TABLE;
-      else if (tablename == "weather_data_qc")
-        tablename = WEATHER_DATA_QC_TABLE;
-    }
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Operation failed!");
-  }
-
-  return tablename;
-}
-
 Spine::TaggedFMISIDList DatabaseDriverBase::translateToFMISID(
     const Settings &settings, const StationSettings &stationSettings) const
 {
@@ -428,6 +379,54 @@ TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
     }
 
     return result;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+void DatabaseDriverBase::parameterSanityCheck(const std::string &stationtype,
+                                              const std::vector<Spine::Parameter> &parameters,
+                                              const ParameterMap &parameterMap)
+{
+  try
+  {
+    // Do sanity check for the parameters
+    for (const Spine::Parameter &p : parameters)
+    {
+      if (not_special(p))
+      {
+        std::string name = parseParameterName(p.name());
+        if (!isParameter(name, stationtype, parameterMap) &&
+            !isParameterVariant(name, parameterMap))
+        {
+          throw Fmi::Exception(BCP, "No parameter name " + name + " configured.");
+        }
+      }
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Sanity check for parameters failed!");
+  }
+}
+
+void DatabaseDriverBase::updateProducers(const EngineParametersPtr &p, Settings &settings)
+{
+  try
+  {
+    if (p->stationtypeConfig.getUseCommonQueryMethod(settings.stationtype) and
+        settings.producer_ids.empty())
+    {
+      settings.producer_ids =
+          p->stationtypeConfig.getProducerIdSetByStationtype(settings.stationtype);
+
+      // If ids from config not found try from database
+      if (settings.producer_ids.empty())
+        settings.producer_ids = p->producerGroups.getProducerIds(
+            settings.stationtype, settings.starttime, settings.endtime);
+    }
   }
   catch (...)
   {

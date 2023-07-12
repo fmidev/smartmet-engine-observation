@@ -17,7 +17,10 @@ namespace
 template <class T>
 struct Releaser
 {
-  Releaser(Engine::Observation::SpatiaLiteConnectionPool* pool_handle) : poolHandle(pool_handle) {}
+  explicit Releaser(Engine::Observation::SpatiaLiteConnectionPool* pool_handle)
+      : poolHandle(pool_handle)
+  {
+  }
   void operator()(T* t)
   {
     try

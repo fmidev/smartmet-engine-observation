@@ -69,7 +69,7 @@ class QueryResultBase
    */
   virtual std::string getValueVectorName(const size_t& valueVectorId) = 0;
 
-  virtual bool set(const std::shared_ptr<QueryResultBase> result) = 0;
+  virtual bool set(const std::shared_ptr<QueryResultBase>& result) = 0;
 
   /**
    *  @brief Set a value in a value vector.

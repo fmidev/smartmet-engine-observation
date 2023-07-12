@@ -26,7 +26,7 @@ class PostgreSQLObsDBConnectionPool
 
   std::shared_ptr<PostgreSQLObsDB> getConnection(bool debug);
   void releaseConnection(int connectionId);
-  PostgreSQLObsDBConnectionPool(PostgreSQLDatabaseDriver* driver);
+  explicit PostgreSQLObsDBConnectionPool(PostgreSQLDatabaseDriver* driver);
   bool addService(const Fmi::Database::PostgreSQLConnectionOptions& connectionOptions,
                   int poolSize);
 
@@ -34,7 +34,7 @@ class PostgreSQLObsDBConnectionPool
    * @brief How long we wait an inactive connection if all the connections are active.
    * @param seconds Timeout seconds (default is 30 seconds)
    */
-  void setGetConnectionTimeOutSeconds(const size_t seconds);
+  void setGetConnectionTimeOutSeconds(std::size_t seconds);
 
   void shutdown();
 

@@ -40,6 +40,156 @@ bool string_found(const std::string &s1, const std::string &s2)
   return (str1.find(str2) != std::string::npos);
 }
 
+bool stationHasRightType(const Spine::Station &station, const Settings &settings)
+{
+  try
+  {
+    if ((settings.stationtype == "fmi" || settings.stationtype == "opendata" ||
+         settings.stationtype == "opendata_minute" || settings.stationtype == "opendata_daily" ||
+         settings.stationtype == "daily" || settings.stationtype == "hourly" ||
+         settings.stationtype == "monthly" || settings.stationtype == "lammitystarve" ||
+         settings.stationtype == "solar" || settings.stationtype == "minute_rad") &&
+        station.isFMIStation)
+    {
+      return true;
+    }
+    if (settings.stationtype == "foreign")
+    {
+      return true;
+    }
+    if (settings.stationtype == "road" && station.isRoadStation)
+    {
+      return true;
+    }
+    if ((settings.stationtype == "mareograph" || settings.stationtype == "opendata_mareograph") &&
+        station.isMareographStation)
+    {
+      return true;
+    }
+    if ((settings.stationtype == "buoy" || settings.stationtype == "opendata_buoy") &&
+        station.isBuoyStation)
+    {
+      return true;
+    }
+    if (settings.stationtype == "syke" && station.isSYKEStation)
+    {
+      return true;
+    }
+    if (settings.stationtype == "MAST")
+    {
+      return true;
+    }
+
+    return false;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+void afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
+                const Settings &settings,
+                const std::vector<unsigned int> &unknownParameterIndexes)
+{
+  try
+  {
+    if (tsvPtr->empty())
+      return;
+
+    if (!unknownParameterIndexes.empty())
+    {
+      // Take copy of the first time series
+      TS::TimeSeries ts = tsvPtr->at(0);
+      // Set values in all timestesps to TS::None()
+      for (auto &timedvalue : ts)
+        timedvalue.value = TS::None();
+      // Insert the nullified times series to time series vector
+      for (auto index : unknownParameterIndexes)
+        tsvPtr->insert(tsvPtr->begin() + index, ts);
+    }
+
+    // Arrange resultset in the right order
+    // Find out FMISID column
+    int fmisid_index = -1;
+    for (unsigned int i = 0; i < settings.parameters.size(); i++)
+      if (settings.parameters[i].name() == "fmisid")
+      {
+        fmisid_index = i;
+        break;
+      }
+
+    if (fmisid_index < 0 || settings.taggedFMISIDs.empty())
+      return;
+
+    const TS::TimeSeries &fmisid_vector = tsvPtr->at(fmisid_index);
+    std::map<std::string, std::vector<int>> fmisid_mapped_indexes;
+    // Sort out data indexes per each FMISID
+    for (unsigned int i = 0; i < fmisid_vector.size(); i++)
+    {
+      const TS::Value &value = fmisid_vector.at(i).value;
+      std::string fmisid = getStringValue(value);
+      fmisid_mapped_indexes[fmisid].push_back(i);
+    }
+
+    // Create and initialize data structure for results
+    TS::TimeSeriesVectorPtr result = TS::TimeSeriesVectorPtr(new TS::TimeSeriesVector);
+    for (unsigned int i = 0; i < tsvPtr->size(); i++)
+      result->emplace_back(TS::TimeSeries(settings.localTimePool));
+
+    // FMISIDs are in right order in settings.taggedFMISIDs list
+    // Iterate the list and copy data from original data structure to result structure
+    for (const auto &id : settings.taggedFMISIDs)
+    {
+      std::string fmisid = Fmi::to_string(id.fmisid);
+      if (fmisid_mapped_indexes.find(fmisid) == fmisid_mapped_indexes.end())
+        continue;
+      const auto &indexes = fmisid_mapped_indexes.at(fmisid);
+      if (indexes.empty())
+        continue;
+      unsigned int firstIndex = indexes.front();
+      unsigned int numberOfRows = indexes.size();
+
+      for (unsigned int i = 0; i < tsvPtr->size(); i++)
+      {
+        const TS::TimeSeries &ts = tsvPtr->at(i);
+
+        TS::TimeSeries &resultVector = result->at(i);
+
+        // Prevent referencing past the end of source data
+
+        if (firstIndex + numberOfRows > ts.size())
+        {
+          std::cout << "obsengine afterQuery: indexing error: fmisid=" << fmisid
+                    << " firstIndex=" << firstIndex << " numberOfRows=" << numberOfRows
+                    << " ts.size()=" << ts.size() << " settings=" << settings
+                    << " resultVector=" << resultVector << " ts=" << ts << " i=" << i
+                    << " tsvPtr->size()=" << tsvPtr->size();
+
+          throw Fmi::Exception::Trace(BCP, "Internal error indexing data");
+        }
+
+        auto it_first = ts.begin();
+        for (unsigned int k = 0; k < firstIndex; k++)
+          it_first++;
+        auto it_last = it_first;
+        for (unsigned int k = 0; k < numberOfRows; k++)
+          it_last++;
+
+        //      resultVector.insert(resultVector.end(), ts.begin() + firstIndex, ts.begin() +
+        //      firstIndex + numberOfRows);
+        resultVector.insert(resultVector.end(), it_first, it_last);
+      }
+    }
+
+    tsvPtr = result;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
 }  // namespace
 
 EngineImpl::EngineImpl(const std::string &configfile)
@@ -138,54 +288,6 @@ void EngineImpl::unserializeStations()
   {
     throw Fmi::Exception::Trace(BCP, "Failed to unserialize station info!")
         .addParameter("station file", path.string());
-  }
-}
-
-bool EngineImpl::stationHasRightType(const Spine::Station &station, const Settings &settings)
-{
-  try
-  {
-    if ((settings.stationtype == "fmi" || settings.stationtype == "opendata" ||
-         settings.stationtype == "opendata_minute" || settings.stationtype == "opendata_daily" ||
-         settings.stationtype == "daily" || settings.stationtype == "hourly" ||
-         settings.stationtype == "monthly" || settings.stationtype == "lammitystarve" ||
-         settings.stationtype == "solar" || settings.stationtype == "minute_rad") &&
-        station.isFMIStation)
-    {
-      return true;
-    }
-    if (settings.stationtype == "foreign")
-    {
-      return true;
-    }
-    if (settings.stationtype == "road" && station.isRoadStation)
-    {
-      return true;
-    }
-    if ((settings.stationtype == "mareograph" || settings.stationtype == "opendata_mareograph") &&
-        station.isMareographStation)
-    {
-      return true;
-    }
-    if ((settings.stationtype == "buoy" || settings.stationtype == "opendata_buoy") &&
-        station.isBuoyStation)
-    {
-      return true;
-    }
-    if (settings.stationtype == "syke" && station.isSYKEStation)
-    {
-      return true;
-    }
-    if (settings.stationtype == "MAST")
-    {
-      return true;
-    }
-
-    return false;
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
@@ -452,108 +554,6 @@ Settings EngineImpl::beforeQuery(const Settings &settings,
   }
 }
 
-void EngineImpl::afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
-                            const Settings &settings,
-                            const std::vector<unsigned int> &unknownParameterIndexes) const
-{
-  try
-  {
-    if (tsvPtr->empty())
-      return;
-
-    if (!unknownParameterIndexes.empty())
-    {
-      // Take copy of the first time series
-      TS::TimeSeries ts = tsvPtr->at(0);
-      // Set values in all timestesps to TS::None()
-      for (auto &timedvalue : ts)
-        timedvalue.value = TS::None();
-      // Insert the nullified times series to time series vector
-      for (auto index : unknownParameterIndexes)
-        tsvPtr->insert(tsvPtr->begin() + index, ts);
-    }
-
-    // Arrange resultset in the right order
-    // Find out FMISID column
-    int fmisid_index = -1;
-    for (unsigned int i = 0; i < settings.parameters.size(); i++)
-      if (settings.parameters[i].name() == "fmisid")
-      {
-        fmisid_index = i;
-        break;
-      }
-
-    if (fmisid_index < 0 || settings.taggedFMISIDs.empty())
-      return;
-
-    const TS::TimeSeries &fmisid_vector = tsvPtr->at(fmisid_index);
-    std::map<std::string, std::vector<int>> fmisid_mapped_indexes;
-    // Sort out data indexes per each FMISID
-    for (unsigned int i = 0; i < fmisid_vector.size(); i++)
-    {
-      const TS::Value &value = fmisid_vector.at(i).value;
-      std::string fmisid = getStringValue(value);
-      fmisid_mapped_indexes[fmisid].push_back(i);
-    }
-
-    // Create and initialize data structure for results
-    TS::TimeSeriesVectorPtr result = TS::TimeSeriesVectorPtr(new TS::TimeSeriesVector);
-    for (unsigned int i = 0; i < tsvPtr->size(); i++)
-      result->emplace_back(TS::TimeSeries(settings.localTimePool));
-
-    // FMISIDs are in right order in settings.taggedFMISIDs list
-    // Iterate the list and copy data from original data structure to result structure
-    for (const auto &id : settings.taggedFMISIDs)
-    {
-      std::string fmisid = Fmi::to_string(id.fmisid);
-      if (fmisid_mapped_indexes.find(fmisid) == fmisid_mapped_indexes.end())
-        continue;
-      const auto &indexes = fmisid_mapped_indexes.at(fmisid);
-      if (indexes.empty())
-        continue;
-      unsigned int firstIndex = indexes.front();
-      unsigned int numberOfRows = indexes.size();
-
-      for (unsigned int i = 0; i < tsvPtr->size(); i++)
-      {
-        const TS::TimeSeries &ts = tsvPtr->at(i);
-
-        TS::TimeSeries &resultVector = result->at(i);
-
-        // Prevent referencing past the end of source data
-
-        if (firstIndex + numberOfRows > ts.size())
-        {
-          std::cout << "obsengine afterQuery: indexing error: fmisid=" << fmisid
-                    << " firstIndex=" << firstIndex << " numberOfRows=" << numberOfRows
-                    << " ts.size()=" << ts.size() << " settings=" << settings
-                    << " resultVector=" << resultVector << " ts=" << ts << " i=" << i
-                    << " tsvPtr->size()=" << tsvPtr->size();
-
-          throw Fmi::Exception::Trace(BCP, "Internal error indexing data");
-        }
-
-        auto it_first = ts.begin();
-        for (unsigned int i = 0; i < firstIndex; i++)
-          it_first++;
-        auto it_last = it_first;
-        for (unsigned int i = 0; i < numberOfRows; i++)
-          it_last++;
-
-        //      resultVector.insert(resultVector.end(), ts.begin() + firstIndex, ts.begin() +
-        //      firstIndex + numberOfRows);
-        resultVector.insert(resultVector.end(), it_first, it_last);
-      }
-    }
-
-    tsvPtr = result;
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Operation failed!");
-  }
-}
-
 void EngineImpl::reloadStations()
 {
   itsDatabaseDriver->reloadStations();
@@ -639,7 +639,7 @@ ContentTable EngineImpl::getProducerInfo(const boost::optional<std::string> &pro
   }
 }
 
-ContentTable EngineImpl::getParameterInfo(boost::optional<std::string> producer) const
+ContentTable EngineImpl::getParameterInfo(const boost::optional<std::string> &producer) const
 {
   try
   {
@@ -920,10 +920,10 @@ Fmi::Cache::CacheStatistics EngineImpl::getCacheStats() const
   {
     auto cache_name = item.first;
     auto cache_stats = item.second->getCacheStats();
-    for (const auto &item : cache_stats)
+    for (const auto &stats : cache_stats)
     {
-      auto key = ("Observation::" + cache_name + "::" + item.first);
-      ret.insert(std::make_pair(key, item.second));
+      auto key = ("Observation::" + cache_name + "::" + stats.first);
+      ret.insert(std::make_pair(key, stats.second));
     }
   }
 

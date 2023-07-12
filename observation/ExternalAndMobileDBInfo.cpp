@@ -31,14 +31,14 @@ void add_where_conditions(std::string &sqlStmt,
                                  : "obs.geom)")));
   }
 
-  std::string mids;
   if (!measurandIds.empty())
   {
     sqlStmt += " AND obs.mid IN (";
+    std::string mids;
     for (auto i : measurandIds)
     {
       if (!mids.empty())
-        mids += ",";
+        mids += ',';
       mids += std::to_string(i);
     }
     sqlStmt += (mids + ") ");

@@ -230,14 +230,13 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
       }
       else
       {
-        bool use_memory_cache = false;
         if (itsObservationMemoryCache)
         {
           // We know that spatialite cache hits will include memory cache hits, but do not
           // bother to substract the memory cache hits from spatialite hits
 
           auto cache_start_time = itsObservationMemoryCache->getStartTime();
-          use_memory_cache =
+          bool use_memory_cache =
               (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
           if (use_memory_cache)
             hit("observation_memory");
@@ -314,14 +313,13 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
       }
       else
       {
-        bool use_memory_cache = false;
         if (itsObservationMemoryCache)
         {
           // We know that spatialite cache hits will include memory cache hits, but do not
           // bother to substract the memory cache hits from spatialite hits
 
           auto cache_start_time = itsObservationMemoryCache->getStartTime();
-          use_memory_cache =
+          bool use_memory_cache =
               (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
 
           if (use_memory_cache)
@@ -344,7 +342,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
   }
 }
 
-TS::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(Settings &settings) const
+TS::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(const Settings &settings) const
 {
   try
   {
@@ -706,7 +704,8 @@ void SpatiaLiteCache::cleanRoadCloudCache(const boost::posix_time::time_duration
   }
 }
 
-TS::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpatiaLite(Settings &settings) const
+TS::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpatiaLite(
+    const Settings &settings) const
 {
   try
   {
@@ -804,7 +803,7 @@ void SpatiaLiteCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
   }
 }
 
-TS::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaLite(Settings &settings) const
+TS::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaLite(const Settings &settings) const
 {
   try
   {
@@ -913,7 +912,8 @@ void SpatiaLiteCache::cleanBKHydrometaCache(
   }
 }
 
-TS::TimeSeriesVectorPtr SpatiaLiteCache::bkHydrometaValuesFromSpatiaLite(Settings &settings) const
+TS::TimeSeriesVectorPtr SpatiaLiteCache::bkHydrometaValuesFromSpatiaLite(
+    const Settings &settings) const
 {
   try
   {
@@ -1022,7 +1022,7 @@ void SpatiaLiteCache::cleanFmiIoTCache(const boost::posix_time::time_duration &t
   }
 }
 
-TS::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLite(Settings &settings) const
+TS::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLite(const Settings &settings) const
 {
   try
   {

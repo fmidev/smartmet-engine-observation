@@ -437,7 +437,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
     std::map<std::string, int> specialPositions;
 
     std::string param;
-    unsigned int pos = 0;
+    unsigned int param_pos = 0;
     for (const Spine::Parameter &p : settings.parameters)
     {
       std::string name = p.name();
@@ -448,15 +448,15 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
         {
           std::string pname = itsParameterMap->getParameter(name, stationtype);
           boost::to_lower(pname, std::locale::classic());
-          timeseriesPositions[pname] = pos;
+          timeseriesPositions[pname] = param_pos;
           param += pname + ",";
         }
       }
       else
       {
-        specialPositions[name] = pos;
+        specialPositions[name] = param_pos;
       }
-      pos++;
+      param_pos++;
     }
 
     param = trimCommasFromEnd(param);
@@ -590,7 +590,6 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
       auto localtz = timezones.time_zone_from_string(settings.timezone);
       boost::local_time::local_date_time localtime(stroke_time, localtz);
 
-      std::pair<std::string, int> p;
       for (const auto &p : timeseriesPositions)
       {
         std::string name = p.first;

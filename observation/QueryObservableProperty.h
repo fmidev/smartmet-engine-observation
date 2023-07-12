@@ -30,10 +30,10 @@ class QueryObservableProperty : public QueryBase
   using ParameterVectorType = std::vector<std::string>;
   using StationTypeType = std::string;
 
-  void solveMeasurandIds(const ParameterVectorType& parameters,
-                         const ParameterMapPtr& parameterMap,
-                         const StationTypeType& stationType,
-                         ParameterIdMapType& parameterIds) const;
+  static void solveMeasurandIds(const ParameterVectorType& parameters,
+                                const ParameterMapPtr& parameterMap,
+                                const StationTypeType& stationType,
+                                ParameterIdMapType& parameterIds);
 };
 
 }  // namespace Observation

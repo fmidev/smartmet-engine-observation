@@ -18,7 +18,7 @@ class PostgreSQLCacheConnectionPool
   void releaseConnection(int connectionId);
 
   PostgreSQLCacheConnectionPool() = delete;
-  PostgreSQLCacheConnectionPool(const PostgreSQLCacheParameters& options);
+  explicit PostgreSQLCacheConnectionPool(const PostgreSQLCacheParameters& options);
 
   void shutdown();
 

@@ -23,21 +23,9 @@ namespace Engine
 {
 namespace Observation
 {
-PostgreSQLDatabaseDriverForMobileData::PostgreSQLDatabaseDriverForMobileData(
-    const std::string &name, const EngineParametersPtr &p, Spine::ConfigBase &cfg)
-    : PostgreSQLDatabaseDriver(name, p, cfg)
+namespace
 {
-  if (setlocale(LC_NUMERIC, "en_US.utf8") == nullptr)
-    throw Fmi::Exception(
-        BCP, "PostgreSQL database driver for mobile data failed to set locale to en_US.utf8");
-
-  readConfig(cfg);
-
-  for (const auto &item : p->externalAndMobileProducerConfig)
-    itsSupportedProducers.insert(item.first);
-}
-
-void PostgreSQLDatabaseDriverForMobileData::setSettings(Settings &settings, PostgreSQLObsDB &db)
+void setSettings(Settings &settings, PostgreSQLObsDB &db)
 {
   try
   {
@@ -80,6 +68,22 @@ void PostgreSQLDatabaseDriverForMobileData::setSettings(Settings &settings, Post
   {
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
+}
+
+}  // namespace
+
+PostgreSQLDatabaseDriverForMobileData::PostgreSQLDatabaseDriverForMobileData(
+    const std::string &name, const EngineParametersPtr &p, Spine::ConfigBase &cfg)
+    : PostgreSQLDatabaseDriver(name, p, cfg)
+{
+  if (setlocale(LC_NUMERIC, "en_US.utf8") == nullptr)
+    throw Fmi::Exception(
+        BCP, "PostgreSQL database driver for mobile data failed to set locale to en_US.utf8");
+
+  readConfig(cfg);
+
+  for (const auto &item : p->externalAndMobileProducerConfig)
+    itsSupportedProducers.insert(item.first);
 }
 
 void PostgreSQLDatabaseDriverForMobileData::init(Engine *obsengine)
@@ -160,7 +164,10 @@ void PostgreSQLDatabaseDriverForMobileData::makeQuery(QueryBase *qb)
     {
       db = itsPostgreSQLConnectionPool->getConnection(false);
 
-      if (db and db->isConnected())
+      if (!db)
+        break;
+
+      if (db->isConnected())
         break;
 
       // ConnectionPool should do this
@@ -349,7 +356,7 @@ void PostgreSQLDatabaseDriverForMobileData::getStationsByBoundingBox(Spine::Stat
 
 std::shared_ptr<std::vector<ObservableProperty> >
 PostgreSQLDatabaseDriverForMobileData::observablePropertyQuery(
-    std::vector<std::string> & /* parameters */, const std::string /* language */)
+    std::vector<std::string> & /* parameters */, const std::string & /* language */)
 {
   try
   {

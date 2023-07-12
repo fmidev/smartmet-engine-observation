@@ -50,7 +50,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
    *  @exception Obs_EngineException::INVALID_PARAMETER_VALUE
    */
   void get(const std::string &sqlStatement,
-           std::shared_ptr<QueryResultBase> qrb,
+           const std::shared_ptr<QueryResultBase> &qrb,
            const Fmi::TimeZones &timezones);
 
   void readMobileCacheDataFromPostgreSQL(const std::string &producer,
@@ -97,8 +97,8 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
   boost::posix_time::ptime endTime;
   boost::optional<boost::posix_time::ptime> wantedTime;
   std::string timeFormat;
-  int timeStep;
-  double maxDistance;
+  int timeStep = 0;
+  double maxDistance = 0;
   std::string stationType;
   std::string timeZone;
   bool allPlaces{false};
@@ -106,7 +106,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
   void resetTimeSeries() { itsTimeSeriesColumns.reset(); }
   void setTimeInterval(const boost::posix_time::ptime &starttime,
                        const boost::posix_time::ptime &endtime,
-                       const int timestep);
+                       int timestep);
   void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,

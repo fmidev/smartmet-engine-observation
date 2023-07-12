@@ -9,7 +9,7 @@ namespace
 template <class T>
 struct Releaser
 {
-  Releaser(SmartMet::Engine::Observation::PostgreSQLObsDBConnectionPool* pool_handle)
+  explicit Releaser(SmartMet::Engine::Observation::PostgreSQLObsDBConnectionPool* pool_handle)
       : poolHandle(pool_handle)
   {
   }
@@ -201,16 +201,9 @@ void PostgreSQLObsDBConnectionPool::releaseConnection(int connectionId)
   }
 }
 
-void PostgreSQLObsDBConnectionPool::setGetConnectionTimeOutSeconds(const size_t seconds)
+void PostgreSQLObsDBConnectionPool::setGetConnectionTimeOutSeconds(std::size_t seconds)
 {
-  try
-  {
-    itsGetConnectionTimeOutSeconds = seconds;
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Operation failed!");
-  }
+  itsGetConnectionTimeOutSeconds = seconds;
 }
 
 }  // namespace Observation

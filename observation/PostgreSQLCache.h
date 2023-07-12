@@ -128,10 +128,10 @@ class PostgreSQLCache : public ObservationCache
                             const boost::posix_time::ptime &endtime) const;
   bool timeIntervalWeatherDataQCIsCached(const boost::posix_time::ptime &starttime,
                                          const boost::posix_time::ptime &endtime) const;
-  TS::TimeSeriesVectorPtr flashValuesFromPostgreSQL(Settings &settings) const;
-  TS::TimeSeriesVectorPtr roadCloudValuesFromPostgreSQL(Settings &settings) const;
-  TS::TimeSeriesVectorPtr netAtmoValuesFromPostgreSQL(Settings &settings) const;
-  TS::TimeSeriesVectorPtr fmiIoTValuesFromPostgreSQL(Settings &settings) const;
+  TS::TimeSeriesVectorPtr flashValuesFromPostgreSQL(const Settings &settings) const;
+  TS::TimeSeriesVectorPtr roadCloudValuesFromPostgreSQL(const Settings &settings) const;
+  TS::TimeSeriesVectorPtr netAtmoValuesFromPostgreSQL(const Settings &settings) const;
+  TS::TimeSeriesVectorPtr fmiIoTValuesFromPostgreSQL(const Settings &settings) const;
 
   PostgreSQLCacheParameters itsParameters;
 

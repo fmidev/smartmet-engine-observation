@@ -25,7 +25,7 @@ class InsertStatus
 {
  public:
   InsertStatus() = default;
-  InsertStatus(std::size_t size) : mCacheSize(size) {}
+  explicit InsertStatus(std::size_t size) : mCacheSize(size) {}
 
   void add(std::size_t key)
   {

@@ -45,7 +45,7 @@ class DatabaseDriverInterface
                                     const boost::posix_time::ptime &endtime,
                                     const Spine::TaggedLocationList &locations) const = 0;
   virtual std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
-      std::vector<std::string> &parameters, const std::string language) = 0;
+      std::vector<std::string> &parameters, const std::string &language) = 0;
 
   virtual void getStations(Spine::Stations &stations, const Settings &settings) const = 0;
   virtual void getStationsByArea(Spine::Stations &stations,
