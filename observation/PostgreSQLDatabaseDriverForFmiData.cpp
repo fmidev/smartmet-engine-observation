@@ -23,19 +23,9 @@ namespace Engine
 {
 namespace Observation
 {
-PostgreSQLDatabaseDriverForFmiData::PostgreSQLDatabaseDriverForFmiData(const std::string &name,
-                                                                       const EngineParametersPtr &p,
-                                                                       Spine::ConfigBase &cfg)
-    : PostgreSQLDatabaseDriver(name, p, cfg)
+namespace
 {
-  if (setlocale(LC_NUMERIC, "en_US.utf8") == nullptr)
-    throw Fmi::Exception(
-        BCP, "PostgreSQL database driver for FMI data failed to set locale to en_US.utf8");
-
-  readConfig(cfg);
-}
-
-void PostgreSQLDatabaseDriverForFmiData::setSettings(Settings &settings, PostgreSQLObsDB &db)
+void setSettings(Settings &settings, PostgreSQLObsDB &db)
 {
   try
   {
@@ -78,6 +68,19 @@ void PostgreSQLDatabaseDriverForFmiData::setSettings(Settings &settings, Postgre
   {
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
+}
+}  // namespace
+
+PostgreSQLDatabaseDriverForFmiData::PostgreSQLDatabaseDriverForFmiData(const std::string &name,
+                                                                       const EngineParametersPtr &p,
+                                                                       Spine::ConfigBase &cfg)
+    : PostgreSQLDatabaseDriver(name, p, cfg)
+{
+  if (setlocale(LC_NUMERIC, "en_US.utf8") == nullptr)
+    throw Fmi::Exception(
+        BCP, "PostgreSQL database driver for FMI data failed to set locale to en_US.utf8");
+
+  readConfig(cfg);
 }
 
 void PostgreSQLDatabaseDriverForFmiData::init(Engine *obsengine)
@@ -377,15 +380,15 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
       // If producer == icebuoy or extship ->
       if (settings.stationtype == ICEBUOY_PRODUCER || settings.stationtype == COPERNICUS_PRODUCER)
         return db->getObservationDataForMovingStations(settings, timeSeriesOptions, itsTimeZones);
-      else
-        return db->getObservationData(
-            stations, settings, *info, timeSeriesOptions, itsTimeZones, dummy);
+
+      return db->getObservationData(
+          stations, settings, *info, timeSeriesOptions, itsTimeZones, dummy);
     }
-    else if (tablename == WEATHER_DATA_QC_TABLE)
+    if (tablename == WEATHER_DATA_QC_TABLE)
       return db->getWeatherDataQCData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
-    else if (tablename == FLASH_DATA_TABLE)
+    if (tablename == FLASH_DATA_TABLE)
       return db->getFlashData(settings, itsTimeZones);
-    else if (tablename == MAGNETOMETER_DATA_TABLE)
+    if (tablename == MAGNETOMETER_DATA_TABLE)
       return db->getMagnetometerData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
 
     return ret;
@@ -457,7 +460,7 @@ FlashCounts PostgreSQLDatabaseDriverForFmiData::getFlashCount(
 
 std::shared_ptr<std::vector<ObservableProperty>>
 PostgreSQLDatabaseDriverForFmiData::observablePropertyQuery(std::vector<std::string> &parameters,
-                                                            const std::string language)
+                                                            const std::string &language)
 {
   try
   {

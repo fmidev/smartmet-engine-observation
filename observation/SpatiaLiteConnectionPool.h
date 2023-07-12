@@ -13,7 +13,7 @@ namespace Observation
 class SpatiaLiteConnectionPool
 {
  public:
-  SpatiaLiteConnectionPool(const SpatiaLiteCacheParameters& options);
+  explicit SpatiaLiteConnectionPool(const SpatiaLiteCacheParameters& options);
   SpatiaLiteConnectionPool() = delete;
 
   std::shared_ptr<SpatiaLite> getConnection();

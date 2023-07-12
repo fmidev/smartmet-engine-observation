@@ -1,7 +1,5 @@
 #pragma once
 
-#include <boost/date_time/gregorian/formatters.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
 #include <spine/Value.h>
 
 namespace SmartMet
@@ -63,8 +61,6 @@ class QueryParamsBase
   void setTimeRange(const pt::ptime& beginTime, const pt::ptime& endTime);
 
  private:
-  std::string formattedTime(const pt::ptime& t, const std::string& format) const;
-
   pt::ptime m_beginTime;
   pt::ptime m_endTime;
   bool m_usingTimeRange = false;

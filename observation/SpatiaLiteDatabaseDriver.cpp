@@ -186,7 +186,7 @@ void SpatiaLiteDatabaseDriver::getMovingStationsByArea(Spine::Stations &stations
 }
 
 std::shared_ptr<std::vector<ObservableProperty>> SpatiaLiteDatabaseDriver::observablePropertyQuery(
-    std::vector<std::string> & /* parameters */, const std::string /* language */)
+    std::vector<std::string> & /* parameters */, const std::string & /* language */)
 {
   try
   {

@@ -85,7 +85,7 @@ std::string trimCommasFromEnd(const std::string& what)
 
 std::string translateParameter(const std::string& paramname,
                                const std::string& stationType,
-                               ParameterMap& parameterMap)
+                               const ParameterMap& parameterMap)
 {
   try
   {
@@ -144,7 +144,7 @@ std::string windCompass8(double direction, const std::string& missingValue)
 {
   if (direction < 0)
     return missingValue;
-  std::array<std::string, 8> names{"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
+  const std::array<std::string, 8> names{"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
 
   int i = static_cast<int>((direction + 22.5) / 45) % 8;
   return names[i];
@@ -154,22 +154,22 @@ std::string windCompass16(double direction, const std::string& missingValue)
 {
   if (direction < 0)
     return missingValue;
-  std::array<std::string, 16> names{"N",
-                                    "NNE",
-                                    "NE",
-                                    "ENE",
-                                    "E",
-                                    "ESE",
-                                    "SE",
-                                    "SSE",
-                                    "S",
-                                    "SSW",
-                                    "SW",
-                                    "WSW",
-                                    "W",
-                                    "WNW",
-                                    "NW",
-                                    "NNW"};
+  const std::array<std::string, 16> names{"N",
+                                          "NNE",
+                                          "NE",
+                                          "ENE",
+                                          "E",
+                                          "ESE",
+                                          "SE",
+                                          "SSE",
+                                          "S",
+                                          "SSW",
+                                          "SW",
+                                          "WSW",
+                                          "W",
+                                          "WNW",
+                                          "NW",
+                                          "NNW"};
 
   int i = static_cast<int>((direction + 11.25) / 22.5) % 16;
   return names[i];
@@ -179,10 +179,10 @@ std::string windCompass32(double direction, const std::string& missingValue)
 {
   if (direction < 0)
     return missingValue;
-  std::array<std::string, 32> names{"N", "NbE", "NNE", "NEbN", "NE", "NEbE", "ENE", "EbN",
-                                    "E", "EbS", "ESE", "SEbE", "SE", "SEbS", "SSE", "SbE",
-                                    "S", "SbW", "SSW", "SWbS", "SW", "SWbW", "WSW", "WbS",
-                                    "W", "WbN", "WNW", "NWbW", "NW", "NWbN", "NNW", "NbW"};
+  const std::array<std::string, 32> names{"N", "NbE", "NNE", "NEbN", "NE", "NEbE", "ENE", "EbN",
+                                          "E", "EbS", "ESE", "SEbE", "SE", "SEbS", "SSE", "SbE",
+                                          "S", "SbW", "SSW", "SWbS", "SW", "SWbW", "WSW", "WbS",
+                                          "W", "WbN", "WNW", "NWbW", "NW", "NWbN", "NNW", "NbW"};
 
   int i = static_cast<int>((direction + 5.625) / 11.25) % 32;
   return names[i];
@@ -228,7 +228,6 @@ int parseSensorNumber(const std::string& parameter)
   try
   {
     int defaultSensorNumber = 1;
-    std::string sensorNumber;
     std::size_t startpos = parameter.find_last_of('_');
     std::size_t endpos = parameter.length();
     int length = boost::numeric_cast<int>(endpos - startpos - 1);
@@ -236,7 +235,7 @@ int parseSensorNumber(const std::string& parameter)
     // If sensor number is given, for example KELI_1, return requested number
     if (startpos != std::string::npos && endpos != std::string::npos)
     {
-      sensorNumber = parameter.substr(startpos + 1, length);
+      auto sensorNumber = parameter.substr(startpos + 1, length);
       try
       {
         return Fmi::stoi(sensorNumber);
@@ -255,7 +254,7 @@ int parseSensorNumber(const std::string& parameter)
   }
 }
 
-Spine::Stations removeDuplicateStations(Spine::Stations& stations)
+Spine::Stations removeDuplicateStations(const Spine::Stations& stations)
 {
   try
   {
@@ -474,7 +473,7 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
     else if (cloudiness <= 9)
       smartsymbol = 48;
   }
-  else if (wawa == 70 || wawa == 71 || wawa == 74)
+  else if (wawa == 70 || wawa == 71 || wawa == 74 || wawa == 85)
   {
     if (cloudiness <= 5)
       smartsymbol = 51;
@@ -535,15 +534,6 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
       smartsymbol = 24;
     else if (cloudiness <= 9)
       smartsymbol = 27;
-  }
-  else if (wawa == 85)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 51;
-    else if (cloudiness <= 7)
-      smartsymbol = 54;
-    else if (cloudiness <= 9)
-      smartsymbol = 57;
   }
   else if (wawa == 89)
   {
@@ -648,10 +638,8 @@ bool isParameter(const std::string& name,
 
     if (stationTypeMapPtr == namePtr->second.end())
       stationTypeMapPtr = namePtr->second.find(DEFAULT_STATIONTYPE);
-    if (stationTypeMapPtr == namePtr->second.end())
-      return false;
 
-    return true;
+    return (stationTypeMapPtr != namePtr->second.end());
   }
   catch (...)
   {
@@ -668,10 +656,7 @@ bool isParameterVariant(const std::string& name, const ParameterMap& parameterMa
     // Is the alias configured.
     const auto namePtr = parameterMap.find(parameterLowerCase);
 
-    if (namePtr == parameterMap.end())
-      return false;
-
-    return true;
+    return (namePtr != parameterMap.end());
   }
   catch (...)
   {

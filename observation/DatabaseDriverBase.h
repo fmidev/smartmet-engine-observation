@@ -66,7 +66,7 @@ class DatabaseDriverBase
   }
 
   virtual std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
-      std::vector<std::string> &parameters, const std::string language) = 0;
+      std::vector<std::string> &parameters, const std::string &language) = 0;
 
   virtual void getStationGroups(StationGroups &sg) const {}
   virtual void getProducerGroups(ProducerGroups &pg) const {}
@@ -88,19 +88,18 @@ class DatabaseDriverBase
 
   virtual Fmi::Cache::CacheStatistics getCacheStats() const { return {}; }
 
-  virtual MeasurandInfo getMeasurandInfo() const { return MeasurandInfo(); }
+  virtual MeasurandInfo getMeasurandInfo() const { return {}; }
 
  protected:
-  void parameterSanityCheck(const std::string &stationtype,
-                            const std::vector<Spine::Parameter> &parameters,
-                            const ParameterMap &parameterMap) const;
-  void updateProducers(const EngineParametersPtr &p, Settings &settings) const;
   void readConfig(Spine::ConfigBase &cfg, DatabaseDriverParameters &parameters);
   void readMetaData(Spine::ConfigBase &cfg);
-  std::string resolveCacheTableName(const std::string &producer,
-                                    const StationtypeConfig &stationtypeConfig) const;
   std::shared_ptr<ObservationCache> resolveCache(const std::string &producer,
                                                  const EngineParametersPtr &parameters) const;
+
+  static void parameterSanityCheck(const std::string &stationtype,
+                                   const std::vector<Spine::Parameter> &parameters,
+                                   const ParameterMap &parameterMap);
+  static void updateProducers(const EngineParametersPtr &p, Settings &settings);
 
   std::set<std::string> itsSupportedProducers;
   std::string itsDriverName;

@@ -17,6 +17,297 @@ namespace
 {
 const DatabaseDriverInfoItem emptyDriverInfoItem;
 const CacheInfoItem emptyCacheInfoItem;
+
+/*!
+ * \brief Lookup configuration value for the database considering overrides
+ */
+
+const libconfig::Setting& lookupDatabase(const std::string& common_key,
+                                         const std::string& setting,
+                                         const std::string& name,
+                                         const std::string& scope,
+                                         const libconfig::Config& conf)
+{
+  try
+  {
+    const auto& default_value = conf.lookup(common_key + "." + setting);
+    if (conf.exists("database." + scope))
+    {
+      const libconfig::Setting& override = conf.lookup(common_key + "." + scope);
+      int count = override.getLength();
+      for (int i = 0; i < count; ++i)
+      {
+        const libconfig::Setting& names = override[i]["name"];
+        int num = names.getLength();
+        for (int j = 0; j < num; ++j)
+        {
+          std::string host = names[j];
+
+          if (boost::algorithm::starts_with(name, host) && override[i].exists(setting))
+            return override[i][setting.c_str()];
+        }  // for int j
+      }    // for int i
+    }      // if
+    return default_value;
+  }
+  catch (libconfig::SettingNotFoundException& ex)
+  {
+    throw Fmi::Exception::Trace(BCP, "Override configuration error: " + setting);
+  }
+}
+
+void readSpatiaLiteConnectInfo(Spine::ConfigBase& cfg,
+                               const std::string& name,
+                               std::map<std::string, std::string>& params)
+{
+  std::string common_key = ("database_info.connect_info." + name);
+
+  params["spatialiteFile"] =
+      cfg.get_mandatory_config_param<std::string>(common_key + ".spatialiteFile");
+}
+
+void readPostgreSQLConnectInfo(Spine::ConfigBase& cfg,
+                               const std::string& name,
+                               std::map<std::string, std::string>& params)
+{
+  std::string common_key = ("database_info.connect_info." + name);
+
+  params["host"] = cfg.get_mandatory_config_param<std::string>(common_key + ".host");
+  params["port"] = Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".port"));
+  params["database"] = cfg.get_mandatory_config_param<std::string>(common_key + ".database");
+  params["username"] = cfg.get_mandatory_config_param<std::string>(common_key + ".username");
+  params["password"] = cfg.get_mandatory_config_param<std::string>(common_key + ".password");
+  params["encoding"] = cfg.get_mandatory_config_param<std::string>(common_key + ".encoding");
+  params["connect_timeout"] =
+      Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".connect_timeout"));
+}
+
+void readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
+                              const std::string& name,
+                              std::map<std::string, std::string>& params)
+{
+  std::string common_key = ("database_info.common_info." + name);
+
+  bool defaultQuiet = cfg.get_optional_config_param<bool>("quiet", false);
+
+  params["quiet"] =
+      Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".quiet", defaultQuiet));
+  params["poolSize"] =
+      Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".poolSize", 10));
+
+  if (boost::algorithm::ends_with(name, "_cache"))
+  {
+    params["maxInsertSize"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".maxInsertSize", 0));
+    params["locationCacheSize"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".locationCacheSize", 0));
+    params["dataInsertCacheSize"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".dataInsertCacheSize", 0));
+    params["movingLocationsInsertCacheSize"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".movingLocationsInsertCacheSize", 0));
+    params["weatherDataQCInsertCacheSize"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".weatherDataQCInsertCacheSize", 0));
+    params["flashInsertCacheSize"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashInsertCacheSize", 0));
+    params["roadCloudInsertCacheSize"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".roadCloudInsertCacheSize", 0));
+    params["netAtmoInsertCacheSize"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".netAtmoInsertCacheSize", 0));
+    params["bkHydrometaInsertCacheSize"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".bkHydrometaInsertCacheSize", 0));
+    params["fmiIoTInsertCacheSize"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".fmiIoTInsertCacheSize", 0));
+    params["magnetometerInsertCacheSize"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".magnetometerInsertCacheSize", 0));
+  }
+  else
+  {
+    params["loadStations"] =
+        Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".loadStations", false));
+    params["connectionTimeout"] = Fmi::to_string(
+        cfg.get_optional_config_param<size_t>(common_key + ".connectionTimeout", 30));
+    params["timer"] =
+        Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".timer", false));
+    params["disableAllCacheUpdates"] = Fmi::to_string(
+        cfg.get_optional_config_param<bool>(common_key + ".disableAllCacheUpdates", false));
+    params["finCacheUpdateInterval"] = Fmi::to_string(
+        cfg.get_optional_config_param<std::size_t>(common_key + ".finCacheUpdateInterval", 0));
+    params["extCacheUpdateInterval"] = Fmi::to_string(
+        cfg.get_optional_config_param<std::size_t>(common_key + ".extCacheUpdateInterval", 0));
+    params["magnetometerCacheUpdateInterval"] =
+        Fmi::to_string(cfg.get_optional_config_param<std::size_t>(
+            common_key + ".magnetometerCacheUpdateInterval", 0));
+    params["flashCacheUpdateInterval"] = Fmi::to_string(
+        cfg.get_optional_config_param<std::size_t>(common_key + ".flashCacheUpdateInterval", 0));
+    params["updateExtraInterval"] = Fmi::to_string(
+        cfg.get_optional_config_param<std::size_t>(common_key + ".updateExtraInterval", 10));
+    params["magnetometerCacheDuration"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".magnetometerCacheDuration", 0));
+    params["finCacheDuration"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finCacheDuration", 0));
+    params["finMemoryCacheDuration"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".finMemoryCacheDuration", 0));
+    params["extCacheDuration"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extCacheDuration", 0));
+    params["flashCacheDuration"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashCacheDuration", 0));
+    params["flashMemoryCacheDuration"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".flashMemoryCacheDuration", 0));
+
+    params["finCacheUpdateSize"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finCacheUpdateSize", 0));
+    params["extCacheUpdateSize"] =
+        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extCacheUpdateSize", 0));
+
+    params["stationsCacheUpdateInterval"] = Fmi::to_string(
+        cfg.get_optional_config_param<std::size_t>(common_key + ".stationsCacheUpdateInterval", 0));
+  }
+
+  params["flash_emulator_active"] = "false";
+  if (cfg.get_optional_config_param<bool>(common_key + ".flash_emulator.active", false))
+  {
+    params["flash_emulator_active"] = "true";
+    params["flash_emulator_bbox"] = cfg.get_optional_config_param<std::string>(
+        common_key + ".flash_emulator.bbox", "20,60,30,70");
+    params["flash_emulator_strokes"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".flash_emulator.strokes_per_minute", 0));
+  }
+  /*
+  else
+    std::cout << "Flash emulator not active in driver " << name << std::endl;
+  */
+}
+
+void readOracleCommonInfo(Spine::ConfigBase& cfg,
+                          const std::string& name,
+                          std::map<std::string, std::string>& params)
+{
+  std::string common_key = ("database_info.common_info." + name);
+
+  bool defaultQuiet = cfg.get_optional_config_param<bool>("quiet", false);
+
+  params["quiet"] =
+      Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".quiet", defaultQuiet));
+  params["loadStations"] =
+      Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".loadStations", false));
+  params["poolSize"] =
+      Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".poolSize", 10));
+  params["connectionTimeout"] =
+      Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".connectionTimeout", 30));
+  params["timer"] =
+      Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".timer", false));
+  params["disableAllCacheUpdates"] = Fmi::to_string(
+      cfg.get_optional_config_param<bool>(common_key + ".disableAllCacheUpdates", false));
+  params["finCacheUpdateInterval"] = Fmi::to_string(
+      cfg.get_optional_config_param<std::size_t>(common_key + ".finCacheUpdateInterval", 0));
+  params["extCacheUpdateInterval"] = Fmi::to_string(
+      cfg.get_optional_config_param<std::size_t>(common_key + ".extCacheUpdateInterval", 0));
+  params["flashCacheUpdateInterval"] = Fmi::to_string(
+      cfg.get_optional_config_param<std::size_t>(common_key + ".flashCacheUpdateInterval", 0));
+  params["updateExtraInterval"] = Fmi::to_string(
+      cfg.get_optional_config_param<std::size_t>(common_key + ".updateExtraInterval", 10));
+  params["finCacheDuration"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finCacheDuration", 0));
+  params["finMemoryCacheDuration"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finMemoryCacheDuration", 0));
+  params["extCacheDuration"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extCacheDuration", 0));
+  params["flashCacheDuration"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashCacheDuration", 0));
+  params["flashMemoryCacheDuration"] = Fmi::to_string(
+      cfg.get_optional_config_param<int>(common_key + ".flashMemoryCacheDuration", 0));
+
+  params["finCacheUpdateSize"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finCacheUpdateSize", 0));
+  params["extCacheUpdateSize"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extCacheUpdateSize", 0));
+
+  params["stationsCacheUpdateInterval"] = Fmi::to_string(
+      cfg.get_optional_config_param<std::size_t>(common_key + ".stationsCacheUpdateInterval", 0));
+
+  params["flash_emulator_active"] = "false";
+  if (cfg.get_optional_config_param<bool>(common_key + ".flash_emulator.active", false))
+  {
+    params["flash_emulator_active"] = "true";
+    params["flash_emulator_bbox"] = cfg.get_optional_config_param<std::string>(
+        common_key + ".flash_emulator.bbox", "20,60,30,70");
+    params["flash_emulator_strokes"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".flash_emulator.strokes_per_minute", 0));
+  }
+  /*
+  else
+    std::cout << "Flash emulator not active in driver " << name << std::endl;
+  */
+}
+
+void readPostgreSQLMobileCommonInfo(Spine::ConfigBase& cfg,
+                                    const std::string& name,
+                                    std::map<std::string, std::string>& params)
+{
+  std::string common_key = ("database_info.common_info." + name);
+
+  bool defaultQuiet = cfg.get_optional_config_param<bool>("quiet", false);
+
+  params["quiet"] =
+      Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".quiet", defaultQuiet));
+  params["poolSize"] =
+      Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".poolSize", 10));
+  params["connectionTimeout"] =
+      Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".connectionTimeout", 30));
+  params["disableAllCacheUpdates"] = Fmi::to_string(
+      cfg.get_optional_config_param<bool>(common_key + ".disableAllCacheUpdates", false));
+  params["roadCloudCacheUpdateInterval"] = Fmi::to_string(
+      cfg.get_optional_config_param<std::size_t>(common_key + ".roadCloudCacheUpdateInterval", 0));
+  params["netAtmoCacheUpdateInterval"] = Fmi::to_string(
+      cfg.get_optional_config_param<std::size_t>(common_key + ".netAtmoCacheUpdateInterval", 0));
+  params["bkHydrometaCacheUpdateInterval"] =
+      Fmi::to_string(cfg.get_optional_config_param<std::size_t>(
+          common_key + ".bkHydrometaCacheUpdateInterval", 0));
+  params["fmiIoTCacheUpdateInterval"] = Fmi::to_string(
+      cfg.get_optional_config_param<std::size_t>(common_key + ".fmiIoTCacheUpdateInterval", 0));
+  params["roadCloudCacheDuration"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".roadCloudCacheDuration", 0));
+  params["netAtmoCacheDuration"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".netAtmoCacheDuration", 0));
+  params["bkHydrometaCacheDuration"] = Fmi::to_string(
+      cfg.get_optional_config_param<int>(common_key + ".bkHydrometaCacheDuration", 0));
+  params["fmiIoTCacheDuration"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".fmiIoTCacheDuration", 0));
+}
+
+void readFakeCacheInfo(Spine::ConfigBase& cfg,
+                       const std::string& name,
+                       std::map<std::string, std::string>& params)
+{
+  libconfig::Config& lc = cfg.get_config();
+  std::vector<std::string> table_names{"observation_data", "weather_data_qc", "flash_data"};
+
+  for (const auto& tablename : table_names)
+  {
+    std::string id = name + "." + tablename;
+    if (lc.exists(id))
+    {
+      std::string settings_str;
+      const libconfig::Setting& settings = lc.lookup(id);
+      int count = settings.getLength();
+
+      for (int i = 0; i < count; ++i)
+      {
+        std::string starttime = settings[i]["starttime"];
+        std::string endtime = settings[i]["endtime"];
+        std::string measurand_id;
+        std::string fmisid;
+        if (settings[i].exists("measurand_id"))
+          measurand_id = (settings[i]["measurand_id"]).c_str();
+        if (settings[i].exists("fmisid"))
+          fmisid = (settings[i]["fmisid"]).c_str();
+        settings_str += (starttime + ";" + endtime + ";" + measurand_id + ";" + fmisid + "#");
+      }
+      params[tablename] = settings_str;
+    }
+  }
+}
+
 }  // namespace
 
 void CacheInfoItem::mergeCacheInfo(const CacheInfoItem& cii_from)
@@ -25,16 +316,11 @@ void CacheInfoItem::mergeCacheInfo(const CacheInfoItem& cii_from)
   tables.insert(cii_from.tables.begin(), cii_from.tables.end());
   // Params
   for (const auto& param_item : cii_from.params)
-  {
-    if (params.find(param_item.first) == params.end())
-      params[param_item.first] = param_item.second;
-  }
+    params.insert(param_item);
+
   // Param vectors
   for (const auto& param_vector_item : cii_from.params_vector)
-  {
-    if (params_vector.find(param_vector_item.first) == params_vector.end())
-      params_vector[param_vector_item.first] = param_vector_item.second;
-  }
+    params_vector.insert(param_vector_item);
 }
 
 void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
@@ -185,32 +471,6 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
   }
 }
 
-void DatabaseDriverInfo::readSpatiaLiteConnectInfo(Spine::ConfigBase& cfg,
-                                                   const std::string& name,
-                                                   std::map<std::string, std::string>& params)
-{
-  std::string common_key = ("database_info.connect_info." + name);
-
-  params["spatialiteFile"] =
-      cfg.get_mandatory_config_param<std::string>(common_key + ".spatialiteFile");
-}
-
-void DatabaseDriverInfo::readPostgreSQLConnectInfo(Spine::ConfigBase& cfg,
-                                                   const std::string& name,
-                                                   std::map<std::string, std::string>& params)
-{
-  std::string common_key = ("database_info.connect_info." + name);
-
-  params["host"] = cfg.get_mandatory_config_param<std::string>(common_key + ".host");
-  params["port"] = Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".port"));
-  params["database"] = cfg.get_mandatory_config_param<std::string>(common_key + ".database");
-  params["username"] = cfg.get_mandatory_config_param<std::string>(common_key + ".username");
-  params["password"] = cfg.get_mandatory_config_param<std::string>(common_key + ".password");
-  params["encoding"] = cfg.get_mandatory_config_param<std::string>(common_key + ".encoding");
-  params["connect_timeout"] =
-      Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".connect_timeout"));
-}
-
 void DatabaseDriverInfo::readOracleConnectInfo(
     Spine::ConfigBase& cfg,
     const std::string& name,
@@ -220,7 +480,7 @@ void DatabaseDriverInfo::readOracleConnectInfo(
   {
     std::string common_key = ("database_info.connect_info." + name);
 
-    const std::string& name = boost::asio::ip::host_name();
+    const std::string& host = boost::asio::ip::host_name();
     const std::string& defaultLang = "NLS_LANG=.UTF8";
 
     auto& cfgsetting = cfg.get_config().lookup(common_key);
@@ -232,20 +492,20 @@ void DatabaseDriverInfo::readOracleConnectInfo(
     const std::string scope = "override";
 
     params_vector["service"].push_back(
-        lookupDatabase(common_key, "service", name, scope, ccfg.get_config()));
+        lookupDatabase(common_key, "service", host, scope, ccfg.get_config()));
     params_vector["username"].push_back(
-        lookupDatabase(common_key, "username", name, scope, ccfg.get_config()));
+        lookupDatabase(common_key, "username", host, scope, ccfg.get_config()));
     params_vector["password"].push_back(
-        lookupDatabase(common_key, "password", name, scope, ccfg.get_config()));
+        lookupDatabase(common_key, "password", host, scope, ccfg.get_config()));
 
     auto nlsLangSetting = ccfg.get_config().exists("database.nls_lang");
     auto nlsLang = nlsLangSetting
-                       ? lookupDatabase(common_key, "nls_lang", name, scope, ccfg.get_config())
+                       ? lookupDatabase(common_key, "nls_lang", host, scope, ccfg.get_config())
                        : defaultLang;
     params_vector["nlsLang"].push_back(nlsLang);
     auto poolSizeSetting = ccfg.get_config().exists(common_key + ".poolSize");
     auto poolSize = poolSizeSetting
-                        ? lookupDatabase(common_key, "poolSize", name, scope, ccfg.get_config())
+                        ? lookupDatabase(common_key, "poolSize", host, scope, ccfg.get_config())
                         : cfg.get_mandatory_config_param<int>("database_driver.poolSize");
     params_vector["poolSize"].emplace_back(Fmi::to_string(poolSize));
 
@@ -261,25 +521,25 @@ void DatabaseDriverInfo::readOracleConnectInfo(
         int num = names.getLength();
         for (int j = 0; j < num; ++j)
         {
-          std::string host = names[j];
-          if (boost::algorithm::starts_with(name, host))
+          std::string hostname = names[j];
+          if (boost::algorithm::starts_with(host, hostname))
             nameFound = true;
         }
       }
       if (nameFound)
       {
         params_vector["service"].push_back(
-            lookupDatabase(common_key, "service", name, extra, ccfg.get_config()));
+            lookupDatabase(common_key, "service", host, extra, ccfg.get_config()));
         params_vector["username"].push_back(
-            lookupDatabase(common_key, "username", name, extra, ccfg.get_config()));
+            lookupDatabase(common_key, "username", host, extra, ccfg.get_config()));
         params_vector["password"].push_back(
-            lookupDatabase(common_key, "password", name, extra, ccfg.get_config()));
+            lookupDatabase(common_key, "password", host, extra, ccfg.get_config()));
         auto nlsLangE = nlsLangSetting
-                            ? lookupDatabase(common_key, "nls_lang", name, extra, ccfg.get_config())
+                            ? lookupDatabase(common_key, "nls_lang", host, extra, ccfg.get_config())
                             : defaultLang;
         params_vector["nlslang"].push_back(nlsLangE);
         auto poolSizeE =
-            poolSizeSetting ? lookupDatabase(common_key, "poolSize", name, extra, ccfg.get_config())
+            poolSizeSetting ? lookupDatabase(common_key, "poolSize", host, extra, ccfg.get_config())
                             : cfg.get_mandatory_config_param<int>("database_driver.poolSize");
         params_vector["poolsize"].emplace_back(Fmi::to_string(poolSizeE));
       }
@@ -288,232 +548,6 @@ void DatabaseDriverInfo::readOracleConnectInfo(
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Reading Oracle database driver configuration failed!");
-  }
-}
-
-void DatabaseDriverInfo::readOracleCommonInfo(Spine::ConfigBase& cfg,
-                                              const std::string& name,
-                                              std::map<std::string, std::string>& params)
-{
-  std::string common_key = ("database_info.common_info." + name);
-
-  bool defaultQuiet = cfg.get_optional_config_param<bool>("quiet", false);
-
-  params["quiet"] =
-      Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".quiet", defaultQuiet));
-  params["loadStations"] =
-      Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".loadStations", false));
-  params["poolSize"] =
-      Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".poolSize", 10));
-  params["connectionTimeout"] =
-      Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".connectionTimeout", 30));
-  params["timer"] =
-      Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".timer", false));
-  params["disableAllCacheUpdates"] = Fmi::to_string(
-      cfg.get_optional_config_param<bool>(common_key + ".disableAllCacheUpdates", false));
-  params["finCacheUpdateInterval"] = Fmi::to_string(
-      cfg.get_optional_config_param<std::size_t>(common_key + ".finCacheUpdateInterval", 0));
-  params["extCacheUpdateInterval"] = Fmi::to_string(
-      cfg.get_optional_config_param<std::size_t>(common_key + ".extCacheUpdateInterval", 0));
-  params["flashCacheUpdateInterval"] = Fmi::to_string(
-      cfg.get_optional_config_param<std::size_t>(common_key + ".flashCacheUpdateInterval", 0));
-  params["updateExtraInterval"] = Fmi::to_string(
-      cfg.get_optional_config_param<std::size_t>(common_key + ".updateExtraInterval", 10));
-  params["finCacheDuration"] =
-      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finCacheDuration", 0));
-  params["finMemoryCacheDuration"] =
-      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finMemoryCacheDuration", 0));
-  params["extCacheDuration"] =
-      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extCacheDuration", 0));
-  params["flashCacheDuration"] =
-      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashCacheDuration", 0));
-  params["flashMemoryCacheDuration"] = Fmi::to_string(
-      cfg.get_optional_config_param<int>(common_key + ".flashMemoryCacheDuration", 0));
-
-  params["finCacheUpdateSize"] =
-      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finCacheUpdateSize", 0));
-  params["extCacheUpdateSize"] =
-      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extCacheUpdateSize", 0));
-
-  params["stationsCacheUpdateInterval"] = Fmi::to_string(
-      cfg.get_optional_config_param<std::size_t>(common_key + ".stationsCacheUpdateInterval", 0));
-
-  params["flash_emulator_active"] = "false";
-  if (cfg.get_optional_config_param<bool>(common_key + ".flash_emulator.active", false))
-  {
-    params["flash_emulator_active"] = "true";
-    params["flash_emulator_bbox"] = cfg.get_optional_config_param<std::string>(
-        common_key + ".flash_emulator.bbox", "20,60,30,70");
-    params["flash_emulator_strokes"] = Fmi::to_string(
-        cfg.get_optional_config_param<int>(common_key + ".flash_emulator.strokes_per_minute", 0));
-  }
-  /*
-  else
-    std::cout << "Flash emulator not active in driver " << name << std::endl;
-  */
-}
-
-void DatabaseDriverInfo::readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
-                                                  const std::string& name,
-                                                  std::map<std::string, std::string>& params)
-{
-  std::string common_key = ("database_info.common_info." + name);
-
-  bool defaultQuiet = cfg.get_optional_config_param<bool>("quiet", false);
-
-  params["quiet"] =
-      Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".quiet", defaultQuiet));
-  params["poolSize"] =
-      Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".poolSize", 10));
-
-  if (boost::algorithm::ends_with(name, "_cache"))
-  {
-    params["maxInsertSize"] =
-        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".maxInsertSize", 0));
-    params["locationCacheSize"] =
-        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".locationCacheSize", 0));
-    params["dataInsertCacheSize"] =
-        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".dataInsertCacheSize", 0));
-    params["movingLocationsInsertCacheSize"] = Fmi::to_string(
-        cfg.get_optional_config_param<int>(common_key + ".movingLocationsInsertCacheSize", 0));
-    params["weatherDataQCInsertCacheSize"] = Fmi::to_string(
-        cfg.get_optional_config_param<int>(common_key + ".weatherDataQCInsertCacheSize", 0));
-    params["flashInsertCacheSize"] =
-        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashInsertCacheSize", 0));
-    params["roadCloudInsertCacheSize"] = Fmi::to_string(
-        cfg.get_optional_config_param<int>(common_key + ".roadCloudInsertCacheSize", 0));
-    params["netAtmoInsertCacheSize"] = Fmi::to_string(
-        cfg.get_optional_config_param<int>(common_key + ".netAtmoInsertCacheSize", 0));
-    params["bkHydrometaInsertCacheSize"] = Fmi::to_string(
-        cfg.get_optional_config_param<int>(common_key + ".bkHydrometaInsertCacheSize", 0));
-    params["fmiIoTInsertCacheSize"] = Fmi::to_string(
-        cfg.get_optional_config_param<int>(common_key + ".fmiIoTInsertCacheSize", 0));
-    params["magnetometerInsertCacheSize"] = Fmi::to_string(
-        cfg.get_optional_config_param<int>(common_key + ".magnetometerInsertCacheSize", 0));
-  }
-  else
-  {
-    params["loadStations"] =
-        Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".loadStations", false));
-    params["connectionTimeout"] = Fmi::to_string(
-        cfg.get_optional_config_param<size_t>(common_key + ".connectionTimeout", 30));
-    params["timer"] =
-        Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".timer", false));
-    params["disableAllCacheUpdates"] = Fmi::to_string(
-        cfg.get_optional_config_param<bool>(common_key + ".disableAllCacheUpdates", false));
-    params["finCacheUpdateInterval"] = Fmi::to_string(
-        cfg.get_optional_config_param<std::size_t>(common_key + ".finCacheUpdateInterval", 0));
-    params["extCacheUpdateInterval"] = Fmi::to_string(
-        cfg.get_optional_config_param<std::size_t>(common_key + ".extCacheUpdateInterval", 0));
-    params["magnetometerCacheUpdateInterval"] =
-        Fmi::to_string(cfg.get_optional_config_param<std::size_t>(
-            common_key + ".magnetometerCacheUpdateInterval", 0));
-    params["flashCacheUpdateInterval"] = Fmi::to_string(
-        cfg.get_optional_config_param<std::size_t>(common_key + ".flashCacheUpdateInterval", 0));
-    params["updateExtraInterval"] = Fmi::to_string(
-        cfg.get_optional_config_param<std::size_t>(common_key + ".updateExtraInterval", 10));
-    params["magnetometerCacheDuration"] = Fmi::to_string(
-        cfg.get_optional_config_param<int>(common_key + ".magnetometerCacheDuration", 0));
-    params["finCacheDuration"] =
-        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finCacheDuration", 0));
-    params["finMemoryCacheDuration"] = Fmi::to_string(
-        cfg.get_optional_config_param<int>(common_key + ".finMemoryCacheDuration", 0));
-    params["extCacheDuration"] =
-        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extCacheDuration", 0));
-    params["flashCacheDuration"] =
-        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashCacheDuration", 0));
-    params["flashMemoryCacheDuration"] = Fmi::to_string(
-        cfg.get_optional_config_param<int>(common_key + ".flashMemoryCacheDuration", 0));
-
-    params["finCacheUpdateSize"] =
-        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finCacheUpdateSize", 0));
-    params["extCacheUpdateSize"] =
-        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extCacheUpdateSize", 0));
-
-    params["stationsCacheUpdateInterval"] = Fmi::to_string(
-        cfg.get_optional_config_param<std::size_t>(common_key + ".stationsCacheUpdateInterval", 0));
-  }
-
-  params["flash_emulator_active"] = "false";
-  if (cfg.get_optional_config_param<bool>(common_key + ".flash_emulator.active", false))
-  {
-    params["flash_emulator_active"] = "true";
-    params["flash_emulator_bbox"] = cfg.get_optional_config_param<std::string>(
-        common_key + ".flash_emulator.bbox", "20,60,30,70");
-    params["flash_emulator_strokes"] = Fmi::to_string(
-        cfg.get_optional_config_param<int>(common_key + ".flash_emulator.strokes_per_minute", 0));
-  }
-  /*
-  else
-    std::cout << "Flash emulator not active in driver " << name << std::endl;
-  */
-}
-
-void DatabaseDriverInfo::readPostgreSQLMobileCommonInfo(Spine::ConfigBase& cfg,
-                                                        const std::string& name,
-                                                        std::map<std::string, std::string>& params)
-{
-  std::string common_key = ("database_info.common_info." + name);
-
-  bool defaultQuiet = cfg.get_optional_config_param<bool>("quiet", false);
-
-  params["quiet"] =
-      Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".quiet", defaultQuiet));
-  params["poolSize"] =
-      Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".poolSize", 10));
-  params["connectionTimeout"] =
-      Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".connectionTimeout", 30));
-  params["disableAllCacheUpdates"] = Fmi::to_string(
-      cfg.get_optional_config_param<bool>(common_key + ".disableAllCacheUpdates", false));
-  params["roadCloudCacheUpdateInterval"] = Fmi::to_string(
-      cfg.get_optional_config_param<std::size_t>(common_key + ".roadCloudCacheUpdateInterval", 0));
-  params["netAtmoCacheUpdateInterval"] = Fmi::to_string(
-      cfg.get_optional_config_param<std::size_t>(common_key + ".netAtmoCacheUpdateInterval", 0));
-  params["bkHydrometaCacheUpdateInterval"] =
-      Fmi::to_string(cfg.get_optional_config_param<std::size_t>(
-          common_key + ".bkHydrometaCacheUpdateInterval", 0));
-  params["fmiIoTCacheUpdateInterval"] = Fmi::to_string(
-      cfg.get_optional_config_param<std::size_t>(common_key + ".fmiIoTCacheUpdateInterval", 0));
-  params["roadCloudCacheDuration"] =
-      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".roadCloudCacheDuration", 0));
-  params["netAtmoCacheDuration"] =
-      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".netAtmoCacheDuration", 0));
-  params["bkHydrometaCacheDuration"] = Fmi::to_string(
-      cfg.get_optional_config_param<int>(common_key + ".bkHydrometaCacheDuration", 0));
-  params["fmiIoTCacheDuration"] =
-      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".fmiIoTCacheDuration", 0));
-}
-
-void DatabaseDriverInfo::readFakeCacheInfo(Spine::ConfigBase& cfg,
-                                           const std::string& name,
-                                           std::map<std::string, std::string>& params)
-{
-  libconfig::Config& lc = cfg.get_config();
-  std::vector<std::string> table_names{"observation_data", "weather_data_qc", "flash_data"};
-
-  for (const auto& tablename : table_names)
-  {
-    std::string id = name + "." + tablename;
-    if (lc.exists(id))
-    {
-      std::string settings_str;
-      const libconfig::Setting& settings = lc.lookup(id);
-      int count = settings.getLength();
-
-      for (int i = 0; i < count; ++i)
-      {
-        std::string starttime = settings[i]["starttime"];
-        std::string endtime = settings[i]["endtime"];
-        std::string measurand_id;
-        std::string fmisid;
-        if (settings[i].exists("measurand_id"))
-          measurand_id = (settings[i]["measurand_id"]).c_str();
-        if (settings[i].exists("fmisid"))
-          fmisid = (settings[i]["fmisid"]).c_str();
-        settings_str += (starttime + ";" + endtime + ";" + measurand_id + ";" + fmisid + "#");
-      }
-      params[tablename] = settings_str;
-    }
   }
 }
 
@@ -585,45 +619,6 @@ void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".fmiIoTInsertCacheSize", 0));
   params["magnetometerInsertCacheSize"] = Fmi::to_string(
       cfg.get_optional_config_param<int>(common_key + ".magnetometerInsertCacheSize", 0));
-}
-
-/*!
- * \brief Lookup configuration value for the database considering overrides
- */
-// ----------------------------------------------------------------------
-
-const libconfig::Setting& DatabaseDriverInfo::lookupDatabase(const std::string& common_key,
-                                                             const std::string& setting,
-                                                             const std::string& name,
-                                                             const std::string& scope,
-                                                             const libconfig::Config& conf) const
-{
-  try
-  {
-    const auto& default_value = conf.lookup(common_key + "." + setting);
-    if (conf.exists("database." + scope))
-    {
-      const libconfig::Setting& override = conf.lookup(common_key + "." + scope);
-      int count = override.getLength();
-      for (int i = 0; i < count; ++i)
-      {
-        const libconfig::Setting& names = override[i]["name"];
-        int num = names.getLength();
-        for (int j = 0; j < num; ++j)
-        {
-          std::string host = names[j];
-
-          if (boost::algorithm::starts_with(name, host) && override[i].exists(setting))
-            return override[i][setting.c_str()];
-        }  // for int j
-      }    // for int i
-    }      // if
-    return default_value;
-  }
-  catch (libconfig::SettingNotFoundException& ex)
-  {
-    throw Fmi::Exception::Trace(BCP, "Override configuration error: " + setting);
-  }
 }
 
 const DatabaseDriverInfoItem& DatabaseDriverInfo::getDatabaseDriverInfo(

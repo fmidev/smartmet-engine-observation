@@ -21,7 +21,7 @@ namespace Observation
 class QueryResultBase;
 struct EngineParameters
 {
-  EngineParameters(Spine::ConfigBase &cfg);
+  explicit EngineParameters(Spine::ConfigBase &cfg);
 
   void readDataQualityConfig(Spine::ConfigBase &cfg);
   void readStationTypeConfig(Spine::ConfigBase &cfg);

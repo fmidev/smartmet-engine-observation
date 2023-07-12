@@ -127,7 +127,7 @@ class SpatiaLite : public CommonDatabaseFunctions
   void createTables(const std::set<std::string> &tables);
 
   void setConnectionId(int connectionId) { itsConnectionId = connectionId; }
-  int connectionId() { return itsConnectionId; }
+  int connectionId() const { return itsConnectionId; }
 
   /**
    * @brief Update observation_data with data from Oracle's

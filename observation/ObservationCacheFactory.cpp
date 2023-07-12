@@ -14,7 +14,6 @@ std::shared_ptr<ObservationCacheProxy> ObservationCacheFactory::create(const Eng
                                                                        const Spine::ConfigBase& cfg)
 {
   std::shared_ptr<ObservationCacheProxy> cacheProxy(new ObservationCacheProxy());
-  ObservationCaches caches;
 
   const std::map<std::string, CacheInfoItem>& cacheInfoItems =
       p->databaseDriverInfo.getAggregateCacheInfo();
@@ -28,17 +27,11 @@ std::shared_ptr<ObservationCacheProxy> ObservationCacheFactory::create(const Eng
     const std::string& cacheName = item.first;
 
     if (boost::algorithm::starts_with(cacheName, "postgresql_"))
-    {
       cache.reset(new PostgreSQLCache(cacheName, p, cfg));
-    }
     else if (boost::algorithm::starts_with(cacheName, "spatialite_"))
-    {
       cache.reset(new SpatiaLiteCache(cacheName, p, cfg));
-    }
     else if (boost::algorithm::starts_with(cacheName, "dummy_"))
-    {
       cache.reset(new DummyCache(cacheName, p));
-    }
 
     if (cache)
     {

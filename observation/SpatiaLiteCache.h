@@ -74,7 +74,7 @@ class SpatiaLiteCache : public ObservationCache
   std::size_t fillRoadCloudCache(
       const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const override;
-  TS::TimeSeriesVectorPtr roadCloudValuesFromSpatiaLite(Settings &settings) const;
+  TS::TimeSeriesVectorPtr roadCloudValuesFromSpatiaLite(const Settings &settings) const;
 
   // NetAtmo
   bool netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
@@ -84,7 +84,7 @@ class SpatiaLiteCache : public ObservationCache
   std::size_t fillNetAtmoCache(
       const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const override;
-  TS::TimeSeriesVectorPtr netAtmoValuesFromSpatiaLite(Settings &settings) const;
+  TS::TimeSeriesVectorPtr netAtmoValuesFromSpatiaLite(const Settings &settings) const;
 
   // BKHydrometa
   bool bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
@@ -94,7 +94,7 @@ class SpatiaLiteCache : public ObservationCache
   std::size_t fillBKHydrometaCache(
       const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanBKHydrometaCache(const boost::posix_time::time_duration &timetokeep) const override;
-  TS::TimeSeriesVectorPtr bkHydrometaValuesFromSpatiaLite(Settings &settings) const;
+  TS::TimeSeriesVectorPtr bkHydrometaValuesFromSpatiaLite(const Settings &settings) const;
 
   // FmiIoT
   bool fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
@@ -104,7 +104,7 @@ class SpatiaLiteCache : public ObservationCache
   std::size_t fillFmiIoTCache(
       const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const override;
-  TS::TimeSeriesVectorPtr fmiIoTValuesFromSpatiaLite(Settings &settings) const;
+  TS::TimeSeriesVectorPtr fmiIoTValuesFromSpatiaLite(const Settings &settings) const;
 
   // Magnetometer
   bool magnetometerIntervalIsCached(const boost::posix_time::ptime &starttime,
@@ -137,7 +137,7 @@ class SpatiaLiteCache : public ObservationCache
                             const boost::posix_time::ptime &endtime) const;
   bool timeIntervalWeatherDataQCIsCached(const boost::posix_time::ptime &starttime,
                                          const boost::posix_time::ptime &endtime) const;
-  TS::TimeSeriesVectorPtr flashValuesFromSpatiaLite(Settings &settings) const;
+  TS::TimeSeriesVectorPtr flashValuesFromSpatiaLite(const Settings &settings) const;
   void readConfig(const Spine::ConfigBase &cfg);
 
   void getMovingStations(Spine::Stations &stations,

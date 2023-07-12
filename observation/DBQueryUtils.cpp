@@ -185,11 +185,11 @@ void addSpecialFieldsToTimeSeries(
           if (!masterParamName.empty())
             masterParamName = masterParamName.substr(0, masterParamName.length());
           std::string sensor_number = fieldname.substr(fieldname.rfind('_') + 1);
-          for (const auto &item : parameterNameMap)
+          for (const auto &item2 : parameterNameMap)
           {
-            if (boost::algorithm::starts_with(item.first, masterParamName + "_sensornumber_"))
+            if (boost::algorithm::starts_with(item2.first, masterParamName + "_sensornumber_"))
             {
-              int measurand_id = Fmi::stoi(parameterNameMap.at(item.first));
+              int measurand_id = Fmi::stoi(parameterNameMap.at(item2.first));
               if (measurand_data.count(measurand_id) > 0)
               {
                 const auto &sensor_values = measurand_data.at(measurand_id);
@@ -545,6 +545,7 @@ QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
     for (const Spine::Parameter &p : settings.parameters)
     {
       std::string name = p.name();
+      Fmi::ascii_tolower(name);
 
       if (not_special(p))
       {
@@ -552,7 +553,6 @@ QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
         if (!isDataQualityField)
           isDataQualityField = (p.getSensorParameter() == "qc");
 
-        Fmi::ascii_tolower(name);
         std::string sensor_number_string =
             (p.getSensorNumber() ? Fmi::to_string(*(p.getSensorNumber())) : "default");
         std::string name_plus_sensor_number = name;
@@ -600,9 +600,6 @@ QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
       }
       else
       {
-        std::string name = p.name();
-        Fmi::ascii_tolower(name);
-
         if (name.find("windcompass") != std::string::npos)
         {
           if (!isWeatherDataQCTable)
@@ -960,7 +957,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
 
         for (auto &timed_value : ts)
         {
-          while (*timestep_iter < timed_value.time && timestep_iter != valid_timesteps.cend())
+          while (timestep_iter != valid_timesteps.cend() && *timestep_iter < timed_value.time)
           {
             fill_missing();
             timestep_iter++;
@@ -1153,7 +1150,7 @@ std::string DBQueryUtils::buildSqlStationList(const Spine::Stations &stations,
 }
 
 std::string DBQueryUtils::getSensorQueryCondition(
-    const std::map<int, std::set<int>> &sensorNumberToMeasurandIds) const
+    const std::map<int, std::set<int>> &sensorNumberToMeasurandIds)
 {
   try
   {

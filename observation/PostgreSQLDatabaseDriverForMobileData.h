@@ -31,7 +31,7 @@ class PostgreSQLDatabaseDriverForMobileData : public PostgreSQLDatabaseDriver
                                  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
 
   std::shared_ptr<std::vector<ObservableProperty> > observablePropertyQuery(
-      std::vector<std::string> &parameters, const std::string language) override;
+      std::vector<std::string> &parameters, const std::string &language) override;
   void getStations(Spine::Stations &stations, const Settings &settings) const override;
   void getStationsByArea(Spine::Stations &stations,
                          const Settings &settings,
@@ -43,8 +43,6 @@ class PostgreSQLDatabaseDriverForMobileData : public PostgreSQLDatabaseDriver
   std::shared_ptr<FmiIoTStations> &getFmiIoTStations() { return itsParameters.fmiIoTStations; }
 
  private:
-  void setSettings(Settings &settings, PostgreSQLObsDB &db);
-
   void readConfig(Spine::ConfigBase &cfg);
 };
 

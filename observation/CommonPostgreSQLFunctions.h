@@ -49,7 +49,7 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
   bool isConnected();
   void reConnect();
   void setConnectionId(int connectionId) { itsConnectionId = connectionId; }
-  int connectionId() { return static_cast<int>(itsConnectionId); }
+  int connectionId() const { return static_cast<int>(itsConnectionId); }
   Fmi::Database::PostgreSQLConnection &getConnection() { return itsDB; }
   const std::shared_ptr<Fmi::TimeFormatter> &getTimeFormatter() const { return itsTimeFormatter; }
   const std::shared_ptr<Fmi::TimeFormatter> &resetTimeFormatter(const std::string &format);
@@ -63,7 +63,7 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
  protected:
   Fmi::Database::PostgreSQLConnection itsDB;
 
-  std::size_t itsConnectionId;
+  std::size_t itsConnectionId = 0;
   std::map<unsigned int, std::string> itsPostgreDataTypes;
   bool itsIsCacheDatabase{false};
 

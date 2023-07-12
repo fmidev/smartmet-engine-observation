@@ -35,7 +35,7 @@ class StationInfo
 {
  public:
   StationInfo() = default;
-  StationInfo(const std::string& filename);
+  explicit StationInfo(const std::string& filename);
 
   Spine::Stations stations;           // all known stations
   StationLocations stationLocations;  // all station locations

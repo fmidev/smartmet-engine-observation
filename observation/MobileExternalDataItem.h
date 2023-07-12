@@ -25,11 +25,11 @@ class MobileExternalDataItem
   boost::optional<int> sensor_no;
   boost::optional<int> data_quality;
   boost::optional<int> ctrl_status;
-  double data_value;
-  double longitude;
-  double latitude;
-  int mid;
-  int prod_id;
+  double data_value = 0;
+  double longitude = 0;
+  double latitude = 0;
+  int mid = 0;
+  int prod_id = 0;
 
   std::size_t hash_value() const;
 };

@@ -32,14 +32,14 @@ class DBRegistryConfig
   //                      and other strings are replaced with empty string)
   using FieldValueTypeMapType = std::map<NameType, NameType>;
 
-  DBRegistryConfig(const std::shared_ptr<Spine::ConfigBase>& config);
+  explicit DBRegistryConfig(const std::shared_ptr<Spine::ConfigBase>& config);
 
   /**
    * @brief Get the table (view) name.
    * @return Name of the table.
    */
   NameType getTableName() const { return m_name; }
-  const std::shared_ptr<FieldNameMapType> getFieldNameMap() const
+  std::shared_ptr<FieldNameMapType> getFieldNameMap() const
   {
     return std::make_shared<FieldNameMapType>(m_fieldNameMap);
   }
@@ -86,10 +86,8 @@ class NamesAllowed
    *  @param caseSensitiveNames Names are handled case sensitively (default) unless the param value
    * is false.
    */
-  NamesAllowed(const std::shared_ptr<DBRegistryConfig> dbrConfig,
-               const bool caseSensitiveNames = true);
-
-  ~NamesAllowed();
+  explicit NamesAllowed(const std::shared_ptr<DBRegistryConfig>& dbrConfig,
+                        bool caseSensitiveNames = true);
 
   NamesAllowed& operator=(const NamesAllowed& names) = delete;
   NamesAllowed(const NamesAllowed& names) = delete;

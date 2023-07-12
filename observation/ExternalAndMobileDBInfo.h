@@ -17,7 +17,8 @@ namespace Observation
 class ExternalAndMobileDBInfo
 {
  public:
-  ExternalAndMobileDBInfo(const ExternalAndMobileProducerConfigItem *producerConfig = nullptr);
+  explicit ExternalAndMobileDBInfo(
+      const ExternalAndMobileProducerConfigItem *producerConfig = nullptr);
 
   std::string sqlSelect(const std::vector<int> &measurandIds,
                         const boost::posix_time::ptime &starttime,

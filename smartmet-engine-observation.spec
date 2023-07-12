@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.6.21
+Version: 23.7.12
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -30,11 +30,11 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 23.7.11
 BuildRequires: smartmet-library-locus-devel >= 23.7.10
-BuildRequires: smartmet-library-macgyver-devel >= 23.6.15
+BuildRequires: smartmet-library-macgyver-devel >= 23.6.30
 BuildRequires: smartmet-library-spine-devel >= 23.7.10
 BuildRequires: smartmet-library-timeseries-devel >= 23.7.10
 BuildRequires: sqlite3pp-devel >= 1.0.9
-BuildRequires: smartmet-utils-devel >= 23.6.14
+BuildRequires: smartmet-utils-devel >= 23.6.16
 BuildRequires: zlib-devel
 Requires: %{smartmet_boost}-date-time
 Requires: %{smartmet_boost}-iostreams
@@ -47,7 +47,7 @@ Requires: gdal35-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 23.7.11
 Requires: smartmet-library-locus >= 23.7.10
-Requires: smartmet-library-macgyver >= 23.6.15
+Requires: smartmet-library-macgyver >= 23.6.30
 Requires: smartmet-library-spine >= 23.7.10
 Requires: smartmet-library-timeseries >= 23.7.10
 Requires: smartmet-server >= 23.5.19
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jul 12 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.7.12-1.fmi
+- Silenced compiler warnings
+
 * Wed Jun 21 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.6.21-1.fmi
 - Speed improvements
 

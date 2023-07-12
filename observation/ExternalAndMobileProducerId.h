@@ -18,8 +18,8 @@ const std::string BK_HYDROMETA_PRODUCER = "bk_hydrometa";
 class ProducerId
 {
  public:
-  ProducerId(int id) { init(id); }
-  ProducerId(const std::string& id)
+  explicit ProducerId(int id) { init(id); }
+  explicit ProducerId(const std::string& id)
   {
     if (std::string::npos != id.find_first_not_of("0123456789"))
       throw Fmi::Exception(BCP, "Unsupported producer id: " + id);

@@ -60,7 +60,7 @@ std::string windCompass32(double direction, const std::string& missingValue);
 std::string parseParameterName(const std::string& parameter);
 int parseSensorNumber(const std::string& parameter);
 
-Spine::Stations removeDuplicateStations(Spine::Stations& stations);
+Spine::Stations removeDuplicateStations(const Spine::Stations& stations);
 
 // Rounded to seconds
 boost::posix_time::ptime utc_second_clock();

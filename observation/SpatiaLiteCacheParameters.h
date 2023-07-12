@@ -23,7 +23,7 @@ class StationtypeConfig;
 
 struct SpatiaLiteCacheParameters
 {
-  SpatiaLiteCacheParameters(const EngineParametersPtr& p)
+  explicit SpatiaLiteCacheParameters(const EngineParametersPtr& p)
       : stationInfo(&p->stationInfo),
         quiet(p->quiet),
         stationtypeConfig(p->stationtypeConfig),

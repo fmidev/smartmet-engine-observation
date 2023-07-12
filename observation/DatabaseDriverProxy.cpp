@@ -107,7 +107,7 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
 
 DatabaseDriverProxy::~DatabaseDriverProxy()
 {
-  for (auto *driver : itsDatabaseDriverSet)
+  for (const auto *driver : itsDatabaseDriverSet)
     delete driver;
 }
 
@@ -307,7 +307,7 @@ FlashCounts DatabaseDriverProxy::getFlashCount(const boost::posix_time::ptime &s
 }
 
 std::shared_ptr<std::vector<ObservableProperty>> DatabaseDriverProxy::observablePropertyQuery(
-    std::vector<std::string> &parameters, const std::string language)
+    std::vector<std::string> &parameters, const std::string &language)
 {
   DatabaseDriverBase *pDriver = resolveDatabaseDriverByTable("measurand");
   return pDriver->observablePropertyQuery(parameters, language);
@@ -454,7 +454,7 @@ DatabaseDriverBase *DatabaseDriverProxy::resolveDatabaseDriverByTable(
 
 DatabaseDriverBase *DatabaseDriverProxy::createOracleDriver(const std::string &driver_id,
                                                             const EngineParametersPtr &p,
-                                                            Spine::ConfigBase &cfg) const
+                                                            Spine::ConfigBase &cfg)
 {
   try
   {
@@ -512,7 +512,7 @@ MeasurandInfo DatabaseDriverProxy::getMeasurandInfo() const
   if (itsStationsDriver)
     return itsStationsDriver->getMeasurandInfo();
 
-  return MeasurandInfo();
+  return {};
 }
 
 }  // namespace Observation

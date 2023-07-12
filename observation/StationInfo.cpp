@@ -576,7 +576,7 @@ Spine::Stations StationInfo::findStationsInsideArea(const std::set<std::string>&
 {
   try
   {
-    Spine::Stations stations;
+    Spine::Stations ret;
 
     // Get stations belonging to the requested groups and period
     Spine::Stations groupStations = findStationsInGroup(groups, starttime, endtime);
@@ -597,13 +597,13 @@ Spine::Stations StationInfo::findStationsInsideArea(const std::set<std::string>&
       // If station is inside area accept it
       if (areaGeometry->Contains(&stationLocation))
       {
-        stations.push_back(station);
+        ret.push_back(station);
       }
     }
     // Sort in ascending fmisid order
-    std::sort(stations.begin(), stations.end(), sort_stations_function);
+    std::sort(ret.begin(), ret.end(), sort_stations_function);
 
-    return stations;
+    return ret;
   }
   catch (...)
   {
@@ -804,10 +804,10 @@ Spine::TaggedFMISIDList StationInfo::translateWMOToFMISID(const std::vector<int>
 {
   Spine::TaggedFMISIDList ret;
 
-  Spine::Stations stations = findWmoStations(wmos);
+  Spine::Stations wmostations = findWmoStations(wmos);
 
   std::set<int> processed;
-  for (const auto& s : stations)
+  for (const auto& s : wmostations)
     if (t >= s.station_start && t <= s.station_end && processed.find(s.wmo) == processed.end())
     {
       ret.emplace_back(Fmi::to_string(s.wmo), s.fmisid);
@@ -822,10 +822,10 @@ Spine::TaggedFMISIDList StationInfo::translateRWSIDToFMISID(const std::vector<in
 {
   Spine::TaggedFMISIDList ret;
 
-  Spine::Stations stations = findRwsidStations(rwsids);
+  Spine::Stations roadstations = findRwsidStations(rwsids);
 
   std::set<int> processed;
-  for (const auto& s : stations)
+  for (const auto& s : roadstations)
     if (t >= s.station_start && t <= s.station_end && processed.find(s.rwsid) == processed.end())
     {
       ret.emplace_back(Fmi::to_string(s.rwsid), s.fmisid);
@@ -840,10 +840,10 @@ Spine::TaggedFMISIDList StationInfo::translateLPNNToFMISID(const std::vector<int
 {
   Spine::TaggedFMISIDList ret;
 
-  Spine::Stations stations = findLpnnStations(lpnns);
+  Spine::Stations lpnnstations = findLpnnStations(lpnns);
 
   std::set<int> processed;
-  for (const auto& s : stations)
+  for (const auto& s : lpnnstations)
     if (t >= s.station_start && t <= s.station_end && processed.find(s.lpnn) == processed.end())
     {
       ret.emplace_back(Fmi::to_string(s.lpnn), s.fmisid);

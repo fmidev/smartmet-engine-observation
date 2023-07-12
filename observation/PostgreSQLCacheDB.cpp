@@ -75,6 +75,7 @@ using namespace Utils;
 PostgreSQLCacheDB::PostgreSQLCacheDB(const PostgreSQLCacheParameters &options)
     : CommonPostgreSQLFunctions(
           options.postgresql, options.stationtypeConfig, options.parameterMap),
+      srid("4326"),
       itsMaxInsertSize(options.maxInsertSize),
       itsDataInsertCache(options.dataInsertCacheSize),
       itsWeatherQCInsertCache(options.weatherDataQCInsertCacheSize),
@@ -84,7 +85,6 @@ PostgreSQLCacheDB::PostgreSQLCacheDB(const PostgreSQLCacheParameters &options)
       itsFmiIoTInsertCache(options.fmiIoTInsertCacheSize),
       itsExternalAndMobileProducerConfig(options.externalAndMobileProducerConfig)
 {
-  srid = "4326";
   itsIsCacheDatabase = true;
 }
 
@@ -240,7 +240,7 @@ void PostgreSQLCacheDB::createFlashDataTable()
     if (!result_set.empty())
     {
       pqxx::result::const_iterator row = result_set.begin();
-      if (!row[0].is_null() && row[0].as<bool>() == false)
+      if (!row[0].is_null() && !row[0].as<bool>())
       {
         itsDB.executeNonTransaction("ALTER TABLE flash_data ADD COLUMN data_source INTEGER");
       }
@@ -1821,7 +1821,6 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
       {
         // Have to get wind direction first
         std::string winddirectionpos = parameterMap->getParameter("winddirection", stationtype);
-        std::string windCompass;
         if (dataItem.second.count(winddirectionpos) == 0)
         {
           TS::Value missing = TS::None();
@@ -1829,6 +1828,7 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
         }
         else
         {
+          std::string windCompass;
           if (special.first == "windcompass8")
             windCompass = windCompass8(boost::get<double>(data.at(winddirectionpos)), missingtext);
 
@@ -1921,7 +1921,7 @@ void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(
     const std::string &paramname,
     TS::TimeSeriesVectorPtr &timeSeriesColumns,
     const Spine::Station &station,
-    const int pos,
+    int pos,
     const std::string &stationtype,
     const boost::local_time::local_date_time &obstime)
 {
@@ -2082,7 +2082,7 @@ TODO FlashCounts PostgreSQLCacheDB::getFlashCount(const boost::posix_time::ptime
 void PostgreSQLCacheDB::createIndex(const std::string &table,
                                     const std::string &column,
                                     const std::string &idx_name,
-                                    bool transaction /* false */) const
+                                    bool /* transaction */) const
 {
   try
   {

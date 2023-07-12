@@ -24,7 +24,7 @@ class StationtypeConfig;
 
 struct PostgreSQLCacheParameters
 {
-  PostgreSQLCacheParameters(const EngineParametersPtr& p)
+  explicit PostgreSQLCacheParameters(const EngineParametersPtr& p)
       : quiet(p->quiet),
         stationInfo(&p->stationInfo),
         parameterMap(p->parameterMap),
@@ -35,7 +35,7 @@ struct PostgreSQLCacheParameters
   }
 
   Fmi::Database::PostgreSQLConnectionOptions postgresql;
-  int connectionPoolSize;
+  int connectionPoolSize = 1;
   std::size_t maxInsertSize = 5000;
   std::size_t dataInsertCacheSize = 0;
   std::size_t weatherDataQCInsertCacheSize = 0;

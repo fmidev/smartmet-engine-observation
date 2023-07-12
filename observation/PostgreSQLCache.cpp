@@ -222,7 +222,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
   }
 }
 
-TS::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(Settings &settings) const
+TS::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(const Settings &settings) const
 {
   try
   {
@@ -240,7 +240,8 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(Settings &set
     throw Fmi::Exception::Trace(BCP, "Getting flash values from cache failed!");
   }
 }
-TS::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings &settings) const
+TS::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(
+    const Settings &settings) const
 {
   try
   {
@@ -259,7 +260,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(Settings 
   }
 }
 
-TS::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &settings) const
+TS::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(const Settings &settings) const
 {
   try
   {
@@ -278,7 +279,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(Settings &s
   }
 }
 
-TS::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(Settings &settings) const
+TS::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(const Settings &settings) const
 {
   try
   {

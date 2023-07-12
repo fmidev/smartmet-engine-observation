@@ -41,7 +41,7 @@ struct cached_data
 class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
 {
  public:
-  PostgreSQLCacheDB(const PostgreSQLCacheParameters &options);
+  explicit PostgreSQLCacheDB(const PostgreSQLCacheParameters &options);
   PostgreSQLCacheDB() = delete;
   PostgreSQLCacheDB(const PostgreSQLCacheDB &other) = delete;
   PostgreSQLCacheDB &operator=(const PostgreSQLCacheDB &other) = delete;
@@ -127,7 +127,7 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
    *        from stations maintained by FMI.
    * @param[in] cacheData Data from moving_locations
    */
-  std::size_t fillMovingLocationsCache(const MovingLocationItems &cacheData);
+  static std::size_t fillMovingLocationsCache(const MovingLocationItems &cacheData);
 
   /**
    * @brief Update weather_data_qc with data from Oracle's respective table
@@ -151,9 +151,9 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
    * @param last_time Delete everything from tablename which is older than
    * last_time
    */
-  void cleanCacheTable(const std::string tablename,
-                       const std::string time_column,
-                       const boost::posix_time::ptime last_time);
+  void cleanCacheTable(const std::string &tablename,
+                       const std::string &time_column,
+                       const boost::posix_time::ptime &last_time);
 
   /**
    * @brief Delete everything from observation_data table which is
@@ -272,7 +272,7 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
    * @brief Insert cached NetAtmo observations into ext_obsdata_bk_hydrometa table
    * @param NetAtmo observation data to be inserted into the table
    */
-  std::size_t fillBKHydrometaCache(const MobileExternalDataItems &mobileExternalCacheData);
+  static std::size_t fillBKHydrometaCache(const MobileExternalDataItems &mobileExternalCacheData);
 
   /**
    * @brief Get the time of the newest FmiIoT observation in ext_obsdata_roadcloud table
@@ -300,7 +300,7 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
    * @brief Insert cached observations into ext_obsdata_roadcloud table
    * @param FmiIoT observation data to be inserted into the table
    */
-  std::size_t fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData);
+  static std::size_t fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData);
 
   /**
    * @brief Delete old FmiIoT observation data from ext_obsdata_roadcloud table
@@ -367,12 +367,12 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
   std::string stationType(const std::string &type);
   std::string stationType(Spine::Station &station);
 
-  void addSpecialParameterToTimeSeries(const std::string &paramname,
-                                       TS::TimeSeriesVectorPtr &timeSeriesColumns,
-                                       const Spine::Station &station,
-                                       const int pos,
-                                       const std::string &stationtype,
-                                       const boost::local_time::local_date_time &obstime);
+  static void addSpecialParameterToTimeSeries(const std::string &paramname,
+                                              TS::TimeSeriesVectorPtr &timeSeriesColumns,
+                                              const Spine::Station &station,
+                                              int pos,
+                                              const std::string &stationtype,
+                                              const boost::local_time::local_date_time &obstime);
 
   void addParameterToTimeSeries(TS::TimeSeriesVectorPtr &timeSeriesColumns,
                                 const std::pair<boost::local_time::local_date_time,

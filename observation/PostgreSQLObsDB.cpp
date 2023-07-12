@@ -41,7 +41,7 @@ PostgreSQLObsDB::PostgreSQLObsDB(
 }
 
 void PostgreSQLObsDB::get(const std::string & /* sqlStatement */,
-                          std::shared_ptr<QueryResultBase> /* qrb */,
+                          const std::shared_ptr<QueryResultBase> & /* qrb */,
                           const Fmi::TimeZones & /* timezones */)
 {
   try
@@ -1186,7 +1186,8 @@ void PostgreSQLObsDB::getMovingStations(Spine::Stations &stations,
   }
 }
 
-MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(const EngineParametersPtr &engineParameters) const
+MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
+    const EngineParametersPtr & /* engineParameters */) const
 {
   try
   {

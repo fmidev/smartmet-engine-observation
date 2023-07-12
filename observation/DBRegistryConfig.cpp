@@ -127,8 +127,8 @@ DBRegistryConfig::NameType DBRegistryConfig::getMethod(
   }
 }
 
-NamesAllowed::NamesAllowed(const std::shared_ptr<DBRegistryConfig> dbrConfig,
-                           const bool caseSensitiveNames)
+NamesAllowed::NamesAllowed(const std::shared_ptr<DBRegistryConfig>& dbrConfig,
+                           bool caseSensitiveNames)
     : m_caseSensitiveNames(caseSensitiveNames)
 {
   try
@@ -169,8 +169,6 @@ NamesAllowed::NamesAllowed(const std::shared_ptr<DBRegistryConfig> dbrConfig,
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
-
-NamesAllowed::~NamesAllowed() = default;
 
 bool NamesAllowed::addName(const std::string& inName)
 {

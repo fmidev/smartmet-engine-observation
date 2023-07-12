@@ -34,7 +34,7 @@ class DummyDatabaseDriver : public DatabaseDriverBase
                             const boost::posix_time::ptime &endtime,
                             const Spine::TaggedLocationList &locations) const override;
   std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
-      std::vector<std::string> &parameters, const std::string language) override;
+      std::vector<std::string> &parameters, const std::string &language) override;
   void reloadStations() override {}
   void getStations(Spine::Stations &stations, const Settings &settings) const override {}
   void getStationsByArea(Spine::Stations &stations,

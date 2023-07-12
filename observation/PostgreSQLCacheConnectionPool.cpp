@@ -17,7 +17,7 @@ namespace
 template <class T>
 struct Releaser
 {
-  Releaser(Engine::Observation::PostgreSQLCacheConnectionPool* pool_handle)
+  explicit Releaser(Engine::Observation::PostgreSQLCacheConnectionPool* pool_handle)
       : poolHandle(pool_handle)
   {
   }

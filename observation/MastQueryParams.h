@@ -71,10 +71,10 @@ class MastQueryParams : public QueryParamsBase
    * @param typeOfJoin A type of join operation (default is "INNER JOIN").
    * @exception Obs_EngineException::OPERATION_PROCESSING_FAILED If joining is not possible.
    */
-  void addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfig,
+  void addJoinOnConfig(const std::shared_ptr<DBRegistryConfig>& dbrConfig,
                        const NameType& field,
                        int typeOfJoin = 0);
-  void addJoinOnConfig(std::shared_ptr<DBRegistryConfig> dbrConfig,
+  void addJoinOnConfig(const std::shared_ptr<DBRegistryConfig>& dbrConfig,
                        const std::list<NameType>& fields,
                        int typeOfJoin = 0);
 
@@ -151,13 +151,13 @@ class MastQueryParams : public QueryParamsBase
    * @brief Access to the field name map of this object.
    * @return Reference to the object or empty shared_ptr.
    */
-  const std::shared_ptr<FieldMapType> getFieldMap() const;
+  std::shared_ptr<FieldMapType> getFieldMap() const;
 
   /**
    * @brief Access to the field name alias map of this object.
    * @return Reference to the object or empty shared_ptr.
    */
-  const std::shared_ptr<FieldAliasMapType> getFieldAliasMap() const;
+  std::shared_ptr<FieldAliasMapType> getFieldAliasMap() const;
 
  private:
   DBRegistryConfigVectorType m_dbrConfig;

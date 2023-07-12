@@ -73,39 +73,16 @@ class DatabaseDriverInfo
 
  private:
   void readSpatiaLiteConfig(Spine::ConfigBase& cfg, DatabaseDriverInfoItem& infoItem);
-  void readSpatiaLiteConnectInfo(Spine::ConfigBase& cfg,
-                                 const std::string& name,
-                                 std::map<std::string, std::string>& params);
-  void readPostgreSQLConnectInfo(Spine::ConfigBase& cfg,
-                                 const std::string& name,
-                                 std::map<std::string, std::string>& params);
   void readOracleConnectInfo(Spine::ConfigBase& cfg,
                              const std::string& name,
                              std::map<std::string, std::vector<std::string>>& params_vector);
   void readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
                                 const std::string& name,
                                 std::map<std::string, std::string>& params);
-  void readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
-                                const std::string& name,
-                                std::map<std::string, std::string>& params);
-  void readPostgreSQLMobileCommonInfo(Spine::ConfigBase& cfg,
-                                      const std::string& name,
-                                      std::map<std::string, std::string>& params);
-  void readOracleCommonInfo(Spine::ConfigBase& cfg,
-                            const std::string& name,
-                            std::map<std::string, std::string>& params);
 
   void readOracleCommonConfig(Spine::ConfigBase& cfg, DatabaseDriverInfoItem& infoItem);
-  const libconfig::Setting& lookupDatabase(const std::string& common_key,
-                                           const std::string& setting,
-                                           const std::string& name,
-                                           const std::string& scope,
-                                           const libconfig::Config& conf) const;
   void parseCacheInfo(const std::set<std::string>& cacheinfostring,
                       std::set<std::string>& cachenames);
-  void readFakeCacheInfo(Spine::ConfigBase& cfg,
-                         const std::string& name,
-                         std::map<std::string, std::string>& params);
 
   std::vector<DatabaseDriverInfoItem> itsDatabaseDriverInfoItems;
   std::map<std::string, CacheInfoItem> itsCacheInfoItems;  // Cache name -> cahecinfo

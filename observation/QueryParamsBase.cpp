@@ -1,4 +1,6 @@
 #include "QueryParamsBase.h"
+#include <boost/date_time/gregorian/formatters.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
@@ -9,6 +11,30 @@ namespace Engine
 {
 namespace Observation
 {
+namespace
+{
+std::string formattedTime(const pt::ptime& t, const std::string& format)
+{
+  try
+  {
+    std::string fT;
+    if (format == "YYYY-MM-DD HH24:MI:SS")
+    {
+      fT = Fmi::to_simple_string(t);
+      if ((fT != "not-a-date-time") && (fT != "+infinity") && (fT != "-infinity") && (!fT.empty()))
+        return fT;
+    }
+
+    throw Fmi::Exception(BCP, "Operation processing failed!")
+        .addDetail(fmt::format("Time format conversion failure - '{}'", fT));
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+}  // namespace
+
 QueryParamsBase::~QueryParamsBase() = default;
 
 std::string QueryParamsBase::getBeginTime(const std::string& format) const
@@ -89,27 +115,6 @@ void QueryParamsBase::setBoundingBox(const double& xMin,
     m_bbox.xMax = xMax;
     m_bbox.yMax = yMax;
     m_bbox.crs = "EPSG:4236";
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Operation failed!");
-  }
-}
-
-std::string QueryParamsBase::formattedTime(const pt::ptime& t, const std::string& format) const
-{
-  try
-  {
-    std::string fT;
-    if (format == "YYYY-MM-DD HH24:MI:SS")
-    {
-      fT = Fmi::to_simple_string(t);
-      if ((fT != "not-a-date-time") and (fT != "+infinity") and (fT != "-infinity") and (fT != ""))
-        return fT;
-    }
-
-    throw Fmi::Exception(BCP, "Operation processing failed!")
-        .addDetail(fmt::format("Time format conversion failure - '{}'", fT));
   }
   catch (...)
   {

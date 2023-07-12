@@ -32,7 +32,7 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
                             const boost::posix_time::ptime &endtime,
                             const Spine::TaggedLocationList &locations) const override;
   std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
-      std::vector<std::string> &parameters, const std::string language) override;
+      std::vector<std::string> &parameters, const std::string &language) override;
 
   void reloadStations() override;
   void getStations(Spine::Stations &stations, const Settings &settings) const override;
@@ -63,9 +63,9 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
   DatabaseDriverBase *itsOracleDriver{nullptr};
   DatabaseDriverBase *itsStationsDriver{nullptr};
   DatabaseDriverBase *itsTranslateToFMISIDDriver{nullptr};
-  DatabaseDriverBase *createOracleDriver(const std::string &driver_id,
-                                         const EngineParametersPtr &p,
-                                         Spine::ConfigBase &cfg) const;
+  static DatabaseDriverBase *createOracleDriver(const std::string &driver_id,
+                                                const EngineParametersPtr &p,
+                                                Spine::ConfigBase &cfg);
   Fmi::AsyncTaskGroup init_tasks;
 };
 

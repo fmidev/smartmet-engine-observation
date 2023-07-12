@@ -174,14 +174,14 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
           // Sort out measurands for mobile and external producers
           Measurands measurands;
           ParameterMap::NameToStationParameterMap::const_iterator iter;
-          for (iter = parameterMap->begin(); iter != parameterMap->end(); iter++)
+          for (iter = parameterMap->begin(); iter != parameterMap->end(); ++iter)
           {
             std::string parameter_name = iter->first;
-            for (const auto &i : iter->second)
+            for (const auto &it : iter->second)
             {
-              if (stationtype == i.first)
+              if (stationtype == it.first)
               {
-                std::string parameter_id = i.second;
+                std::string parameter_id = it.second;
 
                 // Only measurands added here (parameter_id is integer)
                 if (std::string::npos != parameter_id.find_first_not_of("0123456789"))
@@ -191,10 +191,10 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
               }
             }
           }
-          externalAndMobileProducerConfig.insert(
-              std::make_pair(stationtype,
-                             ExternalAndMobileProducerConfigItem(
-                                 producerIdVector.front(), measurands, databaseTableName)));
+          externalAndMobileProducerConfig.insert(std::make_pair(
+              stationtype,
+              ExternalAndMobileProducerConfigItem(
+                  ProducerId(producerIdVector.front()), measurands, databaseTableName)));
           continue;
         }
         else
