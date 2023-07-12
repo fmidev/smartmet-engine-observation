@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.6.21
+Version: 23.7.12
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -28,13 +28,13 @@ BuildRequires: gdal34-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 23.6.13
+BuildRequires: smartmet-engine-geonames-devel >= 23.7.10
 BuildRequires: smartmet-library-locus-devel >= 23.3.7
-BuildRequires: smartmet-library-macgyver-devel >= 23.6.15
+BuildRequires: smartmet-library-macgyver-devel >= 23.6.30
 BuildRequires: smartmet-library-spine-devel >= 23.6.21
 BuildRequires: smartmet-library-timeseries-devel >= 23.6.15
 BuildRequires: sqlite3pp-devel >= 1.0.9
-BuildRequires: smartmet-utils-devel >= 23.6.14
+BuildRequires: smartmet-utils-devel >= 23.6.16
 BuildRequires: zlib-devel
 Requires: %{smartmet_boost}-date-time
 Requires: %{smartmet_boost}-iostreams
@@ -45,9 +45,9 @@ Requires: %{smartmet_boost}-thread
 Requires: fmt >= %{smartmet_fmt_min}, fmt < %{smartmet_fmt_max}
 Requires: gdal34-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 23.6.13
+Requires: smartmet-engine-geonames >= 23.7.10
 Requires: smartmet-library-locus >= 23.3.7
-Requires: smartmet-library-macgyver >= 23.6.15
+Requires: smartmet-library-macgyver >= 23.6.30
 Requires: smartmet-library-spine >= 23.6.21
 Requires: smartmet-library-timeseries >= 23.6.15
 Requires: smartmet-server >= 23.5.19
@@ -62,7 +62,7 @@ BuildRequires: libspatialite43-devel
 #TestRequires: libspatialite43-devel
 #TestRequires: sqlite33-devel >= 3.30.1
 #TestRequires: catch-devel >= 1.9.6
-#TestRequires: smartmet-utils-devel >= 23.6.14
+#TestRequires: smartmet-utils-devel >= 23.6.16
 %else
 %if 0%{?rhel} && 0%{rhel} >= 8
 Requires: libpqxx >= 7.7.0 libpqxx < 1:7.8.0
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jul 12 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.7.12-1.fmi
+- Silenced compiler warnings
+
 * Wed Jun 21 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.6.21-1.fmi
 - Speed improvements
 
