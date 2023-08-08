@@ -37,7 +37,7 @@ struct measurand_info
   const std::string& get_label(const std::string& language_code) const;
 };
 
-// measurand_id -> info
+// measurand_name -> info
 using MeasurandInfo = std::map<std::string, measurand_info>;
 // producer -> MeasurandInfo
 using ProducerMeasurandInfo = std::map<std::string, MeasurandInfo>;

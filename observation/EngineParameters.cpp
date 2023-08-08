@@ -323,6 +323,22 @@ bool EngineParameters::isExternalOrMobileProducer(const std::string &stationType
           externalAndMobileProducerConfig.end());
 }
 
+std::set<std::string> EngineParameters::getProducerParameters(const std::string &stationType) const
+{
+  std::set<std::string> ret;
+
+  for(auto iter = parameterMap->begin(); iter != parameterMap->end(); iter++)
+	{
+	  for(const auto& item : iter->second)
+		{
+		  if(item.first == stationType)
+			ret.insert(Fmi::ascii_toupper_copy(iter->first));
+		}
+	}
+
+  return ret;
+}
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

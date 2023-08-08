@@ -29,6 +29,7 @@ struct MetaData
   bool fixedPeriodEndTime{false};
   int timestep = 1;  // timestep in minutes
   std::set<std::string> parameters;
+  boost::posix_time::ptime latestDataUpdateTime;
 };
 
 }  // namespace Observation

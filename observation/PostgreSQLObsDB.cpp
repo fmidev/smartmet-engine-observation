@@ -1324,6 +1324,52 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
   }
 }
 
+boost::posix_time::ptime PostgreSQLObsDB::getLatestDataUpdateTime(const std::string& tablename,
+																  const boost::posix_time::ptime& from, 
+																  const std::string& producer_ids,
+																  const std::string& measurand_ids) const
+{
+  try
+	{
+	  boost::posix_time::ptime ret = boost::posix_time::not_a_date_time;
+
+	  auto starttime = from;
+	  auto endtime = Utils::utc_second_clock();
+	  std::string sqlStmt;
+	  if(tablename == OBSERVATION_DATA_TABLE)
+		{
+		  sqlStmt = "select EXTRACT(EPOCH FROM MAX(date_trunc('seconds', modified_last))) from observation_data_r1 where modified_last IS NOT NULL AND modified_last >='" + Fmi::to_iso_extended_string(starttime) + "' AND modified_last <='" + Fmi::to_iso_extended_string(endtime) + "'";
+		  if(!producer_ids.empty())
+			sqlStmt.append(" AND producer_id in ("+producer_ids+")");
+		}
+	  else if(tablename == WEATHER_DATA_QC_TABLE)
+		{
+		  sqlStmt = "select EXTRACT(EPOCH FROM MAX(date_trunc('seconds', modified_last))) from weather_data_qc where modified_last IS NOT NULL AND modified_last >='" + Fmi::to_iso_extended_string(starttime) + "' AND modified_last <='" + Fmi::to_iso_extended_string(endtime) + "'";
+		}
+	  else if(tablename == FLASH_DATA_TABLE)
+		sqlStmt = "select EXTRACT(EPOCH FROM MAX(date_trunc('seconds', modified_last))) from flashdata where modified_last IS NOT NULL AND modified_last >='" + Fmi::to_iso_extended_string(starttime) + "' AND modified_last <='" + Fmi::to_iso_extended_string(endtime) + "'";
+	  
+	  // std::cout << "PostgreSQL::getLatestDataUpdateTime: " << sqlStmt << std::endl;
+	  
+	  pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+	  
+	  for (auto row : result_set)
+		{
+		  if (!row[0].is_null())
+			{
+			  int epoch = as_int(row[0]);
+			  ret = epoch2ptime(epoch);
+			}
+		}
+  
+	  return ret;
+	}
+  catch (...)
+	{
+	  throw Fmi::Exception::Trace(BCP, "Operation failed!");
+	}
+}
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
