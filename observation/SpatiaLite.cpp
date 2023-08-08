@@ -3878,6 +3878,56 @@ void SpatiaLite::getMovingStations(Spine::Stations &stations,
   }
 }
 
+boost::posix_time::ptime SpatiaLite::getLatestDataUpdateTime(const std::string& tablename,
+															 const boost::posix_time::ptime& starttime, 
+															 const std::string& producer_ids, const std::string& measurand_ids)
+{
+  try
+	{	  
+	  auto start_time = to_epoch(starttime);
+	  
+	  boost::posix_time::ptime ret =  boost::posix_time::not_a_date_time;
+
+	  std::string sqlStmt;
+	  if(tablename == OBSERVATION_DATA_TABLE)
+		{
+		  sqlStmt = "select max(modified_last) from observation_data where modified_last IS NOT NULL AND modified_last >=" + Fmi::to_string(start_time);
+		  if(!producer_ids.empty())
+			sqlStmt.append(" AND producer_id in("+producer_ids+")");
+		}
+	  else if(tablename == WEATHER_DATA_QC_TABLE)
+		{
+		  sqlStmt = "select max(modified_last) from weather_data_qc where modified_last IS NOT NULL AND modified_last >=" + Fmi::to_string(start_time);
+		}
+	  else if(tablename == FLASH_DATA_TABLE)
+		sqlStmt = "select max(modified_last) from flash_data where modified_last IS NOT NULL AND modified_last >=" + Fmi::to_string(start_time);
+
+	  // std::cout << "Spatialite::getLatestDataUpdateTime: "<< sqlStmt << std::endl;
+
+	  if(!sqlStmt.empty())
+		{
+		  sqlite3pp::query qry(itsDB, sqlStmt.c_str());
+		  
+		  for (const auto &row : qry)
+			{
+			  if (row.column_type(0) != SQLITE_NULL)
+				{
+				  auto epoch_time = row.get<int>(0);
+				  auto ptime_time = boost::posix_time::from_time_t(epoch_time);
+				  ret = ptime_time;
+				}
+			}
+		}	  
+	  
+	  return ret;
+
+	}
+  catch (...)
+	{
+	  throw Fmi::Exception::Trace(BCP, "Operation failed!");
+	}
+}
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

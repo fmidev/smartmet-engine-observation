@@ -124,6 +124,12 @@ class EngineImpl : public Engine
    */
   const ProducerMeasurandInfo &getMeasurandInfo() const override;
 
+  /* \brief Get latest data update time of given producer
+   * \return Time when data of a producer was last time updated
+   */
+  boost::posix_time::ptime getLatestDataUpdateTime(const std::string& producer, const boost::posix_time::ptime& from) const override;
+
+
  protected:
   void init() override;
   void shutdown() override;
@@ -148,6 +154,8 @@ class EngineImpl : public Engine
   EngineParametersPtr itsEngineParameters;
 
   ProducerMeasurandInfo itsMeasurandInfo;
+
+  std::map<std::string, boost::posix_time::ptime> itsLatestDataUpdateTime;
 
   std::shared_ptr<DBRegistry> itsDatabaseRegistry;
 

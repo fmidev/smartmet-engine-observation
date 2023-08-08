@@ -508,6 +508,43 @@ MeasurandInfo PostgreSQLDatabaseDriverForFmiData::getMeasurandInfo() const
   return db->getMeasurandInfo(itsParameters.params);
 }
 
+boost::posix_time::ptime PostgreSQLDatabaseDriverForFmiData::getLatestDataUpdateTime(const std::string& producer,
+																					 const boost::posix_time::ptime& from,
+																					 const MeasurandInfo& minfo) const
+{
+  try
+	{
+	  boost::posix_time::ptime ret = boost::posix_time::not_a_date_time;
+	  
+	  std::string producer_ids;
+	  std::string measurand_ids;
+	  
+	  getMeasurandAndProducerIds(producer, minfo, itsParameters.params, producer_ids, measurand_ids);
+	  
+	  auto cache = resolveCache(producer, itsParameters.params);
+	  
+	  if (cache)
+		{
+		  auto cache_table = DatabaseDriverBase::resolveCacheTableName(producer, itsParameters.params->stationtypeConfig);
+		  ret = cache->getLatestDataUpdateTime(cache_table, from, producer_ids, measurand_ids);
+		}
+	  
+	  if(ret.is_not_a_date_time())
+		{
+		  auto database_table = DatabaseDriverBase::resolveDatabaseTableName(producer, itsParameters.params->stationtypeConfig);
+		  auto db =	itsPostgreSQLConnectionPool->getConnection(false);
+		  ret = db->getLatestDataUpdateTime(database_table, from, producer_ids, measurand_ids);
+		}
+	  
+	  return ret;
+	}
+  catch (...)
+	{
+	  throw Fmi::Exception::Trace(BCP, "Operation failed!");
+	}
+
+}
+
 std::string PostgreSQLDatabaseDriverForFmiData::id() const
 {
   return "postgresql_fmi";
