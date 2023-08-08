@@ -133,6 +133,10 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
 
   MeasurandInfo getMeasurandInfo(const EngineParametersPtr &engineParameters) const;
 
+  boost::posix_time::ptime getLatestDataUpdateTime(const std::string& tablename,
+												   const boost::posix_time::ptime& from,
+												   const std::string& producer_ids, 
+												   const std::string& measurand_ids) const;
  private:
   TS::TimeSeriesVectorPtr itsTimeSeriesColumns;
 

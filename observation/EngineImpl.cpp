@@ -1025,6 +1025,11 @@ const ProducerMeasurandInfo &EngineImpl::getMeasurandInfo() const
   return itsMeasurandInfo;
 }
 
+boost::posix_time::ptime EngineImpl::getLatestDataUpdateTime(const std::string& producer, const boost::posix_time::ptime& from) const
+{
+  return itsDatabaseDriver->getLatestDataUpdateTime(producer, from);
+}
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

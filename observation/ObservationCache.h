@@ -131,7 +131,10 @@ class ObservationCache
   virtual void getMovingStations(Spine::Stations &stations,
                                  const Settings &settings,
                                  const std::string &wkt) const = 0;
-
+  virtual boost::posix_time::ptime getLatestDataUpdateTime(const std::string& tablename,
+														   const boost::posix_time::ptime& starttime,
+														   const std::string& producer_ids,
+														   const std::string& measurand_ids) const;
  protected:
   ObservationCache(const CacheInfoItem &ci);
 

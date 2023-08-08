@@ -54,7 +54,8 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
   void getStationGroups(StationGroups &sg) const override;
   void getProducerGroups(ProducerGroups &pg) const override;
   MeasurandInfo getMeasurandInfo() const override;
-
+  boost::posix_time::ptime getLatestDataUpdateTime(const std::string& producer,
+												   const boost::posix_time::ptime& from) const override;
  private:
   const StationtypeConfig &itsStationtypeConfig;
   DatabaseDriverContainer itsDatabaseDriverContainer;

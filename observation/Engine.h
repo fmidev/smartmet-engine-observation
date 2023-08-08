@@ -135,6 +135,12 @@ class Engine : public SmartMet::Spine::SmartMetEngine
    */
   virtual const ProducerMeasurandInfo &getMeasurandInfo() const;
 
+  /* \brief Get latest data update time of given producer
+   * \return Time when data of a producer was last time updated
+   */
+  virtual boost::posix_time::ptime getLatestDataUpdateTime(const std::string& producer, const boost::posix_time::ptime& from) const;
+
+
   void init() override;
   void shutdown() override;
 };
