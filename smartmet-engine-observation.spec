@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.10.10
+Version: 23.10.11
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -164,6 +164,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Oct 11 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.10.11-1.fmi
+- Fixed reading of station metadata time periods
+
 * Tue Oct 10 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.10.10-1.fmi
 - Added an extra check for an observation query to prevent undefined behaviour
 
