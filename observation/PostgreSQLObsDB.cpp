@@ -836,14 +836,6 @@ void PostgreSQLObsDB::getStations(Spine::Stations &stations) const
                 t.target_formal_name                          AS station_formal_name,
                 svname.target_formal_name                     AS sv_formal_name,
                 enname.target_formal_name                     AS en_formal_name,
-                t.target_start                                AS station_start,
-                Min(tgm.valid_from)
-                  over(
-                    PARTITION BY t.target_id, tg.group_name)  AS valid_from,
-                Max(tgm.valid_to)
-                  over(
-                    PARTITION BY t.target_id, tg.group_name)  AS valid_to,
-                t.target_end                                  AS station_end,
                 t.target_category,
                 t.stationary,
                 First_value(lpnn.member_code)
@@ -854,21 +846,12 @@ void PostgreSQLObsDB::getStations(Spine::Stations &stations) const
                   over(
                     PARTITION BY t.target_id
                     ORDER BY wmon.membership_start DESC)      AS wmon,
-                Round(First_value(St_x(geom) :: NUMERIC)
-                        over(
-                          PARTITION BY t.target_id
-                          ORDER BY l.location_start DESC), 5) AS last_longitude,
-                Round(First_value(St_y(geom) :: NUMERIC)
-                        over(
-                          PARTITION BY t.target_id
-                          ORDER BY l.location_start DESC), 5) AS last_latitude,
-                Count(l.location_id)
-                  over(
-                    PARTITION BY t.target_id)                 AS locations,
+                l.location_start,
+                l.location_end,
+                ROUND(St_x(geom) :: NUMERIC, 5) AS longitude,
+                Round(St_y(geom) :: NUMERIC, 5) AS latitude,
                 t.modified_last,
-                t.modified_by,
-                tg.rgb                                        AS rgb,
-                tg.group_class_id
+                t.modified_by
 FROM   target_group_t1 tg
        join target_group_member_t1 tgm
          ON ( tgm.target_group_id = tg.target_group_id )
@@ -889,14 +872,14 @@ FROM   target_group_t1 tg
 WHERE  tg.group_class_id IN( 1, 81 )
        AND tg.group_name IN( 'STUKRAD', 'STUKAIR', 'RWSFIN', 'AIRQCOMM',
                              'AIRQUAL', 'ASC', 'AVI', 'AWS',
-                             'BUOY', 'CLIM', ' COMM', 'EXTAIRQUAL',
+                             'BUOY', 'CLIM', 'COMM', 'EXTAIRQUAL',
                              'EXTASC', 'EXTAVI', 'EXTAWS', 'EXTBUOY',
-                             'EXTFLASH', 'EXTFROST', 'EXTICE', ' EXTMAGNET',
+                             'EXTFLASH', 'EXTFROST', 'EXTICE', 'EXTMAGNET',
                              'EXTMAREO', 'EXTMAST', 'EXTRADACT', 'EXTRWS',
                              'EXTRWYWS', 'EXTSNOW', 'EXTSOUNDING', 'EXTSYNOP',
                              'EXTWATER', 'EXTWIND', 'FLASH', 'HTB',
                              'ICE', 'MAGNET', 'MAREO', 'MAST',
-                             'PREC', 'RADACT', 'RADAR', ' RESEARCH',
+                             'PREC', 'RADACT', 'RADAR', 'RESEARCH',
                              'RWS', 'SEA', 'SHIP', 'SOLAR',
                              'SOUNDING', 'SYNOP' )
 UNION ALL
@@ -908,14 +891,6 @@ SELECT DISTINCT tg.group_code,
                 t.target_formal_name                          AS station_formal_name,
                 svname.target_formal_name                     AS sv_formal_name,
                 enname.target_formal_name                     AS en_formal_name,
-                t.target_start                                AS station_start,
-                Min(tgm.membership_start)
-                  over(
-                    PARTITION BY t.target_id, tg.group_code)  AS valid_from,
-                Max(tgm.membership_end)
-                  over(
-                    PARTITION BY t.target_id, tg.group_code)  AS valid_to,
-                t.target_end                                  AS station_end,
                 t.target_category,
                 t.stationary,
                 First_value(lpnn.member_code)
@@ -926,21 +901,12 @@ SELECT DISTINCT tg.group_code,
                   over(
                     PARTITION BY t.target_id
                     ORDER BY wmon.membership_start DESC)      AS wmon,
-                Round(First_value(St_x(geom) :: NUMERIC)
-                        over(
-                          PARTITION BY t.target_id
-                          ORDER BY l.location_start DESC), 5) AS last_longitude,
-                Round(First_value(St_y(geom) :: NUMERIC)
-                        over(
-                          PARTITION BY t.target_id
-                          ORDER BY l.location_start DESC), 5) AS last_latitude,
-                Count(l.location_id)
-                  over(
-                    PARTITION BY t.target_id)                 AS locations,
+                l.location_start,
+                l.location_end,
+                ROUND(St_x(geom) :: NUMERIC, 5) AS longitude,
+                Round(St_y(geom) :: NUMERIC, 5) AS latitude,
                 t.modified_last,
-                t.modified_by,
-                tg.rgb                                        AS rgb,
-                tg.group_class_id
+                t.modified_by
 FROM   network_t1 tg
        join network_member_t1 tgm
          ON ( tgm.network_id = tg.network_id )
@@ -961,16 +927,16 @@ FROM   network_t1 tg
 WHERE  tg.group_class_id IN( 1, 81 )
        AND tg.group_code IN( 'STUKRAD', 'STUKAIR', 'RWSFIN', 'AIRQCOMM',
                              'AIRQUAL', 'ASC', 'AVI', 'AWS',
-                             'BUOY', 'CLIM', ' COMM', 'EXTAIRQUAL',
+                             'BUOY', 'CLIM', 'COMM', 'EXTAIRQUAL',
                              'EXTASC', 'EXTAVI', 'EXTAWS', 'EXTBUOY',
-                             'EXTFLASH', 'EXTFROST', 'EXTICE', ' EXTMAGNET',
+                             'EXTFLASH', 'EXTFROST', 'EXTICE', 'EXTMAGNET',
                              'EXTMAREO', 'EXTMAST', 'EXTRADACT', 'EXTRWS',
                              'EXTRWYWS', 'EXTSNOW', 'EXTSOUNDING', 'EXTSYNOP',
                              'EXTWATER', 'EXTWIND', 'FLASH', 'HTB',
                              'ICE', 'MAGNET', 'MAREO', 'MAST',
-                             'PREC', 'RADACT', 'RADAR', ' RESEARCH',
+                             'PREC', 'RADACT', 'RADAR', 'RESEARCH',
                              'RWS', 'SEA', 'SHIP', 'SOLAR',
-                             'SOUNDING', 'SYNOP' );)SQL";
+                             'SOUNDING', 'SYNOP');)SQL";
     // clang-format on
 
     if (itsDebug)
@@ -1008,22 +974,22 @@ WHERE  tg.group_class_id IN( 1, 81 )
         s.station_formal_name_sv = row[6].as<std::string>();
       if (!row[7].is_null())
         s.station_formal_name_en = row[7].as<std::string>();
-      auto station_start = row[8].as<std::string>();
-      auto station_end = row[11].as<std::string>();
-      s.station_start = Fmi::TimeParser::parse(row[9].as<std::string>());
-      s.station_end = Fmi::TimeParser::parse(row[10].as<std::string>());
-      s.target_category = as_int(row[12]);
-      s.stationary = row[13].as<std::string>();
+      s.target_category = as_int(row[8]);
+      s.stationary = row[9].as<std::string>();
+      if (!row[10].is_null())
+        s.lpnn = as_int(row[10]);
+      if (!row[11].is_null())
+        s.wmo = as_int(row[11]);
+      auto station_start = row[12].as<std::string>();
+      auto station_end = row[13].as<std::string>();
+      s.station_start = Fmi::TimeParser::parse(station_start);
+      s.station_end = Fmi::TimeParser::parse(station_end);
       if (!row[14].is_null())
-        s.lpnn = as_int(row[14]);
+        s.longitude_out = as_double(row[14]);
       if (!row[15].is_null())
-        s.wmo = as_int(row[15]);
-      if (!row[16].is_null())
-        s.longitude_out = as_double(row[16]);
-      if (!row[17].is_null())
-        s.latitude_out = as_double(row[17]);
-      s.modified_last = Fmi::TimeParser::parse(row[19].as<std::string>());
-      s.modified_by = as_int(row[20]);
+        s.latitude_out = as_double(row[15]);
+      s.modified_last = Fmi::TimeParser::parse(row[16].as<std::string>());
+      s.modified_by = as_int(row[17]);
       stations.push_back(s);
     }
   }
@@ -1324,50 +1290,63 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
   }
 }
 
-boost::posix_time::ptime PostgreSQLObsDB::getLatestDataUpdateTime(const std::string& tablename,
-																  const boost::posix_time::ptime& from, 
-																  const std::string& producer_ids,
-																  const std::string& measurand_ids) const
+boost::posix_time::ptime PostgreSQLObsDB::getLatestDataUpdateTime(
+    const std::string &tablename,
+    const boost::posix_time::ptime &from,
+    const std::string &producer_ids,
+    const std::string &measurand_ids) const
 {
   try
-	{
-	  boost::posix_time::ptime ret = boost::posix_time::not_a_date_time;
+  {
+    boost::posix_time::ptime ret = boost::posix_time::not_a_date_time;
 
-	  auto starttime = from;
-	  auto endtime = Utils::utc_second_clock();
-	  std::string sqlStmt;
-	  if(tablename == OBSERVATION_DATA_TABLE)
-		{
-		  sqlStmt = "select EXTRACT(EPOCH FROM MAX(date_trunc('seconds', modified_last))) from observation_data_r1 where modified_last IS NOT NULL AND modified_last >='" + Fmi::to_iso_extended_string(starttime) + "' AND modified_last <='" + Fmi::to_iso_extended_string(endtime) + "'";
-		  if(!producer_ids.empty())
-			sqlStmt.append(" AND producer_id in ("+producer_ids+")");
-		}
-	  else if(tablename == WEATHER_DATA_QC_TABLE)
-		{
-		  sqlStmt = "select EXTRACT(EPOCH FROM MAX(date_trunc('seconds', modified_last))) from weather_data_qc where modified_last IS NOT NULL AND modified_last >='" + Fmi::to_iso_extended_string(starttime) + "' AND modified_last <='" + Fmi::to_iso_extended_string(endtime) + "'";
-		}
-	  else if(tablename == FLASH_DATA_TABLE)
-		sqlStmt = "select EXTRACT(EPOCH FROM MAX(date_trunc('seconds', modified_last))) from flashdata where modified_last IS NOT NULL AND modified_last >='" + Fmi::to_iso_extended_string(starttime) + "' AND modified_last <='" + Fmi::to_iso_extended_string(endtime) + "'";
-	  
-	  // std::cout << "PostgreSQL::getLatestDataUpdateTime: " << sqlStmt << std::endl;
-	  
-	  pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-	  
-	  for (auto row : result_set)
-		{
-		  if (!row[0].is_null())
-			{
-			  int epoch = as_int(row[0]);
-			  ret = epoch2ptime(epoch);
-			}
-		}
-  
-	  return ret;
-	}
+    auto starttime = from;
+    auto endtime = Utils::utc_second_clock();
+    std::string sqlStmt;
+    if (tablename == OBSERVATION_DATA_TABLE)
+    {
+      sqlStmt =
+          "select EXTRACT(EPOCH FROM MAX(date_trunc('seconds', modified_last))) from "
+          "observation_data_r1 where modified_last IS NOT NULL AND modified_last >='" +
+          Fmi::to_iso_extended_string(starttime) + "' AND modified_last <='" +
+          Fmi::to_iso_extended_string(endtime) + "'";
+      if (!producer_ids.empty())
+        sqlStmt.append(" AND producer_id in (" + producer_ids + ")");
+    }
+    else if (tablename == WEATHER_DATA_QC_TABLE)
+    {
+      sqlStmt =
+          "select EXTRACT(EPOCH FROM MAX(date_trunc('seconds', modified_last))) from "
+          "weather_data_qc where modified_last IS NOT NULL AND modified_last >='" +
+          Fmi::to_iso_extended_string(starttime) + "' AND modified_last <='" +
+          Fmi::to_iso_extended_string(endtime) + "'";
+    }
+    else if (tablename == FLASH_DATA_TABLE)
+      sqlStmt =
+          "select EXTRACT(EPOCH FROM MAX(date_trunc('seconds', modified_last))) from flashdata "
+          "where modified_last IS NOT NULL AND modified_last >='" +
+          Fmi::to_iso_extended_string(starttime) + "' AND modified_last <='" +
+          Fmi::to_iso_extended_string(endtime) + "'";
+
+    // std::cout << "PostgreSQL::getLatestDataUpdateTime: " << sqlStmt << std::endl;
+
+    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+
+    for (auto row : result_set)
+    {
+      if (!row[0].is_null())
+      {
+        int epoch = as_int(row[0]);
+        ret = epoch2ptime(epoch);
+      }
+    }
+
+    return ret;
+  }
   catch (...)
-	{
-	  throw Fmi::Exception::Trace(BCP, "Operation failed!");
-	}
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
 }  // namespace Observation

@@ -11,6 +11,7 @@
 #include <macgyver/TimeZones.h>
 
 std::string stationFile = "/usr/share/smartmet/test/data/sqlite/stations.txt";
+
 boost::posix_time::ptime starttime(boost::posix_time::time_from_string("2010-01-01 00:00:00"));
 boost::posix_time::ptime endtime(boost::posix_time::time_from_string("2010-01-02 00:00:00"));
 
@@ -35,6 +36,7 @@ TEST_CASE("Test station and data searches")
       REQUIRE(station.fmisid == station_id);
       REQUIRE(station.station_formal_name_fi == "Helsinki Kaisaniemi");
     }
+
     SECTION("1 station is searched by coordinates")
     {
       int numberofstations = 1;
@@ -46,6 +48,7 @@ TEST_CASE("Test station and data searches")
       REQUIRE(stations.back().station_formal_name_fi == "Helsinki Kaisaniemi");
       REQUIRE(Fmi::stod(stations.back().distance) < 0.1);
     }
+
     SECTION("5 stations are searched by coordinates")
     {
       int numberofstations = 5;
@@ -58,13 +61,47 @@ TEST_CASE("Test station and data searches")
       REQUIRE(stations[1].fmisid == 101007);
       REQUIRE(stations[2].fmisid == 101004);
       REQUIRE(stations[3].fmisid == 100996);
-      REQUIRE(stations[4].fmisid == 101005);
+      REQUIRE(stations[4].fmisid == 101009);
     }
 
     SECTION("All AWS stations are searched")
     {
       auto stations = stationinfo.findStationsInGroup(stationgroup_codes, starttime, endtime);
-      REQUIRE(stations.size() == 169);
+      REQUIRE(stations.size() == 176);
+    }
+
+    SECTION("Old station location")
+    {
+      auto stations = stationinfo.findNearestStations(
+          25.0,
+          60.3,
+          5000,
+          1,
+          stationgroup_codes,
+          boost::posix_time::time_from_string("2020-01-01 00:00:00"),
+          boost::posix_time::time_from_string("2020-02-01 00:00:00"));
+      REQUIRE(stations.size() == 1);
+      REQUIRE(stations.back().station_formal_name_fi == "Vantaa Helsinki-Vantaan lentoasema");
+      REQUIRE(to_iso_extended_string(stations.back().station_end) == "2020-09-24T00:00:00");
+      REQUIRE(to_iso_extended_string(stations.back().station_start) == "2008-09-01T00:00:00");
+      REQUIRE(stations.back().longitude_out == 24.95675);
+    }
+
+    SECTION("New station location")
+    {
+      auto stations = stationinfo.findNearestStations(
+          25.0,
+          60.3,
+          5000,
+          1,
+          stationgroup_codes,
+          boost::posix_time::time_from_string("2021-01-01 00:00:00"),
+          boost::posix_time::time_from_string("2021-02-01 00:00:00"));
+      REQUIRE(stations.size() == 1);
+      REQUIRE(stations.back().station_formal_name_fi == "Vantaa Helsinki-Vantaan lentoasema");
+      REQUIRE(to_iso_extended_string(stations.back().station_end) == "9999-12-31T00:00:00");
+      REQUIRE(to_iso_extended_string(stations.back().station_start) == "2020-09-24T00:00:00");
+      REQUIRE(stations.back().longitude_out == 24.97274);
     }
   }
 
@@ -116,15 +153,15 @@ TEST_CASE("Test station and data searches")
       REQUIRE(stations.size() == 5);
       REQUIRE(stations[0].fmisid == 100013);
       REQUIRE(stations[1].fmisid == 100016);
-      REQUIRE(stations[3].fmisid == 100065);
-      REQUIRE(stations[4].fmisid == 100063);
       REQUIRE(stations[2].fmisid == 100039);
+      REQUIRE(stations[3].fmisid == 100065);
+      REQUIRE(stations[4].fmisid == 100015);
     }
 
     SECTION("All EXTRWS stations are searched")
     {
       auto stations = stationinfo.findStationsInGroup(stationgroup_codes, starttime, endtime);
-      REQUIRE(stations.size() == 1508);
+      REQUIRE(stations.size() == 1522);
     }
 
     SECTION("Using EXTSYNOP group")
