@@ -79,6 +79,11 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
         qstations += Fmi::to_string(id) + ",";
       }
     }
+
+    // Extra safety check or pop_back() would be undefined behaviour (this has happened)
+    if (qstations.empty())
+      throw Fmi::Exception(BCP, "Requested stations do not belong to the correct station type");
+
     qstations.pop_back();  // remove extra comma
 
     // This maps measurand_id and the parameter position in TimeSeriesVector
