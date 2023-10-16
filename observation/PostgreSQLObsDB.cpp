@@ -24,6 +24,14 @@ namespace Engine
 {
 namespace Observation
 {
+namespace
+{
+bool between(const ptime &t, const ptime &t1, const ptime &t2)
+{
+  return (t >= t1 && t <= t2);
+}
+}  // namespace
+
 // This is global so that different threads will not repeat the same task.
 // No locking is used, we assume different threads are so out of sync so
 // that an atomic will do here.
@@ -828,7 +836,7 @@ void PostgreSQLObsDB::getStations(Spine::Stations &stations) const
   try
   {
     // clang-format off
-    string sqlStmt = R"SQL(SELECT DISTINCT tg.group_name                                 AS group_code,
+    string sqlStmt = R"SQL(SELECT DISTINCT tg.group_name      AS group_code,
                 t.target_id                                   AS station_id,
                 t.access_policy                               AS access_policy_id,
                 t.target_status                               AS station_status_id,
@@ -846,6 +854,12 @@ void PostgreSQLObsDB::getStations(Spine::Stations &stations) const
                   over(
                     PARTITION BY t.target_id
                     ORDER BY wmon.membership_start DESC)      AS wmon,
+                Min(tgm.valid_from)
+                  over(
+                    PARTITION BY t.target_id, tg.group_name)  AS valid_from,
+                Max(tgm.valid_to)
+                  over(
+                    PARTITION BY t.target_id, tg.group_name)  AS valid_to, 
                 l.location_start,
                 l.location_end,
                 ROUND(St_x(geom) :: NUMERIC, 5) AS longitude,
@@ -901,6 +915,12 @@ SELECT DISTINCT tg.group_code,
                   over(
                     PARTITION BY t.target_id
                     ORDER BY wmon.membership_start DESC)      AS wmon,
+                min(tgm.membership_start)
+                                  over(
+                    PARTITION BY t.target_id, tg.group_code)  AS valid_from,
+                max(tgm.membership_end)
+                  over(
+                    PARTITION BY t.target_id, tg.group_code)  AS valid_to,
                 l.location_start,
                 l.location_end,
                 ROUND(St_x(geom) :: NUMERIC, 5) AS longitude,
@@ -980,16 +1000,29 @@ WHERE  tg.group_class_id IN( 1, 81 )
         s.lpnn = as_int(row[10]);
       if (!row[11].is_null())
         s.wmo = as_int(row[11]);
-      auto station_start = row[12].as<std::string>();
-      auto station_end = row[13].as<std::string>();
-      s.station_start = Fmi::TimeParser::parse(station_start);
-      s.station_end = Fmi::TimeParser::parse(station_end);
-      if (!row[14].is_null())
-        s.longitude_out = as_double(row[14]);
-      if (!row[15].is_null())
-        s.latitude_out = as_double(row[15]);
-      s.modified_last = Fmi::TimeParser::parse(row[16].as<std::string>());
-      s.modified_by = as_int(row[17]);
+      auto valid_from = Fmi::TimeParser::parse(row[12].as<std::string>());
+      auto valid_to = Fmi::TimeParser::parse(row[13].as<std::string>());
+      auto location_start = Fmi::TimeParser::parse(row[14].as<std::string>());
+      auto location_end = Fmi::TimeParser::parse(row[15].as<std::string>());
+
+      // Make sure the location_start - location_end is sane for this station type
+
+      s.station_start = location_start;
+      s.station_end = location_end;
+
+      if (between(valid_from, location_start, location_end))
+        s.station_start = valid_from;
+      if (between(valid_to, location_start, location_end))
+        s.station_end = valid_to;
+      if (s.station_start > valid_to || s.station_end < valid_from)
+        continue;
+
+      if (!row[16].is_null())
+        s.longitude_out = as_double(row[16]);
+      if (!row[17].is_null())
+        s.latitude_out = as_double(row[17]);
+      s.modified_last = Fmi::TimeParser::parse(row[18].as<std::string>());
+      s.modified_by = as_int(row[19]);
       stations.push_back(s);
     }
   }
