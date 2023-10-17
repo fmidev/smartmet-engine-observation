@@ -895,7 +895,7 @@ WHERE  tg.group_class_id IN( 1, 81 )
                              'ICE', 'MAGNET', 'MAREO', 'MAST',
                              'PREC', 'RADACT', 'RADAR', 'RESEARCH',
                              'RWS', 'SEA', 'SHIP', 'SOLAR',
-                             'SOUNDING', 'SYNOP' )
+                             'SOUNDING', 'SYNOP', 'HELCOM' )
 UNION ALL
 SELECT DISTINCT tg.group_code,
                 t.target_id                                   AS station_id,
@@ -956,7 +956,7 @@ WHERE  tg.group_class_id IN( 1, 81 )
                              'ICE', 'MAGNET', 'MAREO', 'MAST',
                              'PREC', 'RADACT', 'RADAR', 'RESEARCH',
                              'RWS', 'SEA', 'SHIP', 'SOLAR',
-                             'SOUNDING', 'SYNOP');)SQL";
+                             'SOUNDING', 'SYNOP', 'HELCOM');)SQL";
     // clang-format on
 
     if (itsDebug)
