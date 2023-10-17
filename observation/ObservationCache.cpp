@@ -50,10 +50,11 @@ bool ObservationCache::isFakeCache(const std::string& tablename) const
   return (itsCacheInfo.params.find(tablename) != itsCacheInfo.params.end());
 }
 
-boost::posix_time::ptime ObservationCache::getLatestDataUpdateTime(const std::string& /*tablename*/,
-																   const boost::posix_time::ptime& /*starttime*/, 
-																   const std::string& /*producer_ids*/, 
-																   const std::string& /*measurand_ids*/) const
+boost::posix_time::ptime ObservationCache::getLatestDataUpdateTime(
+    const std::string& /*tablename*/,
+    const boost::posix_time::ptime& /*starttime*/,
+    const std::string& /*producer_ids*/,
+    const std::string& /*measurand_ids*/) const
 {
   return boost::posix_time::not_a_date_time;
 }

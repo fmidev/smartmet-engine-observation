@@ -14,7 +14,7 @@ namespace Observation
 using namespace Utils;
 
 std::string DatabaseDriverBase::resolveCacheTableName(const std::string &producer,
-													  const StationtypeConfig &stationtypeConfig)
+                                                      const StationtypeConfig &stationtypeConfig)
 
 {
   try
@@ -47,7 +47,7 @@ std::string DatabaseDriverBase::resolveCacheTableName(const std::string &produce
 }
 
 std::string DatabaseDriverBase::resolveDatabaseTableName(const std::string &producer,
-														 const StationtypeConfig &stationtypeConfig)
+                                                         const StationtypeConfig &stationtypeConfig)
 {
   std::string tablename;
 
@@ -246,7 +246,7 @@ std::shared_ptr<ObservationCache> DatabaseDriverBase::resolveCache(
   std::string tablename = resolveCacheTableName(producer, parameters->stationtypeConfig);
 
   /*
-	Is this needed?
+        Is this needed?
   if (tablename.empty())
     logMessage("No cache for producer " + producer, itsQuiet);
   */
@@ -434,14 +434,15 @@ void DatabaseDriverBase::updateProducers(const EngineParametersPtr &p, Settings 
   }
 }
 
-boost::posix_time::ptime DatabaseDriverBase::getLatestDataUpdateTime(const std::string& producer,
-																	 const boost::posix_time::ptime& from,
-																	 const MeasurandInfo& measurand_info) const
+boost::posix_time::ptime DatabaseDriverBase::getLatestDataUpdateTime(
+    const std::string &producer,
+    const boost::posix_time::ptime &from,
+    const MeasurandInfo &measurand_info) const
 {
   try
   {
-	// By default not_a_date_time, the actual database driver will return valid time
-	return  boost::posix_time::not_a_date_time;
+    // By default not_a_date_time, the actual database driver will return valid time
+    return boost::posix_time::not_a_date_time;
   }
   catch (...)
   {
@@ -449,56 +450,59 @@ boost::posix_time::ptime DatabaseDriverBase::getLatestDataUpdateTime(const std::
   }
 }
 
-void DatabaseDriverBase::getMeasurandAndProducerIds(const std::string& producer, const MeasurandInfo& minfo, const EngineParametersPtr& ep, std::string& producerIds, std::string& measurandIds) const
+void DatabaseDriverBase::getMeasurandAndProducerIds(const std::string &producer,
+                                                    const MeasurandInfo &minfo,
+                                                    const EngineParametersPtr &ep,
+                                                    std::string &producerIds,
+                                                    std::string &measurandIds) const
 {
   try
   {
-	const auto& pids = ep->stationtypeConfig.getProducerIdSetByStationtype(producer);
-	for(const auto& pid : pids)
-	  {
-		if(!producerIds.empty())
-		  producerIds.append(",");
-		producerIds.append(Fmi::to_string(pid));
-	  }
+    const auto &pids = ep->stationtypeConfig.getProducerIdSetByStationtype(producer);
+    for (const auto &pid : pids)
+    {
+      if (!producerIds.empty())
+        producerIds.append(",");
+      producerIds.append(Fmi::to_string(pid));
+    }
 
-	MeasurandInfo actual_minfo;
-	if(producer == FOREIGN_PRODUCER || producer == ROAD_PRODUCER)
-	  {		  
-		auto producer_params = ep->getProducerParameters(producer);
-		for(const auto& p : producer_params)
-		  {
-			measurand_info p_minfo;
-			p_minfo.measurand_id = ("'"+p+"'");
-			actual_minfo[p] = p_minfo;
-		  }
-	  }
-	else
-	  {
-		actual_minfo = minfo;
-	  }
-		
-	for(const auto& item : actual_minfo)
-	  {
-		const auto& mi = item.second;
-		//		const auto& producers = mi.producers;
-		for(const auto& pid : pids)
-		  {
-			if(mi.producers.find(pid) != mi.producers.end())
-			  {
-				if(!measurandIds.empty())
-				  measurandIds.append(",");
-				measurandIds.append(mi.measurand_id);
-				break;
-			  }
-		  }
-	  }
+    MeasurandInfo actual_minfo;
+    if (producer == FOREIGN_PRODUCER || producer == ROAD_PRODUCER)
+    {
+      auto producer_params = ep->getProducerParameters(producer);
+      for (const auto &p : producer_params)
+      {
+        measurand_info p_minfo;
+        p_minfo.measurand_id = ("'" + p + "'");
+        actual_minfo[p] = p_minfo;
+      }
+    }
+    else
+    {
+      actual_minfo = minfo;
+    }
+
+    for (const auto &item : actual_minfo)
+    {
+      const auto &mi = item.second;
+      //		const auto& producers = mi.producers;
+      for (const auto &pid : pids)
+      {
+        if (mi.producers.find(pid) != mi.producers.end())
+        {
+          if (!measurandIds.empty())
+            measurandIds.append(",");
+          measurandIds.append(mi.measurand_id);
+          break;
+        }
+      }
+    }
   }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
-
 
 }  // namespace Observation
 }  // namespace Engine

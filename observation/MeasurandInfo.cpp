@@ -13,10 +13,10 @@ const std::string& measurand_info::get_name(const std::string& language_code) co
 {
   try
   {
-	if(translations.find(language_code) != translations.end())
-	  return translations.at(language_code).measurand_name;
+    if (translations.find(language_code) != translations.end())
+      return translations.at(language_code).measurand_name;
 
-	return EMPTY_STRING;
+    return EMPTY_STRING;
   }
   catch (...)
   {
@@ -28,10 +28,10 @@ const std::string& measurand_info::get_description(const std::string& language_c
 {
   try
   {
-	if(translations.find(language_code) != translations.end())
-	  return translations.at(language_code).measurand_desc;
+    if (translations.find(language_code) != translations.end())
+      return translations.at(language_code).measurand_desc;
 
-	return EMPTY_STRING;
+    return EMPTY_STRING;
   }
   catch (...)
   {
@@ -43,10 +43,10 @@ const std::string& measurand_info::get_label(const std::string& language_code) c
 {
   try
   {
-	if(translations.find(language_code) != translations.end())
-	  return translations.at(language_code).measurand_label;
+    if (translations.find(language_code) != translations.end())
+      return translations.at(language_code).measurand_label;
 
-	return EMPTY_STRING;
+    return EMPTY_STRING;
   }
   catch (...)
   {

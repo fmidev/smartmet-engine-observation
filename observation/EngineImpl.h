@@ -127,8 +127,8 @@ class EngineImpl : public Engine
   /* \brief Get latest data update time of given producer
    * \return Time when data of a producer was last time updated
    */
-  boost::posix_time::ptime getLatestDataUpdateTime(const std::string& producer, const boost::posix_time::ptime& from) const override;
-
+  boost::posix_time::ptime getLatestDataUpdateTime(
+      const std::string &producer, const boost::posix_time::ptime &from) const override;
 
  protected:
   void init() override;
