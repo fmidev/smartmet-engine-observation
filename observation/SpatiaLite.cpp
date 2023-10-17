@@ -157,6 +157,7 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
 
     std::set<int> fmisids;
     std::set<boost::posix_time::ptime> obstimes;
+
     for (const auto &row : qry)
     {
       LocationDataItem obs;
@@ -164,22 +165,6 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
       obs.data.data_time = boost::posix_time::from_time_t(epoch_time);
       obs.data.fmisid = row.get<int>(0);
       obs.data.sensor_no = row.get<int>(1);
-      // Get latitude, longitude, elevation from station info
-      const Spine::Station &s =
-          stationInfo.getStation(obs.data.fmisid, stationgroup_codes, obs.data.data_time);
-      obs.latitude = s.latitude_out;
-      obs.longitude = s.longitude_out;
-      obs.elevation = s.station_elevation;
-      const StationLocation &sloc =
-          stationInfo.stationLocations.getLocation(obs.data.fmisid, obs.data.data_time);
-      // Get exact location, elevation
-      if (sloc.location_id != -1)
-      {
-        obs.latitude = sloc.latitude;
-        obs.longitude = sloc.longitude;
-        obs.elevation = sloc.elevation;
-      }
-
       obs.data.measurand_id = row.get<int>(3);
       obs.data.measurand_no = row.get<int>(4);
       if (row.column_type(5) != SQLITE_NULL)
@@ -188,6 +173,21 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
         obs.data.data_quality = row.get<int>(6);
       if (row.column_type(7) != SQLITE_NULL)
         obs.data.data_source = row.get<int>(7);
+
+      try
+      {
+        // Get latitude, longitude, elevation from station info. The databases may contain
+        // observations outside the validity interval of the station, in which case we will not get
+        // location information for the observation.
+        const Spine::Station &s =
+            stationInfo.getStation(obs.data.fmisid, stationgroup_codes, obs.data.data_time);
+        obs.latitude = s.latitude_out;
+        obs.longitude = s.longitude_out;
+        obs.elevation = s.station_elevation;
+      }
+      catch (...)
+      {
+      }
 
       ret.emplace_back(obs);
 
@@ -2905,227 +2905,231 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMagnetometerData(
     const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
-  TS::TimeSeriesVectorPtr ret = initializeResultVector(settings);
-  std::map<int, TS::TimeSeriesVectorPtr> fmisid_results;
-  std::map<int, std::set<boost::local_time::local_date_time>> fmisid_timesteps;
-
-  // Stations
-  std::set<std::string> fmisid_ids;
-  for (const auto &s : settings.taggedFMISIDs)
-    fmisid_ids.insert(Fmi::to_string(s.fmisid));
-
-  if (fmisid_ids.empty())
-    return ret;
-
-  std::string fmisids = std::accumulate(std::begin(fmisid_ids),
-                                        std::end(fmisid_ids),
-                                        std::string{},
-                                        [](const std::string &a, const std::string &b)
-                                        { return a.empty() ? b : a + ',' + b; });
-
-  // Resolve stationgroup codes
-  std::set<std::string> stationgroup_codes;
-  auto stationgroupCodeSet =
-      itsStationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
-  stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
-
-  // Measurands
-  std::set<std::string> measurand_ids;
-  // Positions
-  std::map<std::string, int> timeseriesPositions;
-  std::set<int> data_independent_positions;
-  unsigned int pos = 0;
-  for (const auto &p : settings.parameters)
+  try
   {
-    std::string name = p.name();
-    boost::to_lower(name, std::locale::classic());
+    TS::TimeSeriesVectorPtr ret = initializeResultVector(settings);
+    std::map<int, TS::TimeSeriesVectorPtr> fmisid_results;
+    std::map<int, std::set<boost::local_time::local_date_time>> fmisid_timesteps;
 
-    auto sparam = itsParameterMap->getParameter(name, MAGNETO_PRODUCER);
+    // Stations
+    std::set<std::string> fmisid_ids;
+    for (const auto &s : settings.taggedFMISIDs)
+      fmisid_ids.insert(Fmi::to_string(s.fmisid));
 
-    if (!sparam.empty())
-      measurand_ids.insert(sparam);
+    if (fmisid_ids.empty())
+      return ret;
 
-    timeseriesPositions[name] = pos;
-    if (name == "fmisid" || name == "magnetometer_id" || name == "stationlon" ||
-        name == "stationlat" || name == "elevation")
-      data_independent_positions.insert(pos);
+    std::string fmisids = std::accumulate(std::begin(fmisid_ids),
+                                          std::end(fmisid_ids),
+                                          std::string{},
+                                          [](const std::string &a, const std::string &b)
+                                          { return a.empty() ? b : a + ',' + b; });
 
-    pos++;
-  }
-
-  if (measurand_ids.empty())
-    return ret;
-
-  // Starttime & endtime
-  auto starttime = to_epoch(settings.starttime);
-  auto endtime = to_epoch(settings.endtime);
-
-  std::string sqlStmt =
-      "SELECT station_id, magnetometer, level, data_time, x as magneto_x, y as magneto_y, "
-      "z as magneto_z, t as magneto_t, f as magneto_f, data_quality from magnetometer_data where ";
-  if (starttime == endtime)
-    sqlStmt += ("data_time = " + Fmi::to_string(starttime));
-  else
-    sqlStmt +=
-        ("data_time BETWEEN " + Fmi::to_string(starttime) + " AND " + Fmi::to_string(endtime));
-  sqlStmt += (" AND station_id IN (" + fmisids + ") AND magnetometer NOT IN ('NUR2','GAS1')");
-  if (settings.dataFilter.exist("data_quality"))
-    sqlStmt += (" AND " + settings.dataFilter.getSqlClause("data_quality", "data_quality"));
-
-  if (itsDebug)
-    std::cout << "SpatiaLite: " << sqlStmt << std::endl;
-
-  auto localtz = timezones.time_zone_from_string(settings.timezone);
-
-  sqlite3pp::query qry(itsDB, sqlStmt.c_str());
-
-  for (auto row : qry)
-  {
-    int fmisid = row.get<int>(0);
-    // Initialize result vector and timestep set
-    if (fmisid_results.find(fmisid) == fmisid_results.end())
+    // Measurands
+    std::set<std::string> measurand_ids;
+    // Positions
+    std::map<std::string, int> timeseriesPositions;
+    std::set<int> data_independent_positions;
+    unsigned int pos = 0;
+    for (const auto &p : settings.parameters)
     {
-      fmisid_results.insert(std::make_pair(fmisid, initializeResultVector(settings)));
-      fmisid_timesteps.insert(
-          std::make_pair(fmisid, std::set<boost::local_time::local_date_time>()));
-    }
-    TS::Value station_id_value = fmisid;
-    TS::Value magnetometer_id_value = row.get<std::string>(1);
-    int level = row.get<int>(2);
-    time_t epoch_time = row.get<int>(3);
-    boost::posix_time::ptime data_time = boost::posix_time::from_time_t(epoch_time);
-    boost::local_time::local_date_time localtime(data_time, localtz);
-    TS::Value magneto_x_value;
-    TS::Value magneto_y_value;
-    TS::Value magneto_z_value;
-    TS::Value magneto_t_value;
-    TS::Value magneto_f_value;
-    TS::Value data_quality_value = TS::None();
-    if (row.column_type(4) != SQLITE_NULL)
-      magneto_x_value = row.get<double>(4);
-    if (row.column_type(5) != SQLITE_NULL)
-      magneto_y_value = row.get<double>(5);
-    if (row.column_type(6) != SQLITE_NULL)
-      magneto_z_value = row.get<double>(6);
-    if (row.column_type(7) != SQLITE_NULL)
-      magneto_t_value = row.get<double>(7);
-    if (row.column_type(8) != SQLITE_NULL)
-      magneto_f_value = row.get<double>(8);
-    if (row.column_type(9) != SQLITE_NULL)
-      data_quality_value = row.get<int>(9);
+      std::string name = p.name();
+      boost::to_lower(name, std::locale::classic());
 
-    auto &result = *(fmisid_results[fmisid]);
-    auto &timesteps = fmisid_timesteps[fmisid];
-    const Spine::Station &s = stationInfo.getStation(fmisid, stationgroup_codes, data_time);
+      auto sparam = itsParameterMap->getParameter(name, MAGNETO_PRODUCER);
 
-    auto x_parameter_name = itsParameterMap->getParameterName(
-        (level == 10 ? "667" : (level == 60 ? "668" : "MISSING")), MAGNETO_PRODUCER);
-    auto y_parameter_name = itsParameterMap->getParameterName(
-        (level == 10 ? "669" : (level == 60 ? "670" : "MISSING")), MAGNETO_PRODUCER);
-    auto z_parameter_name = itsParameterMap->getParameterName(
-        (level == 10 ? "671" : (level == 60 ? "672" : "MISSING")), MAGNETO_PRODUCER);
-    auto t_parameter_name =
-        itsParameterMap->getParameterName((level == 60 ? "144" : "MISSING"), MAGNETO_PRODUCER);
-    auto f_parameter_name =
-        itsParameterMap->getParameterName((level == 110 ? "673" : "MISSING"), MAGNETO_PRODUCER);
-    if (timeseriesPositions.find(x_parameter_name) != timeseriesPositions.end())
-      result[timeseriesPositions.at(x_parameter_name)].push_back(
-          TS::TimedValue(localtime, magneto_x_value));
-    if (timeseriesPositions.find(y_parameter_name) != timeseriesPositions.end())
-      result[timeseriesPositions.at(y_parameter_name)].push_back(
-          TS::TimedValue(localtime, magneto_y_value));
-    if (timeseriesPositions.find(z_parameter_name) != timeseriesPositions.end())
-      result[timeseriesPositions.at(z_parameter_name)].push_back(
-          TS::TimedValue(localtime, magneto_z_value));
-    if (timeseriesPositions.find(t_parameter_name) != timeseriesPositions.end())
-      result[timeseriesPositions.at(t_parameter_name)].push_back(
-          TS::TimedValue(localtime, magneto_t_value));
-    if (timeseriesPositions.find(f_parameter_name) != timeseriesPositions.end())
-      result[timeseriesPositions.at(f_parameter_name)].push_back(
-          TS::TimedValue(localtime, magneto_f_value));
-    if (timeseriesPositions.find("data_quality") != timeseriesPositions.end())
-      result[timeseriesPositions.at("data_quality")].push_back(
-          TS::TimedValue(localtime, data_quality_value));
-    if (timeseriesPositions.find("fmisid") != timeseriesPositions.end())
-      result[timeseriesPositions.at("fmisid")].push_back(
-          TS::TimedValue(localtime, station_id_value));
-    if (timeseriesPositions.find("magnetometer_id") != timeseriesPositions.end())
-      result[timeseriesPositions.at("magnetometer_id")].push_back(
-          TS::TimedValue(localtime, magnetometer_id_value));
-    if (timeseriesPositions.find("stationlon") != timeseriesPositions.end())
-      result[timeseriesPositions.at("stationlon")].push_back(
-          TS::TimedValue(localtime, s.longitude_out));
-    if (timeseriesPositions.find("stationlat") != timeseriesPositions.end())
-      result[timeseriesPositions.at("stationlat")].push_back(
-          TS::TimedValue(localtime, s.latitude_out));
-    if (timeseriesPositions.find("elevation") != timeseriesPositions.end())
-    {
-      const StationLocation &sloc = stationInfo.stationLocations.getLocation(fmisid, data_time);
-      // Get exact location, elevation
-      if (sloc.location_id != -1)
-      {
-        if (timeseriesPositions.find("stationlon") != timeseriesPositions.end())
-          result[timeseriesPositions.at("stationlon")].push_back(
-              TS::TimedValue(localtime, sloc.longitude));
-        if (timeseriesPositions.find("stationlat") != timeseriesPositions.end())
-          result[timeseriesPositions.at("stationlat")].push_back(
-              TS::TimedValue(localtime, sloc.latitude));
-        result[timeseriesPositions.at("elevation")].push_back(
-            TS::TimedValue(localtime, sloc.elevation));
-      }
+      if (!sparam.empty())
+        measurand_ids.insert(sparam);
+
+      timeseriesPositions[name] = pos;
+      if (name == "fmisid" || name == "magnetometer_id" || name == "stationlon" ||
+          name == "stationlat" || name == "elevation")
+        data_independent_positions.insert(pos);
+
+      pos++;
     }
 
-    timesteps.insert(localtime);
+    if (measurand_ids.empty())
+      return ret;
 
-    // Data in magnetometer_data table:
-    // level | colname | measurand_id | measurand_code
-    // -------+---------+--------------+-----------------
-    //    10 | X       |          667 | MAGNX_PT10S_AVG
-    //    60 | X       |          668 | MAGNX_PT1M_AVG
-    //    10 | Y       |          669 | MAGNY_PT10S_AVG
-    //    60 | Y       |          670 | MAGNY_PT1M_AVG
-    //    10 | Z       |          671 | MAGNZ_PT10S_AVG
-    //    60 | Z       |          672 | MAGNZ_PT1M_AVG
-    //    60 | T       |          144 | TTECH_PT1M_AVG
-    //   110 | F       |          673 | MAGN_PT10S_AVG
-  }
+    // Starttime & endtime
+    auto starttime = to_epoch(settings.starttime);
+    auto endtime = to_epoch(settings.endtime);
 
-  // Get valid timesteps based on data and request
-  auto valid_timesteps_per_fmisid =
-      getValidTimeSteps(settings, timeSeriesOptions, timezones, fmisid_results);
+    std::string sqlStmt =
+        "SELECT station_id, magnetometer, level, data_time, x as magneto_x, y as magneto_y, "
+        "z as magneto_z, t as magneto_t, f as magneto_f, data_quality from magnetometer_data "
+        "where ";
+    if (starttime == endtime)
+      sqlStmt += ("data_time = " + Fmi::to_string(starttime));
+    else
+      sqlStmt +=
+          ("data_time BETWEEN " + Fmi::to_string(starttime) + " AND " + Fmi::to_string(endtime));
+    sqlStmt += (" AND station_id IN (" + fmisids + ") AND magnetometer NOT IN ('NUR2','GAS1')");
+    if (settings.dataFilter.exist("data_quality"))
+      sqlStmt += (" AND " + settings.dataFilter.getSqlClause("data_quality", "data_quality"));
 
-  // Set data for each valid timestep
-  for (const auto &item : fmisid_results)
-  {
-    auto fmisid = item.first;
-    auto valid_timesteps = valid_timesteps_per_fmisid.at(fmisid);
-    const auto &ts_vector = *item.second;
-    for (unsigned int i = 0; i < ts_vector.size(); i++)
+    if (itsDebug)
+      std::cout << "SpatiaLite: " << sqlStmt << std::endl;
+
+    auto localtz = timezones.time_zone_from_string(settings.timezone);
+
+    sqlite3pp::query qry(itsDB, sqlStmt.c_str());
+
+    for (auto row : qry)
     {
-      auto ts = ts_vector.at(i);
-      std::map<boost::local_time::local_date_time, TS::TimedValue> data;
-      for (unsigned int j = 0; j < ts.size(); j++)
+      int fmisid = row.get<int>(0);
+      // Initialize result vector and timestep set
+      if (fmisid_results.find(fmisid) == fmisid_results.end())
       {
-        auto timed_value = ts.at(j);
-        data.insert(std::make_pair(timed_value.time, timed_value));
+        fmisid_results.insert(std::make_pair(fmisid, initializeResultVector(settings)));
+        fmisid_timesteps.insert(
+            std::make_pair(fmisid, std::set<boost::local_time::local_date_time>()));
       }
+      TS::Value station_id_value = fmisid;
+      TS::Value magnetometer_id_value = row.get<std::string>(1);
+      int level = row.get<int>(2);
+      time_t epoch_time = row.get<int>(3);
+      boost::posix_time::ptime data_time = boost::posix_time::from_time_t(epoch_time);
+      boost::local_time::local_date_time localtime(data_time, localtz);
+      TS::Value magneto_x_value;
+      TS::Value magneto_y_value;
+      TS::Value magneto_z_value;
+      TS::Value magneto_t_value;
+      TS::Value magneto_f_value;
+      TS::Value data_quality_value = TS::None();
+      if (row.column_type(4) != SQLITE_NULL)
+        magneto_x_value = row.get<double>(4);
+      if (row.column_type(5) != SQLITE_NULL)
+        magneto_y_value = row.get<double>(5);
+      if (row.column_type(6) != SQLITE_NULL)
+        magneto_z_value = row.get<double>(6);
+      if (row.column_type(7) != SQLITE_NULL)
+        magneto_t_value = row.get<double>(7);
+      if (row.column_type(8) != SQLITE_NULL)
+        magneto_f_value = row.get<double>(8);
+      if (row.column_type(9) != SQLITE_NULL)
+        data_quality_value = row.get<int>(9);
 
-      for (const auto &timestep : valid_timesteps)
+      auto &result = *(fmisid_results[fmisid]);
+      auto &timesteps = fmisid_timesteps[fmisid];
+      const Spine::Station &s = stationInfo.getStation(fmisid, settings.stationgroups, data_time);
+
+      auto x_parameter_name = itsParameterMap->getParameterName(
+          (level == 10 ? "667" : (level == 60 ? "668" : "MISSING")), MAGNETO_PRODUCER);
+      auto y_parameter_name = itsParameterMap->getParameterName(
+          (level == 10 ? "669" : (level == 60 ? "670" : "MISSING")), MAGNETO_PRODUCER);
+      auto z_parameter_name = itsParameterMap->getParameterName(
+          (level == 10 ? "671" : (level == 60 ? "672" : "MISSING")), MAGNETO_PRODUCER);
+      auto t_parameter_name =
+          itsParameterMap->getParameterName((level == 60 ? "144" : "MISSING"), MAGNETO_PRODUCER);
+      auto f_parameter_name =
+          itsParameterMap->getParameterName((level == 110 ? "673" : "MISSING"), MAGNETO_PRODUCER);
+
+      if (timeseriesPositions.find(x_parameter_name) != timeseriesPositions.end())
+        result[timeseriesPositions.at(x_parameter_name)].push_back(
+            TS::TimedValue(localtime, magneto_x_value));
+
+      if (timeseriesPositions.find(y_parameter_name) != timeseriesPositions.end())
+        result[timeseriesPositions.at(y_parameter_name)].push_back(
+            TS::TimedValue(localtime, magneto_y_value));
+
+      if (timeseriesPositions.find(z_parameter_name) != timeseriesPositions.end())
+        result[timeseriesPositions.at(z_parameter_name)].push_back(
+            TS::TimedValue(localtime, magneto_z_value));
+
+      if (timeseriesPositions.find(t_parameter_name) != timeseriesPositions.end())
+        result[timeseriesPositions.at(t_parameter_name)].push_back(
+            TS::TimedValue(localtime, magneto_t_value));
+
+      if (timeseriesPositions.find(f_parameter_name) != timeseriesPositions.end())
+        result[timeseriesPositions.at(f_parameter_name)].push_back(
+            TS::TimedValue(localtime, magneto_f_value));
+
+      if (timeseriesPositions.find("data_quality") != timeseriesPositions.end())
+        result[timeseriesPositions.at("data_quality")].push_back(
+            TS::TimedValue(localtime, data_quality_value));
+
+      if (timeseriesPositions.find("fmisid") != timeseriesPositions.end())
+        result[timeseriesPositions.at("fmisid")].push_back(
+            TS::TimedValue(localtime, station_id_value));
+
+      if (timeseriesPositions.find("magnetometer_id") != timeseriesPositions.end())
+        result[timeseriesPositions.at("magnetometer_id")].push_back(
+            TS::TimedValue(localtime, magnetometer_id_value));
+
+      if (timeseriesPositions.find("stationlon") != timeseriesPositions.end())
+        result[timeseriesPositions.at("stationlon")].push_back(
+            TS::TimedValue(localtime, s.longitude_out));
+
+      if (timeseriesPositions.find("stationlat") != timeseriesPositions.end())
+        result[timeseriesPositions.at("stationlat")].push_back(
+            TS::TimedValue(localtime, s.latitude_out));
+
+      if (timeseriesPositions.find("stationlat") != timeseriesPositions.end())
+        result[timeseriesPositions.at("stationlat")].push_back(
+            TS::TimedValue(localtime, s.latitude_out));
+
+      if (timeseriesPositions.find("station_elevation") != timeseriesPositions.end())
+        result[timeseriesPositions.at("station_elevation")].push_back(
+            TS::TimedValue(localtime, s.station_elevation));
+
+      timesteps.insert(localtime);
+
+      // Data in magnetometer_data table:
+      // level | colname | measurand_id | measurand_code
+      // -------+---------+--------------+-----------------
+      //    10 | X       |          667 | MAGNX_PT10S_AVG
+      //    60 | X       |          668 | MAGNX_PT1M_AVG
+      //    10 | Y       |          669 | MAGNY_PT10S_AVG
+      //    60 | Y       |          670 | MAGNY_PT1M_AVG
+      //    10 | Z       |          671 | MAGNZ_PT10S_AVG
+      //    60 | Z       |          672 | MAGNZ_PT1M_AVG
+      //    60 | T       |          144 | TTECH_PT1M_AVG
+      //   110 | F       |          673 | MAGN_PT10S_AVG
+    }
+
+    // Get valid timesteps based on data and request
+    auto valid_timesteps_per_fmisid =
+        getValidTimeSteps(settings, timeSeriesOptions, timezones, fmisid_results);
+
+    // Set data for each valid timestep
+    for (const auto &item : fmisid_results)
+    {
+      auto fmisid = item.first;
+      auto valid_timesteps = valid_timesteps_per_fmisid.at(fmisid);
+      const auto &ts_vector = *item.second;
+      for (unsigned int i = 0; i < ts_vector.size(); i++)
       {
-        if (data.find(timestep) != data.end())
-          ret->at(i).push_back(data.at(timestep));
-        else
+        auto ts = ts_vector.at(i);
+        std::map<boost::local_time::local_date_time, TS::TimedValue> data;
+        for (unsigned int j = 0; j < ts.size(); j++)
         {
-          if (data_independent_positions.find(i) != data_independent_positions.end())
-            ret->at(i).push_back(ts.at(0));
+          auto timed_value = ts.at(j);
+          data.insert(std::make_pair(timed_value.time, timed_value));
+        }
+
+        for (const auto &timestep : valid_timesteps)
+        {
+          if (data.find(timestep) != data.end())
+            ret->at(i).push_back(data.at(timestep));
           else
-            ret->at(i).push_back(TS::TimedValue(timestep, TS::None()));
+          {
+            if (data_independent_positions.find(i) != data_independent_positions.end())
+              ret->at(i).push_back(ts.at(0));
+            else
+              ret->at(i).push_back(TS::TimedValue(timestep, TS::None()));
+          }
         }
       }
     }
-  }
 
-  return ret;
+    return ret;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
 TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
@@ -3466,12 +3470,6 @@ TS::TimeSeriesVectorPtr SpatiaLite::getObservationData(
 
     auto qmap = buildQueryMapping(settings, stationtype, false);
 
-    // Resolve stationgroup codes
-    std::set<std::string> stationgroup_codes;
-    auto stationgroupCodeSet =
-        itsStationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
-    stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
-
     // Should we use the cache?
 
     bool use_memory_cache = (observationMemoryCache != nullptr);
@@ -3485,9 +3483,9 @@ TS::TimeSeriesVectorPtr SpatiaLite::getObservationData(
 
     LocationDataItems observations =
         (use_memory_cache ? observationMemoryCache->read_observations(
-                                stations, settings, stationInfo, stationgroup_codes, qmap)
+                                stations, settings, stationInfo, settings.stationgroups, qmap)
                           : readObservationDataFromDB(
-                                stations, settings, stationInfo, qmap, stationgroup_codes));
+                                stations, settings, stationInfo, qmap, settings.stationgroups));
 
     std::set<int> observed_fmisids;
     for (auto item : observations)
@@ -3505,7 +3503,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getObservationData(
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(BCP, "Getting cached data from SpatiLite failed!");
+    throw Fmi::Exception::Trace(BCP, "Getting cached data from SpatiaLite failed!");
   }
 }
 
@@ -3519,14 +3517,8 @@ TS::TimeSeriesVectorPtr SpatiaLite::getObservationDataForMovingStations(
     // This maps measurand_id and the parameter position in TimeSeriesVector
     auto qmap = buildQueryMapping(settings, settings.stationtype, false);
 
-    // Resolve stationgroup codes
-    std::set<std::string> stationgroup_codes;
-    auto stationgroupCodeSet =
-        itsStationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
-    stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
-
     LocationDataItems observations =
-        readObservationDataOfMovingStationsFromDB(settings, qmap, stationgroup_codes);
+        readObservationDataOfMovingStationsFromDB(settings, qmap, settings.stationgroups);
 
     StationMap fmisid_to_station;
     for (auto item : observations)
@@ -3719,15 +3711,6 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
       boost::optional<double> latitude = s.latitude_out;
       boost::optional<double> longitude = s.longitude_out;
       boost::optional<double> elevation = s.station_elevation;
-
-      const StationLocation &sloc = stationInfo.stationLocations.getLocation(*fmisid, obstime);
-      // Get exact location, elevation
-      if (sloc.location_id != -1)
-      {
-        latitude = sloc.latitude;
-        longitude = sloc.longitude;
-        elevation = sloc.elevation;
-      }
 
       int parameter = row.get<int>(2);
       boost::optional<double> data_value;

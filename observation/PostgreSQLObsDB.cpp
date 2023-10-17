@@ -672,15 +672,6 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       boost::optional<double> longitude = s.longitude_out;
       boost::optional<double> elevation = s.station_elevation;
 
-      const StationLocation &sloc = stationInfo.stationLocations.getLocation(*fmisid, obstime);
-      // Get exact location, elevation
-      if (sloc.location_id != -1)
-      {
-        latitude = sloc.latitude;
-        longitude = sloc.longitude;
-        elevation = sloc.elevation;
-      }
-
       boost::optional<double> data_value;
       boost::optional<int> data_quality;
       boost::optional<int> sensor_no;
@@ -1029,48 +1020,6 @@ WHERE  tg.group_class_id IN( 1, 81 )
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Reading stations from PostgreSQL database failed!");
-  }
-}
-
-void PostgreSQLObsDB::readStationLocations(StationLocations &stationLocations) const
-{
-  try
-  {
-    std::string sqlStmt =
-        "SELECT location_id, station_id, country_id, location_start, location_end, lon, lat, "
-        "station_elevation from locations_v2";
-
-    if (itsDebug)
-      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
-
-    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-
-    for (auto row : result_set)
-    {
-      if (row[5].is_null() || row[6].is_null() || row[7].is_null())
-        continue;
-      try
-      {
-        StationLocation item;
-        item.location_id = as_int(row[0]);
-        item.fmisid = as_int(row[1]);
-        item.country_id = as_int(row[2]);
-        item.location_start = Fmi::TimeParser::parse(row[3].as<std::string>());
-        item.location_end = Fmi::TimeParser::parse(row[4].as<std::string>());
-        item.longitude = as_double(row[5]);
-        item.latitude = as_double(row[6]);
-        item.elevation = as_double(row[7]);
-        stationLocations[item.fmisid].push_back(item);
-      }
-      catch (Fmi::Exception &e)
-      {
-        std::cerr << "Warning while reading station metadata: " << e.what() << std::endl;
-      }
-    }
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

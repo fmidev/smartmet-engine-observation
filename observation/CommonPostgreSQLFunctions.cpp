@@ -66,14 +66,8 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationDataForMovingSt
     // This maps measurand_id and the parameter position in TimeSeriesVector
     auto qmap = buildQueryMapping(settings, settings.stationtype, false);
 
-    // Resolve stationgroup codes
-    std::set<std::string> stationgroup_codes;
-    auto stationgroupCodeSet =
-        itsStationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
-    stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
-
     LocationDataItems observations =
-        readObservationDataOfMovingStationsFromDB(settings, qmap, stationgroup_codes);
+        readObservationDataOfMovingStationsFromDB(settings, qmap, settings.stationgroups);
 
     StationMap fmisid_to_station;
     for (auto item : observations)
@@ -392,20 +386,19 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
         obs.data.data_quality = as_int(row[5]);
       if (!row[6].is_null())
         obs.data.data_source = as_int(row[6]);
-      // Get latitude, longitude, elevation from station info
-      const Spine::Station &s =
-          stationInfo.getStation(obs.data.fmisid, stationgroup_codes, obs.data.data_time);
-      obs.latitude = s.latitude_out;
-      obs.longitude = s.longitude_out;
-      obs.elevation = s.station_elevation;
-      const StationLocation &sloc =
-          stationInfo.stationLocations.getLocation(obs.data.fmisid, obs.data.data_time);
-      // Get exact location, elevation
-      if (sloc.location_id != -1)
+      try
       {
-        obs.latitude = sloc.latitude;
-        obs.longitude = sloc.longitude;
-        obs.elevation = sloc.elevation;
+        // Get latitude, longitude, elevation from station info. Databases may contain data values
+        // outside the validity range of the station (according to the metadata), then we just
+        // omit the coordinates etc.
+        const Spine::Station &s =
+            stationInfo.getStation(obs.data.fmisid, stationgroup_codes, obs.data.data_time);
+        obs.latitude = s.latitude_out;
+        obs.longitude = s.longitude_out;
+        obs.elevation = s.station_elevation;
+      }
+      catch (...)
+      {
       }
 
       ret.emplace_back(obs);
@@ -903,52 +896,50 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
         itsParameterMap->getParameterName((level == 60 ? "144" : "MISSING"), MAGNETO_PRODUCER);
     auto f_parameter_name =
         itsParameterMap->getParameterName((level == 110 ? "673" : "MISSING"), MAGNETO_PRODUCER);
+
     if (timeseriesPositions.find(x_parameter_name) != timeseriesPositions.end())
       result[timeseriesPositions.at(x_parameter_name)].push_back(
           TS::TimedValue(localtime, magneto_x_value));
+
     if (timeseriesPositions.find(y_parameter_name) != timeseriesPositions.end())
       result[timeseriesPositions.at(y_parameter_name)].push_back(
           TS::TimedValue(localtime, magneto_y_value));
+
     if (timeseriesPositions.find(z_parameter_name) != timeseriesPositions.end())
       result[timeseriesPositions.at(z_parameter_name)].push_back(
           TS::TimedValue(localtime, magneto_z_value));
+
     if (timeseriesPositions.find(t_parameter_name) != timeseriesPositions.end())
       result[timeseriesPositions.at(t_parameter_name)].push_back(
           TS::TimedValue(localtime, magneto_t_value));
+
     if (timeseriesPositions.find(f_parameter_name) != timeseriesPositions.end())
       result[timeseriesPositions.at(f_parameter_name)].push_back(
           TS::TimedValue(localtime, magneto_f_value));
+
     if (timeseriesPositions.find("data_quality") != timeseriesPositions.end())
       result[timeseriesPositions.at("data_quality")].push_back(
           TS::TimedValue(localtime, data_quality_value));
+
     if (timeseriesPositions.find("fmisid") != timeseriesPositions.end())
       result[timeseriesPositions.at("fmisid")].push_back(
           TS::TimedValue(localtime, station_id_value));
+
     if (timeseriesPositions.find("magnetometer_id") != timeseriesPositions.end())
       result[timeseriesPositions.at("magnetometer_id")].push_back(
           TS::TimedValue(localtime, magnetometer_id_value));
+
     if (timeseriesPositions.find("stationlon") != timeseriesPositions.end())
       result[timeseriesPositions.at("stationlon")].push_back(
           TS::TimedValue(localtime, s.longitude_out));
+
     if (timeseriesPositions.find("stationlat") != timeseriesPositions.end())
       result[timeseriesPositions.at("stationlat")].push_back(
           TS::TimedValue(localtime, s.latitude_out));
-    if (timeseriesPositions.find("elevation") != timeseriesPositions.end())
-    {
-      const StationLocation &sloc = stationInfo.stationLocations.getLocation(fmisid, data_time);
-      // Get exact location, elevation
-      if (sloc.location_id != -1)
-      {
-        if (timeseriesPositions.find("stationlon") != timeseriesPositions.end())
-          result[timeseriesPositions.at("stationlon")].push_back(
-              TS::TimedValue(localtime, sloc.longitude));
-        if (timeseriesPositions.find("stationlat") != timeseriesPositions.end())
-          result[timeseriesPositions.at("stationlat")].push_back(
-              TS::TimedValue(localtime, sloc.latitude));
-        result[timeseriesPositions.at("elevation")].push_back(
-            TS::TimedValue(localtime, sloc.elevation));
-      }
-    }
+
+    if (timeseriesPositions.find("station_elevation") != timeseriesPositions.end())
+      result[timeseriesPositions.at("station_elevation")].push_back(
+          TS::TimedValue(localtime, s.station_elevation));
 
     timesteps.insert(localtime);
   }

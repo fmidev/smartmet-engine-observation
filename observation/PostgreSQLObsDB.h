@@ -123,7 +123,6 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
   void translateToRWSID(Spine::Stations &stations) const;
 
   void getStations(Spine::Stations &stations) const;
-  void readStationLocations(StationLocations &stationLocations) const;
   void getStationGroups(StationGroups &sg) const;
   void getProducerGroups(ProducerGroups &pg) const;
 
@@ -133,10 +132,11 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
 
   MeasurandInfo getMeasurandInfo(const EngineParametersPtr &engineParameters) const;
 
-  boost::posix_time::ptime getLatestDataUpdateTime(const std::string& tablename,
-												   const boost::posix_time::ptime& from,
-												   const std::string& producer_ids, 
-												   const std::string& measurand_ids) const;
+  boost::posix_time::ptime getLatestDataUpdateTime(const std::string &tablename,
+                                                   const boost::posix_time::ptime &from,
+                                                   const std::string &producer_ids,
+                                                   const std::string &measurand_ids) const;
+
  private:
   TS::TimeSeriesVectorPtr itsTimeSeriesColumns;
 

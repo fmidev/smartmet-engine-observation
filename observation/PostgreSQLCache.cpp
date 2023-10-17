@@ -137,7 +137,8 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
 
     auto sinfo = itsParameters.stationInfo->load();
 
-    Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
+    Spine::Stations stations = sinfo->findFmisidStations(
+        settings.taggedFMISIDs, settings.stationgroups, settings.starttime, settings.endtime);
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
@@ -191,7 +192,8 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
 
     auto sinfo = itsParameters.stationInfo->load();
 
-    Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
+    Spine::Stations stations = sinfo->findFmisidStations(
+        settings.taggedFMISIDs, settings.stationgroups, settings.starttime, settings.endtime);
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations

@@ -17,6 +17,9 @@
 #include <macgyver/StringConversion.h>
 #include <fstream>
 
+#include <boost/algorithm/string/join.hpp>
+#include <fmt/format.h>
+
 namespace SmartMet
 {
 namespace Engine
@@ -633,14 +636,44 @@ const Spine::Station& StationInfo::getStation(unsigned int fmisid,
                                               const boost::posix_time::ptime& t) const
 {
   const auto& ids = fmisidstations.at(fmisid);
+#if 0  
+  bool debug = (fmisid = 101004);
+  if (debug)
+  {
+    std::cout << "Requested groups: " << boost::algorithm::join(groups, ", ") << "\n";
+    for (const auto id : ids)
+    {
+      const auto& station = stations.at(id);
+      std::cout << fmt::format("Candidate: {}\tfrom {} to {} at {},{}\n",
+                               station.station_type,
+                               Fmi::to_iso_string(station.station_start),
+                               Fmi::to_iso_string(station.station_end),
+                               station.longitude_out,
+                               station.latitude_out);
+    }
+  }
+#endif
+
   for (const auto id : ids)
   {
     const auto& station = stations.at(id);
     if (timeok(station, t) && groupok(station, groups))
-      return stations.at(id);
+      return station;
   }
 
-  throw Fmi::Exception(BCP, "No match found for fmisid=" + Fmi::to_string(fmisid));
+  Fmi::Exception ex(BCP,
+                    "No match found for fmisid=" + Fmi::to_string(fmisid) + " at " +
+                        Fmi::to_iso_string(t) + " (" + Fmi::to_string(ids.size()) + " candidates)");
+  int counter = 0;
+  for (const auto id : ids)
+  {
+    const auto& station = stations.at(id);
+    auto name = "Candidate #" + Fmi::to_string(++counter);
+    auto reason = station.station_type + " from " + Fmi::to_iso_string(station.station_start) +
+                  " to " + Fmi::to_iso_string(station.station_end);
+    ex.addParameter(name.c_str(), reason);
+  }
+  throw ex;
 }
 
 // ----------------------------------------------------------------------
@@ -862,6 +895,14 @@ Spine::TaggedFMISIDList StationInfo::translateLPNNToFMISID(const std::vector<int
       processed.insert(s.lpnn);
     }
 
+  return ret;
+}
+
+std::vector<int> StationInfo::fmisids() const
+{
+  std::vector<int> ret;
+  for (const auto& fmisid_data : fmisidstations)
+    ret.push_back(fmisid_data.first);
   return ret;
 }
 

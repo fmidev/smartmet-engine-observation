@@ -198,7 +198,8 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
 
     auto sinfo = itsParameters.stationInfo->load();
 
-    Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
+    Spine::Stations stations = sinfo->findFmisidStations(
+        settings.taggedFMISIDs, settings.stationgroups, settings.starttime, settings.endtime);
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
@@ -289,7 +290,8 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
 
     auto sinfo = itsParameters.stationInfo->load();
 
-    Spine::Stations stations = sinfo->findFmisidStations(settings.taggedFMISIDs);
+    Spine::Stations stations = sinfo->findFmisidStations(
+        settings.taggedFMISIDs, settings.stationgroups, settings.starttime, settings.endtime);
     stations = removeDuplicateStations(stations);
 
     // Get data if we have stations
@@ -1419,12 +1421,14 @@ void SpatiaLiteCache::getMovingStations(Spine::Stations &stations,
   itsConnectionPool->getConnection()->getMovingStations(stations, settings, wkt);
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestDataUpdateTime(const std::string& tablename,
-																  const boost::posix_time::ptime& starttime,
-																  const std::string& producer_ids,
-																  const std::string& measurand_ids) const
+boost::posix_time::ptime SpatiaLiteCache::getLatestDataUpdateTime(
+    const std::string &tablename,
+    const boost::posix_time::ptime &starttime,
+    const std::string &producer_ids,
+    const std::string &measurand_ids) const
 {
-  return itsConnectionPool->getConnection()->getLatestDataUpdateTime(tablename, starttime, producer_ids, measurand_ids);
+  return itsConnectionPool->getConnection()->getLatestDataUpdateTime(
+      tablename, starttime, producer_ids, measurand_ids);
 }
 
 void SpatiaLiteCache::hit(const std::string &name) const

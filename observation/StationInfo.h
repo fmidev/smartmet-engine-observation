@@ -1,7 +1,6 @@
 #pragma once
 
 #include "StationGroups.h"
-#include "StationLocation.h"
 #include <macgyver/NearTree.h>
 #include <macgyver/NearTreeLatLon.h>
 #include <spine/Station.h>
@@ -37,11 +36,13 @@ class StationInfo
   StationInfo() = default;
   explicit StationInfo(const std::string& filename);
 
-  Spine::Stations stations;           // all known stations
-  StationLocations stationLocations;  // all station locations
+  Spine::Stations stations;  // all known stations
+  // StationLocations stationLocations;  // all station locations
 
   void serialize(const std::string& filename) const;
   void unserialize(const std::string& filename);
+
+  std::vector<int> fmisids() const;
 
   Spine::Stations findNearestStations(double longitude,
                                       double latitude,
