@@ -166,6 +166,8 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Tue Oct 17 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.10.17-1.fmi
 - Fixed sqlite driver to check the station validity period
+- Removed unnecessary separate loading of location coordinates
+- Establish allowed station groups just once early in the query instead of in several places
 
 * Mon Oct 16 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.10.16-1.fmi
 - Fixed handling of station valid_from - valid_to and location_start - location_end intervals
