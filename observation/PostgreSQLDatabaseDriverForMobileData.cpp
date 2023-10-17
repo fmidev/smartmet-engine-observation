@@ -405,9 +405,10 @@ void PostgreSQLDatabaseDriverForMobileData::readConfig(Spine::ConfigBase &cfg)
   }
 }
 
-boost::posix_time::ptime PostgreSQLDatabaseDriverForMobileData::getLatestDataUpdateTime(const std::string& /*producer*/,
-																						const boost::posix_time::ptime& /*from*/,
-																						const MeasurandInfo& /*measurand_info*/) const
+boost::posix_time::ptime PostgreSQLDatabaseDriverForMobileData::getLatestDataUpdateTime(
+    const std::string & /*producer*/,
+    const boost::posix_time::ptime & /*from*/,
+    const MeasurandInfo & /*measurand_info*/) const
 {
   return boost::posix_time::not_a_date_time;
 }

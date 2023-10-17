@@ -2193,20 +2193,11 @@ void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       boost::optional<int> parameter = as_int(row[2]);
 
       // Get latitude, longitude, elevation from station info
-      const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes);
+      const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes, obstime);
 
       boost::optional<double> latitude = s.latitude_out;
       boost::optional<double> longitude = s.longitude_out;
       boost::optional<double> elevation = s.station_elevation;
-
-      const StationLocation &sloc = stationInfo.stationLocations.getLocation(*fmisid, obstime);
-      // Get exact location, elevation
-      if (sloc.location_id != -1)
-      {
-        latitude = sloc.latitude;
-        longitude = sloc.longitude;
-        elevation = sloc.elevation;
-      }
 
       boost::optional<double> data_value;
       boost::optional<int> data_quality;

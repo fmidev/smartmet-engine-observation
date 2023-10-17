@@ -1,9 +1,9 @@
 #pragma once
 
-#include <set>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/optional.hpp>
 #include <spine/Value.h>
+#include <set>
 
 namespace SmartMet
 {

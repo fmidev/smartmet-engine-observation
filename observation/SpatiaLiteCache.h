@@ -130,10 +130,10 @@ class SpatiaLiteCache : public ObservationCache
 
   Fmi::Cache::CacheStatistics getCacheStats() const override;
 
-  boost::posix_time::ptime getLatestDataUpdateTime(const std::string& tablename, 
-												   const boost::posix_time::ptime& starttime, 
-												   const std::string& producer_ids,
-												   const std::string& measurand_ids) const override;
+  boost::posix_time::ptime getLatestDataUpdateTime(const std::string &tablename,
+                                                   const boost::posix_time::ptime &starttime,
+                                                   const std::string &producer_ids,
+                                                   const std::string &measurand_ids) const override;
 
  private:
   Spine::Stations getStationsFromSpatiaLite(Settings &settings,
