@@ -99,7 +99,9 @@ class StationInfo
                                         const boost::posix_time::ptime& starttime,
                                         const boost::posix_time::ptime& endtime) const;
 
-  const Spine::Station& getStation(unsigned int fmisid, const std::set<std::string>& groups) const;
+  const Spine::Station& getStation(unsigned int fmisid,
+                                   const std::set<std::string>& groups,
+                                   const boost::posix_time::ptime& t) const;
 
   bool belongsToGroup(unsigned int fmisid, const std::set<std::string>& groups) const;
 

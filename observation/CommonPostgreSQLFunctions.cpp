@@ -393,7 +393,8 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
       if (!row[6].is_null())
         obs.data.data_source = as_int(row[6]);
       // Get latitude, longitude, elevation from station info
-      const Spine::Station &s = stationInfo.getStation(obs.data.fmisid, stationgroup_codes);
+      const Spine::Station &s =
+          stationInfo.getStation(obs.data.fmisid, stationgroup_codes, obs.data.data_time);
       obs.latitude = s.latitude_out;
       obs.longitude = s.longitude_out;
       obs.elevation = s.station_elevation;
@@ -890,7 +891,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
 
     auto &result = *(fmisid_results[fmisid]);
     auto &timesteps = fmisid_timesteps[fmisid];
-    const Spine::Station &s = stationInfo.getStation(fmisid, stationgroup_codes);
+    const Spine::Station &s = stationInfo.getStation(fmisid, stationgroup_codes, data_time);
 
     auto x_parameter_name = itsParameterMap->getParameterName(
         (level == 10 ? "667" : (level == 60 ? "668" : "MISSING")), MAGNETO_PRODUCER);

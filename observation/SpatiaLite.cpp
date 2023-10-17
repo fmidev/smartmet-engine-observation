@@ -165,7 +165,8 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
       obs.data.fmisid = row.get<int>(0);
       obs.data.sensor_no = row.get<int>(1);
       // Get latitude, longitude, elevation from station info
-      const Spine::Station &s = stationInfo.getStation(obs.data.fmisid, stationgroup_codes);
+      const Spine::Station &s =
+          stationInfo.getStation(obs.data.fmisid, stationgroup_codes, obs.data.data_time);
       obs.latitude = s.latitude_out;
       obs.longitude = s.longitude_out;
       obs.elevation = s.station_elevation;
@@ -3015,7 +3016,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMagnetometerData(
 
     auto &result = *(fmisid_results[fmisid]);
     auto &timesteps = fmisid_timesteps[fmisid];
-    const Spine::Station &s = stationInfo.getStation(fmisid, stationgroup_codes);
+    const Spine::Station &s = stationInfo.getStation(fmisid, stationgroup_codes, data_time);
 
     auto x_parameter_name = itsParameterMap->getParameterName(
         (level == 10 ? "667" : (level == 60 ? "668" : "MISSING")), MAGNETO_PRODUCER);
@@ -3713,7 +3714,7 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
       unsigned int obstime_db = row.get<int>(1);
       boost::posix_time::ptime obstime = boost::posix_time::from_time_t(obstime_db);
       // Get latitude, longitude, elevation from station info
-      const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes);
+      const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes, obstime);
 
       boost::optional<double> latitude = s.latitude_out;
       boost::optional<double> longitude = s.longitude_out;
@@ -3878,54 +3879,64 @@ void SpatiaLite::getMovingStations(Spine::Stations &stations,
   }
 }
 
-boost::posix_time::ptime SpatiaLite::getLatestDataUpdateTime(const std::string& tablename,
-															 const boost::posix_time::ptime& starttime, 
-															 const std::string& producer_ids, const std::string& measurand_ids)
+boost::posix_time::ptime SpatiaLite::getLatestDataUpdateTime(
+    const std::string &tablename,
+    const boost::posix_time::ptime &starttime,
+    const std::string &producer_ids,
+    const std::string &measurand_ids)
 {
   try
-	{	  
-	  auto start_time = to_epoch(starttime);
-	  
-	  boost::posix_time::ptime ret =  boost::posix_time::not_a_date_time;
+  {
+    auto start_time = to_epoch(starttime);
 
-	  std::string sqlStmt;
-	  if(tablename == OBSERVATION_DATA_TABLE)
-		{
-		  sqlStmt = "select max(modified_last) from observation_data where modified_last IS NOT NULL AND modified_last >=" + Fmi::to_string(start_time);
-		  if(!producer_ids.empty())
-			sqlStmt.append(" AND producer_id in("+producer_ids+")");
-		}
-	  else if(tablename == WEATHER_DATA_QC_TABLE)
-		{
-		  sqlStmt = "select max(modified_last) from weather_data_qc where modified_last IS NOT NULL AND modified_last >=" + Fmi::to_string(start_time);
-		}
-	  else if(tablename == FLASH_DATA_TABLE)
-		sqlStmt = "select max(modified_last) from flash_data where modified_last IS NOT NULL AND modified_last >=" + Fmi::to_string(start_time);
+    boost::posix_time::ptime ret = boost::posix_time::not_a_date_time;
 
-	  // std::cout << "Spatialite::getLatestDataUpdateTime: "<< sqlStmt << std::endl;
+    std::string sqlStmt;
+    if (tablename == OBSERVATION_DATA_TABLE)
+    {
+      sqlStmt =
+          "select max(modified_last) from observation_data where modified_last IS NOT NULL AND "
+          "modified_last >=" +
+          Fmi::to_string(start_time);
+      if (!producer_ids.empty())
+        sqlStmt.append(" AND producer_id in(" + producer_ids + ")");
+    }
+    else if (tablename == WEATHER_DATA_QC_TABLE)
+    {
+      sqlStmt =
+          "select max(modified_last) from weather_data_qc where modified_last IS NOT NULL AND "
+          "modified_last >=" +
+          Fmi::to_string(start_time);
+    }
+    else if (tablename == FLASH_DATA_TABLE)
+      sqlStmt =
+          "select max(modified_last) from flash_data where modified_last IS NOT NULL AND "
+          "modified_last >=" +
+          Fmi::to_string(start_time);
 
-	  if(!sqlStmt.empty())
-		{
-		  sqlite3pp::query qry(itsDB, sqlStmt.c_str());
-		  
-		  for (const auto &row : qry)
-			{
-			  if (row.column_type(0) != SQLITE_NULL)
-				{
-				  auto epoch_time = row.get<int>(0);
-				  auto ptime_time = boost::posix_time::from_time_t(epoch_time);
-				  ret = ptime_time;
-				}
-			}
-		}	  
-	  
-	  return ret;
+    // std::cout << "Spatialite::getLatestDataUpdateTime: "<< sqlStmt << std::endl;
 
-	}
+    if (!sqlStmt.empty())
+    {
+      sqlite3pp::query qry(itsDB, sqlStmt.c_str());
+
+      for (const auto &row : qry)
+      {
+        if (row.column_type(0) != SQLITE_NULL)
+        {
+          auto epoch_time = row.get<int>(0);
+          auto ptime_time = boost::posix_time::from_time_t(epoch_time);
+          ret = ptime_time;
+        }
+      }
+    }
+
+    return ret;
+  }
   catch (...)
-	{
-	  throw Fmi::Exception::Trace(BCP, "Operation failed!");
-	}
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
 }  // namespace Observation

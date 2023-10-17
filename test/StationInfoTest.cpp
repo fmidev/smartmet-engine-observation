@@ -32,7 +32,7 @@ TEST_CASE("Test station and data searches")
 
     SECTION("A station is searched by id")
     {
-      auto station = stationinfo.getStation(station_id, stationgroup_codes);
+      auto station = stationinfo.getStation(station_id, stationgroup_codes, starttime);
       REQUIRE(station.fmisid == station_id);
       REQUIRE(station.station_formal_name_fi == "Helsinki Kaisaniemi");
     }
@@ -121,7 +121,7 @@ TEST_CASE("Test station and data searches")
 
     SECTION("A station is searched by id")
     {
-      auto station = stationinfo.getStation(station_id, stationgroup_codes);
+      auto station = stationinfo.getStation(station_id, stationgroup_codes, starttime);
       REQUIRE(station.fmisid == station_id);
       REQUIRE(station.station_formal_name_fi == "kt51_Inkoo_Innanbäck");
     }

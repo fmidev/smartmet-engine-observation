@@ -6,7 +6,9 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/make_shared.hpp>
+#include <fmt/format.h>
 #include <macgyver/Geometry.h>
+#include <macgyver/StringConversion.h>
 #include <macgyver/TypeName.h>
 #include <spine/Convenience.h>
 #include <spine/Reactor.h>
@@ -725,22 +727,22 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
                                          "country",
                                          "region"};
 
-    bool check_fmisid = !options.fmisid.empty();
-    bool check_lpnn = !options.lpnn.empty();
-    bool check_wmo = !options.wmo.empty();
-    bool check_rwsid = !options.rwsid.empty();
-    bool check_type = !options.type.empty();
-    bool check_name = !options.name.empty();
-    bool check_iso2 = !options.iso2.empty();
-    bool check_region = !options.region.empty();
-    bool check_bbox = (options.bbox != boost::none);
-    bool only_starttime =
+    const bool check_fmisid = !options.fmisid.empty();
+    const bool check_lpnn = !options.lpnn.empty();
+    const bool check_wmo = !options.wmo.empty();
+    const bool check_rwsid = !options.rwsid.empty();
+    const bool check_type = !options.type.empty();
+    const bool check_name = !options.name.empty();
+    const bool check_iso2 = !options.iso2.empty();
+    const bool check_region = !options.region.empty();
+    const bool check_bbox = (options.bbox != boost::none);
+    const bool only_starttime =
         (!options.start_time.is_not_a_date_time() && options.end_time.is_not_a_date_time());
-    bool only_endtime =
+    const bool only_endtime =
         (options.start_time.is_not_a_date_time() && !options.end_time.is_not_a_date_time());
-    bool neither_time =
+    const bool neither_time =
         (options.start_time.is_not_a_date_time() && options.end_time.is_not_a_date_time());
-    bool both_times =
+    const bool both_times =
         (!options.start_time.is_not_a_date_time() && !options.end_time.is_not_a_date_time());
 
     // FMISID -> Location -> station type, sort locations to ascending order according to start time
@@ -750,10 +752,11 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
     std::shared_ptr<Fmi::TimeFormatter> timeFormatter;
     timeFormatter.reset(Fmi::TimeFormatter::create(options.timeformat));
 
-    boost::posix_time::ptime now = boost::posix_time::second_clock::universal_time();
+    auto now = boost::posix_time::second_clock::universal_time();
 
     unsigned int row = 0;
     auto sinfo = itsEngineParameters->stationInfo.load();
+
     for (const auto &s : sinfo->stations)
     {
       // Check data against options
@@ -791,6 +794,7 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
       if (both_times && (s.station_start > options.end_time || s.station_end < options.start_time))
         continue;
 
+      // Establish requested time period
       boost::posix_time::ptime option_starttime;
       boost::posix_time::ptime option_endtime;
       if (only_starttime)
@@ -810,8 +814,13 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
       }
       boost::posix_time::time_period option_period(option_starttime, option_endtime);
       boost::posix_time::time_period station_period(s.station_start, s.station_end);
+
+      bool debug = (s.fmisid == 100669);
+
+      // Get all variants of the fmisid
       std::vector<const StationLocation *> station_locations;
       const StationLocationVector &allLocations = sinfo->stationLocations.getAllLocations(s.fmisid);
+
       // Check location time periods
       for (const auto &loc : allLocations)
       {
@@ -819,18 +828,30 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
         if (neither_time)
         {
           if (location_period.contains(now))
+          {
+            if (debug)
+              std::cout << "No limits, pushing " << location_period << "\n";
             station_locations.push_back(&loc);
+          }
+          else if (debug)
+            std::cout << "Skipping old " << location_period << "\n";
         }
         else if (option_period.intersects(location_period))
         {
           // Show whole period even if it intersects only partially
+          if (debug)
+            std::cout << "Intersects " << location_period << "\n";
           station_locations.push_back(&loc);
         }
+        else if (debug)
+          std::cout << "Does not intersect " << location_period << "\n";
       }
 
+      // Establish station types for the fmisid
       for (const auto &l : station_locations)
       {
         const StationLocation &loc = *l;
+
         if (station_location_types.find(s.fmisid) == station_location_types.end())
         {
           station_location_types[s.fmisid][&loc] = s.station_type;
@@ -859,45 +880,46 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
       }
     }
 
-    std::set<std::string> groups;
+    // Print the information for the location
+    const std::set<std::string> no_groups;
     for (const auto &station_item : station_location_types)
     {
-      const Spine::Station &s = sinfo->getStation(station_item.first, groups);
       for (const auto &location_item : station_item.second)
       {
         unsigned int column = 0;
         const StationLocation &loc = *location_item.first;
-        // Row number
-        resultTable->set(column++, row, Fmi::to_string(row + 1));
-        // Name
-        resultTable->set(column++, row, s.station_formal_name("fi"));
-        // Type
-        resultTable->set(column++, row, location_item.second);
-        // FMISID
-        resultTable->set(column++, row, Fmi::to_string(s.fmisid));
-        // WMO
-        resultTable->set(column++, row, Fmi::to_string(s.wmo));
-        // LPNN
-        resultTable->set(column++, row, Fmi::to_string(s.lpnn));
-        // RWSID
-        resultTable->set(column++, row, Fmi::to_string(s.rwsid));
-        // Longitude
-        resultTable->set(column++, row, Fmi::to_string(loc.longitude));
-        // Latitude
-        resultTable->set(column++, row, Fmi::to_string(loc.latitude));
-        // Elevation
-        resultTable->set(column++, row, Fmi::to_string(loc.elevation));
-        // Start date
-        resultTable->set(column++, row, timeFormatter->format(loc.location_start));
-        // End date
-        resultTable->set(column++, row, timeFormatter->format(loc.location_end));
-        // Timezone
-        resultTable->set(column++, row, s.timezone);
-        // Country
-        resultTable->set(column++, row, s.iso2);
-        // Region
-        resultTable->set(column++, row, s.region);
-        row++;
+
+        try
+        {
+          const Spine::Station &s =
+              sinfo->getStation(station_item.first, no_groups, loc.location_start);
+
+          resultTable->set(column++, row, Fmi::to_string(row + 1));                    // Row number
+          resultTable->set(column++, row, s.station_formal_name("fi"));                // Name
+          resultTable->set(column++, row, location_item.second);                       // Type
+          resultTable->set(column++, row, Fmi::to_string(s.fmisid));                   // FMISID
+          resultTable->set(column++, row, Fmi::to_string(s.wmo));                      // WMO
+          resultTable->set(column++, row, Fmi::to_string(s.lpnn));                     // LPNN
+          resultTable->set(column++, row, Fmi::to_string(s.rwsid));                    // RWSID
+          resultTable->set(column++, row, Fmi::to_string(loc.longitude));              // Longitude
+          resultTable->set(column++, row, Fmi::to_string(loc.latitude));               // Latitude
+          resultTable->set(column++, row, Fmi::to_string(loc.elevation));              // Elevation
+          resultTable->set(column++, row, timeFormatter->format(loc.location_start));  // Start date
+          resultTable->set(column++, row, timeFormatter->format(loc.location_end));    // End date
+          resultTable->set(column++, row, s.timezone);                                 // Timezone
+          resultTable->set(column++, row, s.iso2);                                     // Country
+          resultTable->set(column++, row, s.region);                                   // Region
+          row++;
+        }
+        catch (...)
+        {
+          std::cout << fmt::format(
+              "Warning: FMISID:{} {} has time interval issues in range {} - {}\n",
+              loc.fmisid,
+              location_item.second,
+              Fmi::to_iso_string(loc.location_start),
+              Fmi::to_iso_string(loc.location_end));
+        }
       }
     }
 
@@ -1025,7 +1047,8 @@ const ProducerMeasurandInfo &EngineImpl::getMeasurandInfo() const
   return itsMeasurandInfo;
 }
 
-boost::posix_time::ptime EngineImpl::getLatestDataUpdateTime(const std::string& producer, const boost::posix_time::ptime& from) const
+boost::posix_time::ptime EngineImpl::getLatestDataUpdateTime(
+    const std::string &producer, const boost::posix_time::ptime &from) const
 {
   return itsDatabaseDriver->getLatestDataUpdateTime(producer, from);
 }

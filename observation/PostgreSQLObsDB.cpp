@@ -666,7 +666,7 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       int int_parameter = itsParameterMap->getRoadAndForeignIds().stringToInteger(*parameter);
 
       // Get latitude, longitude, elevation from station info
-      const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes);
+      const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes, obstime);
 
       boost::optional<double> latitude = s.latitude_out;
       boost::optional<double> longitude = s.longitude_out;

@@ -31,6 +31,17 @@ static bool sort_stations_function(const Spine::Station& s1, const Spine::Statio
 
 // ----------------------------------------------------------------------
 /*!
+ * \brief Test if the station has any observations for the time
+ */
+// ----------------------------------------------------------------------
+
+bool timeok(const Spine::Station& station, const boost::posix_time::ptime& t)
+{
+  return !(t < station.station_start || t > station.station_end);
+}
+
+// ----------------------------------------------------------------------
+/*!
  * \brief Test if the station has any observations for the time period
  *
  * If one time period ends before another starts, there is no overlap.
@@ -618,13 +629,14 @@ Spine::Stations StationInfo::findStationsInsideArea(const std::set<std::string>&
 // ----------------------------------------------------------------------
 
 const Spine::Station& StationInfo::getStation(unsigned int fmisid,
-                                              const std::set<std::string>& groups) const
+                                              const std::set<std::string>& groups,
+                                              const boost::posix_time::ptime& t) const
 {
   const auto& ids = fmisidstations.at(fmisid);
   for (const auto id : ids)
   {
     const auto& station = stations.at(id);
-    if (groupok(station, groups))
+    if (timeok(station, t) && groupok(station, groups))
       return stations.at(id);
   }
 
