@@ -164,6 +164,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Oct 17 2023 Pertti Kinnia <pertti.kinnia@fmi.fi> - 23.10.17-2.fmi
+- Added station query group_code 'HELCOM' (BRAINSTORM-2761)
+
 * Tue Oct 17 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.10.17-1.fmi
 - Fixed sqlite driver to check the station validity period
 - Removed unnecessary separate loading of location coordinates
