@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.10.17
+Version: 23.10.18
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -164,6 +164,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Oct 18 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.10.18-1.fmi
+- Repackaged to remove a debug message
+
 * Tue Oct 17 2023 Pertti Kinnia <pertti.kinnia@fmi.fi> - 23.10.17-2.fmi
 - Added station query group_code 'HELCOM' (BRAINSTORM-2761)
 
