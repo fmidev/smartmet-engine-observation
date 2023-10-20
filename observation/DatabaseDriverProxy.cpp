@@ -515,22 +515,22 @@ MeasurandInfo DatabaseDriverProxy::getMeasurandInfo() const
   return {};
 }
 
-boost::posix_time::ptime DatabaseDriverProxy::getLatestDataUpdateTime(const std::string& producer,
-																	  const boost::posix_time::ptime& from) const
+boost::posix_time::ptime DatabaseDriverProxy::getLatestDataUpdateTime(
+    const std::string &producer, const boost::posix_time::ptime &from) const
 {
   try
   {
-	if(from == boost::posix_time::not_a_date_time)
-	  return from;
+    if (from == boost::posix_time::not_a_date_time)
+      return from;
 
-	Settings settings;
-	settings.starttime = from;
-	settings.endtime = Utils::utc_second_clock();
-	settings.stationtype = producer;
+    Settings settings;
+    settings.starttime = from;
+    settings.endtime = Utils::utc_second_clock();
+    settings.stationtype = producer;
 
-	auto driver = resolveDatabaseDriver(settings);
+    auto driver = resolveDatabaseDriver(settings);
 
-	return driver->getLatestDataUpdateTime(producer, from, getMeasurandInfo());
+    return driver->getLatestDataUpdateTime(producer, from, getMeasurandInfo());
   }
   catch (...)
   {

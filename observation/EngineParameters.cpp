@@ -327,14 +327,14 @@ std::set<std::string> EngineParameters::getProducerParameters(const std::string 
 {
   std::set<std::string> ret;
 
-  for(auto iter = parameterMap->begin(); iter != parameterMap->end(); iter++)
-	{
-	  for(const auto& item : iter->second)
-		{
-		  if(item.first == stationType)
-			ret.insert(Fmi::ascii_toupper_copy(iter->first));
-		}
-	}
+  for (auto iter = parameterMap->begin(); iter != parameterMap->end(); iter++)
+  {
+    for (const auto &item : iter->second)
+    {
+      if (item.first == stationType)
+        ret.insert(Fmi::ascii_toupper_copy(iter->first));
+    }
+  }
 
   return ret;
 }

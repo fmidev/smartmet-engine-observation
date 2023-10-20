@@ -466,10 +466,11 @@ class SpatiaLite : public CommonDatabaseFunctions
                          const Settings &settings,
                          const std::string &wkt);
 
-  boost::posix_time::ptime getLatestDataUpdateTime(const std::string& tablename,
-												   const boost::posix_time::ptime& starttime, 
-												   const std::string& producer_ids, 
-												   const std::string& measurand_ids);
+  boost::posix_time::ptime getLatestDataUpdateTime(const std::string &tablename,
+                                                   const boost::posix_time::ptime &starttime,
+                                                   const std::string &producer_ids,
+                                                   const std::string &measurand_ids);
+
  private:
   // Private members
   sqlite3pp::database itsDB;

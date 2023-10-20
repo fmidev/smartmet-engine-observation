@@ -259,99 +259,106 @@ LocationDataItems ObservationMemoryCache::read_observations(
     const std::set<std::string>& stationgroup_codes,
     const QueryMapping& qmap) const
 {
-  LocationDataItems ret;
-
-  auto cache = itsObservations.load();
-
-  if (!cache)
-    return ret;
-
-  // 1. loop over stations
-  // 2. find desired time interval
-  // 3. extract wanted measurand_id's
-  // 4. attach latitude, longitude and elevation for each fmisid
-
-  // Valid_sensors, -1 is marker of default sensor
-  std::set<int> valid_sensors;
-  for (const auto& item : qmap.sensorNumberToMeasurandIds)
-    valid_sensors.insert(item.first);
-
-  for (const auto& station : stations)
+  try
   {
-    // Accept station only if group condition is satisfied
-    if (!stationInfo.belongsToGroup(station.fmisid, stationgroup_codes))
-      continue;
+    LocationDataItems ret;
 
-    // Find station specific data
-    const auto& pos = cache->find(station.fmisid);
-    if (pos == cache->end())
-      continue;
+    auto cache = itsObservations.load();
 
-    // Safe shared copy of the station observations right at this moment
-    auto obsdata = pos->second->load();
+    if (!cache)
+      return ret;
 
-    // Find first position >= than the given start time
+    // 1. loop over stations
+    // 2. find desired time interval
+    // 3. extract wanted measurand_id's
+    // 4. attach latitude, longitude and elevation for each fmisid
 
-    auto cmp = [](const DataItem& obs, const boost::posix_time::ptime& t) -> bool
-    { return (obs.data_time < t); };
+    // Valid_sensors, -1 is marker of default sensor
+    std::set<int> valid_sensors;
+    for (const auto& item : qmap.sensorNumberToMeasurandIds)
+      valid_sensors.insert(item.first);
 
-    auto obs = std::lower_bound(obsdata->begin(), obsdata->end(), settings.starttime, cmp);
-
-    // Skip station if there is no data in the interval starttime...endtime
-    if (obs == obsdata->end())
-      continue;
-
-    // Establish station coordinates
-
-    const auto longitude = station.longitude_out;  // not requestedLon!
-    const auto latitude = station.latitude_out;    // not requestedLat!
-    const auto elevation = station.station_elevation;
-
-    // Extract wanted parameters.
-
-    for (; obs < obsdata->end(); ++obs)
+    for (const auto& station : stations)
     {
-      // Done if reached desired endtime
-      if (obs->data_time > settings.endtime)
-        break;
-
-      // Skip unwanted parameters similarly to SpatiaLite.cpp read_observations
-      // Check sensor number and data_quality condition. The checks should be
-      // ordered based on which skips unwanted data the fastest
-
-      // Wanted parameters
-
-      if (std::find(qmap.measurandIds.begin(), qmap.measurandIds.end(), obs->measurand_id) ==
-          qmap.measurandIds.end())
+      // Accept station only if group condition is satisfied
+      if (!stationInfo.belongsToGroup(station.fmisid, stationgroup_codes))
         continue;
 
-      // Wanted sensords
-      bool sensorOK = false;
-      if ((obs->measurand_no == 1 &&
-           (valid_sensors.find(-1) != valid_sensors.end() || valid_sensors.empty())) ||
-          valid_sensors.find(obs->sensor_no) != valid_sensors.end())
-        sensorOK = true;
-
-      if (!sensorOK)
+      // Find station specific data
+      const auto& pos = cache->find(station.fmisid);
+      if (pos == cache->end())
         continue;
 
-      // Required data quality
-      bool dataQualityOK = settings.dataFilter.valueOK("data_quality", obs->data_quality);
+      // Safe shared copy of the station observations right at this moment
+      auto obsdata = pos->second->load();
 
-      if (!dataQualityOK)
+      // Find first position >= than the given start time
+
+      auto cmp = [](const DataItem& obs, const boost::posix_time::ptime& t) -> bool
+      { return (obs.data_time < t); };
+
+      auto obs = std::lower_bound(obsdata->begin(), obsdata->end(), settings.starttime, cmp);
+
+      // Skip station if there is no data in the interval starttime...endtime
+      if (obs == obsdata->end())
         continue;
 
-      // Check producer_id
-      if (settings.producer_ids.find(obs->producer_id) == settings.producer_ids.end())
-        continue;
+      // Establish station coordinates
 
-      // Construct LocationDataItem from the DataItem
+      const auto longitude = station.longitude_out;  // not requestedLon!
+      const auto latitude = station.latitude_out;    // not requestedLat!
+      const auto elevation = station.station_elevation;
 
-      ret.emplace_back(LocationDataItem{*obs, longitude, latitude, elevation});
+      // Extract wanted parameters.
+
+      for (; obs < obsdata->end(); ++obs)
+      {
+        // Done if reached desired endtime
+        if (obs->data_time > settings.endtime)
+          break;
+
+        // Skip unwanted parameters similarly to SpatiaLite.cpp read_observations
+        // Check sensor number and data_quality condition. The checks should be
+        // ordered based on which skips unwanted data the fastest
+
+        // Wanted parameters
+
+        if (std::find(qmap.measurandIds.begin(), qmap.measurandIds.end(), obs->measurand_id) ==
+            qmap.measurandIds.end())
+          continue;
+
+        // Wanted sensords
+        bool sensorOK = false;
+        if ((obs->measurand_no == 1 &&
+             (valid_sensors.find(-1) != valid_sensors.end() || valid_sensors.empty())) ||
+            valid_sensors.find(obs->sensor_no) != valid_sensors.end())
+          sensorOK = true;
+
+        if (!sensorOK)
+          continue;
+
+        // Required data quality
+        bool dataQualityOK = settings.dataFilter.valueOK("data_quality", obs->data_quality);
+
+        if (!dataQualityOK)
+          continue;
+
+        // Check producer_id
+        if (settings.producer_ids.find(obs->producer_id) == settings.producer_ids.end())
+          continue;
+
+        // Construct LocationDataItem from the DataItem
+
+        ret.emplace_back(LocationDataItem{*obs, longitude, latitude, elevation});
+      }
     }
-  }
 
-  return ret;
+    return ret;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
 }  // namespace Observation

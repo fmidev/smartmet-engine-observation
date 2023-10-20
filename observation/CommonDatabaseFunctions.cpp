@@ -65,14 +65,9 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
     std::string qstations;
     std::map<int, Spine::Station> fmisid_to_station;
 
-    std::set<std::string> stationgroup_codes;
-    auto stationgroupCodeSet =
-        itsStationtypeConfig.getGroupCodeSetByStationtype(settings.stationtype);
-    stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
-
     for (const Spine::Station &s : stations)
     {
-      if (stationInfo.belongsToGroup(s.fmisid, stationgroup_codes))
+      if (stationInfo.belongsToGroup(s.fmisid, settings.stationgroups))
       {
         fmisid_to_station.insert(std::make_pair(s.station_id, s));
         auto id = boost::numeric_cast<int>(s.station_id);  // legacy double slows down to_string
@@ -179,7 +174,7 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
     WeatherDataQCData weatherDataQCData;
 
     fetchWeatherDataQCData(
-        query, stationInfo, stationgroup_codes, settings.requestLimits, weatherDataQCData);
+        query, stationInfo, settings.stationgroups, settings.requestLimits, weatherDataQCData);
 
     StationTimedMeasurandData station_data;
 

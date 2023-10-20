@@ -90,8 +90,7 @@ StationtypeConfig::getGroupCodeSetByStationtype(const StationtypeType& stationty
     if (it != m_stationtypeMap.end())
       return std::make_shared<GroupCodeSetType>(it->second);
 
-    throw Fmi::Exception(BCP, "Invalid parameter value!")
-        .addDetail(fmt::format("Stationtype '{}' not found.", stationtype));
+    return std::make_shared<GroupCodeSetType>();
   }
   catch (...)
   {

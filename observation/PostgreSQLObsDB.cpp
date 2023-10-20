@@ -24,6 +24,14 @@ namespace Engine
 {
 namespace Observation
 {
+namespace
+{
+bool between(const ptime &t, const ptime &t1, const ptime &t2)
+{
+  return (t >= t1 && t <= t2);
+}
+}  // namespace
+
 // This is global so that different threads will not repeat the same task.
 // No locking is used, we assume different threads are so out of sync so
 // that an atomic will do here.
@@ -658,20 +666,11 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       int int_parameter = itsParameterMap->getRoadAndForeignIds().stringToInteger(*parameter);
 
       // Get latitude, longitude, elevation from station info
-      const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes);
+      const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes, obstime);
 
       boost::optional<double> latitude = s.latitude_out;
       boost::optional<double> longitude = s.longitude_out;
       boost::optional<double> elevation = s.station_elevation;
-
-      const StationLocation &sloc = stationInfo.stationLocations.getLocation(*fmisid, obstime);
-      // Get exact location, elevation
-      if (sloc.location_id != -1)
-      {
-        latitude = sloc.latitude;
-        longitude = sloc.longitude;
-        elevation = sloc.elevation;
-      }
 
       boost::optional<double> data_value;
       boost::optional<int> data_quality;
@@ -828,7 +827,7 @@ void PostgreSQLObsDB::getStations(Spine::Stations &stations) const
   try
   {
     // clang-format off
-    string sqlStmt = R"SQL(SELECT DISTINCT tg.group_name                                 AS group_code,
+    string sqlStmt = R"SQL(SELECT DISTINCT tg.group_name      AS group_code,
                 t.target_id                                   AS station_id,
                 t.access_policy                               AS access_policy_id,
                 t.target_status                               AS station_status_id,
@@ -846,6 +845,12 @@ void PostgreSQLObsDB::getStations(Spine::Stations &stations) const
                   over(
                     PARTITION BY t.target_id
                     ORDER BY wmon.membership_start DESC)      AS wmon,
+                Min(tgm.valid_from)
+                  over(
+                    PARTITION BY t.target_id, tg.group_name)  AS valid_from,
+                Max(tgm.valid_to)
+                  over(
+                    PARTITION BY t.target_id, tg.group_name)  AS valid_to, 
                 l.location_start,
                 l.location_end,
                 ROUND(St_x(geom) :: NUMERIC, 5) AS longitude,
@@ -881,7 +886,7 @@ WHERE  tg.group_class_id IN( 1, 81 )
                              'ICE', 'MAGNET', 'MAREO', 'MAST',
                              'PREC', 'RADACT', 'RADAR', 'RESEARCH',
                              'RWS', 'SEA', 'SHIP', 'SOLAR',
-                             'SOUNDING', 'SYNOP' )
+                             'SOUNDING', 'SYNOP', 'HELCOM' )
 UNION ALL
 SELECT DISTINCT tg.group_code,
                 t.target_id                                   AS station_id,
@@ -901,6 +906,12 @@ SELECT DISTINCT tg.group_code,
                   over(
                     PARTITION BY t.target_id
                     ORDER BY wmon.membership_start DESC)      AS wmon,
+                min(tgm.membership_start)
+                                  over(
+                    PARTITION BY t.target_id, tg.group_code)  AS valid_from,
+                max(tgm.membership_end)
+                  over(
+                    PARTITION BY t.target_id, tg.group_code)  AS valid_to,
                 l.location_start,
                 l.location_end,
                 ROUND(St_x(geom) :: NUMERIC, 5) AS longitude,
@@ -936,7 +947,7 @@ WHERE  tg.group_class_id IN( 1, 81 )
                              'ICE', 'MAGNET', 'MAREO', 'MAST',
                              'PREC', 'RADACT', 'RADAR', 'RESEARCH',
                              'RWS', 'SEA', 'SHIP', 'SOLAR',
-                             'SOUNDING', 'SYNOP');)SQL";
+                             'SOUNDING', 'SYNOP', 'HELCOM');)SQL";
     // clang-format on
 
     if (itsDebug)
@@ -980,64 +991,35 @@ WHERE  tg.group_class_id IN( 1, 81 )
         s.lpnn = as_int(row[10]);
       if (!row[11].is_null())
         s.wmo = as_int(row[11]);
-      auto station_start = row[12].as<std::string>();
-      auto station_end = row[13].as<std::string>();
-      s.station_start = Fmi::TimeParser::parse(station_start);
-      s.station_end = Fmi::TimeParser::parse(station_end);
-      if (!row[14].is_null())
-        s.longitude_out = as_double(row[14]);
-      if (!row[15].is_null())
-        s.latitude_out = as_double(row[15]);
-      s.modified_last = Fmi::TimeParser::parse(row[16].as<std::string>());
-      s.modified_by = as_int(row[17]);
+      auto valid_from = Fmi::TimeParser::parse(row[12].as<std::string>());
+      auto valid_to = Fmi::TimeParser::parse(row[13].as<std::string>());
+      auto location_start = Fmi::TimeParser::parse(row[14].as<std::string>());
+      auto location_end = Fmi::TimeParser::parse(row[15].as<std::string>());
+
+      // Make sure the location_start - location_end is sane for this station type
+
+      s.station_start = location_start;
+      s.station_end = location_end;
+
+      if (between(valid_from, location_start, location_end))
+        s.station_start = valid_from;
+      if (between(valid_to, location_start, location_end))
+        s.station_end = valid_to;
+      if (s.station_start > valid_to || s.station_end < valid_from)
+        continue;
+
+      if (!row[16].is_null())
+        s.longitude_out = as_double(row[16]);
+      if (!row[17].is_null())
+        s.latitude_out = as_double(row[17]);
+      s.modified_last = Fmi::TimeParser::parse(row[18].as<std::string>());
+      s.modified_by = as_int(row[19]);
       stations.push_back(s);
     }
   }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Reading stations from PostgreSQL database failed!");
-  }
-}
-
-void PostgreSQLObsDB::readStationLocations(StationLocations &stationLocations) const
-{
-  try
-  {
-    std::string sqlStmt =
-        "SELECT location_id, station_id, country_id, location_start, location_end, lon, lat, "
-        "station_elevation from locations_v2";
-
-    if (itsDebug)
-      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
-
-    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-
-    for (auto row : result_set)
-    {
-      if (row[5].is_null() || row[6].is_null() || row[7].is_null())
-        continue;
-      try
-      {
-        StationLocation item;
-        item.location_id = as_int(row[0]);
-        item.fmisid = as_int(row[1]);
-        item.country_id = as_int(row[2]);
-        item.location_start = Fmi::TimeParser::parse(row[3].as<std::string>());
-        item.location_end = Fmi::TimeParser::parse(row[4].as<std::string>());
-        item.longitude = as_double(row[5]);
-        item.latitude = as_double(row[6]);
-        item.elevation = as_double(row[7]);
-        stationLocations[item.fmisid].push_back(item);
-      }
-      catch (Fmi::Exception &e)
-      {
-        std::cerr << "Warning while reading station metadata: " << e.what() << std::endl;
-      }
-    }
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 

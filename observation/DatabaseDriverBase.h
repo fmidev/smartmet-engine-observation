@@ -73,9 +73,10 @@ class DatabaseDriverBase
 
   virtual void shutdown() = 0;
 
-  virtual boost::posix_time::ptime getLatestDataUpdateTime(const std::string& producer,
-														   const boost::posix_time::ptime& from,
-														   const MeasurandInfo& measurand_info) const;
+  virtual boost::posix_time::ptime getLatestDataUpdateTime(
+      const std::string &producer,
+      const boost::posix_time::ptime &from,
+      const MeasurandInfo &measurand_info) const;
 
   const std::set<std::string> &supportedProducers() const { return itsSupportedProducers; }
   virtual void getFMIIoTStations(std::shared_ptr<FmiIoTStations> &stations) const {}
@@ -87,7 +88,7 @@ class DatabaseDriverBase
   static std::string resolveDatabaseTableName(const std::string &producer,
                                               const StationtypeConfig &stationtypeConfig);
   static std::string resolveCacheTableName(const std::string &producer,
-										   const StationtypeConfig &stationtypeConfig);
+                                           const StationtypeConfig &stationtypeConfig);
   TS::TimeSeriesVectorPtr checkForEmptyQuery(Settings &settings) const;
   TS::TimeSeriesVectorPtr checkForEmptyQuery(
       Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) const;
@@ -101,11 +102,11 @@ class DatabaseDriverBase
   void readMetaData(Spine::ConfigBase &cfg);
   std::shared_ptr<ObservationCache> resolveCache(const std::string &producer,
                                                  const EngineParametersPtr &parameters) const;
-  void getMeasurandAndProducerIds(const std::string& producer,
-								  const MeasurandInfo& minfo,
-								  const EngineParametersPtr& ep,
-								  std::string& producerIds, 
-								  std::string& measurandIds) const;
+  void getMeasurandAndProducerIds(const std::string &producer,
+                                  const MeasurandInfo &minfo,
+                                  const EngineParametersPtr &ep,
+                                  std::string &producerIds,
+                                  std::string &measurandIds) const;
 
   static void parameterSanityCheck(const std::string &stationtype,
                                    const std::vector<Spine::Parameter> &parameters,

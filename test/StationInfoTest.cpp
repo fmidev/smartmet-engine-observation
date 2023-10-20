@@ -32,7 +32,7 @@ TEST_CASE("Test station and data searches")
 
     SECTION("A station is searched by id")
     {
-      auto station = stationinfo.getStation(station_id, stationgroup_codes);
+      auto station = stationinfo.getStation(station_id, stationgroup_codes, starttime);
       REQUIRE(station.fmisid == station_id);
       REQUIRE(station.station_formal_name_fi == "Helsinki Kaisaniemi");
     }
@@ -57,17 +57,22 @@ TEST_CASE("Test station and data searches")
           lon, lat, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
 
       REQUIRE(stations.size() == 5);
+      REQUIRE(stations[0].station_type == "AWS");
+      REQUIRE(stations[1].station_type == "AWS");
+      REQUIRE(stations[2].station_type == "AWS");
+      REQUIRE(stations[3].station_type == "AWS");
+      REQUIRE(stations[4].station_type == "AWS");
       REQUIRE(stations[0].fmisid == 100971);
       REQUIRE(stations[1].fmisid == 101007);
       REQUIRE(stations[2].fmisid == 101004);
       REQUIRE(stations[3].fmisid == 100996);
-      REQUIRE(stations[4].fmisid == 101009);
+      REQUIRE(stations[4].fmisid == 101005);
     }
 
     SECTION("All AWS stations are searched")
     {
       auto stations = stationinfo.findStationsInGroup(stationgroup_codes, starttime, endtime);
-      REQUIRE(stations.size() == 176);
+      REQUIRE(stations.size() == 169);
     }
 
     SECTION("Old station location")
@@ -116,7 +121,7 @@ TEST_CASE("Test station and data searches")
 
     SECTION("A station is searched by id")
     {
-      auto station = stationinfo.getStation(station_id, stationgroup_codes);
+      auto station = stationinfo.getStation(station_id, stationgroup_codes, starttime);
       REQUIRE(station.fmisid == station_id);
       REQUIRE(station.station_formal_name_fi == "kt51_Inkoo_Innanbäck");
     }
@@ -161,7 +166,7 @@ TEST_CASE("Test station and data searches")
     SECTION("All EXTRWS stations are searched")
     {
       auto stations = stationinfo.findStationsInGroup(stationgroup_codes, starttime, endtime);
-      REQUIRE(stations.size() == 1522);
+      REQUIRE(stations.size() == 1507);
     }
 
     SECTION("Using EXTSYNOP group")

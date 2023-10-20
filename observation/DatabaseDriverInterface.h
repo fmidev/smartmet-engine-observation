@@ -63,8 +63,9 @@ class DatabaseDriverInterface
   virtual void getStationGroups(StationGroups &sg) const = 0;
   virtual void getProducerGroups(ProducerGroups &pg) const = 0;
   virtual MeasurandInfo getMeasurandInfo() const = 0;
-  virtual boost::posix_time::ptime getLatestDataUpdateTime(const std::string& producer,
-														   const boost::posix_time::ptime& from) const = 0;
+  virtual boost::posix_time::ptime getLatestDataUpdateTime(
+      const std::string &producer, const boost::posix_time::ptime &from) const = 0;
+
  protected:
   DatabaseDriverInterface() = default;
 

@@ -193,7 +193,8 @@ const ProducerMeasurandInfo &Engine::getMeasurandInfo() const
   REPORT_DISABLED;
 }
 
-boost::posix_time::ptime Engine::getLatestDataUpdateTime(const std::string& producer, const boost::posix_time::ptime& from) const
+boost::posix_time::ptime Engine::getLatestDataUpdateTime(const std::string &producer,
+                                                         const boost::posix_time::ptime &from) const
 {
   REPORT_DISABLED;
 }

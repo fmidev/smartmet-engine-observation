@@ -1,7 +1,7 @@
 #pragma once
 
-#include "MeasurandInfo.h"
 #include "DBQueryUtils.h"
+#include "MeasurandInfo.h"
 #include "StationtypeConfig.h"
 #include "Utils.h"
 #include "WeatherDataQCData.h"
