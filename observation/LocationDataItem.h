@@ -16,6 +16,7 @@ class LocationDataItem
   double longitude;
   double latitude;
   double elevation;
+  std::string stationtype;
 };
 
 using LocationDataItems = std::vector<LocationDataItem>;

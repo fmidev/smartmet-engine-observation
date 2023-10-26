@@ -119,6 +119,10 @@ SpecialParameters::SpecialParameters()
   handler_map[STATION_ELEVATION_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
   { return d.station.station_elevation; };
 
+  handler_map[STATIONTYPE_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
+  { return d.station.station_type; };
+
+
   handler_map[FMISID_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
   {
     TS::Value value = TS::None();
@@ -224,9 +228,6 @@ SpecialParameters::SpecialParameters()
   handler_map[STATIONNAME_PARAM] =
       handler_map[STATION_NAME_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
   { return d.station.station_formal_name(d.settings->language); };
-
-  handler_map[STATIONTYPE_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
-  { return d.stationType; };
 
   handler_map[TZ_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
   {

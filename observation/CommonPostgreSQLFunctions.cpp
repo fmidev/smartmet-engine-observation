@@ -78,6 +78,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationDataForMovingSt
       station.longitude_out = item.longitude;
       station.latitude_out = item.latitude;
       station.station_elevation = item.elevation;
+      station.station_type = item.stationtype;
       fmisid_to_station[station.station_id] = station;
     }
 
@@ -396,6 +397,7 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
         obs.latitude = s.latitude_out;
         obs.longitude = s.longitude_out;
         obs.elevation = s.station_elevation;
+        obs.stationtype = s.station_type;
       }
       catch (...)
       {
@@ -940,6 +942,10 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
     if (timeseriesPositions.find("station_elevation") != timeseriesPositions.end())
       result[timeseriesPositions.at("station_elevation")].push_back(
           TS::TimedValue(localtime, s.station_elevation));
+
+    if (timeseriesPositions.find("stationtype") != timeseriesPositions.end())
+      result[timeseriesPositions.at("stationtype")].push_back(
+          TS::TimedValue(localtime, s.station_type));
 
     timesteps.insert(localtime);
   }

@@ -1963,6 +1963,9 @@ void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(
     else if (paramname == "elevation" || paramname == "station_elevation")
       timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.station_elevation));
 
+    else if (paramname == "stationtype")
+      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.station_type));
+
     else if (paramname == "wmo")
     {
       const TS::Value missing = TS::None();
@@ -2198,6 +2201,7 @@ void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       boost::optional<double> latitude = s.latitude_out;
       boost::optional<double> longitude = s.longitude_out;
       boost::optional<double> elevation = s.station_elevation;
+      boost::optional<std::string> stationtype = s.station_type;
 
       boost::optional<double> data_value;
       boost::optional<int> data_quality;
@@ -2214,6 +2218,7 @@ void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       cacheData.latitudesAll.push_back(latitude);
       cacheData.longitudesAll.push_back(longitude);
       cacheData.elevationsAll.push_back(elevation);
+      cacheData.stationtypesAll.push_back(stationtype);
       cacheData.parametersAll.push_back(parameter);
       cacheData.data_valuesAll.push_back(data_value);
       cacheData.sensor_nosAll.push_back(sensor_no);
