@@ -308,6 +308,7 @@ LocationDataItems ObservationMemoryCache::read_observations(
       const auto longitude = station.longitude_out;  // not requestedLon!
       const auto latitude = station.latitude_out;    // not requestedLat!
       const auto elevation = station.station_elevation;
+      const auto stationtype = station.station_type;
 
       // Extract wanted parameters.
 
@@ -349,7 +350,7 @@ LocationDataItems ObservationMemoryCache::read_observations(
 
         // Construct LocationDataItem from the DataItem
 
-        ret.emplace_back(LocationDataItem{*obs, longitude, latitude, elevation});
+        ret.emplace_back(LocationDataItem{*obs, longitude, latitude, elevation, stationtype});
       }
     }
 

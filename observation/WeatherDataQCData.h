@@ -17,6 +17,7 @@ struct WeatherDataQCData
   std::vector<boost::optional<double>> longitudesAll;
   std::vector<boost::optional<double>> latitudesAll;
   std::vector<boost::optional<double>> elevationsAll;
+  std::vector<boost::optional<std::string>> stationtypesAll;
   std::vector<boost::optional<int>> parametersAll;
   std::vector<boost::optional<double>> data_valuesAll;
   std::vector<boost::optional<int>> sensor_nosAll;

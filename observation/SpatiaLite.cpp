@@ -184,6 +184,7 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
         obs.latitude = s.latitude_out;
         obs.longitude = s.longitude_out;
         obs.elevation = s.station_elevation;
+        obs.stationtype = s.station_type;
       }
       catch (...)
       {
@@ -2943,7 +2944,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMagnetometerData(
 
       timeseriesPositions[name] = pos;
       if (name == "fmisid" || name == "magnetometer_id" || name == "stationlon" ||
-          name == "stationlat" || name == "elevation")
+          name == "stationlat" || name == "elevation" || name == "stationtype")
         data_independent_positions.insert(pos);
 
       pos++;
@@ -3073,6 +3074,10 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMagnetometerData(
       if (timeseriesPositions.find("station_elevation") != timeseriesPositions.end())
         result[timeseriesPositions.at("station_elevation")].push_back(
             TS::TimedValue(localtime, s.station_elevation));
+
+      if (timeseriesPositions.find("stationtype") != timeseriesPositions.end())
+        result[timeseriesPositions.at("stationtype")].push_back(
+            TS::TimedValue(localtime, s.station_type));
 
       timesteps.insert(localtime);
 
@@ -3529,6 +3534,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getObservationDataForMovingStations(
       station.longitude_out = item.longitude;
       station.latitude_out = item.latitude;
       station.station_elevation = item.elevation;
+      station.station_type = settings.stationtype;
       fmisid_to_station[station.station_id] = station;
     }
 
@@ -3623,6 +3629,7 @@ LocationDataItems SpatiaLite::readObservationDataOfMovingStationsFromDB(
       obs.longitude = row.get<double>(7);
       obs.latitude = row.get<double>(8);
       obs.elevation = row.get<double>(9);
+	  obs.stationtype = settings.stationtype;
       ret.emplace_back(obs);
     }
 
@@ -3711,6 +3718,7 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
       boost::optional<double> latitude = s.latitude_out;
       boost::optional<double> longitude = s.longitude_out;
       boost::optional<double> elevation = s.station_elevation;
+      boost::optional<std::string> stationtype = s.station_type;
 
       int parameter = row.get<int>(2);
       boost::optional<double> data_value;
@@ -3724,6 +3732,7 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
       cacheData.latitudesAll.push_back(latitude);
       cacheData.longitudesAll.push_back(longitude);
       cacheData.elevationsAll.push_back(elevation);
+      cacheData.stationtypesAll.push_back(stationtype);
       cacheData.parametersAll.emplace_back(parameter);
       cacheData.data_valuesAll.push_back(data_value);
       cacheData.sensor_nosAll.push_back(sensor_no);
