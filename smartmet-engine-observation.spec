@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.10.30
+Version: 23.11.8
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -32,7 +32,7 @@ BuildRequires: smartmet-engine-geonames-devel >= 23.9.6
 BuildRequires: smartmet-library-locus-devel >= 23.7.28
 BuildRequires: smartmet-library-macgyver-devel >= 23.10.10
 BuildRequires: smartmet-library-spine-devel >= 23.10.20
-BuildRequires: smartmet-library-timeseries-devel >= 23.10.20
+BuildRequires: smartmet-library-timeseries-devel >= 23.10.30
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
 BuildRequires: smartmet-utils-devel >= 23.9.6
@@ -50,7 +50,7 @@ Requires: smartmet-engine-geonames >= 23.9.6
 Requires: smartmet-library-locus >= 23.7.28
 Requires: smartmet-library-macgyver >= 23.10.10
 Requires: smartmet-library-spine >= 23.10.20
-Requires: smartmet-library-timeseries >= 23.10.20
+Requires: smartmet-library-timeseries >= 23.10.30
 Requires: smartmet-server >= 23.8.30
 Requires: unixODBC
 
@@ -164,6 +164,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Nov  8 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.11.8-1.fmi
+- Automatically drop redundant cache indices (BRAINSTORM-2785)
+
 * Mon Oct 30 2023 Anssi Reponen <anssi.reponen@fmi.fi> - 23.10.30-1.fmi
 - Added handling of stationtype parameter (BRAINSTORM-2756)
 
