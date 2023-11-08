@@ -144,11 +144,8 @@ void PostgreSQLCacheDB::createObservationDataTable()
         "modified_last timestamp NOT NULL DEFAULT now(), "
         "PRIMARY KEY (fmisid, data_time, measurand_id, producer_id, measurand_no, sensor_no));");
 
-    itsDB.executeNonTransaction(
-        "CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON "
-        "observation_data(data_time);");
-    itsDB.executeNonTransaction(
-        "CREATE INDEX IF NOT EXISTS observation_data_fmisid_idx ON observation_data(fmisid);");
+    itsDB.executeNonTransaction("DROP INDEX IF EXISTS observation_data_data_time_idx");
+    itsDB.executeNonTransaction("DROP INDEX IF EXISTS observation_data_fmisid_idx");
     itsDB.executeNonTransaction(
         "CREATE INDEX IF NOT EXISTS observation_data_modified_last_idx ON "
         "observation_data(modified_last);");
@@ -173,10 +170,8 @@ void PostgreSQLCacheDB::createWeatherDataQCTable()
         "flag INTEGER NOT NULL, "
         "modified_last timestamp default NULL, "
         "PRIMARY KEY (obstime, fmisid, parameter, sensor_no));");
-    itsDB.executeNonTransaction(
-        "CREATE INDEX IF NOT EXISTS weather_data_qc_obstime_idx ON weather_data_qc(obstime);");
-    itsDB.executeNonTransaction(
-        "CREATE INDEX IF NOT EXISTS weather_data_qc_fmisid_idx ON weather_data_qc(fmisid);");
+    itsDB.executeNonTransaction("DROP INDEX IF EXISTS weather_data_qc_obstime_idx");
+    itsDB.executeNonTransaction("DROP INDEX IF EXISTS weather_data_qc_fmisid_idx");
     itsDB.executeNonTransaction(
         "CREATE INDEX IF NOT EXISTS weather_data_qc_modified_last_idx ON "
         "weather_data_qc(modified_last);");
@@ -217,8 +212,7 @@ void PostgreSQLCacheDB::createFlashDataTable()
         "modified_by INTEGER, "
         "PRIMARY KEY (stroke_time, stroke_time_fraction, flash_id));");
 
-    itsDB.executeNonTransaction(
-        "CREATE INDEX IF NOT EXISTS flash_data_stroke_time_idx on flash_data(stroke_time);");
+    itsDB.executeNonTransaction("DROP INDEX IF EXISTS flash_data_stroke_time_idx");
     itsDB.executeNonTransaction(
         "CREATE INDEX IF NOT EXISTS flaash_data_modified_last_idx ON flash_data(modified_last);");
 

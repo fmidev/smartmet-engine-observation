@@ -362,13 +362,10 @@ void SpatiaLite::createMovingLocationsDataTable()
         "elev INTEGER,"
         "PRIMARY KEY (station_id, sdate, edate))");
 
-    itsDB.execute(
-        "CREATE INDEX IF NOT EXISTS moving_locations_station_id_idx ON "
-        "moving_locations(station_id);");
-    itsDB.execute(
-        "CREATE INDEX IF NOT EXISTS moving_locations_sdate_idx ON moving_locations(sdate);");
-    itsDB.execute(
-        "CREATE INDEX IF NOT EXISTS moving_locations_edate_idx ON moving_locations(edate);");
+    // Delete redundant old indices, primary key should be preferred
+    itsDB.execute("DROP INDEX IF EXISTS moving_locations_station_id_idx ON");
+    itsDB.execute("DROP INDEX IF EXISTS moving_locations_sdate_idx");
+    itsDB.execute("DROP INDEX IF EXISTS moving_locations_edate_idx");
   }
   catch (...)
   {
@@ -394,11 +391,10 @@ void SpatiaLite::createObservationDataTable()
         "modified_last INTEGER NOT NULL DEFAULT 0, "
         "PRIMARY KEY (fmisid, data_time, measurand_id, producer_id, measurand_no, sensor_no))");
 
-    itsDB.execute(
-        "CREATE INDEX IF NOT EXISTS observation_data_data_time_idx ON "
-        "observation_data(data_time);");
-    itsDB.execute(
-        "CREATE INDEX IF NOT EXISTS observation_data_fmisid_idx ON observation_data(fmisid);");
+    // Delete redundant old indices, primary key should be preferred
+    itsDB.execute("DROP INDEX IF EXISTS observation_data_data_time_idx");
+    itsDB.execute("DROP INDEX IF EXISTS observation_data_fmisid_idx");
+
     itsDB.execute(
         "CREATE INDEX IF NOT EXISTS observation_data_modified_last_idx ON "
         "observation_data(modified_last);");
@@ -484,10 +480,11 @@ void SpatiaLite::createWeatherDataQCTable()
         "flag INTEGER NOT NULL, "
         "modified_last INTEGER, "
         "PRIMARY KEY (obstime, fmisid, parameter, sensor_no));");
-    itsDB.execute(
-        "CREATE INDEX IF NOT EXISTS weather_data_qc_obstime_idx ON weather_data_qc(obstime);");
-    itsDB.execute(
-        "CREATE INDEX IF NOT EXISTS weather_data_qc_fmisid_idx ON weather_data_qc(fmisid);");
+
+    // Drop redundant old indides
+    itsDB.execute("DROP INDEX IF EXISTS weather_data_qc_obstime_idx");
+    itsDB.execute("DROP INDEX IF EXISTS weather_data_qc_fmisid_idx");
+
     itsDB.execute(
         "CREATE INDEX IF NOT EXISTS weather_data_qc_modified_last_idx ON "
         "weather_data_qc(modified_last);");
@@ -527,8 +524,9 @@ void SpatiaLite::createFlashDataTable()
         "modified_last INTEGER, "
         "modified_by INTEGER, "
         "PRIMARY KEY (stroke_time, stroke_time_fraction, flash_id))");
-    itsDB.execute(
-        "CREATE INDEX IF NOT EXISTS flash_data_stroke_time_idx on flash_data(stroke_time);");
+
+    // Delete redundant old index
+    itsDB.execute("DROP INDEX IF EXISTS flash_data_stroke_time_idx");
     itsDB.execute(
         "CREATE INDEX IF NOT EXISTS flash_data_modified_last_idx ON flash_data(modified_last);");
 
@@ -3629,7 +3627,7 @@ LocationDataItems SpatiaLite::readObservationDataOfMovingStationsFromDB(
       obs.longitude = row.get<double>(7);
       obs.latitude = row.get<double>(8);
       obs.elevation = row.get<double>(9);
-	  obs.stationtype = settings.stationtype;
+      obs.stationtype = settings.stationtype;
       ret.emplace_back(obs);
     }
 
