@@ -29,8 +29,8 @@ Spine::Stations findNearestStations(const StationInfo &info,
                                     double maxdistance,
                                     int numberofstations,
                                     const std::set<std::string> &stationgroup_codes,
-                                    const boost::posix_time::ptime &starttime,
-                                    const boost::posix_time::ptime &endtime)
+                                    const Fmi::DateTime &starttime,
+                                    const Fmi::DateTime &endtime)
 {
   return info.findNearestStations(
       longitude, latitude, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
@@ -44,8 +44,8 @@ Spine::Stations findNearestStations(const StationInfo &info,
                                     double maxdistance,
                                     int numberofstations,
                                     const std::set<std::string> &stationgroup_codes,
-                                    const boost::posix_time::ptime &starttime,
-                                    const boost::posix_time::ptime &endtime)
+                                    const Fmi::DateTime &starttime,
+                                    const Fmi::DateTime &endtime)
 {
   return findNearestStations(info,
                              location->longitude,

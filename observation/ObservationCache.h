@@ -46,74 +46,74 @@ class ObservationCache
 
   virtual bool dataAvailableInCache(const Settings &settings) const = 0;
 
-  virtual bool flashIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                     const boost::posix_time::ptime &endtime) const = 0;
+  virtual bool flashIntervalIsCached(const Fmi::DateTime &starttime,
+                                     const Fmi::DateTime &endtime) const = 0;
 
-  virtual FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-                                    const boost::posix_time::ptime &endtime,
+  virtual FlashCounts getFlashCount(const Fmi::DateTime &starttime,
+                                    const Fmi::DateTime &endtime,
                                     const Spine::TaggedLocationList &locations) const = 0;
 
-  virtual boost::posix_time::ptime getLatestFlashModifiedTime() const = 0;
-  virtual boost::posix_time::ptime getLatestFlashTime() const = 0;
+  virtual Fmi::DateTime getLatestFlashModifiedTime() const = 0;
+  virtual Fmi::DateTime getLatestFlashTime() const = 0;
   virtual std::size_t fillFlashDataCache(const FlashDataItems &flashCacheData) const = 0;
   virtual void cleanFlashDataCache(
-      const boost::posix_time::time_duration &timetokeep,
-      const boost::posix_time::time_duration &timetokeep_memory) const = 0;
+      const Fmi::TimeDuration &timetokeep,
+      const Fmi::TimeDuration &timetokeep_memory) const = 0;
 
-  virtual boost::posix_time::ptime getLatestObservationModifiedTime() const = 0;
-  virtual boost::posix_time::ptime getLatestObservationTime() const = 0;
+  virtual Fmi::DateTime getLatestObservationModifiedTime() const = 0;
+  virtual Fmi::DateTime getLatestObservationTime() const = 0;
   virtual std::size_t fillDataCache(const DataItems &cacheData) const = 0;
   virtual std::size_t fillMovingLocationsCache(
       const MovingLocationItems &cacheDataMovingLocations) const = 0;
 
-  virtual void cleanDataCache(const boost::posix_time::time_duration &timetokeep,
-                              const boost::posix_time::time_duration &timetokeep_memory) const = 0;
+  virtual void cleanDataCache(const Fmi::TimeDuration &timetokeep,
+                              const Fmi::TimeDuration &timetokeep_memory) const = 0;
 
-  virtual boost::posix_time::ptime getLatestWeatherDataQCTime() const = 0;
-  virtual boost::posix_time::ptime getLatestWeatherDataQCModifiedTime() const = 0;
+  virtual Fmi::DateTime getLatestWeatherDataQCTime() const = 0;
+  virtual Fmi::DateTime getLatestWeatherDataQCModifiedTime() const = 0;
   virtual std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const = 0;
   virtual void cleanWeatherDataQCCache(
-      const boost::posix_time::time_duration &timetokeep) const = 0;
+      const Fmi::TimeDuration &timetokeep) const = 0;
 
-  virtual bool roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                         const boost::posix_time::ptime &endtime) const = 0;
-  virtual boost::posix_time::ptime getLatestRoadCloudDataTime() const = 0;
-  virtual boost::posix_time::ptime getLatestRoadCloudCreatedTime() const = 0;
+  virtual bool roadCloudIntervalIsCached(const Fmi::DateTime &starttime,
+                                         const Fmi::DateTime &endtime) const = 0;
+  virtual Fmi::DateTime getLatestRoadCloudDataTime() const = 0;
+  virtual Fmi::DateTime getLatestRoadCloudCreatedTime() const = 0;
   virtual std::size_t fillRoadCloudCache(
       const MobileExternalDataItems &mobileExternalCacheData) const = 0;
-  virtual void cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const = 0;
+  virtual void cleanRoadCloudCache(const Fmi::TimeDuration &timetokeep) const = 0;
 
-  virtual bool netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                       const boost::posix_time::ptime &endtime) const = 0;
-  virtual boost::posix_time::ptime getLatestNetAtmoDataTime() const = 0;
-  virtual boost::posix_time::ptime getLatestNetAtmoCreatedTime() const = 0;
+  virtual bool netAtmoIntervalIsCached(const Fmi::DateTime &starttime,
+                                       const Fmi::DateTime &endtime) const = 0;
+  virtual Fmi::DateTime getLatestNetAtmoDataTime() const = 0;
+  virtual Fmi::DateTime getLatestNetAtmoCreatedTime() const = 0;
   virtual std::size_t fillNetAtmoCache(
       const MobileExternalDataItems &mobileExternalCacheData) const = 0;
-  virtual void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const = 0;
+  virtual void cleanNetAtmoCache(const Fmi::TimeDuration &timetokeep) const = 0;
 
-  virtual bool bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                           const boost::posix_time::ptime &endtime) const = 0;
-  virtual boost::posix_time::ptime getLatestBKHydrometaDataTime() const = 0;
-  virtual boost::posix_time::ptime getLatestBKHydrometaCreatedTime() const = 0;
+  virtual bool bkHydrometaIntervalIsCached(const Fmi::DateTime &starttime,
+                                           const Fmi::DateTime &endtime) const = 0;
+  virtual Fmi::DateTime getLatestBKHydrometaDataTime() const = 0;
+  virtual Fmi::DateTime getLatestBKHydrometaCreatedTime() const = 0;
   virtual std::size_t fillBKHydrometaCache(
       const MobileExternalDataItems &mobileExternalCacheData) const = 0;
-  virtual void cleanBKHydrometaCache(const boost::posix_time::time_duration &timetokeep) const = 0;
+  virtual void cleanBKHydrometaCache(const Fmi::TimeDuration &timetokeep) const = 0;
 
-  virtual bool fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                      const boost::posix_time::ptime &endtime) const = 0;
-  virtual boost::posix_time::ptime getLatestFmiIoTDataTime() const = 0;
-  virtual boost::posix_time::ptime getLatestFmiIoTCreatedTime() const = 0;
+  virtual bool fmiIoTIntervalIsCached(const Fmi::DateTime &starttime,
+                                      const Fmi::DateTime &endtime) const = 0;
+  virtual Fmi::DateTime getLatestFmiIoTDataTime() const = 0;
+  virtual Fmi::DateTime getLatestFmiIoTCreatedTime() const = 0;
   virtual std::size_t fillFmiIoTCache(
       const MobileExternalDataItems &mobileExternalCacheData) const = 0;
-  virtual void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const = 0;
+  virtual void cleanFmiIoTCache(const Fmi::TimeDuration &timetokeep) const = 0;
 
-  virtual bool magnetometerIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                            const boost::posix_time::ptime &endtime) const = 0;
-  virtual boost::posix_time::ptime getLatestMagnetometerDataTime() const = 0;
-  virtual boost::posix_time::ptime getLatestMagnetometerModifiedTime() const = 0;
+  virtual bool magnetometerIntervalIsCached(const Fmi::DateTime &starttime,
+                                            const Fmi::DateTime &endtime) const = 0;
+  virtual Fmi::DateTime getLatestMagnetometerDataTime() const = 0;
+  virtual Fmi::DateTime getLatestMagnetometerModifiedTime() const = 0;
   virtual std::size_t fillMagnetometerCache(
       const MagnetometerDataItems &magnetometerCacheData) const = 0;
-  virtual void cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const = 0;
+  virtual void cleanMagnetometerCache(const Fmi::TimeDuration &timetokeep) const = 0;
 
   virtual Fmi::Cache::CacheStatistics getCacheStats() const { return {}; }
 
@@ -131,9 +131,9 @@ class ObservationCache
   virtual void getMovingStations(Spine::Stations &stations,
                                  const Settings &settings,
                                  const std::string &wkt) const = 0;
-  virtual boost::posix_time::ptime getLatestDataUpdateTime(
+  virtual Fmi::DateTime getLatestDataUpdateTime(
       const std::string &tablename,
-      const boost::posix_time::ptime &starttime,
+      const Fmi::DateTime &starttime,
       const std::string &producer_ids,
       const std::string &measurand_ids) const;
 

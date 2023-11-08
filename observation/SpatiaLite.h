@@ -60,17 +60,17 @@ class SpatiaLite : public CommonDatabaseFunctions
 
   /**
    * @brief Get the time of the last modified  observation in observation_data table
-   * @retval boost::posix_time::ptime The time of the last modification
+   * @retval Fmi::DateTime The time of the last modification
    */
 
-  boost::posix_time::ptime getLatestObservationModifiedTime();
+  Fmi::DateTime getLatestObservationModifiedTime();
 
   /**
    * @brief Get the time of the newest observation in observation_data table
-   * @retval boost::posix_time::ptime The time of the newest observation
+   * @retval Fmi::DateTime The time of the newest observation
    */
 
-  boost::posix_time::ptime getLatestObservationTime();
+  Fmi::DateTime getLatestObservationTime();
 
   /**
    * @brief Get the maximum value of flash_id field
@@ -81,44 +81,44 @@ class SpatiaLite : public CommonDatabaseFunctions
 
   /**
    * @brief Get the time of the latest modified flash obervation
-   * @retval boost::posix_time::ptime The time of the last modification
+   * @retval Fmi::DateTime The time of the last modification
    */
 
-  boost::posix_time::ptime getLatestFlashModifiedTime();
+  Fmi::DateTime getLatestFlashModifiedTime();
 
   /**
    * @brief Get the time of the newest flash observation
-   * @retval boost::posix_time::ptime The time of the newest observation
+   * @retval Fmi::DateTime The time of the newest observation
    */
 
-  boost::posix_time::ptime getLatestFlashTime();
+  Fmi::DateTime getLatestFlashTime();
 
   /**
    * @brief Get the time of the latest modified observation in weather_data_qc table
-   * @retval boost::posix_time::ptime The time of the last modification
+   * @retval Fmi::DateTime The time of the last modification
    */
 
-  boost::posix_time::ptime getLatestWeatherDataQCModifiedTime();
+  Fmi::DateTime getLatestWeatherDataQCModifiedTime();
 
   /**
    * @brief Get the time of the newest observation in weather_data_qc table
-   * @retval boost::posix_time::ptime The time of the newest observation
+   * @retval Fmi::DateTime The time of the newest observation
    */
-  boost::posix_time::ptime getLatestWeatherDataQCTime();
+  Fmi::DateTime getLatestWeatherDataQCTime();
 
   /**
    * @brief Get the time of the oldest observation in observation_data table
-   * @retval boost::posix_time::ptime The time of the oldest observation
+   * @retval Fmi::DateTime The time of the oldest observation
    */
 
-  boost::posix_time::ptime getOldestObservationTime();
-  boost::posix_time::ptime getOldestFlashTime();
+  Fmi::DateTime getOldestObservationTime();
+  Fmi::DateTime getOldestFlashTime();
 
   /**
    * @brief Get the time of the oldest observation in weather_data_qc table
-   * @retval boost::posix_time::ptime The time of the oldest observation
+   * @retval Fmi::DateTime The time of the oldest observation
    */
-  boost::posix_time::ptime getOldestWeatherDataQCTime();
+  Fmi::DateTime getOldestWeatherDataQCTime();
 
   /**
    * @brief Create the SpatiaLite tables from scratch
@@ -170,14 +170,14 @@ class SpatiaLite : public CommonDatabaseFunctions
    */
   void cleanCacheTable(const std::string &tablename,
                        const std::string &time_column,
-                       const boost::posix_time::ptime &last_time);
+                       const Fmi::DateTime &last_time);
 
   /**
    * @brief Delete everything from observation_data table which is older than the given duration
    * @param[in] newstarttime
    * @param[in] newstarttime_memory
    */
-  void cleanDataCache(const boost::posix_time::ptime &newstarttime);
+  void cleanDataCache(const Fmi::DateTime &newstarttime);
 
   /**
    * @brief Delete everything from moving_locations table which (edate) is older than the given
@@ -185,14 +185,14 @@ class SpatiaLite : public CommonDatabaseFunctions
    * @param[in] newstarttime
    * @param[in] newstarttime_memory
    */
-  void cleanMovingLocationsCache(const boost::posix_time::ptime &newstarttime);
+  void cleanMovingLocationsCache(const Fmi::DateTime &newstarttime);
 
   /**
    * @brief Delete everything from weather_data_qc table which
    *        is older than given duration
    * @param[in] newstarttime
    */
-  void cleanWeatherDataQCCache(const boost::posix_time::ptime &newstarttime);
+  void cleanWeatherDataQCCache(const Fmi::DateTime &newstarttime);
 
   /*
   TS::TimeSeriesVectorPtr getWeatherDataQCData(
@@ -205,28 +205,28 @@ class SpatiaLite : public CommonDatabaseFunctions
    * @brief Delete old flash observation data from flash_data table
    * @param newstarttime Delete everything from flash_data which is older than given time
    */
-  void cleanFlashDataCache(const boost::posix_time::ptime &newstarttime);
+  void cleanFlashDataCache(const Fmi::DateTime &newstarttime);
 
   /**
    * @brief Get the time of the newest observation in ext_obsdata_roadcloud table
-   * @return boost::posix_time::ptime The time of the newest RoadCloud observation
+   * @return Fmi::DateTime The time of the newest RoadCloud observation
    */
 
-  boost::posix_time::ptime getLatestRoadCloudDataTime();
+  Fmi::DateTime getLatestRoadCloudDataTime();
 
   /**
    * @brief Get latest creation time in ext_obsdata_roadcloud table
-   * @return boost::posix_time::ptime The latest creation time of RoadCloud observation
+   * @return Fmi::DateTime The latest creation time of RoadCloud observation
    */
 
-  boost::posix_time::ptime getLatestRoadCloudCreatedTime();
+  Fmi::DateTime getLatestRoadCloudCreatedTime();
 
   /**
    * @brief Get oldest observation in ext_obsdata_roadcloud table
-   * @return boost::posix_time::ptime The time of the oldest RoadCloud observation
+   * @return Fmi::DateTime The time of the oldest RoadCloud observation
    */
 
-  boost::posix_time::ptime getOldestRoadCloudDataTime();
+  Fmi::DateTime getOldestRoadCloudDataTime();
 
   /**
    * @brief Insert cached observations into ext_obsdata_roadcloud table
@@ -239,29 +239,29 @@ class SpatiaLite : public CommonDatabaseFunctions
    * @brief Delete old observations from ext_obsdata_roadcloud table
    * @param timetokeep Delete RoadCloud data which is older than given duration
    */
-  void cleanRoadCloudCache(const boost::posix_time::ptime &newstarttime);
+  void cleanRoadCloudCache(const Fmi::DateTime &newstarttime);
 
   /**
    * @brief Get newest observation in ext_obsdata_netatmo table
-   * @return boost::posix_time::ptime The time of the newest NetAtmo observation
+   * @return Fmi::DateTime The time of the newest NetAtmo observation
    */
 
-  boost::posix_time::ptime getLatestNetAtmoDataTime();
+  Fmi::DateTime getLatestNetAtmoDataTime();
 
   /**
    * @brief Get latest creation time in ext_obsdata_netatmo table
-   * @return boost::posix_time::ptime The latest creation time
+   * @return Fmi::DateTime The latest creation time
    */
 
-  boost::posix_time::ptime getLatestNetAtmoCreatedTime();
+  Fmi::DateTime getLatestNetAtmoCreatedTime();
 
   /**
    * @brief Get oldest observation in ext_obsdata_netatmo table
 
-   * @return boost::posix_time::ptime The time of the oldest NetAtmo observation
+   * @return Fmi::DateTime The time of the oldest NetAtmo observation
    */
 
-  boost::posix_time::ptime getOldestNetAtmoDataTime();
+  Fmi::DateTime getOldestNetAtmoDataTime();
 
   /**
    * @brief Insert cached observations into ext_obsdata_netatmo table
@@ -274,29 +274,29 @@ class SpatiaLite : public CommonDatabaseFunctions
    * @brief Delete old observations from ext_obsdata_netatmo table
    * @param timetokeep Delete NetAtmo data which is older than given duration
    */
-  void cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime);
+  void cleanNetAtmoCache(const Fmi::DateTime &newstarttime);
 
   /**
    * @brief Get the newest observation in ext_obsdata_bk_hydrometa table
-   * @return boost::posix_time::ptime The time of the newest bk_hydrometa observation
+   * @return Fmi::DateTime The time of the newest bk_hydrometa observation
    */
 
-  boost::posix_time::ptime getLatestBKHydrometaDataTime();
+  Fmi::DateTime getLatestBKHydrometaDataTime();
 
   /**
    * @brief Get the latest creation time in ext_obsdata_bk_hydromate table
-   * @return boost::posix_time::ptime The latest creation time
+   * @return Fmi::DateTime The latest creation time
    */
 
-  boost::posix_time::ptime getLatestBKHydrometaCreatedTime();
+  Fmi::DateTime getLatestBKHydrometaCreatedTime();
 
   /**
    * @brief Get the oldest observation in ext_obsdata_bk_hydrometa table
 
-   * @return boost::posix_time::ptime The time of the oldest bk_hydrometa observation
+   * @return Fmi::DateTime The time of the oldest bk_hydrometa observation
    */
 
-  boost::posix_time::ptime getOldestBKHydrometaDataTime();
+  Fmi::DateTime getOldestBKHydrometaDataTime();
 
   /**
    * @brief Insert cached observations into ext_obsdata_bk_hydrometa table
@@ -309,37 +309,37 @@ class SpatiaLite : public CommonDatabaseFunctions
    * @brief Delete old bk_hydrometa observation data from ext_obsdata_roadcloud table
    * @param timetokeep Delete bk_hydrometa data which is older than given duration
    */
-  void cleanBKHydrometaCache(const boost::posix_time::ptime &newstarttime);
+  void cleanBKHydrometaCache(const Fmi::DateTime &newstarttime);
 
   /**
    * @brief Get the time of the newest FmiIoT observation in ext_obsdata_roadcloud table
-   * @return boost::posix_time::ptime The time of the newest FmiIoT observation
+   * @return Fmi::DateTime The time of the newest FmiIoT observation
    */
 
-  boost::posix_time::ptime getLatestFmiIoTDataTime();
+  Fmi::DateTime getLatestFmiIoTDataTime();
 
   /**
    * @brief Get the time of the latest FmiIoT creation time in ext_obsdata table
-   * @return boost::posix_time::ptime The latest creation time
+   * @return Fmi::DateTime The latest creation time
    */
 
-  boost::posix_time::ptime getLatestFmiIoTCreatedTime();
+  Fmi::DateTime getLatestFmiIoTCreatedTime();
 
   /**
    * @brief Get the time of the oldest FmiIoT observation in ext_obsdata_roadcloud table
 
-   * @return boost::posix_time::ptime The time of the oldest FmiIoT observation
+   * @return Fmi::DateTime The time of the oldest FmiIoT observation
    */
 
-  boost::posix_time::ptime getOldestFmiIoTDataTime();
+  Fmi::DateTime getOldestFmiIoTDataTime();
 
   /**
    * @brief Get the time of the oldest Magnetometer in observation_data table
 
-   * @return boost::posix_time::ptime The time of the oldest FmiIoT observation
+   * @return Fmi::DateTime The time of the oldest FmiIoT observation
    */
 
-  boost::posix_time::ptime getOldestMagnetometerDataTime();
+  Fmi::DateTime getOldestMagnetometerDataTime();
 
   /**
    * @brief Insert cached observations into ext_obsdata_roadcloud table
@@ -352,7 +352,7 @@ class SpatiaLite : public CommonDatabaseFunctions
    * @brief Delete old FmiIoT observation data from ext_obsdata_roadcloud table
    * @param timetokeep Delete FmiIoT data which is older than given duration
    */
-  void cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime);
+  void cleanFmiIoTCache(const Fmi::DateTime &newstarttime);
 
   /**
    * @brief Insert cached observations into magnetometer_data table
@@ -365,7 +365,7 @@ class SpatiaLite : public CommonDatabaseFunctions
    * @brief Delete old Magnetometer observation data from magnetometer_data table
    * @param timetokeep Delete magnetometer data which is older than given duration
    */
-  void cleanMagnetometerCache(const boost::posix_time::ptime &newstarttime);
+  void cleanMagnetometerCache(const Fmi::DateTime &newstarttime);
 
   TS::TimeSeriesVectorPtr getRoadCloudData(const Settings &settings,
                                            const Fmi::TimeZones &timezones);
@@ -400,17 +400,17 @@ class SpatiaLite : public CommonDatabaseFunctions
 
   /**
    * @brief Get the time of the last modified observation in magnetometer_data table
-   * @retval boost::posix_time::ptime The time of the last modification
+   * @retval Fmi::DateTime The time of the last modification
    */
 
-  boost::posix_time::ptime getLatestMagnetometerModifiedTime();
+  Fmi::DateTime getLatestMagnetometerModifiedTime();
 
   /**
    * @brief Get the time of the newest observation in magnetometer_data table
-   * @retval boost::posix_time::ptime The time of the newest observation
+   * @retval Fmi::DateTime The time of the newest observation
    */
 
-  boost::posix_time::ptime getLatestMagnetometerDataTime();
+  Fmi::DateTime getLatestMagnetometerDataTime();
 
   /**
    * @brief Get the maximum value of flash_id field
@@ -426,8 +426,8 @@ class SpatiaLite : public CommonDatabaseFunctions
    * @param boundingBox The bounding box. Must have crs EPSG:4326.
    * @retval FlashCounts The number of flashes in the interval
    */
-  FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-                            const boost::posix_time::ptime &endtime,
+  FlashCounts getFlashCount(const Fmi::DateTime &starttime,
+                            const Fmi::DateTime &endtime,
                             const Spine::TaggedLocationList &locations) override;
 
   std::size_t selectCount(const std::string &queryString);
@@ -438,7 +438,7 @@ class SpatiaLite : public CommonDatabaseFunctions
    * @retval Vector of FlashDataItems
    */
 
-  FlashDataItems readFlashCacheData(const boost::posix_time::ptime &starttime);
+  FlashDataItems readFlashCacheData(const Fmi::DateTime &starttime);
 
   void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
@@ -452,7 +452,7 @@ class SpatiaLite : public CommonDatabaseFunctions
   std::string getWeatherDataQCParams(const std::set<std::string> &param_set) const override;
 
   void initObservationMemoryCache(
-      const boost::posix_time::ptime &starttime,
+      const Fmi::DateTime &starttime,
       const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache);
 
   TS::TimeSeriesVectorPtr getMagnetometerData(
@@ -466,8 +466,8 @@ class SpatiaLite : public CommonDatabaseFunctions
                          const Settings &settings,
                          const std::string &wkt);
 
-  boost::posix_time::ptime getLatestDataUpdateTime(const std::string &tablename,
-                                                   const boost::posix_time::ptime &starttime,
+  Fmi::DateTime getLatestDataUpdateTime(const std::string &tablename,
+                                                   const Fmi::DateTime &starttime,
                                                    const std::string &producer_ids,
                                                    const std::string &measurand_ids);
 
@@ -482,9 +482,9 @@ class SpatiaLite : public CommonDatabaseFunctions
 
   bool itsReadOnly = false;
 
-  boost::posix_time::ptime getLatestTimeFromTable(const std::string &tablename,
+  Fmi::DateTime getLatestTimeFromTable(const std::string &tablename,
                                                   const std::string &time_field);
-  boost::posix_time::ptime getOldestTimeFromTable(const std::string &tablename,
+  Fmi::DateTime getOldestTimeFromTable(const std::string &tablename,
                                                   const std::string &time_field);
 
   void initSpatialMetaData();

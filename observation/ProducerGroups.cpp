@@ -1,5 +1,5 @@
 #include "ProducerGroups.h"
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <macgyver/DateTime.h>
 #include <macgyver/StringConversion.h>
 #include <set>
 
@@ -11,15 +11,15 @@ namespace Observation
 {
 void ProducerGroups::addGroupPeriod(const std::string& group_name,
                                     unsigned int producer_id,
-                                    const boost::posix_time::ptime& starttime,
-                                    const boost::posix_time::ptime& endtime)
+                                    const Fmi::DateTime& starttime,
+                                    const Fmi::DateTime& endtime)
 {
   itsGroupPeriods[group_name][producer_id].push_back(ProducerGroupPeriod(starttime, endtime));
 }
 
 std::set<unsigned int> ProducerGroups::getProducerIds(const std::string& group_name,
-                                                      const boost::posix_time::ptime& starttime,
-                                                      const boost::posix_time::ptime& endtime) const
+                                                      const Fmi::DateTime& starttime,
+                                                      const Fmi::DateTime& endtime) const
 {
   std::set<unsigned int> ret;
 
@@ -45,8 +45,8 @@ std::set<unsigned int> ProducerGroups::getProducerIds(const std::string& group_n
 
 std::set<std::string> ProducerGroups::getProducerIdsString(
     const std::string& group_name,
-    const boost::posix_time::ptime& starttime,
-    const boost::posix_time::ptime& endtime) const
+    const Fmi::DateTime& starttime,
+    const Fmi::DateTime& endtime) const
 {
   std::set<std::string> ret;
 

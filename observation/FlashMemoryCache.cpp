@@ -65,7 +65,7 @@ BBoxes parse_bboxes(const Spine::TaggedLocationList& tlocs)
 // observation. For example, there may not be lightning for several days,
 // yet the cache should know that the empty state is correct.
 
-boost::posix_time::ptime FlashMemoryCache::getStartTime() const
+Fmi::DateTime FlashMemoryCache::getStartTime() const
 {
   try
   {
@@ -134,7 +134,7 @@ std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
     auto starttime = itsStartTime.load();
     if (!starttime)
     {
-      starttime = boost::make_shared<boost::posix_time::ptime>(boost::posix_time::not_a_date_time);
+      starttime = boost::make_shared<Fmi::DateTime>(boost::posix_time::not_a_date_time);
       itsStartTime.store(starttime);
     }
 
@@ -146,7 +146,7 @@ std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
   }
 }
 
-void FlashMemoryCache::clean(const boost::posix_time::ptime& newstarttime) const
+void FlashMemoryCache::clean(const Fmi::DateTime& newstarttime) const
 {
   try
   {
@@ -158,7 +158,7 @@ void FlashMemoryCache::clean(const boost::posix_time::ptime& newstarttime) const
     {
       // Find first position newer than the given start time
 
-      auto cmp = [](const boost::posix_time::ptime& t, const FlashDataItem& flash) -> bool
+      auto cmp = [](const Fmi::DateTime& t, const FlashDataItem& flash) -> bool
       { return (flash.stroke_time > t); };
 
       auto pos = std::upper_bound(cache->begin(), cache->end(), newstarttime, cmp);
@@ -178,7 +178,7 @@ void FlashMemoryCache::clean(const boost::posix_time::ptime& newstarttime) const
 
     // Update new start time for the cache first so no-one can request data before it
     // before the data has been cleaned
-    auto starttime = boost::make_shared<boost::posix_time::ptime>(newstarttime);
+    auto starttime = boost::make_shared<Fmi::DateTime>(newstarttime);
     itsStartTime.store(starttime);
 
     // And now a quick atomic update to the data too, if we deleted anything
@@ -214,7 +214,7 @@ TS::TimeSeriesVectorPtr FlashMemoryCache::getData(const Settings& settings,
 
     // Find time interval from the cache data
 
-    auto lcmp = [](const FlashDataItem& flash, const boost::posix_time::ptime& t) -> bool
+    auto lcmp = [](const FlashDataItem& flash, const Fmi::DateTime& t) -> bool
     { return (flash.stroke_time < t); };
 
     auto pos1 = std::lower_bound(cache->begin(), cache->end(), settings.starttime, lcmp);
@@ -224,7 +224,7 @@ TS::TimeSeriesVectorPtr FlashMemoryCache::getData(const Settings& settings,
     if (pos1 == cache->end() || ++pos1 == cache->end())
       return result;
 
-    auto ucmp = [](const boost::posix_time::ptime& t, const FlashDataItem& flash) -> bool
+    auto ucmp = [](const Fmi::DateTime& t, const FlashDataItem& flash) -> bool
     { return (flash.stroke_time > t); };
 
     auto pos2 = std::upper_bound(cache->begin(), cache->end(), settings.endtime, ucmp);
@@ -266,7 +266,7 @@ TS::TimeSeriesVectorPtr FlashMemoryCache::getData(const Settings& settings,
 
       // Append to output
 
-      boost::local_time::local_date_time localtime(flash.stroke_time, localtz);
+      Fmi::LocalDateTime localtime(flash.stroke_time, localtz);
 
       for (std::size_t i = 0; i < column_names.size(); i++)
       {
@@ -326,8 +326,8 @@ TS::TimeSeriesVectorPtr FlashMemoryCache::getData(const Settings& settings,
   }
 }
 
-FlashCounts FlashMemoryCache::getFlashCount(const boost::posix_time::ptime& starttime,
-                                            const boost::posix_time::ptime& endtime,
+FlashCounts FlashMemoryCache::getFlashCount(const Fmi::DateTime& starttime,
+                                            const Fmi::DateTime& endtime,
                                             const Spine::TaggedLocationList& locations) const
 {
   try
@@ -342,7 +342,7 @@ FlashCounts FlashMemoryCache::getFlashCount(const boost::posix_time::ptime& star
 
     // Find time interval from the cache data
 
-    auto lcmp = [](const FlashDataItem& flash, const boost::posix_time::ptime& t) -> bool
+    auto lcmp = [](const FlashDataItem& flash, const Fmi::DateTime& t) -> bool
     { return (flash.stroke_time < t); };
 
     auto pos1 = std::lower_bound(cache->begin(), cache->end(), starttime, lcmp);
@@ -352,7 +352,7 @@ FlashCounts FlashMemoryCache::getFlashCount(const boost::posix_time::ptime& star
     if (pos1 == cache->end() || ++pos1 == cache->end())
       return result;
 
-    auto ucmp = [](const boost::posix_time::ptime& t, const FlashDataItem& flash) -> bool
+    auto ucmp = [](const Fmi::DateTime& t, const FlashDataItem& flash) -> bool
     { return (flash.stroke_time > t); };
 
     auto pos2 = std::upper_bound(cache->begin(), cache->end(), endtime, ucmp);

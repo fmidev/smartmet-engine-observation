@@ -372,7 +372,7 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
-    std::set<boost::posix_time::ptime> obstimes;
+    std::set<Fmi::DateTime> obstimes;
     std::set<int> fmisids;
     for (auto row : result_set)
     {
@@ -547,12 +547,12 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
     double latitude = std::numeric_limits<double>::max();
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
     std::set<std::string> locations;
-    std::set<boost::posix_time::ptime> obstimes;
+    std::set<Fmi::DateTime> obstimes;
     size_t n_elements = 0;
     for (auto row : result_set)
     {
       std::map<std::string, TS::Value> result;
-      boost::posix_time::ptime stroke_time = boost::posix_time::from_time_t(row[0].as<time_t>());
+      Fmi::DateTime stroke_time = boost::posix_time::from_time_t(row[0].as<time_t>());
       // int stroke_time_fraction = as_int(row[1]);
       TS::Value flashIdValue = as_int(row[2]);
       result["flash_id"] = flashIdValue;
@@ -584,7 +584,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
       }
 
       auto localtz = timezones.time_zone_from_string(settings.timezone);
-      boost::local_time::local_date_time localtime(stroke_time, localtz);
+      Fmi::LocalDateTime localtime(stroke_time, localtz);
 
       for (const auto &p : timeseriesPositions)
       {
@@ -629,8 +629,8 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
   }
 }
 
-FlashCounts CommonPostgreSQLFunctions::getFlashCount(const boost::posix_time::ptime &startt,
-                                                     const boost::posix_time::ptime &endt,
+FlashCounts CommonPostgreSQLFunctions::getFlashCount(const Fmi::DateTime &startt,
+                                                     const Fmi::DateTime &endt,
                                                      const Spine::TaggedLocationList &locations)
 {
   try
@@ -761,7 +761,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
 {
   TS::TimeSeriesVectorPtr ret = initializeResultVector(settings);
   std::map<int, TS::TimeSeriesVectorPtr> fmisid_results;
-  std::map<int, std::set<boost::local_time::local_date_time>> fmisid_timesteps;
+  std::map<int, std::set<Fmi::LocalDateTime>> fmisid_timesteps;
 
   // Stations
   std::set<std::string> fmisid_ids;
@@ -847,7 +847,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
   //    60 | T       |          144 | TTECH_PT1M_AVG
   //   110 | F       |          673 | MAGN_PT10S_AVG
 
-  std::set<boost::local_time::local_date_time> timesteps_inserted;
+  std::set<Fmi::LocalDateTime> timesteps_inserted;
   std::set<int> fmisidit;
   for (auto row : result_set)
   {
@@ -858,13 +858,13 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
     {
       fmisid_results.insert(std::make_pair(fmisid, initializeResultVector(settings)));
       fmisid_timesteps.insert(
-          std::make_pair(fmisid, std::set<boost::local_time::local_date_time>()));
+          std::make_pair(fmisid, std::set<Fmi::LocalDateTime>()));
     }
     TS::Value station_id_value = as_int(row[0]);
     TS::Value magnetometer_id_value = row[1].as<std::string>();
     int level = as_int(row[2]);
-    boost::posix_time::ptime data_time = boost::posix_time::from_time_t(row[3].as<time_t>());
-    boost::local_time::local_date_time localtime(data_time, localtz);
+    Fmi::DateTime data_time = boost::posix_time::from_time_t(row[3].as<time_t>());
+    Fmi::LocalDateTime localtime(data_time, localtz);
     TS::Value magneto_x_value;
     TS::Value magneto_y_value;
     TS::Value magneto_z_value;
@@ -963,7 +963,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
     for (unsigned int i = 0; i < ts_vector.size(); i++)
     {
       auto ts = ts_vector.at(i);
-      std::map<boost::local_time::local_date_time, TS::TimedValue> data;
+      std::map<Fmi::LocalDateTime, TS::TimedValue> data;
       for (unsigned int j = 0; j < ts.size(); j++)
       {
         auto timed_value = ts.at(j);

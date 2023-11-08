@@ -8,8 +8,8 @@ namespace Observation
 {
 void StationGroups::addGroupPeriod(int station_id,
                                    const std::string& group_name,
-                                   const boost::posix_time::ptime& starttime,
-                                   const boost::posix_time::ptime& endtime)
+                                   const Fmi::DateTime& starttime,
+                                   const Fmi::DateTime& endtime)
 {
   itsGroupPeriods[station_id][group_name].push_back(StationGroupPeriod(starttime, endtime));
 }
@@ -29,8 +29,8 @@ std::set<std::string> StationGroups::getStationGroups(int station_id) const
 }
 
 bool StationGroups::belongsToGroup(int station_id,
-                                   const boost::posix_time::ptime& starttime,
-                                   const boost::posix_time::ptime& endtime) const
+                                   const Fmi::DateTime& starttime,
+                                   const Fmi::DateTime& endtime) const
 {
   if (itsGroupPeriods.find(station_id) == itsGroupPeriods.end())
     return false;

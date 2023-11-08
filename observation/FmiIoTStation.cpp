@@ -32,14 +32,14 @@ void FmiIoTStations::addStation(const std::string& id,
                                 double lon,
                                 double lat,
                                 double elev,
-                                const boost::posix_time::ptime& from,
-                                const boost::posix_time::ptime& to)
+                                const Fmi::DateTime& from,
+                                const Fmi::DateTime& to)
 {
   itsStations[id].insert(FmiIoTStation(id, tgid, lon, lat, elev, from, to));
 }
 
 const FmiIoTStation& FmiIoTStations::getStation(const std::string& id,
-                                                const boost::posix_time::ptime& t) const
+                                                const Fmi::DateTime& t) const
 {
   if (itsStations.find(id) == itsStations.end())
     return emptyStation;
@@ -55,7 +55,7 @@ const FmiIoTStation& FmiIoTStations::getStation(const std::string& id,
   return emptyStation;
 }
 
-bool FmiIoTStations::isActive(const std::string& id, const boost::posix_time::ptime& t) const
+bool FmiIoTStations::isActive(const std::string& id, const Fmi::DateTime& t) const
 {
   if (itsStations.find(id) == itsStations.end())
     return false;

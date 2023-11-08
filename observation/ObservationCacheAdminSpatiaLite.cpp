@@ -15,24 +15,24 @@ ObservationCacheAdminSpatiaLite::ObservationCacheAdminSpatiaLite(
 {
 }
 
-std::pair<boost::posix_time::ptime, boost::posix_time::ptime>
+std::pair<Fmi::DateTime, Fmi::DateTime>
 ObservationCacheAdminSpatiaLite::getLatestWeatherDataQCTime(
     const std::shared_ptr<ObservationCache>& /* cache */) const
 {
   return {boost::posix_time::not_a_date_time, boost::posix_time::not_a_date_time};
 }
 
-std::pair<boost::posix_time::ptime, boost::posix_time::ptime>
+std::pair<Fmi::DateTime, Fmi::DateTime>
 ObservationCacheAdminSpatiaLite::getLatestObservationTime(
     const std::shared_ptr<ObservationCache>& /* cache */) const
 {
   return {boost::posix_time::not_a_date_time, boost::posix_time::not_a_date_time};
 }
 
-std::map<std::string, boost::posix_time::ptime> ObservationCacheAdminSpatiaLite::getLatestFlashTime(
+std::map<std::string, Fmi::DateTime> ObservationCacheAdminSpatiaLite::getLatestFlashTime(
     const std::shared_ptr<ObservationCache>& /* cache */) const
 {
-  std::map<std::string, boost::posix_time::ptime> ret;
+  std::map<std::string, Fmi::DateTime> ret;
 
   ret["start_time"] = boost::posix_time::not_a_date_time;
   ret["last_stroke_time"] = boost::posix_time::not_a_date_time;

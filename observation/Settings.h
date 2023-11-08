@@ -3,7 +3,7 @@
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/local_time/local_time.hpp>
 #include <boost/date_time/local_time_adjustor.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <macgyver/DateTime.h>
 #include <boost/optional.hpp>
 #include <macgyver/ValueFormatter.h>
 #include <spine/Location.h>
@@ -55,14 +55,14 @@ class Settings
   std::string timestring;
   std::string timezone = "localtime";
   std::string wktArea;
-  boost::posix_time::ptime endtime = boost::posix_time::second_clock::universal_time();  // now
-  boost::posix_time::ptime starttime =
-      boost::posix_time::second_clock::universal_time() - boost::posix_time::hours(24);
+  Fmi::DateTime endtime = Fmi::SecondClock::universal_time();  // now
+  Fmi::DateTime starttime =
+      Fmi::SecondClock::universal_time() - Fmi::Hours(24);
 
   // starttime...endtime may actuall be a time interval from which we actually only want the
   // observation closest to a specific "wanted" time. The wanted time may actually be equal to the
   // end time if one wants the latest observation.
-  boost::optional<boost::posix_time::ptime> wantedtime;
+  boost::optional<Fmi::DateTime> wantedtime;
 
   double maxdistance = 50000;
   int numberofstations = 1;

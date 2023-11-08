@@ -1,6 +1,6 @@
 #include "QueryParamsBase.h"
 #include <boost/date_time/gregorian/formatters.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
+#include <macgyver/DateTime.h>
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
@@ -13,7 +13,7 @@ namespace Observation
 {
 namespace
 {
-std::string formattedTime(const pt::ptime& t, const std::string& format)
+std::string formattedTime(const Fmi::DateTime& t, const std::string& format)
 {
   try
   {
@@ -66,7 +66,7 @@ std::string QueryParamsBase::getEndTime(const std::string& format) const
   }
 }
 
-void QueryParamsBase::setTimeRange(const pt::ptime& beginTime, const pt::ptime& endTime)
+void QueryParamsBase::setTimeRange(const Fmi::DateTime& beginTime, const Fmi::DateTime& endTime)
 {
   try
   {

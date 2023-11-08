@@ -56,8 +56,8 @@ class CommonDatabaseFunctions : public DBQueryUtils
 
   virtual TS::TimeSeriesVectorPtr getFlashData(const Settings &settings,
                                                const Fmi::TimeZones &timezones) = 0;
-  virtual FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-                                    const boost::posix_time::ptime &endtime,
+  virtual FlashCounts getFlashCount(const Fmi::DateTime &starttime,
+                                    const Fmi::DateTime &endtime,
                                     const Spine::TaggedLocationList &locations) = 0;
 
   TS::TimeSeriesVectorPtr getWeatherDataQCData(const Spine::Stations &stations,

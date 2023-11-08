@@ -16,7 +16,7 @@ struct MetaData
   {
   }
   MetaData()
-      : bbox(0.0, 0.0, 0.0, 0.0), period(boost::posix_time::ptime(), boost::posix_time::ptime())
+      : bbox(0.0, 0.0, 0.0, 0.0), period(Fmi::DateTime(), Fmi::DateTime())
   {
   }
   MetaData(const MetaData &md) = default;
@@ -29,7 +29,7 @@ struct MetaData
   bool fixedPeriodEndTime{false};
   int timestep = 1;  // timestep in minutes
   std::set<std::string> parameters;
-  boost::posix_time::ptime latestDataUpdateTime;
+  Fmi::DateTime latestDataUpdateTime;
 };
 
 }  // namespace Observation

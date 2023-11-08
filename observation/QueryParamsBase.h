@@ -58,11 +58,11 @@ class QueryParamsBase
    *  \exception Obs_EngineException::OPERATION_PROCESSING_FAILED
    *             if time range is invalid (e.g beginTime > endTime).
    */
-  void setTimeRange(const pt::ptime& beginTime, const pt::ptime& endTime);
+  void setTimeRange(const Fmi::DateTime& beginTime, const Fmi::DateTime& endTime);
 
  private:
-  pt::ptime m_beginTime;
-  pt::ptime m_endTime;
+  Fmi::DateTime m_beginTime;
+  Fmi::DateTime m_endTime;
   bool m_usingTimeRange = false;
   struct Spine::BoundingBox m_bbox;
 };

@@ -152,18 +152,18 @@ Fmi::TypeMap<TypeConv> create_value_to_string_converter()
       { return "'" + boost::any_cast<std::string>(value) + "'"; },
       "string");
 
-  add_type<boost::posix_time::ptime>(
+  add_type<Fmi::DateTime>(
       conv,
       [](const boost::any& value, const std::string& database) -> std::string
       {
         if (database == "oracle")
           return "TO_DATE('" +
-                 Fmi::to_simple_string(boost::any_cast<boost::posix_time::ptime>(value)) +
+                 Fmi::to_simple_string(boost::any_cast<Fmi::DateTime>(value)) +
                  "','YYYY-MM-DD HH24:MI:SS')";
         // PostgreSQL
-        return Fmi::to_simple_string(boost::any_cast<boost::posix_time::ptime>(value));
+        return Fmi::to_simple_string(boost::any_cast<Fmi::DateTime>(value));
       },
-      "ptime");
+      "Fmi::DateTime");
   return conv;
 };
 
@@ -291,7 +291,7 @@ Base::NameType MinuteValueModuloIsEqualToZero::getValueTypeString() const
     if ((getToWhat()).type() == typeid(int16_t) or (getToWhat()).type() == typeid(int32_t) or
         (getToWhat()).type() == typeid(int64_t) or (getToWhat()).type() == typeid(uint16_t) or
         (getToWhat()).type() == typeid(uint32_t) or (getToWhat()).type() == typeid(uint64_t))
-      return "ptime";
+      return "Fmi::DateTime";
 
     return "unknown";
   }

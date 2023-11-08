@@ -1,5 +1,5 @@
 #include "QueryResult.h"
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <macgyver/DateTime.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TypeName.h>
@@ -126,8 +126,8 @@ std::string QueryResult::toString(const ValueVectorType::const_iterator value,
     if (value->type() == typeid(std::string))
       return boost::any_cast<std::string>(*value);
 
-    if (value->type() == typeid(boost::posix_time::ptime))
-      return Fmi::to_iso_extended_string(boost::any_cast<boost::posix_time::ptime>(*value)) + "Z";
+    if (value->type() == typeid(Fmi::DateTime))
+      return Fmi::to_iso_extended_string(boost::any_cast<Fmi::DateTime>(*value)) + "Z";
 
     throw Fmi::Exception(BCP, "Operation processing failed!")
         .addDetail(fmt::format("warning: QueryResult::toString : Unsupported data type '{}'",
@@ -293,10 +293,10 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
         {
           *oFirst++ = boost::any_cast<std::string>(*first++);
         }
-        else if ((*first).type() == typeid(boost::posix_time::ptime))
+        else if ((*first).type() == typeid(Fmi::DateTime))
         {
           *oFirst++ =
-              Fmi::to_iso_extended_string(boost::any_cast<boost::posix_time::ptime>(*first++)) +
+              Fmi::to_iso_extended_string(boost::any_cast<Fmi::DateTime>(*first++)) +
               "Z";
         }
         else if ((*first).empty())
@@ -483,20 +483,20 @@ size_t QueryResult::size() const
 }
 
 template <>
-boost::posix_time::ptime QueryResult::castTo(
+Fmi::DateTime QueryResult::castTo(
     const QueryResult::ValueVectorType::const_iterator& value)
 {
   if (value->empty())
     return {};
 
-  if (value->type() == typeid(boost::posix_time::ptime))
-    return boost::any_cast<boost::posix_time::ptime>(*value);
+  if (value->type() == typeid(Fmi::DateTime))
+    return boost::any_cast<Fmi::DateTime>(*value);
 
   throw Fmi::Exception(BCP,
-                       "QueryResult::castTo<boost::posix_time::ptime>:"
+                       "QueryResult::castTo<Fmi::DateTime>:"
                        " cannot convert " +
                            Fmi::demangle_cpp_type_name(value->type().name()) +
-                           " to boost::posix_time::ptime");
+                           " to Fmi::DateTime");
 }
 
 }  // namespace Observation

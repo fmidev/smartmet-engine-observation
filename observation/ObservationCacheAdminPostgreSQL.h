@@ -33,37 +33,37 @@ class ObservationCacheAdminPostgreSQL : public ObservationCacheAdminBase
                                   const std::string& measuradId,
                                   const Fmi::TimeZones& timezones) const override;
   void readMovingStationsCacheData(std::vector<MovingLocationItem>& cacheData,
-                                   const boost::posix_time::ptime& startTime,
-                                   const boost::posix_time::ptime& lastModifiedTime,
+                                   const Fmi::DateTime& startTime,
+                                   const Fmi::DateTime& lastModifiedTime,
                                    const Fmi::TimeZones& timezones) const override;
   void readObservationCacheData(std::vector<DataItem>& cacheData,
-                                const boost::posix_time::ptime& startTime,
-                                const boost::posix_time::ptime& lastModifiedTime,
+                                const Fmi::DateTime& startTime,
+                                const Fmi::DateTime& lastModifiedTime,
                                 const Fmi::TimeZones& timezones) const override;
 
   void readWeatherDataQCCacheData(std::vector<WeatherDataQCItem>& cacheData,
-                                  const boost::posix_time::ptime& startTime,
-                                  const boost::posix_time::ptime& lastModifiedTime,
+                                  const Fmi::DateTime& startTime,
+                                  const Fmi::DateTime& lastModifiedTime,
                                   const Fmi::TimeZones& timezones) const override;
   void readFlashCacheData(std::vector<FlashDataItem>& cacheData,
-                          const boost::posix_time::ptime& startTime,
-                          const boost::posix_time::ptime& lastStrokeTime,
-                          const boost::posix_time::ptime& lastModifiedTime,
+                          const Fmi::DateTime& startTime,
+                          const Fmi::DateTime& lastStrokeTime,
+                          const Fmi::DateTime& lastModifiedTime,
                           const Fmi::TimeZones& timezones) const override;
-  std::pair<boost::posix_time::ptime, boost::posix_time::ptime> getLatestWeatherDataQCTime(
+  std::pair<Fmi::DateTime, Fmi::DateTime> getLatestWeatherDataQCTime(
       const std::shared_ptr<ObservationCache>& cache) const override;
-  std::pair<boost::posix_time::ptime, boost::posix_time::ptime> getLatestObservationTime(
+  std::pair<Fmi::DateTime, Fmi::DateTime> getLatestObservationTime(
       const std::shared_ptr<ObservationCache>& cache) const override;
-  std::map<std::string, boost::posix_time::ptime> getLatestFlashTime(
+  std::map<std::string, Fmi::DateTime> getLatestFlashTime(
       const std::shared_ptr<ObservationCache>&) const override;
   void readMobileCacheData(const std::string& producer,
                            std::vector<MobileExternalDataItem>& cacheData,
-                           boost::posix_time::ptime lastTime,
-                           boost::posix_time::ptime lastCreatedTime,
+                           Fmi::DateTime lastTime,
+                           Fmi::DateTime lastCreatedTime,
                            const Fmi::TimeZones& timezones) const override;
   void readMagnetometerCacheData(std::vector<MagnetometerDataItem>& cacheData,
-                                 const boost::posix_time::ptime& startTime,
-                                 const boost::posix_time::ptime& lastModifiedTime,
+                                 const Fmi::DateTime& startTime,
+                                 const Fmi::DateTime& lastModifiedTime,
                                  const Fmi::TimeZones& timezones) const override;
 
   void loadStations(const std::string& serializedStationsFile) override;

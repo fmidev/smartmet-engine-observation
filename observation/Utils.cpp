@@ -279,10 +279,10 @@ Spine::Stations removeDuplicateStations(const Spine::Stations& stations)
   }
 }
 
-boost::posix_time::ptime utc_second_clock()
+Fmi::DateTime utc_second_clock()
 {
-  auto now = boost::posix_time::second_clock::universal_time();
-  return {now.date(), boost::posix_time::seconds(now.time_of_day().total_seconds())};
+  auto now = Fmi::SecondClock::universal_time();
+  return {now.date(), Fmi::Seconds(now.time_of_day().total_seconds())};
 }
 
 // ----------------------------------------------------------------------
@@ -291,11 +291,11 @@ boost::posix_time::ptime utc_second_clock()
  */
 // ----------------------------------------------------------------------
 
-boost::posix_time::ptime day_start(const boost::posix_time::ptime& t)
+Fmi::DateTime day_start(const Fmi::DateTime& t)
 {
   if (t.is_not_a_date_time() || t.is_special())
     return t;
-  return {t.date(), boost::posix_time::hours(0)};
+  return {t.date(), Fmi::Hours(0)};
 }
 
 // ----------------------------------------------------------------------
@@ -304,11 +304,11 @@ boost::posix_time::ptime day_start(const boost::posix_time::ptime& t)
  */
 // ----------------------------------------------------------------------
 
-boost::posix_time::ptime day_end(const boost::posix_time::ptime& t)
+Fmi::DateTime day_end(const Fmi::DateTime& t)
 {
   if (t.is_not_a_date_time() || t.is_special())
     return t;
-  auto tmp = boost::posix_time::ptime(t.date(), boost::posix_time::hours(0));
+  auto tmp = Fmi::DateTime(t.date(), Fmi::Hours(0));
   tmp += boost::gregorian::days(1);
   return tmp;
 }
@@ -329,7 +329,7 @@ void logMessage(const std::string& message, bool quiet)
 boost::optional<int> calcSmartsymbolNumber(int wawa,
                                            int cloudiness,
                                            double temperature,
-                                           const boost::local_time::local_date_time& ldt,
+                                           const Fmi::LocalDateTime& ldt,
                                            double lat,
                                            double lon)
 {
@@ -569,9 +569,9 @@ TS::TimeSeriesVectorPtr initializeResultVector(const Settings& settings)
   return ret;
 }
 
-boost::posix_time::ptime epoch2ptime(double epoch)
+Fmi::DateTime epoch2ptime(double epoch)
 {
-  boost::posix_time::ptime ret =
+  Fmi::DateTime ret =
       boost::posix_time::from_time_t(static_cast<std::time_t>(floor(epoch)));
   ret += boost::posix_time::microseconds(static_cast<long>((epoch - floor(epoch)) * 1000000));
 
@@ -604,7 +604,7 @@ std::string getStringValue(const TS::Value& tv)
     throw Fmi::Exception(BCP, "Encountered LonLat FMISID");
   }
 
-  if (boost::get<boost::local_time::local_date_time>(&tv))
+  if (boost::get<Fmi::LocalDateTime>(&tv))
   {
     throw Fmi::Exception(BCP, "Encountered date FMISID");
   }

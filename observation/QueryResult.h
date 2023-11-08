@@ -1,7 +1,7 @@
 #pragma once
 
 #include "QueryResultBase.h"
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <macgyver/DateTime.h>
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
@@ -157,7 +157,7 @@ class QueryResult : public QueryResultBase
 };
 
 template <>
-boost::posix_time::ptime QueryResult::castTo(
+Fmi::DateTime QueryResult::castTo(
     const QueryResult::ValueVectorType::const_iterator& value);
 
 }  // namespace Observation

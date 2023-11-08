@@ -16,8 +16,8 @@ namespace
 void add_where_conditions(std::string &sqlStmt,
                           const std::string &producer,
                           const std::vector<int> &measurandIds,
-                          const boost::posix_time::ptime &starttime,
-                          const boost::posix_time::ptime &endtime,
+                          const Fmi::DateTime &starttime,
+                          const Fmi::DateTime &endtime,
                           const std::string &wktAreaFilter,
                           const DataFilter &dataFilter)
 {
@@ -70,8 +70,8 @@ ExternalAndMobileDBInfo::ExternalAndMobileDBInfo(
 }
 
 std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurandIds,
-                                               const boost::posix_time::ptime &starttime,
-                                               const boost::posix_time::ptime &endtime,
+                                               const Fmi::DateTime &starttime,
+                                               const Fmi::DateTime &endtime,
                                                const std::vector<std::string> &station_ids,
                                                const DataFilter &dataFilter) const
 {
@@ -133,8 +133,8 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
 }
 
 std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurandIds,
-                                               const boost::posix_time::ptime &starttime,
-                                               const boost::posix_time::ptime &endtime,
+                                               const Fmi::DateTime &starttime,
+                                               const Fmi::DateTime &endtime,
                                                const std::string &wktAreaFilter,
                                                const DataFilter &dataFilter) const
 {
@@ -221,8 +221,8 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
 
 std::string ExternalAndMobileDBInfo::sqlSelectForCache(
     const std::string &producer,
-    const boost::posix_time::ptime &from_data_time,
-    const boost::posix_time::ptime &from_created_time)
+    const Fmi::DateTime &from_data_time,
+    const Fmi::DateTime &from_created_time)
 {
   std::string sqlStmt;
   std::string created_stmt;
@@ -283,8 +283,8 @@ std::string ExternalAndMobileDBInfo::sqlSelectForCache(
 }
 
 std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &measurandIds,
-                                                        const boost::posix_time::ptime &starttime,
-                                                        const boost::posix_time::ptime &endtime,
+                                                        const Fmi::DateTime &starttime,
+                                                        const Fmi::DateTime &endtime,
                                                         const std::string &wktAreaFilter,
                                                         const DataFilter &dataFilter,
                                                         bool spatialite /* = false*/) const

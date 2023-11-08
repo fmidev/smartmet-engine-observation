@@ -36,39 +36,39 @@ class ObservationCacheAdminBase
                                           const std::string& measuradId,
                                           const Fmi::TimeZones& timezones) const = 0;
   virtual void readMovingStationsCacheData(std::vector<MovingLocationItem>& cacheData,
-                                           const boost::posix_time::ptime& startTime,
-                                           const boost::posix_time::ptime& lastModifiedTime,
+                                           const Fmi::DateTime& startTime,
+                                           const Fmi::DateTime& lastModifiedTime,
                                            const Fmi::TimeZones& timezones) const = 0;
   virtual void readObservationCacheData(std::vector<DataItem>& cacheData,
-                                        const boost::posix_time::ptime& startTime,
-                                        const boost::posix_time::ptime& lastModifiedTime,
+                                        const Fmi::DateTime& startTime,
+                                        const Fmi::DateTime& lastModifiedTime,
                                         const Fmi::TimeZones& timezones) const = 0;
   virtual void readFlashCacheData(std::vector<FlashDataItem>& cacheData,
-                                  const boost::posix_time::ptime& startTime,
-                                  const boost::posix_time::ptime& lastStrokeTime,
-                                  const boost::posix_time::ptime& lastModifiedTime,
+                                  const Fmi::DateTime& startTime,
+                                  const Fmi::DateTime& lastStrokeTime,
+                                  const Fmi::DateTime& lastModifiedTime,
                                   const Fmi::TimeZones& timezones) const = 0;
   virtual void readWeatherDataQCCacheData(std::vector<WeatherDataQCItem>& cacheData,
-                                          const boost::posix_time::ptime& startTime,
-                                          const boost::posix_time::ptime& lastModifiedTime,
+                                          const Fmi::DateTime& startTime,
+                                          const Fmi::DateTime& lastModifiedTime,
                                           const Fmi::TimeZones& timezones) const = 0;
   // Get start time from obstime and last_modified
-  virtual std::pair<boost::posix_time::ptime, boost::posix_time::ptime> getLatestWeatherDataQCTime(
+  virtual std::pair<Fmi::DateTime, Fmi::DateTime> getLatestWeatherDataQCTime(
       const std::shared_ptr<ObservationCache>&) const = 0;
-  virtual std::pair<boost::posix_time::ptime, boost::posix_time::ptime> getLatestObservationTime(
+  virtual std::pair<Fmi::DateTime, Fmi::DateTime> getLatestObservationTime(
       const std::shared_ptr<ObservationCache>&) const = 0;
-  virtual std::map<std::string, boost::posix_time::ptime> getLatestFlashTime(
+  virtual std::map<std::string, Fmi::DateTime> getLatestFlashTime(
       const std::shared_ptr<ObservationCache>&) const = 0;
   virtual void readMobileCacheData(const std::string& producer,
                                    std::vector<MobileExternalDataItem>& cacheData,
-                                   boost::posix_time::ptime lastTime,
-                                   boost::posix_time::ptime lastCreatedTime,
+                                   Fmi::DateTime lastTime,
+                                   Fmi::DateTime lastCreatedTime,
                                    const Fmi::TimeZones& timezones) const
   {
   }
   virtual void readMagnetometerCacheData(std::vector<MagnetometerDataItem>& cacheData,
-                                         const boost::posix_time::ptime& startTime,
-                                         const boost::posix_time::ptime& lastModifiedTime,
+                                         const Fmi::DateTime& startTime,
+                                         const Fmi::DateTime& lastModifiedTime,
                                          const Fmi::TimeZones& timezones) const
   {
   }

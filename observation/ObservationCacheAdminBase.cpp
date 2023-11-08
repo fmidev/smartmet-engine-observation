@@ -159,8 +159,8 @@ void ObservationCacheAdminBase::init()
         // would do them serially anyway.
 
         observationCache->cleanDataCache(
-            boost::posix_time::hours(itsParameters.finCacheDuration),
-            boost::posix_time::hours(itsParameters.finMemoryCacheDuration));
+            Fmi::Hours(itsParameters.finCacheDuration),
+            Fmi::Hours(itsParameters.finMemoryCacheDuration));
 
         // Oracle reads can be parallelized. The writes will be done
         // in practise serially, even though the threads will give
@@ -174,7 +174,7 @@ void ObservationCacheAdminBase::init()
       if (weatherDataQCCache)
       {
         weatherDataQCCache->cleanWeatherDataQCCache(
-            boost::posix_time::hours(itsParameters.extCacheDuration));
+            Fmi::Hours(itsParameters.extCacheDuration));
 
         if (itsParameters.extCacheUpdateInterval > 0)
         {
@@ -186,8 +186,8 @@ void ObservationCacheAdminBase::init()
       if (flashCache)
       {
         flashCache->cleanFlashDataCache(
-            boost::posix_time::hours(itsParameters.flashCacheDuration),
-            boost::posix_time::hours(itsParameters.flashMemoryCacheDuration));
+            Fmi::Hours(itsParameters.flashCacheDuration),
+            Fmi::Hours(itsParameters.flashMemoryCacheDuration));
 
         if (itsParameters.flashCacheUpdateInterval > 0)
         {
@@ -197,7 +197,7 @@ void ObservationCacheAdminBase::init()
       if (netatmoCache)
       {
         netatmoCache->cleanNetAtmoCache(
-            boost::posix_time::hours(itsParameters.netAtmoCacheDuration));
+            Fmi::Hours(itsParameters.netAtmoCacheDuration));
 
         if (itsParameters.netAtmoCacheUpdateInterval > 0)
         {
@@ -208,7 +208,7 @@ void ObservationCacheAdminBase::init()
       if (roadcloudCache)
       {
         roadcloudCache->cleanRoadCloudCache(
-            boost::posix_time::hours(itsParameters.roadCloudCacheDuration));
+            Fmi::Hours(itsParameters.roadCloudCacheDuration));
 
         if (itsParameters.roadCloudCacheUpdateInterval > 0)
         {
@@ -218,7 +218,7 @@ void ObservationCacheAdminBase::init()
 
       if (fmiIoTCache)
       {
-        fmiIoTCache->cleanFmiIoTCache(boost::posix_time::hours(itsParameters.fmiIoTCacheDuration));
+        fmiIoTCache->cleanFmiIoTCache(Fmi::Hours(itsParameters.fmiIoTCacheDuration));
 
         if (itsParameters.fmiIoTCacheUpdateInterval > 0)
         {
@@ -229,7 +229,7 @@ void ObservationCacheAdminBase::init()
       if (bkHydrometaCache)
       {
         bkHydrometaCache->cleanBKHydrometaCache(
-            boost::posix_time::hours(itsParameters.bkHydrometaCacheDuration));
+            Fmi::Hours(itsParameters.bkHydrometaCacheDuration));
 
         if (itsParameters.bkHydrometaCacheUpdateInterval > 0)
         {
@@ -241,7 +241,7 @@ void ObservationCacheAdminBase::init()
       if (magnetometerCache)
       {
         magnetometerCache->cleanMagnetometerCache(
-            boost::posix_time::hours(itsParameters.magnetometerCacheDuration));
+            Fmi::Hours(itsParameters.magnetometerCacheDuration));
 
         if (itsParameters.magnetometerCacheUpdateInterval > 0)
         {
@@ -368,8 +368,8 @@ void ObservationCacheAdminBase::updateFlashFakeCache(std::shared_ptr<Observation
   for (const auto& setting : settings)
   {
     std::vector<FlashDataItem> cacheData;
-    boost::posix_time::ptime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
-    boost::posix_time::ptime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
+    Fmi::DateTime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
+    Fmi::DateTime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
     boost::posix_time::time_period dataPeriod(starttime, endtime);
 
     auto begin1 = std::chrono::high_resolution_clock::now();
@@ -401,12 +401,12 @@ void ObservationCacheAdminBase::emulateFlashCacheUpdate(
     std::shared_ptr<ObservationCache>& cache) const
 {
   auto function_starttime = std::chrono::high_resolution_clock::now();
-  std::map<std::string, boost::posix_time::ptime> last_times = getLatestFlashTime(cache);
+  std::map<std::string, Fmi::DateTime> last_times = getLatestFlashTime(cache);
 
   auto starttime = last_times.at("last_stroke_time");
-  auto endtime = boost::posix_time::second_clock::universal_time();
+  auto endtime = Fmi::SecondClock::universal_time();
   // Start emulation from next second
-  starttime += boost::posix_time::seconds(1);
+  starttime += Fmi::Seconds(1);
 
   std::vector<FlashDataItem> cacheData;
 
@@ -434,7 +434,7 @@ void ObservationCacheAdminBase::emulateFlashCacheUpdate(
                                       itsParameters.flashEmulator.bbox.yMax * 1000) /
                        1000.0);
       item.stroke_time =
-          time_iter + boost::posix_time::seconds(random_integer(0, number_of_seconds));
+          time_iter + Fmi::Seconds(random_integer(0, number_of_seconds));
       item.stroke_time_fraction = random_integer(0, 1000);  // milliseconds
       item.created = endtime;
       item.modified_last = endtime;
@@ -468,7 +468,7 @@ void ObservationCacheAdminBase::emulateFlashCacheUpdate(
       if (Spine::Reactor::isShuttingDown())
         return;
     }
-    time_iter += boost::posix_time::seconds(number_of_seconds);
+    time_iter += Fmi::Seconds(number_of_seconds);
   }
 
   if (Spine::Reactor::isShuttingDown())
@@ -508,7 +508,7 @@ void ObservationCacheAdminBase::updateFlashCache() const
 
     std::vector<FlashDataItem> flashCacheData;
 
-    std::map<std::string, boost::posix_time::ptime> last_times = getLatestFlashTime(flashCache);
+    std::map<std::string, Fmi::DateTime> last_times = getLatestFlashTime(flashCache);
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
@@ -554,8 +554,8 @@ void ObservationCacheAdminBase::updateFlashCache() const
     {
       auto begin = std::chrono::high_resolution_clock::now();
       flashCache->cleanFlashDataCache(
-          boost::posix_time::hours(itsParameters.flashCacheDuration),
-          boost::posix_time::hours(itsParameters.flashMemoryCacheDuration));
+          Fmi::Hours(itsParameters.flashCacheDuration),
+          Fmi::Hours(itsParameters.flashMemoryCacheDuration));
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
@@ -580,8 +580,8 @@ void ObservationCacheAdminBase::updateObservationFakeCache(
   for (const auto& setting : settings)
   {
     std::vector<DataItem> cacheData;
-    boost::posix_time::ptime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
-    boost::posix_time::ptime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
+    Fmi::DateTime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
+    Fmi::DateTime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
     boost::posix_time::time_period dataPeriod(starttime, endtime);
 
     auto begin1 = std::chrono::high_resolution_clock::now();
@@ -626,7 +626,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
 
     // Extra safety margin since the view contains 3 tables with different max(modified_last) values
     if (!last_time_pair.second.is_not_a_date_time())
-      last_time_pair.second -= boost::posix_time::seconds(itsParameters.updateExtraInterval);
+      last_time_pair.second -= Fmi::Seconds(itsParameters.updateExtraInterval);
 
     // Making sure that we do not request more data than we actually store into
     // the cache.
@@ -639,7 +639,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
       const auto now = Utils::utc_second_clock();
 
       const auto length = itsParameters.finCacheUpdateSize;
-      if (length == 0 || now - last_time_pair.second < boost::posix_time::hours(length))
+      if (length == 0 || now - last_time_pair.second < Fmi::Hours(length))
       {
         // Small update, use a modified_last search
         readObservationCacheData(
@@ -656,7 +656,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
 
         while (t1 < now)
         {
-          auto t2 = t1 + boost::posix_time::hours(length);
+          auto t2 = t1 + Fmi::Hours(length);
           boost::posix_time::time_period period(t1, t2);
           std::cout << "Reading FIN period " << period << "\n";
           readObservationCacheData(cacheData, period, fmisid, measurandId, itsTimeZones);
@@ -701,8 +701,8 @@ void ObservationCacheAdminBase::updateObservationCache() const
     // Delete too old observations from the Cache database
     auto begin = std::chrono::high_resolution_clock::now();
     observationCache->cleanDataCache(
-        boost::posix_time::hours(itsParameters.finCacheDuration),
-        boost::posix_time::hours(itsParameters.finMemoryCacheDuration));
+        Fmi::Hours(itsParameters.finCacheDuration),
+        Fmi::Hours(itsParameters.finMemoryCacheDuration));
     auto end = std::chrono::high_resolution_clock::now();
 
     if (itsTimer)
@@ -726,8 +726,8 @@ void ObservationCacheAdminBase::updateWeatherDataQCFakeCache(
   for (const auto& setting : settings)
   {
     std::vector<WeatherDataQCItem> cacheData;
-    boost::posix_time::ptime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
-    boost::posix_time::ptime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
+    Fmi::DateTime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
+    Fmi::DateTime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
     boost::posix_time::time_period dataPeriod(starttime, endtime);
 
     auto begin1 = std::chrono::high_resolution_clock::now();
@@ -764,7 +764,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
 
     std::vector<WeatherDataQCItem> cacheData;
 
-    std::pair<boost::posix_time::ptime, boost::posix_time::ptime> last_time_pair =
+    std::pair<Fmi::DateTime, Fmi::DateTime> last_time_pair =
         getLatestWeatherDataQCTime(weatherDataQCCache);
 
     {
@@ -775,7 +775,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
       const auto now = Utils::utc_second_clock();
 
       const auto length = itsParameters.extCacheUpdateSize;
-      if (length == 0 || now - last_time_pair.second < boost::posix_time::hours(length))
+      if (length == 0 || now - last_time_pair.second < Fmi::Hours(length))
       {
         // Small update, use a modified_last search
         readWeatherDataQCCacheData(
@@ -792,7 +792,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
 
         while (t1 < now)
         {
-          auto t2 = t1 + boost::posix_time::hours(length);
+          auto t2 = t1 + Fmi::Hours(length);
           boost::posix_time::time_period period(t1, t2);
           readWeatherDataQCCacheData(cacheData, period, fmisid, measurandId, itsTimeZones);
           t1 = t2;
@@ -831,7 +831,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
     {
       auto begin = std::chrono::high_resolution_clock::now();
       weatherDataQCCache->cleanWeatherDataQCCache(
-          boost::posix_time::hours(itsParameters.extCacheDuration));
+          Fmi::Hours(itsParameters.extCacheDuration));
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
@@ -858,19 +858,19 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
 
     std::vector<MobileExternalDataItem> cacheData;
 
-    boost::posix_time::ptime last_time = netatmoCache->getLatestNetAtmoDataTime();
-    boost::posix_time::ptime last_created_time = netatmoCache->getLatestNetAtmoCreatedTime();
+    Fmi::DateTime last_time = netatmoCache->getLatestNetAtmoDataTime();
+    Fmi::DateTime last_created_time = netatmoCache->getLatestNetAtmoCreatedTime();
 
     // Make sure the time is not in the future
-    boost::posix_time::ptime now = boost::posix_time::second_clock::universal_time();
+    Fmi::DateTime now = Fmi::SecondClock::universal_time();
     if (!last_time.is_not_a_date_time() && last_time > now)
       last_time = now;
 
     // Making sure that we do not request more data than we actually store into
     // the cache.
-    boost::posix_time::ptime min_last_time =
-        boost::posix_time::second_clock::universal_time() -
-        boost::posix_time::hours(itsParameters.netAtmoCacheDuration);
+    Fmi::DateTime min_last_time =
+        Fmi::SecondClock::universal_time() -
+        Fmi::Hours(itsParameters.netAtmoCacheDuration);
 
     static int update_count = 0;
 
@@ -889,15 +889,15 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
     if (!last_time.is_not_a_date_time() && update_count > 0)
     {
       if (long_update)
-        last_time -= boost::posix_time::hours(3);
+        last_time -= Fmi::Hours(3);
       else
-        last_time -= boost::posix_time::minutes(15);
+        last_time -= Fmi::Minutes(15);
     }
 
     if (last_time.is_not_a_date_time())
     {
-      last_time = boost::posix_time::second_clock::universal_time() -
-                  boost::posix_time::hours(itsParameters.netAtmoCacheDuration);
+      last_time = Fmi::SecondClock::universal_time() -
+                  Fmi::Hours(itsParameters.netAtmoCacheDuration);
     }
 
     {
@@ -938,7 +938,7 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
-      netatmoCache->cleanNetAtmoCache(boost::posix_time::hours(itsParameters.netAtmoCacheDuration));
+      netatmoCache->cleanNetAtmoCache(Fmi::Hours(itsParameters.netAtmoCacheDuration));
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
@@ -966,20 +966,20 @@ void ObservationCacheAdminBase::updateBKHydrometaCache() const
 
     std::vector<MobileExternalDataItem> cacheData;
 
-    boost::posix_time::ptime last_time = bkHydrometaCache->getLatestBKHydrometaDataTime();
-    boost::posix_time::ptime last_created_time =
+    Fmi::DateTime last_time = bkHydrometaCache->getLatestBKHydrometaDataTime();
+    Fmi::DateTime last_created_time =
         bkHydrometaCache->getLatestBKHydrometaCreatedTime();
 
     // Make sure the time is not in the future
-    boost::posix_time::ptime now = boost::posix_time::second_clock::universal_time();
+    Fmi::DateTime now = Fmi::SecondClock::universal_time();
     if (!last_time.is_not_a_date_time() && last_time > now)
       last_time = now;
 
     // Making sure that we do not request more data than we actually store into
     // the cache.
-    boost::posix_time::ptime min_last_time =
-        boost::posix_time::second_clock::universal_time() -
-        boost::posix_time::hours(itsParameters.bkHydrometaCacheDuration);
+    Fmi::DateTime min_last_time =
+        Fmi::SecondClock::universal_time() -
+        Fmi::Hours(itsParameters.bkHydrometaCacheDuration);
 
     static int update_count = 0;
 
@@ -998,15 +998,15 @@ void ObservationCacheAdminBase::updateBKHydrometaCache() const
     if (!last_time.is_not_a_date_time() && update_count > 0)
     {
       if (long_update)
-        last_time -= boost::posix_time::hours(3);
+        last_time -= Fmi::Hours(3);
       else
-        last_time -= boost::posix_time::minutes(15);
+        last_time -= Fmi::Minutes(15);
     }
 
     if (last_time.is_not_a_date_time())
     {
-      last_time = boost::posix_time::second_clock::universal_time() -
-                  boost::posix_time::hours(itsParameters.bkHydrometaCacheDuration);
+      last_time = Fmi::SecondClock::universal_time() -
+                  Fmi::Hours(itsParameters.bkHydrometaCacheDuration);
     }
 
     {
@@ -1049,7 +1049,7 @@ void ObservationCacheAdminBase::updateBKHydrometaCache() const
     {
       auto begin = std::chrono::high_resolution_clock::now();
       bkHydrometaCache->cleanBKHydrometaCache(
-          boost::posix_time::hours(itsParameters.roadCloudCacheDuration));
+          Fmi::Hours(itsParameters.roadCloudCacheDuration));
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
@@ -1077,19 +1077,19 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
 
     std::vector<MobileExternalDataItem> cacheData;
 
-    boost::posix_time::ptime last_time = roadcloudCache->getLatestRoadCloudDataTime();
-    boost::posix_time::ptime last_created_time = roadcloudCache->getLatestRoadCloudCreatedTime();
+    Fmi::DateTime last_time = roadcloudCache->getLatestRoadCloudDataTime();
+    Fmi::DateTime last_created_time = roadcloudCache->getLatestRoadCloudCreatedTime();
 
     // Make sure the time is not in the future
-    boost::posix_time::ptime now = boost::posix_time::second_clock::universal_time();
+    Fmi::DateTime now = Fmi::SecondClock::universal_time();
     if (!last_time.is_not_a_date_time() && last_time > now)
       last_time = now;
 
     // Making sure that we do not request more data than we actually store into
     // the cache.
-    boost::posix_time::ptime min_last_time =
-        boost::posix_time::second_clock::universal_time() -
-        boost::posix_time::hours(itsParameters.roadCloudCacheDuration);
+    Fmi::DateTime min_last_time =
+        Fmi::SecondClock::universal_time() -
+        Fmi::Hours(itsParameters.roadCloudCacheDuration);
 
     static int update_count = 0;
 
@@ -1108,15 +1108,15 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
     if (!last_time.is_not_a_date_time() && update_count > 0)
     {
       if (long_update)
-        last_time -= boost::posix_time::hours(3);
+        last_time -= Fmi::Hours(3);
       else
-        last_time -= boost::posix_time::minutes(15);
+        last_time -= Fmi::Minutes(15);
     }
 
     if (last_time.is_not_a_date_time())
     {
-      last_time = boost::posix_time::second_clock::universal_time() -
-                  boost::posix_time::hours(itsParameters.roadCloudCacheDuration);
+      last_time = Fmi::SecondClock::universal_time() -
+                  Fmi::Hours(itsParameters.roadCloudCacheDuration);
     }
 
     {
@@ -1159,7 +1159,7 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
     {
       auto begin = std::chrono::high_resolution_clock::now();
       roadcloudCache->cleanRoadCloudCache(
-          boost::posix_time::hours(itsParameters.roadCloudCacheDuration));
+          Fmi::Hours(itsParameters.roadCloudCacheDuration));
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
@@ -1187,19 +1187,19 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
 
     std::vector<MobileExternalDataItem> cacheData;
 
-    boost::posix_time::ptime last_time = fmiIoTCache->getLatestFmiIoTDataTime();
-    boost::posix_time::ptime last_created_time = fmiIoTCache->getLatestFmiIoTCreatedTime();
+    Fmi::DateTime last_time = fmiIoTCache->getLatestFmiIoTDataTime();
+    Fmi::DateTime last_created_time = fmiIoTCache->getLatestFmiIoTCreatedTime();
 
     // Make sure the time is not in the future
-    boost::posix_time::ptime now = boost::posix_time::second_clock::universal_time();
+    Fmi::DateTime now = Fmi::SecondClock::universal_time();
     if (!last_time.is_not_a_date_time() && last_time > now)
       last_time = now;
 
     // Making sure that we do not request more data than we actually store into
     // the cache.
-    boost::posix_time::ptime min_last_time =
-        boost::posix_time::second_clock::universal_time() -
-        boost::posix_time::hours(itsParameters.fmiIoTCacheDuration);
+    Fmi::DateTime min_last_time =
+        Fmi::SecondClock::universal_time() -
+        Fmi::Hours(itsParameters.fmiIoTCacheDuration);
 
     static int update_count = 0;
 
@@ -1218,15 +1218,15 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
     if (!last_time.is_not_a_date_time() && update_count > 0)
     {
       if (long_update)
-        last_time -= boost::posix_time::hours(3);
+        last_time -= Fmi::Hours(3);
       else
-        last_time -= boost::posix_time::minutes(15);
+        last_time -= Fmi::Minutes(15);
     }
 
     if (last_time.is_not_a_date_time())
     {
-      last_time = boost::posix_time::second_clock::universal_time() -
-                  boost::posix_time::hours(itsParameters.fmiIoTCacheDuration);
+      last_time = Fmi::SecondClock::universal_time() -
+                  Fmi::Hours(itsParameters.fmiIoTCacheDuration);
     }
 
     {
@@ -1267,7 +1267,7 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
-      fmiIoTCache->cleanFmiIoTCache(boost::posix_time::hours(itsParameters.fmiIoTCacheDuration));
+      fmiIoTCache->cleanFmiIoTCache(Fmi::Hours(itsParameters.fmiIoTCacheDuration));
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
@@ -1301,8 +1301,8 @@ void ObservationCacheAdminBase::updateMagnetometerCache() const
     std::vector<MagnetometerDataItem> cacheData;
 
     // pair of data_time, modified_last
-    auto min_last_time = boost::posix_time::second_clock::universal_time() -
-                         boost::posix_time::hours(itsParameters.magnetometerCacheDuration);
+    auto min_last_time = Fmi::SecondClock::universal_time() -
+                         Fmi::Hours(itsParameters.magnetometerCacheDuration);
 
     auto last_time = magnetometerCache->getLatestMagnetometerDataTime();
     auto last_modified_time = magnetometerCache->getLatestMagnetometerModifiedTime();
@@ -1313,12 +1313,12 @@ void ObservationCacheAdminBase::updateMagnetometerCache() const
     if (last_modified_time.is_not_a_date_time())
       last_modified_time = last_time;
 
-    auto last_time_pair = std::pair<boost::posix_time::ptime, boost::posix_time::ptime>(
+    auto last_time_pair = std::pair<Fmi::DateTime, Fmi::DateTime>(
         last_time, last_modified_time);
 
     // Extra safety margin since the view contains 3 tables with different max(modified_last) values
     if (!last_time_pair.second.is_not_a_date_time())
-      last_time_pair.second -= boost::posix_time::seconds(itsParameters.updateExtraInterval);
+      last_time_pair.second -= Fmi::Seconds(itsParameters.updateExtraInterval);
 
     // Making sure that we do not request more data than we actually store into
     // the cache.
@@ -1360,7 +1360,7 @@ void ObservationCacheAdminBase::updateMagnetometerCache() const
     // Delete too old observations from the Cache database
     auto begin = std::chrono::high_resolution_clock::now();
     magnetometerCache->cleanMagnetometerCache(
-        boost::posix_time::hours(itsParameters.magnetometerCacheDuration));
+        Fmi::Hours(itsParameters.magnetometerCacheDuration));
     auto end = std::chrono::high_resolution_clock::now();
 
     if (itsTimer)

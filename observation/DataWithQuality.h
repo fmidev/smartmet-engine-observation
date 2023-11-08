@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/date_time/local_time/local_time.hpp>
+#include <macgyver/LocalDateTime.h>
 #include <timeseries/TimeSeriesInclude.h>
 #include <map>
 #include <string>
@@ -32,7 +32,7 @@ using SensorData = std::map<int, DataWithQuality>;
 // measurand ->
 using MeasurandData = std::map<int, SensorData>;
 // observation time ->
-using TimedMeasurandData = std::map<boost::local_time::local_date_time, MeasurandData>;
+using TimedMeasurandData = std::map<Fmi::LocalDateTime, MeasurandData>;
 // fmisd ->
 using StationTimedMeasurandData = std::map<int, TimedMeasurandData>;
 

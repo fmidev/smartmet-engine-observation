@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <macgyver/DateTime.h>
 #include <set>
 
 namespace SmartMet
@@ -20,13 +20,13 @@ class StationGroups
  public:
   void addGroupPeriod(int station_id,
                       const std::string& group_name,
-                      const boost::posix_time::ptime& starttime,
-                      const boost::posix_time::ptime& endtime);
+                      const Fmi::DateTime& starttime,
+                      const Fmi::DateTime& endtime);
   std::set<std::string> getStationGroups(int station_id) const;
   std::set<int> getStations() const;
   bool belongsToGroup(int station_id,
-                      const boost::posix_time::ptime& starttime,
-                      const boost::posix_time::ptime& endtime) const;
+                      const Fmi::DateTime& starttime,
+                      const Fmi::DateTime& endtime) const;
   bool groupOK(int station_id, const std::string& station_type) const;
 
  private:

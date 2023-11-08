@@ -55,8 +55,8 @@ void ObservationCacheAdminPostgreSQL::readWeatherDataQCCacheData(
 
 void ObservationCacheAdminPostgreSQL::readMovingStationsCacheData(
     std::vector<MovingLocationItem>& cacheData,
-    const boost::posix_time::ptime& startTime,
-    const boost::posix_time::ptime& lastModifiedTime,
+    const Fmi::DateTime& startTime,
+    const Fmi::DateTime& lastModifiedTime,
     const Fmi::TimeZones& /* timezones */) const
 {
   std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
@@ -66,8 +66,8 @@ void ObservationCacheAdminPostgreSQL::readMovingStationsCacheData(
 
 void ObservationCacheAdminPostgreSQL::readObservationCacheData(
     std::vector<DataItem>& cacheData,
-    const boost::posix_time::ptime& startTime,
-    const boost::posix_time::ptime& lastModifiedTime,
+    const Fmi::DateTime& startTime,
+    const Fmi::DateTime& lastModifiedTime,
     const Fmi::TimeZones& /* timezones */) const
 {
   std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
@@ -76,8 +76,8 @@ void ObservationCacheAdminPostgreSQL::readObservationCacheData(
 
 void ObservationCacheAdminPostgreSQL::readMagnetometerCacheData(
     std::vector<MagnetometerDataItem>& cacheData,
-    const boost::posix_time::ptime& startTime,
-    const boost::posix_time::ptime& lastModifiedTime,
+    const Fmi::DateTime& startTime,
+    const Fmi::DateTime& lastModifiedTime,
     const Fmi::TimeZones& /* timezones */) const
 {
   std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
@@ -86,9 +86,9 @@ void ObservationCacheAdminPostgreSQL::readMagnetometerCacheData(
 
 void ObservationCacheAdminPostgreSQL::readFlashCacheData(
     std::vector<FlashDataItem>& cacheData,
-    const boost::posix_time::ptime& startTime,
-    const boost::posix_time::ptime& lastStrokeTime,
-    const boost::posix_time::ptime& lastModifiedTime,
+    const Fmi::DateTime& startTime,
+    const Fmi::DateTime& lastStrokeTime,
+    const Fmi::DateTime& lastModifiedTime,
     const Fmi::TimeZones& /* timezones */) const
 {
   std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
@@ -98,8 +98,8 @@ void ObservationCacheAdminPostgreSQL::readFlashCacheData(
 
 void ObservationCacheAdminPostgreSQL::readWeatherDataQCCacheData(
     std::vector<WeatherDataQCItem>& cacheData,
-    const boost::posix_time::ptime& startTime,
-    const boost::posix_time::ptime& lastModifiedTime,
+    const Fmi::DateTime& startTime,
+    const Fmi::DateTime& lastModifiedTime,
     const Fmi::TimeZones& /* timezones */) const
 {
   std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
@@ -110,8 +110,8 @@ void ObservationCacheAdminPostgreSQL::readWeatherDataQCCacheData(
 void ObservationCacheAdminPostgreSQL::readMobileCacheData(
     const std::string& producer,
     std::vector<MobileExternalDataItem>& cacheData,
-    boost::posix_time::ptime lastTime,
-    boost::posix_time::ptime lastCreatedTime,
+    Fmi::DateTime lastTime,
+    Fmi::DateTime lastCreatedTime,
     const Fmi::TimeZones& timeZones) const
 {
   std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
@@ -229,12 +229,12 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
   }
 }
 
-std::pair<boost::posix_time::ptime, boost::posix_time::ptime>
+std::pair<Fmi::DateTime, Fmi::DateTime>
 ObservationCacheAdminPostgreSQL::getLatestWeatherDataQCTime(
     const std::shared_ptr<ObservationCache>& cache) const
 {
-  auto min_last_time = boost::posix_time::second_clock::universal_time() -
-                       boost::posix_time::hours(itsParameters.extCacheDuration);
+  auto min_last_time = Fmi::SecondClock::universal_time() -
+                       Fmi::Hours(itsParameters.extCacheDuration);
 
   auto last_time = cache->getLatestWeatherDataQCTime();
   auto last_modified_time = cache->getLatestWeatherDataQCModifiedTime();
@@ -248,12 +248,12 @@ ObservationCacheAdminPostgreSQL::getLatestWeatherDataQCTime(
   return {last_time, last_modified_time};
 }
 
-std::pair<boost::posix_time::ptime, boost::posix_time::ptime>
+std::pair<Fmi::DateTime, Fmi::DateTime>
 ObservationCacheAdminPostgreSQL::getLatestObservationTime(
     const std::shared_ptr<ObservationCache>& cache) const
 {
-  auto min_last_time = boost::posix_time::second_clock::universal_time() -
-                       boost::posix_time::hours(itsParameters.finCacheDuration);
+  auto min_last_time = Fmi::SecondClock::universal_time() -
+                       Fmi::Hours(itsParameters.finCacheDuration);
 
   auto last_time = cache->getLatestObservationTime();
   auto last_modified_time = cache->getLatestObservationModifiedTime();
@@ -267,13 +267,13 @@ ObservationCacheAdminPostgreSQL::getLatestObservationTime(
   return {last_time, last_modified_time};
 }
 
-std::map<std::string, boost::posix_time::ptime> ObservationCacheAdminPostgreSQL::getLatestFlashTime(
+std::map<std::string, Fmi::DateTime> ObservationCacheAdminPostgreSQL::getLatestFlashTime(
     const std::shared_ptr<ObservationCache>& cache) const
 {
-  std::map<std::string, boost::posix_time::ptime> ret;
+  std::map<std::string, Fmi::DateTime> ret;
 
-  auto min_last_time = (boost::posix_time::second_clock::universal_time() -
-                        boost::posix_time::hours(itsParameters.flashCacheDuration));
+  auto min_last_time = (Fmi::SecondClock::universal_time() -
+                        Fmi::Hours(itsParameters.flashCacheDuration));
 
   auto last_time = cache->getLatestFlashTime();
   auto last_modified_time = cache->getLatestFlashModifiedTime();

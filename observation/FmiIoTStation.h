@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <macgyver/DateTime.h>
 #include <map>
 #include <set>
 #include <vector>
@@ -19,8 +19,8 @@ struct FmiIoTStation
                 double lon,
                 double lat,
                 double elev,
-                const boost::posix_time::ptime& from,
-                const boost::posix_time::ptime& to)
+                const Fmi::DateTime& from,
+                const Fmi::DateTime& to)
       : station_id(std::move(id)),
         target_group_id(tgid),
         longitude(lon),
@@ -36,8 +36,8 @@ struct FmiIoTStation
   double longitude = 0;
   double latitude = 0;
   double elevation = 0;
-  boost::posix_time::ptime valid_from{boost::posix_time::not_a_date_time};
-  boost::posix_time::ptime valid_to{boost::posix_time::not_a_date_time};
+  Fmi::DateTime valid_from{boost::posix_time::not_a_date_time};
+  Fmi::DateTime valid_to{boost::posix_time::not_a_date_time};
 };
 
 class FmiIoTStations
@@ -49,10 +49,10 @@ class FmiIoTStations
                   double lon,
                   double lat,
                   double elev,
-                  const boost::posix_time::ptime& from,
-                  const boost::posix_time::ptime& to);
-  const FmiIoTStation& getStation(const std::string& id, const boost::posix_time::ptime& t) const;
-  bool isActive(const std::string& id, const boost::posix_time::ptime& t) const;
+                  const Fmi::DateTime& from,
+                  const Fmi::DateTime& to);
+  const FmiIoTStation& getStation(const std::string& id, const Fmi::DateTime& t) const;
+  bool isActive(const std::string& id, const Fmi::DateTime& t) const;
   std::vector<const FmiIoTStation*> getStations(const std::string& wktArea) const;
 
  private:

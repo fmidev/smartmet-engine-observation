@@ -69,8 +69,8 @@ TS::TimedValue SpecialParameters::getTimedValue(
     const Spine::Station& station,
     const std::string& stationType,
     const std::string& parameter,
-    const boost::local_time::local_date_time& obstime,
-    const boost::local_time::local_date_time& origintime,
+    const Fmi::LocalDateTime& obstime,
+    const Fmi::LocalDateTime& origintime,
     const std::string& timeZone,
     const Settings* settings) const
 {
@@ -162,16 +162,16 @@ SpecialParameters::SpecialParameters()
 
   handler_map[LOCALTIME_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
   {
-    const boost::posix_time::ptime utc = d.obstime.utc_time();
+    const Fmi::DateTime utc = d.obstime.utc_time();
     auto& tzf = Fmi::TimeZoneFactory::instance();
-    boost::local_time::time_zone_ptr tz = tzf.time_zone_from_string(d.station.timezone);
-    return boost::local_time::local_date_time(utc, tz);
+    Fmi::TimeZonePtr tz = tzf.time_zone_from_string(d.station.timezone);
+    return Fmi::LocalDateTime(utc, tz);
   };
 
   handler_map[UTCTIME_PARAM] =
       handler_map[UTC_PARAM] = [this](const SpecialParameters::Args& d) -> TS::Value
   {
-    boost::local_time::local_date_time utc(d.obstime.utc_time(), utc_tz);
+    Fmi::LocalDateTime utc(d.obstime.utc_time(), utc_tz);
     return utc;
   };
 

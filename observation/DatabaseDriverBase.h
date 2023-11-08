@@ -16,7 +16,7 @@
 #include "StationSettings.h"
 #include "Utils.h"
 #include <boost/atomic.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <macgyver/DateTime.h>
 #include <boost/thread/condition.hpp>
 #include <spine/Station.h>
 #include <timeseries/TimeSeriesInclude.h>
@@ -58,8 +58,8 @@ class DatabaseDriverBase
 
   virtual void getStations(Spine::Stations &stations, const Settings &settings) const;
 
-  virtual FlashCounts getFlashCount(const boost::posix_time::ptime & /* starttime */,
-                                    const boost::posix_time::ptime & /* endtime */,
+  virtual FlashCounts getFlashCount(const Fmi::DateTime & /* starttime */,
+                                    const Fmi::DateTime & /* endtime */,
                                     const Spine::TaggedLocationList & /* locations */) const
   {
     return {};
@@ -73,9 +73,9 @@ class DatabaseDriverBase
 
   virtual void shutdown() = 0;
 
-  virtual boost::posix_time::ptime getLatestDataUpdateTime(
+  virtual Fmi::DateTime getLatestDataUpdateTime(
       const std::string &producer,
-      const boost::posix_time::ptime &from,
+      const Fmi::DateTime &from,
       const MeasurandInfo &measurand_info) const;
 
   const std::set<std::string> &supportedProducers() const { return itsSupportedProducers; }

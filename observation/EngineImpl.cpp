@@ -327,8 +327,8 @@ Geonames::Engine *EngineImpl::getGeonames() const
   return reinterpret_cast<Geonames::Engine *>(engine);
 }
 
-FlashCounts EngineImpl::getFlashCount(const boost::posix_time::ptime &starttime,
-                                      const boost::posix_time::ptime &endtime,
+FlashCounts EngineImpl::getFlashCount(const Fmi::DateTime &starttime,
+                                      const Fmi::DateTime &endtime,
                                       const Spine::TaggedLocationList &locations)
 {
   return itsDatabaseDriver->getFlashCount(starttime, endtime, locations);
@@ -760,7 +760,7 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
     const bool both_times =
         (!options.start_time.is_not_a_date_time() && !options.end_time.is_not_a_date_time());
 
-    auto now = boost::posix_time::second_clock::universal_time();
+    auto now = Fmi::SecondClock::universal_time();
 
     std::shared_ptr<Fmi::TimeFormatter> timeFormatter;
     timeFormatter.reset(Fmi::TimeFormatter::create(options.timeformat));
@@ -926,8 +926,8 @@ std::set<uint> EngineImpl::getProducerIds(const std::string &producer) const
   try
   {
     std::set<uint> ret;
-    auto endtime = boost::posix_time::second_clock::universal_time();
-    auto starttime = (endtime - boost::posix_time::hours(168));  // 7*24: one week
+    auto endtime = Fmi::SecondClock::universal_time();
+    auto starttime = (endtime - Fmi::Hours(168));  // 7*24: one week
     // Read from DB
     ret = itsEngineParameters->producerGroups.getProducerIds(producer, starttime, endtime);
 
@@ -1008,8 +1008,8 @@ const ProducerMeasurandInfo &EngineImpl::getMeasurandInfo() const
   return itsMeasurandInfo;
 }
 
-boost::posix_time::ptime EngineImpl::getLatestDataUpdateTime(
-    const std::string &producer, const boost::posix_time::ptime &from) const
+Fmi::DateTime EngineImpl::getLatestDataUpdateTime(
+    const std::string &producer, const Fmi::DateTime &from) const
 {
   return itsDatabaseDriver->getLatestDataUpdateTime(producer, from);
 }

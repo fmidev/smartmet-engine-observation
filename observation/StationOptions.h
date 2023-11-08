@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/date_time/posix_time/ptime.hpp>
+#include <macgyver/DateTime.h>
 #include <boost/optional.hpp>
 #include <spine/Value.h>
 #include <set>
@@ -22,8 +22,8 @@ struct StationOptions
   std::string iso2;
   std::string region;
   std::string timeformat;
-  boost::posix_time::ptime start_time;
-  boost::posix_time::ptime end_time;
+  Fmi::DateTime start_time;
+  Fmi::DateTime end_time;
   boost::optional<Spine::BoundingBox> bbox;
 };
 

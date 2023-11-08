@@ -86,8 +86,8 @@ void Engine::makeQuery(QueryBase *qb)
   REPORT_DISABLED;
 }
 
-FlashCounts Engine::getFlashCount(const boost::posix_time::ptime & /*starttime */,
-                                  const boost::posix_time::ptime & /* endtime */,
+FlashCounts Engine::getFlashCount(const Fmi::DateTime & /*starttime */,
+                                  const Fmi::DateTime & /* endtime */,
                                   const Spine::TaggedLocationList & /*locations */)
 {
   REPORT_DISABLED;
@@ -193,8 +193,8 @@ const ProducerMeasurandInfo &Engine::getMeasurandInfo() const
   REPORT_DISABLED;
 }
 
-boost::posix_time::ptime Engine::getLatestDataUpdateTime(const std::string &producer,
-                                                         const boost::posix_time::ptime &from) const
+Fmi::DateTime Engine::getLatestDataUpdateTime(const std::string &producer,
+                                                         const Fmi::DateTime &from) const
 {
   REPORT_DISABLED;
 }

@@ -23,7 +23,7 @@ ObservationMemoryCache::~ObservationMemoryCache()
 // latest deleted observations instead of the actual last
 // observation.
 
-boost::posix_time::ptime ObservationMemoryCache::getStartTime() const
+Fmi::DateTime ObservationMemoryCache::getStartTime() const
 {
   try
   {
@@ -180,7 +180,7 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
     {
       // We intentionally store a not_a_date_time, and let the cache cleaner determine
       // what the oldest observation in the cache is.
-      starttime = boost::make_shared<boost::posix_time::ptime>(boost::posix_time::not_a_date_time);
+      starttime = boost::make_shared<Fmi::DateTime>(boost::posix_time::not_a_date_time);
       itsStartTime.store(starttime);
     }
 
@@ -198,7 +198,7 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
 // bother removing stations from the map which have stopped observations,
 // this is only a RAM cache which will be created afresh at restart anyway.
 
-void ObservationMemoryCache::clean(const boost::posix_time::ptime& newstarttime) const
+void ObservationMemoryCache::clean(const Fmi::DateTime& newstarttime) const
 {
   try
   {
@@ -208,7 +208,7 @@ void ObservationMemoryCache::clean(const boost::posix_time::ptime& newstarttime)
 
     // Update new start time for the cache first so no-one can request data before it
     // while the data is being cleaned
-    auto starttime = boost::make_shared<boost::posix_time::ptime>(newstarttime);
+    auto starttime = boost::make_shared<Fmi::DateTime>(newstarttime);
     itsStartTime.store(starttime);
 
     // Make a new cache
@@ -294,7 +294,7 @@ LocationDataItems ObservationMemoryCache::read_observations(
 
       // Find first position >= than the given start time
 
-      auto cmp = [](const DataItem& obs, const boost::posix_time::ptime& t) -> bool
+      auto cmp = [](const DataItem& obs, const Fmi::DateTime& t) -> bool
       { return (obs.data_time < t); };
 
       auto obs = std::lower_bound(obsdata->begin(), obsdata->end(), settings.starttime, cmp);

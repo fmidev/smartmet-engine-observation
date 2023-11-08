@@ -16,7 +16,7 @@ namespace Engine
 namespace Observation
 {
 using StationMap = std::map<int, Spine::Station>;
-using TimestepsByFMISID = std::map<int, std::set<boost::local_time::local_date_time>>;
+using TimestepsByFMISID = std::map<int, std::set<Fmi::LocalDateTime>>;
 enum class AdditionalTimestepOption
 {
   JustRequestedTimesteps,    // wms,wfs

@@ -26,8 +26,8 @@ class EngineImpl : public Engine
 
   void makeQuery(QueryBase *qb) override;
 
-  FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-                            const boost::posix_time::ptime &endtime,
+  FlashCounts getFlashCount(const Fmi::DateTime &starttime,
+                            const Fmi::DateTime &endtime,
                             const Spine::TaggedLocationList &locations) override;
   std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string &language) override;
@@ -127,8 +127,8 @@ class EngineImpl : public Engine
   /* \brief Get latest data update time of given producer
    * \return Time when data of a producer was last time updated
    */
-  boost::posix_time::ptime getLatestDataUpdateTime(
-      const std::string &producer, const boost::posix_time::ptime &from) const override;
+  Fmi::DateTime getLatestDataUpdateTime(
+      const std::string &producer, const Fmi::DateTime &from) const override;
 
  protected:
   void init() override;
@@ -155,7 +155,7 @@ class EngineImpl : public Engine
 
   ProducerMeasurandInfo itsMeasurandInfo;
 
-  std::map<std::string, boost::posix_time::ptime> itsLatestDataUpdateTime;
+  std::map<std::string, Fmi::DateTime> itsLatestDataUpdateTime;
 
   std::shared_ptr<DBRegistry> itsDatabaseRegistry;
 

@@ -22,8 +22,8 @@ void DatabaseDriverContainer::addDriver(const std::string &tablename,
 
 DatabaseDriverBase *DatabaseDriverContainer::resolveDriver(
     const std::string &tablename,
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime) const
+    const Fmi::DateTime &starttime,
+    const Fmi::DateTime &endtime) const
 {
   try
   {
@@ -49,7 +49,7 @@ DatabaseDriverBase *DatabaseDriverContainer::resolveDriver(
       if (starttime.is_not_a_date_time() || endtime.is_not_a_date_time())
         return driver_days.at(0).driver;
 
-      auto now = boost::posix_time::second_clock::universal_time();
+      auto now = Fmi::SecondClock::universal_time();
 
       for (const auto item : driver_days)
       {
@@ -58,7 +58,7 @@ DatabaseDriverBase *DatabaseDriverContainer::resolveDriver(
           return item.driver;
         }
 
-        boost::posix_time::ptime driver_data_start_time =
+        Fmi::DateTime driver_data_start_time =
             (now - boost::gregorian::days(item.max_days));
 
         if (starttime >= driver_data_start_time)

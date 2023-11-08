@@ -38,8 +38,8 @@ class SpatiaLiteDatabaseDriver : public DatabaseDriverBase
                                const Settings &settings,
                                const std::string &wkt) const override;
 
-  FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-                            const boost::posix_time::ptime &endtime,
+  FlashCounts getFlashCount(const Fmi::DateTime &starttime,
+                            const Fmi::DateTime &endtime,
                             const Spine::TaggedLocationList &locations) const override;
 
   void shutdown() override;

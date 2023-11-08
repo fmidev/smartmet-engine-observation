@@ -3,8 +3,7 @@
 #include "QueryResult.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
-#include <boost/date_time/posix_time/posix_time.hpp>  //include all types plus i/o
-#include <boost/date_time/time_duration.hpp>
+#include <macgyver/DateTime.h>
 #include <boost/make_shared.hpp>
 #include <spine/Convenience.h>
 #include <spine/Reactor.h>
@@ -145,8 +144,8 @@ TS::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
 }
 
 FlashCounts SpatiaLiteDatabaseDriver::getFlashCount(
-    const boost::posix_time::ptime &starttime,
-    const boost::posix_time::ptime &endtime,
+    const Fmi::DateTime &starttime,
+    const Fmi::DateTime &endtime,
     const Spine::TaggedLocationList &locations) const
 {
   try

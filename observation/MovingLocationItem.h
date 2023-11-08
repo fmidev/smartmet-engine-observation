@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/date_time/gregorian/formatters.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
+#include <macgyver/DateTime.h>
 #include <boost/optional.hpp>
 #include <macgyver/StringConversion.h>
 #include <vector>
@@ -16,8 +16,8 @@ class MovingLocationItem
 {
  public:
   int station_id = 0;
-  boost::posix_time::ptime sdate;
-  boost::posix_time::ptime edate;
+  Fmi::DateTime sdate;
+  Fmi::DateTime edate;
   double lon;
   double lat;
   double elev;

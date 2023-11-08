@@ -5,8 +5,7 @@
 #include "QueryResult.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
-#include <boost/date_time/posix_time/posix_time.hpp>  //include all types plus i/o
-#include <boost/date_time/time_duration.hpp>
+#include <macgyver/DateTime.h>
 #include <boost/make_shared.hpp>
 #include <spine/Convenience.h>
 #include <spine/Reactor.h>
@@ -35,9 +34,9 @@ void setSettings(Settings &settings, PostgreSQLObsDB &db)
     db.allPlaces = settings.allplaces;
     db.wantedTime = settings.wantedtime;
 
-    boost::posix_time::ptime startTime =
-        boost::posix_time::second_clock::universal_time() - boost::posix_time::hours(24);
-    boost::posix_time::ptime endTime = boost::posix_time::second_clock::universal_time();
+    Fmi::DateTime startTime =
+        Fmi::SecondClock::universal_time() - Fmi::Hours(24);
+    Fmi::DateTime endTime = Fmi::SecondClock::universal_time();
     int timeStep = 1;
     if (!settings.starttime.is_not_a_date_time())
       startTime = settings.starttime;
@@ -405,9 +404,9 @@ void PostgreSQLDatabaseDriverForMobileData::readConfig(Spine::ConfigBase &cfg)
   }
 }
 
-boost::posix_time::ptime PostgreSQLDatabaseDriverForMobileData::getLatestDataUpdateTime(
+Fmi::DateTime PostgreSQLDatabaseDriverForMobileData::getLatestDataUpdateTime(
     const std::string & /*producer*/,
-    const boost::posix_time::ptime & /*from*/,
+    const Fmi::DateTime & /*from*/,
     const MeasurandInfo & /*measurand_info*/) const
 {
   return boost::posix_time::not_a_date_time;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/date_time/gregorian/formatters.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
+#include <macgyver/DateTime.h>
 #include <boost/optional.hpp>
 #include <vector>
 
@@ -14,8 +14,8 @@ namespace Observation
 class MobileExternalDataItem
 {
  public:
-  boost::posix_time::ptime created;
-  boost::posix_time::ptime data_time;
+  Fmi::DateTime created;
+  Fmi::DateTime data_time;
   boost::optional<std::string> station_code;
   boost::optional<std::string> dataset_id;
   boost::optional<std::string> data_value_txt;

@@ -20,10 +20,10 @@ namespace
 // Round down to HH:MM:00. Deleting an entire hour at once takes too long, and causes a major
 // increase in response times. This should perhaps be made configurable.
 
-boost::posix_time::ptime round_down_to_cache_clean_interval(const boost::posix_time::ptime &t)
+Fmi::DateTime round_down_to_cache_clean_interval(const Fmi::DateTime &t)
 {
   auto secs = (t.time_of_day().total_seconds() / 60) * 60;
-  return {t.date(), boost::posix_time::seconds(secs)};
+  return {t.date(), Fmi::Seconds(secs)};
 }
 
 }  // namespace
@@ -142,7 +142,7 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
 {
   try
   {
-    auto now = boost::posix_time::second_clock::universal_time();
+    auto now = Fmi::SecondClock::universal_time();
 
     const std::set<std::string> &cacheTables = itsCacheInfo.tables;
 
@@ -151,7 +151,7 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
       logMessage("[Observation Engine] Initializing SpatiaLite flash memory cache",
                  itsParameters.quiet);
       itsFlashMemoryCache.reset(new FlashMemoryCache);
-      auto timetokeep_memory = boost::posix_time::hours(flashMemoryCacheDuration);
+      auto timetokeep_memory = Fmi::Hours(flashMemoryCacheDuration);
       auto flashdata =
           itsConnectionPool->getConnection()->readFlashCacheData(now - timetokeep_memory);
       itsFlashMemoryCache->fill(flashdata);
@@ -161,7 +161,7 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
       logMessage("[Observation Engine] Initializing SpatiaLite observation memory cache",
                  itsParameters.quiet);
       itsObservationMemoryCache.reset(new ObservationMemoryCache);
-      auto timetokeep_memory = boost::posix_time::hours(finMemoryCacheDuration);
+      auto timetokeep_memory = Fmi::Hours(finMemoryCacheDuration);
       itsConnectionPool->getConnection()->initObservationMemoryCache(now - timetokeep_memory,
                                                                      itsObservationMemoryCache);
     }
@@ -373,8 +373,8 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(const Setting
   }
 }
 
-bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                           const boost::posix_time::ptime & /* endtime */) const
+bool SpatiaLiteCache::timeIntervalIsCached(const Fmi::DateTime &starttime,
+                                           const Fmi::DateTime & /* endtime */) const
 {
   try
   {
@@ -398,8 +398,8 @@ bool SpatiaLiteCache::timeIntervalIsCached(const boost::posix_time::ptime &start
   }
 }
 
-bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                            const boost::posix_time::ptime & /* endtime */) const
+bool SpatiaLiteCache::flashIntervalIsCached(const Fmi::DateTime &starttime,
+                                            const Fmi::DateTime & /* endtime */) const
 {
   try
   {
@@ -426,7 +426,7 @@ bool SpatiaLiteCache::flashIntervalIsCached(const boost::posix_time::ptime &star
 }
 
 bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
-    const boost::posix_time::ptime &starttime, const boost::posix_time::ptime & /* endtime */) const
+    const Fmi::DateTime &starttime, const Fmi::DateTime & /* endtime */) const
 {
   try
   {
@@ -494,8 +494,8 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
   }
 }
 
-FlashCounts SpatiaLiteCache::getFlashCount(const boost::posix_time::ptime &starttime,
-                                           const boost::posix_time::ptime &endtime,
+FlashCounts SpatiaLiteCache::getFlashCount(const Fmi::DateTime &starttime,
+                                           const Fmi::DateTime &endtime,
                                            const Spine::TaggedLocationList &locations) const
 {
   try
@@ -525,17 +525,17 @@ FlashCounts SpatiaLiteCache::getFlashCount(const boost::posix_time::ptime &start
   }
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestFlashModifiedTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestFlashModifiedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestFlashModifiedTime();
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestFlashTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestFlashTime() const
 {
   return itsConnectionPool->getConnection()->getLatestFlashTime();
 }
 
-void SpatiaLiteCache::cleanMemoryDataCache(const boost::posix_time::ptime &newstarttime) const
+void SpatiaLiteCache::cleanMemoryDataCache(const Fmi::DateTime &newstarttime) const
 {
   try
   {
@@ -575,8 +575,8 @@ std::size_t SpatiaLiteCache::fillFlashDataCache(const FlashDataItems &flashCache
 }
 
 void SpatiaLiteCache::cleanFlashDataCache(
-    const boost::posix_time::time_duration &timetokeep,
-    const boost::posix_time::time_duration &timetokeep_memory) const
+    const Fmi::TimeDuration &timetokeep,
+    const Fmi::TimeDuration &timetokeep_memory) const
 {
   try
   {
@@ -584,7 +584,7 @@ void SpatiaLiteCache::cleanFlashDataCache(
     if (isFakeCache(FLASH_DATA_TABLE))
       return;
 
-    auto now = boost::posix_time::second_clock::universal_time();
+    auto now = Fmi::SecondClock::universal_time();
 
     // Clean memory cache first:
 
@@ -615,8 +615,8 @@ void SpatiaLiteCache::cleanFlashDataCache(
   }
 }
 
-bool SpatiaLiteCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                                const boost::posix_time::ptime &) const
+bool SpatiaLiteCache::roadCloudIntervalIsCached(const Fmi::DateTime &starttime,
+                                                const Fmi::DateTime &) const
 {
   try
   {
@@ -642,12 +642,12 @@ bool SpatiaLiteCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &
   }
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestRoadCloudDataTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestRoadCloudDataTime() const
 {
   return itsConnectionPool->getConnection()->getLatestRoadCloudDataTime();
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestRoadCloudCreatedTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestRoadCloudCreatedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestRoadCloudCreatedTime();
 }
@@ -674,7 +674,7 @@ std::size_t SpatiaLiteCache::fillRoadCloudCache(
   }
 }
 
-void SpatiaLiteCache::cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const
+void SpatiaLiteCache::cleanRoadCloudCache(const Fmi::TimeDuration &timetokeep) const
 {
   try
   {
@@ -682,7 +682,7 @@ void SpatiaLiteCache::cleanRoadCloudCache(const boost::posix_time::time_duration
     if (isFakeCache(ROADCLOUD_DATA_TABLE))
       return;
 
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
     auto conn = itsConnectionPool->getConnection();
@@ -726,8 +726,8 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpatiaLite(
   }
 }
 
-bool SpatiaLiteCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                              const boost::posix_time::ptime &) const
+bool SpatiaLiteCache::netAtmoIntervalIsCached(const Fmi::DateTime &starttime,
+                                              const Fmi::DateTime &) const
 {
   try
   {
@@ -773,7 +773,7 @@ std::size_t SpatiaLiteCache::fillNetAtmoCache(
   }
 }
 
-void SpatiaLiteCache::cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const
+void SpatiaLiteCache::cleanNetAtmoCache(const Fmi::TimeDuration &timetokeep) const
 {
   try
   {
@@ -781,7 +781,7 @@ void SpatiaLiteCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
     if (isFakeCache(NETATMO_DATA_TABLE))
       return;
 
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
     auto conn = itsConnectionPool->getConnection();
@@ -824,18 +824,18 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaLite(const Setti
   }
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestNetAtmoDataTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestNetAtmoDataTime() const
 {
   return itsConnectionPool->getConnection()->getLatestNetAtmoDataTime();
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestNetAtmoCreatedTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestNetAtmoCreatedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestNetAtmoCreatedTime();
 }
 
-bool SpatiaLiteCache::bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                                  const boost::posix_time::ptime &) const
+bool SpatiaLiteCache::bkHydrometaIntervalIsCached(const Fmi::DateTime &starttime,
+                                                  const Fmi::DateTime &) const
 {
   try
   {
@@ -882,7 +882,7 @@ std::size_t SpatiaLiteCache::fillBKHydrometaCache(
 }
 
 void SpatiaLiteCache::cleanBKHydrometaCache(
-    const boost::posix_time::time_duration &timetokeep) const
+    const Fmi::TimeDuration &timetokeep) const
 {
   try
   {
@@ -890,7 +890,7 @@ void SpatiaLiteCache::cleanBKHydrometaCache(
     if (isFakeCache(BK_HYDROMETA_DATA_TABLE))
       return;
 
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
     auto conn = itsConnectionPool->getConnection();
@@ -934,18 +934,18 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::bkHydrometaValuesFromSpatiaLite(
   }
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestBKHydrometaDataTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestBKHydrometaDataTime() const
 {
   return itsConnectionPool->getConnection()->getLatestBKHydrometaDataTime();
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestBKHydrometaCreatedTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestBKHydrometaCreatedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestBKHydrometaCreatedTime();
 }
 
-bool SpatiaLiteCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                             const boost::posix_time::ptime &) const
+bool SpatiaLiteCache::fmiIoTIntervalIsCached(const Fmi::DateTime &starttime,
+                                             const Fmi::DateTime &) const
 {
   try
   {
@@ -992,7 +992,7 @@ std::size_t SpatiaLiteCache::fillFmiIoTCache(
   }
 }
 
-void SpatiaLiteCache::cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const
+void SpatiaLiteCache::cleanFmiIoTCache(const Fmi::TimeDuration &timetokeep) const
 {
   try
   {
@@ -1000,7 +1000,7 @@ void SpatiaLiteCache::cleanFmiIoTCache(const boost::posix_time::time_duration &t
     if (isFakeCache(FMI_IOT_DATA_TABLE))
       return;
 
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
     auto conn = itsConnectionPool->getConnection();
@@ -1043,22 +1043,22 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLite(const Settin
   }
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestFmiIoTDataTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestFmiIoTDataTime() const
 {
   return itsConnectionPool->getConnection()->getLatestFmiIoTDataTime();
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestFmiIoTCreatedTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestFmiIoTCreatedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestFmiIoTCreatedTime();
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestObservationModifiedTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestObservationModifiedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestObservationModifiedTime();
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestObservationTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestObservationTime() const
 {
   return itsConnectionPool->getConnection()->getLatestObservationTime();
 }
@@ -1119,8 +1119,8 @@ itsTimeIntervalEnd = end;
 }
 
 void SpatiaLiteCache::cleanDataCache(
-    const boost::posix_time::time_duration &timetokeep,
-    const boost::posix_time::time_duration &timetokeep_memory) const
+    const Fmi::TimeDuration &timetokeep,
+    const Fmi::TimeDuration &timetokeep_memory) const
 {
   try
   {
@@ -1128,7 +1128,7 @@ void SpatiaLiteCache::cleanDataCache(
     if (isFakeCache(OBSERVATION_DATA_TABLE))
       return;
 
-    auto now = boost::posix_time::second_clock::universal_time();
+    auto now = Fmi::SecondClock::universal_time();
 
     auto time1 = round_down_to_cache_clean_interval(now - timetokeep);
     auto time2 = round_down_to_cache_clean_interval(now - timetokeep_memory);
@@ -1157,12 +1157,12 @@ void SpatiaLiteCache::cleanDataCache(
   }
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestWeatherDataQCTime() const
 {
   return itsConnectionPool->getConnection()->getLatestWeatherDataQCTime();
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestWeatherDataQCModifiedTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestWeatherDataQCModifiedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestWeatherDataQCModifiedTime();
 }
@@ -1188,7 +1188,7 @@ std::size_t SpatiaLiteCache::fillWeatherDataQCCache(const WeatherDataQCItems &ca
 }
 
 void SpatiaLiteCache::cleanWeatherDataQCCache(
-    const boost::posix_time::time_duration &timetokeep) const
+    const Fmi::TimeDuration &timetokeep) const
 {
   try
   {
@@ -1196,7 +1196,7 @@ void SpatiaLiteCache::cleanWeatherDataQCCache(
     if (isFakeCache(WEATHER_DATA_QC_TABLE))
       return;
 
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
     auto conn = itsConnectionPool->getConnection();
@@ -1221,7 +1221,7 @@ void SpatiaLiteCache::cleanWeatherDataQCCache(
 }
 
 bool SpatiaLiteCache::magnetometerIntervalIsCached(
-    const boost::posix_time::ptime &starttime, const boost::posix_time::ptime & /* endtime */) const
+    const Fmi::DateTime &starttime, const Fmi::DateTime & /* endtime */) const
 {
   try
   {
@@ -1245,12 +1245,12 @@ bool SpatiaLiteCache::magnetometerIntervalIsCached(
   }
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestMagnetometerDataTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestMagnetometerDataTime() const
 {
   return itsConnectionPool->getConnection()->getLatestMagnetometerDataTime();
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestMagnetometerModifiedTime() const
+Fmi::DateTime SpatiaLiteCache::getLatestMagnetometerModifiedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestMagnetometerModifiedTime();
 }
@@ -1277,7 +1277,7 @@ std::size_t SpatiaLiteCache::fillMagnetometerCache(
 }
 
 void SpatiaLiteCache::cleanMagnetometerCache(
-    const boost::posix_time::time_duration &timetokeep) const
+    const Fmi::TimeDuration &timetokeep) const
 {
   try
   {
@@ -1285,7 +1285,7 @@ void SpatiaLiteCache::cleanMagnetometerCache(
     if (isFakeCache(MAGNETOMETER_DATA_TABLE))
       return;
 
-    auto now = boost::posix_time::second_clock::universal_time();
+    auto now = Fmi::SecondClock::universal_time();
     auto t = round_down_to_cache_clean_interval(now - timetokeep);
 
     auto conn = itsConnectionPool->getConnection();
@@ -1421,9 +1421,9 @@ void SpatiaLiteCache::getMovingStations(Spine::Stations &stations,
   itsConnectionPool->getConnection()->getMovingStations(stations, settings, wkt);
 }
 
-boost::posix_time::ptime SpatiaLiteCache::getLatestDataUpdateTime(
+Fmi::DateTime SpatiaLiteCache::getLatestDataUpdateTime(
     const std::string &tablename,
-    const boost::posix_time::ptime &starttime,
+    const Fmi::DateTime &starttime,
     const std::string &producer_ids,
     const std::string &measurand_ids) const
 {

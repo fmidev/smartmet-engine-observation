@@ -293,8 +293,8 @@ void DatabaseDriverProxy::makeQuery(QueryBase *qb)
   return pDriver->makeQuery(qb);
 }
 
-FlashCounts DatabaseDriverProxy::getFlashCount(const boost::posix_time::ptime &starttime,
-                                               const boost::posix_time::ptime &endtime,
+FlashCounts DatabaseDriverProxy::getFlashCount(const Fmi::DateTime &starttime,
+                                               const Fmi::DateTime &endtime,
                                                const Spine::TaggedLocationList &locations) const
 {
   Settings settings;
@@ -515,8 +515,8 @@ MeasurandInfo DatabaseDriverProxy::getMeasurandInfo() const
   return {};
 }
 
-boost::posix_time::ptime DatabaseDriverProxy::getLatestDataUpdateTime(
-    const std::string &producer, const boost::posix_time::ptime &from) const
+Fmi::DateTime DatabaseDriverProxy::getLatestDataUpdateTime(
+    const std::string &producer, const Fmi::DateTime &from) const
 {
   try
   {

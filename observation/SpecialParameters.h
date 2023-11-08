@@ -29,15 +29,15 @@ class SpecialParameters
   {
     const Spine::Station& station;
     const std::string& stationType;
-    const boost::local_time::local_date_time& obstime;
-    const boost::local_time::local_date_time& origintime;
+    const Fmi::LocalDateTime& obstime;
+    const Fmi::LocalDateTime& origintime;
     const std::string& timeZone;
     const Settings* settings;
 
     Args(const Spine::Station& station,
          const std::string& stationType,
-         const boost::local_time::local_date_time& obstime,
-         const boost::local_time::local_date_time& origintime,
+         const Fmi::LocalDateTime& obstime,
+         const Fmi::LocalDateTime& origintime,
          const std::string& timeZone,
          const Settings* settings = nullptr)
 
@@ -82,8 +82,8 @@ class SpecialParameters
   TS::TimedValue getTimedValue(const Spine::Station& station,
                                const std::string& stationType,
                                const std::string& parameter,
-                               const boost::local_time::local_date_time& obstime,
-                               const boost::local_time::local_date_time& origintime,
+                               const Fmi::LocalDateTime& obstime,
+                               const Fmi::LocalDateTime& origintime,
                                const std::string& timeZone,
                                const Settings* settings = nullptr) const;
 
@@ -98,7 +98,7 @@ class SpecialParameters
   Geonames::Engine* itsGeonames;
 
   std::unique_ptr<Fmi::TimeFormatter> tf;
-  boost::local_time::time_zone_ptr utc_tz;
+  Fmi::TimeZonePtr utc_tz;
 };
 
 }  // namespace Observation

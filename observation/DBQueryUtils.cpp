@@ -154,7 +154,7 @@ void addSpecialFieldsToTimeSeries(
     const TS::TimeSeriesVectorPtr &timeSeriesColumns,
     int fmisid,
     const TimedMeasurandData &timed_measurand_data,
-    const std::set<boost::local_time::local_date_time> &valid_timesteps,
+    const std::set<Fmi::LocalDateTime> &valid_timesteps,
     const std::map<std::string, int> &specialPositions,
     const std::map<std::string, std::string> &parameterNameMap,
     bool addDataSourceField)
@@ -163,7 +163,7 @@ void addSpecialFieldsToTimeSeries(
   try
   {
     std::map<int, TS::TimeSeries> data_source_ts;
-    std::set<boost::local_time::local_date_time> timesteps;
+    std::set<Fmi::LocalDateTime> timesteps;
     TS::LocalTimePoolPtr local_time_pool = timeSeriesColumns->begin()->getLocalTimePool();
     for (const auto &item : timed_measurand_data)
     {
@@ -287,7 +287,7 @@ void addSpecialParameterToTimeSeries(const std::string &paramname,
 
 void addParameterToTimeSeries(
     const TS::TimeSeriesVectorPtr &timeSeriesColumns,
-    const std::pair<boost::local_time::local_date_time, MeasurandData> &dataItem,
+    const std::pair<Fmi::LocalDateTime, MeasurandData> &dataItem,
     int fmisid,
     const std::map<std::string, int> &specialPositions,
     const std::map<std::string, int> &parameterNameIdMap,
@@ -299,7 +299,7 @@ void addParameterToTimeSeries(
 {
   try
   {
-    boost::local_time::local_date_time obstime = dataItem.first;
+    Fmi::LocalDateTime obstime = dataItem.first;
     const MeasurandData &data = dataItem.second;
     // Append weather parameters
     for (const auto &parameter_item : parameterNameIdMap)
@@ -324,7 +324,7 @@ void addParameterToTimeSeries(
           .emplace_back(TS::TimedValue(obstime, val));
     }
 
-    boost::local_time::local_date_time now(boost::posix_time::second_clock::universal_time(),
+    Fmi::LocalDateTime now(Fmi::SecondClock::universal_time(),
                                            obstime.zone());
     SpecialParameters::Args args(station, stationtype, obstime, now, settings.timezone, &settings);
 
@@ -714,7 +714,7 @@ StationTimedMeasurandData DBQueryUtils::buildStationTimedMeasurandData(
         }
       }
 
-      boost::local_time::local_date_time obstime(obs.data.data_time, current_tz);
+      Fmi::LocalDateTime obstime(obs.data.data_time, current_tz);
 
       auto value = (obs.data.data_value ? TS::Value(*obs.data.data_value) : TS::None());
       auto data_quality = obs.data.data_quality;
@@ -740,7 +740,7 @@ StationTimedMeasurandData DBQueryUtils::buildStationTimedMeasurandData(
   return ret;
 }
 
-boost::local_time::local_date_time find_wanted_time(const TimedMeasurandData &timed_measurand_data,
+Fmi::LocalDateTime find_wanted_time(const TimedMeasurandData &timed_measurand_data,
                                                     const Settings &settings)
 {
   if (timed_measurand_data.size() == 1)  // speed optimization if there is only one choice
@@ -782,7 +782,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
   try
   {
     // Resolve timesteps for each fmisid
-    std::map<int, std::set<boost::local_time::local_date_time>> fmisid_timesteps;
+    std::map<int, std::set<Fmi::LocalDateTime>> fmisid_timesteps;
     if (timeSeriesOptions.all() && !settings.wantedtime)
     {
       // std::cout << "**** ALL timesteps in data \n";
@@ -815,7 +815,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
       // std::cout << "**** ALL timesteps in data + listed timesteps\n";
       // All FMISDS must have all timesteps in data and all listed timesteps
       std::set<int> fmisids;
-      std::set<boost::local_time::local_date_time> timesteps;
+      std::set<Fmi::LocalDateTime> timesteps;
       for (const auto &item : station_data)
       {
         fmisids.insert(item.first);
@@ -942,8 +942,8 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
           auto it = continuous.find(i);
           if (it != continuous.end())
           {
-            boost::local_time::local_date_time now(
-                boost::posix_time::second_clock::universal_time(), timestep_iter->zone());
+            Fmi::LocalDateTime now(
+                Fmi::SecondClock::universal_time(), timestep_iter->zone());
             SpecialParameters::Args args(
                 station, stationtype, *timestep_iter, now, settings.timezone, &settings);
             auto value = SpecialParameters::instance().getTimedValue(it->second, args);
@@ -1000,7 +1000,7 @@ TimestepsByFMISID DBQueryUtils::getValidTimeSteps(
     std::map<int, TS::TimeSeriesVectorPtr> &fmisid_results) const
 {
   // Resolve timesteps for each fmisid
-  std::map<int, std::set<boost::local_time::local_date_time>> fmisid_timesteps;
+  std::map<int, std::set<Fmi::LocalDateTime>> fmisid_timesteps;
 
   if (timeSeriesOptions.all() && !settings.wantedtime)
   {
@@ -1057,7 +1057,7 @@ TimestepsByFMISID DBQueryUtils::getValidTimeSteps(
     // std::cout << "**** ALL timesteps in data + listed timesteps\n";
     // All FMISDS must have all timesteps in data and all listed timesteps
     std::set<int> fmisids;
-    std::set<boost::local_time::local_date_time> timesteps;
+    std::set<Fmi::LocalDateTime> timesteps;
     for (const auto &item : fmisid_results)
     {
       int fmisid = item.first;

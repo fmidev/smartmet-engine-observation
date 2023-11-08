@@ -27,7 +27,7 @@ struct PostgreSQLCacheParameters;
 struct cached_data
 {
   std::vector<boost::optional<int>> fmisidsAll;
-  std::vector<boost::posix_time::ptime> obstimesAll;
+  std::vector<Fmi::DateTime> obstimesAll;
   std::vector<boost::optional<double>> longitudesAll;
   std::vector<boost::optional<double>> latitudesAll;
   std::vector<boost::optional<double>> elevationsAll;
@@ -50,63 +50,63 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
 
   /**
    * @brief Get the time of the newest observation in observation_data table
-   * @return boost::posix_time::ptime The time of the newest observation
+   * @return Fmi::DateTime The time of the newest observation
    */
 
-  boost::posix_time::ptime getLatestObservationTime();
+  Fmi::DateTime getLatestObservationTime();
 
   /**
    * @brief Get the last modified time in observation_data table
-   * @return boost::posix_time::ptime The time of the last modification
+   * @return Fmi::DateTime The time of the last modification
    */
 
-  boost::posix_time::ptime getLatestObservationModifiedTime();
+  Fmi::DateTime getLatestObservationModifiedTime();
 
   /**
    * @brief Get the time of the latest modified flash obervation
-   * @retval boost::posix_time::ptime The time of the last modification
+   * @retval Fmi::DateTime The time of the last modification
    */
 
-  boost::posix_time::ptime getLatestFlashModifiedTime();
+  Fmi::DateTime getLatestFlashModifiedTime();
 
   /**
    * @brief Get the time of the newest observation in flash_data table
-   * @return boost::posix_time::ptime The time of the newest observation
+   * @return Fmi::DateTime The time of the newest observation
    */
 
-  boost::posix_time::ptime getLatestFlashTime();
-
-  /**
-   * @brief Get the time of the newest observation in weather_data_qc table
-   * @return boost::posix_time::ptime The time of the newest observation
-   */
-  boost::posix_time::ptime getLatestWeatherDataQCTime();
+  Fmi::DateTime getLatestFlashTime();
 
   /**
    * @brief Get the time of the newest observation in weather_data_qc table
-   * @return boost::posix_time::ptime The time of the newest observation
+   * @return Fmi::DateTime The time of the newest observation
    */
-  boost::posix_time::ptime getLatestWeatherDataQCModifiedTime();
+  Fmi::DateTime getLatestWeatherDataQCTime();
+
+  /**
+   * @brief Get the time of the newest observation in weather_data_qc table
+   * @return Fmi::DateTime The time of the newest observation
+   */
+  Fmi::DateTime getLatestWeatherDataQCModifiedTime();
 
   /**
    * @brief Get the time of the oldest observation in observation_data table
-   * @return boost::posix_time::ptime The time of the oldest observation
+   * @return Fmi::DateTime The time of the oldest observation
    */
 
-  boost::posix_time::ptime getOldestObservationTime();
+  Fmi::DateTime getOldestObservationTime();
 
   /**
    * @brief Get the time of the oldest observation in flash_data table
-   * @return boost::posix_time::ptime The time of the oldest observation
+   * @return Fmi::DateTime The time of the oldest observation
    */
 
-  boost::posix_time::ptime getOldestFlashTime();
+  Fmi::DateTime getOldestFlashTime();
 
   /**
    * @brief Get the time of the oldest observation in weather_data_qc table
-   * @return boost::posix_time::ptime The time of the oldest observation
+   * @return Fmi::DateTime The time of the oldest observation
    */
-  boost::posix_time::ptime getOldestWeatherDataQCTime();
+  Fmi::DateTime getOldestWeatherDataQCTime();
 
   /**
    * @brief Create the PostgreSQL cache tables from scratch
@@ -153,54 +153,54 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
    */
   void cleanCacheTable(const std::string &tablename,
                        const std::string &time_column,
-                       const boost::posix_time::ptime &last_time);
+                       const Fmi::DateTime &last_time);
 
   /**
    * @brief Delete everything from observation_data table which is
    *        older than the given duration
    * @param[in] newstarttime
    */
-  void cleanDataCache(const boost::posix_time::ptime &newstarttime);
+  void cleanDataCache(const Fmi::DateTime &newstarttime);
 
   /**
    * @brief Delete everything from weather_data_qc table which
    *        is older than given duration
    * @param[in] newstarttime
    */
-  void cleanWeatherDataQCCache(const boost::posix_time::ptime &newstarttime);
+  void cleanWeatherDataQCCache(const Fmi::DateTime &newstarttime);
 
   /**
    * @brief Delete old flash observation data from flash_data table
    * @param newstarttime Delete everything from flash_data which is older than given time
    */
-  void cleanFlashDataCache(const boost::posix_time::ptime &newstarttime);
+  void cleanFlashDataCache(const Fmi::DateTime &newstarttime);
 
   /**
    * @brief Get oldest RoadCloud observation in ext_obsdata_roadcloud table
-   * @return boost::posix_time::ptime The time of the oldest observation
+   * @return Fmi::DateTime The time of the oldest observation
    */
 
-  boost::posix_time::ptime getOldestRoadCloudDataTime();
+  Fmi::DateTime getOldestRoadCloudDataTime();
 
   /**
    * @brief Get the latest creation time in ext_obsdata_roadcloud table
-   * @return boost::posix_time::ptime The latest creation time road cloud observation
+   * @return Fmi::DateTime The latest creation time road cloud observation
    */
 
-  boost::posix_time::ptime getLatestRoadCloudCreatedTime();
+  Fmi::DateTime getLatestRoadCloudCreatedTime();
 
   /**
    * @brief Get newest observation in ext_obsdata_roadcloud table
-   * @return boost::posix_time::ptime The time of the newest observation
+   * @return Fmi::DateTime The time of the newest observation
    */
 
-  boost::posix_time::ptime getLatestRoadCloudDataTime();
+  Fmi::DateTime getLatestRoadCloudDataTime();
 
   /**
    * @brief Delete old data from ext_obsdata_roadcloud table
    * @param newstarttime Delete data from ext_obsdata_roadcloud table which is older than given time
    */
-  void cleanRoadCloudCache(const boost::posix_time::ptime &newstarttime);
+  void cleanRoadCloudCache(const Fmi::DateTime &newstarttime);
 
   /**
    * @brief Insert cached RoadCloud observations into ext_obsdata table
@@ -210,30 +210,30 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
 
   /**
    * @brief Get oldest observation in ext_obsdata_netatmo table
-   * @return boost::posix_time::ptime The time of the oldest observation
+   * @return Fmi::DateTime The time of the oldest observation
    */
 
-  boost::posix_time::ptime getOldestNetAtmoDataTime();
+  Fmi::DateTime getOldestNetAtmoDataTime();
 
   /**
    * @brief Get newest observation in ext_obsdata_netatmo table
-   * @return boost::posix_time::ptime The time of the newest observation
+   * @return Fmi::DateTime The time of the newest observation
    */
 
-  boost::posix_time::ptime getLatestNetAtmoDataTime();
+  Fmi::DateTime getLatestNetAtmoDataTime();
 
   /**
    * @brief Get latest creation time in ext_obsdata_netatmo table
-   * @return boost::posix_time::ptime The latest creation time
+   * @return Fmi::DateTime The latest creation time
    */
 
-  boost::posix_time::ptime getLatestNetAtmoCreatedTime();
+  Fmi::DateTime getLatestNetAtmoCreatedTime();
 
   /**
    * @brief Delete old data from ext_obsdata_netatmo table
    * @param newstarttime Delete NetAtmo data which is older than given time
    */
-  void cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime);
+  void cleanNetAtmoCache(const Fmi::DateTime &newstarttime);
 
   /**
    * @brief Insert cached NetAtmo observations into ext_obsdata_netatmo table
@@ -243,30 +243,30 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
 
   /**
    * @brief Get oldest observation in ext_obsdata_hydrometa table
-   * @return boost::posix_time::ptime The time of the oldest observation
+   * @return Fmi::DateTime The time of the oldest observation
    */
 
-  boost::posix_time::ptime getOldestBKHydrometaDataTime();
+  Fmi::DateTime getOldestBKHydrometaDataTime();
 
   /**
    * @brief Get newest observation in ext_obsdata_bk_hydrometa table
-   * @return boost::posix_time::ptime The time of the newest observation
+   * @return Fmi::DateTime The time of the newest observation
    */
 
-  boost::posix_time::ptime getLatestBKHydrometaDataTime();
+  Fmi::DateTime getLatestBKHydrometaDataTime();
 
   /**
    * @brief Get latest creation time in ext_obsdata_bk_hydrometa table
-   * @return boost::posix_time::ptime The latest creation time
+   * @return Fmi::DateTime The latest creation time
    */
 
-  boost::posix_time::ptime getLatestBKHydrometaCreatedTime();
+  Fmi::DateTime getLatestBKHydrometaCreatedTime();
 
   /**
    * @brief Delete old data from ext_obsdata_bk_hydrometa table
    * @param newstarttime Delete data which is older than given time
    */
-  void cleanBKHydrometaCache(const boost::posix_time::ptime &newstarttime);
+  void cleanBKHydrometaCache(const Fmi::DateTime &newstarttime);
 
   /**
    * @brief Insert cached NetAtmo observations into ext_obsdata_bk_hydrometa table
@@ -276,25 +276,25 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
 
   /**
    * @brief Get the time of the newest FmiIoT observation in ext_obsdata_roadcloud table
-   * @return boost::posix_time::ptime The time of the newest FmiIoT observation
+   * @return Fmi::DateTime The time of the newest FmiIoT observation
    */
 
-  boost::posix_time::ptime getLatestFmiIoTDataTime();
+  Fmi::DateTime getLatestFmiIoTDataTime();
 
   /**
    * @brief Get the time of the latest FmiIoT creation time in ext_obsdata table
-   * @return boost::posix_time::ptime The latest creation time
+   * @return Fmi::DateTime The latest creation time
    */
 
-  boost::posix_time::ptime getLatestFmiIoTCreatedTime();
+  Fmi::DateTime getLatestFmiIoTCreatedTime();
 
   /**
    * @brief Get the time of the oldest FmiIoT observation in ext_obsdata_roadcloud table
 
-   * @return boost::posix_time::ptime The time of the oldest FmiIoT observation
+   * @return Fmi::DateTime The time of the oldest FmiIoT observation
    */
 
-  boost::posix_time::ptime getOldestFmiIoTDataTime();
+  Fmi::DateTime getOldestFmiIoTDataTime();
 
   /**
    * @brief Insert cached observations into ext_obsdata_roadcloud table
@@ -306,7 +306,7 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
    * @brief Delete old FmiIoT observation data from ext_obsdata_roadcloud table
    * @param timetokeep Delete FmiIoT data which is older than given duration
    */
-  void cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime);
+  void cleanFmiIoTCache(const Fmi::DateTime &newstarttime);
 
   TS::TimeSeriesVectorPtr getRoadCloudData(const Settings &settings,
                                            const ParameterMapPtr &parameterMap,
@@ -330,8 +330,8 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
    * @return FlashCounts The number of flashes in the interval
    */
   /*
-  FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-                            const boost::posix_time::ptime &endtime,
+  FlashCounts getFlashCount(const Fmi::DateTime &starttime,
+                            const Fmi::DateTime &endtime,
                             const Spine::TaggedLocationList &locations);
   */
 
@@ -372,10 +372,10 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
                                               const Spine::Station &station,
                                               int pos,
                                               const std::string &stationtype,
-                                              const boost::local_time::local_date_time &obstime);
+                                              const Fmi::LocalDateTime &obstime);
 
   void addParameterToTimeSeries(TS::TimeSeriesVectorPtr &timeSeriesColumns,
-                                const std::pair<boost::local_time::local_date_time,
+                                const std::pair<Fmi::LocalDateTime,
                                                 std::map<std::string, TS::Value>> &dataItem,
                                 const std::map<std::string, int> &specialPositions,
                                 const std::map<std::string, std::string> &parameterNameMap,
@@ -385,9 +385,9 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
                                 const Spine::Station &station,
                                 const std::string &missingtext);
 
-  boost::posix_time::ptime getLatestTimeFromTable(const std::string &tablename,
+  Fmi::DateTime getLatestTimeFromTable(const std::string &tablename,
                                                   const std::string &time_field);
-  boost::posix_time::ptime getOldestTimeFromTable(const std::string &tablename,
+  Fmi::DateTime getOldestTimeFromTable(const std::string &tablename,
                                                   const std::string &time_field);
 
   void createStationTable();
@@ -407,7 +407,7 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
                    bool transaction = false) const;
   void dropIndex(const std::string &idx_name, bool transaction = false) const;
 
-  boost::posix_time::ptime getTime(const std::string &timeQuery) const;
+  Fmi::DateTime getTime(const std::string &timeQuery) const;
   TS::TimeSeriesVectorPtr getMobileAndExternalData(const Settings &settings,
                                                    const ParameterMapPtr &parameterMap,
                                                    const Fmi::TimeZones &timezones);

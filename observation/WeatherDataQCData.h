@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/date_time/posix_time/ptime.hpp>
+#include <macgyver/DateTime.h>
 #include <boost/optional.hpp>
 #include <vector>
 
@@ -13,7 +13,7 @@ namespace Observation
 struct WeatherDataQCData
 {
   std::vector<boost::optional<int>> fmisidsAll;
-  std::vector<boost::posix_time::ptime> obstimesAll;
+  std::vector<Fmi::DateTime> obstimesAll;
   std::vector<boost::optional<double>> longitudesAll;
   std::vector<boost::optional<double>> latitudesAll;
   std::vector<boost::optional<double>> elevationsAll;

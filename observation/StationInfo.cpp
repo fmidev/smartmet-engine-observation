@@ -38,7 +38,7 @@ static bool sort_stations_function(const Spine::Station& s1, const Spine::Statio
  */
 // ----------------------------------------------------------------------
 
-bool timeok(const Spine::Station& station, const boost::posix_time::ptime& t)
+bool timeok(const Spine::Station& station, const Fmi::DateTime& t)
 {
   return !(t < station.station_start || t > station.station_end);
 }
@@ -54,8 +54,8 @@ bool timeok(const Spine::Station& station, const boost::posix_time::ptime& t)
 // ----------------------------------------------------------------------
 
 bool timeok(const Spine::Station& station,
-            const boost::posix_time::ptime& starttime,
-            const boost::posix_time::ptime& endtime)
+            const Fmi::DateTime& starttime,
+            const Fmi::DateTime& endtime)
 {
   return !(endtime < station.station_start || starttime > station.station_end);
 }
@@ -207,8 +207,8 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
                                                  double maxdistance,
                                                  int numberofstations,
                                                  const std::set<std::string>& groups,
-                                                 const boost::posix_time::ptime& starttime,
-                                                 const boost::posix_time::ptime& endtime) const
+                                                 const Fmi::DateTime& starttime,
+                                                 const Fmi::DateTime& endtime) const
 {
   if (numberofstations < 1)
     throw Fmi::Exception(BCP, "Cannot search for less than 1 nearby stations");
@@ -330,8 +330,8 @@ Spine::Stations findStations(const Spine::Stations& stations,
                              const std::set<std::string>& groups,
                              const std::vector<int>& numbers,
                              const StationIndex& index,
-                             const boost::posix_time::ptime& starttime,
-                             const boost::posix_time::ptime& endtime)
+                             const Fmi::DateTime& starttime,
+                             const Fmi::DateTime& endtime)
 {
   Spine::Stations result;
 
@@ -378,8 +378,8 @@ Spine::Stations StationInfo::findFmisidStations(const std::vector<int>& fmisids)
 
 Spine::Stations StationInfo::findFmisidStations(const Spine::TaggedFMISIDList& taggedFMISIDs,
                                                 const std::set<std::string>& groups,
-                                                const boost::posix_time::ptime& starttime,
-                                                const boost::posix_time::ptime& endtime) const
+                                                const Fmi::DateTime& starttime,
+                                                const Fmi::DateTime& endtime) const
 {
   std::vector<int> fmisids;
   std::map<int, const Spine::TaggedFMISID*> fmisidMap;
@@ -461,8 +461,8 @@ Spine::Stations StationInfo::findFmisidStations(const Spine::TaggedFMISIDList& t
 
 Spine::Stations StationInfo::findFmisidStations(const std::vector<int>& fmisids,
                                                 const std::set<std::string>& groups,
-                                                const boost::posix_time::ptime& starttime,
-                                                const boost::posix_time::ptime& endtime) const
+                                                const Fmi::DateTime& starttime,
+                                                const Fmi::DateTime& endtime) const
 {
   return findStations(stations, groups, fmisids, fmisidstations, starttime, endtime);
 }
@@ -486,8 +486,8 @@ Spine::Stations StationInfo::findWmoStations(const std::vector<int>& wmos) const
 
 Spine::Stations StationInfo::findWmoStations(const std::vector<int>& wmos,
                                              const std::set<std::string>& groups,
-                                             const boost::posix_time::ptime& starttime,
-                                             const boost::posix_time::ptime& endtime) const
+                                             const Fmi::DateTime& starttime,
+                                             const Fmi::DateTime& endtime) const
 {
   return findStations(stations, groups, wmos, wmostations, starttime, endtime);
 }
@@ -511,8 +511,8 @@ Spine::Stations StationInfo::findLpnnStations(const std::vector<int>& lpnns) con
 
 Spine::Stations StationInfo::findLpnnStations(const std::vector<int>& lpnns,
                                               const std::set<std::string>& groups,
-                                              const boost::posix_time::ptime& starttime,
-                                              const boost::posix_time::ptime& endtime) const
+                                              const Fmi::DateTime& starttime,
+                                              const Fmi::DateTime& endtime) const
 {
   return findStations(stations, groups, lpnns, lpnnstations, starttime, endtime);
 }
@@ -536,8 +536,8 @@ Spine::Stations StationInfo::findRwsidStations(const std::vector<int>& rwsids) c
 
 Spine::Stations StationInfo::findRwsidStations(const std::vector<int>& rwsids,
                                                const std::set<std::string>& groups,
-                                               const boost::posix_time::ptime& starttime,
-                                               const boost::posix_time::ptime& endtime) const
+                                               const Fmi::DateTime& starttime,
+                                               const Fmi::DateTime& endtime) const
 {
   return findStations(stations, groups, rwsids, rwsidstations, starttime, endtime);
 }
@@ -549,8 +549,8 @@ Spine::Stations StationInfo::findRwsidStations(const std::vector<int>& rwsids,
 // ----------------------------------------------------------------------
 
 Spine::Stations StationInfo::findStationsInGroup(const std::set<std::string>& groups,
-                                                 const boost::posix_time::ptime& starttime,
-                                                 const boost::posix_time::ptime& endtime) const
+                                                 const Fmi::DateTime& starttime,
+                                                 const Fmi::DateTime& endtime) const
 {
   std::set<StationID> all_ids;
 
@@ -584,8 +584,8 @@ Spine::Stations StationInfo::findStationsInGroup(const std::set<std::string>& gr
  */
 // ----------------------------------------------------------------------
 Spine::Stations StationInfo::findStationsInsideArea(const std::set<std::string>& groups,
-                                                    const boost::posix_time::ptime& starttime,
-                                                    const boost::posix_time::ptime& endtime,
+                                                    const Fmi::DateTime& starttime,
+                                                    const Fmi::DateTime& endtime,
                                                     const std::string& wkt) const
 {
   try
@@ -633,7 +633,7 @@ Spine::Stations StationInfo::findStationsInsideArea(const std::set<std::string>&
 
 const Spine::Station& StationInfo::getStation(unsigned int fmisid,
                                               const std::set<std::string>& groups,
-                                              const boost::posix_time::ptime& t) const
+                                              const Fmi::DateTime& t) const
 {
   const auto& ids = fmisidstations.at(fmisid);
 #if 0  
@@ -760,8 +760,8 @@ Spine::Stations StationInfo::findStationsInsideBox(double minx,
                                                    double maxx,
                                                    double maxy,
                                                    const std::set<std::string>& groups,
-                                                   const boost::posix_time::ptime& starttime,
-                                                   const boost::posix_time::ptime& endtime) const
+                                                   const Fmi::DateTime& starttime,
+                                                   const Fmi::DateTime& endtime) const
 {
   auto ids = searchStations(stations, minx, miny, maxx, maxy);
 
@@ -845,7 +845,7 @@ void StationInfo::update() const
 }
 
 Spine::TaggedFMISIDList StationInfo::translateWMOToFMISID(const std::vector<int>& wmos,
-                                                          const boost::posix_time::ptime& t) const
+                                                          const Fmi::DateTime& t) const
 {
   Spine::TaggedFMISIDList ret;
 
@@ -863,7 +863,7 @@ Spine::TaggedFMISIDList StationInfo::translateWMOToFMISID(const std::vector<int>
 }
 
 Spine::TaggedFMISIDList StationInfo::translateRWSIDToFMISID(const std::vector<int>& rwsids,
-                                                            const boost::posix_time::ptime& t) const
+                                                            const Fmi::DateTime& t) const
 {
   Spine::TaggedFMISIDList ret;
 
@@ -881,7 +881,7 @@ Spine::TaggedFMISIDList StationInfo::translateRWSIDToFMISID(const std::vector<in
 }
 
 Spine::TaggedFMISIDList StationInfo::translateLPNNToFMISID(const std::vector<int>& lpnns,
-                                                           const boost::posix_time::ptime& t) const
+                                                           const Fmi::DateTime& t) const
 {
   Spine::TaggedFMISIDList ret;
 

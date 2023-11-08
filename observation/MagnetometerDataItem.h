@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/date_time/gregorian/formatters.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
+#include <macgyver/DateTime.h>
 #include <boost/optional.hpp>
 #include <vector>
 
@@ -17,14 +17,14 @@ class MagnetometerDataItem
   int fmisid;
   std::string magnetometer;
   int level;
-  boost::posix_time::ptime data_time;
+  Fmi::DateTime data_time;
   boost::optional<double> x;
   boost::optional<double> y;
   boost::optional<double> z;
   boost::optional<double> t;
   boost::optional<double> f;
   int data_quality{2};  // TODO
-  boost::posix_time::ptime modified_last;
+  Fmi::DateTime modified_last;
 
   std::size_t hash_value() const;
 };

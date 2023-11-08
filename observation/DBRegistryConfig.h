@@ -28,7 +28,7 @@ class DBRegistryConfig
   using FieldMethodMapType = std::map<NameType, NameType>;
 
   // 1. field name
-  // 2. field value type (int, uint, float, double, string, ptime are allowed
+  // 2. field value type (int, uint, float, double, string, Fmi::DateTime are allowed
   //                      and other strings are replaced with empty string)
   using FieldValueTypeMapType = std::map<NameType, NameType>;
 
@@ -120,7 +120,7 @@ class NamesAllowed
 
 - A name must begin with an alphabet character.
 - A name is active unless it is deactivated.
-- Allowed types are "int","uint","float","double","string" and "ptime" (optional).
+- Allowed types are "int","uint","float","double","string" and "Fmi::DateTime" (optional).
 
 @verbatim
 name : "NETWORKS_V1";
@@ -140,7 +140,7 @@ fields :
         # Milloin rivin tietoja on viimeksi muokattu. date not null
         name = "MODIFIED_LAST";
         active = false;
-        type = "ptime";
+        type = "Fmi::DateTime";
 }
 );
 @endverbatim

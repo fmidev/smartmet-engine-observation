@@ -43,74 +43,74 @@ class PostgreSQLCache : public ObservationCache
       Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
 
   bool dataAvailableInCache(const Settings &settings) const override;
-  bool flashIntervalIsCached(const boost::posix_time::ptime &starttime,
-                             const boost::posix_time::ptime &endtime) const override;
-  FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-                            const boost::posix_time::ptime &endtime,
+  bool flashIntervalIsCached(const Fmi::DateTime &starttime,
+                             const Fmi::DateTime &endtime) const override;
+  FlashCounts getFlashCount(const Fmi::DateTime &starttime,
+                            const Fmi::DateTime &endtime,
                             const Spine::TaggedLocationList &locations) const override;
-  boost::posix_time::ptime getLatestFlashModifiedTime() const override;
-  boost::posix_time::ptime getLatestFlashTime() const override;
+  Fmi::DateTime getLatestFlashModifiedTime() const override;
+  Fmi::DateTime getLatestFlashTime() const override;
   std::size_t fillFlashDataCache(const FlashDataItems &flashCacheData) const override;
   void cleanFlashDataCache(
-      const boost::posix_time::time_duration &timetokeep,
-      const boost::posix_time::time_duration &timetokeep_memory) const override;
+      const Fmi::TimeDuration &timetokeep,
+      const Fmi::TimeDuration &timetokeep_memory) const override;
 
-  boost::posix_time::ptime getLatestObservationModifiedTime() const override;
-  boost::posix_time::ptime getLatestObservationTime() const override;
+  Fmi::DateTime getLatestObservationModifiedTime() const override;
+  Fmi::DateTime getLatestObservationTime() const override;
   std::size_t fillDataCache(const DataItems &cacheData) const override;
   std::size_t fillMovingLocationsCache(const MovingLocationItems &cacheData) const override;
-  void cleanDataCache(const boost::posix_time::time_duration &timetokeep,
-                      const boost::posix_time::time_duration &timetokeep_memory) const override;
-  boost::posix_time::ptime getLatestWeatherDataQCTime() const override;
-  boost::posix_time::ptime getLatestWeatherDataQCModifiedTime() const override;
+  void cleanDataCache(const Fmi::TimeDuration &timetokeep,
+                      const Fmi::TimeDuration &timetokeep_memory) const override;
+  Fmi::DateTime getLatestWeatherDataQCTime() const override;
+  Fmi::DateTime getLatestWeatherDataQCModifiedTime() const override;
   std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const override;
-  void cleanWeatherDataQCCache(const boost::posix_time::time_duration &timetokeep) const override;
+  void cleanWeatherDataQCCache(const Fmi::TimeDuration &timetokeep) const override;
 
   // RoadCloud
-  bool roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                 const boost::posix_time::ptime &endtime) const override;
-  boost::posix_time::ptime getLatestRoadCloudDataTime() const override;
-  boost::posix_time::ptime getLatestRoadCloudCreatedTime() const override;
+  bool roadCloudIntervalIsCached(const Fmi::DateTime &starttime,
+                                 const Fmi::DateTime &endtime) const override;
+  Fmi::DateTime getLatestRoadCloudDataTime() const override;
+  Fmi::DateTime getLatestRoadCloudCreatedTime() const override;
   std::size_t fillRoadCloudCache(
       const MobileExternalDataItems &mobileExternalCacheData) const override;
-  void cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const override;
+  void cleanRoadCloudCache(const Fmi::TimeDuration &timetokeep) const override;
 
   // NetAtmo
-  bool netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
-                               const boost::posix_time::ptime &endtime) const override;
-  boost::posix_time::ptime getLatestNetAtmoDataTime() const override;
-  boost::posix_time::ptime getLatestNetAtmoCreatedTime() const override;
+  bool netAtmoIntervalIsCached(const Fmi::DateTime &starttime,
+                               const Fmi::DateTime &endtime) const override;
+  Fmi::DateTime getLatestNetAtmoDataTime() const override;
+  Fmi::DateTime getLatestNetAtmoCreatedTime() const override;
   std::size_t fillNetAtmoCache(
       const MobileExternalDataItems &mobileExternalCacheData) const override;
-  void cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const override;
+  void cleanNetAtmoCache(const Fmi::TimeDuration &timetokeep) const override;
 
   // BKHydrometa
-  bool bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                   const boost::posix_time::ptime &endtime) const override;
-  boost::posix_time::ptime getLatestBKHydrometaDataTime() const override;
-  boost::posix_time::ptime getLatestBKHydrometaCreatedTime() const override;
+  bool bkHydrometaIntervalIsCached(const Fmi::DateTime &starttime,
+                                   const Fmi::DateTime &endtime) const override;
+  Fmi::DateTime getLatestBKHydrometaDataTime() const override;
+  Fmi::DateTime getLatestBKHydrometaCreatedTime() const override;
   std::size_t fillBKHydrometaCache(
       const MobileExternalDataItems &mobileExternalCacheData) const override;
-  void cleanBKHydrometaCache(const boost::posix_time::time_duration &timetokeep) const override;
+  void cleanBKHydrometaCache(const Fmi::TimeDuration &timetokeep) const override;
   TS::TimeSeriesVectorPtr bkHydrometaValuesFromSpatiaLite(Settings &settings) const;
 
   // FmiIoT
-  bool fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
-                              const boost::posix_time::ptime &endtime) const override;
-  boost::posix_time::ptime getLatestFmiIoTDataTime() const override;
-  boost::posix_time::ptime getLatestFmiIoTCreatedTime() const override;
+  bool fmiIoTIntervalIsCached(const Fmi::DateTime &starttime,
+                              const Fmi::DateTime &endtime) const override;
+  Fmi::DateTime getLatestFmiIoTDataTime() const override;
+  Fmi::DateTime getLatestFmiIoTCreatedTime() const override;
   std::size_t fillFmiIoTCache(
       const MobileExternalDataItems &mobileExternalCacheData) const override;
-  void cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const override;
+  void cleanFmiIoTCache(const Fmi::TimeDuration &timetokeep) const override;
 
   // Magnetometer
-  bool magnetometerIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                    const boost::posix_time::ptime &endtime) const override;
-  boost::posix_time::ptime getLatestMagnetometerDataTime() const override;
-  boost::posix_time::ptime getLatestMagnetometerModifiedTime() const override;
+  bool magnetometerIntervalIsCached(const Fmi::DateTime &starttime,
+                                    const Fmi::DateTime &endtime) const override;
+  Fmi::DateTime getLatestMagnetometerDataTime() const override;
+  Fmi::DateTime getLatestMagnetometerModifiedTime() const override;
   std::size_t fillMagnetometerCache(
       const MagnetometerDataItems &magnetometerCacheData) const override;
-  void cleanMagnetometerCache(const boost::posix_time::time_duration &timetokeep) const override;
+  void cleanMagnetometerCache(const Fmi::TimeDuration &timetokeep) const override;
 
   void shutdown() final;
 
@@ -124,10 +124,10 @@ class PostgreSQLCache : public ObservationCache
   Fmi::TimeZones itsTimeZones;
 
   void readConfig(const Spine::ConfigBase &cfg);
-  bool timeIntervalIsCached(const boost::posix_time::ptime &starttime,
-                            const boost::posix_time::ptime &endtime) const;
-  bool timeIntervalWeatherDataQCIsCached(const boost::posix_time::ptime &starttime,
-                                         const boost::posix_time::ptime &endtime) const;
+  bool timeIntervalIsCached(const Fmi::DateTime &starttime,
+                            const Fmi::DateTime &endtime) const;
+  bool timeIntervalWeatherDataQCIsCached(const Fmi::DateTime &starttime,
+                                         const Fmi::DateTime &endtime) const;
   TS::TimeSeriesVectorPtr flashValuesFromPostgreSQL(const Settings &settings) const;
   TS::TimeSeriesVectorPtr roadCloudValuesFromPostgreSQL(const Settings &settings) const;
   TS::TimeSeriesVectorPtr netAtmoValuesFromPostgreSQL(const Settings &settings) const;
@@ -138,32 +138,32 @@ class PostgreSQLCache : public ObservationCache
   // Cache available time interval to avoid unnecessary database requests. The interval
   // needs to be updated once at initialization, after a write, and before cleaning
   mutable Spine::MutexType itsTimeIntervalMutex;
-  mutable boost::posix_time::ptime itsTimeIntervalStart;
-  mutable boost::posix_time::ptime itsTimeIntervalEnd;
+  mutable Fmi::DateTime itsTimeIntervalStart;
+  mutable Fmi::DateTime itsTimeIntervalEnd;
 
   mutable Spine::MutexType itsWeatherDataQCTimeIntervalMutex;
-  mutable boost::posix_time::ptime itsWeatherDataQCTimeIntervalStart;
-  mutable boost::posix_time::ptime itsWeatherDataQCTimeIntervalEnd;
+  mutable Fmi::DateTime itsWeatherDataQCTimeIntervalStart;
+  mutable Fmi::DateTime itsWeatherDataQCTimeIntervalEnd;
 
   mutable Spine::MutexType itsFlashTimeIntervalMutex;
-  mutable boost::posix_time::ptime itsFlashTimeIntervalStart;
-  mutable boost::posix_time::ptime itsFlashTimeIntervalEnd;
+  mutable Fmi::DateTime itsFlashTimeIntervalStart;
+  mutable Fmi::DateTime itsFlashTimeIntervalEnd;
 
   mutable Spine::MutexType itsRoadCloudTimeIntervalMutex;
-  mutable boost::posix_time::ptime itsRoadCloudTimeIntervalStart;
-  mutable boost::posix_time::ptime itsRoadCloudTimeIntervalEnd;
+  mutable Fmi::DateTime itsRoadCloudTimeIntervalStart;
+  mutable Fmi::DateTime itsRoadCloudTimeIntervalEnd;
 
   mutable Spine::MutexType itsNetAtmoTimeIntervalMutex;
-  mutable boost::posix_time::ptime itsNetAtmoTimeIntervalStart;
-  mutable boost::posix_time::ptime itsNetAtmoTimeIntervalEnd;
+  mutable Fmi::DateTime itsNetAtmoTimeIntervalStart;
+  mutable Fmi::DateTime itsNetAtmoTimeIntervalEnd;
 
   mutable Spine::MutexType itsBKHydrometaTimeIntervalMutex;
-  mutable boost::posix_time::ptime itsBKHydrometaTimeIntervalStart;
-  mutable boost::posix_time::ptime itsBKHydrometaTimeIntervalEnd;
+  mutable Fmi::DateTime itsBKHydrometaTimeIntervalStart;
+  mutable Fmi::DateTime itsBKHydrometaTimeIntervalEnd;
 
   mutable Spine::MutexType itsFmiIoTTimeIntervalMutex;
-  mutable boost::posix_time::ptime itsFmiIoTTimeIntervalStart;
-  mutable boost::posix_time::ptime itsFmiIoTTimeIntervalEnd;
+  mutable Fmi::DateTime itsFmiIoTTimeIntervalStart;
+  mutable Fmi::DateTime itsFmiIoTTimeIntervalEnd;
 
   std::unique_ptr<ObservationMemoryCache> itsObservationMemoryCache;
 

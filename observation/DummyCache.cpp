@@ -40,25 +40,25 @@ bool DummyCache::dataAvailableInCache(const Settings & /* settings */) const
   return false;
 }
 
-bool DummyCache::flashIntervalIsCached(const boost::posix_time::ptime & /* starttime */,
-                                       const boost::posix_time::ptime & /* endtime */) const
+bool DummyCache::flashIntervalIsCached(const Fmi::DateTime & /* starttime */,
+                                       const Fmi::DateTime & /* endtime */) const
 {
   return false;
 }
 
-FlashCounts DummyCache::getFlashCount(const boost::posix_time::ptime & /* starttime */,
-                                      const boost::posix_time::ptime & /* endtime */,
+FlashCounts DummyCache::getFlashCount(const Fmi::DateTime & /* starttime */,
+                                      const Fmi::DateTime & /* endtime */,
                                       const Spine::TaggedLocationList & /* locations */) const
 {
   return {};
 }
 
-boost::posix_time::ptime DummyCache::getLatestFlashModifiedTime() const
+Fmi::DateTime DummyCache::getLatestFlashModifiedTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
 
-boost::posix_time::ptime DummyCache::getLatestFlashTime() const
+Fmi::DateTime DummyCache::getLatestFlashTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
@@ -69,17 +69,17 @@ std::size_t DummyCache::fillFlashDataCache(const FlashDataItems & /* flashCacheD
 }
 
 void DummyCache::cleanFlashDataCache(
-    const boost::posix_time::time_duration & /* timetokeep */,
-    const boost::posix_time::time_duration & /*timetokeep_memory */) const
+    const Fmi::TimeDuration & /* timetokeep */,
+    const Fmi::TimeDuration & /*timetokeep_memory */) const
 {
 }
 
-boost::posix_time::ptime DummyCache::getLatestObservationModifiedTime() const
+Fmi::DateTime DummyCache::getLatestObservationModifiedTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
 
-boost::posix_time::ptime DummyCache::getLatestObservationTime() const
+Fmi::DateTime DummyCache::getLatestObservationTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
@@ -95,17 +95,17 @@ std::size_t DummyCache::fillMovingLocationsCache(const MovingLocationItems & /* 
 }
 
 void DummyCache::cleanDataCache(
-    const boost::posix_time::time_duration & /* timetokeep */,
-    const boost::posix_time::time_duration & /* timetokeep_memory */) const
+    const Fmi::TimeDuration & /* timetokeep */,
+    const Fmi::TimeDuration & /* timetokeep_memory */) const
 {
 }
 
-boost::posix_time::ptime DummyCache::getLatestWeatherDataQCTime() const
+Fmi::DateTime DummyCache::getLatestWeatherDataQCTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
 
-boost::posix_time::ptime DummyCache::getLatestWeatherDataQCModifiedTime() const
+Fmi::DateTime DummyCache::getLatestWeatherDataQCModifiedTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
@@ -116,22 +116,22 @@ std::size_t DummyCache::fillWeatherDataQCCache(const WeatherDataQCItems & /* cac
 }
 
 void DummyCache::cleanWeatherDataQCCache(
-    const boost::posix_time::time_duration & /* timetokeep */) const
+    const Fmi::TimeDuration & /* timetokeep */) const
 {
 }
 
-bool DummyCache::roadCloudIntervalIsCached(const boost::posix_time::ptime & /* starttime */,
-                                           const boost::posix_time::ptime & /* endtime */) const
+bool DummyCache::roadCloudIntervalIsCached(const Fmi::DateTime & /* starttime */,
+                                           const Fmi::DateTime & /* endtime */) const
 {
   return false;
 }
 
-boost::posix_time::ptime DummyCache::getLatestRoadCloudDataTime() const
+Fmi::DateTime DummyCache::getLatestRoadCloudDataTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
 
-boost::posix_time::ptime DummyCache::getLatestRoadCloudCreatedTime() const
+Fmi::DateTime DummyCache::getLatestRoadCloudCreatedTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
@@ -143,22 +143,22 @@ std::size_t DummyCache::fillRoadCloudCache(
 }
 
 void DummyCache::cleanRoadCloudCache(
-    const boost::posix_time::time_duration & /* timetokeep */) const
+    const Fmi::TimeDuration & /* timetokeep */) const
 {
 }
 
-bool DummyCache::netAtmoIntervalIsCached(const boost::posix_time::ptime & /*starttime */,
-                                         const boost::posix_time::ptime & /*endtime */) const
+bool DummyCache::netAtmoIntervalIsCached(const Fmi::DateTime & /*starttime */,
+                                         const Fmi::DateTime & /*endtime */) const
 {
   return false;
 }
 
-boost::posix_time::ptime DummyCache::getLatestNetAtmoDataTime() const
+Fmi::DateTime DummyCache::getLatestNetAtmoDataTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
 
-boost::posix_time::ptime DummyCache::getLatestNetAtmoCreatedTime() const
+Fmi::DateTime DummyCache::getLatestNetAtmoCreatedTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
@@ -169,22 +169,22 @@ std::size_t DummyCache::fillNetAtmoCache(
   return 0;
 }
 
-void DummyCache::cleanNetAtmoCache(const boost::posix_time::time_duration & /* timetokeep */) const
+void DummyCache::cleanNetAtmoCache(const Fmi::TimeDuration & /* timetokeep */) const
 {
 }
 
-bool DummyCache::bkHydrometaIntervalIsCached(const boost::posix_time::ptime & /*starttime */,
-                                             const boost::posix_time::ptime & /*endtime */) const
+bool DummyCache::bkHydrometaIntervalIsCached(const Fmi::DateTime & /*starttime */,
+                                             const Fmi::DateTime & /*endtime */) const
 {
   return false;
 }
 
-boost::posix_time::ptime DummyCache::getLatestBKHydrometaDataTime() const
+Fmi::DateTime DummyCache::getLatestBKHydrometaDataTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
 
-boost::posix_time::ptime DummyCache::getLatestBKHydrometaCreatedTime() const
+Fmi::DateTime DummyCache::getLatestBKHydrometaCreatedTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
@@ -196,22 +196,22 @@ std::size_t DummyCache::fillBKHydrometaCache(
 }
 
 void DummyCache::cleanBKHydrometaCache(
-    const boost::posix_time::time_duration & /* timetokeep */) const
+    const Fmi::TimeDuration & /* timetokeep */) const
 {
 }
 
-bool DummyCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime & /* starttime */,
-                                        const boost::posix_time::ptime & /* endtime */) const
+bool DummyCache::fmiIoTIntervalIsCached(const Fmi::DateTime & /* starttime */,
+                                        const Fmi::DateTime & /* endtime */) const
 {
   return false;
 }
 
-boost::posix_time::ptime DummyCache::getLatestFmiIoTDataTime() const
+Fmi::DateTime DummyCache::getLatestFmiIoTDataTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
 
-boost::posix_time::ptime DummyCache::getLatestFmiIoTCreatedTime() const
+Fmi::DateTime DummyCache::getLatestFmiIoTCreatedTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
@@ -222,22 +222,22 @@ std::size_t DummyCache::fillFmiIoTCache(
   return 0;
 }
 
-void DummyCache::cleanFmiIoTCache(const boost::posix_time::time_duration & /* timetokeep */) const
+void DummyCache::cleanFmiIoTCache(const Fmi::TimeDuration & /* timetokeep */) const
 {
 }
 
-bool DummyCache::magnetometerIntervalIsCached(const boost::posix_time::ptime & /* starttime */,
-                                              const boost::posix_time::ptime & /* endtime */) const
+bool DummyCache::magnetometerIntervalIsCached(const Fmi::DateTime & /* starttime */,
+                                              const Fmi::DateTime & /* endtime */) const
 {
   return false;
 }
 
-boost::posix_time::ptime DummyCache::getLatestMagnetometerDataTime() const
+Fmi::DateTime DummyCache::getLatestMagnetometerDataTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
 
-boost::posix_time::ptime DummyCache::getLatestMagnetometerModifiedTime() const
+Fmi::DateTime DummyCache::getLatestMagnetometerModifiedTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
@@ -249,7 +249,7 @@ std::size_t DummyCache::fillMagnetometerCache(
 }
 
 void DummyCache::cleanMagnetometerCache(
-    const boost::posix_time::time_duration & /* timetokeep */) const
+    const Fmi::TimeDuration & /* timetokeep */) const
 {
 }
 

@@ -12,8 +12,8 @@
 
 std::string stationFile = "/usr/share/smartmet/test/data/sqlite/stations.txt";
 
-boost::posix_time::ptime starttime(boost::posix_time::time_from_string("2010-01-01 00:00:00"));
-boost::posix_time::ptime endtime(boost::posix_time::time_from_string("2010-01-02 00:00:00"));
+Fmi::DateTime starttime(boost::posix_time::time_from_string("2010-01-01 00:00:00"));
+Fmi::DateTime endtime(boost::posix_time::time_from_string("2010-01-02 00:00:00"));
 
 Fmi::TimeZones timezones;
 

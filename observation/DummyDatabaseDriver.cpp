@@ -34,8 +34,8 @@ void DummyDatabaseDriver::getMovingStationsByArea(Spine::Stations & /*stations*/
 {
 }
 
-FlashCounts DummyDatabaseDriver::getFlashCount(const boost::posix_time::ptime &,
-                                               const boost::posix_time::ptime &,
+FlashCounts DummyDatabaseDriver::getFlashCount(const Fmi::DateTime &,
+                                               const Fmi::DateTime &,
                                                const Spine::TaggedLocationList &) const
 {
   return {};

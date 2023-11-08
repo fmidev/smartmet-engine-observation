@@ -55,8 +55,8 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
 
   void readMobileCacheDataFromPostgreSQL(const std::string &producer,
                                          std::vector<MobileExternalDataItem> &cacheData,
-                                         boost::posix_time::ptime lastTime,
-                                         boost::posix_time::ptime lastCreatedTime,
+                                         Fmi::DateTime lastTime,
+                                         Fmi::DateTime lastCreatedTime,
                                          const Fmi::TimeZones &timezones);
   void readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
                                    const boost::posix_time::time_period &dataPeriod,
@@ -72,30 +72,30 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
                                                 const std::string &measurandId,
                                                 const Fmi::TimeZones &timezones);
   void readMovingStationsCacheDataFromPostgreSQL(std::vector<MovingLocationItem> &cacheData,
-                                                 const boost::posix_time::ptime &startTime,
-                                                 const boost::posix_time::ptime &lastModifiedTime,
+                                                 const Fmi::DateTime &startTime,
+                                                 const Fmi::DateTime &lastModifiedTime,
                                                  const Fmi::TimeZones &timezones);
   void readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
-                                   const boost::posix_time::ptime &startTime,
-                                   const boost::posix_time::ptime &lastModifiedTime,
+                                   const Fmi::DateTime &startTime,
+                                   const Fmi::DateTime &lastModifiedTime,
                                    const Fmi::TimeZones &timezones);
   void readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem> &flashCacheData,
-                                        const boost::posix_time::ptime &startTime,
-                                        const boost::posix_time::ptime &lastStrokeTime,
-                                        const boost::posix_time::ptime &lastModifiedTime,
+                                        const Fmi::DateTime &startTime,
+                                        const Fmi::DateTime &lastStrokeTime,
+                                        const Fmi::DateTime &lastModifiedTime,
                                         const Fmi::TimeZones &timezones);
   void readWeatherDataQCCacheDataFromPostgreSQL(std::vector<WeatherDataQCItem> &cacheData,
-                                                boost::posix_time::ptime lastTime,
-                                                boost::posix_time::ptime lastModifiedTime,
+                                                Fmi::DateTime lastTime,
+                                                Fmi::DateTime lastModifiedTime,
                                                 const Fmi::TimeZones &timezones);
   void readMagnetometerCacheDataFromPostgreSQL(std::vector<MagnetometerDataItem> &cacheData,
-                                               boost::posix_time::ptime lastTime,
-                                               boost::posix_time::ptime lastModifiedTime,
+                                               Fmi::DateTime lastTime,
+                                               Fmi::DateTime lastModifiedTime,
                                                const Fmi::TimeZones &timezones);
 
-  boost::posix_time::ptime startTime;
-  boost::posix_time::ptime endTime;
-  boost::optional<boost::posix_time::ptime> wantedTime;
+  Fmi::DateTime startTime;
+  Fmi::DateTime endTime;
+  boost::optional<Fmi::DateTime> wantedTime;
   std::string timeFormat;
   int timeStep = 0;
   double maxDistance = 0;
@@ -104,8 +104,8 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
   bool allPlaces{false};
 
   void resetTimeSeries() { itsTimeSeriesColumns.reset(); }
-  void setTimeInterval(const boost::posix_time::ptime &starttime,
-                       const boost::posix_time::ptime &endtime,
+  void setTimeInterval(const Fmi::DateTime &starttime,
+                       const Fmi::DateTime &endtime,
                        int timestep);
   void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
@@ -132,8 +132,8 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
 
   MeasurandInfo getMeasurandInfo(const EngineParametersPtr &engineParameters) const;
 
-  boost::posix_time::ptime getLatestDataUpdateTime(const std::string &tablename,
-                                                   const boost::posix_time::ptime &from,
+  Fmi::DateTime getLatestDataUpdateTime(const std::string &tablename,
+                                                   const Fmi::DateTime &from,
                                                    const std::string &producer_ids,
                                                    const std::string &measurand_ids) const;
 

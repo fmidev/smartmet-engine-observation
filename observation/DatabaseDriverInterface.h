@@ -41,8 +41,8 @@ class DatabaseDriverInterface
   virtual Spine::TaggedFMISIDList translateToFMISID(
       const Settings &settings, const StationSettings &stationSettings) const = 0;
   virtual void makeQuery(QueryBase *qb) = 0;
-  virtual FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-                                    const boost::posix_time::ptime &endtime,
+  virtual FlashCounts getFlashCount(const Fmi::DateTime &starttime,
+                                    const Fmi::DateTime &endtime,
                                     const Spine::TaggedLocationList &locations) const = 0;
   virtual std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string &language) = 0;
@@ -63,8 +63,8 @@ class DatabaseDriverInterface
   virtual void getStationGroups(StationGroups &sg) const = 0;
   virtual void getProducerGroups(ProducerGroups &pg) const = 0;
   virtual MeasurandInfo getMeasurandInfo() const = 0;
-  virtual boost::posix_time::ptime getLatestDataUpdateTime(
-      const std::string &producer, const boost::posix_time::ptime &from) const = 0;
+  virtual Fmi::DateTime getLatestDataUpdateTime(
+      const std::string &producer, const Fmi::DateTime &from) const = 0;
 
  protected:
   DatabaseDriverInterface() = default;

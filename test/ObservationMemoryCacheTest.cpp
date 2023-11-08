@@ -3,7 +3,7 @@
 #include "ObservationMemoryCache.h"
 #include "QueryMapping.h"
 #include "StationInfo.h"
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <macgyver/DateTime.h>
 #include <atomic>
 #include <thread>
 
@@ -28,8 +28,8 @@ TEST_CASE("Test observation memory cache in parallel (TSAN)")
     int numberofstations = 1000;
     double maxdistance = 500 * 1000;  // meters
     std::set<std::string> groups;
-    boost::posix_time::ptime starttime = boost::posix_time::time_from_string("2020-01-01 00:00:00");
-    boost::posix_time::ptime endtime = boost::posix_time::time_from_string("2020-02-01 00:00:00");
+    Fmi::DateTime starttime = boost::posix_time::time_from_string("2020-01-01 00:00:00");
+    Fmi::DateTime endtime = boost::posix_time::time_from_string("2020-02-01 00:00:00");
     auto stations = stationinfo.findNearestStations(
         lon, lat, maxdistance, numberofstations, groups, starttime, endtime);
 
@@ -65,7 +65,7 @@ TEST_CASE("Test observation memory cache in parallel (TSAN)")
                 item.producer_id = 1;
                 items.push_back(item);
               }
-              datatime += boost::posix_time::hours(6);
+              datatime += Fmi::Hours(6);
             }
             cache.fill(items);
           }

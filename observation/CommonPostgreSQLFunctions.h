@@ -42,8 +42,8 @@ class CommonPostgreSQLFunctions : public CommonDatabaseFunctions
   TS::TimeSeriesVectorPtr getFlashData(const Settings &settings,
                                        const Fmi::TimeZones &timezones) override;
 
-  FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-                            const boost::posix_time::ptime &endtime,
+  FlashCounts getFlashCount(const Fmi::DateTime &starttime,
+                            const Fmi::DateTime &endtime,
                             const Spine::TaggedLocationList &locations) override;
 
   bool isConnected();

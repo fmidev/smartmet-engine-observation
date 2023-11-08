@@ -20,8 +20,8 @@ class DatabaseDriverContainer
  public:
   void addDriver(const std::string &tablename, int max_days, DatabaseDriverBase *driver);
   DatabaseDriverBase *resolveDriver(const std::string &tablename,
-                                    const boost::posix_time::ptime &starttime,
-                                    const boost::posix_time::ptime &endtime) const;
+                                    const Fmi::DateTime &starttime,
+                                    const Fmi::DateTime &endtime) const;
   bool empty() const { return itsDatabaseDrivers.empty(); }
 
  private:

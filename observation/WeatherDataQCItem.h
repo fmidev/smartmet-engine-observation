@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/date_time/gregorian/formatters.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
+#include <macgyver/DateTime.h>
 #include <boost/optional.hpp>
 #include <string>
 #include <vector>
@@ -15,8 +15,8 @@ namespace Observation
 class WeatherDataQCItem
 {
  public:
-  boost::posix_time::ptime obstime;
-  boost::posix_time::ptime modified_last{boost::posix_time::not_a_date_time};
+  Fmi::DateTime obstime;
+  Fmi::DateTime modified_last{boost::posix_time::not_a_date_time};
   std::string parameter;
   boost::optional<double> value;
   int fmisid;

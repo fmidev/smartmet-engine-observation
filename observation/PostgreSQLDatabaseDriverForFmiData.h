@@ -51,13 +51,13 @@ class PostgreSQLDatabaseDriverForFmiData : public PostgreSQLDatabaseDriver
                                const Settings &settings,
                                const std::string &wkt) const override;
   void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const override;
-  FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-                            const boost::posix_time::ptime &endtime,
+  FlashCounts getFlashCount(const Fmi::DateTime &starttime,
+                            const Fmi::DateTime &endtime,
                             const Spine::TaggedLocationList &locations) const override;
   MeasurandInfo getMeasurandInfo() const override;
-  boost::posix_time::ptime getLatestDataUpdateTime(
+  Fmi::DateTime getLatestDataUpdateTime(
       const std::string &producer,
-      const boost::posix_time::ptime &from,
+      const Fmi::DateTime &from,
       const MeasurandInfo &measurand_info) const override;
 
  private:

@@ -420,11 +420,11 @@ size_t PostgreSQLCacheDB::selectCount(const std::string &queryString)
   }
 }  // namespace Observation
 
-boost::posix_time::ptime PostgreSQLCacheDB::getTime(const std::string &timeQuery) const
+Fmi::DateTime PostgreSQLCacheDB::getTime(const std::string &timeQuery) const
 {
   try
   {
-    boost::posix_time::ptime ret;
+    Fmi::DateTime ret;
 
     std::string sqlStmt = "SELECT EXTRACT(EPOCH FROM(" + timeQuery + "))";
 
@@ -451,37 +451,37 @@ boost::posix_time::ptime PostgreSQLCacheDB::getTime(const std::string &timeQuery
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestObservationTime()
+Fmi::DateTime PostgreSQLCacheDB::getLatestObservationTime()
 {
   return getTime("SELECT MAX(data_time) FROM observation_data");
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestObservationModifiedTime()
+Fmi::DateTime PostgreSQLCacheDB::getLatestObservationModifiedTime()
 {
   return getTime("SELECT MAX(modified_last) FROM observation_data");
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getOldestObservationTime()
+Fmi::DateTime PostgreSQLCacheDB::getOldestObservationTime()
 {
   return getTime("SELECT MIN(data_time) FROM observation_data");
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestWeatherDataQCTime()
+Fmi::DateTime PostgreSQLCacheDB::getLatestWeatherDataQCTime()
 {
   return getTime("SELECT MAX(obstime) FROM weather_data_qc");
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestWeatherDataQCModifiedTime()
+Fmi::DateTime PostgreSQLCacheDB::getLatestWeatherDataQCModifiedTime()
 {
   return getTime("SELECT MAX(modified_last) FROM weather_data_qc");
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getOldestWeatherDataQCTime()
+Fmi::DateTime PostgreSQLCacheDB::getOldestWeatherDataQCTime()
 {
   return getTime("SELECT MIN(obstime) FROM weather_data_qc");
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestFlashModifiedTime()
+Fmi::DateTime PostgreSQLCacheDB::getLatestFlashModifiedTime()
 {
   try
   {
@@ -495,7 +495,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getLatestFlashModifiedTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestFlashTime()
+Fmi::DateTime PostgreSQLCacheDB::getLatestFlashTime()
 {
   try
   {
@@ -509,7 +509,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getLatestFlashTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getOldestFlashTime()
+Fmi::DateTime PostgreSQLCacheDB::getOldestFlashTime()
 {
   try
   {
@@ -523,7 +523,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getOldestFlashTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getOldestRoadCloudDataTime()
+Fmi::DateTime PostgreSQLCacheDB::getOldestRoadCloudDataTime()
 {
   try
   {
@@ -537,7 +537,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getOldestRoadCloudDataTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestRoadCloudCreatedTime()
+Fmi::DateTime PostgreSQLCacheDB::getLatestRoadCloudCreatedTime()
 {
   try
   {
@@ -551,7 +551,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getLatestRoadCloudCreatedTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestRoadCloudDataTime()
+Fmi::DateTime PostgreSQLCacheDB::getLatestRoadCloudDataTime()
 {
   try
   {
@@ -565,7 +565,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getLatestRoadCloudDataTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getOldestNetAtmoDataTime()
+Fmi::DateTime PostgreSQLCacheDB::getOldestNetAtmoDataTime()
 {
   try
   {
@@ -579,7 +579,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getOldestNetAtmoDataTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestNetAtmoDataTime()
+Fmi::DateTime PostgreSQLCacheDB::getLatestNetAtmoDataTime()
 {
   try
   {
@@ -593,7 +593,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getLatestNetAtmoDataTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestNetAtmoCreatedTime()
+Fmi::DateTime PostgreSQLCacheDB::getLatestNetAtmoCreatedTime()
 {
   try
   {
@@ -607,7 +607,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getLatestNetAtmoCreatedTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getOldestBKHydrometaDataTime()
+Fmi::DateTime PostgreSQLCacheDB::getOldestBKHydrometaDataTime()
 {
   try
   {
@@ -621,7 +621,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getOldestBKHydrometaDataTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestBKHydrometaDataTime()
+Fmi::DateTime PostgreSQLCacheDB::getLatestBKHydrometaDataTime()
 {
   try
   {
@@ -635,7 +635,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getLatestBKHydrometaDataTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestBKHydrometaCreatedTime()
+Fmi::DateTime PostgreSQLCacheDB::getLatestBKHydrometaCreatedTime()
 {
   try
   {
@@ -649,7 +649,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getLatestBKHydrometaCreatedTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getOldestFmiIoTDataTime()
+Fmi::DateTime PostgreSQLCacheDB::getOldestFmiIoTDataTime()
 {
   try
   {
@@ -663,7 +663,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getOldestFmiIoTDataTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestFmiIoTDataTime()
+Fmi::DateTime PostgreSQLCacheDB::getLatestFmiIoTDataTime()
 {
   try
   {
@@ -677,7 +677,7 @@ boost::posix_time::ptime PostgreSQLCacheDB::getLatestFmiIoTDataTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestFmiIoTCreatedTime()
+Fmi::DateTime PostgreSQLCacheDB::getLatestFmiIoTCreatedTime()
 {
   try
   {
@@ -691,21 +691,21 @@ boost::posix_time::ptime PostgreSQLCacheDB::getLatestFmiIoTCreatedTime()
   }
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getLatestTimeFromTable(const std::string &tablename,
+Fmi::DateTime PostgreSQLCacheDB::getLatestTimeFromTable(const std::string &tablename,
                                                                    const std::string &time_field)
 {
   std::string stmt = ("SELECT MAX(" + time_field + ") FROM " + tablename);
   return getTime(stmt);
 }
 
-boost::posix_time::ptime PostgreSQLCacheDB::getOldestTimeFromTable(const std::string &tablename,
+Fmi::DateTime PostgreSQLCacheDB::getOldestTimeFromTable(const std::string &tablename,
                                                                    const std::string &time_field)
 {
   std::string stmt = ("SELECT MIN(" + time_field + ") FROM " + tablename);
   return getTime(stmt);
 }
 
-void PostgreSQLCacheDB::cleanDataCache(const boost::posix_time::ptime &newstarttime)
+void PostgreSQLCacheDB::cleanDataCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -724,7 +724,7 @@ void PostgreSQLCacheDB::cleanDataCache(const boost::posix_time::ptime &newstartt
   }
 }
 
-void PostgreSQLCacheDB::cleanWeatherDataQCCache(const boost::posix_time::ptime &newstarttime)
+void PostgreSQLCacheDB::cleanWeatherDataQCCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -743,7 +743,7 @@ void PostgreSQLCacheDB::cleanWeatherDataQCCache(const boost::posix_time::ptime &
   }
 }
 
-void PostgreSQLCacheDB::cleanFlashDataCache(const boost::posix_time::ptime &newstarttime)
+void PostgreSQLCacheDB::cleanFlashDataCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -763,7 +763,7 @@ void PostgreSQLCacheDB::cleanFlashDataCache(const boost::posix_time::ptime &news
   }
 }
 
-void PostgreSQLCacheDB::cleanRoadCloudCache(const boost::posix_time::ptime &newstarttime)
+void PostgreSQLCacheDB::cleanRoadCloudCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -783,7 +783,7 @@ void PostgreSQLCacheDB::cleanRoadCloudCache(const boost::posix_time::ptime &news
   }
 }
 
-void PostgreSQLCacheDB::cleanNetAtmoCache(const boost::posix_time::ptime &newstarttime)
+void PostgreSQLCacheDB::cleanNetAtmoCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -804,7 +804,7 @@ void PostgreSQLCacheDB::cleanNetAtmoCache(const boost::posix_time::ptime &newsta
   }
 }
 
-void PostgreSQLCacheDB::cleanBKHydrometaCache(const boost::posix_time::ptime &newstarttime)
+void PostgreSQLCacheDB::cleanBKHydrometaCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -825,7 +825,7 @@ void PostgreSQLCacheDB::cleanBKHydrometaCache(const boost::posix_time::ptime &ne
   }
 }
 
-void PostgreSQLCacheDB::cleanFmiIoTCache(const boost::posix_time::ptime &newstarttime)
+void PostgreSQLCacheDB::cleanFmiIoTCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -1733,15 +1733,15 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
 
     for (auto rsr : rsrs)
     {
-      boost::local_time::local_date_time obstime =
-          *(boost::get<boost::local_time::local_date_time>(&rsr["data_time"]));
+      Fmi::LocalDateTime obstime =
+          *(boost::get<Fmi::LocalDateTime>(&rsr["data_time"]));
       unsigned int index = 0;
       for (auto fieldname : queryfields)
       {
         if (fieldname == "created")
         {
-          boost::local_time::local_date_time dt =
-              *(boost::get<boost::local_time::local_date_time>(&rsr[fieldname]));
+          Fmi::LocalDateTime dt =
+              *(boost::get<Fmi::LocalDateTime>(&rsr[fieldname]));
 
           std::string fieldValue = itsTimeFormatter->format(dt);
           ret->at(index).emplace_back(TS::TimedValue(obstime, fieldValue));
@@ -1780,7 +1780,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
 
 void PostgreSQLCacheDB::addParameterToTimeSeries(
     TS::TimeSeriesVectorPtr &timeSeriesColumns,
-    const std::pair<boost::local_time::local_date_time, std::map<std::string, TS::Value>> &dataItem,
+    const std::pair<Fmi::LocalDateTime, std::map<std::string, TS::Value>> &dataItem,
     const std::map<std::string, int> &specialPositions,
     const std::map<std::string, std::string> &parameterNameMap,
     const std::map<std::string, int> &timeseriesPositions,
@@ -1791,7 +1791,7 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
 {
   try
   {
-    boost::local_time::local_date_time obstime = dataItem.first;
+    Fmi::LocalDateTime obstime = dataItem.first;
     std::map<std::string, TS::Value> data = dataItem.second;
     // Append weather parameters
 
@@ -1917,7 +1917,7 @@ void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(
     const Spine::Station &station,
     int pos,
     const std::string &stationtype,
-    const boost::local_time::local_date_time &obstime)
+    const Fmi::LocalDateTime &obstime)
 {
   try
   {
@@ -2010,8 +2010,8 @@ void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(
 }
 
 #ifdef LATER
-TODO FlashCounts PostgreSQLCacheDB::getFlashCount(const boost::posix_time::ptime &starttime,
-                                                  const boost::posix_time::ptime &endtime,
+TODO FlashCounts PostgreSQLCacheDB::getFlashCount(const Fmi::DateTime &starttime,
+                                                  const Fmi::DateTime &endtime,
                                                   const Spine::TaggedLocationList &locations)
 {
   try
@@ -2136,9 +2136,9 @@ ResultSetRows PostgreSQLCacheDB::getResultSetForMobileExternalData(
           {
             if (column_name == "created" || column_name == "data_time")
             {
-              boost::posix_time::ptime pt = epoch2ptime(as_double(row[i]));
-              boost::local_time::time_zone_ptr zone(new posix_time_zone("UTC"));
-              val = boost::local_time::local_date_time(pt, zone);
+              Fmi::DateTime pt = epoch2ptime(as_double(row[i]));
+              Fmi::TimeZonePtr zone(new posix_time_zone("UTC"));
+              val = Fmi::LocalDateTime(pt, zone);
             }
             else
             {
@@ -2152,9 +2152,9 @@ ResultSetRows PostgreSQLCacheDB::getResultSetForMobileExternalData(
           }
           else if (data_type == "timestamp")
           {
-            boost::posix_time::ptime pt = epoch2ptime(as_double(row[i]));
-            boost::local_time::time_zone_ptr zone(new posix_time_zone("UTC"));
-            val = boost::local_time::local_date_time(pt, zone);
+            Fmi::DateTime pt = epoch2ptime(as_double(row[i]));
+            Fmi::TimeZonePtr zone(new posix_time_zone("UTC"));
+            val = Fmi::LocalDateTime(pt, zone);
           }
         }
         rsr.insert(std::make_pair(column_name, val));
@@ -2182,11 +2182,11 @@ void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
     std::set<int> fmisids;
-    std::set<boost::posix_time::ptime> obstimes;
+    std::set<Fmi::DateTime> obstimes;
     for (auto row : result_set)
     {
       boost::optional<int> fmisid = as_int(row[0]);
-      boost::posix_time::ptime obstime = boost::posix_time::from_time_t(row[1].as<time_t>());
+      Fmi::DateTime obstime = boost::posix_time::from_time_t(row[1].as<time_t>());
       boost::optional<int> parameter = as_int(row[2]);
 
       // Get latitude, longitude, elevation from station info

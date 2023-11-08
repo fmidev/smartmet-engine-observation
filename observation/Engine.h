@@ -36,8 +36,8 @@ class Engine : public SmartMet::Spine::SmartMetEngine
 
   virtual void makeQuery(QueryBase *qb);
 
-  virtual FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-                                    const boost::posix_time::ptime &endtime,
+  virtual FlashCounts getFlashCount(const Fmi::DateTime &starttime,
+                                    const Fmi::DateTime &endtime,
                                     const Spine::TaggedLocationList &locations);
   virtual std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string &language);
@@ -138,8 +138,8 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   /* \brief Get latest data update time of given producer
    * \return Time when data of a producer was last time updated
    */
-  virtual boost::posix_time::ptime getLatestDataUpdateTime(
-      const std::string &producer, const boost::posix_time::ptime &from) const;
+  virtual Fmi::DateTime getLatestDataUpdateTime(
+      const std::string &producer, const Fmi::DateTime &from) const;
 
   void init() override;
   void shutdown() override;

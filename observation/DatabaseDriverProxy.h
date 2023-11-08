@@ -28,8 +28,8 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
   Spine::TaggedFMISIDList translateToFMISID(const Settings &settings,
                                             const StationSettings &stationSettings) const override;
   void makeQuery(QueryBase *qb) override;
-  FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-                            const boost::posix_time::ptime &endtime,
+  FlashCounts getFlashCount(const Fmi::DateTime &starttime,
+                            const Fmi::DateTime &endtime,
                             const Spine::TaggedLocationList &locations) const override;
   std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string &language) override;
@@ -54,8 +54,8 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
   void getStationGroups(StationGroups &sg) const override;
   void getProducerGroups(ProducerGroups &pg) const override;
   MeasurandInfo getMeasurandInfo() const override;
-  boost::posix_time::ptime getLatestDataUpdateTime(
-      const std::string &producer, const boost::posix_time::ptime &from) const override;
+  Fmi::DateTime getLatestDataUpdateTime(
+      const std::string &producer, const Fmi::DateTime &from) const override;
 
  private:
   const StationtypeConfig &itsStationtypeConfig;

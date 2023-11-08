@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/date_time/gregorian/formatters.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
+#include <macgyver/DateTime.h>
 #include <vector>
 
 namespace SmartMet
@@ -13,9 +13,9 @@ namespace Observation
 class FlashDataItem
 {
  public:
-  boost::posix_time::ptime stroke_time;
-  boost::posix_time::ptime created;
-  boost::posix_time::ptime modified_last;
+  Fmi::DateTime stroke_time;
+  Fmi::DateTime created;
+  Fmi::DateTime modified_last;
   double longitude = 0;
   double latitude = 0;
   double ellipse_angle = 0;

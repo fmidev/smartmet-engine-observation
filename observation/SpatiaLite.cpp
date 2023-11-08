@@ -34,16 +34,16 @@ using namespace boost::gregorian;
 using namespace boost::posix_time;
 using namespace boost::local_time;
 
-using boost::local_time::local_date_time;
-using boost::posix_time::ptime;
+using Fmi::LocalDateTime;
+using Fmi::DateTime;
 
 namespace
 {
-const ptime ptime_epoch_start = from_time_t(0);
+const Fmi::DateTime ptime_epoch_start = from_time_t(0);
 
 // should use std::time_t or long here, but sqlitepp does not support it. Luckily intel 64-bit int
 // is 8 bytes
-int to_epoch(const boost::posix_time::ptime pt)
+int to_epoch(const Fmi::DateTime pt)
 {
   if (pt.is_not_a_date_time())
     return 0;
@@ -156,7 +156,7 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
     sqlite3pp::query qry(itsDB, sqlStmt.c_str());
 
     std::set<int> fmisids;
-    std::set<boost::posix_time::ptime> obstimes;
+    std::set<Fmi::DateTime> obstimes;
 
     for (const auto &row : qry)
     {
@@ -1136,7 +1136,7 @@ ptime SpatiaLite::getLatestRoadCloudDataTime()
   }
 }
 
-boost::posix_time::ptime SpatiaLite::getLatestRoadCloudCreatedTime()
+Fmi::DateTime SpatiaLite::getLatestRoadCloudCreatedTime()
 {
   try
   {
@@ -1178,7 +1178,7 @@ ptime SpatiaLite::getLatestNetAtmoDataTime()
   }
 }
 
-boost::posix_time::ptime SpatiaLite::getLatestNetAtmoCreatedTime()
+Fmi::DateTime SpatiaLite::getLatestNetAtmoCreatedTime()
 {
   try
   {
@@ -1220,7 +1220,7 @@ ptime SpatiaLite::getLatestBKHydrometaDataTime()
   }
 }
 
-boost::posix_time::ptime SpatiaLite::getLatestBKHydrometaCreatedTime()
+Fmi::DateTime SpatiaLite::getLatestBKHydrometaCreatedTime()
 {
   try
   {
@@ -1262,7 +1262,7 @@ ptime SpatiaLite::getLatestFmiIoTDataTime()
   }
 }
 
-boost::posix_time::ptime SpatiaLite::getLatestFmiIoTCreatedTime()
+Fmi::DateTime SpatiaLite::getLatestFmiIoTCreatedTime()
 {
   try
   {
@@ -1276,7 +1276,7 @@ boost::posix_time::ptime SpatiaLite::getLatestFmiIoTCreatedTime()
   }
 }
 
-boost::posix_time::ptime SpatiaLite::getLatestMagnetometerModifiedTime()
+Fmi::DateTime SpatiaLite::getLatestMagnetometerModifiedTime()
 {
   try
   {
@@ -1290,7 +1290,7 @@ boost::posix_time::ptime SpatiaLite::getLatestMagnetometerModifiedTime()
   }
 }
 
-boost::posix_time::ptime SpatiaLite::getLatestMagnetometerDataTime()
+Fmi::DateTime SpatiaLite::getLatestMagnetometerDataTime()
 {
   try
   {
@@ -1304,7 +1304,7 @@ boost::posix_time::ptime SpatiaLite::getLatestMagnetometerDataTime()
   }
 }
 
-boost::posix_time::ptime SpatiaLite::getOldestMagnetometerDataTime()
+Fmi::DateTime SpatiaLite::getOldestMagnetometerDataTime()
 {
   try
   {
@@ -1364,7 +1364,7 @@ ptime SpatiaLite::getOldestTimeFromTable(const std::string &tablename,
   }
 }
 
-void SpatiaLite::cleanDataCache(const ptime &newstarttime)
+void SpatiaLite::cleanDataCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -1386,7 +1386,7 @@ void SpatiaLite::cleanDataCache(const ptime &newstarttime)
   }
 }
 
-void SpatiaLite::cleanMovingLocationsCache(const ptime &newstarttime)
+void SpatiaLite::cleanMovingLocationsCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -1408,7 +1408,7 @@ void SpatiaLite::cleanMovingLocationsCache(const ptime &newstarttime)
   }
 }
 
-void SpatiaLite::cleanWeatherDataQCCache(const ptime &newstarttime)
+void SpatiaLite::cleanWeatherDataQCCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -1431,7 +1431,7 @@ void SpatiaLite::cleanWeatherDataQCCache(const ptime &newstarttime)
   }
 }
 
-void SpatiaLite::cleanFlashDataCache(const ptime &newstarttime)
+void SpatiaLite::cleanFlashDataCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -1454,7 +1454,7 @@ void SpatiaLite::cleanFlashDataCache(const ptime &newstarttime)
   }
 }
 
-void SpatiaLite::cleanRoadCloudCache(const ptime &newstarttime)
+void SpatiaLite::cleanRoadCloudCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -1485,7 +1485,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getRoadCloudData(const Settings &settings,
   return getMobileAndExternalData(settings, timezones);
 }
 
-void SpatiaLite::cleanNetAtmoCache(const ptime &newstarttime)
+void SpatiaLite::cleanNetAtmoCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -1514,7 +1514,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getNetAtmoData(const Settings &settings,
   return getMobileAndExternalData(settings, timezones);
 }
 
-void SpatiaLite::cleanBKHydrometaCache(const ptime &newstarttime)
+void SpatiaLite::cleanBKHydrometaCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -1544,7 +1544,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getBKHydrometaData(const Settings &settings,
   return getMobileAndExternalData(settings, timezones);
 }
 
-void SpatiaLite::cleanFmiIoTCache(const ptime &newstarttime)
+void SpatiaLite::cleanFmiIoTCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -1624,8 +1624,8 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMobileAndExternalData(const Settings &set
     for (auto row : qry)
     {
       map<std::string, TS::Value> result;
-      boost::local_time::time_zone_ptr zone(new posix_time_zone("UTC"));
-      boost::local_time::local_date_time timestep(not_a_date_time, zone);
+      Fmi::TimeZonePtr zone(new posix_time_zone("UTC"));
+      Fmi::LocalDateTime timestep(not_a_date_time, zone);
       for (int i = 0; i < column_count; i++)
       {
         std::string column_name = qry.column_name(i);
@@ -1652,8 +1652,8 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMobileAndExternalData(const Settings &set
             if (column_name == "data_time" || column_name == "created")
             {
               time_t data_time = row.get<int>(i);
-              boost::posix_time::ptime pt = boost::posix_time::from_time_t(data_time);
-              boost::local_time::local_date_time ldt(pt, zone);
+              Fmi::DateTime pt = boost::posix_time::from_time_t(data_time);
+              Fmi::LocalDateTime ldt(pt, zone);
               value = ldt;
               if (column_name == "data_time")
                 timestep = ldt;
@@ -2872,7 +2872,7 @@ std::size_t SpatiaLite::fillMagnetometerDataCache(
   return 0;
 }
 
-void SpatiaLite::cleanMagnetometerCache(const ptime &newstarttime)
+void SpatiaLite::cleanMagnetometerCache(const Fmi::DateTime &newstarttime)
 {
   try
   {
@@ -2908,7 +2908,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMagnetometerData(
   {
     TS::TimeSeriesVectorPtr ret = initializeResultVector(settings);
     std::map<int, TS::TimeSeriesVectorPtr> fmisid_results;
-    std::map<int, std::set<boost::local_time::local_date_time>> fmisid_timesteps;
+    std::map<int, std::set<Fmi::LocalDateTime>> fmisid_timesteps;
 
     // Stations
     std::set<std::string> fmisid_ids;
@@ -2983,14 +2983,14 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMagnetometerData(
       {
         fmisid_results.insert(std::make_pair(fmisid, initializeResultVector(settings)));
         fmisid_timesteps.insert(
-            std::make_pair(fmisid, std::set<boost::local_time::local_date_time>()));
+            std::make_pair(fmisid, std::set<Fmi::LocalDateTime>()));
       }
       TS::Value station_id_value = fmisid;
       TS::Value magnetometer_id_value = row.get<std::string>(1);
       int level = row.get<int>(2);
       time_t epoch_time = row.get<int>(3);
-      boost::posix_time::ptime data_time = boost::posix_time::from_time_t(epoch_time);
-      boost::local_time::local_date_time localtime(data_time, localtz);
+      Fmi::DateTime data_time = boost::posix_time::from_time_t(epoch_time);
+      Fmi::LocalDateTime localtime(data_time, localtz);
       TS::Value magneto_x_value;
       TS::Value magneto_y_value;
       TS::Value magneto_z_value;
@@ -3105,7 +3105,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMagnetometerData(
       for (unsigned int i = 0; i < ts_vector.size(); i++)
       {
         auto ts = ts_vector.at(i);
-        std::map<boost::local_time::local_date_time, TS::TimedValue> data;
+        std::map<Fmi::LocalDateTime, TS::TimedValue> data;
         for (unsigned int j = 0; j < ts.size(); j++)
         {
           auto timed_value = ts.at(j);
@@ -3233,7 +3233,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
       sqlite3pp::query qry(itsDB, query.c_str());
 
       std::set<std::string> locations;
-      std::set<boost::posix_time::ptime> obstimes;
+      std::set<Fmi::DateTime> obstimes;
       size_t n_elements = 0;
       for (auto row : qry)
       {
@@ -3266,9 +3266,9 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
           result[qry.column_name(i)] = temp;
         }
 
-        ptime utctime = boost::posix_time::from_time_t(stroke_time);
+        Fmi::DateTime utctime = boost::posix_time::from_time_t(stroke_time);
         auto localtz = timezones.time_zone_from_string(settings.timezone);
-        local_date_time localtime = local_date_time(utctime, localtz);
+        Fmi::LocalDateTime localtime = Fmi::LocalDateTime(utctime, localtz);
 
         for (const auto &p : timeseriesPositions)
         {
@@ -3314,7 +3314,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
   }
 }
 
-FlashDataItems SpatiaLite::readFlashCacheData(const ptime &starttime)
+FlashDataItems SpatiaLite::readFlashCacheData(const Fmi::DateTime &starttime)
 {
   try
   {
@@ -3386,8 +3386,8 @@ FlashDataItems SpatiaLite::readFlashCacheData(const ptime &starttime)
   }
 }
 
-FlashCounts SpatiaLite::getFlashCount(const ptime &starttime,
-                                      const ptime &endtime,
+FlashCounts SpatiaLite::getFlashCount(const Fmi::DateTime &starttime,
+                                      const Fmi::DateTime &endtime,
                                       const Spine::TaggedLocationList &locations)
 {
   try
@@ -3640,7 +3640,7 @@ LocationDataItems SpatiaLite::readObservationDataOfMovingStationsFromDB(
 }
 
 void SpatiaLite::initObservationMemoryCache(
-    const boost::posix_time::ptime &starttime,
+    const Fmi::DateTime &starttime,
     const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache)
 {
   try
@@ -3704,12 +3704,12 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
     sqlite3pp::query qry(itsDB, sqlStmt.c_str());
 
     std::set<int> fmisids;
-    std::set<boost::posix_time::ptime> obstimes;
+    std::set<Fmi::DateTime> obstimes;
     for (const auto &row : qry)
     {
       boost::optional<int> fmisid = row.get<int>(0);
       unsigned int obstime_db = row.get<int>(1);
-      boost::posix_time::ptime obstime = boost::posix_time::from_time_t(obstime_db);
+      Fmi::DateTime obstime = boost::posix_time::from_time_t(obstime_db);
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes, obstime);
 
@@ -3869,9 +3869,9 @@ void SpatiaLite::getMovingStations(Spine::Stations &stations,
   }
 }
 
-boost::posix_time::ptime SpatiaLite::getLatestDataUpdateTime(
+Fmi::DateTime SpatiaLite::getLatestDataUpdateTime(
     const std::string &tablename,
-    const boost::posix_time::ptime &starttime,
+    const Fmi::DateTime &starttime,
     const std::string &producer_ids,
     const std::string &measurand_ids)
 {
@@ -3879,7 +3879,7 @@ boost::posix_time::ptime SpatiaLite::getLatestDataUpdateTime(
   {
     auto start_time = to_epoch(starttime);
 
-    boost::posix_time::ptime ret = boost::posix_time::not_a_date_time;
+    Fmi::DateTime ret = boost::posix_time::not_a_date_time;
 
     std::string sqlStmt;
     if (tablename == OBSERVATION_DATA_TABLE)

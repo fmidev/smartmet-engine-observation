@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/any.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
+#include <macgyver/DateTime.h>
 #include <boost/date_time/posix_time/time_formatters.hpp>
 #include <string>
 #include <vector>
@@ -52,7 +52,7 @@ class Base
    *   "float" <-- float
    *   "double" <-- double
    *   "string" <-- std::string
-   *   "ptime" <-- boost::posix_time::ptime
+   *   "Fmi::DateTime" <-- Fmi::DateTime
    *   "unknown" <-- all the other types
    *
    * NOTE! If some inherit class require an other value type than
@@ -217,7 +217,7 @@ class IsLike : public Base
   {
     std::shared_ptr<IsLike> obj(new IsLike);
     std::string val;
-    // Special case when the type is string. (boost::posix_time::ptime is also a problem).
+    // Special case when the type is string. (Fmi::DateTime is also a problem).
     // toWhatString method is catenating apostrophes (') around a string.
     if ((toWhat).type() == typeid(std::string))
       val = "%" + boost::any_cast<std::string>(toWhat) + "%";
@@ -258,7 +258,7 @@ class MinuteValueModuloIsEqualToZero : public Base
                                const std::string& database = "oracle") const override;
 
   // Owerrides the base class implementation!
-  // return "ptime" for the following types: int16_t, int32_t, int64_t, int64_t, uint16_t, uint32_t,
+  // return "Fmi::DateTime" for the following types: int16_t, int32_t, int64_t, int64_t, uint16_t, uint32_t,
   // uint64_t
   // otherwise "unknown"
   NameType getValueTypeString() const override;

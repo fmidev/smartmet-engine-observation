@@ -32,7 +32,7 @@ class my_visitor : public boost::static_visitor<double>
   double operator()(double luku) { return luku; }
   double operator()(const std::string & /* s */) { return static_cast<double>(kFloatMissing); }
   double operator()(int i) { return static_cast<double>(i); }
-  double operator()(const boost::local_time::local_date_time & /* i */)
+  double operator()(const Fmi::LocalDateTime & /* i */)
   {
     return static_cast<double>(kFloatMissing);
   }
@@ -170,12 +170,12 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
         PostgreSQLCacheDB::getResultSetForMobileExternalData(result_set, conn.dataTypes());
 
     std::set<std::string> locations;
-    std::set<boost::local_time::local_date_time> obstimes;
+    std::set<Fmi::LocalDateTime> obstimes;
     size_t n_elements = 0;
     for (auto rsr : rsrs)
     {
-      boost::local_time::local_date_time obstime =
-          *(boost::get<boost::local_time::local_date_time>(&rsr["data_time"]));
+      Fmi::LocalDateTime obstime =
+          *(boost::get<Fmi::LocalDateTime>(&rsr["data_time"]));
 
       boost::optional<double> longitudeValue;
       boost::optional<double> latitudeValue;
@@ -199,8 +199,8 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
       {
         if (fieldname == "created")
         {
-          boost::local_time::local_date_time dt =
-              *(boost::get<boost::local_time::local_date_time>(&rsr[fieldname]));
+          Fmi::LocalDateTime dt =
+              *(boost::get<Fmi::LocalDateTime>(&rsr[fieldname]));
           std::string fieldValue = db.getTimeFormatter()->format(dt);
           ret->at(index).emplace_back(TS::TimedValue(obstime, fieldValue));
         }

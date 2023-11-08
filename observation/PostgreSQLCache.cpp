@@ -17,10 +17,10 @@ namespace
 // Round down to HH:MM:00. Deleting an entire hour at once takes too long, and causes a major
 // increase in response times. This should perhaps be made configurable.
 
-boost::posix_time::ptime round_down_to_cache_clean_interval(const boost::posix_time::ptime &t)
+Fmi::DateTime round_down_to_cache_clean_interval(const Fmi::DateTime &t)
 {
   auto secs = (t.time_of_day().total_seconds() / 60) * 60;
-  return {t.date(), boost::posix_time::seconds(secs)};
+  return {t.date(), Fmi::Seconds(secs)};
 }
 
 }  // namespace
@@ -300,8 +300,8 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(const Settin
   }
 }
 
-bool PostgreSQLCache::timeIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                           const boost::posix_time::ptime & /* endtime */) const
+bool PostgreSQLCache::timeIntervalIsCached(const Fmi::DateTime &starttime,
+                                           const Fmi::DateTime & /* endtime */) const
 {
   try
   {
@@ -326,8 +326,8 @@ bool PostgreSQLCache::timeIntervalIsCached(const boost::posix_time::ptime &start
   }
 }
 
-bool PostgreSQLCache::flashIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                            const boost::posix_time::ptime & /* endtime */) const
+bool PostgreSQLCache::flashIntervalIsCached(const Fmi::DateTime &starttime,
+                                            const Fmi::DateTime & /* endtime */) const
 {
   try
   {
@@ -353,7 +353,7 @@ bool PostgreSQLCache::flashIntervalIsCached(const boost::posix_time::ptime &star
 }
 
 bool PostgreSQLCache::timeIntervalWeatherDataQCIsCached(
-    const boost::posix_time::ptime &starttime, const boost::posix_time::ptime & /* endtime */) const
+    const Fmi::DateTime &starttime, const Fmi::DateTime & /* endtime */) const
 {
   try
   {
@@ -418,19 +418,19 @@ bool PostgreSQLCache::dataAvailableInCache(const Settings &settings) const
   }
 }
 
-FlashCounts PostgreSQLCache::getFlashCount(const boost::posix_time::ptime &starttime,
-                                           const boost::posix_time::ptime &endtime,
+FlashCounts PostgreSQLCache::getFlashCount(const Fmi::DateTime &starttime,
+                                           const Fmi::DateTime &endtime,
                                            const Spine::TaggedLocationList &locations) const
 {
   return itsConnectionPool->getConnection()->getFlashCount(starttime, endtime, locations);
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestFlashModifiedTime() const
+Fmi::DateTime PostgreSQLCache::getLatestFlashModifiedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestFlashModifiedTime();
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestFlashTime() const
+Fmi::DateTime PostgreSQLCache::getLatestFlashTime() const
 {
   return itsConnectionPool->getConnection()->getLatestFlashTime();
 }
@@ -458,8 +458,8 @@ std::size_t PostgreSQLCache::fillFlashDataCache(const FlashDataItems &flashCache
 }
 
 void PostgreSQLCache::cleanFlashDataCache(
-    const boost::posix_time::time_duration &timetokeep,
-    const boost::posix_time::time_duration & /* timetokeep_memory */) const
+    const Fmi::TimeDuration &timetokeep,
+    const Fmi::TimeDuration & /* timetokeep_memory */) const
 {
   try
   {
@@ -467,7 +467,7 @@ void PostgreSQLCache::cleanFlashDataCache(
     if (isFakeCache(FLASH_DATA_TABLE))
       return;
 
-    auto now = boost::posix_time::second_clock::universal_time();
+    auto now = Fmi::SecondClock::universal_time();
 
     // How old observations to keep in the disk cache:
     auto t = round_down_to_cache_clean_interval(now - timetokeep);
@@ -495,12 +495,12 @@ void PostgreSQLCache::cleanFlashDataCache(
   }
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestObservationModifiedTime() const
+Fmi::DateTime PostgreSQLCache::getLatestObservationModifiedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestObservationModifiedTime();
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestObservationTime() const
+Fmi::DateTime PostgreSQLCache::getLatestObservationTime() const
 {
   return itsConnectionPool->getConnection()->getLatestObservationTime();
 }
@@ -548,8 +548,8 @@ std::size_t PostgreSQLCache::fillMovingLocationsCache(const MovingLocationItems 
 }
 
 void PostgreSQLCache::cleanDataCache(
-    const boost::posix_time::time_duration &timetokeep,
-    const boost::posix_time::time_duration & /* timetokeep_memory */) const
+    const Fmi::TimeDuration &timetokeep,
+    const Fmi::TimeDuration & /* timetokeep_memory */) const
 {
   try
   {
@@ -557,7 +557,7 @@ void PostgreSQLCache::cleanDataCache(
     if (isFakeCache(OBSERVATION_DATA_TABLE))
       return;
 
-    auto now = boost::posix_time::second_clock::universal_time();
+    auto now = Fmi::SecondClock::universal_time();
 
     auto t = round_down_to_cache_clean_interval(now - timetokeep);
 
@@ -582,12 +582,12 @@ void PostgreSQLCache::cleanDataCache(
   }
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestWeatherDataQCTime() const
+Fmi::DateTime PostgreSQLCache::getLatestWeatherDataQCTime() const
 {
   return itsConnectionPool->getConnection()->getLatestWeatherDataQCTime();
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestWeatherDataQCModifiedTime() const
+Fmi::DateTime PostgreSQLCache::getLatestWeatherDataQCModifiedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestWeatherDataQCModifiedTime();
 }
@@ -614,7 +614,7 @@ std::size_t PostgreSQLCache::fillWeatherDataQCCache(const WeatherDataQCItems &ca
 }
 
 void PostgreSQLCache::cleanWeatherDataQCCache(
-    const boost::posix_time::time_duration &timetokeep) const
+    const Fmi::TimeDuration &timetokeep) const
 {
   try
   {
@@ -622,7 +622,7 @@ void PostgreSQLCache::cleanWeatherDataQCCache(
     if (isFakeCache(WEATHER_DATA_QC_TABLE))
       return;
 
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
     auto conn = itsConnectionPool->getConnection();
@@ -646,8 +646,8 @@ void PostgreSQLCache::cleanWeatherDataQCCache(
   }
 }
 
-bool PostgreSQLCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                                const boost::posix_time::ptime &) const
+bool PostgreSQLCache::roadCloudIntervalIsCached(const Fmi::DateTime &starttime,
+                                                const Fmi::DateTime &) const
 {
   try
   {
@@ -674,12 +674,12 @@ bool PostgreSQLCache::roadCloudIntervalIsCached(const boost::posix_time::ptime &
   }
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestRoadCloudDataTime() const
+Fmi::DateTime PostgreSQLCache::getLatestRoadCloudDataTime() const
 {
   return itsConnectionPool->getConnection()->getLatestRoadCloudDataTime();
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestRoadCloudCreatedTime() const
+Fmi::DateTime PostgreSQLCache::getLatestRoadCloudCreatedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestRoadCloudCreatedTime();
 }
@@ -706,7 +706,7 @@ std::size_t PostgreSQLCache::fillRoadCloudCache(
   }
 }
 
-void PostgreSQLCache::cleanRoadCloudCache(const boost::posix_time::time_duration &timetokeep) const
+void PostgreSQLCache::cleanRoadCloudCache(const Fmi::TimeDuration &timetokeep) const
 {
   try
   {
@@ -714,7 +714,7 @@ void PostgreSQLCache::cleanRoadCloudCache(const boost::posix_time::time_duration
     if (isFakeCache(ROADCLOUD_DATA_TABLE))
       return;
 
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
     auto conn = itsConnectionPool->getConnection();
@@ -738,8 +738,8 @@ void PostgreSQLCache::cleanRoadCloudCache(const boost::posix_time::time_duration
   }
 }
 
-bool PostgreSQLCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                              const boost::posix_time::ptime &) const
+bool PostgreSQLCache::netAtmoIntervalIsCached(const Fmi::DateTime &starttime,
+                                              const Fmi::DateTime &) const
 {
   try
   {
@@ -766,12 +766,12 @@ bool PostgreSQLCache::netAtmoIntervalIsCached(const boost::posix_time::ptime &st
   }
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestNetAtmoDataTime() const
+Fmi::DateTime PostgreSQLCache::getLatestNetAtmoDataTime() const
 {
   return itsConnectionPool->getConnection()->getLatestNetAtmoDataTime();
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestNetAtmoCreatedTime() const
+Fmi::DateTime PostgreSQLCache::getLatestNetAtmoCreatedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestNetAtmoCreatedTime();
 }
@@ -798,7 +798,7 @@ std::size_t PostgreSQLCache::fillNetAtmoCache(
   }
 }
 
-void PostgreSQLCache::cleanNetAtmoCache(const boost::posix_time::time_duration &timetokeep) const
+void PostgreSQLCache::cleanNetAtmoCache(const Fmi::TimeDuration &timetokeep) const
 {
   try
   {
@@ -806,7 +806,7 @@ void PostgreSQLCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
     if (isFakeCache(NETATMO_DATA_TABLE))
       return;
 
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
     auto conn = itsConnectionPool->getConnection();
@@ -830,8 +830,8 @@ void PostgreSQLCache::cleanNetAtmoCache(const boost::posix_time::time_duration &
   }
 }
 
-bool PostgreSQLCache::bkHydrometaIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                                  const boost::posix_time::ptime &) const
+bool PostgreSQLCache::bkHydrometaIntervalIsCached(const Fmi::DateTime &starttime,
+                                                  const Fmi::DateTime &) const
 {
   try
   {
@@ -848,12 +848,12 @@ bool PostgreSQLCache::bkHydrometaIntervalIsCached(const boost::posix_time::ptime
   }
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestBKHydrometaDataTime() const
+Fmi::DateTime PostgreSQLCache::getLatestBKHydrometaDataTime() const
 {
   return itsConnectionPool->getConnection()->getLatestBKHydrometaDataTime();
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestBKHydrometaCreatedTime() const
+Fmi::DateTime PostgreSQLCache::getLatestBKHydrometaCreatedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestBKHydrometaCreatedTime();
 }
@@ -881,7 +881,7 @@ std::size_t PostgreSQLCache::fillBKHydrometaCache(
 }
 
 void PostgreSQLCache::cleanBKHydrometaCache(
-    const boost::posix_time::time_duration &timetokeep) const
+    const Fmi::TimeDuration &timetokeep) const
 {
   try
   {
@@ -889,7 +889,7 @@ void PostgreSQLCache::cleanBKHydrometaCache(
     if (isFakeCache(NETATMO_DATA_TABLE))
       return;
 
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
     auto conn = itsConnectionPool->getConnection();
@@ -913,8 +913,8 @@ void PostgreSQLCache::cleanBKHydrometaCache(
   }
 }
 
-bool PostgreSQLCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &starttime,
-                                             const boost::posix_time::ptime &) const
+bool PostgreSQLCache::fmiIoTIntervalIsCached(const Fmi::DateTime &starttime,
+                                             const Fmi::DateTime &) const
 {
   try
   {
@@ -939,12 +939,12 @@ bool PostgreSQLCache::fmiIoTIntervalIsCached(const boost::posix_time::ptime &sta
   }
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestFmiIoTDataTime() const
+Fmi::DateTime PostgreSQLCache::getLatestFmiIoTDataTime() const
 {
   return itsConnectionPool->getConnection()->getLatestFmiIoTDataTime();
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestFmiIoTCreatedTime() const
+Fmi::DateTime PostgreSQLCache::getLatestFmiIoTCreatedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestFmiIoTCreatedTime();
 }
@@ -971,7 +971,7 @@ std::size_t PostgreSQLCache::fillFmiIoTCache(
   }
 }
 
-void PostgreSQLCache::cleanFmiIoTCache(const boost::posix_time::time_duration &timetokeep) const
+void PostgreSQLCache::cleanFmiIoTCache(const Fmi::TimeDuration &timetokeep) const
 {
   try
   {
@@ -979,7 +979,7 @@ void PostgreSQLCache::cleanFmiIoTCache(const boost::posix_time::time_duration &t
     if (isFakeCache(FMI_IOT_DATA_TABLE))
       return;
 
-    boost::posix_time::ptime t = boost::posix_time::second_clock::universal_time() - timetokeep;
+    Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
     auto conn = itsConnectionPool->getConnection();
@@ -1004,18 +1004,18 @@ void PostgreSQLCache::cleanFmiIoTCache(const boost::posix_time::time_duration &t
 }
 
 bool PostgreSQLCache::magnetometerIntervalIsCached(
-    const boost::posix_time::ptime & /* starttime */,
-    const boost::posix_time::ptime & /* endtime */) const
+    const Fmi::DateTime & /* starttime */,
+    const Fmi::DateTime & /* endtime */) const
 {
   return false;
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestMagnetometerDataTime() const
+Fmi::DateTime PostgreSQLCache::getLatestMagnetometerDataTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
 
-boost::posix_time::ptime PostgreSQLCache::getLatestMagnetometerModifiedTime() const
+Fmi::DateTime PostgreSQLCache::getLatestMagnetometerModifiedTime() const
 {
   return boost::posix_time::not_a_date_time;
 }
@@ -1027,7 +1027,7 @@ std::size_t PostgreSQLCache::fillMagnetometerCache(
 }
 
 void PostgreSQLCache::cleanMagnetometerCache(
-    const boost::posix_time::time_duration &timetokeep) const
+    const Fmi::TimeDuration &timetokeep) const
 {
 }
 

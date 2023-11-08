@@ -184,12 +184,12 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
     {
       int fmisid = *weatherDataQCData.fmisidsAll[i];
 
-      boost::posix_time::ptime utctime = time;
+      Fmi::DateTime utctime = time;
       std::string zone(settings.timezone == "localtime" ? fmisid_to_station.at(fmisid).timezone
                                                         : settings.timezone);
       auto localtz = timezones.time_zone_from_string(zone);
-      boost::local_time::local_date_time obstime =
-          boost::local_time::local_date_time(utctime, localtz);
+      Fmi::LocalDateTime obstime =
+          Fmi::LocalDateTime(utctime, localtz);
 
       int measurand_id = *weatherDataQCData.parametersAll[i];
       int sensor_no = *weatherDataQCData.sensor_nosAll[i];

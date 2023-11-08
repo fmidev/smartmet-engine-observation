@@ -5,7 +5,7 @@
 #include "ParameterMap.h"
 #include "Settings.h"
 #include <boost/algorithm/string.hpp>
-#include <boost/date_time/local_time/local_time.hpp>
+#include <macgyver/LocalDateTime.h>
 #include <boost/optional.hpp>
 #include <boost/utility.hpp>
 #include <spine/ConfigBase.h>
@@ -63,21 +63,21 @@ int parseSensorNumber(const std::string& parameter);
 Spine::Stations removeDuplicateStations(const Spine::Stations& stations);
 
 // Rounded to seconds
-boost::posix_time::ptime utc_second_clock();
+Fmi::DateTime utc_second_clock();
 
 // ----------------------------------------------------------------------
 /*!
  * \brief Round down the given time to start of day
  */
 // ----------------------------------------------------------------------
-boost::posix_time::ptime day_start(const boost::posix_time::ptime& t);
+Fmi::DateTime day_start(const Fmi::DateTime& t);
 
 // ----------------------------------------------------------------------
 /*!
  * \brief Round up the given time to end of day
  */
 // ----------------------------------------------------------------------
-boost::posix_time::ptime day_end(const boost::posix_time::ptime& t);
+Fmi::DateTime day_end(const Fmi::DateTime& t);
 
 // ----------------------------------------------------------------------
 /*!
@@ -98,7 +98,7 @@ void logMessage(const std::string& message, bool quiet);
 boost::optional<int> calcSmartsymbolNumber(int wawa,
                                            int cloudiness,
                                            double temperature,
-                                           const boost::local_time::local_date_time& ldt,
+                                           const Fmi::LocalDateTime& ldt,
                                            double lat,
                                            double lon);
 
@@ -118,7 +118,7 @@ TS::TimeSeriesVectorPtr initializeResultVector(const Settings& settings);
  */
 // ----------------------------------------------------------------------
 
-boost::posix_time::ptime epoch2ptime(double epoch);
+Fmi::DateTime epoch2ptime(double epoch);
 
 // ----------------------------------------------------------------------
 /*!

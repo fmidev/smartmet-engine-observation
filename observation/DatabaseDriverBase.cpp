@@ -190,10 +190,10 @@ void DatabaseDriverBase::readMetaData(Spine::ConfigBase &cfg)
                                                      "now");  // default value: 1900.01.01 00:00
     bool fixedPeriodEndTime = (last_observation_time != "now");
 
-    boost::posix_time::ptime obs_period_starttime = Fmi::TimeParser::parse(first_observation_time);
-    boost::posix_time::ptime obs_period_endtime =
+    Fmi::DateTime obs_period_starttime = Fmi::TimeParser::parse(first_observation_time);
+    Fmi::DateTime obs_period_endtime =
         (fixedPeriodEndTime ? Fmi::TimeParser::parse(last_observation_time)
-                            : boost::posix_time::second_clock::universal_time());
+                            : Fmi::SecondClock::universal_time());
 
     boost::posix_time::time_period time_period(obs_period_starttime, obs_period_endtime);
 
@@ -224,10 +224,10 @@ MetaData DatabaseDriverBase::metaData(const std::string &producer) const
       if (!ret.fixedPeriodEndTime)
       {
         // update period end time
-        boost::posix_time::ptime currentTime = boost::posix_time::second_clock::universal_time();
+        Fmi::DateTime currentTime = Fmi::SecondClock::universal_time();
         // subtract seconds so we have even minutes
         long sec = currentTime.time_of_day().seconds();
-        currentTime = currentTime - boost::posix_time::seconds(sec);
+        currentTime = currentTime - Fmi::Seconds(sec);
         ret.period = boost::posix_time::time_period(ret.period.begin(), currentTime);
       }
     }
@@ -434,9 +434,9 @@ void DatabaseDriverBase::updateProducers(const EngineParametersPtr &p, Settings 
   }
 }
 
-boost::posix_time::ptime DatabaseDriverBase::getLatestDataUpdateTime(
+Fmi::DateTime DatabaseDriverBase::getLatestDataUpdateTime(
     const std::string &producer,
-    const boost::posix_time::ptime &from,
+    const Fmi::DateTime &from,
     const MeasurandInfo &measurand_info) const
 {
   try

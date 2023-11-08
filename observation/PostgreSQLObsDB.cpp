@@ -26,7 +26,7 @@ namespace Observation
 {
 namespace
 {
-bool between(const ptime &t, const ptime &t1, const ptime &t2)
+bool between(const Fmi::DateTime &t, const Fmi::DateTime &t1, const Fmi::DateTime &t2)
 {
   return (t >= t1 && t <= t2);
 }
@@ -66,8 +66,8 @@ void PostgreSQLObsDB::get(const std::string & /* sqlStatement */,
 
 void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &producer,
                                                         vector<MobileExternalDataItem> &cacheData,
-                                                        boost::posix_time::ptime lastTime,
-                                                        boost::posix_time::ptime lastCreatedTime,
+                                                        Fmi::DateTime lastTime,
+                                                        Fmi::DateTime lastCreatedTime,
                                                         const Fmi::TimeZones & /* timezones */)
 {
   try
@@ -102,7 +102,7 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
       if (rsr["sensor_no"] != none)
         dataItem.sensor_no = boost::get<int>(rsr["sensor_no"]);
       dataItem.data_time =
-          (boost::get<boost::local_time::local_date_time>(rsr["data_time"]).utc_time());
+          (boost::get<Fmi::LocalDateTime>(rsr["data_time"]).utc_time());
       dataItem.data_value = boost::get<double>(rsr["data_value"]);
       if (rsr["data_value_txt"] != none)
         dataItem.data_value_txt = boost::get<std::string>(rsr["data_value_txt"]);
@@ -111,7 +111,7 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
       if (rsr["ctrl_status"] != none)
         dataItem.ctrl_status = boost::get<int>(rsr["ctrl_status"]);
       dataItem.created =
-          (boost::get<boost::local_time::local_date_time>(rsr["created"]).utc_time());
+          (boost::get<Fmi::LocalDateTime>(rsr["created"]).utc_time());
       if (producer == FMI_IOT_PRODUCER)
       {
         if (rsr["station_code"] != none)
@@ -137,8 +137,8 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
 
 void PostgreSQLObsDB::readMovingStationsCacheDataFromPostgreSQL(
     std::vector<MovingLocationItem> &cacheData,
-    const boost::posix_time::ptime &startTime,
-    const boost::posix_time::ptime & /* lastModifiedTime */,
+    const Fmi::DateTime &startTime,
+    const Fmi::DateTime & /* lastModifiedTime */,
     const Fmi::TimeZones & /* timezones */)
 {
   try
@@ -241,15 +241,15 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
 }
 
 void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
-                                                  const boost::posix_time::ptime & /* startTime */,
-                                                  const boost::posix_time::ptime &lastModifiedTime,
+                                                  const Fmi::DateTime & /* startTime */,
+                                                  const Fmi::DateTime &lastModifiedTime,
                                                   const Fmi::TimeZones &timezones)
 {
   try
   {
-    const boost::posix_time::ptime now = second_clock::universal_time();
+    const Fmi::DateTime now = Fmi::SecondClock::universal_time();
     const auto diff = now - lastModifiedTime;
-    const bool big_request = (diff >= boost::posix_time::hours(24));
+    const bool big_request = (diff >= Fmi::Hours(24));
 
     std::string sqlStmt =
         "SELECT station_id, sensor_no, measurand_id, producer_id, measurand_no, EXTRACT(EPOCH FROM "
@@ -382,16 +382,16 @@ ORDER  BY stroke_time,
 
 void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
     std::vector<FlashDataItem> &cacheData,
-    const boost::posix_time::ptime & /* startTime */,
-    const boost::posix_time::ptime & /* lastStrokeTime */,
-    const boost::posix_time::ptime &lastModifiedTime,
+    const Fmi::DateTime & /* startTime */,
+    const Fmi::DateTime & /* lastStrokeTime */,
+    const Fmi::DateTime &lastModifiedTime,
     const Fmi::TimeZones &timezones)
 {
   try
   {
-    const boost::posix_time::ptime now = second_clock::universal_time();
+    const Fmi::DateTime now = Fmi::SecondClock::universal_time();
     const auto diff = now - lastModifiedTime;
-    const bool big_request = (diff >= boost::posix_time::hours(24));
+    const bool big_request = (diff >= Fmi::Hours(24));
 
     if (big_request)
     {
@@ -500,25 +500,25 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
 
 void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
     std::vector<WeatherDataQCItem> &cacheData,
-    boost::posix_time::ptime lastTime,
-    boost::posix_time::ptime lastModifiedTime,
+    Fmi::DateTime lastTime,
+    Fmi::DateTime lastModifiedTime,
     const Fmi::TimeZones &timezones)
 {
   try
   {
     auto starttime = lastModifiedTime;
 
-    const boost::posix_time::ptime now = second_clock::universal_time();
+    const Fmi::DateTime now = Fmi::SecondClock::universal_time();
     auto diff = now - starttime;
 
     // Sometimes lastModifiedTime is 1.1.1970 due to problems, disable huge updates
-    if (diff > boost::posix_time::hours(366 * 24))
+    if (diff > Fmi::Hours(366 * 24))
     {
       starttime = lastTime;
       diff = now - starttime;
     }
 
-    const bool big_request = (diff >= boost::posix_time::hours(24));
+    const bool big_request = (diff >= Fmi::Hours(24));
 
     if (big_request)
     {
@@ -546,26 +546,26 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
 
 void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
     std::vector<MagnetometerDataItem> &cacheData,
-    boost::posix_time::ptime lastTime,
-    boost::posix_time::ptime lastModifiedTime,
+    Fmi::DateTime lastTime,
+    Fmi::DateTime lastModifiedTime,
     const Fmi::TimeZones & /* timezones */)
 {
   try
   {
     auto starttime = lastModifiedTime;
 
-    const boost::posix_time::ptime now = second_clock::universal_time();
+    const Fmi::DateTime now = Fmi::SecondClock::universal_time();
     auto diff = now - starttime;
 
     // Sometimes lastModifiedTime is 1.1.1970 due to problems, disable huge updates (?? perhaps not
     // possible fpr magnetometer data)
-    if (diff > boost::posix_time::hours(366 * 24))
+    if (diff > Fmi::Hours(366 * 24))
     {
       starttime = lastTime;
       diff = now - starttime;
     }
 
-    const bool big_request = (diff >= boost::posix_time::hours(24));
+    const bool big_request = (diff >= Fmi::Hours(24));
 
     if (big_request)
     {
@@ -628,8 +628,8 @@ void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
  * Set time interval for database query.
  */
 
-void PostgreSQLObsDB::setTimeInterval(const ptime &theStartTime,
-                                      const ptime &theEndTime,
+void PostgreSQLObsDB::setTimeInterval(const Fmi::DateTime &theStartTime,
+                                      const Fmi::DateTime &theEndTime,
                                       int theTimeStep)
 {
   try
@@ -656,12 +656,12 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
     std::set<int> fmisids;
-    std::set<boost::posix_time::ptime> obstimes;
+    std::set<Fmi::DateTime> obstimes;
     for (auto row : result_set)
     {
       Fmi::AsyncTask::interruption_point();
       boost::optional<int> fmisid = as_int(row[0]);
-      boost::posix_time::ptime obstime = boost::posix_time::from_time_t(row[1].as<time_t>());
+      Fmi::DateTime obstime = boost::posix_time::from_time_t(row[1].as<time_t>());
       boost::optional<std::string> parameter = row[2].as<std::string>();
       int int_parameter = itsParameterMap->getRoadAndForeignIds().stringToInteger(*parameter);
 
@@ -1061,8 +1061,8 @@ void PostgreSQLObsDB::getStationGroups(StationGroups &sg) const
         continue;
 
       int station_id = as_int(row[1]);
-      boost::posix_time::ptime starttime = Fmi::TimeParser::parse(row[2].as<std::string>());
-      boost::posix_time::ptime endtime = Fmi::TimeParser::parse(row[3].as<std::string>());
+      Fmi::DateTime starttime = Fmi::TimeParser::parse(row[2].as<std::string>());
+      Fmi::DateTime endtime = Fmi::TimeParser::parse(row[3].as<std::string>());
       if (groups.find(group_id) != groups.end())
       {
         const std::string &group_name = groups.at(group_id);
@@ -1093,8 +1093,8 @@ void PostgreSQLObsDB::getProducerGroups(ProducerGroups &pg) const
     {
       auto group_name = row[0].as<std::string>();
       int producer_id = as_int(row[1]);
-      boost::posix_time::ptime starttime = Fmi::TimeParser::parse(row[2].as<std::string>());
-      boost::posix_time::ptime endtime = Fmi::TimeParser::parse(row[3].as<std::string>());
+      Fmi::DateTime starttime = Fmi::TimeParser::parse(row[2].as<std::string>());
+      Fmi::DateTime endtime = Fmi::TimeParser::parse(row[3].as<std::string>());
       pg.addGroupPeriod(group_name, producer_id, starttime, endtime);
     }
   }
@@ -1274,15 +1274,15 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
   }
 }
 
-boost::posix_time::ptime PostgreSQLObsDB::getLatestDataUpdateTime(
+Fmi::DateTime PostgreSQLObsDB::getLatestDataUpdateTime(
     const std::string &tablename,
-    const boost::posix_time::ptime &from,
+    const Fmi::DateTime &from,
     const std::string &producer_ids,
     const std::string &measurand_ids) const
 {
   try
   {
-    boost::posix_time::ptime ret = boost::posix_time::not_a_date_time;
+    Fmi::DateTime ret = boost::posix_time::not_a_date_time;
 
     auto starttime = from;
     auto endtime = Utils::utc_second_clock();

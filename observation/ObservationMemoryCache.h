@@ -36,7 +36,7 @@ class ObservationMemoryCache
    * @retval The starting time of the data, or is_not_a_date_time if not initialized yet
    */
 
-  boost::posix_time::ptime getStartTime() const;
+  Fmi::DateTime getStartTime() const;
 
   /**
    * @brief Add new observations to the cache. Never called simultaneously with clean.
@@ -51,7 +51,7 @@ class ObservationMemoryCache
    * @param newstarttime Delete everything older than given time
    */
 
-  void clean(const boost::posix_time::ptime &newstarttime) const;
+  void clean(const Fmi::DateTime &newstarttime) const;
 
   /**
    * @brief Retrieve observations from stations
@@ -74,7 +74,7 @@ class ObservationMemoryCache
   mutable boost::atomic_shared_ptr<Observations> itsObservations;
 
   // Last value passed to clean()
-  mutable boost::atomic_shared_ptr<boost::posix_time::ptime> itsStartTime;
+  mutable boost::atomic_shared_ptr<Fmi::DateTime> itsStartTime;
 
   // All the hash values for the observations in the cache
   mutable std::unordered_set<std::size_t> itsHashValues;

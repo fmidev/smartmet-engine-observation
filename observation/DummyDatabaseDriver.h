@@ -30,8 +30,8 @@ class DummyDatabaseDriver : public DatabaseDriverBase
                                const Settings &settings,
                                const std::string &wkt) const override;
   void makeQuery(QueryBase *) override {}
-  FlashCounts getFlashCount(const boost::posix_time::ptime &starttime,
-                            const boost::posix_time::ptime &endtime,
+  FlashCounts getFlashCount(const Fmi::DateTime &starttime,
+                            const Fmi::DateTime &endtime,
                             const Spine::TaggedLocationList &locations) const override;
   std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string &language) override;

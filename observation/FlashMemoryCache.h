@@ -25,10 +25,10 @@ class FlashMemoryCache
  public:
   /**
    * @brief Get the starting time of the cache
-   * @retval boost::posix_time::ptime The starting time of the data, or is_not_a_date_time if not
+   * @retval Fmi::DateTime The starting time of the data, or is_not_a_date_time if not
    * initialized yet
    */
-  boost::posix_time::ptime getStartTime() const;
+  Fmi::DateTime getStartTime() const;
 
   /**
    * @brief Insert cached observations into observation_data table. Never called simultaneously with
@@ -42,7 +42,7 @@ class FlashMemoryCache
    * @brief Delete old flash observations. Never called simultaneously with fill.
    * @param newstarttime Delete everything older than given time
    */
-  void clean(const boost::posix_time::ptime& newstarttime) const;
+  void clean(const Fmi::DateTime& newstarttime) const;
 
   /**
    * @brief Retrieve flash data
@@ -55,8 +55,8 @@ class FlashMemoryCache
                                   const ParameterMapPtr& parameterMap,
                                   const Fmi::TimeZones& timezones) const;
 
-  FlashCounts getFlashCount(const boost::posix_time::ptime& starttime,
-                            const boost::posix_time::ptime& endtime,
+  FlashCounts getFlashCount(const Fmi::DateTime& starttime,
+                            const Fmi::DateTime& endtime,
                             const Spine::TaggedLocationList& locations) const;
 
  private:
@@ -65,7 +65,7 @@ class FlashMemoryCache
   mutable boost::atomic_shared_ptr<FlashDataVector> itsFlashData;
 
   // Last value passed to clean()
-  mutable boost::atomic_shared_ptr<boost::posix_time::ptime> itsStartTime;
+  mutable boost::atomic_shared_ptr<Fmi::DateTime> itsStartTime;
 
   // All the hash values for the flashes in the cache
   mutable std::unordered_set<std::size_t> itsHashValues;
