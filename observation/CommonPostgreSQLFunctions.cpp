@@ -975,7 +975,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
           ret->at(i).push_back(data.at(timestep));
         else
         {
-          if (data_independent_positions.find(i) != data_independent_positions.end())
+          if (!ts.empty() && data_independent_positions.find(i) != data_independent_positions.end())
             ret->at(i).push_back(ts.at(0));
           else
             ret->at(i).push_back(TS::TimedValue(timestep, TS::None()));
