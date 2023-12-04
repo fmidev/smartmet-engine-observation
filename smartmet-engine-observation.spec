@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.11.8
+Version: 23.12.4
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -164,6 +164,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Dec  4 2023 Andris Pavēnis <andris.pavenis@fmi.fi> 23.12.4-1.fmi
+- Fix getting magnetometer data (avoid incorret std::vector access)
+
 * Wed Nov  8 2023 Mika Heiskanen <mika.heiskanen@fmi.fi> - 23.11.8-1.fmi
 - Automatically drop redundant cache indices (BRAINSTORM-2785)
 
