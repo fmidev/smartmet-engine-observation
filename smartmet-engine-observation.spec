@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 23.12.4
+Version: 24.1.4
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -30,9 +30,9 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 23.9.6
 BuildRequires: smartmet-library-locus-devel >= 23.7.28
-BuildRequires: smartmet-library-macgyver-devel >= 23.11.8
-BuildRequires: smartmet-library-spine-devel >= 23.10.20
-BuildRequires: smartmet-library-timeseries-devel >= 23.10.30
+BuildRequires: smartmet-library-macgyver-devel >= 23.11.21
+BuildRequires: smartmet-library-spine-devel >= 23.12.5
+BuildRequires: smartmet-library-timeseries-devel >= 24.1.4
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
 BuildRequires: smartmet-utils-devel >= 23.9.6
@@ -48,10 +48,10 @@ Requires: gdal35-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 23.9.6
 Requires: smartmet-library-locus >= 23.7.28
-Requires: smartmet-library-macgyver >= 23.11.8
-Requires: smartmet-library-spine >= 23.10.20
-Requires: smartmet-library-timeseries >= 23.10.30
-Requires: smartmet-server >= 23.8.30
+Requires: smartmet-library-macgyver >= 23.11.21
+Requires: smartmet-library-spine >= 23.12.5
+Requires: smartmet-library-timeseries >= 24.1.4
+Requires: smartmet-server >= 23.12.5
 Requires: unixODBC
 
 %if %{defined el7}
@@ -130,7 +130,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 23.10.20
+Requires: smartmet-library-spine-devel >= 23.12.5
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -164,6 +164,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Jan  4 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.1.4-1.fmi
+- Repackaged due to ABI changes in TimeSeriesGeneratorOptions
+
 * Mon Dec  4 2023 Andris Pavēnis <andris.pavenis@fmi.fi> 23.12.4-1.fmi
 - Fix getting magnetometer data (avoid incorret std::vector access)
 
