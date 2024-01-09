@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 24.1.4
+Version: 24.1.9
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -164,6 +164,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Jan  9 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.1.9-1.fmi
+- Fixed lat/lon to behave similarly to latitude/longitude for ice buoys
+
 * Thu Jan  4 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.1.4-1.fmi
 - Repackaged due to ABI changes in TimeSeriesGeneratorOptions
 
