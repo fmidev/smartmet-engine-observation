@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 24.1.9
+Version: 24.1.17
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -30,7 +30,7 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 23.9.6
 BuildRequires: smartmet-library-locus-devel >= 23.7.28
-BuildRequires: smartmet-library-macgyver-devel >= 23.11.21
+BuildRequires: smartmet-library-macgyver-devel >= 24.1.17
 BuildRequires: smartmet-library-spine-devel >= 23.12.5
 BuildRequires: smartmet-library-timeseries-devel >= 24.1.4
 BuildRequires: sqlite3pp-devel >= 1.0.9
@@ -48,7 +48,7 @@ Requires: gdal35-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 23.9.6
 Requires: smartmet-library-locus >= 23.7.28
-Requires: smartmet-library-macgyver >= 23.11.21
+Requires: smartmet-library-macgyver >= 24.1.17
 Requires: smartmet-library-spine >= 23.12.5
 Requires: smartmet-library-timeseries >= 24.1.4
 Requires: smartmet-server >= 23.12.5
@@ -164,6 +164,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jan 17 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.1.17-1.fmi
+- Fixed fetching moving stations to take the station type into account (BRAINSTORM-2838)
+
 * Tue Jan  9 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.1.9-1.fmi
 - Fixed lat/lon to behave similarly to latitude/longitude for ice buoys
 
