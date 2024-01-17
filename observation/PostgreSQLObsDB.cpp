@@ -101,8 +101,7 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
       dataItem.mid = boost::get<int>(rsr["mid"]);
       if (rsr["sensor_no"] != none)
         dataItem.sensor_no = boost::get<int>(rsr["sensor_no"]);
-      dataItem.data_time =
-          (boost::get<Fmi::LocalDateTime>(rsr["data_time"]).utc_time());
+      dataItem.data_time = (boost::get<Fmi::LocalDateTime>(rsr["data_time"]).utc_time());
       dataItem.data_value = boost::get<double>(rsr["data_value"]);
       if (rsr["data_value_txt"] != none)
         dataItem.data_value_txt = boost::get<std::string>(rsr["data_value_txt"]);
@@ -110,8 +109,7 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
         dataItem.data_quality = boost::get<int>(rsr["data_quality"]);
       if (rsr["ctrl_status"] != none)
         dataItem.ctrl_status = boost::get<int>(rsr["ctrl_status"]);
-      dataItem.created =
-          (boost::get<Fmi::LocalDateTime>(rsr["created"]).utc_time());
+      dataItem.created = (boost::get<Fmi::LocalDateTime>(rsr["created"]).utc_time());
       if (producer == FMI_IOT_PRODUCER)
       {
         if (rsr["station_code"] != none)
@@ -380,12 +378,11 @@ ORDER  BY stroke_time,
   }
 }
 
-void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
-    std::vector<FlashDataItem> &cacheData,
-    const Fmi::DateTime & /* startTime */,
-    const Fmi::DateTime & /* lastStrokeTime */,
-    const Fmi::DateTime &lastModifiedTime,
-    const Fmi::TimeZones &timezones)
+void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem> &cacheData,
+                                                       const Fmi::DateTime & /* startTime */,
+                                                       const Fmi::DateTime & /* lastStrokeTime */,
+                                                       const Fmi::DateTime &lastModifiedTime,
+                                                       const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -1112,13 +1109,35 @@ void PostgreSQLObsDB::getMovingStations(Spine::Stations &stations,
   {
     auto sdate = Fmi::to_iso_extended_string(settings.starttime);
     auto edate = Fmi::to_iso_extended_string(settings.endtime);
-    std::string sqlStmt =
-        ("SELECT distinct station_id FROM moving_locations_v1 WHERE ((sdate BETWEEN '" + sdate +
-         "' AND '" + edate + "') OR (edate BETWEEN '" + sdate + "' AND '" + edate +
-         "') OR (sdate <= '" + sdate + "' AND edate >='" + edate +
-         "')) AND ST_Contains(ST_GeomFromText('" + wkt + "'),ST_MakePoint(lon, lat))");
+    // clang-format off
 
-    //	std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+    // 1 = station groups, 81 = station type
+    
+    std::string sqlStmt = fmt::format(R"sql(        
+SELECT distinct m.station_id
+FROM moving_locations_v1 m
+JOIN target_group_member_t1 tgm on (tgm.target_id = m.station_id )
+JOIN target_group_t1 tg on (tg.target_group_id = tgm.target_group_id )
+WHERE
+(
+    ( sdate BETWEEN '{}'  AND '{}' ) OR
+    ( edate BETWEEN '{}'  AND '{}' ) OR
+    ( sdate <= '{}'  AND edate >= '{}' )
+ )
+AND tg.group_class_id IN( 1, 81 )
+AND tg.group_name IN( '{}')
+AND ST_Contains(
+    ST_GeomFromText('{}'),
+    ST_MakePoint(lon, lat)
+                ))sql",
+    sdate, edate,
+    sdate, edate,
+    sdate, edate,
+    Fmi::ascii_toupper_copy(settings.stationtype),
+    wkt);
+    // clang-format on
+
+    // std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
     auto result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -1274,11 +1293,10 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
   }
 }
 
-Fmi::DateTime PostgreSQLObsDB::getLatestDataUpdateTime(
-    const std::string &tablename,
-    const Fmi::DateTime &from,
-    const std::string &producer_ids,
-    const std::string &measurand_ids) const
+Fmi::DateTime PostgreSQLObsDB::getLatestDataUpdateTime(const std::string &tablename,
+                                                       const Fmi::DateTime &from,
+                                                       const std::string &producer_ids,
+                                                       const std::string &measurand_ids) const
 {
   try
   {
