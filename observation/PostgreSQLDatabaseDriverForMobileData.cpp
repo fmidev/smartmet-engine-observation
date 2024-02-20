@@ -5,8 +5,8 @@
 #include "QueryResult.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
-#include <macgyver/DateTime.h>
 #include <boost/make_shared.hpp>
+#include <macgyver/DateTime.h>
 #include <spine/Convenience.h>
 #include <spine/Reactor.h>
 #include <atomic>
@@ -34,8 +34,7 @@ void setSettings(Settings &settings, PostgreSQLObsDB &db)
     db.allPlaces = settings.allplaces;
     db.wantedTime = settings.wantedtime;
 
-    Fmi::DateTime startTime =
-        Fmi::SecondClock::universal_time() - Fmi::Hours(24);
+    Fmi::DateTime startTime = Fmi::SecondClock::universal_time() - Fmi::Hours(24);
     Fmi::DateTime endTime = Fmi::SecondClock::universal_time();
     int timeStep = 1;
     if (!settings.starttime.is_not_a_date_time())
@@ -382,8 +381,6 @@ void PostgreSQLDatabaseDriverForMobileData::readConfig(Spine::ConfigBase &cfg)
         Fmi::stoi(driverInfo.params.at("roadCloudCacheUpdateInterval"));
     itsParameters.fmiIoTCacheUpdateInterval =
         Fmi::stoi(driverInfo.params.at("fmiIoTCacheUpdateInterval"));
-    itsParameters.bkHydrometaCacheUpdateInterval =
-        Fmi::stoi(driverInfo.params.at("bkHydrometaCacheUpdateInterval"));
 
     if (!itsParameters.disableAllCacheUpdates)
     {
@@ -391,8 +388,6 @@ void PostgreSQLDatabaseDriverForMobileData::readConfig(Spine::ConfigBase &cfg)
       itsParameters.roadCloudCacheDuration =
           Fmi::stoi(driverInfo.params.at("roadCloudCacheDuration"));
       itsParameters.fmiIoTCacheDuration = Fmi::stoi(driverInfo.params.at("fmiIoTCacheDuration"));
-      itsParameters.bkHydrometaCacheDuration =
-          Fmi::stoi(driverInfo.params.at("bkHydrometaCacheDuration"));
     }
 
     // Read part of config in base class

@@ -18,7 +18,6 @@ namespace Observation
 #define NETATMO_DATA_TABLE "ext_obsdata_netatmo"
 #define ROADCLOUD_DATA_TABLE "ext_obsdata_roadcloud"
 #define FMI_IOT_DATA_TABLE "ext_obsdata_fmi_iot"
-#define BK_HYDROMETA_DATA_TABLE "ext_obsdata_bk_hydrometa"
 #define EXT_OBSDATA_TABLE "ext_obsdata"
 #define MOVING_LOCATIONS_TABLE "moving_locations"
 

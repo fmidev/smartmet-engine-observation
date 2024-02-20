@@ -33,7 +33,6 @@ struct DatabaseDriverParameters
   std::size_t netAtmoCacheUpdateInterval = 0;
   std::size_t roadCloudCacheUpdateInterval = 0;
   std::size_t fmiIoTCacheUpdateInterval = 0;
-  std::size_t bkHydrometaCacheUpdateInterval = 0;
   std::size_t magnetometerCacheUpdateInterval = 0;
   std::size_t stationsCacheUpdateInterval = 0;
   int updateExtraInterval = 10;  // update 10 seconds before max(modified_last) for safety
@@ -45,7 +44,6 @@ struct DatabaseDriverParameters
   int netAtmoCacheDuration = 0;
   int roadCloudCacheDuration = 0;
   int fmiIoTCacheDuration = 0;
-  int bkHydrometaCacheDuration = 0;
   int magnetometerCacheDuration = 0;
   int finCacheUpdateSize = 0;  // in hours, zero for unlimited size
   int extCacheUpdateSize = 0;

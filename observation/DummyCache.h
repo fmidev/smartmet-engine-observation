@@ -38,9 +38,8 @@ class DummyCache : public ObservationCache
   Fmi::DateTime getLatestFlashModifiedTime() const override;
   Fmi::DateTime getLatestFlashTime() const override;
   std::size_t fillFlashDataCache(const FlashDataItems &flashCacheData) const override;
-  void cleanFlashDataCache(
-      const Fmi::TimeDuration &timetokeep,
-      const Fmi::TimeDuration &timetokeep_memory) const override;
+  void cleanFlashDataCache(const Fmi::TimeDuration &timetokeep,
+                           const Fmi::TimeDuration &timetokeep_memory) const override;
 
   Fmi::DateTime getLatestObservationModifiedTime() const override;
   Fmi::DateTime getLatestObservationTime() const override;
@@ -69,14 +68,6 @@ class DummyCache : public ObservationCache
   std::size_t fillNetAtmoCache(
       const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanNetAtmoCache(const Fmi::TimeDuration &timetokeep) const override;
-
-  bool bkHydrometaIntervalIsCached(const Fmi::DateTime &starttime,
-                                   const Fmi::DateTime &endtime) const override;
-  Fmi::DateTime getLatestBKHydrometaDataTime() const override;
-  Fmi::DateTime getLatestBKHydrometaCreatedTime() const override;
-  std::size_t fillBKHydrometaCache(
-      const MobileExternalDataItems &mobileExternalCacheData) const override;
-  void cleanBKHydrometaCache(const Fmi::TimeDuration &timetokeep) const override;
 
   bool fmiIoTIntervalIsCached(const Fmi::DateTime &starttime,
                               const Fmi::DateTime &endtime) const override;

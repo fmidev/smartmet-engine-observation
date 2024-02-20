@@ -51,9 +51,8 @@ class PostgreSQLCache : public ObservationCache
   Fmi::DateTime getLatestFlashModifiedTime() const override;
   Fmi::DateTime getLatestFlashTime() const override;
   std::size_t fillFlashDataCache(const FlashDataItems &flashCacheData) const override;
-  void cleanFlashDataCache(
-      const Fmi::TimeDuration &timetokeep,
-      const Fmi::TimeDuration &timetokeep_memory) const override;
+  void cleanFlashDataCache(const Fmi::TimeDuration &timetokeep,
+                           const Fmi::TimeDuration &timetokeep_memory) const override;
 
   Fmi::DateTime getLatestObservationModifiedTime() const override;
   Fmi::DateTime getLatestObservationTime() const override;
@@ -83,16 +82,6 @@ class PostgreSQLCache : public ObservationCache
   std::size_t fillNetAtmoCache(
       const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanNetAtmoCache(const Fmi::TimeDuration &timetokeep) const override;
-
-  // BKHydrometa
-  bool bkHydrometaIntervalIsCached(const Fmi::DateTime &starttime,
-                                   const Fmi::DateTime &endtime) const override;
-  Fmi::DateTime getLatestBKHydrometaDataTime() const override;
-  Fmi::DateTime getLatestBKHydrometaCreatedTime() const override;
-  std::size_t fillBKHydrometaCache(
-      const MobileExternalDataItems &mobileExternalCacheData) const override;
-  void cleanBKHydrometaCache(const Fmi::TimeDuration &timetokeep) const override;
-  TS::TimeSeriesVectorPtr bkHydrometaValuesFromSpatiaLite(Settings &settings) const;
 
   // FmiIoT
   bool fmiIoTIntervalIsCached(const Fmi::DateTime &starttime,
@@ -124,8 +113,7 @@ class PostgreSQLCache : public ObservationCache
   Fmi::TimeZones itsTimeZones;
 
   void readConfig(const Spine::ConfigBase &cfg);
-  bool timeIntervalIsCached(const Fmi::DateTime &starttime,
-                            const Fmi::DateTime &endtime) const;
+  bool timeIntervalIsCached(const Fmi::DateTime &starttime, const Fmi::DateTime &endtime) const;
   bool timeIntervalWeatherDataQCIsCached(const Fmi::DateTime &starttime,
                                          const Fmi::DateTime &endtime) const;
   TS::TimeSeriesVectorPtr flashValuesFromPostgreSQL(const Settings &settings) const;

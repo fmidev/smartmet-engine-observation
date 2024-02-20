@@ -352,8 +352,8 @@ bool PostgreSQLCache::flashIntervalIsCached(const Fmi::DateTime &starttime,
   }
 }
 
-bool PostgreSQLCache::timeIntervalWeatherDataQCIsCached(
-    const Fmi::DateTime &starttime, const Fmi::DateTime & /* endtime */) const
+bool PostgreSQLCache::timeIntervalWeatherDataQCIsCached(const Fmi::DateTime &starttime,
+                                                        const Fmi::DateTime & /* endtime */) const
 {
   try
   {
@@ -457,9 +457,8 @@ std::size_t PostgreSQLCache::fillFlashDataCache(const FlashDataItems &flashCache
   }
 }
 
-void PostgreSQLCache::cleanFlashDataCache(
-    const Fmi::TimeDuration &timetokeep,
-    const Fmi::TimeDuration & /* timetokeep_memory */) const
+void PostgreSQLCache::cleanFlashDataCache(const Fmi::TimeDuration &timetokeep,
+                                          const Fmi::TimeDuration & /* timetokeep_memory */) const
 {
   try
   {
@@ -547,9 +546,8 @@ std::size_t PostgreSQLCache::fillMovingLocationsCache(const MovingLocationItems 
   }
 }
 
-void PostgreSQLCache::cleanDataCache(
-    const Fmi::TimeDuration &timetokeep,
-    const Fmi::TimeDuration & /* timetokeep_memory */) const
+void PostgreSQLCache::cleanDataCache(const Fmi::TimeDuration &timetokeep,
+                                     const Fmi::TimeDuration & /* timetokeep_memory */) const
 {
   try
   {
@@ -613,8 +611,7 @@ std::size_t PostgreSQLCache::fillWeatherDataQCCache(const WeatherDataQCItems &ca
   }
 }
 
-void PostgreSQLCache::cleanWeatherDataQCCache(
-    const Fmi::TimeDuration &timetokeep) const
+void PostgreSQLCache::cleanWeatherDataQCCache(const Fmi::TimeDuration &timetokeep) const
 {
   try
   {
@@ -830,89 +827,6 @@ void PostgreSQLCache::cleanNetAtmoCache(const Fmi::TimeDuration &timetokeep) con
   }
 }
 
-bool PostgreSQLCache::bkHydrometaIntervalIsCached(const Fmi::DateTime &starttime,
-                                                  const Fmi::DateTime &) const
-{
-  try
-  {
-    Spine::ReadLock lock(itsBKHydrometaTimeIntervalMutex);
-    if (itsBKHydrometaTimeIntervalStart.is_not_a_date_time() ||
-        itsBKHydrometaTimeIntervalEnd.is_not_a_date_time())
-      return false;
-    // We ignore end time intentionally
-    return (starttime >= itsBKHydrometaTimeIntervalStart);
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Checking if BKHydrometa interval is cached failed!");
-  }
-}
-
-Fmi::DateTime PostgreSQLCache::getLatestBKHydrometaDataTime() const
-{
-  return itsConnectionPool->getConnection()->getLatestBKHydrometaDataTime();
-}
-
-Fmi::DateTime PostgreSQLCache::getLatestBKHydrometaCreatedTime() const
-{
-  return itsConnectionPool->getConnection()->getLatestBKHydrometaCreatedTime();
-}
-
-std::size_t PostgreSQLCache::fillBKHydrometaCache(
-    const MobileExternalDataItems &mobileExternalCacheData) const
-{
-  try
-  {
-    auto conn = itsConnectionPool->getConnection();
-    auto sz = conn->fillBKHydrometaCache(mobileExternalCacheData);
-
-    // Update what really now really is in the database
-    auto start = conn->getOldestBKHydrometaDataTime();
-    auto end = conn->getLatestBKHydrometaDataTime();
-    Spine::WriteLock lock(itsBKHydrometaTimeIntervalMutex);
-    itsBKHydrometaTimeIntervalStart = start;
-    itsBKHydrometaTimeIntervalEnd = end;
-    return sz;
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Filling BKHydrometa cache failed!");
-  }
-}
-
-void PostgreSQLCache::cleanBKHydrometaCache(
-    const Fmi::TimeDuration &timetokeep) const
-{
-  try
-  {
-    // Dont clean fake cache
-    if (isFakeCache(NETATMO_DATA_TABLE))
-      return;
-
-    Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
-    t = round_down_to_cache_clean_interval(t);
-
-    auto conn = itsConnectionPool->getConnection();
-    {
-      // We know the cache will not contain anything before this after the update
-      Spine::WriteLock lock(itsBKHydrometaTimeIntervalMutex);
-      itsBKHydrometaTimeIntervalStart = t;
-    }
-    conn->cleanBKHydrometaCache(t);
-
-    // Update what really remains in the database
-    auto start = conn->getOldestBKHydrometaDataTime();
-    auto end = conn->getLatestBKHydrometaDataTime();
-    Spine::WriteLock lock(itsBKHydrometaTimeIntervalMutex);
-    itsBKHydrometaTimeIntervalStart = start;
-    itsBKHydrometaTimeIntervalEnd = end;
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Cleaning BKHydrometa cache failed!");
-  }
-}
-
 bool PostgreSQLCache::fmiIoTIntervalIsCached(const Fmi::DateTime &starttime,
                                              const Fmi::DateTime &) const
 {
@@ -1003,9 +917,8 @@ void PostgreSQLCache::cleanFmiIoTCache(const Fmi::TimeDuration &timetokeep) cons
   }
 }
 
-bool PostgreSQLCache::magnetometerIntervalIsCached(
-    const Fmi::DateTime & /* starttime */,
-    const Fmi::DateTime & /* endtime */) const
+bool PostgreSQLCache::magnetometerIntervalIsCached(const Fmi::DateTime & /* starttime */,
+                                                   const Fmi::DateTime & /* endtime */) const
 {
   return false;
 }
@@ -1026,10 +939,7 @@ std::size_t PostgreSQLCache::fillMagnetometerCache(
   return 0;
 }
 
-void PostgreSQLCache::cleanMagnetometerCache(
-    const Fmi::TimeDuration &timetokeep) const
-{
-}
+void PostgreSQLCache::cleanMagnetometerCache(const Fmi::TimeDuration &timetokeep) const {}
 
 void PostgreSQLCache::shutdown()
 {

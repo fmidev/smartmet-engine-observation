@@ -103,8 +103,6 @@ void PostgreSQLCacheDB::createTables(const std::set<std::string> &tables)
       createRoadCloudDataTable();
     if (tables.find(NETATMO_DATA_TABLE) != tables.end())
       createNetAtmoDataTable();
-    if (tables.find(BK_HYDROMETA_DATA_TABLE) != tables.end())
-      createBKHydrometaDataTable();
     if (tables.find(FMI_IOT_DATA_TABLE) != tables.end())
       createFmiIoTDataTable();
   }
@@ -319,45 +317,6 @@ void PostgreSQLCacheDB::createNetAtmoDataTable()
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Creation of ext_obsdata_netatmo table failed!");
-  }
-}
-
-void PostgreSQLCacheDB::createBKHydrometaDataTable()
-{
-  try
-  {
-    itsDB.executeNonTransaction(
-        "CREATE TABLE IF NOT EXISTS ext_obsdata_bk_hydrometa("
-        "prod_id INTEGER, "
-        "station_id INTEGER DEFAULT 0, "
-        "dataset_id character VARYING(50) DEFAULT 0, "
-        "data_level INTEGER DEFAULT 0, "
-        "mid INTEGER, "
-        "sensor_no INTEGER DEFAULT 0, "
-        "data_time timestamp without time zone NOT NULL, "
-        "data_value NUMERIC, "
-        "data_value_txt character VARYING(30), "
-        "data_quality INTEGER, "
-        "ctrl_status INTEGER, "
-        "created timestamp without time zone DEFAULT timezone('UTC'::text, now()), "
-        "altitude NUMERIC)");
-    pqxx::result result_set = itsDB.executeNonTransaction(
-        "SELECT * FROM geometry_columns WHERE f_table_name='ext_obsdata_bk_hydrometa'");
-    if (result_set.empty())
-    {
-      itsDB.executeNonTransaction(
-          "SELECT AddGeometryColumn('ext_obsdata_bk_hydrometa', 'geom', 4326, 'POINT', 2)");
-      itsDB.executeNonTransaction(
-          "CREATE INDEX IF NOT EXISTS ext_obsdata_bk_hydrometa_gix ON ext_obsdata_bk_hydrometa "
-          "USING GIST "
-          "(geom)");
-      itsDB.executeNonTransaction(
-          "ALTER TABLE ext_obsdata_bk_hydrometa ADD PRIMARY KEY (prod_id,mid,data_time, geom)");
-    }
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Creation of ext_obsdata_bk_hydrometa table failed!");
   }
 }
 
@@ -607,48 +566,6 @@ Fmi::DateTime PostgreSQLCacheDB::getLatestNetAtmoCreatedTime()
   }
 }
 
-Fmi::DateTime PostgreSQLCacheDB::getOldestBKHydrometaDataTime()
-{
-  try
-  {
-    string tablename = "ext_obsdata_bk_hydrometa";
-    string time_field = "data_time";
-    return getOldestTimeFromTable(tablename, time_field);
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Oldest bk_hydrometa data time query failed!");
-  }
-}
-
-Fmi::DateTime PostgreSQLCacheDB::getLatestBKHydrometaDataTime()
-{
-  try
-  {
-    string tablename = "ext_obsdata_bk_hydrometa";
-    string time_field = "data_time";
-    return getLatestTimeFromTable(tablename, time_field);
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Latest bk_hydrometa data time query failed!");
-  }
-}
-
-Fmi::DateTime PostgreSQLCacheDB::getLatestBKHydrometaCreatedTime()
-{
-  try
-  {
-    string tablename = "ext_obsdata_bk_hydrometa";
-    string time_field = "created";
-    return getLatestTimeFromTable(tablename, time_field);
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Latest NetAtmo created time query failed!");
-  }
-}
-
 Fmi::DateTime PostgreSQLCacheDB::getOldestFmiIoTDataTime()
 {
   try
@@ -692,14 +609,14 @@ Fmi::DateTime PostgreSQLCacheDB::getLatestFmiIoTCreatedTime()
 }
 
 Fmi::DateTime PostgreSQLCacheDB::getLatestTimeFromTable(const std::string &tablename,
-                                                                   const std::string &time_field)
+                                                        const std::string &time_field)
 {
   std::string stmt = ("SELECT MAX(" + time_field + ") FROM " + tablename);
   return getTime(stmt);
 }
 
 Fmi::DateTime PostgreSQLCacheDB::getOldestTimeFromTable(const std::string &tablename,
-                                                                   const std::string &time_field)
+                                                        const std::string &time_field)
 {
   std::string stmt = ("SELECT MIN(" + time_field + ") FROM " + tablename);
   return getTime(stmt);
@@ -801,27 +718,6 @@ void PostgreSQLCacheDB::cleanNetAtmoCache(const Fmi::DateTime &newstarttime)
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Cleaning of NetAtmo cache failed!");
-  }
-}
-
-void PostgreSQLCacheDB::cleanBKHydrometaCache(const Fmi::DateTime &newstarttime)
-{
-  try
-  {
-    auto oldest = getOldestBKHydrometaDataTime();
-
-    if (newstarttime <= oldest)
-      return;
-
-    Spine::WriteLock lock(netatmo_data_write_mutex);
-    std::string sqlStmt = ("DELETE FROM ext_obsdata_bk_hydrometa WHERE data_time < '" +
-                           Fmi::to_iso_extended_string(newstarttime) + "'");
-
-    itsDB.executeNonTransaction(sqlStmt);
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Cleaning of bk_hydrometa cache failed!");
   }
 }
 
@@ -1654,12 +1550,6 @@ std::size_t PostgreSQLCacheDB::fillNetAtmoCache(
   }
 }
 
-std::size_t PostgreSQLCacheDB::fillBKHydrometaCache(
-    const MobileExternalDataItems & /*mobileExternalCacheData*/)
-{
-  return 0;
-}
-
 std::size_t PostgreSQLCacheDB::fillFmiIoTCache(
     const MobileExternalDataItems & /* mobileExternalCacheData */)
 {
@@ -1733,15 +1623,13 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
 
     for (auto rsr : rsrs)
     {
-      Fmi::LocalDateTime obstime =
-          *(boost::get<Fmi::LocalDateTime>(&rsr["data_time"]));
+      Fmi::LocalDateTime obstime = *(boost::get<Fmi::LocalDateTime>(&rsr["data_time"]));
       unsigned int index = 0;
       for (auto fieldname : queryfields)
       {
         if (fieldname == "created")
         {
-          Fmi::LocalDateTime dt =
-              *(boost::get<Fmi::LocalDateTime>(&rsr[fieldname]));
+          Fmi::LocalDateTime dt = *(boost::get<Fmi::LocalDateTime>(&rsr[fieldname]));
 
           std::string fieldValue = itsTimeFormatter->format(dt);
           ret->at(index).emplace_back(TS::TimedValue(obstime, fieldValue));
@@ -1911,13 +1799,12 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
   }
 }
 
-void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(
-    const std::string &paramname,
-    TS::TimeSeriesVectorPtr &timeSeriesColumns,
-    const Spine::Station &station,
-    int pos,
-    const std::string &stationtype,
-    const Fmi::LocalDateTime &obstime)
+void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(const std::string &paramname,
+                                                        TS::TimeSeriesVectorPtr &timeSeriesColumns,
+                                                        const Spine::Station &station,
+                                                        int pos,
+                                                        const std::string &stationtype,
+                                                        const Fmi::LocalDateTime &obstime)
 {
   try
   {

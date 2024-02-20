@@ -242,39 +242,6 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
   std::size_t fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData);
 
   /**
-   * @brief Get oldest observation in ext_obsdata_hydrometa table
-   * @return Fmi::DateTime The time of the oldest observation
-   */
-
-  Fmi::DateTime getOldestBKHydrometaDataTime();
-
-  /**
-   * @brief Get newest observation in ext_obsdata_bk_hydrometa table
-   * @return Fmi::DateTime The time of the newest observation
-   */
-
-  Fmi::DateTime getLatestBKHydrometaDataTime();
-
-  /**
-   * @brief Get latest creation time in ext_obsdata_bk_hydrometa table
-   * @return Fmi::DateTime The latest creation time
-   */
-
-  Fmi::DateTime getLatestBKHydrometaCreatedTime();
-
-  /**
-   * @brief Delete old data from ext_obsdata_bk_hydrometa table
-   * @param newstarttime Delete data which is older than given time
-   */
-  void cleanBKHydrometaCache(const Fmi::DateTime &newstarttime);
-
-  /**
-   * @brief Insert cached NetAtmo observations into ext_obsdata_bk_hydrometa table
-   * @param NetAtmo observation data to be inserted into the table
-   */
-  static std::size_t fillBKHydrometaCache(const MobileExternalDataItems &mobileExternalCacheData);
-
-  /**
    * @brief Get the time of the newest FmiIoT observation in ext_obsdata_roadcloud table
    * @return Fmi::DateTime The time of the newest FmiIoT observation
    */
@@ -374,21 +341,19 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
                                               const std::string &stationtype,
                                               const Fmi::LocalDateTime &obstime);
 
-  void addParameterToTimeSeries(TS::TimeSeriesVectorPtr &timeSeriesColumns,
-                                const std::pair<Fmi::LocalDateTime,
-                                                std::map<std::string, TS::Value>> &dataItem,
-                                const std::map<std::string, int> &specialPositions,
-                                const std::map<std::string, std::string> &parameterNameMap,
-                                const std::map<std::string, int> &timeseriesPositions,
-                                const ParameterMapPtr &parameterMap,
-                                const std::string &stationtype,
-                                const Spine::Station &station,
-                                const std::string &missingtext);
+  void addParameterToTimeSeries(
+      TS::TimeSeriesVectorPtr &timeSeriesColumns,
+      const std::pair<Fmi::LocalDateTime, std::map<std::string, TS::Value>> &dataItem,
+      const std::map<std::string, int> &specialPositions,
+      const std::map<std::string, std::string> &parameterNameMap,
+      const std::map<std::string, int> &timeseriesPositions,
+      const ParameterMapPtr &parameterMap,
+      const std::string &stationtype,
+      const Spine::Station &station,
+      const std::string &missingtext);
 
-  Fmi::DateTime getLatestTimeFromTable(const std::string &tablename,
-                                                  const std::string &time_field);
-  Fmi::DateTime getOldestTimeFromTable(const std::string &tablename,
-                                                  const std::string &time_field);
+  Fmi::DateTime getLatestTimeFromTable(const std::string &tablename, const std::string &time_field);
+  Fmi::DateTime getOldestTimeFromTable(const std::string &tablename, const std::string &time_field);
 
   void createStationTable();
   void createStationGroupsTable();
