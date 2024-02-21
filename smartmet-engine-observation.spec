@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 24.2.20
+Version: 24.2.21
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -32,7 +32,7 @@ BuildRequires: smartmet-engine-geonames-devel >= 24.1.30
 BuildRequires: smartmet-library-locus-devel >= 23.7.28
 BuildRequires: smartmet-library-macgyver-devel >= 24.1.17
 BuildRequires: smartmet-library-spine-devel >= 24.2.8
-BuildRequires: smartmet-library-timeseries-devel >= 24.1.30
+BuildRequires: smartmet-library-timeseries-devel >= 24.2.20
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
 BuildRequires: smartmet-utils-devel >= 23.9.6
@@ -50,7 +50,7 @@ Requires: smartmet-engine-geonames >= 24.1.30
 Requires: smartmet-library-locus >= 23.7.28
 Requires: smartmet-library-macgyver >= 24.1.17
 Requires: smartmet-library-spine >= 24.2.8
-Requires: smartmet-library-timeseries >= 24.1.30
+Requires: smartmet-library-timeseries >= 24.2.20
 Requires: smartmet-server >= 24.1.29
 Requires: unixODBC
 
@@ -164,6 +164,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Feb 21 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.2.21-1.fmi
+- Repackaged
+
 * Tue Feb 20 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.2.20-1.fmi
 - Removed obsolete BK hydrometa code
 
