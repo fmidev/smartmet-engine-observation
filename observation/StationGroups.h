@@ -9,7 +9,7 @@ namespace Engine
 {
 namespace Observation
 {
-using StationGroupPeriod = boost::posix_time::time_period;         // group period
+using StationGroupPeriod = Fmi::TimePeriod;         // group period
 using StationGroupPeriodVector = std::vector<StationGroupPeriod>;  // group periods
 using StationGroupPeriodMap =
     std::map<std::string, StationGroupPeriodVector>;               // group_name -> group periods

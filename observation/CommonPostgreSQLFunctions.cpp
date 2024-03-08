@@ -263,7 +263,7 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataOfMovingStations
       LocationDataItem obs;
       obs.data.fmisid = as_int(row[0]);
       obs.data.sensor_no = as_int(row[1]);
-      obs.data.data_time = boost::posix_time::from_time_t(row[2].as<time_t>());
+      obs.data.data_time = Fmi::date_time::from_time_t(row[2].as<time_t>());
       obs.data.measurand_id = as_int(row[3]);
       if (!row[4].is_null())
         obs.data.data_value = as_double(row[4]);
@@ -379,7 +379,7 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
       LocationDataItem obs;
       obs.data.fmisid = as_int(row[0]);
       obs.data.sensor_no = as_int(row[1]);
-      obs.data.data_time = boost::posix_time::from_time_t(row[2].as<time_t>());
+      obs.data.data_time = Fmi::date_time::from_time_t(row[2].as<time_t>());
       obs.data.measurand_id = as_int(row[3]);
       if (!row[4].is_null())
         obs.data.data_value = as_double(row[4]);
@@ -552,7 +552,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
     for (auto row : result_set)
     {
       std::map<std::string, TS::Value> result;
-      Fmi::DateTime stroke_time = boost::posix_time::from_time_t(row[0].as<time_t>());
+      Fmi::DateTime stroke_time = Fmi::date_time::from_time_t(row[0].as<time_t>());
       // int stroke_time_fraction = as_int(row[1]);
       TS::Value flashIdValue = as_int(row[2]);
       result["flash_id"] = flashIdValue;
@@ -863,7 +863,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
     TS::Value station_id_value = as_int(row[0]);
     TS::Value magnetometer_id_value = row[1].as<std::string>();
     int level = as_int(row[2]);
-    Fmi::DateTime data_time = boost::posix_time::from_time_t(row[3].as<time_t>());
+    Fmi::DateTime data_time = Fmi::date_time::from_time_t(row[3].as<time_t>());
     Fmi::LocalDateTime localtime(data_time, localtz);
     TS::Value magneto_x_value;
     TS::Value magneto_y_value;

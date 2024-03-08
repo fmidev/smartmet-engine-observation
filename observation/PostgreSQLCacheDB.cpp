@@ -21,9 +21,6 @@
 #endif
 
 using namespace std;
-using namespace boost::gregorian;
-using namespace boost::posix_time;
-using namespace boost::local_time;
 
 template <typename Container, typename Key>
 bool exists(const Container &container, const Key &key)
@@ -437,10 +434,10 @@ Fmi::DateTime PostgreSQLCacheDB::getTime(const std::string &timeQuery) const
       {
         auto value = as_double(row[0]);
         time_t seconds = floor(value);
-        ret = boost::posix_time::from_time_t(seconds);
+        ret = Fmi::date_time::from_time_t(seconds);
         double fractions = (value - floor(value));
         if (fractions > 0.0)
-          ret += milliseconds(static_cast<int64_t>(fractions * 1000));
+          ret += Fmi::date_time::Milliseconds(static_cast<int64_t>(fractions * 1000));
       }
     }
     return ret;
@@ -2137,7 +2134,7 @@ ResultSetRows PostgreSQLCacheDB::getResultSetForMobileExternalData(
             if (column_name == "created" || column_name == "data_time")
             {
               Fmi::DateTime pt = epoch2ptime(as_double(row[i]));
-              Fmi::TimeZonePtr zone(new posix_time_zone("UTC"));
+              Fmi::TimeZonePtr zone("UTC");
               val = Fmi::LocalDateTime(pt, zone);
             }
             else
@@ -2153,7 +2150,7 @@ ResultSetRows PostgreSQLCacheDB::getResultSetForMobileExternalData(
           else if (data_type == "timestamp")
           {
             Fmi::DateTime pt = epoch2ptime(as_double(row[i]));
-            Fmi::TimeZonePtr zone(new posix_time_zone("UTC"));
+            Fmi::TimeZonePtr zone("UTC");
             val = Fmi::LocalDateTime(pt, zone);
           }
         }
@@ -2186,7 +2183,7 @@ void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
     for (auto row : result_set)
     {
       boost::optional<int> fmisid = as_int(row[0]);
-      Fmi::DateTime obstime = boost::posix_time::from_time_t(row[1].as<time_t>());
+      Fmi::DateTime obstime = Fmi::date_time::from_time_t(row[1].as<time_t>());
       boost::optional<int> parameter = as_int(row[2]);
 
       // Get latitude, longitude, elevation from station info

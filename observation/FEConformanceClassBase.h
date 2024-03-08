@@ -8,6 +8,8 @@
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <spine/ConfigBase.h>
+#include <iostream>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>

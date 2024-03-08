@@ -409,7 +409,7 @@ Fmi::DateTime PostgreSQLDatabaseDriverForMobileData::getLatestDataUpdateTime(
     const Fmi::DateTime & /*from*/,
     const MeasurandInfo & /*measurand_info*/) const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 std::string PostgreSQLDatabaseDriverForMobileData::id() const

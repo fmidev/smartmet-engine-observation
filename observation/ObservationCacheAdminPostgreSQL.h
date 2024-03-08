@@ -20,15 +20,15 @@ class ObservationCacheAdminPostgreSQL : public ObservationCacheAdminBase
                                   std::atomic<bool>& conn_ok,
                                   bool timer);
   void readObservationCacheData(std::vector<DataItem>& cacheData,
-                                const boost::posix_time::time_period& dataPeriod,
+                                const Fmi::TimePeriod& dataPeriod,
                                 const std::string& fmisid,
                                 const std::string& measuradId,
                                 const Fmi::TimeZones& timezones) const override;
   void readFlashCacheData(std::vector<FlashDataItem>& cacheData,
-                          const boost::posix_time::time_period& dataPeriod,
+                          const Fmi::TimePeriod& dataPeriod,
                           const Fmi::TimeZones& timezones) const override;
   void readWeatherDataQCCacheData(std::vector<WeatherDataQCItem>& cacheData,
-                                  const boost::posix_time::time_period& dataPeriod,
+                                  const Fmi::TimePeriod& dataPeriod,
                                   const std::string& fmisid,
                                   const std::string& measuradId,
                                   const Fmi::TimeZones& timezones) const override;

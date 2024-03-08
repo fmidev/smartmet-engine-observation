@@ -431,8 +431,8 @@ DatabaseDriverBase *DatabaseDriverProxy::resolveDatabaseDriverByProducer(
     const std::string &producer) const
 {
   Settings settings;
-  settings.starttime = boost::posix_time::not_a_date_time;
-  settings.endtime = boost::posix_time::not_a_date_time;
+  settings.starttime = Fmi::DateTime::NOT_A_DATE_TIME;
+  settings.endtime = Fmi::DateTime::NOT_A_DATE_TIME;
   settings.stationtype = producer;
 
   return resolveDatabaseDriver(settings);
@@ -444,7 +444,7 @@ DatabaseDriverBase *DatabaseDriverProxy::resolveDatabaseDriverByTable(
   try
   {
     return itsDatabaseDriverContainer.resolveDriver(
-        tablename, boost::posix_time::not_a_date_time, boost::posix_time::not_a_date_time);
+        tablename, Fmi::DateTime::NOT_A_DATE_TIME, Fmi::DateTime::NOT_A_DATE_TIME);
   }
   catch (...)
   {
@@ -520,7 +520,7 @@ Fmi::DateTime DatabaseDriverProxy::getLatestDataUpdateTime(
 {
   try
   {
-    if (from == boost::posix_time::not_a_date_time)
+    if (from == Fmi::DateTime::NOT_A_DATE_TIME)
       return from;
 
     Settings settings;

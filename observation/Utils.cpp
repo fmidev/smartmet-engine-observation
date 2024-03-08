@@ -3,7 +3,6 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
-#include <boost/date_time/posix_time/time_serialize.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/serialization/vector.hpp>
 #include <macgyver/Astronomy.h>
@@ -22,6 +21,9 @@ namespace Observation
 {
 namespace Utils
 {
+
+using Fmi::date_time::Milliseconds;
+
 bool removePrefix(std::string& parameter, const std::string& prefix)
 {
   try
@@ -309,7 +311,7 @@ Fmi::DateTime day_end(const Fmi::DateTime& t)
   if (t.is_not_a_date_time() || t.is_special())
     return t;
   auto tmp = Fmi::DateTime(t.date(), Fmi::Hours(0));
-  tmp += boost::gregorian::days(1);
+  tmp += Fmi::date_time::Days(1);
   return tmp;
 }
 
@@ -572,8 +574,8 @@ TS::TimeSeriesVectorPtr initializeResultVector(const Settings& settings)
 Fmi::DateTime epoch2ptime(double epoch)
 {
   Fmi::DateTime ret =
-      boost::posix_time::from_time_t(static_cast<std::time_t>(floor(epoch)));
-  ret += boost::posix_time::microseconds(static_cast<long>((epoch - floor(epoch)) * 1000000));
+      Fmi::date_time::from_time_t(static_cast<std::time_t>(floor(epoch)));
+  ret += Fmi::date_time::Microseconds(static_cast<long>((epoch - floor(epoch)) * 1000000));
 
   return ret;
 }

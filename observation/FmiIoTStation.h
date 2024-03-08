@@ -36,8 +36,8 @@ struct FmiIoTStation
   double longitude = 0;
   double latitude = 0;
   double elevation = 0;
-  Fmi::DateTime valid_from{boost::posix_time::not_a_date_time};
-  Fmi::DateTime valid_to{boost::posix_time::not_a_date_time};
+  Fmi::DateTime valid_from{Fmi::DateTime::NOT_A_DATE_TIME};
+  Fmi::DateTime valid_to{Fmi::DateTime::NOT_A_DATE_TIME};
 };
 
 class FmiIoTStations

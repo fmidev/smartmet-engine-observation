@@ -55,12 +55,12 @@ FlashCounts DummyCache::getFlashCount(const Fmi::DateTime & /* starttime */,
 
 Fmi::DateTime DummyCache::getLatestFlashModifiedTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 Fmi::DateTime DummyCache::getLatestFlashTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 std::size_t DummyCache::fillFlashDataCache(const FlashDataItems & /* flashCacheData */) const
@@ -76,12 +76,12 @@ void DummyCache::cleanFlashDataCache(
 
 Fmi::DateTime DummyCache::getLatestObservationModifiedTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 Fmi::DateTime DummyCache::getLatestObservationTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 std::size_t DummyCache::fillDataCache(const DataItems & /* cacheData */) const
@@ -102,12 +102,12 @@ void DummyCache::cleanDataCache(
 
 Fmi::DateTime DummyCache::getLatestWeatherDataQCTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 Fmi::DateTime DummyCache::getLatestWeatherDataQCModifiedTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 std::size_t DummyCache::fillWeatherDataQCCache(const WeatherDataQCItems & /* cacheData */) const
@@ -128,12 +128,12 @@ bool DummyCache::roadCloudIntervalIsCached(const Fmi::DateTime & /* starttime */
 
 Fmi::DateTime DummyCache::getLatestRoadCloudDataTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 Fmi::DateTime DummyCache::getLatestRoadCloudCreatedTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 std::size_t DummyCache::fillRoadCloudCache(
@@ -155,12 +155,12 @@ bool DummyCache::netAtmoIntervalIsCached(const Fmi::DateTime & /*starttime */,
 
 Fmi::DateTime DummyCache::getLatestNetAtmoDataTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 Fmi::DateTime DummyCache::getLatestNetAtmoCreatedTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 std::size_t DummyCache::fillNetAtmoCache(
@@ -181,12 +181,12 @@ bool DummyCache::bkHydrometaIntervalIsCached(const Fmi::DateTime & /*starttime *
 
 Fmi::DateTime DummyCache::getLatestBKHydrometaDataTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 Fmi::DateTime DummyCache::getLatestBKHydrometaCreatedTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 std::size_t DummyCache::fillBKHydrometaCache(
@@ -208,12 +208,12 @@ bool DummyCache::fmiIoTIntervalIsCached(const Fmi::DateTime & /* starttime */,
 
 Fmi::DateTime DummyCache::getLatestFmiIoTDataTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 Fmi::DateTime DummyCache::getLatestFmiIoTCreatedTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 std::size_t DummyCache::fillFmiIoTCache(
@@ -234,12 +234,12 @@ bool DummyCache::magnetometerIntervalIsCached(const Fmi::DateTime & /* starttime
 
 Fmi::DateTime DummyCache::getLatestMagnetometerDataTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 Fmi::DateTime DummyCache::getLatestMagnetometerModifiedTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 std::size_t DummyCache::fillMagnetometerCache(

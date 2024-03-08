@@ -16,7 +16,7 @@ class WeatherDataQCItem
 {
  public:
   Fmi::DateTime obstime;
-  Fmi::DateTime modified_last{boost::posix_time::not_a_date_time};
+  Fmi::DateTime modified_last{Fmi::DateTime::NOT_A_DATE_TIME};
   std::string parameter;
   boost::optional<double> value;
   int fmisid;

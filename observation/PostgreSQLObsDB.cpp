@@ -160,8 +160,8 @@ void PostgreSQLObsDB::readMovingStationsCacheDataFromPostgreSQL(
 
       MovingLocationItem item;
       item.station_id = as_int(row[0]);
-      item.sdate = boost::posix_time::from_time_t(row[1].as<time_t>());
-      item.edate = boost::posix_time::from_time_t(row[2].as<time_t>());
+      item.sdate = Fmi::date_time::from_time_t(row[1].as<time_t>());
+      item.edate = Fmi::date_time::from_time_t(row[2].as<time_t>());
       item.lon = as_double(row[3]);
       item.lat = as_double(row[4]);
       item.elev = as_double(row[5]);
@@ -192,14 +192,14 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
       item.measurand_id = as_int(row[2]);
       item.producer_id = as_int(row[3]);
       item.measurand_no = as_int(row[4]);
-      item.data_time = boost::posix_time::from_time_t(row[5].as<time_t>());
+      item.data_time = Fmi::date_time::from_time_t(row[5].as<time_t>());
       if (!row[6].is_null())
         item.data_value = as_double(row[6]);
       if (!row[7].is_null())
         item.data_quality = as_int(row[7]);
       if (!row[8].is_null())
         item.data_source = as_int(row[8]);
-      item.modified_last = boost::posix_time::from_time_t(row[9].as<time_t>());
+      item.modified_last = Fmi::date_time::from_time_t(row[9].as<time_t>());
 
       cacheData.emplace_back(item);
     }
@@ -211,7 +211,7 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
 }
 
 void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
-                                                  const boost::posix_time::time_period &dataPeriod,
+                                                  const Fmi::TimePeriod &dataPeriod,
                                                   const std::string &fmisid,
                                                   const std::string &measurandId,
                                                   const Fmi::TimeZones &timezones)
@@ -333,7 +333,7 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem
 
 void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
     std::vector<FlashDataItem> &cacheData,
-    const boost::posix_time::time_period &dataPeriod,
+    const Fmi::TimePeriod &dataPeriod,
     const Fmi::TimeZones &timezones)
 {
   try
@@ -451,13 +451,13 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
       WeatherDataQCItem item;
 
       item.fmisid = as_int(row[0]);
-      item.obstime = boost::posix_time::from_time_t(row[1].as<time_t>());
+      item.obstime = Fmi::date_time::from_time_t(row[1].as<time_t>());
       item.parameter = row[2].as<std::string>();
       item.sensor_no = as_int(row[3]);
       if (!row[4].is_null())
         item.value = as_double(row[4]);
       item.flag = as_int(row[5]);
-      item.modified_last = boost::posix_time::from_time_t(row[6].as<time_t>());
+      item.modified_last = Fmi::date_time::from_time_t(row[6].as<time_t>());
 
       cacheData.emplace_back(item);
     }
@@ -470,7 +470,7 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
 
 void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
     std::vector<WeatherDataQCItem> &cacheData,
-    const boost::posix_time::time_period &dataPeriod,
+    const Fmi::TimePeriod &dataPeriod,
     const std::string &fmisid,
     const std::string &measurandId,
     const Fmi::TimeZones &timezones)
@@ -602,7 +602,7 @@ void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
       item.fmisid = as_int(row[0]);
       item.magnetometer = row[1].as<std::string>();
       item.level = as_int(row[2]);
-      item.data_time = boost::posix_time::from_time_t(row[3].as<time_t>());
+      item.data_time = Fmi::date_time::from_time_t(row[3].as<time_t>());
       if (!row[4].is_null())
         item.x = as_double(row[4]);
       if (!row[5].is_null())
@@ -614,7 +614,7 @@ void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
       if (!row[8].is_null())
         item.f = as_double(row[8]);
       item.data_quality = as_int(row[9]);
-      item.modified_last = boost::posix_time::from_time_t(row[10].as<time_t>());
+      item.modified_last = Fmi::date_time::from_time_t(row[10].as<time_t>());
       cacheData.emplace_back(item);
     }
   }
@@ -661,7 +661,7 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
     {
       Fmi::AsyncTask::interruption_point();
       boost::optional<int> fmisid = as_int(row[0]);
-      Fmi::DateTime obstime = boost::posix_time::from_time_t(row[1].as<time_t>());
+      Fmi::DateTime obstime = Fmi::date_time::from_time_t(row[1].as<time_t>());
       boost::optional<std::string> parameter = row[2].as<std::string>();
       int int_parameter = itsParameterMap->getRoadAndForeignIds().stringToInteger(*parameter);
 
@@ -1282,7 +1282,7 @@ Fmi::DateTime PostgreSQLObsDB::getLatestDataUpdateTime(
 {
   try
   {
-    Fmi::DateTime ret = boost::posix_time::not_a_date_time;
+    Fmi::DateTime ret = Fmi::DateTime::NOT_A_DATE_TIME;
 
     auto starttime = from;
     auto endtime = Utils::utc_second_clock();

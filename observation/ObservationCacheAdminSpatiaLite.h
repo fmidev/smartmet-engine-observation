@@ -22,21 +22,21 @@ class ObservationCacheAdminSpatiaLite : public ObservationCacheAdminBase
   {
   }
   void readObservationCacheData(std::vector<DataItem>& cacheData,
-                                const boost::posix_time::time_period& dataPeriod,
+                                const Fmi::TimePeriod& dataPeriod,
                                 const std::string& fmisid,
                                 const std::string& measurandId,
                                 const Fmi::TimeZones& timezones) const override
   {
   }
   void readWeatherDataQCCacheData(std::vector<WeatherDataQCItem>& cacheData,
-                                  const boost::posix_time::time_period& dataPeriod,
+                                  const Fmi::TimePeriod& dataPeriod,
                                   const std::string& fmisid,
                                   const std::string& measurandId,
                                   const Fmi::TimeZones& timezones) const override
   {
   }
   void readFlashCacheData(std::vector<FlashDataItem>& cacheData,
-                          const boost::posix_time::time_period& dataPeriod,
+                          const Fmi::TimePeriod& dataPeriod,
                           const Fmi::TimeZones& timezones) const override
   {
   }

@@ -40,7 +40,7 @@ struct SpatiaLiteCacheParameters
 
   const boost::atomic_shared_ptr<StationInfo>* stationInfo = nullptr;
 
-  std::shared_ptr<boost::posix_time::time_period> flashCachePeriod;
+  std::shared_ptr<Fmi::TimePeriod> flashCachePeriod;
   std::string cacheFile;
   std::size_t maxInsertSize = 5000;
   int connectionPoolSize = 0;

@@ -31,7 +31,7 @@ Fmi::DateTime ObservationMemoryCache::getStartTime() const
     if (t)
       return *t;
 
-    return {boost::posix_time::not_a_date_time};
+    return {Fmi::DateTime::NOT_A_DATE_TIME};
   }
   catch (...)
   {
@@ -180,7 +180,7 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
     {
       // We intentionally store a not_a_date_time, and let the cache cleaner determine
       // what the oldest observation in the cache is.
-      starttime = boost::make_shared<Fmi::DateTime>(boost::posix_time::not_a_date_time);
+      starttime = boost::make_shared<Fmi::DateTime>(Fmi::DateTime::NOT_A_DATE_TIME);
       itsStartTime.store(starttime);
     }
 

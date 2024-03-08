@@ -195,7 +195,7 @@ void DatabaseDriverBase::readMetaData(Spine::ConfigBase &cfg)
         (fixedPeriodEndTime ? Fmi::TimeParser::parse(last_observation_time)
                             : Fmi::SecondClock::universal_time());
 
-    boost::posix_time::time_period time_period(obs_period_starttime, obs_period_endtime);
+    Fmi::TimePeriod time_period(obs_period_starttime, obs_period_endtime);
 
     // timestep
     int timestep = cfg.get_optional_config_param<int>("meta_data.timestep." + type, -1);
@@ -228,7 +228,7 @@ MetaData DatabaseDriverBase::metaData(const std::string &producer) const
         // subtract seconds so we have even minutes
         long sec = currentTime.time_of_day().seconds();
         currentTime = currentTime - Fmi::Seconds(sec);
-        ret.period = boost::posix_time::time_period(ret.period.begin(), currentTime);
+        ret.period = Fmi::TimePeriod(ret.period.begin(), currentTime);
       }
     }
   }
@@ -442,7 +442,7 @@ Fmi::DateTime DatabaseDriverBase::getLatestDataUpdateTime(
   try
   {
     // By default not_a_date_time, the actual database driver will return valid time
-    return boost::posix_time::not_a_date_time;
+    return Fmi::DateTime::NOT_A_DATE_TIME;
   }
   catch (...)
   {

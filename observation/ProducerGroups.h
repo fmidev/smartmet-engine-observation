@@ -1,6 +1,7 @@
 #pragma once
 
 #include <macgyver/DateTime.h>
+#include <map>
 #include <set>
 
 namespace SmartMet
@@ -9,7 +10,7 @@ namespace Engine
 {
 namespace Observation
 {
-using ProducerGroupPeriod = boost::posix_time::time_period;          // group period
+using ProducerGroupPeriod = Fmi::TimePeriod;          // group period
 using ProducerGroupPeriodVector = std::vector<ProducerGroupPeriod>;  // group periods
 using ProducerGroupPeriodMap =
     std::map<unsigned int, ProducerGroupPeriodVector>;  // producer id -> group periods
