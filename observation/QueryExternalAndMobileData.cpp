@@ -11,9 +11,6 @@ namespace Engine
 namespace Observation
 {
 using namespace std;
-using namespace boost::gregorian;
-using namespace boost::posix_time;
-using namespace boost::local_time;
 
 QueryExternalAndMobileData::QueryExternalAndMobileData(
     const ExternalAndMobileProducerConfig &producerConfig,

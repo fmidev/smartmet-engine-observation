@@ -14,9 +14,6 @@
 // #define MYDEBUG 1
 
 using namespace std;
-using namespace boost::gregorian;
-using namespace boost::posix_time;
-using namespace boost::local_time;
 
 namespace SmartMet
 {
@@ -852,7 +849,7 @@ void PostgreSQLObsDB::getStations(Spine::Stations &stations) const
                     PARTITION BY t.target_id, tg.group_name)  AS valid_from,
                 Max(tgm.valid_to)
                   over(
-                    PARTITION BY t.target_id, tg.group_name)  AS valid_to, 
+                    PARTITION BY t.target_id, tg.group_name)  AS valid_to,
                 l.location_start,
                 l.location_end,
                 ROUND(St_x(geom) :: NUMERIC, 5) AS longitude,

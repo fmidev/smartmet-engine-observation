@@ -28,8 +28,8 @@ TEST_CASE("Test observation memory cache in parallel (TSAN)")
     int numberofstations = 1000;
     double maxdistance = 500 * 1000;  // meters
     std::set<std::string> groups;
-    Fmi::DateTime starttime = boost::posix_time::time_from_string("2020-01-01 00:00:00");
-    Fmi::DateTime endtime = boost::posix_time::time_from_string("2020-02-01 00:00:00");
+    Fmi::DateTime starttime = Fmi::DateTime::from_string("2020-01-01 00:00:00");
+    Fmi::DateTime endtime = Fmi::DateTime::from_string("2020-02-01 00:00:00");
     auto stations = stationinfo.findNearestStations(
         lon, lat, maxdistance, numberofstations, groups, starttime, endtime);
 
