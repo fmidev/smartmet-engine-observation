@@ -25,10 +25,8 @@ void add_where_conditions(std::string &sqlStmt,
   {
     sqlStmt += " AND ST_Contains(ST_GeomFromText('";
     sqlStmt += wktAreaFilter;
-    sqlStmt += ("', 4326), " +
-                std::string(((producer == NETATMO_PRODUCER || producer == BK_HYDROMETA_PRODUCER)
-                                 ? "stat.geom)"
-                                 : "obs.geom)")));
+    sqlStmt +=
+        ("', 4326), " + std::string(((producer == NETATMO_PRODUCER) ? "stat.geom)" : "obs.geom)")));
   }
 
   if (!measurandIds.empty())
@@ -164,7 +162,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
          itsProducerConfig->databaseTable() + " obs WHERE obs.prod_id=");
     sqlStmt += producerId;
   }
-  else if (producerName == NETATMO_PRODUCER || producerName == BK_HYDROMETA_PRODUCER)
+  else if (producerName == NETATMO_PRODUCER)
   {
     sqlStmt = "SELECT obs.prod_id, obs.station_id, obs.dataset_id, obs.data_level";
     for (auto mid : measurandIds)
@@ -197,7 +195,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
         "obs.prod_id,obs.station_id,obs.dataset_id,obs.data_level,obs.sensor_no,obs.data_time,obs."
         "data_value_txt,obs.data_quality,obs.ctrl_status,longitude,latitude,altitude,"
         "station_id ORDER BY obs.data_time, obs.station_id ASC";
-  else if (producerName == NETATMO_PRODUCER || producerName == BK_HYDROMETA_PRODUCER)
+  else if (producerName == NETATMO_PRODUCER)
   {
     sqlStmt +=
         " GROUP BY "
@@ -219,10 +217,9 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
   return sqlStmt;
 }
 
-std::string ExternalAndMobileDBInfo::sqlSelectForCache(
-    const std::string &producer,
-    const Fmi::DateTime &from_data_time,
-    const Fmi::DateTime &from_created_time)
+std::string ExternalAndMobileDBInfo::sqlSelectForCache(const std::string &producer,
+                                                       const Fmi::DateTime &from_data_time,
+                                                       const Fmi::DateTime &from_created_time)
 {
   std::string sqlStmt;
   std::string created_stmt;
@@ -246,7 +243,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectForCache(
          tablename + " obs WHERE obs.prod_id = 1 AND obs.data_time>='" +
          Fmi::to_iso_extended_string(from_data_time) + "'" + created_stmt);
   }
-  else if (producer == NETATMO_PRODUCER || producer == BK_HYDROMETA_PRODUCER)
+  else if (producer == NETATMO_PRODUCER)
   {
     // Join ext_obsdata and ext_station_v1 tables
     sqlStmt =
@@ -255,8 +252,8 @@ std::string ExternalAndMobileDBInfo::sqlSelectForCache(
          "obs.data_value_txt, obs.data_quality, obs.ctrl_status, EXTRACT(EPOCH FROM obs.created) "
          "as created, ST_X(stat.geom) as longitude, ST_Y(stat.geom) as latitude, "
          "stat.altitude as altitude FROM " +
-         tablename + " obs, ext_station_v1 stat WHERE obs.prod_id= " +
-         (producer == NETATMO_PRODUCER ? "3 " : "7 ") +
+         tablename +
+         " obs, ext_station_v1 stat WHERE obs.prod_id=3 "
          "AND obs.prod_id=stat.prod_id AND obs.station_id=stat.station_id AND obs.data_time>='" +
          Fmi::to_iso_extended_string(from_data_time) + "'" + created_stmt);
   }
@@ -295,8 +292,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
   std::string producerName = itsProducerConfig->producerId().name();
 
   if (producerName != NETATMO_PRODUCER && producerName != ROADCLOUD_PRODUCER &&
-      producerName != TECONER_PRODUCER && producerName != FMI_IOT_PRODUCER &&
-      producerName != BK_HYDROMETA_PRODUCER)
+      producerName != TECONER_PRODUCER && producerName != FMI_IOT_PRODUCER)
   {
     throw Fmi::Exception(BCP, "SQL select not defined for producer " + producerName);
   }
@@ -352,7 +348,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
         "obs."
         "data_value_txt,obs.data_quality,obs.ctrl_status,longitude,latitude,altitude,obs."
         "station_id ORDER BY obs.data_time, obs.station_id ASC";
-  else if (producerName == NETATMO_PRODUCER || producerName == BK_HYDROMETA_PRODUCER)
+  else if (producerName == NETATMO_PRODUCER)
   {
     sqlStmt +=
         " GROUP BY "
@@ -519,64 +515,6 @@ std::string ExternalAndMobileDBInfo::measurandFieldname(int measurandId) const
         return "ws_n";
       case 113104:
         return "ws_e";
-      default:
-        return "";
-    }
-  }
-  else if (producer == BK_HYDROMETA_PRODUCER)
-  {
-    switch (measurandId)
-    {
-      case 8185:
-        return "WG";
-      case 8186:
-        return "PA";
-      case 8187:
-        return "P_ST";
-      case 8188:
-        return "WD";
-      case 8189:
-        return "WS";
-      case 8190:
-        return "PREC_24H";
-      case 8191:
-        return "RH";
-      case 8192:
-        return "TD";
-      case 8193:
-        return "TA";
-      case 8194:
-        return "PREC_1H";
-      case 23240:
-        return "relative_humidity";
-      case 23241:
-        return "wind_speed";
-      case 23242:
-        return "absolute_air_pressure";
-      case 23243:
-        return "wind_direction_compass";
-      case 23244:
-        return "global_radiation";
-      case 23245:
-        return "precipitation_type";
-      case 23246:
-        return "precipitation_intensity_h";
-      case 23247:
-        return "compass_direction";
-      case 23248:
-        return "air_temperature";
-      case 23249:
-        return "absolute_humidity";
-      case 23250:
-        return "wind_direction";
-      case 23251:
-        return "relative_air_pressure";
-      case 23252:
-        return "dewpoint_temperature";
-      case 23253:
-        return "precipitation";
-      case 23254:
-        return "precipitation_diff";
       default:
         return "";
     }

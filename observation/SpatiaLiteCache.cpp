@@ -98,15 +98,6 @@ void SpatiaLiteCache::initializeConnectionPool()
       itsNetAtmoTimeIntervalEnd = end;
     }
 
-    // BKHydrometa
-    if (cacheTables.find(BK_HYDROMETA_DATA_TABLE) != cacheTables.end())
-    {
-      auto start = db->getOldestBKHydrometaDataTime();
-      auto end = db->getLatestBKHydrometaDataTime();
-      itsBKHydrometaTimeIntervalStart = start;
-      itsBKHydrometaTimeIntervalEnd = end;
-    }
-
     // FmiIoT
     if (cacheTables.find(FMI_IOT_DATA_TABLE) != cacheTables.end())
     {
@@ -184,9 +175,6 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
 
     if (settings.stationtype == NETATMO_PRODUCER)
       return netAtmoValuesFromSpatiaLite(settings);
-
-    if (settings.stationtype == BK_HYDROMETA_PRODUCER)
-      return bkHydrometaValuesFromSpatiaLite(settings);
 
     if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTValuesFromSpatiaLite(settings);
@@ -269,9 +257,6 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
 
     if (settings.stationtype == NETATMO_PRODUCER)
       return netAtmoValuesFromSpatiaLite(settings);
-
-    if (settings.stationtype == BK_HYDROMETA_PRODUCER)
-      return bkHydrometaValuesFromSpatiaLite(settings);
 
     if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTValuesFromSpatiaLite(settings);
@@ -425,8 +410,8 @@ bool SpatiaLiteCache::flashIntervalIsCached(const Fmi::DateTime &starttime,
   }
 }
 
-bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(
-    const Fmi::DateTime &starttime, const Fmi::DateTime & /* endtime */) const
+bool SpatiaLiteCache::timeIntervalWeatherDataQCIsCached(const Fmi::DateTime &starttime,
+                                                        const Fmi::DateTime & /* endtime */) const
 {
   try
   {
@@ -474,9 +459,6 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
 
     if (s == NETATMO_PRODUCER)
       return netAtmoIntervalIsCached(settings.starttime, settings.endtime);
-
-    if (s == BK_HYDROMETA_PRODUCER)
-      return bkHydrometaIntervalIsCached(settings.starttime, settings.endtime);
 
     if (s == FMI_IOT_PRODUCER)
       return fmiIoTIntervalIsCached(settings.starttime, settings.endtime);
@@ -574,9 +556,8 @@ std::size_t SpatiaLiteCache::fillFlashDataCache(const FlashDataItems &flashCache
   }
 }
 
-void SpatiaLiteCache::cleanFlashDataCache(
-    const Fmi::TimeDuration &timetokeep,
-    const Fmi::TimeDuration &timetokeep_memory) const
+void SpatiaLiteCache::cleanFlashDataCache(const Fmi::TimeDuration &timetokeep,
+                                          const Fmi::TimeDuration &timetokeep_memory) const
 {
   try
   {
@@ -834,116 +815,6 @@ Fmi::DateTime SpatiaLiteCache::getLatestNetAtmoCreatedTime() const
   return itsConnectionPool->getConnection()->getLatestNetAtmoCreatedTime();
 }
 
-bool SpatiaLiteCache::bkHydrometaIntervalIsCached(const Fmi::DateTime &starttime,
-                                                  const Fmi::DateTime &) const
-{
-  try
-  {
-    bool ok = false;
-    {
-      Spine::ReadLock lock(itsBKHydrometaTimeIntervalMutex);
-      ok = (!itsBKHydrometaTimeIntervalStart.is_not_a_date_time() &&
-            !itsBKHydrometaTimeIntervalEnd.is_not_a_date_time() &&
-            starttime >= itsBKHydrometaTimeIntervalStart);
-    }
-
-    if (ok)
-      hit(BK_HYDROMETA_DATA_TABLE);
-    else
-      miss(BK_HYDROMETA_DATA_TABLE);
-    return ok;
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Checking if BKHydrometa interval is cached failed!");
-  }
-}
-
-std::size_t SpatiaLiteCache::fillBKHydrometaCache(
-    const MobileExternalDataItems &mobileExternalCacheData) const
-{
-  try
-  {
-    auto conn = itsConnectionPool->getConnection();
-    auto sz = conn->fillBKHydrometaCache(mobileExternalCacheData, itsBKHydrometaInsertCache);
-
-    // Update what really now really is in the database
-    auto start = conn->getOldestBKHydrometaDataTime();
-    auto end = conn->getLatestBKHydrometaDataTime();
-    Spine::WriteLock lock(itsBKHydrometaTimeIntervalMutex);
-    itsBKHydrometaTimeIntervalStart = start;
-    itsBKHydrometaTimeIntervalEnd = end;
-    return sz;
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Filling BKHydrometa cache failed!");
-  }
-}
-
-void SpatiaLiteCache::cleanBKHydrometaCache(
-    const Fmi::TimeDuration &timetokeep) const
-{
-  try
-  {
-    // Dont clean fake cache
-    if (isFakeCache(BK_HYDROMETA_DATA_TABLE))
-      return;
-
-    Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
-    t = round_down_to_cache_clean_interval(t);
-
-    auto conn = itsConnectionPool->getConnection();
-    {
-      // We know the cache will not contain anything before this after the update
-      Spine::WriteLock lock(itsBKHydrometaTimeIntervalMutex);
-      itsBKHydrometaTimeIntervalStart = t;
-    }
-    conn->cleanBKHydrometaCache(t);
-
-    // Update what really remains in the database
-    auto start = conn->getOldestBKHydrometaDataTime();
-    auto end = conn->getLatestBKHydrometaDataTime();
-    Spine::WriteLock lock(itsBKHydrometaTimeIntervalMutex);
-    itsBKHydrometaTimeIntervalStart = start;
-    itsBKHydrometaTimeIntervalEnd = end;
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Cleaning BKHydrometa cache failed!");
-  }
-}
-
-TS::TimeSeriesVectorPtr SpatiaLiteCache::bkHydrometaValuesFromSpatiaLite(
-    const Settings &settings) const
-{
-  try
-  {
-    TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
-
-    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
-    db->setDebug(settings.debug_options);
-    hit(BK_HYDROMETA_DATA_TABLE);
-    ret = db->getBKHydrometaData(settings, itsTimeZones);
-
-    return ret;
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Getting BKHydrometa values from cache failed!");
-  }
-}
-
-Fmi::DateTime SpatiaLiteCache::getLatestBKHydrometaDataTime() const
-{
-  return itsConnectionPool->getConnection()->getLatestBKHydrometaDataTime();
-}
-
-Fmi::DateTime SpatiaLiteCache::getLatestBKHydrometaCreatedTime() const
-{
-  return itsConnectionPool->getConnection()->getLatestBKHydrometaCreatedTime();
-}
-
 bool SpatiaLiteCache::fmiIoTIntervalIsCached(const Fmi::DateTime &starttime,
                                              const Fmi::DateTime &) const
 {
@@ -1118,9 +989,8 @@ itsTimeIntervalEnd = end;
   }
 }
 
-void SpatiaLiteCache::cleanDataCache(
-    const Fmi::TimeDuration &timetokeep,
-    const Fmi::TimeDuration &timetokeep_memory) const
+void SpatiaLiteCache::cleanDataCache(const Fmi::TimeDuration &timetokeep,
+                                     const Fmi::TimeDuration &timetokeep_memory) const
 {
   try
   {
@@ -1187,8 +1057,7 @@ std::size_t SpatiaLiteCache::fillWeatherDataQCCache(const WeatherDataQCItems &ca
   }
 }
 
-void SpatiaLiteCache::cleanWeatherDataQCCache(
-    const Fmi::TimeDuration &timetokeep) const
+void SpatiaLiteCache::cleanWeatherDataQCCache(const Fmi::TimeDuration &timetokeep) const
 {
   try
   {
@@ -1220,8 +1089,8 @@ void SpatiaLiteCache::cleanWeatherDataQCCache(
   }
 }
 
-bool SpatiaLiteCache::magnetometerIntervalIsCached(
-    const Fmi::DateTime &starttime, const Fmi::DateTime & /* endtime */) const
+bool SpatiaLiteCache::magnetometerIntervalIsCached(const Fmi::DateTime &starttime,
+                                                   const Fmi::DateTime & /* endtime */) const
 {
   try
   {
@@ -1276,8 +1145,7 @@ std::size_t SpatiaLiteCache::fillMagnetometerCache(
   }
 }
 
-void SpatiaLiteCache::cleanMagnetometerCache(
-    const Fmi::TimeDuration &timetokeep) const
+void SpatiaLiteCache::cleanMagnetometerCache(const Fmi::TimeDuration &timetokeep) const
 {
   try
   {
@@ -1421,11 +1289,10 @@ void SpatiaLiteCache::getMovingStations(Spine::Stations &stations,
   itsConnectionPool->getConnection()->getMovingStations(stations, settings, wkt);
 }
 
-Fmi::DateTime SpatiaLiteCache::getLatestDataUpdateTime(
-    const std::string &tablename,
-    const Fmi::DateTime &starttime,
-    const std::string &producer_ids,
-    const std::string &measurand_ids) const
+Fmi::DateTime SpatiaLiteCache::getLatestDataUpdateTime(const std::string &tablename,
+                                                       const Fmi::DateTime &starttime,
+                                                       const std::string &producer_ids,
+                                                       const std::string &measurand_ids) const
 {
   return itsConnectionPool->getConnection()->getLatestDataUpdateTime(
       tablename, starttime, producer_ids, measurand_ids);

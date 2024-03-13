@@ -56,9 +56,8 @@ class ObservationCache
   virtual Fmi::DateTime getLatestFlashModifiedTime() const = 0;
   virtual Fmi::DateTime getLatestFlashTime() const = 0;
   virtual std::size_t fillFlashDataCache(const FlashDataItems &flashCacheData) const = 0;
-  virtual void cleanFlashDataCache(
-      const Fmi::TimeDuration &timetokeep,
-      const Fmi::TimeDuration &timetokeep_memory) const = 0;
+  virtual void cleanFlashDataCache(const Fmi::TimeDuration &timetokeep,
+                                   const Fmi::TimeDuration &timetokeep_memory) const = 0;
 
   virtual Fmi::DateTime getLatestObservationModifiedTime() const = 0;
   virtual Fmi::DateTime getLatestObservationTime() const = 0;
@@ -72,8 +71,7 @@ class ObservationCache
   virtual Fmi::DateTime getLatestWeatherDataQCTime() const = 0;
   virtual Fmi::DateTime getLatestWeatherDataQCModifiedTime() const = 0;
   virtual std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const = 0;
-  virtual void cleanWeatherDataQCCache(
-      const Fmi::TimeDuration &timetokeep) const = 0;
+  virtual void cleanWeatherDataQCCache(const Fmi::TimeDuration &timetokeep) const = 0;
 
   virtual bool roadCloudIntervalIsCached(const Fmi::DateTime &starttime,
                                          const Fmi::DateTime &endtime) const = 0;
@@ -90,14 +88,6 @@ class ObservationCache
   virtual std::size_t fillNetAtmoCache(
       const MobileExternalDataItems &mobileExternalCacheData) const = 0;
   virtual void cleanNetAtmoCache(const Fmi::TimeDuration &timetokeep) const = 0;
-
-  virtual bool bkHydrometaIntervalIsCached(const Fmi::DateTime &starttime,
-                                           const Fmi::DateTime &endtime) const = 0;
-  virtual Fmi::DateTime getLatestBKHydrometaDataTime() const = 0;
-  virtual Fmi::DateTime getLatestBKHydrometaCreatedTime() const = 0;
-  virtual std::size_t fillBKHydrometaCache(
-      const MobileExternalDataItems &mobileExternalCacheData) const = 0;
-  virtual void cleanBKHydrometaCache(const Fmi::TimeDuration &timetokeep) const = 0;
 
   virtual bool fmiIoTIntervalIsCached(const Fmi::DateTime &starttime,
                                       const Fmi::DateTime &endtime) const = 0;
@@ -131,11 +121,10 @@ class ObservationCache
   virtual void getMovingStations(Spine::Stations &stations,
                                  const Settings &settings,
                                  const std::string &wkt) const = 0;
-  virtual Fmi::DateTime getLatestDataUpdateTime(
-      const std::string &tablename,
-      const Fmi::DateTime &starttime,
-      const std::string &producer_ids,
-      const std::string &measurand_ids) const;
+  virtual Fmi::DateTime getLatestDataUpdateTime(const std::string &tablename,
+                                                const Fmi::DateTime &starttime,
+                                                const std::string &producer_ids,
+                                                const std::string &measurand_ids) const;
 
  protected:
   ObservationCache(const CacheInfoItem &ci);

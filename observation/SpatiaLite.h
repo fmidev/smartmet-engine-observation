@@ -277,41 +277,6 @@ class SpatiaLite : public CommonDatabaseFunctions
   void cleanNetAtmoCache(const Fmi::DateTime &newstarttime);
 
   /**
-   * @brief Get the newest observation in ext_obsdata_bk_hydrometa table
-   * @return Fmi::DateTime The time of the newest bk_hydrometa observation
-   */
-
-  Fmi::DateTime getLatestBKHydrometaDataTime();
-
-  /**
-   * @brief Get the latest creation time in ext_obsdata_bk_hydromate table
-   * @return Fmi::DateTime The latest creation time
-   */
-
-  Fmi::DateTime getLatestBKHydrometaCreatedTime();
-
-  /**
-   * @brief Get the oldest observation in ext_obsdata_bk_hydrometa table
-
-   * @return Fmi::DateTime The time of the oldest bk_hydrometa observation
-   */
-
-  Fmi::DateTime getOldestBKHydrometaDataTime();
-
-  /**
-   * @brief Insert cached observations into ext_obsdata_bk_hydrometa table
-   * @param bk_hydrometa observation data to be inserted into the table
-   */
-  std::size_t fillBKHydrometaCache(const MobileExternalDataItems &mobileExternalCacheData,
-                                   InsertStatus &insertStatus);
-
-  /**
-   * @brief Delete old bk_hydrometa observation data from ext_obsdata_roadcloud table
-   * @param timetokeep Delete bk_hydrometa data which is older than given duration
-   */
-  void cleanBKHydrometaCache(const Fmi::DateTime &newstarttime);
-
-  /**
    * @brief Get the time of the newest FmiIoT observation in ext_obsdata_roadcloud table
    * @return Fmi::DateTime The time of the newest FmiIoT observation
    */
@@ -467,9 +432,9 @@ class SpatiaLite : public CommonDatabaseFunctions
                          const std::string &wkt);
 
   Fmi::DateTime getLatestDataUpdateTime(const std::string &tablename,
-                                                   const Fmi::DateTime &starttime,
-                                                   const std::string &producer_ids,
-                                                   const std::string &measurand_ids);
+                                        const Fmi::DateTime &starttime,
+                                        const std::string &producer_ids,
+                                        const std::string &measurand_ids);
 
  private:
   // Private members
@@ -482,10 +447,8 @@ class SpatiaLite : public CommonDatabaseFunctions
 
   bool itsReadOnly = false;
 
-  Fmi::DateTime getLatestTimeFromTable(const std::string &tablename,
-                                                  const std::string &time_field);
-  Fmi::DateTime getOldestTimeFromTable(const std::string &tablename,
-                                                  const std::string &time_field);
+  Fmi::DateTime getLatestTimeFromTable(const std::string &tablename, const std::string &time_field);
+  Fmi::DateTime getOldestTimeFromTable(const std::string &tablename, const std::string &time_field);
 
   void initSpatialMetaData();
   void createMovingLocationsDataTable();

@@ -52,9 +52,8 @@ class SpatiaLiteCache : public ObservationCache
   Fmi::DateTime getLatestFlashModifiedTime() const override;
   Fmi::DateTime getLatestFlashTime() const override;
   std::size_t fillFlashDataCache(const FlashDataItems &flashCacheData) const override;
-  void cleanFlashDataCache(
-      const Fmi::TimeDuration &timetokeep,
-      const Fmi::TimeDuration &timetokeep_memory) const override;
+  void cleanFlashDataCache(const Fmi::TimeDuration &timetokeep,
+                           const Fmi::TimeDuration &timetokeep_memory) const override;
   Fmi::DateTime getLatestObservationModifiedTime() const override;
   Fmi::DateTime getLatestObservationTime() const override;
   std::size_t fillDataCache(const DataItems &cacheData) const override;
@@ -85,16 +84,6 @@ class SpatiaLiteCache : public ObservationCache
       const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanNetAtmoCache(const Fmi::TimeDuration &timetokeep) const override;
   TS::TimeSeriesVectorPtr netAtmoValuesFromSpatiaLite(const Settings &settings) const;
-
-  // BKHydrometa
-  bool bkHydrometaIntervalIsCached(const Fmi::DateTime &starttime,
-                                   const Fmi::DateTime &endtime) const override;
-  Fmi::DateTime getLatestBKHydrometaDataTime() const override;
-  Fmi::DateTime getLatestBKHydrometaCreatedTime() const override;
-  std::size_t fillBKHydrometaCache(
-      const MobileExternalDataItems &mobileExternalCacheData) const override;
-  void cleanBKHydrometaCache(const Fmi::TimeDuration &timetokeep) const override;
-  TS::TimeSeriesVectorPtr bkHydrometaValuesFromSpatiaLite(const Settings &settings) const;
 
   // FmiIoT
   bool fmiIoTIntervalIsCached(const Fmi::DateTime &starttime,
@@ -131,15 +120,14 @@ class SpatiaLiteCache : public ObservationCache
   Fmi::Cache::CacheStatistics getCacheStats() const override;
 
   Fmi::DateTime getLatestDataUpdateTime(const std::string &tablename,
-                                                   const Fmi::DateTime &starttime,
-                                                   const std::string &producer_ids,
-                                                   const std::string &measurand_ids) const override;
+                                        const Fmi::DateTime &starttime,
+                                        const std::string &producer_ids,
+                                        const std::string &measurand_ids) const override;
 
  private:
   Spine::Stations getStationsFromSpatiaLite(Settings &settings,
                                             std::shared_ptr<SpatiaLite> spatialitedb);
-  bool timeIntervalIsCached(const Fmi::DateTime &starttime,
-                            const Fmi::DateTime &endtime) const;
+  bool timeIntervalIsCached(const Fmi::DateTime &starttime, const Fmi::DateTime &endtime) const;
   bool timeIntervalWeatherDataQCIsCached(const Fmi::DateTime &starttime,
                                          const Fmi::DateTime &endtime) const;
   TS::TimeSeriesVectorPtr flashValuesFromSpatiaLite(const Settings &settings) const;

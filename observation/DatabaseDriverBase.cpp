@@ -29,8 +29,6 @@ std::string DatabaseDriverBase::resolveCacheTableName(const std::string &produce
       return ROADCLOUD_DATA_TABLE;
     if (producer == FMI_IOT_PRODUCER)
       return FMI_IOT_DATA_TABLE;
-    if (producer == BK_HYDROMETA_PRODUCER)
-      return BK_HYDROMETA_DATA_TABLE;
 
     auto tablename = stationtypeConfig.getDatabaseTableNameByStationtype(producer);
 
@@ -58,7 +56,7 @@ std::string DatabaseDriverBase::resolveDatabaseTableName(const std::string &prod
     else if (producer == MAGNETO_PRODUCER)
       tablename = MAGNETOMETER_DATA_TABLE;
     else if (producer == NETATMO_PRODUCER || producer == ROADCLOUD_PRODUCER ||
-             producer == FMI_IOT_PRODUCER || producer == BK_HYDROMETA_PRODUCER)
+             producer == FMI_IOT_PRODUCER)
       tablename = EXT_OBSDATA_TABLE;
     else if (producer == ICEBUOY_PRODUCER || producer == COPERNICUS_PRODUCER)
       tablename = OBSERVATION_DATA_TABLE;
@@ -434,10 +432,9 @@ void DatabaseDriverBase::updateProducers(const EngineParametersPtr &p, Settings 
   }
 }
 
-Fmi::DateTime DatabaseDriverBase::getLatestDataUpdateTime(
-    const std::string &producer,
-    const Fmi::DateTime &from,
-    const MeasurandInfo &measurand_info) const
+Fmi::DateTime DatabaseDriverBase::getLatestDataUpdateTime(const std::string &producer,
+                                                          const Fmi::DateTime &from,
+                                                          const MeasurandInfo &measurand_info) const
 {
   try
   {

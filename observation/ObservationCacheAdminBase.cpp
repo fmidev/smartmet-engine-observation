@@ -90,7 +90,6 @@ void ObservationCacheAdminBase::init()
     std::shared_ptr<ObservationCache> netatmoCache;
     std::shared_ptr<ObservationCache> roadcloudCache;
     std::shared_ptr<ObservationCache> fmiIoTCache;
-    std::shared_ptr<ObservationCache> bkHydrometaCache;
     std::shared_ptr<ObservationCache> magnetometerCache;
     std::set<ObservationCache*> cache_set;
 
@@ -126,11 +125,6 @@ void ObservationCacheAdminBase::init()
         fmiIoTCache = getCache(FMI_IOT_DATA_TABLE);
         cache_set.insert(fmiIoTCache.get());
       }
-      else if (tablename == BK_HYDROMETA_DATA_TABLE)
-      {
-        bkHydrometaCache = getCache(BK_HYDROMETA_DATA_TABLE);
-        cache_set.insert(bkHydrometaCache.get());
-      }
       else if (tablename == MAGNETOMETER_DATA_TABLE)
       {
         magnetometerCache = getCache(MAGNETOMETER_DATA_TABLE);
@@ -158,9 +152,8 @@ void ObservationCacheAdminBase::init()
         // is not done first. We will not start threads for these since sqlite
         // would do them serially anyway.
 
-        observationCache->cleanDataCache(
-            Fmi::Hours(itsParameters.finCacheDuration),
-            Fmi::Hours(itsParameters.finMemoryCacheDuration));
+        observationCache->cleanDataCache(Fmi::Hours(itsParameters.finCacheDuration),
+                                         Fmi::Hours(itsParameters.finMemoryCacheDuration));
 
         // Oracle reads can be parallelized. The writes will be done
         // in practise serially, even though the threads will give
@@ -173,8 +166,7 @@ void ObservationCacheAdminBase::init()
 
       if (weatherDataQCCache)
       {
-        weatherDataQCCache->cleanWeatherDataQCCache(
-            Fmi::Hours(itsParameters.extCacheDuration));
+        weatherDataQCCache->cleanWeatherDataQCCache(Fmi::Hours(itsParameters.extCacheDuration));
 
         if (itsParameters.extCacheUpdateInterval > 0)
         {
@@ -185,9 +177,8 @@ void ObservationCacheAdminBase::init()
 
       if (flashCache)
       {
-        flashCache->cleanFlashDataCache(
-            Fmi::Hours(itsParameters.flashCacheDuration),
-            Fmi::Hours(itsParameters.flashMemoryCacheDuration));
+        flashCache->cleanFlashDataCache(Fmi::Hours(itsParameters.flashCacheDuration),
+                                        Fmi::Hours(itsParameters.flashMemoryCacheDuration));
 
         if (itsParameters.flashCacheUpdateInterval > 0)
         {
@@ -196,8 +187,7 @@ void ObservationCacheAdminBase::init()
       }
       if (netatmoCache)
       {
-        netatmoCache->cleanNetAtmoCache(
-            Fmi::Hours(itsParameters.netAtmoCacheDuration));
+        netatmoCache->cleanNetAtmoCache(Fmi::Hours(itsParameters.netAtmoCacheDuration));
 
         if (itsParameters.netAtmoCacheUpdateInterval > 0)
         {
@@ -207,8 +197,7 @@ void ObservationCacheAdminBase::init()
 
       if (roadcloudCache)
       {
-        roadcloudCache->cleanRoadCloudCache(
-            Fmi::Hours(itsParameters.roadCloudCacheDuration));
+        roadcloudCache->cleanRoadCloudCache(Fmi::Hours(itsParameters.roadCloudCacheDuration));
 
         if (itsParameters.roadCloudCacheUpdateInterval > 0)
         {
@@ -223,18 +212,6 @@ void ObservationCacheAdminBase::init()
         if (itsParameters.fmiIoTCacheUpdateInterval > 0)
         {
           itsBackgroundTasks->add("Init fmi_iot cache", [this]() { updateFmiIoTCache(); });
-        }
-      }
-
-      if (bkHydrometaCache)
-      {
-        bkHydrometaCache->cleanBKHydrometaCache(
-            Fmi::Hours(itsParameters.bkHydrometaCacheDuration));
-
-        if (itsParameters.bkHydrometaCacheUpdateInterval > 0)
-        {
-          itsBackgroundTasks->add("Init bk_hydrometa cache",
-                                  [this]() { updateBKHydrometaCache(); });
         }
       }
 
@@ -340,13 +317,6 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
       itsBackgroundTasks->add("fmi_iot cache update loop", [this]() { updateFmiIoTCacheLoop(); });
     }
 
-    if (tables.find(BK_HYDROMETA_DATA_TABLE) != tables.end() &&
-        itsParameters.bkHydrometaCacheUpdateInterval > 0)
-    {
-      itsBackgroundTasks->add("bk_hydrometa cache update loop",
-                              [this]() { updateBKHydrometaCacheLoop(); });
-    }
-
     if (tables.find(MAGNETOMETER_DATA_TABLE) != tables.end() &&
         itsParameters.magnetometerCacheUpdateInterval > 0)
     {
@@ -433,8 +403,7 @@ void ObservationCacheAdminBase::emulateFlashCacheUpdate(
       item.latitude = (random_integer(itsParameters.flashEmulator.bbox.yMin * 1000,
                                       itsParameters.flashEmulator.bbox.yMax * 1000) /
                        1000.0);
-      item.stroke_time =
-          time_iter + Fmi::Seconds(random_integer(0, number_of_seconds));
+      item.stroke_time = time_iter + Fmi::Seconds(random_integer(0, number_of_seconds));
       item.stroke_time_fraction = random_integer(0, 1000);  // milliseconds
       item.created = endtime;
       item.modified_last = endtime;
@@ -553,9 +522,8 @@ void ObservationCacheAdminBase::updateFlashCache() const
     // Delete too old flashes from the Cache database
     {
       auto begin = std::chrono::high_resolution_clock::now();
-      flashCache->cleanFlashDataCache(
-          Fmi::Hours(itsParameters.flashCacheDuration),
-          Fmi::Hours(itsParameters.flashMemoryCacheDuration));
+      flashCache->cleanFlashDataCache(Fmi::Hours(itsParameters.flashCacheDuration),
+                                      Fmi::Hours(itsParameters.flashMemoryCacheDuration));
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
@@ -700,9 +668,8 @@ void ObservationCacheAdminBase::updateObservationCache() const
 
     // Delete too old observations from the Cache database
     auto begin = std::chrono::high_resolution_clock::now();
-    observationCache->cleanDataCache(
-        Fmi::Hours(itsParameters.finCacheDuration),
-        Fmi::Hours(itsParameters.finMemoryCacheDuration));
+    observationCache->cleanDataCache(Fmi::Hours(itsParameters.finCacheDuration),
+                                     Fmi::Hours(itsParameters.finMemoryCacheDuration));
     auto end = std::chrono::high_resolution_clock::now();
 
     if (itsTimer)
@@ -830,8 +797,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
     // Delete too old observations from the Cache database
     {
       auto begin = std::chrono::high_resolution_clock::now();
-      weatherDataQCCache->cleanWeatherDataQCCache(
-          Fmi::Hours(itsParameters.extCacheDuration));
+      weatherDataQCCache->cleanWeatherDataQCCache(Fmi::Hours(itsParameters.extCacheDuration));
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
@@ -869,8 +835,7 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
     // Making sure that we do not request more data than we actually store into
     // the cache.
     Fmi::DateTime min_last_time =
-        Fmi::SecondClock::universal_time() -
-        Fmi::Hours(itsParameters.netAtmoCacheDuration);
+        Fmi::SecondClock::universal_time() - Fmi::Hours(itsParameters.netAtmoCacheDuration);
 
     static int update_count = 0;
 
@@ -896,8 +861,8 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
 
     if (last_time.is_not_a_date_time())
     {
-      last_time = Fmi::SecondClock::universal_time() -
-                  Fmi::Hours(itsParameters.netAtmoCacheDuration);
+      last_time =
+          Fmi::SecondClock::universal_time() - Fmi::Hours(itsParameters.netAtmoCacheDuration);
     }
 
     {
@@ -955,117 +920,6 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
   }
 }
 
-void ObservationCacheAdminBase::updateBKHydrometaCache() const
-{
-  try
-  {
-    if (Spine::Reactor::isShuttingDown())
-      return;
-
-    std::shared_ptr<ObservationCache> bkHydrometaCache = getCache(BK_HYDROMETA_DATA_TABLE);
-
-    std::vector<MobileExternalDataItem> cacheData;
-
-    Fmi::DateTime last_time = bkHydrometaCache->getLatestBKHydrometaDataTime();
-    Fmi::DateTime last_created_time =
-        bkHydrometaCache->getLatestBKHydrometaCreatedTime();
-
-    // Make sure the time is not in the future
-    Fmi::DateTime now = Fmi::SecondClock::universal_time();
-    if (!last_time.is_not_a_date_time() && last_time > now)
-      last_time = now;
-
-    // Making sure that we do not request more data than we actually store into
-    // the cache.
-    Fmi::DateTime min_last_time =
-        Fmi::SecondClock::universal_time() -
-        Fmi::Hours(itsParameters.bkHydrometaCacheDuration);
-
-    static int update_count = 0;
-
-    if (!last_time.is_not_a_date_time() &&
-        last_time < min_last_time)  // do not read too old observations
-    {
-      last_time = min_last_time;
-    }
-
-    // Note: observations are always delayed. Do not make the latter update interval
-    // too short! Experimentally 3 minutes was too short at FMI.
-
-    // Big update every 10 updates to get delayed observations.
-    bool long_update = (++update_count % 10 == 0);
-
-    if (!last_time.is_not_a_date_time() && update_count > 0)
-    {
-      if (long_update)
-        last_time -= Fmi::Hours(3);
-      else
-        last_time -= Fmi::Minutes(15);
-    }
-
-    if (last_time.is_not_a_date_time())
-    {
-      last_time = Fmi::SecondClock::universal_time() -
-                  Fmi::Hours(itsParameters.bkHydrometaCacheDuration);
-    }
-
-    {
-      auto begin = std::chrono::high_resolution_clock::now();
-
-      readMobileCacheData(
-          BK_HYDROMETA_PRODUCER, cacheData, last_time, last_created_time, itsTimeZones);
-
-      auto end = std::chrono::high_resolution_clock::now();
-
-      if (itsTimer)
-        std::cout << Spine::log_time_str() << driverName() << " database driver read "
-                  << cacheData.size() << BK_HYDROMETA_PRODUCER << " observations starting from "
-                  << last_time << " finished in "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
-    }
-
-    if (Spine::Reactor::isShuttingDown())
-      return;
-
-    {
-      auto begin = std::chrono::high_resolution_clock::now();
-      auto count = bkHydrometaCache->fillBKHydrometaCache(cacheData);
-      auto end = std::chrono::high_resolution_clock::now();
-
-      if (itsTimer)
-        std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
-                  << BK_HYDROMETA_PRODUCER << " observations starting from " << last_time
-                  << " finished in "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
-    }
-
-    if (Spine::Reactor::isShuttingDown())
-      return;
-
-    // Delete too old observations from the Cache database
-
-    {
-      auto begin = std::chrono::high_resolution_clock::now();
-      bkHydrometaCache->cleanBKHydrometaCache(
-          Fmi::Hours(itsParameters.roadCloudCacheDuration));
-      auto end = std::chrono::high_resolution_clock::now();
-
-      if (itsTimer)
-        std::cout << Spine::log_time_str() << driverName() << " database driver cleaner "
-                  << BK_HYDROMETA_PRODUCER << " cache cleaner finished in "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
-    }
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(
-        BCP, ("Updating " + std::string(BK_HYDROMETA_PRODUCER) + " cache failed!"));
-  }
-}
-
 void ObservationCacheAdminBase::updateRoadCloudCache() const
 {
   try
@@ -1088,8 +942,7 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
     // Making sure that we do not request more data than we actually store into
     // the cache.
     Fmi::DateTime min_last_time =
-        Fmi::SecondClock::universal_time() -
-        Fmi::Hours(itsParameters.roadCloudCacheDuration);
+        Fmi::SecondClock::universal_time() - Fmi::Hours(itsParameters.roadCloudCacheDuration);
 
     static int update_count = 0;
 
@@ -1115,8 +968,8 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
 
     if (last_time.is_not_a_date_time())
     {
-      last_time = Fmi::SecondClock::universal_time() -
-                  Fmi::Hours(itsParameters.roadCloudCacheDuration);
+      last_time =
+          Fmi::SecondClock::universal_time() - Fmi::Hours(itsParameters.roadCloudCacheDuration);
     }
 
     {
@@ -1158,8 +1011,7 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
 
     {
       auto begin = std::chrono::high_resolution_clock::now();
-      roadcloudCache->cleanRoadCloudCache(
-          Fmi::Hours(itsParameters.roadCloudCacheDuration));
+      roadcloudCache->cleanRoadCloudCache(Fmi::Hours(itsParameters.roadCloudCacheDuration));
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)
@@ -1198,8 +1050,7 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
     // Making sure that we do not request more data than we actually store into
     // the cache.
     Fmi::DateTime min_last_time =
-        Fmi::SecondClock::universal_time() -
-        Fmi::Hours(itsParameters.fmiIoTCacheDuration);
+        Fmi::SecondClock::universal_time() - Fmi::Hours(itsParameters.fmiIoTCacheDuration);
 
     static int update_count = 0;
 
@@ -1225,8 +1076,8 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
 
     if (last_time.is_not_a_date_time())
     {
-      last_time = Fmi::SecondClock::universal_time() -
-                  Fmi::Hours(itsParameters.fmiIoTCacheDuration);
+      last_time =
+          Fmi::SecondClock::universal_time() - Fmi::Hours(itsParameters.fmiIoTCacheDuration);
     }
 
     {
@@ -1301,8 +1152,8 @@ void ObservationCacheAdminBase::updateMagnetometerCache() const
     std::vector<MagnetometerDataItem> cacheData;
 
     // pair of data_time, modified_last
-    auto min_last_time = Fmi::SecondClock::universal_time() -
-                         Fmi::Hours(itsParameters.magnetometerCacheDuration);
+    auto min_last_time =
+        Fmi::SecondClock::universal_time() - Fmi::Hours(itsParameters.magnetometerCacheDuration);
 
     auto last_time = magnetometerCache->getLatestMagnetometerDataTime();
     auto last_modified_time = magnetometerCache->getLatestMagnetometerModifiedTime();
@@ -1313,8 +1164,7 @@ void ObservationCacheAdminBase::updateMagnetometerCache() const
     if (last_modified_time.is_not_a_date_time())
       last_modified_time = last_time;
 
-    auto last_time_pair = std::pair<Fmi::DateTime, Fmi::DateTime>(
-        last_time, last_modified_time);
+    auto last_time_pair = std::pair<Fmi::DateTime, Fmi::DateTime>(last_time, last_modified_time);
 
     // Extra safety margin since the view contains 3 tables with different max(modified_last) values
     if (!last_time_pair.second.is_not_a_date_time())
@@ -1359,8 +1209,7 @@ void ObservationCacheAdminBase::updateMagnetometerCache() const
 
     // Delete too old observations from the Cache database
     auto begin = std::chrono::high_resolution_clock::now();
-    magnetometerCache->cleanMagnetometerCache(
-        Fmi::Hours(itsParameters.magnetometerCacheDuration));
+    magnetometerCache->cleanMagnetometerCache(Fmi::Hours(itsParameters.magnetometerCacheDuration));
     auto end = std::chrono::high_resolution_clock::now();
 
     if (itsTimer)
@@ -1501,38 +1350,6 @@ void ObservationCacheAdminBase::updateNetAtmoCacheLoop()
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Failure in updateNetAtmoCacheLoop-function!");
-  }
-}
-
-void ObservationCacheAdminBase::updateBKHydrometaCacheLoop()
-{
-  try
-  {
-    while (!Spine::Reactor::isShuttingDown())
-    {
-      Fmi::AsyncTask::interruption_point();
-      try
-      {
-        updateBKHydrometaCache();
-      }
-      catch (std::exception& err)
-      {
-        logMessage(std::string(": updateBKHydrometaCache(): ") + err.what(), itsParameters.quiet);
-      }
-      catch (...)
-      {
-        logMessage(": updateBKHydrometaCache(): unknown error", itsParameters.quiet);
-      }
-
-      // Use absolute time to wait, not duration since there may be spurious wakeups.
-      std::size_t wait_duration = itsParameters.bkHydrometaCacheUpdateInterval;
-      boost::this_thread::sleep_until(boost::chrono::system_clock::now() +
-                                      boost::chrono::seconds(wait_duration));
-    }
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Failure in updateBKHydrometaCacheLoop-function!");
   }
 }
 

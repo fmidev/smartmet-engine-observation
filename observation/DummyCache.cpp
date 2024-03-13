@@ -68,9 +68,8 @@ std::size_t DummyCache::fillFlashDataCache(const FlashDataItems & /* flashCacheD
   return 0;
 }
 
-void DummyCache::cleanFlashDataCache(
-    const Fmi::TimeDuration & /* timetokeep */,
-    const Fmi::TimeDuration & /*timetokeep_memory */) const
+void DummyCache::cleanFlashDataCache(const Fmi::TimeDuration & /* timetokeep */,
+                                     const Fmi::TimeDuration & /*timetokeep_memory */) const
 {
 }
 
@@ -94,9 +93,8 @@ std::size_t DummyCache::fillMovingLocationsCache(const MovingLocationItems & /* 
   return 0;
 }
 
-void DummyCache::cleanDataCache(
-    const Fmi::TimeDuration & /* timetokeep */,
-    const Fmi::TimeDuration & /* timetokeep_memory */) const
+void DummyCache::cleanDataCache(const Fmi::TimeDuration & /* timetokeep */,
+                                const Fmi::TimeDuration & /* timetokeep_memory */) const
 {
 }
 
@@ -115,10 +113,7 @@ std::size_t DummyCache::fillWeatherDataQCCache(const WeatherDataQCItems & /* cac
   return 0;
 }
 
-void DummyCache::cleanWeatherDataQCCache(
-    const Fmi::TimeDuration & /* timetokeep */) const
-{
-}
+void DummyCache::cleanWeatherDataQCCache(const Fmi::TimeDuration & /* timetokeep */) const {}
 
 bool DummyCache::roadCloudIntervalIsCached(const Fmi::DateTime & /* starttime */,
                                            const Fmi::DateTime & /* endtime */) const
@@ -142,10 +137,7 @@ std::size_t DummyCache::fillRoadCloudCache(
   return 0;
 }
 
-void DummyCache::cleanRoadCloudCache(
-    const Fmi::TimeDuration & /* timetokeep */) const
-{
-}
+void DummyCache::cleanRoadCloudCache(const Fmi::TimeDuration & /* timetokeep */) const {}
 
 bool DummyCache::netAtmoIntervalIsCached(const Fmi::DateTime & /*starttime */,
                                          const Fmi::DateTime & /*endtime */) const
@@ -169,36 +161,7 @@ std::size_t DummyCache::fillNetAtmoCache(
   return 0;
 }
 
-void DummyCache::cleanNetAtmoCache(const Fmi::TimeDuration & /* timetokeep */) const
-{
-}
-
-bool DummyCache::bkHydrometaIntervalIsCached(const Fmi::DateTime & /*starttime */,
-                                             const Fmi::DateTime & /*endtime */) const
-{
-  return false;
-}
-
-Fmi::DateTime DummyCache::getLatestBKHydrometaDataTime() const
-{
-  return Fmi::DateTime::NOT_A_DATE_TIME;
-}
-
-Fmi::DateTime DummyCache::getLatestBKHydrometaCreatedTime() const
-{
-  return Fmi::DateTime::NOT_A_DATE_TIME;
-}
-
-std::size_t DummyCache::fillBKHydrometaCache(
-    const MobileExternalDataItems & /* mobileExternalCacheData */) const
-{
-  return 0;
-}
-
-void DummyCache::cleanBKHydrometaCache(
-    const Fmi::TimeDuration & /* timetokeep */) const
-{
-}
+void DummyCache::cleanNetAtmoCache(const Fmi::TimeDuration & /* timetokeep */) const {}
 
 bool DummyCache::fmiIoTIntervalIsCached(const Fmi::DateTime & /* starttime */,
                                         const Fmi::DateTime & /* endtime */) const
@@ -222,9 +185,7 @@ std::size_t DummyCache::fillFmiIoTCache(
   return 0;
 }
 
-void DummyCache::cleanFmiIoTCache(const Fmi::TimeDuration & /* timetokeep */) const
-{
-}
+void DummyCache::cleanFmiIoTCache(const Fmi::TimeDuration & /* timetokeep */) const {}
 
 bool DummyCache::magnetometerIntervalIsCached(const Fmi::DateTime & /* starttime */,
                                               const Fmi::DateTime & /* endtime */) const
@@ -248,10 +209,7 @@ std::size_t DummyCache::fillMagnetometerCache(
   return 0;
 }
 
-void DummyCache::cleanMagnetometerCache(
-    const Fmi::TimeDuration & /* timetokeep */) const
-{
-}
+void DummyCache::cleanMagnetometerCache(const Fmi::TimeDuration & /* timetokeep */) const {}
 
 void DummyCache::getMovingStations(Spine::Stations &stations,
                                    const Settings &settings,

@@ -336,14 +336,14 @@ void addParameterToTimeSeries(
 
       try
       {
-        if (boost::algorithm::starts_with(special.first, "longitude") ||
-            boost::algorithm::starts_with(special.first, "latitude") ||
-            boost::algorithm::starts_with(special.first, "elevation"))
+        if (special.first == "longitude" || special.first == "lon" ||
+            special.first == "latitude" || special.first == "lat" ||
+            special.first == "elevation")
         {
           int mid = 0;
-          if (boost::algorithm::starts_with(special.first, "longitude"))
+          if (special.first == "longitude" || special.first == "lon")
             mid = LONGITUDE_MEASURAND_ID;
-          else if (boost::algorithm::starts_with(special.first, "latitude"))
+          else if (special.first == "latitude" || special.first == "lat")
             mid = LATITUDE_MEASURAND_ID;
           else if (boost::algorithm::starts_with(special.first, "elevation"))
             mid = ELEVATION_MEASURAND_ID;
