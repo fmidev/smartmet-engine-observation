@@ -763,116 +763,44 @@ std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(const Settings &sett
   }
 }
 
-void PostgreSQLObsDB::translateToIdFunction(Spine::Stations &stations, int net_id) const
-{
-  std::string sqlStmtStart = ("select getMemberId(" + Fmi::to_string(net_id) + ",");
-
-  for (auto &s : stations)
-  {
-    if (net_id == 10 && s.lpnn > 0)
-      continue;
-    if (net_id == 20 && s.wmo > 0)
-      continue;
-    if (net_id == 30 && s.rwsid > 0)
-      continue;
-
-    std::string sqlStmt = (sqlStmtStart + Fmi::to_string(static_cast<int>(s.station_id)));
-    // For RWSID dont use date
-    if (net_id != 30)
-      sqlStmt += (+",'" + Fmi::to_simple_string(s.station_start) + "'");
-    sqlStmt += ")";
-
-    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-
-    for (auto row : result_set)
-    {
-      if (!row[0].is_null())
-      {
-        if (net_id == 10)
-        {
-          s.lpnn = as_int(row[0]);
-        }
-        else if (net_id == 20)
-        {
-          s.wmo = as_int(row[0]);
-        }
-        else if (net_id == 30)
-        {
-          s.rwsid = as_int(row[0]);
-        }
-      }
-      break;
-    }
-  }
-}
-
-void PostgreSQLObsDB::translateToLPNN(Spine::Stations &stations) const
-{
-  translateToIdFunction(stations, 10);
-}
-
-void PostgreSQLObsDB::translateToWMO(Spine::Stations &stations) const
-{
-  translateToIdFunction(stations, 20);
-}
-
-void PostgreSQLObsDB::translateToRWSID(Spine::Stations &stations) const
-{
-  translateToIdFunction(stations, 30);
-}
-
 void PostgreSQLObsDB::getStations(Spine::Stations &stations) const
 {
   try
   {
     // clang-format off
-    string sqlStmt = R"SQL(SELECT DISTINCT tg.group_name      AS group_code,
-                t.target_id                                   AS station_id,
-                t.access_policy                               AS access_policy_id,
-                t.target_status                               AS station_status_id,
-                t.language_code                               AS language_code,
-                t.target_formal_name                          AS station_formal_name,
-                svname.target_formal_name                     AS sv_formal_name,
-                enname.target_formal_name                     AS en_formal_name,
-                t.target_category,
-                t.stationary,
-                First_value(lpnn.member_code)
-                  over(
-                    PARTITION BY t.target_id
-                    ORDER BY lpnn.membership_start DESC)      AS lpnn,
-                First_value(wmon.member_code)
-                  over(
-                    PARTITION BY t.target_id
-                    ORDER BY wmon.membership_start DESC)      AS wmon,
-                Min(tgm.valid_from)
-                  over(
-                    PARTITION BY t.target_id, tg.group_name)  AS valid_from,
-                Max(tgm.valid_to)
-                  over(
-                    PARTITION BY t.target_id, tg.group_name)  AS valid_to, 
-                l.location_start,
-                l.location_end,
-                ROUND(St_x(geom) :: NUMERIC, 5) AS longitude,
-                Round(St_y(geom) :: NUMERIC, 5) AS latitude,
-                t.modified_last,
-                t.modified_by
+    string sqlStmt = R"SQL(SELECT DISTINCT
+       tg.group_name                  AS group_code,
+       t.target_id                    AS station_id,
+       t.access_policy                AS access_policy_id,
+       t.target_status                AS station_status_id,
+       t.language_code                AS language_code,
+       t.target_formal_name           AS station_formal_name,
+       svname.target_formal_name      AS sv_formal_name,
+       enname.target_formal_name      AS en_formal_name,
+       t.target_category,
+       t.stationary,
+       First_value(lpnn.member_code)  over(PARTITION BY t.target_id ORDER BY lpnn.membership_start DESC) AS lpnn,
+       First_value(wmon.member_code)  over(PARTITION BY t.target_id ORDER BY wmon.membership_start DESC) AS wmon,
+       First_value(rws.member_code)   over(PARTITION BY t.target_id ORDER BY rws.membership_start DESC) AS rwsid,
+       First_value(wigos.member_code) over(PARTITION BY t.target_id ORDER BY wigos.membership_start DESC) AS wsi,
+       Min(tgm.valid_from)            over(PARTITION BY t.target_id, tg.group_name) AS valid_from,
+       Max(tgm.valid_to)              over(PARTITION BY t.target_id, tg.group_name) AS valid_to,
+       l.location_start,
+       l.location_end,
+       Round(St_x(geom) :: NUMERIC, 5) AS longitude,
+       Round(St_y(geom) :: NUMERIC, 5) AS latitude,
+       t.modified_last,
+       t.modified_by
 FROM   target_group_t1 tg
-       join target_group_member_t1 tgm
-         ON ( tgm.target_group_id = tg.target_group_id )
-       join target_t1 t
-         ON( t.target_id = tgm.target_id )
-       join location_t1 l
-         ON( l.target_id = t.target_id )
-       left outer join network_member_t1 lpnn
-                    ON( lpnn.target_id = t.target_id
-                        AND lpnn.network_id = 10 )
-       left outer join network_member_t1 wmon
-                    ON( wmon.target_id = t.target_id
-                        AND wmon.network_id = 20 )
-       left outer join target_tl1 svname
-                    ON ( svname.language_code = 'sv' and svname.target_id = t.target_id )
-       left outer join target_tl1 enname
-                    ON ( enname.language_code = 'en' and enname.target_id = t.target_id )
+       join target_group_member_t1 tgm         ON( tgm.target_group_id = tg.target_group_id )
+       join target_t1 t                        ON( t.target_id = tgm.target_id )
+       join location_t1 l                      ON( l.target_id = t.target_id )
+       left outer join network_member_t1 lpnn  ON( lpnn.target_id = t.target_id AND lpnn.network_id = 10 )
+       left outer join network_member_t1 wmon  ON( wmon.target_id = t.target_id AND wmon.network_id = 20 )
+       left outer join network_member_t1 rws   ON( rws.target_id = t.target_id AND rws.network_id = 30 )
+       left outer join network_member_t1 wigos ON( wigos.target_id = t.target_id AND wigos.network_id = 77 )
+       left outer join target_tl1 svname       ON( svname.language_code = 'sv' AND svname.target_id = t.target_id )
+       left outer join target_tl1 enname       ON( enname.language_code = 'en' AND enname.target_id = t.target_id )
 WHERE  tg.group_class_id IN( 1, 81 )
        AND tg.group_name IN( 'STUKRAD', 'STUKAIR', 'RWSFIN', 'AIRQCOMM',
                              'AIRQUAL', 'ASC', 'AVI', 'AWS',
@@ -887,53 +815,39 @@ WHERE  tg.group_class_id IN( 1, 81 )
                              'RWS', 'SEA', 'SHIP', 'SOLAR',
                              'SOUNDING', 'SYNOP', 'HELCOM' )
 UNION ALL
-SELECT DISTINCT tg.group_code,
-                t.target_id                                   AS station_id,
-                t.access_policy                               AS access_policy_id,
-                t.target_status                               AS station_status_id,
-                t.language_code                               AS language_code,
-                t.target_formal_name                          AS station_formal_name,
-                svname.target_formal_name                     AS sv_formal_name,
-                enname.target_formal_name                     AS en_formal_name,
-                t.target_category,
-                t.stationary,
-                First_value(lpnn.member_code)
-                  over(
-                    PARTITION BY t.target_id
-                    ORDER BY lpnn.membership_start DESC)      AS lpnn,
-                First_value(wmon.member_code)
-                  over(
-                    PARTITION BY t.target_id
-                    ORDER BY wmon.membership_start DESC)      AS wmon,
-                min(tgm.membership_start)
-                                  over(
-                    PARTITION BY t.target_id, tg.group_code)  AS valid_from,
-                max(tgm.membership_end)
-                  over(
-                    PARTITION BY t.target_id, tg.group_code)  AS valid_to,
-                l.location_start,
-                l.location_end,
-                ROUND(St_x(geom) :: NUMERIC, 5) AS longitude,
-                Round(St_y(geom) :: NUMERIC, 5) AS latitude,
-                t.modified_last,
-                t.modified_by
+SELECT DISTINCT
+       tg.group_code,
+       t.target_id                    AS station_id,
+       t.access_policy                AS access_policy_id,
+       t.target_status                AS station_status_id,
+       t.language_code                AS language_code,
+       t.target_formal_name           AS station_formal_name,
+       svname.target_formal_name      AS sv_formal_name,
+       enname.target_formal_name      AS en_formal_name,
+       t.target_category,
+       t.stationary,
+       First_value(lpnn.member_code)  over(PARTITION BY t.target_id ORDER BY lpnn.membership_start DESC) AS lpnn,
+       First_value(wmon.member_code)  over(PARTITION BY t.target_id ORDER BY wmon.membership_start DESC) AS wmon,
+       First_value(rws.member_code)   over(PARTITION BY t.target_id ORDER BY rws.membership_start DESC) AS rwsid,
+       First_value(wigos.member_code) over(PARTITION BY t.target_id ORDER BY wigos.membership_start DESC) AS wsi,
+       Min(tgm.membership_start)      over(PARTITION BY t.target_id, tg.group_code) AS valid_from,
+       Max(tgm.membership_end)        over(PARTITION BY t.target_id, tg.group_code) AS valid_to,
+       l.location_start,
+       l.location_end,
+       Round(St_x(geom) :: NUMERIC, 5) AS longitude,
+       Round(St_y(geom) :: NUMERIC, 5) AS latitude,
+       t.modified_last,
+       t.modified_by
 FROM   network_t1 tg
-       join network_member_t1 tgm
-         ON ( tgm.network_id = tg.network_id )
-       join target_t1 t
-         ON( t.target_id = tgm.target_id )
-       join location_t1 l
-         ON( l.target_id = t.target_id )
-       left outer join network_member_t1 lpnn
-                    ON ( lpnn.target_id = t.target_id
-                         AND lpnn.network_id = 10 )
-       left outer join network_member_t1 wmon
-                    ON ( wmon.target_id = t.target_id
-                         AND wmon.network_id = 20 )
-       left outer join target_tl1 svname
-                    ON ( svname.language_code = 'sv' and svname.target_id = t.target_id )
-       left outer join target_tl1 enname
-                    ON ( enname.language_code = 'en' and enname.target_id = t.target_id )
+       join network_member_t1 tgm              ON( tgm.network_id = tg.network_id )
+       join target_t1 t                        ON( t.target_id = tgm.target_id )
+       join location_t1 l                      ON( l.target_id = t.target_id )
+       left outer join network_member_t1 lpnn  ON( lpnn.target_id = t.target_id AND lpnn.network_id = 10 )
+       left outer join network_member_t1 wmon  ON( wmon.target_id = t.target_id AND wmon.network_id = 20 )
+       left outer join network_member_t1 rws   ON( rws.target_id = t.target_id AND rws.network_id = 30 )
+       left outer join network_member_t1 wigos ON( wigos.target_id = t.target_id AND wigos.network_id = 77 )
+       left outer join target_tl1 svname       ON( svname.language_code = 'sv' AND svname.target_id = t.target_id )
+       left outer join target_tl1 enname       ON( enname.language_code = 'en' AND enname.target_id = t.target_id )
 WHERE  tg.group_class_id IN( 1, 81 )
        AND tg.group_code IN( 'STUKRAD', 'STUKAIR', 'RWSFIN', 'AIRQCOMM',
                              'AIRQUAL', 'ASC', 'AVI', 'AWS',
@@ -986,14 +900,23 @@ WHERE  tg.group_class_id IN( 1, 81 )
         s.station_formal_name_en = row[7].as<std::string>();
       s.target_category = as_int(row[8]);
       s.stationary = row[9].as<std::string>();
+
       if (!row[10].is_null())
         s.lpnn = as_int(row[10]);
       if (!row[11].is_null())
         s.wmo = as_int(row[11]);
-      auto valid_from = Fmi::TimeParser::parse(row[12].as<std::string>());
-      auto valid_to = Fmi::TimeParser::parse(row[13].as<std::string>());
-      auto location_start = Fmi::TimeParser::parse(row[14].as<std::string>());
-      auto location_end = Fmi::TimeParser::parse(row[15].as<std::string>());
+
+      if (!row[12].is_null())
+        s.rwsid = as_int(row[12]);
+#if 0
+      if (!row[13].is_null())
+        s.wigos = row[13].as<std::string>();
+#endif
+
+      auto valid_from = Fmi::TimeParser::parse(row[14].as<std::string>());
+      auto valid_to = Fmi::TimeParser::parse(row[15].as<std::string>());
+      auto location_start = Fmi::TimeParser::parse(row[16].as<std::string>());
+      auto location_end = Fmi::TimeParser::parse(row[17].as<std::string>());
 
       // Make sure the location_start - location_end is sane for this station type
 
@@ -1007,12 +930,12 @@ WHERE  tg.group_class_id IN( 1, 81 )
       if (s.station_start > valid_to || s.station_end < valid_from)
         continue;
 
-      if (!row[16].is_null())
-        s.longitude_out = as_double(row[16]);
-      if (!row[17].is_null())
-        s.latitude_out = as_double(row[17]);
-      s.modified_last = Fmi::TimeParser::parse(row[18].as<std::string>());
-      s.modified_by = as_int(row[19]);
+      if (!row[18].is_null())
+        s.longitude_out = as_double(row[18]);
+      if (!row[19].is_null())
+        s.latitude_out = as_double(row[19]);
+      s.modified_last = Fmi::TimeParser::parse(row[20].as<std::string>());
+      s.modified_by = as_int(row[21]);
       stations.push_back(s);
     }
   }

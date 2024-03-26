@@ -104,9 +104,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
   bool allPlaces{false};
 
   void resetTimeSeries() { itsTimeSeriesColumns.reset(); }
-  void setTimeInterval(const Fmi::DateTime &starttime,
-                       const Fmi::DateTime &endtime,
-                       int timestep);
+  void setTimeInterval(const Fmi::DateTime &starttime, const Fmi::DateTime &endtime, int timestep);
   void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
@@ -115,12 +113,6 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
   std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,
                                              const std::string &station_ids) const override;
-
-  // Station id manipulators
-  void translateToIdFunction(Spine::Stations &stations, int net_id) const;
-  void translateToLPNN(Spine::Stations &stations) const;
-  void translateToWMO(Spine::Stations &stations) const;
-  void translateToRWSID(Spine::Stations &stations) const;
 
   void getStations(Spine::Stations &stations) const;
   void getStationGroups(StationGroups &sg) const;
@@ -133,9 +125,9 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
   MeasurandInfo getMeasurandInfo(const EngineParametersPtr &engineParameters) const;
 
   Fmi::DateTime getLatestDataUpdateTime(const std::string &tablename,
-                                                   const Fmi::DateTime &from,
-                                                   const std::string &producer_ids,
-                                                   const std::string &measurand_ids) const;
+                                        const Fmi::DateTime &from,
+                                        const std::string &producer_ids,
+                                        const std::string &measurand_ids) const;
 
  private:
   TS::TimeSeriesVectorPtr itsTimeSeriesColumns;

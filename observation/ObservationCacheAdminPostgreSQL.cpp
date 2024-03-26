@@ -169,11 +169,6 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
     // Get all the stations
     db->getStations(newStationInfo->stations);
 
-    // Get wmo and lpnn and rwsid identifiers too
-    db->translateToWMO(newStationInfo->stations);
-    db->translateToLPNN(newStationInfo->stations);
-    db->translateToRWSID(newStationInfo->stations);
-
     for (Spine::Station& station : newStationInfo->stations)
     {
       if (Spine::Reactor::isShuttingDown())
@@ -229,12 +224,11 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
   }
 }
 
-std::pair<Fmi::DateTime, Fmi::DateTime>
-ObservationCacheAdminPostgreSQL::getLatestWeatherDataQCTime(
+std::pair<Fmi::DateTime, Fmi::DateTime> ObservationCacheAdminPostgreSQL::getLatestWeatherDataQCTime(
     const std::shared_ptr<ObservationCache>& cache) const
 {
-  auto min_last_time = Fmi::SecondClock::universal_time() -
-                       Fmi::Hours(itsParameters.extCacheDuration);
+  auto min_last_time =
+      Fmi::SecondClock::universal_time() - Fmi::Hours(itsParameters.extCacheDuration);
 
   auto last_time = cache->getLatestWeatherDataQCTime();
   auto last_modified_time = cache->getLatestWeatherDataQCModifiedTime();
@@ -248,12 +242,11 @@ ObservationCacheAdminPostgreSQL::getLatestWeatherDataQCTime(
   return {last_time, last_modified_time};
 }
 
-std::pair<Fmi::DateTime, Fmi::DateTime>
-ObservationCacheAdminPostgreSQL::getLatestObservationTime(
+std::pair<Fmi::DateTime, Fmi::DateTime> ObservationCacheAdminPostgreSQL::getLatestObservationTime(
     const std::shared_ptr<ObservationCache>& cache) const
 {
-  auto min_last_time = Fmi::SecondClock::universal_time() -
-                       Fmi::Hours(itsParameters.finCacheDuration);
+  auto min_last_time =
+      Fmi::SecondClock::universal_time() - Fmi::Hours(itsParameters.finCacheDuration);
 
   auto last_time = cache->getLatestObservationTime();
   auto last_modified_time = cache->getLatestObservationModifiedTime();
@@ -272,8 +265,8 @@ std::map<std::string, Fmi::DateTime> ObservationCacheAdminPostgreSQL::getLatestF
 {
   std::map<std::string, Fmi::DateTime> ret;
 
-  auto min_last_time = (Fmi::SecondClock::universal_time() -
-                        Fmi::Hours(itsParameters.flashCacheDuration));
+  auto min_last_time =
+      (Fmi::SecondClock::universal_time() - Fmi::Hours(itsParameters.flashCacheDuration));
 
   auto last_time = cache->getLatestFlashTime();
   auto last_modified_time = cache->getLatestFlashModifiedTime();
