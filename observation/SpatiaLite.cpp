@@ -181,10 +181,10 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
         // location information for the observation.
         const Spine::Station &s =
             stationInfo.getStation(obs.data.fmisid, stationgroup_codes, obs.data.data_time);
-        obs.latitude = s.latitude_out;
-        obs.longitude = s.longitude_out;
-        obs.elevation = s.station_elevation;
-        obs.stationtype = s.station_type;
+        obs.latitude = s.latitude;
+        obs.longitude = s.longitude;
+        obs.elevation = s.elevation;
+        obs.stationtype = s.type;
       }
       catch (...)
       {
@@ -2776,23 +2776,23 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMagnetometerData(
 
       if (timeseriesPositions.find("stationlon") != timeseriesPositions.end())
         result[timeseriesPositions.at("stationlon")].push_back(
-            TS::TimedValue(localtime, s.longitude_out));
+            TS::TimedValue(localtime, s.longitude));
 
       if (timeseriesPositions.find("stationlat") != timeseriesPositions.end())
         result[timeseriesPositions.at("stationlat")].push_back(
-            TS::TimedValue(localtime, s.latitude_out));
+            TS::TimedValue(localtime, s.latitude));
 
       if (timeseriesPositions.find("stationlat") != timeseriesPositions.end())
         result[timeseriesPositions.at("stationlat")].push_back(
-            TS::TimedValue(localtime, s.latitude_out));
+            TS::TimedValue(localtime, s.latitude));
 
-      if (timeseriesPositions.find("station_elevation") != timeseriesPositions.end())
-        result[timeseriesPositions.at("station_elevation")].push_back(
-            TS::TimedValue(localtime, s.station_elevation));
+      if (timeseriesPositions.find("elevation") != timeseriesPositions.end())
+        result[timeseriesPositions.at("elevation")].push_back(
+            TS::TimedValue(localtime, s.elevation));
 
       if (timeseriesPositions.find("stationtype") != timeseriesPositions.end())
         result[timeseriesPositions.at("stationtype")].push_back(
-            TS::TimedValue(localtime, s.station_type));
+            TS::TimedValue(localtime, s.type));
 
       timesteps.insert(localtime);
 
@@ -3244,13 +3244,12 @@ TS::TimeSeriesVectorPtr SpatiaLite::getObservationDataForMovingStations(
     for (auto item : observations)
     {
       Spine::Station station;
-      station.station_id = item.data.fmisid;
       station.fmisid = item.data.fmisid;
-      station.longitude_out = item.longitude;
-      station.latitude_out = item.latitude;
-      station.station_elevation = item.elevation;
-      station.station_type = settings.stationtype;
-      fmisid_to_station[station.station_id] = station;
+      station.longitude = item.longitude;
+      station.latitude = item.latitude;
+      station.elevation = item.elevation;
+      station.type = settings.stationtype;
+      fmisid_to_station[station.fmisid] = station;
     }
 
     StationTimedMeasurandData station_data =
@@ -3430,10 +3429,10 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes, obstime);
 
-      boost::optional<double> latitude = s.latitude_out;
-      boost::optional<double> longitude = s.longitude_out;
-      boost::optional<double> elevation = s.station_elevation;
-      boost::optional<std::string> stationtype = s.station_type;
+      boost::optional<double> latitude = s.latitude;
+      boost::optional<double> longitude = s.longitude;
+      boost::optional<double> elevation = s.elevation;
+      boost::optional<std::string> stationtype = s.type;
 
       int parameter = row.get<int>(2);
       boost::optional<double> data_value;
@@ -3575,8 +3574,7 @@ void SpatiaLite::getMovingStations(Spine::Stations &stations,
     for (const auto &row : qry)
     {
       Spine::Station station;
-      station.station_id = row.get<int>(0);
-      station.fmisid = station.station_id;
+      station.fmisid = row.get<int>(0);
       stations.push_back(station);
     }
   }

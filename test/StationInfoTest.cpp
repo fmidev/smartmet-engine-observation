@@ -34,7 +34,7 @@ TEST_CASE("Test station and data searches")
     {
       auto station = stationinfo.getStation(station_id, stationgroup_codes, starttime);
       REQUIRE(station.fmisid == station_id);
-      REQUIRE(station.station_formal_name_fi == "Helsinki Kaisaniemi");
+      REQUIRE(station.formal_name_fi == "Helsinki Kaisaniemi");
     }
 
     SECTION("1 station is searched by coordinates")
@@ -45,7 +45,7 @@ TEST_CASE("Test station and data searches")
           lon, lat, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
       REQUIRE(stations.size() == 1);
       REQUIRE(stations.back().fmisid == station_id);
-      REQUIRE(stations.back().station_formal_name_fi == "Helsinki Kaisaniemi");
+      REQUIRE(stations.back().formal_name_fi == "Helsinki Kaisaniemi");
       REQUIRE(Fmi::stod(stations.back().distance) < 0.1);
     }
 
@@ -86,10 +86,10 @@ TEST_CASE("Test station and data searches")
           boost::posix_time::time_from_string("2020-01-01 00:00:00"),
           boost::posix_time::time_from_string("2020-02-01 00:00:00"));
       REQUIRE(stations.size() == 1);
-      REQUIRE(stations.back().station_formal_name_fi == "Vantaa Helsinki-Vantaan lentoasema");
+      REQUIRE(stations.back().formal_name_fi == "Vantaa Helsinki-Vantaan lentoasema");
       REQUIRE(to_iso_extended_string(stations.back().station_end) == "2020-09-24T00:00:00");
       REQUIRE(to_iso_extended_string(stations.back().station_start) == "2008-09-01T00:00:00");
-      REQUIRE(stations.back().longitude_out == 24.95675);
+      REQUIRE(stations.back().longitude == 24.95675);
     }
 
     SECTION("New station location")
@@ -103,10 +103,10 @@ TEST_CASE("Test station and data searches")
           boost::posix_time::time_from_string("2021-01-01 00:00:00"),
           boost::posix_time::time_from_string("2021-02-01 00:00:00"));
       REQUIRE(stations.size() == 1);
-      REQUIRE(stations.back().station_formal_name_fi == "Vantaa Helsinki-Vantaan lentoasema");
+      REQUIRE(stations.back().formal_name_fi == "Vantaa Helsinki-Vantaan lentoasema");
       REQUIRE(to_iso_extended_string(stations.back().station_end) == "9999-12-31T00:00:00");
       REQUIRE(to_iso_extended_string(stations.back().station_start) == "2020-09-24T00:00:00");
-      REQUIRE(stations.back().longitude_out == 24.97274);
+      REQUIRE(stations.back().longitude == 24.97274);
     }
   }
 
@@ -123,7 +123,7 @@ TEST_CASE("Test station and data searches")
     {
       auto station = stationinfo.getStation(station_id, stationgroup_codes, starttime);
       REQUIRE(station.fmisid == station_id);
-      REQUIRE(station.station_formal_name_fi == "kt51_Inkoo_Innanbäck");
+      REQUIRE(station.formal_name_fi == "kt51_Inkoo_Innanbäck");
     }
     SECTION("1 station is searched by coordinates")
     {
@@ -133,7 +133,7 @@ TEST_CASE("Test station and data searches")
           lon, lat, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
       REQUIRE(stations.size() == 1);
       REQUIRE(stations.back().fmisid == station_id);
-      REQUIRE(stations.back().station_formal_name_fi == "kt51_Inkoo_Innanbäck");
+      REQUIRE(stations.back().formal_name_fi == "kt51_Inkoo_Innanbäck");
       REQUIRE(Fmi::stod(stations.back().distance) < 0.1);
     }
 
@@ -144,7 +144,7 @@ TEST_CASE("Test station and data searches")
           25.6116, 60.9783, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
       REQUIRE(stations.size() == 1);
       REQUIRE(stations.back().fmisid == 100205);
-      REQUIRE(stations.back().station_formal_name_fi == "Lahti_Kärpäsenmäki_Opt");
+      REQUIRE(stations.back().formal_name_fi == "Lahti_Kärpäsenmäki_Opt");
       REQUIRE(Fmi::stod(stations.back().distance) < 0.3);
     }
 
@@ -187,7 +187,7 @@ TEST_CASE("Test station and data searches")
             lon, lat, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
         REQUIRE(stations.size() == 1);
         REQUIRE(stations.back().fmisid == station_id);
-        REQUIRE(stations.back().station_formal_name_fi == "Hemling");
+        REQUIRE(stations.back().formal_name_fi == "Hemling");
         REQUIRE(stations.back().geoid == geoid);
         REQUIRE(Fmi::stod(stations.back().distance) <= 0.1);
       }

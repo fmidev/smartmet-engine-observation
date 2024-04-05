@@ -1,7 +1,7 @@
 #pragma once
 
-#include <macgyver/DateTime.h>
 #include <boost/optional.hpp>
+#include <macgyver/DateTime.h>
 #include <spine/Value.h>
 #include <set>
 
@@ -17,6 +17,8 @@ struct StationOptions
   std::set<int> lpnn;
   std::set<int> wmo;
   std::set<int> rwsid;
+  std::set<std::string> wsi;
+
   std::string type;
   std::string name;
   std::string iso2;

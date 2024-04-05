@@ -69,9 +69,8 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
     {
       if (stationInfo.belongsToGroup(s.fmisid, settings.stationgroups))
       {
-        fmisid_to_station.insert(std::make_pair(s.station_id, s));
-        auto id = boost::numeric_cast<int>(s.station_id);  // legacy double slows down to_string
-        qstations += Fmi::to_string(id) + ",";
+        fmisid_to_station.insert(std::make_pair(s.fmisid, s));
+        qstations += Fmi::to_string(s.fmisid) + ",";
       }
     }
 
@@ -188,8 +187,7 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
       std::string zone(settings.timezone == "localtime" ? fmisid_to_station.at(fmisid).timezone
                                                         : settings.timezone);
       auto localtz = timezones.time_zone_from_string(zone);
-      Fmi::LocalDateTime obstime =
-          Fmi::LocalDateTime(utctime, localtz);
+      Fmi::LocalDateTime obstime = Fmi::LocalDateTime(utctime, localtz);
 
       int measurand_id = *weatherDataQCData.parametersAll[i];
       int sensor_no = *weatherDataQCData.sensor_nosAll[i];

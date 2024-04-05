@@ -43,7 +43,7 @@ bool stationHasRightType(const Spine::Station &station, const Settings &settings
          settings.stationtype == "daily" || settings.stationtype == "hourly" ||
          settings.stationtype == "monthly" || settings.stationtype == "lammitystarve" ||
          settings.stationtype == "solar" || settings.stationtype == "minute_rad") &&
-        station.isFMIStation)
+        station.isFmi)
     {
       return true;
     }
@@ -51,21 +51,21 @@ bool stationHasRightType(const Spine::Station &station, const Settings &settings
     {
       return true;
     }
-    if (settings.stationtype == "road" && station.isRoadStation)
+    if (settings.stationtype == "road" && station.isRoad)
     {
       return true;
     }
     if ((settings.stationtype == "mareograph" || settings.stationtype == "opendata_mareograph") &&
-        station.isMareographStation)
+        station.isMareograph)
     {
       return true;
     }
     if ((settings.stationtype == "buoy" || settings.stationtype == "opendata_buoy") &&
-        station.isBuoyStation)
+        station.isBuoy)
     {
       return true;
     }
-    if (settings.stationtype == "syke" && station.isSYKEStation)
+    if (settings.stationtype == "syke" && station.isSyke)
     {
       return true;
     }
@@ -576,21 +576,21 @@ ContentTable EngineImpl::getProducerInfo(const boost::optional<std::string> &pro
   {
     boost::shared_ptr<Spine::Table> resultTable(new Spine::Table);
 
-    std::set<std::string> station_types = getValidStationTypes();
+    std::set<std::string> types = getValidStationTypes();
 
     if (producer)
     {
-      if (station_types.find(*producer) == station_types.end())
+      if (types.find(*producer) == types.end())
         return std::make_pair(resultTable, Spine::TableFormatter::Names());
 
-      station_types.clear();
-      station_types.insert(*producer);
+      types.clear();
+      types.insert(*producer);
     }
 
     Spine::TableFormatter::Names headers{"#", "Producer", "ProducerId", "StationGroups"};
 
     unsigned int row = 0;
-    for (const auto &t : station_types)
+    for (const auto &t : types)
     {
       if (t.empty())
         continue;
@@ -658,8 +658,8 @@ ContentTable EngineImpl::getParameterInfo(const boost::optional<std::string> &pr
 
     if (producer)
     {
-      std::set<std::string> station_types = getValidStationTypes();
-      if (station_types.find(*producer) == station_types.end())
+      std::set<std::string> types = getValidStationTypes();
+      if (types.find(*producer) == types.end())
         return std::make_pair(resultTable, Spine::TableFormatter::Names());
     }
 
@@ -730,6 +730,7 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
                                          "name",
                                          "type",
                                          "fmisid",
+                                         "wsi",
                                          "wmo",
                                          "lpnn",
                                          "rwsid",
@@ -743,6 +744,7 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
                                          "region"};
 
     const bool check_fmisid = !options.fmisid.empty();
+    const bool check_wsi = !options.wsi.empty();
     const bool check_lpnn = !options.lpnn.empty();
     const bool check_wmo = !options.wmo.empty();
     const bool check_rwsid = !options.rwsid.empty();
@@ -794,15 +796,17 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
 
         // Check station against options
 
+        if (check_wsi && options.wsi.count(s.wsi) == 0)
+          continue;
         if (check_lpnn && options.lpnn.count(s.lpnn) == 0)
           continue;
         if (check_wmo && options.wmo.count(s.wmo) == 0)
           continue;
         if (check_rwsid && options.rwsid.count(s.rwsid) == 0)
           continue;
-        if (check_type && !string_found(s.station_type, options.type))
+        if (check_type && !string_found(s.type, options.type))
           continue;
-        if (check_name && !string_found(s.station_formal_name_fi, options.name))
+        if (check_name && !string_found(s.formal_name_fi, options.name))
           continue;
         if (check_iso2 && !string_found(s.iso2, options.iso2))
           continue;
@@ -811,8 +815,8 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
 
         if (check_bbox)
         {
-          if (s.longitude_out < (*options.bbox).xMin || s.longitude_out > (*options.bbox).xMax ||
-              s.latitude_out < (*options.bbox).yMin || s.latitude_out > (*options.bbox).yMax)
+          if (s.longitude < (*options.bbox).xMin || s.longitude > (*options.bbox).xMax ||
+              s.latitude < (*options.bbox).yMin || s.latitude > (*options.bbox).yMax)
             continue;
         }
 
@@ -836,14 +840,12 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
           {
             const auto &station2 = all_locations.at(pos);
             matched = (s.station_start == station2.station_start &&
-                       s.station_end == station2.station_end &&
-                       s.longitude_out == station2.longitude_out &&
-                       s.latitude_out == station2.latitude_out &&
-                       s.station_elevation == station2.station_elevation);
+                       s.station_end == station2.station_end && s.longitude == station2.longitude &&
+                       s.latitude == station2.latitude && s.elevation == station2.elevation);
             if (matched)
             {
               group.indexes.push_back(i);
-              group.stationtypes.push_back(s.station_type);
+              group.stationtypes.push_back(s.type);
               break;
             }
           }
@@ -852,7 +854,7 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
         {
           StationGroup group;
           group.indexes.push_back(i);
-          group.stationtypes.push_back(s.station_type);
+          group.stationtypes.push_back(s.type);
           groups.push_back(group);
         }
       }
@@ -870,12 +872,13 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
         resultTable->set(column++, row, s.station_formal_name("fi"));             // Name
         resultTable->set(column++, row, grouplist);                               // Type
         resultTable->set(column++, row, Fmi::to_string(s.fmisid));                // FMISID
+        resultTable->set(column++, row, s.wsi);                                   // WIGOS ID
         resultTable->set(column++, row, Fmi::to_string(s.wmo));                   // WMO
         resultTable->set(column++, row, Fmi::to_string(s.lpnn));                  // LPNN
         resultTable->set(column++, row, Fmi::to_string(s.rwsid));                 // RWSID
-        resultTable->set(column++, row, Fmi::to_string(s.longitude_out));         // Longitude
-        resultTable->set(column++, row, Fmi::to_string(s.latitude_out));          // Latitude
-        resultTable->set(column++, row, Fmi::to_string(s.station_elevation));     // Elevation
+        resultTable->set(column++, row, Fmi::to_string(s.longitude));             // Longitude
+        resultTable->set(column++, row, Fmi::to_string(s.latitude));              // Latitude
+        resultTable->set(column++, row, Fmi::to_string(s.elevation));             // Elevation
         resultTable->set(column++, row, timeFormatter->format(s.station_start));  // Start date
         resultTable->set(column++, row, timeFormatter->format(s.station_end));    // End date
         resultTable->set(column++, row, s.timezone);                              // Timezone
@@ -1008,8 +1011,8 @@ const ProducerMeasurandInfo &EngineImpl::getMeasurandInfo() const
   return itsMeasurandInfo;
 }
 
-Fmi::DateTime EngineImpl::getLatestDataUpdateTime(
-    const std::string &producer, const Fmi::DateTime &from) const
+Fmi::DateTime EngineImpl::getLatestDataUpdateTime(const std::string &producer,
+                                                  const Fmi::DateTime &from) const
 {
   return itsDatabaseDriver->getLatestDataUpdateTime(producer, from);
 }
