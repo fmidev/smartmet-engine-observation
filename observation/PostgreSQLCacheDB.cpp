@@ -1764,8 +1764,8 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
           auto temp = static_cast<float>(boost::get<double>(data.at(temppos)));
           auto totalcloudcover = static_cast<int>(boost::get<double>(data.at(totalcloudcoverpos)));
           auto wawa = static_cast<int>(boost::get<double>(data.at(wawapos)));
-          double lat = station.latitude_out;
-          double lon = station.longitude_out;
+          double lat = station.latitude;
+          double lon = station.longitude;
 #ifdef __llvm__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdouble-promotion"
@@ -1812,10 +1812,9 @@ void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(const std::string &param
       timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, obstime));
 
     else if (paramname == "station_name" || paramname == "stationname")
-      timeSeriesColumns->at(pos).emplace_back(
-          TS::TimedValue(obstime, station.station_formal_name_fi));
+      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.formal_name_fi));
     else if (paramname == "fmisid")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.station_id));
+      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.fmisid));
 
     else if (paramname == "geoid")
       timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.geoid));
@@ -1827,7 +1826,7 @@ void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(const std::string &param
       timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.stationDirection));
 
     else if (paramname == "stationary")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.stationary));
+      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.isStationary));
 
     else if (paramname == "lon" || paramname == "longitude")
       timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.requestedLon));
@@ -1836,16 +1835,16 @@ void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(const std::string &param
       timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.requestedLat));
 
     else if (paramname == "stationlon" || paramname == "stationlongitude")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.longitude_out));
+      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.longitude));
 
     else if (paramname == "stationlat" || paramname == "stationlatitude")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.latitude_out));
+      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.latitude));
 
-    else if (paramname == "elevation" || paramname == "station_elevation")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.station_elevation));
+    else if (paramname == "elevation" || paramname == "elevation")
+      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.elevation));
 
     else if (paramname == "stationtype")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.station_type));
+      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.type));
 
     else if (paramname == "wmo")
     {
@@ -1864,6 +1863,12 @@ void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(const std::string &param
       const TS::Value missing = TS::None();
       timeSeriesColumns->at(pos).emplace_back(
           TS::TimedValue(obstime, station.rwsid > 0 ? station.rwsid : missing));
+    }
+    else if (paramname == "wsi")
+    {
+      const TS::Value missing = TS::None();
+      timeSeriesColumns->at(pos).emplace_back(
+          TS::TimedValue(obstime, !station.wsi.empty() ? station.wsi : missing));
     }
     else if (paramname == "sensor_no")
       timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, 1));
@@ -2079,10 +2084,10 @@ void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes, obstime);
 
-      boost::optional<double> latitude = s.latitude_out;
-      boost::optional<double> longitude = s.longitude_out;
-      boost::optional<double> elevation = s.station_elevation;
-      boost::optional<std::string> stationtype = s.station_type;
+      boost::optional<double> latitude = s.latitude;
+      boost::optional<double> longitude = s.longitude;
+      boost::optional<double> elevation = s.elevation;
+      boost::optional<std::string> stationtype = s.type;
 
       boost::optional<double> data_value;
       boost::optional<int> data_quality;

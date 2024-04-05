@@ -665,10 +665,10 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes, obstime);
 
-      boost::optional<double> latitude = s.latitude_out;
-      boost::optional<double> longitude = s.longitude_out;
-      boost::optional<double> elevation = s.station_elevation;
-      boost::optional<std::string> stationtype = s.station_type;
+      boost::optional<double> latitude = s.latitude;
+      boost::optional<double> longitude = s.longitude;
+      boost::optional<double> elevation = s.elevation;
+      boost::optional<std::string> stationtype = s.type;
 
       boost::optional<double> data_value;
       boost::optional<int> data_quality;
@@ -770,11 +770,11 @@ void PostgreSQLObsDB::getStations(Spine::Stations &stations) const
     // clang-format off
     string sqlStmt = R"SQL(SELECT DISTINCT
        tg.group_name                  AS group_code,
-       t.target_id                    AS station_id,
+       t.target_id                    AS fmisid,
        t.access_policy                AS access_policy_id,
        t.target_status                AS station_status_id,
        t.language_code                AS language_code,
-       t.target_formal_name           AS station_formal_name,
+       t.target_formal_name           AS formal_name,
        svname.target_formal_name      AS sv_formal_name,
        enname.target_formal_name      AS en_formal_name,
        t.target_category,
@@ -817,11 +817,11 @@ WHERE  tg.group_class_id IN( 1, 81 )
 UNION ALL
 SELECT DISTINCT
        tg.group_code,
-       t.target_id                    AS station_id,
+       t.target_id                    AS fmisid,
        t.access_policy                AS access_policy_id,
        t.target_status                AS station_status_id,
        t.language_code                AS language_code,
-       t.target_formal_name           AS station_formal_name,
+       t.target_formal_name           AS formal_name,
        svname.target_formal_name      AS sv_formal_name,
        enname.target_formal_name      AS en_formal_name,
        t.target_category,
@@ -871,19 +871,18 @@ WHERE  tg.group_class_id IN( 1, 81 )
     for (auto row : result_set)
     {
       Spine::Station s;
-      s.station_type = row[0].as<std::string>();
-      s.station_id = as_int(row[1]);
-      s.access_policy_id = as_int(row[2]);
+      s.type = row[0].as<std::string>();
+      s.fmisid = as_int(row[1]);
+      auto access_policy_id = as_int(row[2]);
 
       // Skip private stations unless EXTRWYWS (runway stations)
-      if (s.access_policy_id != 0 && s.station_type != "EXTRWYWS")
+      if (access_policy_id != 0 && s.type != "EXTRWYWS")
       {
-        // std::cerr << "PROTECTED station " << station_id << " " << station_formal_name_fi << " of
-        // type " << station_type << std::endl;
+        // std::cerr << "PROTECTED station " << station_id << " " << formal_name_fi << " of
+        // type " << type << std::endl;
         continue;
       }
 
-      s.fmisid = s.station_id;
       s.lpnn = -1;
       s.wmo = -1;
       s.rwsid = -1;
@@ -891,15 +890,15 @@ WHERE  tg.group_class_id IN( 1, 81 )
       s.distance = "-1";
       s.stationDirection = -1;
 
-      s.station_status_id = as_int(row[3]);
+      // s.station_status_id = as_int(row[3]);
       s.language_code = row[4].as<std::string>();
-      s.station_formal_name_fi = row[5].as<std::string>();
+      s.formal_name_fi = row[5].as<std::string>();
       if (!row[6].is_null())
-        s.station_formal_name_sv = row[6].as<std::string>();
+        s.formal_name_sv = row[6].as<std::string>();
       if (!row[7].is_null())
-        s.station_formal_name_en = row[7].as<std::string>();
-      s.target_category = as_int(row[8]);
-      s.stationary = row[9].as<std::string>();
+        s.formal_name_en = row[7].as<std::string>();
+      // s.target_category = as_int(row[8]);
+      s.isStationary = ("Y" == row[9].as<std::string>());
 
       if (!row[10].is_null())
         s.lpnn = as_int(row[10]);
@@ -908,10 +907,8 @@ WHERE  tg.group_class_id IN( 1, 81 )
 
       if (!row[12].is_null())
         s.rwsid = as_int(row[12]);
-#if 0
       if (!row[13].is_null())
-        s.wigos = row[13].as<std::string>();
-#endif
+        s.wsi = row[13].as<std::string>();
 
       auto valid_from = Fmi::TimeParser::parse(row[14].as<std::string>());
       auto valid_to = Fmi::TimeParser::parse(row[15].as<std::string>());
@@ -931,9 +928,9 @@ WHERE  tg.group_class_id IN( 1, 81 )
         continue;
 
       if (!row[18].is_null())
-        s.longitude_out = as_double(row[18]);
+        s.longitude = as_double(row[18]);
       if (!row[19].is_null())
-        s.latitude_out = as_double(row[19]);
+        s.latitude = as_double(row[19]);
       s.modified_last = Fmi::TimeParser::parse(row[20].as<std::string>());
       s.modified_by = as_int(row[21]);
       stations.push_back(s);
@@ -1067,8 +1064,7 @@ AND ST_Contains(
     for (const auto &row : result_set)
     {
       Spine::Station station;
-      station.station_id = row[0].as<int>();
-      station.fmisid = station.station_id;
+      station.fmisid = row[0].as<int>();
       stations.push_back(station);
     }
   }

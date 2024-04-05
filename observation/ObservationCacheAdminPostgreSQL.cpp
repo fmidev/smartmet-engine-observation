@@ -174,31 +174,31 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
       if (Spine::Reactor::isShuttingDown())
         return;
 
-      if (station.station_type == "AWS" || station.station_type == "SYNOP" ||
-          station.station_type == "CLIM" || station.station_type == "AVI")
+      if (station.type == "AWS" || station.type == "SYNOP" ||
+          station.type == "CLIM" || station.type == "AVI")
       {
-        station.isFMIStation = true;
+        station.isFmi = true;
       }
-      else if (station.station_type == "MAREO")
+      else if (station.type == "MAREO")
       {
-        station.isMareographStation = true;
+        station.isMareograph = true;
       }
-      else if (station.station_type == "BUOY")
+      else if (station.type == "BUOY")
       {
-        station.isBuoyStation = true;
+        station.isBuoy = true;
       }
-      else if (station.station_type == "RWS" || station.station_type == "EXTRWS" ||
-               station.station_type == "EXTRWYWS")
+      else if (station.type == "RWS" || station.type == "EXTRWS" ||
+               station.type == "EXTRWYWS")
       {
-        station.isRoadStation = true;
+        station.isRoad = true;
       }
-      else if (station.station_type == "EXTWATER")
+      else if (station.type == "EXTWATER")
       {
-        station.isSYKEStation = true;
+        station.isSyke = true;
       }
-      else if (station.station_type == "EXTSYNOP")
+      else if (station.type == "EXTSYNOP")
       {
-        station.isForeignStation = true;
+        station.isForeign = true;
       }
 
       if (Spine::Reactor::isShuttingDown())

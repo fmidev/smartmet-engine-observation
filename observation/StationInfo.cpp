@@ -72,7 +72,7 @@ bool groupok(const Spine::Station& station, const std::set<std::string>& groups)
   if (groups.empty())
     return true;
 
-  return (groups.find(station.station_type) != groups.end());
+  return (groups.find(station.type) != groups.end());
 }
 
 // ----------------------------------------------------------------------
@@ -250,7 +250,7 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
 
     previous_distance = distance;
 
-    distances.emplace_back(std::make_pair(distance, id));
+    distances.emplace_back(distance, id);
   }
 
   // The vector is already sorted by distance. We want stations at the same distance to be
@@ -262,8 +262,8 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
             {
               if (lhs.first != rhs.first)
                 return lhs.first < rhs.first;
-              return (this->stations.at(lhs.second).station_formal_name_fi <
-                      this->stations.at(rhs.second).station_formal_name_fi);
+              return (this->stations.at(lhs.second).formal_name_fi <
+                      this->stations.at(rhs.second).formal_name_fi);
             });
 
   // Accept only max count stations
@@ -299,20 +299,19 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
  */
 // ----------------------------------------------------------------------
 
-Spine::Stations findStations(const Spine::Stations& stations,
-                             const std::vector<int>& numbers,
-                             const StationIndex& index)
+template <typename IDS, typename INDEX>
+Spine::Stations findStations(const Spine::Stations& stations, const IDS& ids, const INDEX& index)
 {
   Spine::Stations result;
 
-  for (const auto& number : numbers)
+  for (const auto& id : ids)
   {
-    const auto pos = index.find(number);
+    const auto pos = index.find(id);
     if (pos != index.end())
     {
-      for (const auto& id : pos->second)
+      for (const auto& sid : pos->second)
       {
-        const auto& station = stations.at(id);
+        const auto& station = stations.at(sid);
         result.push_back(station);
       }
     }
@@ -326,23 +325,24 @@ Spine::Stations findStations(const Spine::Stations& stations,
  */
 // ----------------------------------------------------------------------
 
+template <typename IDS, typename INDEX>
 Spine::Stations findStations(const Spine::Stations& stations,
                              const std::set<std::string>& groups,
-                             const std::vector<int>& numbers,
-                             const StationIndex& index,
+                             const IDS& ids,
+                             const INDEX& index,
                              const Fmi::DateTime& starttime,
                              const Fmi::DateTime& endtime)
 {
   Spine::Stations result;
 
-  for (const auto& number : numbers)
+  for (const auto& id : ids)
   {
-    const auto pos = index.find(number);
+    const auto pos = index.find(id);
     if (pos != index.end())
     {
-      for (const auto& id : pos->second)
+      for (const auto& sid : pos->second)
       {
-        const auto& station = stations.at(id);
+        const auto& station = stations.at(sid);
 
         // Validate timerange
         if (!timeok(station, starttime, endtime))
@@ -544,6 +544,31 @@ Spine::Stations StationInfo::findRwsidStations(const std::vector<int>& rwsids,
 
 // ----------------------------------------------------------------------
 /*!
+ * \brief Find the given WSI stations
+ */
+// ----------------------------------------------------------------------
+
+Spine::Stations StationInfo::findWsiStations(const std::vector<std::string>& wsis) const
+{
+  return findStations(stations, wsis, wsistations);
+}
+
+// ----------------------------------------------------------------------
+/*!
+ * \brief Find the given WSI stations
+ */
+// ----------------------------------------------------------------------
+
+Spine::Stations StationInfo::findWsiStations(const std::vector<std::string>& wsis,
+                                             const std::set<std::string>& groups,
+                                             const Fmi::DateTime& starttime,
+                                             const Fmi::DateTime& endtime) const
+{
+  return findStations(stations, groups, wsis, wsistations, starttime, endtime);
+}
+
+// ----------------------------------------------------------------------
+/*!
  * \brief Find stations in the given groups
  */
 // ----------------------------------------------------------------------
@@ -605,7 +630,7 @@ Spine::Stations StationInfo::findStationsInsideArea(const std::set<std::string>&
     for (const auto& station : groupStations)
     {
       // Create Point geometry from sation coordinates
-      OGRPoint stationLocation(station.longitude_out, station.latitude_out);
+      OGRPoint stationLocation(station.longitude, station.latitude);
       stationLocation.assignSpatialReference(&srs);
 
       // If station is inside area accept it
@@ -645,11 +670,11 @@ const Spine::Station& StationInfo::getStation(unsigned int fmisid,
     {
       const auto& station = stations.at(id);
       std::cout << fmt::format("Candidate: {}\tfrom {} to {} at {},{}\n",
-                               station.station_type,
+                               station.type,
                                Fmi::to_iso_string(station.station_start),
                                Fmi::to_iso_string(station.station_end),
-                               station.longitude_out,
-                               station.latitude_out);
+                               station.longitude,
+                               station.latitude);
     }
   }
 #endif
@@ -669,8 +694,8 @@ const Spine::Station& StationInfo::getStation(unsigned int fmisid,
   {
     const auto& station = stations.at(id);
     auto name = "Candidate #" + Fmi::to_string(++counter);
-    auto reason = station.station_type + " from " + Fmi::to_iso_string(station.station_start) +
-                  " to " + Fmi::to_iso_string(station.station_end);
+    auto reason = station.type + " from " + Fmi::to_iso_string(station.station_start) + " to " +
+                  Fmi::to_iso_string(station.station_end);
     ex.addParameter(name.c_str(), reason);
   }
   throw ex;
@@ -698,7 +723,7 @@ bool StationInfo::belongsToGroup(unsigned int fmisid, const std::set<std::string
   for (const auto id : ids)
   {
     const auto& station = stations.at(id);
-    if (groups.find(station.station_type) != groups.end())
+    if (groups.find(station.type) != groups.end())
       return true;
   }
 
@@ -721,10 +746,10 @@ std::vector<StationID> searchStations(
     // Normal bounding box
     for (StationID id = 0; id < stations.size(); ++id)
     {
-      double lon = stations[id].longitude_out;
+      double lon = stations[id].longitude;
       if (lon >= minx && lon <= maxx)
       {
-        double lat = stations[id].latitude_out;
+        double lat = stations[id].latitude;
         if (lat >= miny && lat <= maxy)
           result.push_back(id);
       }
@@ -736,10 +761,10 @@ std::vector<StationID> searchStations(
     // Bounding box spans the 180th meridian
     for (StationID id = 0; id < stations.size(); ++id)
     {
-      double lon = stations[id].longitude_out;
+      double lon = stations[id].longitude;
       if (lon <= minx || lon >= maxx)
       {
-        double lat = stations[id].latitude_out;
+        double lat = stations[id].latitude;
         if (lat >= miny && lat <= maxy)
           result.push_back(id);
       }
@@ -825,12 +850,21 @@ void StationInfo::update() const
       rwsidstations[station.rwsid].insert(idx);
   }
 
+  // Make a mapping from wsi to the indexes of respective stations
+
+  for (std::size_t idx = 0; idx < stations.size(); ++idx)
+  {
+    const auto& station = stations[idx];
+    if (!station.wsi.empty())
+      wsistations[station.wsi].insert(idx);
+  }
+
   // Map groups to sets of stations
 
   for (std::size_t idx = 0; idx < stations.size(); ++idx)
   {
     const auto& station = stations[idx];
-    members[station.station_type].insert(idx);
+    members[station.type].insert(idx);
   }
 
   // Create a latlon search tree for the stations
@@ -838,7 +872,7 @@ void StationInfo::update() const
   for (StationID idx = 0; idx < stations.size(); ++idx)
   {
     const auto& station = stations[idx];
-    stationtree.insert(StationNearTreeLatLon{station.longitude_out, station.latitude_out, idx});
+    stationtree.insert(StationNearTreeLatLon{station.longitude, station.latitude, idx});
   }
 
   stationtree.flush();
@@ -893,6 +927,24 @@ Spine::TaggedFMISIDList StationInfo::translateLPNNToFMISID(const std::vector<int
     {
       ret.emplace_back(Fmi::to_string(s.lpnn), s.fmisid);
       processed.insert(s.lpnn);
+    }
+
+  return ret;
+}
+
+Spine::TaggedFMISIDList StationInfo::translateWSIToFMISID(const std::vector<std::string>& wsis,
+                                                          const Fmi::DateTime& t) const
+{
+  Spine::TaggedFMISIDList ret;
+
+  Spine::Stations wsistations = findWsiStations(wsis);
+
+  std::set<std::string> processed;
+  for (const auto& s : wsistations)
+    if (t >= s.station_start && t <= s.station_end && processed.find(s.wsi) == processed.end())
+    {
+      ret.emplace_back(s.wsi, s.fmisid);
+      processed.insert(s.wsi);
     }
 
   return ret;

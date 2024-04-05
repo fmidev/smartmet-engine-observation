@@ -73,13 +73,12 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationDataForMovingSt
     for (auto item : observations)
     {
       Spine::Station station;
-      station.station_id = item.data.fmisid;
       station.fmisid = item.data.fmisid;
-      station.longitude_out = item.longitude;
-      station.latitude_out = item.latitude;
-      station.station_elevation = item.elevation;
-      station.station_type = item.stationtype;
-      fmisid_to_station[station.station_id] = station;
+      station.longitude = item.longitude;
+      station.latitude = item.latitude;
+      station.elevation = item.elevation;
+      station.type = item.stationtype;
+      fmisid_to_station[station.fmisid] = station;
     }
 
     StationTimedMeasurandData station_data =
@@ -394,10 +393,10 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
         // omit the coordinates etc.
         const Spine::Station &s =
             stationInfo.getStation(obs.data.fmisid, stationgroup_codes, obs.data.data_time);
-        obs.latitude = s.latitude_out;
-        obs.longitude = s.longitude_out;
-        obs.elevation = s.station_elevation;
-        obs.stationtype = s.station_type;
+        obs.latitude = s.latitude;
+        obs.longitude = s.longitude;
+        obs.elevation = s.elevation;
+        obs.stationtype = s.type;
       }
       catch (...)
       {
@@ -857,8 +856,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
     if (fmisid_results.find(fmisid) == fmisid_results.end())
     {
       fmisid_results.insert(std::make_pair(fmisid, initializeResultVector(settings)));
-      fmisid_timesteps.insert(
-          std::make_pair(fmisid, std::set<Fmi::LocalDateTime>()));
+      fmisid_timesteps.insert(std::make_pair(fmisid, std::set<Fmi::LocalDateTime>()));
     }
     TS::Value station_id_value = as_int(row[0]);
     TS::Value magnetometer_id_value = row[1].as<std::string>();
@@ -933,19 +931,17 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
 
     if (timeseriesPositions.find("stationlon") != timeseriesPositions.end())
       result[timeseriesPositions.at("stationlon")].push_back(
-          TS::TimedValue(localtime, s.longitude_out));
+          TS::TimedValue(localtime, s.longitude));
 
     if (timeseriesPositions.find("stationlat") != timeseriesPositions.end())
-      result[timeseriesPositions.at("stationlat")].push_back(
-          TS::TimedValue(localtime, s.latitude_out));
+      result[timeseriesPositions.at("stationlat")].push_back(TS::TimedValue(localtime, s.latitude));
 
-    if (timeseriesPositions.find("station_elevation") != timeseriesPositions.end())
-      result[timeseriesPositions.at("station_elevation")].push_back(
-          TS::TimedValue(localtime, s.station_elevation));
+    if (timeseriesPositions.find("elevation") != timeseriesPositions.end())
+      result[timeseriesPositions.at("elevation")].push_back(TS::TimedValue(localtime, s.elevation));
 
     if (timeseriesPositions.find("stationtype") != timeseriesPositions.end())
       result[timeseriesPositions.at("stationtype")].push_back(
-          TS::TimedValue(localtime, s.station_type));
+          TS::TimedValue(localtime, s.type));
 
     timesteps.insert(localtime);
   }

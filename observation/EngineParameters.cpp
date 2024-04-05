@@ -21,7 +21,7 @@ ParameterMapPtr createParameterMapping(Spine::ConfigBase &cfg)
     try
     {
       // Use parameter mapping container like this: parameterMap.getParameter("parameter",
-      // "station_type") Example: parameterMap.getParameter("t2m", "road")
+      // "type") Example: parameterMap.getParameter("t2m", "road")
 
       // Phase 1: Establish producer setting
       std::vector<std::string> param_names =
