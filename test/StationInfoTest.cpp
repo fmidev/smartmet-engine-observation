@@ -57,16 +57,17 @@ TEST_CASE("Test station and data searches")
           lon, lat, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
 
       REQUIRE(stations.size() == 5);
-      REQUIRE(stations[0].station_type == "AWS");
-      REQUIRE(stations[1].station_type == "AWS");
-      REQUIRE(stations[2].station_type == "AWS");
-      REQUIRE(stations[3].station_type == "AWS");
-      REQUIRE(stations[4].station_type == "AWS");
+      REQUIRE(stations[0].type == "AWS");
+      REQUIRE(stations[1].type == "AWS");
+      REQUIRE(stations[2].type == "AWS");
+      REQUIRE(stations[3].type == "AWS");
+      REQUIRE(stations[4].type == "AWS");
       REQUIRE(stations[0].fmisid == 100971);
       REQUIRE(stations[1].fmisid == 101007);
       REQUIRE(stations[2].fmisid == 101004);
       REQUIRE(stations[3].fmisid == 100996);
       REQUIRE(stations[4].fmisid == 101005);
+      REQUIRE(stations[2].wsi == "0-20000-0-02998");
     }
 
     SECTION("All AWS stations are searched")
