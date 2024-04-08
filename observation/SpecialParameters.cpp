@@ -65,14 +65,13 @@ TS::TimedValue SpecialParameters::getTimedValue(const std::string& param_name,
   }
 }
 
-TS::TimedValue SpecialParameters::getTimedValue(
-    const Spine::Station& station,
-    const std::string& stationType,
-    const std::string& parameter,
-    const Fmi::LocalDateTime& obstime,
-    const Fmi::LocalDateTime& origintime,
-    const std::string& timeZone,
-    const Settings* settings) const
+TS::TimedValue SpecialParameters::getTimedValue(const Spine::Station& station,
+                                                const std::string& stationType,
+                                                const std::string& parameter,
+                                                const Fmi::LocalDateTime& obstime,
+                                                const Fmi::LocalDateTime& origintime,
+                                                const std::string& timeZone,
+                                                const Settings* settings) const
 {
   try
   {
@@ -117,11 +116,10 @@ SpecialParameters::SpecialParameters()
   };
 
   handler_map[STATION_ELEVATION_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
-  { return d.station.station_elevation; };
+  { return d.station.elevation; };
 
   handler_map[STATIONTYPE_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
-  { return d.station.station_type; };
-
+  { return d.station.type; };
 
   handler_map[FMISID_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
   {
@@ -185,7 +183,7 @@ SpecialParameters::SpecialParameters()
   { return d.station.geoid; };
 
   handler_map[ELEVATION_PARAM] = handler_map[STATION_ELEVATION_PARAM] =
-      [](const SpecialParameters::Args& d) -> TS::Value { return d.station.station_elevation; };
+      [](const SpecialParameters::Args& d) -> TS::Value { return d.station.elevation; };
 
   // END: Things that should perhaps not be here.
 
@@ -211,19 +209,19 @@ SpecialParameters::SpecialParameters()
 
   // FIXME: Station::stationary on std::string. Pitäisikö olla bool vai int?
   handler_map[STATIONARY_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value
-  { return d.station.stationary; };
+  { return d.station.isStationary; };
 
   handler_map[LATITUDE_PARAM] = handler_map[LAT_PARAM] =
-      [](const SpecialParameters::Args& d) -> TS::Value { return d.station.latitude_out; };
+      [](const SpecialParameters::Args& d) -> TS::Value { return d.station.latitude; };
 
   handler_map[LONGITUDE_PARAM] = handler_map[LON_PARAM] =
-      [](const SpecialParameters::Args& d) -> TS::Value { return d.station.longitude_out; };
+      [](const SpecialParameters::Args& d) -> TS::Value { return d.station.longitude; };
 
   handler_map[STATIONLATITUDE_PARAM] = handler_map[STATIONLAT_PARAM] =
-      [](const SpecialParameters::Args& d) -> TS::Value { return d.station.latitude_out; };
+      [](const SpecialParameters::Args& d) -> TS::Value { return d.station.latitude; };
 
   handler_map[STATIONLONGITUDE_PARAM] = handler_map[STATIONLON_PARAM] =
-      [](const SpecialParameters::Args& d) -> TS::Value { return d.station.longitude_out; };
+      [](const SpecialParameters::Args& d) -> TS::Value { return d.station.longitude; };
 
   handler_map[STATIONNAME_PARAM] =
       handler_map[STATION_NAME_PARAM] = [](const SpecialParameters::Args& d) -> TS::Value

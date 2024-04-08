@@ -18,6 +18,7 @@ using StationID = unsigned int;
 
 // Mapping from some identifier to stations
 using StationIndex = std::map<unsigned int, std::set<StationID>>;
+using NamedStationIndex = std::map<std::string, std::set<StationID>>;
 
 // We store the index into a vector along with the coordinates
 using StationNearTreeLatLon = Fmi::NearTreeLatLon<StationID>;
@@ -56,6 +57,7 @@ class StationInfo
   Spine::Stations findLpnnStations(const std::vector<int>& lpnns) const;
   Spine::Stations findFmisidStations(const std::vector<int>& fmisids) const;
   Spine::Stations findRwsidStations(const std::vector<int>& rwsids) const;
+  Spine::Stations findWsiStations(const std::vector<std::string>& wsis) const;
 
   Spine::Stations findFmisidStations(const std::vector<int>& fmisids,
                                      const std::set<std::string>& groups,
@@ -82,6 +84,11 @@ class StationInfo
                                     const std::set<std::string>& groups,
                                     const Fmi::DateTime& starttime,
                                     const Fmi::DateTime& endtime) const;
+
+  Spine::Stations findWsiStations(const std::vector<std::string>& wsis,
+                                  const std::set<std::string>& groups,
+                                  const Fmi::DateTime& starttime,
+                                  const Fmi::DateTime& endtime) const;
 
   Spine::Stations findStationsInGroup(const std::set<std::string>& groups,
                                       const Fmi::DateTime& starttime,
@@ -112,6 +119,8 @@ class StationInfo
                                                  const Fmi::DateTime& t) const;
   Spine::TaggedFMISIDList translateLPNNToFMISID(const std::vector<int>& lpnns,
                                                 const Fmi::DateTime& t) const;
+  Spine::TaggedFMISIDList translateWSIToFMISID(const std::vector<std::string>& wsis,
+                                               const Fmi::DateTime& t) const;
   void setStationGroups(const StationGroups& sg) { itsStationGroups = sg; }
 
  private:
@@ -124,12 +133,13 @@ class StationInfo
   // Members of station groups
   using GroupMembers = std::map<std::string, std::set<StationID>>;
 
-  mutable StationIndex fmisidstations;  // fmisid --> indexes of stations
-  mutable StationIndex wmostations;     // wmo --> indexes of stations
-  mutable StationIndex lpnnstations;    // lpnn --> indexes of stations
-  mutable StationIndex rwsidstations;   // rwsid --> indexes of stations
-  mutable StationTree stationtree;      // search tree for nearest stations
-  mutable GroupMembers members;         // group id --> indexes of stations
+  mutable StationIndex fmisidstations;    // fmisid --> indexes of stations
+  mutable StationIndex wmostations;       // wmo --> indexes of stations
+  mutable StationIndex lpnnstations;      // lpnn --> indexes of stations
+  mutable StationIndex rwsidstations;     // rwsid --> indexes of stations
+  mutable NamedStationIndex wsistations;  // wsi --> indexes of stations
+  mutable StationTree stationtree;        // search tree for nearest stations
+  mutable GroupMembers members;           // group id --> indexes of stations
 
   StationGroups itsStationGroups;
 };

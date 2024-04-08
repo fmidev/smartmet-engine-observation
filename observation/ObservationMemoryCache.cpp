@@ -305,10 +305,10 @@ LocationDataItems ObservationMemoryCache::read_observations(
 
       // Establish station coordinates
 
-      const auto longitude = station.longitude_out;  // not requestedLon!
-      const auto latitude = station.latitude_out;    // not requestedLat!
-      const auto elevation = station.station_elevation;
-      const auto stationtype = station.station_type;
+      const auto longitude = station.longitude;  // not requestedLon!
+      const auto latitude = station.latitude;    // not requestedLat!
+      const auto elevation = station.elevation;
+      const auto stationtype = station.type;
 
       // Extract wanted parameters.
 

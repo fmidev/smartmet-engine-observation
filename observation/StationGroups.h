@@ -28,7 +28,7 @@ class StationGroups
   bool belongsToGroup(int station_id,
                       const Fmi::DateTime& starttime,
                       const Fmi::DateTime& endtime) const;
-  bool groupOK(int station_id, const std::string& station_type) const;
+  bool groupOK(int station_id, const std::string& type) const;
 
  private:
   StationGroupPeriods itsGroupPeriods;

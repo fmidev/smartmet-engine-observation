@@ -1531,7 +1531,7 @@ void ObservationCacheAdminBase::addInfoToStations(Spine::Stations& stations,
       station.requestedName = place->name;
       station.timezone = place->timezone;
       station.region = place->area;
-      station.station_elevation = place->elevation;
+      station.elevation = place->elevation;
       processed_stations.insert(station.fmisid);
     }
   }
@@ -1593,8 +1593,8 @@ void ObservationCacheAdminBase::calculateStationDirection(Spine::Station& statio
   {
     double lon1 = deg2rad(station.requestedLon);
     double lat1 = deg2rad(station.requestedLat);
-    double lon2 = deg2rad(station.longitude_out);
-    double lat2 = deg2rad(station.latitude_out);
+    double lon2 = deg2rad(station.longitude);
+    double lat2 = deg2rad(station.latitude);
 
     double dlon = lon2 - lon1;
 
@@ -1658,8 +1658,8 @@ void ObservationCacheAdminBase::addInfoToStation(Spine::Station& station,
       if (places.empty())
       {
         places = itsGeonames->latlonSearch(opts,
-                                           boost::numeric_cast<float>(station.latitude_out),
-                                           boost::numeric_cast<float>(station.longitude_out),
+                                           boost::numeric_cast<float>(station.latitude),
+                                           boost::numeric_cast<float>(station.longitude),
                                            0.05);
       }
 
@@ -1669,8 +1669,8 @@ void ObservationCacheAdminBase::addInfoToStation(Spine::Station& station,
       {
         opts.SetFeatures("PPL");
         places = itsGeonames->latlonSearch(opts,
-                                           boost::numeric_cast<float>(station.latitude_out),
-                                           boost::numeric_cast<float>(station.longitude_out));
+                                           boost::numeric_cast<float>(station.latitude),
+                                           boost::numeric_cast<float>(station.longitude));
       }
     }
     catch (...)
@@ -1688,7 +1688,7 @@ void ObservationCacheAdminBase::addInfoToStation(Spine::Station& station,
       station.requestedName = place->name;
       station.timezone = place->timezone;
       station.region = place->area;
-      station.station_elevation = place->elevation;
+      station.elevation = place->elevation;
     }
 
     calculateStationDirection(station);

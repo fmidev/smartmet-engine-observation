@@ -52,10 +52,12 @@ using BoundingBoxSettings = std::map<std::string, double>;
 
 struct StationSettings
 {
-  std::vector<int> lpnns;
-  std::vector<int> wmos;
-  std::vector<int> fmisids;
-  GeoIdSettings geoid_settings;
+  std::vector<int> lpnns;         // Legacy FMI station number
+  std::vector<int> wmos;          // Legacy WMO station number
+  std::vector<int> fmisids;       // FMI station number
+  std::vector<int> rwsids;        // Finnish road weather station numbers
+  std::vector<std::string> wsis;  // WIGOS Station identifier
+  GeoIdSettings geoid_settings;   // Geonames settings
   std::vector<NearestStationSettings> nearest_station_settings;
   BoundingBoxSettings bounding_box_settings;
 };

@@ -177,38 +177,24 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
       settings.stationtype == FMI_IOT_PRODUCER)
     return result;
 
-  Spine::TaggedFMISIDList wmos;
-  Spine::TaggedFMISIDList lpnns;
-  Spine::TaggedFMISIDList geoids;
-
   auto info = itsObservationEngineParameters->stationInfo.load();
 
-  if (!stationSettings.wmos.empty())
-  {
-    if (settings.stationtype == "road")
-      wmos = info->translateRWSIDToFMISID(stationSettings.wmos, settings.endtime);
-    else
-      wmos = info->translateWMOToFMISID(stationSettings.wmos, settings.endtime);
-  }
+  // Convert input station identifiers to tagged stations
 
-  if (!stationSettings.lpnns.empty())
-    lpnns = info->translateLPNNToFMISID(stationSettings.lpnns, settings.endtime);
+  auto wmos = info->translateWMOToFMISID(stationSettings.wmos, settings.endtime);
+  auto rwsids = info->translateRWSIDToFMISID(stationSettings.rwsids, settings.endtime);
+  auto lpnns = info->translateLPNNToFMISID(stationSettings.lpnns, settings.endtime);
+  auto wsis = info->translateWSIToFMISID(stationSettings.wsis, settings.endtime);
+  auto geoids = translateGeoIdsToFMISID(settings, stationSettings.geoid_settings);
 
-  if (!stationSettings.geoid_settings.geoids.empty())
-    geoids = translateGeoIdsToFMISID(settings, stationSettings.geoid_settings);
-
-  if (!wmos.empty())
-    result.insert(result.end(), wmos.begin(), wmos.end());
-
-  if (!lpnns.empty())
-    result.insert(result.end(), lpnns.begin(), lpnns.end());
-
-  if (!geoids.empty())
-    result.insert(result.end(), geoids.begin(), geoids.end());
-
-  // FMISIDs need no conversion
+  // FMISIDs need no translation
   for (auto id : stationSettings.fmisids)
     result.emplace_back(Fmi::to_string(id), id);
+
+  result.insert(result.end(), wmos.begin(), wmos.end());
+  result.insert(result.end(), lpnns.begin(), lpnns.end());
+  result.insert(result.end(), geoids.begin(), geoids.end());
+  result.insert(result.end(), wsis.begin(), wsis.end());
 
   // Bounding box
   if (!stationSettings.bounding_box_settings.empty())

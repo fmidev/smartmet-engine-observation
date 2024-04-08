@@ -111,8 +111,8 @@ void calculateStationDirection(Spine::Station& station)
   {
     double lon1 = deg2rad(station.requestedLon);
     double lat1 = deg2rad(station.requestedLat);
-    double lon2 = deg2rad(station.longitude_out);
-    double lat2 = deg2rad(station.latitude_out);
+    double lon2 = deg2rad(station.longitude);
+    double lat2 = deg2rad(station.latitude);
 
     double dlon = lon2 - lon1;
 
@@ -265,12 +265,10 @@ Spine::Stations removeDuplicateStations(const Spine::Stations& stations)
     Spine::Stations noDuplicates;
     for (const Spine::Station& s : stations)
     {
-      if (used_ids.find(s.station_id) == used_ids.end())
+      if (used_ids.find(s.fmisid) == used_ids.end())
       {
         noDuplicates.push_back(s);
-        // BUG? Why is station_id double?
-        int id = boost::numeric_cast<int>(s.station_id);
-        used_ids.insert(id);
+        used_ids.insert(s.fmisid);
       }
     }
     return noDuplicates;

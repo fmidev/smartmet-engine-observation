@@ -60,14 +60,14 @@ std::set<int> StationGroups::getStations() const
   return ret;
 }
 
-bool StationGroups::groupOK(int station_id, const std::string& station_type) const
+bool StationGroups::groupOK(int station_id, const std::string& type) const
 {
   if (itsGroupPeriods.find(station_id) == itsGroupPeriods.end())
     return false;
 
   const auto& group_periods = itsGroupPeriods.at(station_id);
 
-  return (group_periods.find(station_type) != group_periods.end());
+  return (group_periods.find(type) != group_periods.end());
 }
 
 }  // namespace Observation

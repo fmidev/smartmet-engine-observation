@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 24.2.23
+Version: 24.4.5
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -28,14 +28,14 @@ BuildRequires: gdal35-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 24.1.30
+BuildRequires: smartmet-engine-geonames-devel >= 24.2.23
 BuildRequires: smartmet-library-locus-devel >= 23.7.28
 BuildRequires: smartmet-library-macgyver-devel >= 24.1.17
-BuildRequires: smartmet-library-spine-devel >= 24.2.8
-BuildRequires: smartmet-library-timeseries-devel >= 24.2.23
+BuildRequires: smartmet-library-spine-devel >= 24.4.5
+BuildRequires: smartmet-library-timeseries-devel >= 24.4.5
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
-BuildRequires: smartmet-utils-devel >= 23.9.6
+BuildRequires: smartmet-utils-devel >= 24.3.13
 BuildRequires: zlib-devel
 Requires: %{smartmet_boost}-date-time
 Requires: %{smartmet_boost}-iostreams
@@ -46,11 +46,11 @@ Requires: %{smartmet_boost}-thread
 Requires: fmt >= %{smartmet_fmt_min}, fmt < %{smartmet_fmt_max}
 Requires: gdal35-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 24.1.30
+Requires: smartmet-engine-geonames >= 24.2.23
 Requires: smartmet-library-locus >= 23.7.28
 Requires: smartmet-library-macgyver >= 24.1.17
-Requires: smartmet-library-spine >= 24.2.8
-Requires: smartmet-library-timeseries >= 24.2.23
+Requires: smartmet-library-spine >= 24.4.5
+Requires: smartmet-library-timeseries >= 24.4.5
 Requires: smartmet-server >= 24.2.22
 Requires: unixODBC
 
@@ -63,7 +63,7 @@ BuildRequires: libspatialite43-devel
 #TestRequires: libspatialite43-devel
 #TestRequires: sqlite33-devel >= 3.30.1
 #TestRequires: catch-devel >= 1.9.6
-#TestRequires: smartmet-utils-devel >= 23.9.6
+#TestRequires: smartmet-utils-devel >= 24.3.13
 %else
 %if 0%{?rhel} && 0%{rhel} >= 8
 Requires: libpqxx >= 7.7.0 libpqxx < 1:7.8.0
@@ -130,7 +130,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 24.2.8
+Requires: smartmet-library-spine-devel >= 24.4.5
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -164,6 +164,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Apr  5 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.4.5-1.fmi
+- Added support for WIGOS wsi
+
+* Tue Mar 26 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.3.26-1.fmi
+- Faster read of LPNN, WMO and RWSID numbers
+
 * Fri Feb 23 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> 24.2.23-1.fmi
 - Full repackaging
 

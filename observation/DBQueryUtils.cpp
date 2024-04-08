@@ -150,14 +150,13 @@ bool isDataSourceOrDataQualityField(const std::string &fieldname)
   return (isDataSourceField(fieldname) || isDataQualityField(fieldname));
 }
 
-void addSpecialFieldsToTimeSeries(
-    const TS::TimeSeriesVectorPtr &timeSeriesColumns,
-    int fmisid,
-    const TimedMeasurandData &timed_measurand_data,
-    const std::set<Fmi::LocalDateTime> &valid_timesteps,
-    const std::map<std::string, int> &specialPositions,
-    const std::map<std::string, std::string> &parameterNameMap,
-    bool addDataSourceField)
+void addSpecialFieldsToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColumns,
+                                  int fmisid,
+                                  const TimedMeasurandData &timed_measurand_data,
+                                  const std::set<Fmi::LocalDateTime> &valid_timesteps,
+                                  const std::map<std::string, int> &specialPositions,
+                                  const std::map<std::string, std::string> &parameterNameMap,
+                                  bool addDataSourceField)
 {
   // Add *data_source- and data_quality-fields
   try
@@ -285,17 +284,16 @@ void addSpecialParameterToTimeSeries(const std::string &paramname,
   }
 }
 
-void addParameterToTimeSeries(
-    const TS::TimeSeriesVectorPtr &timeSeriesColumns,
-    const std::pair<Fmi::LocalDateTime, MeasurandData> &dataItem,
-    int fmisid,
-    const std::map<std::string, int> &specialPositions,
-    const std::map<std::string, int> &parameterNameIdMap,
-    const std::map<std::string, int> &timeseriesPositions,
-    const std::string &stationtype,
-    const Spine::Station &station,
-    const Settings &settings,
-    const ParameterMapPtr &parameterMap)
+void addParameterToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColumns,
+                              const std::pair<Fmi::LocalDateTime, MeasurandData> &dataItem,
+                              int fmisid,
+                              const std::map<std::string, int> &specialPositions,
+                              const std::map<std::string, int> &parameterNameIdMap,
+                              const std::map<std::string, int> &timeseriesPositions,
+                              const std::string &stationtype,
+                              const Spine::Station &station,
+                              const Settings &settings,
+                              const ParameterMapPtr &parameterMap)
 {
   try
   {
@@ -324,8 +322,7 @@ void addParameterToTimeSeries(
           .emplace_back(TS::TimedValue(obstime, val));
     }
 
-    Fmi::LocalDateTime now(Fmi::SecondClock::universal_time(),
-                                           obstime.zone());
+    Fmi::LocalDateTime now(Fmi::SecondClock::universal_time(), obstime.zone());
     SpecialParameters::Args args(station, stationtype, obstime, now, settings.timezone, &settings);
 
     TS::Value missing = TS::None();
@@ -336,9 +333,8 @@ void addParameterToTimeSeries(
 
       try
       {
-        if (special.first == "longitude" || special.first == "lon" ||
-            special.first == "latitude" || special.first == "lat" ||
-            special.first == "elevation")
+        if (special.first == "longitude" || special.first == "lon" || special.first == "latitude" ||
+            special.first == "lat" || special.first == "elevation")
         {
           int mid = 0;
           if (special.first == "longitude" || special.first == "lon")
@@ -438,8 +434,8 @@ void addParameterToTimeSeries(
             int wawa = static_cast<int>(
                 boost::get<double>(get_default_sensor_value(sensor_values, fmisid, wawapos)));
 
-            double lat = station.latitude_out;
-            double lon = station.longitude_out;
+            double lat = station.latitude;
+            double lon = station.longitude;
             auto value = calcSmartsymbolNumber(wawa, totalcloudcover, temp, obstime, lat, lon);
             if (!value)
               timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, missing));
@@ -741,7 +737,7 @@ StationTimedMeasurandData DBQueryUtils::buildStationTimedMeasurandData(
 }
 
 Fmi::LocalDateTime find_wanted_time(const TimedMeasurandData &timed_measurand_data,
-                                                    const Settings &settings)
+                                    const Settings &settings)
 {
   if (timed_measurand_data.size() == 1)  // speed optimization if there is only one choice
     return timed_measurand_data.begin()->first;
@@ -942,8 +938,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
           auto it = continuous.find(i);
           if (it != continuous.end())
           {
-            Fmi::LocalDateTime now(
-                Fmi::SecondClock::universal_time(), timestep_iter->zone());
+            Fmi::LocalDateTime now(Fmi::SecondClock::universal_time(), timestep_iter->zone());
             SpecialParameters::Args args(
                 station, stationtype, *timestep_iter, now, settings.timezone, &settings);
             auto value = SpecialParameters::instance().getTimedValue(it->second, args);
@@ -1108,9 +1103,9 @@ StationMap DBQueryUtils::mapQueryStations(const Spine::Stations &stations,
     StationMap ret;
     for (const Spine::Station &s : stations)
     {
-      if (observed_fmisids.find(s.station_id) == observed_fmisids.end())
+      if (observed_fmisids.find(s.fmisid) == observed_fmisids.end())
         continue;
-      ret.insert(std::make_pair(s.station_id, s));
+      ret.insert(std::make_pair(s.fmisid, s));
     }
     return ret;
   }
@@ -1132,8 +1127,8 @@ std::string DBQueryUtils::buildSqlStationList(const Spine::Stations &stations,
     std::set<std::string> station_ids;
     for (const Spine::Station &s : stations)
     {
-      if (stationInfo.belongsToGroup(s.station_id, stationgroup_codes))
-        station_ids.insert(Fmi::to_string(s.station_id));
+      if (stationInfo.belongsToGroup(s.fmisid, stationgroup_codes))
+        station_ids.insert(Fmi::to_string(s.fmisid));
     }
     check_request_limit(requestLimits, station_ids.size(), TS::RequestLimitMember::LOCATIONS);
 
