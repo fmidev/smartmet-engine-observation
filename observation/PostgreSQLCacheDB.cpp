@@ -1840,7 +1840,7 @@ void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(const std::string &param
     else if (paramname == "stationlat" || paramname == "stationlatitude")
       timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.latitude));
 
-    else if (paramname == "elevation" || paramname == "elevation")
+    else if (paramname == "elevation" || paramname == "station_elevation")
       timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.elevation));
 
     else if (paramname == "stationtype")
