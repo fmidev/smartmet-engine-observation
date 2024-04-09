@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 24.4.5
+Version: 24.49
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -164,6 +164,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Apr  9 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.49-1.fmi
+- Fixed station_elevation handling
+
 * Fri Apr  5 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.4.5-1.fmi
 - Added support for WIGOS wsi
 
