@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 24.49
+Version: 24.4.9
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
