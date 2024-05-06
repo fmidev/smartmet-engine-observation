@@ -46,12 +46,12 @@ Requires: %{smartmet_boost}-thread
 Requires: fmt >= %{smartmet_fmt_min}, fmt < %{smartmet_fmt_max}
 Requires: gdal35-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 24.2.23
+Requires: smartmet-engine-geonames >= 24.5.6
 Requires: smartmet-library-locus >= 23.7.28
-Requires: smartmet-library-macgyver >= 24.1.17
-Requires: smartmet-library-spine >= 24.4.5
-Requires: smartmet-library-timeseries >= 24.4.5
-Requires: smartmet-server >= 24.2.22
+Requires: smartmet-library-macgyver >= 24.5.6
+Requires: smartmet-library-spine >= 24.5.6
+Requires: smartmet-library-timeseries >= 24.5.6
+Requires: smartmet-server >= 24.5.6
 Requires: unixODBC
 
 %if %{defined el7}
