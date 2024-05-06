@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 24.4.9
+Version: 24.5.6
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -164,6 +164,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon May  6 2024 Andris Pavēnis <andris.pavenis@fmi.fi> 24.5.6-1.fmi
+- Use Date library (https://github.com/HowardHinnant/date) instead of boost date_time
+
 * Tue Apr  9 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.49-1.fmi
 - Fixed station_elevation handling
 
