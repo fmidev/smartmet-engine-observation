@@ -23,15 +23,15 @@ class ObservationCacheAdminBase
   ObservationCacheAdminBase& operator=(ObservationCacheAdminBase&& other) = delete;
 
   virtual void readObservationCacheData(std::vector<DataItem>& cacheData,
-                                        const boost::posix_time::time_period& dataPeriod,
+                                        const Fmi::TimePeriod& dataPeriod,
                                         const std::string& fmisid,
                                         const std::string& measuradId,
                                         const Fmi::TimeZones& timezones) const = 0;
   virtual void readFlashCacheData(std::vector<FlashDataItem>& cacheData,
-                                  const boost::posix_time::time_period& dataPeriod,
+                                  const Fmi::TimePeriod& dataPeriod,
                                   const Fmi::TimeZones& timezones) const = 0;
   virtual void readWeatherDataQCCacheData(std::vector<WeatherDataQCItem>& cacheData,
-                                          const boost::posix_time::time_period& dataPeriod,
+                                          const Fmi::TimePeriod& dataPeriod,
                                           const std::string& fmisid,
                                           const std::string& measuradId,
                                           const Fmi::TimeZones& timezones) const = 0;

@@ -514,7 +514,7 @@ Fmi::DateTime PostgreSQLDatabaseDriverForFmiData::getLatestDataUpdateTime(
 {
   try
   {
-    Fmi::DateTime ret = boost::posix_time::not_a_date_time;
+    Fmi::DateTime ret = Fmi::DateTime::NOT_A_DATE_TIME;
 
     std::string producer_ids;
     std::string measurand_ids;

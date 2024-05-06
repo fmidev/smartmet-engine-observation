@@ -37,7 +37,7 @@ DatabaseDriverBase *DatabaseDriverContainer::resolveDriver(
           BCP, "Error! No database driver found for reqested table: '" + tablename + "'");
     }
 
-    boost::posix_time::time_period requested_period(starttime, endtime);
+    Fmi::TimePeriod requested_period(starttime, endtime);
 
     std::vector<DatabaseDriverDays> driver_days = itsDatabaseDrivers.at(tablename);
     // Sort to ascending order and return the first driver that matches 'max_days' criterion
@@ -59,7 +59,7 @@ DatabaseDriverBase *DatabaseDriverContainer::resolveDriver(
         }
 
         Fmi::DateTime driver_data_start_time =
-            (now - boost::gregorian::days(item.max_days));
+            (now - Fmi::date_time::Days(item.max_days));
 
         if (starttime >= driver_data_start_time)
         {

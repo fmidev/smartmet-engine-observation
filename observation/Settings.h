@@ -1,8 +1,6 @@
 #pragma once
 
 #include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/date_time/local_time/local_time.hpp>
-#include <boost/date_time/local_time_adjustor.hpp>
 #include <macgyver/DateTime.h>
 #include <boost/optional.hpp>
 #include <macgyver/ValueFormatter.h>

@@ -73,7 +73,7 @@ Fmi::DateTime FlashMemoryCache::getStartTime() const
     if (t)
       return *t;
 
-    return {boost::posix_time::not_a_date_time};
+    return {Fmi::DateTime::NOT_A_DATE_TIME};
   }
   catch (...)
   {
@@ -134,7 +134,7 @@ std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
     auto starttime = itsStartTime.load();
     if (!starttime)
     {
-      starttime = boost::make_shared<Fmi::DateTime>(boost::posix_time::not_a_date_time);
+      starttime = boost::make_shared<Fmi::DateTime>(Fmi::DateTime::NOT_A_DATE_TIME);
       itsStartTime.store(starttime);
     }
 

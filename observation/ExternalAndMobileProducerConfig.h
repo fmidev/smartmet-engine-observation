@@ -2,6 +2,7 @@
 #include "ExternalAndMobileProducerId.h"
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
+#include <map>
 
 namespace SmartMet
 {

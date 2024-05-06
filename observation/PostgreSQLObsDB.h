@@ -59,15 +59,15 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
                                          Fmi::DateTime lastCreatedTime,
                                          const Fmi::TimeZones &timezones);
   void readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
-                                   const boost::posix_time::time_period &dataPeriod,
+                                   const Fmi::TimePeriod &dataPeriod,
                                    const std::string &fmisid,
                                    const std::string &measurandId,
                                    const Fmi::TimeZones &timezones);
   void readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem> &flashCacheData,
-                                        const boost::posix_time::time_period &dataPeriod,
+                                        const Fmi::TimePeriod &dataPeriod,
                                         const Fmi::TimeZones &timezones);
   void readWeatherDataQCCacheDataFromPostgreSQL(std::vector<WeatherDataQCItem> &cacheData,
-                                                const boost::posix_time::time_period &dataPeriod,
+                                                const Fmi::TimePeriod &dataPeriod,
                                                 const std::string &fmisid,
                                                 const std::string &measurandId,
                                                 const Fmi::TimeZones &timezones);

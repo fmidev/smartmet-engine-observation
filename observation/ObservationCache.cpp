@@ -56,7 +56,7 @@ Fmi::DateTime ObservationCache::getLatestDataUpdateTime(
     const std::string& /*producer_ids*/,
     const std::string& /*measurand_ids*/) const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 ObservationCache::~ObservationCache() = default;

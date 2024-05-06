@@ -12,8 +12,8 @@
 
 std::string stationFile = "/usr/share/smartmet/test/data/sqlite/stations.txt";
 
-Fmi::DateTime starttime(boost::posix_time::time_from_string("2010-01-01 00:00:00"));
-Fmi::DateTime endtime(boost::posix_time::time_from_string("2010-01-02 00:00:00"));
+Fmi::DateTime starttime(Fmi::DateTime::from_string("2010-01-01 00:00:00"));
+Fmi::DateTime endtime(Fmi::DateTime::from_string("2010-01-02 00:00:00"));
 
 Fmi::TimeZones timezones;
 
@@ -84,8 +84,8 @@ TEST_CASE("Test station and data searches")
           5000,
           1,
           stationgroup_codes,
-          boost::posix_time::time_from_string("2020-01-01 00:00:00"),
-          boost::posix_time::time_from_string("2020-02-01 00:00:00"));
+          Fmi::DateTime::from_string("2020-01-01 00:00:00"),
+          Fmi::DateTime::from_string("2020-02-01 00:00:00"));
       REQUIRE(stations.size() == 1);
       REQUIRE(stations.back().formal_name_fi == "Vantaa Helsinki-Vantaan lentoasema");
       REQUIRE(to_iso_extended_string(stations.back().station_end) == "2020-09-24T00:00:00");
@@ -101,8 +101,8 @@ TEST_CASE("Test station and data searches")
           5000,
           1,
           stationgroup_codes,
-          boost::posix_time::time_from_string("2021-01-01 00:00:00"),
-          boost::posix_time::time_from_string("2021-02-01 00:00:00"));
+          Fmi::DateTime::from_string("2021-01-01 00:00:00"),
+          Fmi::DateTime::from_string("2021-02-01 00:00:00"));
       REQUIRE(stations.size() == 1);
       REQUIRE(stations.back().formal_name_fi == "Vantaa Helsinki-Vantaan lentoasema");
       REQUIRE(to_iso_extended_string(stations.back().station_end) == "9999-12-31T00:00:00");

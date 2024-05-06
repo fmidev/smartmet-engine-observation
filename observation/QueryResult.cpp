@@ -3,6 +3,7 @@
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TypeName.h>
+#include <iostream>
 #include <limits>
 #include <utility>
 

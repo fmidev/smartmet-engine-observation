@@ -12,7 +12,7 @@ namespace Observation
 {
 struct MetaData
 {
-  MetaData(Spine::BoundingBox b, const boost::posix_time::time_period &p, int step)
+  MetaData(Spine::BoundingBox b, const Fmi::TimePeriod &p, int step)
       : bbox(std::move(b)), period(p), timestep(step)
   {
   }
@@ -26,7 +26,7 @@ struct MetaData
   MetaData &operator=(MetaData &&md) = default;
 
   Spine::BoundingBox bbox;
-  boost::posix_time::time_period period;
+  Fmi::TimePeriod period;
   bool fixedPeriodEndTime{false};
   int timestep = 1;  // timestep in minutes
   std::set<std::string> parameters;

@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <memory>
 #include <vector>
+#include <boost/lexical_cast.hpp>
 
 namespace SmartMet
 {

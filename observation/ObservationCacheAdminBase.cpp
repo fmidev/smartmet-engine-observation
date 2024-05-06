@@ -340,7 +340,7 @@ void ObservationCacheAdminBase::updateFlashFakeCache(std::shared_ptr<Observation
     std::vector<FlashDataItem> cacheData;
     Fmi::DateTime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
     Fmi::DateTime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
-    boost::posix_time::time_period dataPeriod(starttime, endtime);
+    Fmi::TimePeriod dataPeriod(starttime, endtime);
 
     auto begin1 = std::chrono::high_resolution_clock::now();
     readFlashCacheData(cacheData, dataPeriod, itsTimeZones);
@@ -550,7 +550,7 @@ void ObservationCacheAdminBase::updateObservationFakeCache(
     std::vector<DataItem> cacheData;
     Fmi::DateTime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
     Fmi::DateTime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
-    boost::posix_time::time_period dataPeriod(starttime, endtime);
+    Fmi::TimePeriod dataPeriod(starttime, endtime);
 
     auto begin1 = std::chrono::high_resolution_clock::now();
     readObservationCacheData(
@@ -625,7 +625,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
         while (t1 < now)
         {
           auto t2 = t1 + Fmi::Hours(length);
-          boost::posix_time::time_period period(t1, t2);
+          Fmi::TimePeriod period(t1, t2);
           std::cout << "Reading FIN period " << period << "\n";
           readObservationCacheData(cacheData, period, fmisid, measurandId, itsTimeZones);
           t1 = t2;
@@ -695,7 +695,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCFakeCache(
     std::vector<WeatherDataQCItem> cacheData;
     Fmi::DateTime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
     Fmi::DateTime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
-    boost::posix_time::time_period dataPeriod(starttime, endtime);
+    Fmi::TimePeriod dataPeriod(starttime, endtime);
 
     auto begin1 = std::chrono::high_resolution_clock::now();
     readWeatherDataQCCacheData(
@@ -760,7 +760,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
         while (t1 < now)
         {
           auto t2 = t1 + Fmi::Hours(length);
-          boost::posix_time::time_period period(t1, t2);
+          Fmi::TimePeriod period(t1, t2);
           readWeatherDataQCCacheData(cacheData, period, fmisid, measurandId, itsTimeZones);
           t1 = t2;
         }

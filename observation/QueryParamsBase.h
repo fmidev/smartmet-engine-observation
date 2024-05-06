@@ -9,8 +9,6 @@ namespace Engine
 {
 namespace Observation
 {
-namespace pt = boost::posix_time;
-
 class QueryParamsBase
 {
  public:

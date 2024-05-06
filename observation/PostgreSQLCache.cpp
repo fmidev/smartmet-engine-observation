@@ -925,12 +925,12 @@ bool PostgreSQLCache::magnetometerIntervalIsCached(const Fmi::DateTime & /* star
 
 Fmi::DateTime PostgreSQLCache::getLatestMagnetometerDataTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 Fmi::DateTime PostgreSQLCache::getLatestMagnetometerModifiedTime() const
 {
-  return boost::posix_time::not_a_date_time;
+  return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
 std::size_t PostgreSQLCache::fillMagnetometerCache(

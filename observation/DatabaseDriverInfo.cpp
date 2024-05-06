@@ -6,6 +6,7 @@
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <spine/Convenience.h>
+#include <iostream>
 
 namespace SmartMet
 {
