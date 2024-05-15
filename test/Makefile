@@ -18,7 +18,6 @@ LIBS += \
 	-lsmartmet-macgyver \
 	-lsmartmet-locus \
 	-lsmartmet-newbase \
-	-lboost_date_time \
 	-lboost_thread \
 	-lboost_filesystem \
 	-lboost_serialization \
