@@ -138,7 +138,7 @@ std::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(
       }
 
       // The timeout counter above assumes the sleep time here is one second. Should be rewritten.
-      boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+      boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
     }
 
     // NEVER EXECUTED:
