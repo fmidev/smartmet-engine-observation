@@ -31,7 +31,6 @@ LIBS += $(REQUIRED_LIBS) \
 	-lsmartmet-gis \
         -lboost_thread \
         -lboost_iostreams \
-        -lboost_date_time \
         -lboost_locale \
         -lboost_system \
         -lboost_serialization \
