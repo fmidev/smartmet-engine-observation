@@ -1,6 +1,5 @@
 #pragma once
 
-#include <boost/date_time/gregorian/formatters.hpp>
 #include <macgyver/DateTime.h>
 #include <boost/optional.hpp>
 #include <vector>

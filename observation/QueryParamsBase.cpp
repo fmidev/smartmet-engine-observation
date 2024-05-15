@@ -1,5 +1,4 @@
 #include "QueryParamsBase.h"
-#include <boost/date_time/gregorian/formatters.hpp>
 #include <macgyver/DateTime.h>
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
