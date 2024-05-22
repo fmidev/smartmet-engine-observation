@@ -197,9 +197,7 @@ SpecialParameters::SpecialParameters()
   {
     TS::Value value = TS::None();
     if (d.station.rwsid > 0)
-    {
       value = d.station.rwsid;
-    }
     return value;
   };
 
@@ -241,6 +239,13 @@ SpecialParameters::SpecialParameters()
     if (d.station.wmo > 0)
       value = d.station.wmo;
     return value;
+  };
+
+  handler_map["wsi"] = [](const SpecialParameters::Args& d) -> TS::Value
+  {
+    if (!d.station.wsi.empty())
+      return d.station.wsi;
+    return TS::None();
   };
 
   // FIXME: implement: requires initial coordinate system
