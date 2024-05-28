@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 24.5.27
+Version: 24.5.28
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -163,6 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue May 28 2024 Andris Pavēnis <andris.pavenis@fmi.fi> 24.5.28-1.fmi
+- Do not use LocalTimePool
+
 * Mon May 27 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.5.27-1.fmi
 - Repackaged to initialize CacheStats start time properly
 
