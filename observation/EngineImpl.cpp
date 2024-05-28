@@ -129,7 +129,7 @@ void afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
     // Create and initialize data structure for results
     TS::TimeSeriesVectorPtr result = TS::TimeSeriesVectorPtr(new TS::TimeSeriesVector);
     for (unsigned int i = 0; i < tsvPtr->size(); i++)
-      result->emplace_back(TS::TimeSeries(settings.localTimePool));
+      result->emplace_back(TS::TimeSeries());
 
     // FMISIDs are in right order in settings.taggedFMISIDs list
     // Iterate the list and copy data from original data structure to result structure
@@ -518,11 +518,6 @@ Settings EngineImpl::beforeQuery(const Settings &settings,
 {
   try
   {
-    // LocalTimePool must be created by client plugin, because references to localtimes in the pool
-    // are used in the result set and they must be valid as log as result set is processed
-    if (settings.localTimePool == nullptr)
-      throw Fmi::Exception::Trace(BCP, "Observation::Settings::localTimePool can not be null!!!");
-
     // Copy original settings
     Settings ret = settings;
     // Clear parameter list

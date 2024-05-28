@@ -163,7 +163,6 @@ void addSpecialFieldsToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColum
   {
     std::map<int, TS::TimeSeries> data_source_ts;
     std::set<Fmi::LocalDateTime> timesteps;
-    TS::LocalTimePoolPtr local_time_pool = timeSeriesColumns->begin()->getLocalTimePool();
     for (const auto &item : timed_measurand_data)
     {
       const auto &obstime = item.first;
@@ -202,7 +201,7 @@ void addSpecialFieldsToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColum
             }
           }
           if (data_source_ts.find(pos) == data_source_ts.end())
-            data_source_ts.insert(std::make_pair(pos, TS::TimeSeries(local_time_pool)));
+            data_source_ts.insert(std::make_pair(pos, TS::TimeSeries()));
           data_source_ts.at(pos).emplace_back(TS::TimedValue(obstime, val));
           timesteps.insert(obstime);
         }
@@ -225,7 +224,7 @@ void addSpecialFieldsToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColum
             }
           }
           if (data_source_ts.find(pos) == data_source_ts.end())
-            data_source_ts.insert(std::make_pair(pos, TS::TimeSeries(local_time_pool)));
+            data_source_ts.insert(std::make_pair(pos, TS::TimeSeries()));
           data_source_ts.at(pos).emplace_back(TS::TimedValue(obstime, val));
           timesteps.insert(obstime);
         }
@@ -928,7 +927,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
 
         TS::Value missing_value = TS::None();
 
-        TS::TimeSeries new_ts(settings.localTimePool);
+        TS::TimeSeries new_ts;
         auto timestep_iter = valid_timesteps.cbegin();
 
         // TODO: This is rather ugly and perhaps not very efficient.

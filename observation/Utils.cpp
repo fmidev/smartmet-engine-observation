@@ -564,7 +564,7 @@ TS::TimeSeriesVectorPtr initializeResultVector(const Settings& settings)
 
   // Set timeseries objects for each requested parameter
   for (unsigned int i = 0; i < settings.parameters.size(); i++)
-    ret->emplace_back(TS::TimeSeries(settings.localTimePool));
+    ret->emplace_back(TS::TimeSeries());
 
   return ret;
 }

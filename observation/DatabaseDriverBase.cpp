@@ -348,8 +348,8 @@ TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
 
       TS::TimeSeriesGenerator::LocalTimeList tlist = TS::TimeSeriesGenerator::generate(
           timeSeriesOptions, itsTimeZones.time_zone_from_string(settings.timezone));
-      TS::TimeSeries ts_fmisid(settings.localTimePool);
-      TS::TimeSeries ts_place(settings.localTimePool);
+      TS::TimeSeries ts_fmisid;
+      TS::TimeSeries ts_place;
       for (const auto &tfmisid : settings.taggedFMISIDs)
       {
         for (const auto &t : tlist)

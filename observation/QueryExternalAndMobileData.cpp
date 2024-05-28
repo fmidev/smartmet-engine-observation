@@ -154,7 +154,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
     pqxx::result result_set = conn.executeNonTransaction(sqlStmt);
 
     for (unsigned int i = 0; i <= queryfields.size(); i++)
-      ret->emplace_back(TS::TimeSeries(settings.localTimePool));
+      ret->emplace_back(TS::TimeSeries());
 
     TS::TimeSeriesGenerator::LocalTimeList tlist;
     // The desired timeseries, unless all available data if timestep=0 or a specific time only
