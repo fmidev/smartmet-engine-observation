@@ -53,17 +53,6 @@ Requires: smartmet-library-timeseries >= 24.5.28
 Requires: smartmet-server >= 24.5.16
 Requires: unixODBC
 
-%if %{defined el7}
-Requires: libpqxx < 1:7.0
-BuildRequires: libpqxx-devel < 1:7.0
-Requires: sqlite33-libs >= 3.30.1
-BuildRequires: sqlite33-devel >= 3.30.1
-BuildRequires: libspatialite43-devel
-#TestRequires: libspatialite43-devel
-#TestRequires: sqlite33-devel >= 3.30.1
-#TestRequires: catch-devel >= 1.9.6
-#TestRequires: smartmet-utils-devel >= 24.5.10
-%else
 %if 0%{?rhel} && 0%{rhel} >= 8
 Requires: libpqxx >= 7.7.0 libpqxx < 1:7.8.0
 Requires: sqlite-libs >= 3.22.0
@@ -84,7 +73,6 @@ Requires: sqlite-libs >= 3.22.0
 BuildRequires: sqlite-devel >= 3.22.0
 #TestRequires: catch-devel
 %endif
-%endif
 
 Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
@@ -100,7 +88,6 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: smartmet-library-spine
 #TestRequires: smartmet-test-data
 
-%if 0%{rhel} >= 8
 Requires: libspatialite50
 BuildRequires: libspatialite50-devel
 #TestRequires: libspatialite50-devel
@@ -114,11 +101,6 @@ BuildRequires: libxml2-devel
 #TestRequires: freexl-devel
 #TestRequires: proj94-devel
 #TestRequires: libxml2-devel
-%else
-Requires: libspatialite43
-BuildRequires: libspatialite43-devel
-#TestRequires: libspatialite43-devel
-%endif
 
 Provides: %{SPECNAME}
 
