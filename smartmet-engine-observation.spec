@@ -108,6 +108,7 @@ BuildRequires: libspatialite50-devel
 BuildRequires: minizip-devel
 BuildRequires: freexl-devel
 BuildRequires: proj94-devel
+Requires: proj94
 BuildRequires: libxml2-devel
 #TestRequires: minizip-devel
 #TestRequires: freexl-devel
