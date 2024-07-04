@@ -162,12 +162,12 @@ std::set<std::string> Engine::getValidStationTypes() const
   REPORT_DISABLED;
 }
 
-ContentTable Engine::getProducerInfo(const boost::optional<std::string> & /*producer*/) const
+ContentTable Engine::getProducerInfo(const std::optional<std::string> & /*producer*/) const
 {
   REPORT_DISABLED;
 }
 
-ContentTable Engine::getParameterInfo(const boost::optional<std::string> & /*producer*/) const
+ContentTable Engine::getParameterInfo(const std::optional<std::string> & /*producer*/) const
 {
   REPORT_DISABLED;
 }

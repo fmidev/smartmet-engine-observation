@@ -373,11 +373,11 @@ void addParameterToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColumns,
             {
               std::string windCompass;
               if (special.first == "windcompass8")
-                windCompass = windCompass8(boost::get<double>(val), settings.missingtext);
+                windCompass = windCompass8(std::get<double>(val), settings.missingtext);
               else if (special.first == "windcompass16")
-                windCompass = windCompass16(boost::get<double>(val), settings.missingtext);
+                windCompass = windCompass16(std::get<double>(val), settings.missingtext);
               else if (special.first == "windcompass32")
-                windCompass = windCompass32(boost::get<double>(val), settings.missingtext);
+                windCompass = windCompass32(std::get<double>(val), settings.missingtext);
               TS::Value windCompassValue = TS::Value(windCompass);
               timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, windCompassValue));
             }
@@ -399,12 +399,12 @@ void addParameterToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColumns,
           {
             auto sensor_values = data.at(temppos);
             float temp =
-                boost::get<double>(get_default_sensor_value(sensor_values, fmisid, temppos));
+                std::get<double>(get_default_sensor_value(sensor_values, fmisid, temppos));
             sensor_values = data.at(rhpos);
-            float rh = boost::get<double>(get_default_sensor_value(sensor_values, fmisid, rhpos));
+            float rh = std::get<double>(get_default_sensor_value(sensor_values, fmisid, rhpos));
             sensor_values = data.at(windpos);
             float wind =
-                boost::get<double>(get_default_sensor_value(sensor_values, fmisid, windpos));
+                std::get<double>(get_default_sensor_value(sensor_values, fmisid, windpos));
 
             TS::Value feelslike = TS::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
             timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, feelslike));
@@ -425,13 +425,13 @@ void addParameterToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColumns,
           {
             auto sensor_values = data.at(temppos);
             float temp =
-                boost::get<double>(get_default_sensor_value(sensor_values, fmisid, temppos));
+                std::get<double>(get_default_sensor_value(sensor_values, fmisid, temppos));
             sensor_values = data.at(totalcloudcoverpos);
-            int totalcloudcover = static_cast<int>(boost::get<double>(
+            int totalcloudcover = static_cast<int>(std::get<double>(
                 get_default_sensor_value(sensor_values, fmisid, totalcloudcoverpos)));
             sensor_values = data.at(wawapos);
             int wawa = static_cast<int>(
-                boost::get<double>(get_default_sensor_value(sensor_values, fmisid, wawapos)));
+                std::get<double>(get_default_sensor_value(sensor_values, fmisid, wawapos)));
 
             double lat = station.latitude;
             double lon = station.longitude;
@@ -481,8 +481,8 @@ void addParameterToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColumns,
               auto clhb_sensor_values = data.at(clhb_pos);
 
               double cla_val =
-                  boost::get<double>(get_default_sensor_value(cla_sensor_values, fmisid, cla_pos));
-              double clhb_val = boost::get<double>(
+                  std::get<double>(get_default_sensor_value(cla_sensor_values, fmisid, cla_pos));
+              double clhb_val = std::get<double>(
                   get_default_sensor_value(clhb_sensor_values, fmisid, clhb_pos));
               if (cla_val >= 5 && cla_val <= 9)
               {

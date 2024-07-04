@@ -1,7 +1,7 @@
 #include "FlashMemoryCache.h"
 #include "Keywords.h"
 #include "Utils.h"
-#include <boost/optional.hpp>
+#include <optional>
 #include <macgyver/Geometry.h>
 #include <spine/Value.h>
 #include <list>
@@ -16,7 +16,7 @@ namespace Observation
 // 1) a radius from a point
 // 2) a bounding box
 
-using BBoxes = std::list<boost::optional<Spine::BoundingBox>>;
+using BBoxes = std::list<std::optional<Spine::BoundingBox>>;
 
 bool is_within_search_limits(const FlashDataItem& flash,
                              const Spine::TaggedLocationList& tlocs,
@@ -55,7 +55,7 @@ BBoxes parse_bboxes(const Spine::TaggedLocationList& tlocs)
     if (tloc.loc->type == Spine::Location::BoundingBox)
       bboxes.push_back(Spine::BoundingBox(tloc.loc->name));
     else
-      bboxes.push_back(boost::none);
+      bboxes.push_back(std::nullopt);
   }
   return bboxes;
 }
@@ -110,7 +110,7 @@ std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
     if (!new_items.empty())
     {
       // Copy the old data
-      auto new_cache = boost::make_shared<FlashDataVector>();
+      auto new_cache = std::make_shared<FlashDataVector>();
 
       auto old_cache = itsFlashData.load();
       if (old_cache)
@@ -134,7 +134,7 @@ std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
     auto starttime = itsStartTime.load();
     if (!starttime)
     {
-      starttime = boost::make_shared<Fmi::DateTime>(Fmi::DateTime::NOT_A_DATE_TIME);
+      starttime = std::make_shared<Fmi::DateTime>(Fmi::DateTime::NOT_A_DATE_TIME);
       itsStartTime.store(starttime);
     }
 
@@ -171,14 +171,14 @@ void FlashMemoryCache::clean(const Fmi::DateTime& newstarttime) const
         for (auto it = cache->begin(); it != pos; ++it)
           itsHashValues.erase(it->hash_value());
 
-        auto new_cache = boost::make_shared<FlashDataVector>(pos, cache->end());
+        auto new_cache = std::make_shared<FlashDataVector>(pos, cache->end());
         cache = new_cache;
       }
     }
 
     // Update new start time for the cache first so no-one can request data before it
     // before the data has been cleaned
-    auto starttime = boost::make_shared<Fmi::DateTime>(newstarttime);
+    auto starttime = std::make_shared<Fmi::DateTime>(newstarttime);
     itsStartTime.store(starttime);
 
     // And now a quick atomic update to the data too, if we deleted anything

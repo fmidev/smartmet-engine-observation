@@ -1,7 +1,7 @@
 #pragma once
 
 #include <macgyver/DateTime.h>
-#include <boost/optional.hpp>
+#include <optional>
 #include <macgyver/StringConversion.h>
 #include <vector>
 

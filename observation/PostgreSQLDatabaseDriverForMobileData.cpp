@@ -131,11 +131,11 @@ void PostgreSQLDatabaseDriverForMobileData::makeQuery(QueryBase *qb)
     std::shared_ptr<QueryResultBase> result = qb->getQueryResultContainer();
 
     // Try cache first
-    boost::optional<std::shared_ptr<QueryResultBase> > cacheResult =
+    std::optional<std::shared_ptr<QueryResultBase> > cacheResult =
         itsParameters.params->queryResultBaseCache.find(sqlStatement);
     if (cacheResult)
     {
-      if (result->set(cacheResult.get()))
+      if (result->set(*cacheResult))
         return;
     }
 
@@ -239,14 +239,14 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(Settings &
   {
     // Database query prevented
     if (settings.preventDatabaseQuery)
-      return boost::make_shared<TS::TimeSeriesVector>();
+      return std::make_shared<TS::TimeSeriesVector>();
 
     if (!itsConnectionsOK)
     {
       std::cerr << "[PostgreSQLDatabaseDriverForMobileData] values(): No connections to PostgreSQL "
                    "database!"
                 << std::endl;
-      return boost::make_shared<TS::TimeSeriesVector>();
+      return std::make_shared<TS::TimeSeriesVector>();
     }
 
     std::shared_ptr<PostgreSQLObsDB> db =
@@ -305,14 +305,14 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(
   {
     // Database query prevented
     if (settings.preventDatabaseQuery)
-      return boost::make_shared<TS::TimeSeriesVector>();
+      return std::make_shared<TS::TimeSeriesVector>();
 
     if (!itsConnectionsOK)
     {
       std::cerr << "[PostgreSQLDatabaseDriverForMobileData] values(): No connections to PostgreSQL "
                    "database!"
                 << std::endl;
-      return boost::make_shared<TS::TimeSeriesVector>();
+      return std::make_shared<TS::TimeSeriesVector>();
     }
 
     std::shared_ptr<PostgreSQLObsDB> db =

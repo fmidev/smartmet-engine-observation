@@ -95,7 +95,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
 
   Fmi::DateTime startTime;
   Fmi::DateTime endTime;
-  boost::optional<Fmi::DateTime> wantedTime;
+  std::optional<Fmi::DateTime> wantedTime;
   std::string timeFormat;
   int timeStep = 0;
   double maxDistance = 0;

@@ -38,7 +38,7 @@ struct SpatiaLiteCacheParameters
   // May be modified by the driver in a separate thread. This is intentionally a reference to the
   // actual stationInfo object in EngineParameters.
 
-  const boost::atomic_shared_ptr<StationInfo>* stationInfo = nullptr;
+  const Fmi::AtomicSharedPtr<StationInfo>* stationInfo = nullptr;
 
   std::shared_ptr<Fmi::TimePeriod> flashCachePeriod;
   std::string cacheFile;

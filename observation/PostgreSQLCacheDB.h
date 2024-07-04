@@ -26,16 +26,16 @@ struct PostgreSQLCacheParameters;
 
 struct cached_data
 {
-  std::vector<boost::optional<int>> fmisidsAll;
+  std::vector<std::optional<int>> fmisidsAll;
   std::vector<Fmi::DateTime> obstimesAll;
-  std::vector<boost::optional<double>> longitudesAll;
-  std::vector<boost::optional<double>> latitudesAll;
-  std::vector<boost::optional<double>> elevationsAll;
-  std::vector<boost::optional<std::string>> parametersAll;
-  std::vector<boost::optional<int>> measurand_idsAll;
-  std::vector<boost::optional<double>> data_valuesAll;
-  std::vector<boost::optional<int>> data_sourcesAll;
-  std::vector<boost::optional<double>> sensor_nosAll;
+  std::vector<std::optional<double>> longitudesAll;
+  std::vector<std::optional<double>> latitudesAll;
+  std::vector<std::optional<double>> elevationsAll;
+  std::vector<std::optional<std::string>> parametersAll;
+  std::vector<std::optional<int>> measurand_idsAll;
+  std::vector<std::optional<double>> data_valuesAll;
+  std::vector<std::optional<int>> data_sourcesAll;
+  std::vector<std::optional<double>> sensor_nosAll;
 };
 
 class PostgreSQLCacheDB : public CommonPostgreSQLFunctions

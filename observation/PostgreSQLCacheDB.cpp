@@ -1620,13 +1620,13 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
 
     for (auto rsr : rsrs)
     {
-      Fmi::LocalDateTime obstime = *(boost::get<Fmi::LocalDateTime>(&rsr["data_time"]));
+      Fmi::LocalDateTime obstime = std::get<Fmi::LocalDateTime>(rsr["data_time"]);
       unsigned int index = 0;
       for (auto fieldname : queryfields)
       {
         if (fieldname == "created")
         {
-          Fmi::LocalDateTime dt = *(boost::get<Fmi::LocalDateTime>(&rsr[fieldname]));
+          Fmi::LocalDateTime dt = std::get<Fmi::LocalDateTime>(rsr[fieldname]);
 
           std::string fieldValue = itsTimeFormatter->format(dt);
           ret->at(index).emplace_back(TS::TimedValue(obstime, fieldValue));
@@ -1709,13 +1709,13 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
         {
           std::string windCompass;
           if (special.first == "windcompass8")
-            windCompass = windCompass8(boost::get<double>(data.at(winddirectionpos)), missingtext);
+            windCompass = windCompass8(std::get<double>(data.at(winddirectionpos)), missingtext);
 
           else if (special.first == "windcompass16")
-            windCompass = windCompass16(boost::get<double>(data.at(winddirectionpos)), missingtext);
+            windCompass = windCompass16(std::get<double>(data.at(winddirectionpos)), missingtext);
 
           else if (special.first == "windcompass32")
-            windCompass = windCompass32(boost::get<double>(data.at(winddirectionpos)), missingtext);
+            windCompass = windCompass32(std::get<double>(data.at(winddirectionpos)), missingtext);
 
           TS::Value windCompassValue = TS::Value(windCompass);
           timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, windCompassValue));
@@ -1737,9 +1737,9 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
         }
         else
         {
-          auto temp = static_cast<float>(boost::get<double>(data.at(temppos)));
-          auto rh = static_cast<float>(boost::get<double>(data.at(rhpos)));
-          auto wind = static_cast<float>(boost::get<double>(data.at(windpos)));
+          auto temp = static_cast<float>(std::get<double>(data.at(temppos)));
+          auto rh = static_cast<float>(std::get<double>(data.at(rhpos)));
+          auto wind = static_cast<float>(std::get<double>(data.at(windpos)));
 
           auto feelslike = TS::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
           timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, feelslike));
@@ -1758,9 +1758,9 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
         }
         else
         {
-          auto temp = static_cast<float>(boost::get<double>(data.at(temppos)));
-          auto totalcloudcover = static_cast<int>(boost::get<double>(data.at(totalcloudcoverpos)));
-          auto wawa = static_cast<int>(boost::get<double>(data.at(wawapos)));
+          auto temp = static_cast<float>(std::get<double>(data.at(temppos)));
+          auto totalcloudcover = static_cast<int>(std::get<double>(data.at(totalcloudcoverpos)));
+          auto wawa = static_cast<int>(std::get<double>(data.at(wawapos)));
           double lat = station.latitude;
           double lon = station.longitude;
 #ifdef __llvm__
@@ -2074,21 +2074,21 @@ void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
     std::set<Fmi::DateTime> obstimes;
     for (auto row : result_set)
     {
-      boost::optional<int> fmisid = as_int(row[0]);
+      std::optional<int> fmisid = as_int(row[0]);
       Fmi::DateTime obstime = Fmi::date_time::from_time_t(row[1].as<time_t>());
-      boost::optional<int> parameter = as_int(row[2]);
+      std::optional<int> parameter = as_int(row[2]);
 
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes, obstime);
 
-      boost::optional<double> latitude = s.latitude;
-      boost::optional<double> longitude = s.longitude;
-      boost::optional<double> elevation = s.elevation;
-      boost::optional<std::string> stationtype = s.type;
+      std::optional<double> latitude = s.latitude;
+      std::optional<double> longitude = s.longitude;
+      std::optional<double> elevation = s.elevation;
+      std::optional<std::string> stationtype = s.type;
 
-      boost::optional<double> data_value;
-      boost::optional<int> data_quality;
-      boost::optional<int> sensor_no;
+      std::optional<double> data_value;
+      std::optional<int> data_quality;
+      std::optional<int> sensor_no;
       if (!row[3].is_null())
         data_value = row[3].as<double>();
       if (!row[4].is_null())

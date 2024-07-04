@@ -326,14 +326,14 @@ void logMessage(const std::string& message, bool quiet)
   }
 }
 
-boost::optional<int> calcSmartsymbolNumber(int wawa,
+std::optional<int> calcSmartsymbolNumber(int wawa,
                                            int cloudiness,
                                            double temperature,
                                            const Fmi::LocalDateTime& ldt,
                                            double lat,
                                            double lon)
 {
-  boost::optional<int> smartsymbol = {};
+  std::optional<int> smartsymbol = {};
 
   const std::array<int, 10> wawa_group1{0, 4, 5, 10, 20, 21, 22, 23, 24, 25};
   const std::array<int, 5> wawa_group2{30, 31, 32, 33, 34};
@@ -560,7 +560,7 @@ boost::optional<int> calcSmartsymbolNumber(int wawa,
 
 TS::TimeSeriesVectorPtr initializeResultVector(const Settings& settings)
 {
-  TS::TimeSeriesVectorPtr ret = boost::make_shared<TS::TimeSeriesVector>();
+  TS::TimeSeriesVectorPtr ret = std::make_shared<TS::TimeSeriesVector>();
 
   // Set timeseries objects for each requested parameter
   for (unsigned int i = 0; i < settings.parameters.size(); i++)
@@ -583,28 +583,28 @@ std::string getStringValue(const TS::Value& tv)
   // For some reason different databases/drivers don't simply use int for FMISID.
   // This is workaround code, FMISID should always be int.
 
-  if (const double* dvalue = boost::get<double>(&tv))
+  if (const double* dvalue = std::get_if<double>(&tv))
     return Fmi::to_string(*dvalue);
 
-  if (const int* ivalue = boost::get<int>(&tv))
+  if (const int* ivalue = std::get_if<int>(&tv))
     return Fmi::to_string(*ivalue);
 
-  if (const std::string* svalue = boost::get<std::string>(&tv))
+  if (const std::string* svalue = std::get_if<std::string>(&tv))
     return *svalue;
 
   // These are just for getting more informative error messages:
 
-  if (boost::get<TS::None>(&tv))
+  if (std::get_if<TS::None>(&tv))
   {
     throw Fmi::Exception(BCP, "Encountered NULL FMISID");
   }
 
-  if (boost::get<TS::LonLat>(&tv))
+  if (std::get_if<TS::LonLat>(&tv))
   {
     throw Fmi::Exception(BCP, "Encountered LonLat FMISID");
   }
 
-  if (boost::get<Fmi::LocalDateTime>(&tv))
+  if (std::get_if<Fmi::LocalDateTime>(&tv))
   {
     throw Fmi::Exception(BCP, "Encountered date FMISID");
   }

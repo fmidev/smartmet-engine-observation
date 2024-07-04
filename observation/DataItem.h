@@ -1,7 +1,7 @@
 #pragma once
 
 #include <macgyver/DateTime.h>
-#include <boost/optional.hpp>
+#include <optional>
 #include <macgyver/StringConversion.h>
 #include <vector>
 
@@ -17,7 +17,7 @@ class DataItem
   // If you add new data members don't forget to change hash_value()
   Fmi::DateTime data_time;
   Fmi::DateTime modified_last;
-  boost::optional<double> data_value;
+  std::optional<double> data_value;
   int fmisid = 0;
   int sensor_no = 0;
   int measurand_id = 0;

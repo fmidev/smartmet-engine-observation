@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Settings.h"
-#include <boost/optional.hpp>
+#include <optional>
 // #include <macgyver/Astronomy.h>
 #include <macgyver/TimeFormatter.h>
 #include <macgyver/TimeZoneFactory.h>
@@ -62,7 +62,7 @@ class SpecialParameters
     }
 
    private:
-    mutable boost::optional<Spine::LocationPtr> location_ptr;
+    mutable std::optional<Spine::LocationPtr> location_ptr;
   };
 
  private:

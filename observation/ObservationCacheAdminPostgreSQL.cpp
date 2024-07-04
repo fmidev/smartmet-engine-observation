@@ -164,7 +164,7 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
         "[PostgreSQLDatabaseDriver] Loading stations from " + itsParameters.driverName + "...",
         itsParameters.quiet);
 
-    auto newStationInfo = boost::make_shared<StationInfo>();
+    auto newStationInfo = std::make_shared<StationInfo>();
 
     // Get all the stations
     db->getStations(newStationInfo->stations);

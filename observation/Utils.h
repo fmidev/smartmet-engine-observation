@@ -6,7 +6,7 @@
 #include "Settings.h"
 #include <boost/algorithm/string.hpp>
 #include <macgyver/LocalDateTime.h>
-#include <boost/optional.hpp>
+#include <optional>
 #include <boost/utility.hpp>
 #include <spine/ConfigBase.h>
 #include <spine/Parameter.h>
@@ -95,7 +95,7 @@ void logMessage(const std::string& message, bool quiet);
  */
 // ----------------------------------------------------------------------
 
-boost::optional<int> calcSmartsymbolNumber(int wawa,
+std::optional<int> calcSmartsymbolNumber(int wawa,
                                            int cloudiness,
                                            double temperature,
                                            const Fmi::LocalDateTime& ldt,

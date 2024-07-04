@@ -56,7 +56,7 @@ struct EngineParameters
   // May be modified by the driver in a separate thread. This is the only copy of the
   // StationInfo data, other classes should just point to this one instead of copying
   // the shared pointer.
-  mutable boost::atomic_shared_ptr<StationInfo> stationInfo;
+  mutable Fmi::AtomicSharedPtr<StationInfo> stationInfo;
   Fmi::Cache::Cache<std::string, std::shared_ptr<QueryResultBase>> queryResultBaseCache;
 
   bool quiet;

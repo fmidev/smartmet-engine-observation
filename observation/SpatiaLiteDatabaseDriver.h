@@ -48,7 +48,7 @@ class SpatiaLiteDatabaseDriver : public DatabaseDriverBase
   void readConfig(Spine::ConfigBase &cfg);
 
   DatabaseDriverParameters itsParameters;
-  boost::atomic_shared_ptr<ObservationCacheAdminSpatiaLite> itsObservationCacheAdminSpatiaLite;
+  Fmi::AtomicSharedPtr<ObservationCacheAdminSpatiaLite> itsObservationCacheAdminSpatiaLite;
 };
 
 }  // namespace Observation

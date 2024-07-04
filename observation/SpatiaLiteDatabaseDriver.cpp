@@ -38,7 +38,7 @@ void SpatiaLiteDatabaseDriver::init(Engine *obsengine)
   {
     itsDatabaseStations.reset(new DatabaseStations(itsParameters.params, obsengine->getGeonames()));
 
-    auto cacheAdmin = boost::make_shared<ObservationCacheAdminSpatiaLite>(
+    auto cacheAdmin = std::make_shared<ObservationCacheAdminSpatiaLite>(
         itsParameters, obsengine->getGeonames(), itsConnectionsOK, false);
     if (!Spine::Reactor::isShuttingDown())
     {
@@ -93,7 +93,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
       }
     }
 
-    return boost::make_shared<TS::TimeSeriesVector>();
+    return std::make_shared<TS::TimeSeriesVector>();
   }
   catch (...)
   {
@@ -135,7 +135,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
       }
     }
 
-    return boost::make_shared<TS::TimeSeriesVector>();
+    return std::make_shared<TS::TimeSeriesVector>();
   }
   catch (...)
   {

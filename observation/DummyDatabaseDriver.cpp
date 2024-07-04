@@ -13,13 +13,13 @@ void DummyDatabaseDriver::init(Engine *obsengine) {}
 
 TS::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings & /* settings */)
 {
-  return boost::make_shared<TS::TimeSeriesVector>();
+  return std::make_shared<TS::TimeSeriesVector>();
 }
 
 TS::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings & /* settings */,
                                                     const TS::TimeSeriesGeneratorOptions &)
 {
-  return boost::make_shared<TS::TimeSeriesVector>();
+  return std::make_shared<TS::TimeSeriesVector>();
 }
 
 Spine::TaggedFMISIDList DummyDatabaseDriver::translateToFMISID(

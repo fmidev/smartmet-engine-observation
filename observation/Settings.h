@@ -1,7 +1,7 @@
 #pragma once
 
 #include <macgyver/DateTime.h>
-#include <boost/optional.hpp>
+#include <optional>
 #include <macgyver/ValueFormatter.h>
 #include <spine/Location.h>
 #include <spine/Parameter.h>
@@ -59,7 +59,7 @@ class Settings
   // starttime...endtime may actuall be a time interval from which we actually only want the
   // observation closest to a specific "wanted" time. The wanted time may actually be equal to the
   // end time if one wants the latest observation.
-  boost::optional<Fmi::DateTime> wantedtime;
+  std::optional<Fmi::DateTime> wantedtime;
 
   double maxdistance = 50000;
   int numberofstations = 1;
