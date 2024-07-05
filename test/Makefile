@@ -9,8 +9,7 @@ SOURCES = /usr/share/smartmet/engines/geonames.so \
 
 INCLUDES += \
 	-I../observation \
-	-I/usr/include/smartmet \
-	-I/usr/include/oracle/11.2/client64
+	-I/usr/include/smartmet
 
 LIBS += \
 	-lsmartmet-timeseries \
