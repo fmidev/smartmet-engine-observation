@@ -5,6 +5,7 @@
 #include <macgyver/StringConversion.h>
 #include <macgyver/TypeMap.h>
 #include <macgyver/TypeName.h>
+#include <functional>
 #include <tuple>
 
 namespace ba = boost::algorithm;
