@@ -1,6 +1,6 @@
 #include "DBRegistry.h"
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <macgyver/Exception.h>
 #include <spine/ConfigBase.h>
 #include <spine/Convenience.h>
@@ -22,8 +22,8 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
 {
   try
   {
-    boost::filesystem::path p(configFolderPath.c_str());
-    if (!boost::filesystem::exists(p))
+    std::filesystem::path p(configFolderPath.c_str());
+    if (!std::filesystem::exists(p))
     {
       Fmi::Exception exception(BCP, "Folder path does not exists!");
       exception.addParameter("Path", p.c_str());
@@ -31,7 +31,7 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
       throw exception;
     }
 
-    if (!boost::filesystem::is_directory(p))
+    if (!std::filesystem::is_directory(p))
     {
       Fmi::Exception exception(BCP, "Folder path is not a directory!");
       exception.addParameter("Path", p.c_str());
@@ -41,15 +41,15 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
 
     // FIXME!! Check here the folder permissions (read, execute).
 
-    boost::filesystem::directory_iterator it;
-    for (it = boost::filesystem::directory_iterator(p);
-         it != boost::filesystem::directory_iterator();
+    std::filesystem::directory_iterator it;
+    for (it = std::filesystem::directory_iterator(p);
+         it != std::filesystem::directory_iterator();
          ++it)
     {
-      const boost::filesystem::path entry = *it;
+      const std::filesystem::path entry = *it;
       const std::string fileName = entry.filename().string();
 
-      if (boost::filesystem::is_regular_file(entry) and
+      if (std::filesystem::is_regular_file(entry) and
           !boost::algorithm::starts_with(fileName, ".") and
           !boost::algorithm::starts_with(fileName, "#") and
           boost::algorithm::ends_with(fileName, ".conf"))

@@ -257,12 +257,12 @@ void EngineImpl::shutdown()
 
 void EngineImpl::unserializeStations()
 {
-  boost::filesystem::path path = itsEngineParameters->serializedStationsFile;
+  std::filesystem::path path = itsEngineParameters->serializedStationsFile;
 
   try
   {
     auto stationinfo = std::make_shared<StationInfo>();
-    if (boost::filesystem::exists(path) && !boost::filesystem::is_empty(path))
+    if (std::filesystem::exists(path) && !std::filesystem::is_empty(path))
     {
       stationinfo->unserialize(itsEngineParameters->serializedStationsFile);
 

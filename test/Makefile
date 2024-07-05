@@ -19,7 +19,6 @@ LIBS += \
 	-lsmartmet-locus \
 	-lsmartmet-newbase \
 	-lboost_thread \
-	-lboost_filesystem \
 	-lboost_serialization \
 	-lboost_regex \
 	-lboost_iostreams \
