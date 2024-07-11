@@ -105,7 +105,7 @@ class MastQueryParams : public QueryParamsBase
   void addOperation(const NameType& groupName,
                     const NameType& field,
                     const NameType& operationName,
-                    const boost::any& toWhat);
+                    const std::any& toWhat);
 
   /**
    * @brief Set ascending or descending order for a field data.

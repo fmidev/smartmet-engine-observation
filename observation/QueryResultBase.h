@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/any.hpp>
+#include <any>
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -13,7 +13,7 @@ namespace Observation
 {
 /**
  *  @class QueryResultBase
- *  @brief The class defines a simple container interface to store boost::any values.
+ *  @brief The class defines a simple container interface to store std::any values.
  *
  *         The class is constructed to be a base (or interface) class of an inherent class,
  *         that implements a container. Initially the class is designed to store
@@ -26,7 +26,7 @@ namespace Observation
 class QueryResultBase
 {
  public:
-  using ValueType = boost::any;
+  using ValueType = std::any;
   using ValueVectorType = std::vector<ValueType>;
 
   /**

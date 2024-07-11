@@ -39,7 +39,7 @@ StandardFilter::StandardFilter()
 }
 
 std::shared_ptr<const StandardFilter::PropertyIsBaseType> StandardFilter::getNewOperationInstance(
-    const NameType& field, const NameType& operationName, const boost::any& toWhat)
+    const NameType& field, const NameType& operationName, const std::any& toWhat)
 {
   try
   {

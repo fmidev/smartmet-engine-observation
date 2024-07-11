@@ -36,7 +36,7 @@ MinimumStandardFilter::MinimumStandardFilter()
 std::shared_ptr<const MinimumStandardFilter::PropertyIsBaseType>
 MinimumStandardFilter::getNewOperationInstance(const NameType& field,
                                                const NameType& operationName,
-                                               const boost::any& toWhat)
+                                               const std::any& toWhat)
 {
   try
   {

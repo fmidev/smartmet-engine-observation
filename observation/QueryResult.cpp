@@ -101,34 +101,34 @@ std::string QueryResult::toString(const ValueVectorType::const_iterator value,
   try
   {
     if (value->type() == typeid(int32_t))
-      return Fmi::to_string(boost::any_cast<int32_t>(*value));
+      return Fmi::to_string(std::any_cast<int32_t>(*value));
 
     if (value->type() == typeid(uint32_t))
-      return Fmi::to_string(boost::any_cast<uint32_t>(*value));
+      return Fmi::to_string(std::any_cast<uint32_t>(*value));
 
     if (value->type() == typeid(int64_t))
-      return Fmi::to_string(boost::any_cast<int64_t>(*value));
+      return Fmi::to_string(std::any_cast<int64_t>(*value));
 
     if (value->type() == typeid(uint64_t))
-      return Fmi::to_string(boost::any_cast<uint64_t>(*value));
+      return Fmi::to_string(std::any_cast<uint64_t>(*value));
 
     if (value->type() == typeid(int16_t))
-      return Fmi::to_string(boost::any_cast<int16_t>(*value));
+      return Fmi::to_string(std::any_cast<int16_t>(*value));
 
     if (value->type() == typeid(uint16_t))
-      return Fmi::to_string(static_cast<unsigned long>(boost::any_cast<uint16_t>(*value)));
+      return Fmi::to_string(static_cast<unsigned long>(std::any_cast<uint16_t>(*value)));
 
     if (value->type() == typeid(float))
-      return fmt::format("{:.{}f}", boost::any_cast<float>(*value), precision);
+      return fmt::format("{:.{}f}", std::any_cast<float>(*value), precision);
 
     if (value->type() == typeid(double))
-      return fmt::format("{:.{}f}", boost::any_cast<double>(*value), precision);
+      return fmt::format("{:.{}f}", std::any_cast<double>(*value), precision);
 
     if (value->type() == typeid(std::string))
-      return boost::any_cast<std::string>(*value);
+      return std::any_cast<std::string>(*value);
 
     if (value->type() == typeid(Fmi::DateTime))
-      return Fmi::to_iso_extended_string(boost::any_cast<Fmi::DateTime>(*value)) + "Z";
+      return Fmi::to_iso_extended_string(std::any_cast<Fmi::DateTime>(*value)) + "Z";
 
     throw Fmi::Exception(BCP, "Operation processing failed!")
         .addDetail(fmt::format("warning: QueryResult::toString : Unsupported data type '{}'",
@@ -156,7 +156,7 @@ std::pair<double, double> QueryResult::minMax(const ValueVectorType::const_itera
     {
       for (; it != endIt; ++it)
       {
-        auto val = boost::any_cast<float>(*it);
+        auto val = std::any_cast<float>(*it);
         if (val < min)
           min = static_cast<double>(val);
         if (val > max)
@@ -167,7 +167,7 @@ std::pair<double, double> QueryResult::minMax(const ValueVectorType::const_itera
     {
       for (; it != endIt; ++it)
       {
-        auto val = boost::any_cast<double>(*it);
+        auto val = std::any_cast<double>(*it);
         if (val < min)
           min = val;
         if (val > max)
@@ -259,45 +259,45 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
       {
         if ((*first).type() == typeid(int32_t))
         {
-          *oFirst++ = Fmi::to_string(boost::any_cast<int32_t>(*first++));
+          *oFirst++ = Fmi::to_string(std::any_cast<int32_t>(*first++));
         }
         else if ((*first).type() == typeid(uint32_t))
         {
-          *oFirst++ = Fmi::to_string(boost::any_cast<uint32_t>(*first++));
+          *oFirst++ = Fmi::to_string(std::any_cast<uint32_t>(*first++));
         }
         else if ((*first).type() == typeid(int64_t))
         {
-          *oFirst++ = Fmi::to_string(boost::any_cast<int64_t>(*first++));
+          *oFirst++ = Fmi::to_string(std::any_cast<int64_t>(*first++));
         }
         else if ((*first).type() == typeid(uint64_t))
         {
-          *oFirst++ = Fmi::to_string(boost::any_cast<uint64_t>(*first++));
+          *oFirst++ = Fmi::to_string(std::any_cast<uint64_t>(*first++));
         }
         else if ((*first).type() == typeid(int16_t))
         {
-          *oFirst++ = Fmi::to_string(boost::any_cast<int16_t>(*first++));
+          *oFirst++ = Fmi::to_string(std::any_cast<int16_t>(*first++));
         }
         else if ((*first).type() == typeid(uint16_t))
         {
           *oFirst++ =
-              Fmi::to_string(static_cast<unsigned long>(boost::any_cast<uint16_t>(*first++)));
+              Fmi::to_string(static_cast<unsigned long>(std::any_cast<uint16_t>(*first++)));
         }
         else if ((*first).type() == typeid(float))
         {
-          *oFirst++ = Fmi::to_string(boost::any_cast<float>(*first++));
+          *oFirst++ = Fmi::to_string(std::any_cast<float>(*first++));
         }
         else if ((*first).type() == typeid(double))
         {
-          *oFirst++ = Fmi::to_string(boost::any_cast<double>(*first++));
+          *oFirst++ = Fmi::to_string(std::any_cast<double>(*first++));
         }
         else if ((*first).type() == typeid(std::string))
         {
-          *oFirst++ = boost::any_cast<std::string>(*first++);
+          *oFirst++ = std::any_cast<std::string>(*first++);
         }
         else if ((*first).type() == typeid(Fmi::DateTime))
         {
           *oFirst++ =
-              Fmi::to_iso_extended_string(boost::any_cast<Fmi::DateTime>(*first++)) +
+              Fmi::to_iso_extended_string(std::any_cast<Fmi::DateTime>(*first++)) +
               "Z";
         }
         else if ((*first).empty())
@@ -491,7 +491,7 @@ Fmi::DateTime QueryResult::castTo(
     return {};
 
   if (value->type() == typeid(Fmi::DateTime))
-    return boost::any_cast<Fmi::DateTime>(*value);
+    return std::any_cast<Fmi::DateTime>(*value);
 
   throw Fmi::Exception(BCP,
                        "QueryResult::castTo<Fmi::DateTime>:"
