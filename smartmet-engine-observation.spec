@@ -28,11 +28,11 @@ BuildRequires: gdal35-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 24.5.16
-BuildRequires: smartmet-library-locus-devel >= 23.7.28
-BuildRequires: smartmet-library-macgyver-devel >= 24.5.27
-BuildRequires: smartmet-library-spine-devel >= 24.5.27
-BuildRequires: smartmet-library-timeseries-devel >= 24.5.28
+BuildRequires: smartmet-engine-geonames-devel >= 24.7.12
+BuildRequires: smartmet-library-locus-devel >= 24.7.12
+BuildRequires: smartmet-library-macgyver-devel >= 24.7.12
+BuildRequires: smartmet-library-spine-devel >= 24.7.12
+BuildRequires: smartmet-library-timeseries-devel >= 24.7.12
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
 BuildRequires: smartmet-utils-devel >= 24.5.10
@@ -45,12 +45,12 @@ Requires: %{smartmet_boost}-thread
 Requires: fmt >= %{smartmet_fmt_min}, fmt < %{smartmet_fmt_max}
 Requires: gdal35-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 24.5.16
-Requires: smartmet-library-locus >= 23.7.28
-Requires: smartmet-library-macgyver >= 24.5.27
-Requires: smartmet-library-spine >= 24.5.27
-Requires: smartmet-library-timeseries >= 24.5.28
-Requires: smartmet-server >= 24.5.16
+Requires: smartmet-engine-geonames >= 24.7.12
+Requires: smartmet-library-locus >= 24.7.12
+Requires: smartmet-library-macgyver >= 24.7.12
+Requires: smartmet-library-spine >= 24.7.12
+Requires: smartmet-library-timeseries >= 24.7.12
+Requires: smartmet-server >= 24.7.12
 Requires: unixODBC
 
 %if %{defined el7}
@@ -129,7 +129,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 24.5.27
+Requires: smartmet-library-spine-devel >= 24.7.12
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
