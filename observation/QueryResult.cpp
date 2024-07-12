@@ -300,7 +300,7 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
               Fmi::to_iso_extended_string(std::any_cast<Fmi::DateTime>(*first++)) +
               "Z";
         }
-        else if ((*first).empty())
+        else if (!(*first).has_value())
         {
           *first++;
           *oFirst++ = "";
@@ -487,7 +487,7 @@ template <>
 Fmi::DateTime QueryResult::castTo(
     const QueryResult::ValueVectorType::const_iterator& value)
 {
-  if (value->empty())
+  if (!value->has_value())
     return {};
 
   if (value->type() == typeid(Fmi::DateTime))
