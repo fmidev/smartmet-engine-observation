@@ -96,7 +96,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
 {
   try
   {
-    TS::TimeSeriesVectorPtr ret = boost::make_shared<TS::TimeSeriesVector>();
+    TS::TimeSeriesVectorPtr ret = std::make_shared<TS::TimeSeriesVector>();
     const ExternalAndMobileProducerConfigItem &producerConfig =
         itsProducerConfig.at(settings.stationtype);
     ExternalAndMobileDBInfo dbInfo(&producerConfig);
@@ -171,15 +171,16 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
     size_t n_elements = 0;
     for (auto rsr : rsrs)
     {
+      // FIXME: may dereference nullptr
       Fmi::LocalDateTime obstime =
-          *(boost::get<Fmi::LocalDateTime>(&rsr["data_time"]));
+          *(std::get_if<Fmi::LocalDateTime>(&rsr["data_time"]));
 
-      boost::optional<double> longitudeValue;
-      boost::optional<double> latitudeValue;
-      boost::optional<double> elevationValue;
+      std::optional<double> longitudeValue;
+      std::optional<double> latitudeValue;
+      std::optional<double> elevationValue;
       if (settings.stationtype == FMI_IOT_PRODUCER)
       {
-        std::string station_code = *(boost::get<std::string>(&rsr["station_code"]));
+        std::string station_code = *(std::get_if<std::string>(&rsr["station_code"]));
 
         if (itsStations->isActive(station_code, obstime.utc_time()))
         {
@@ -196,8 +197,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
       {
         if (fieldname == "created")
         {
-          Fmi::LocalDateTime dt =
-              *(boost::get<Fmi::LocalDateTime>(&rsr[fieldname]));
+          Fmi::LocalDateTime dt = std::get<Fmi::LocalDateTime>(rsr[fieldname]);
           std::string fieldValue = db.getTimeFormatter()->format(dt);
           ret->at(index).emplace_back(TS::TimedValue(obstime, fieldValue));
         }

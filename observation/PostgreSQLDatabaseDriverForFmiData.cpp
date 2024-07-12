@@ -133,11 +133,11 @@ void PostgreSQLDatabaseDriverForFmiData::makeQuery(QueryBase *qb)
     std::shared_ptr<QueryResultBase> result = qb->getQueryResultContainer();
 
     // Try cache first
-    boost::optional<std::shared_ptr<QueryResultBase>> cacheResult =
+    std::optional<std::shared_ptr<QueryResultBase>> cacheResult =
         itsParameters.params->queryResultBaseCache.find(sqlStatement);
     if (cacheResult)
     {
-      if (result->set(cacheResult.get()))
+      if (result->set(*cacheResult))
         return;
     }
 
@@ -218,7 +218,7 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
 
   try
   {
-    TS::TimeSeriesVectorPtr ret = boost::make_shared<TS::TimeSeriesVector>();
+    TS::TimeSeriesVectorPtr ret = std::make_shared<TS::TimeSeriesVector>();
 
     // Database query prevented
     if (settings.preventDatabaseQuery)
@@ -334,7 +334,7 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
 
   try
   {
-    TS::TimeSeriesVectorPtr ret = boost::make_shared<TS::TimeSeriesVector>();
+    TS::TimeSeriesVectorPtr ret = std::make_shared<TS::TimeSeriesVector>();
 
     // Database query prevented
     if (settings.preventDatabaseQuery)

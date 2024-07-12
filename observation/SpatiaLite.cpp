@@ -3422,23 +3422,23 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
     std::set<Fmi::DateTime> obstimes;
     for (const auto &row : qry)
     {
-      boost::optional<int> fmisid = row.get<int>(0);
+      std::optional<int> fmisid = row.get<int>(0);
       unsigned int obstime_db = row.get<int>(1);
       Fmi::DateTime obstime = Fmi::date_time::from_time_t(obstime_db);
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes, obstime);
 
-      boost::optional<double> latitude = s.latitude;
-      boost::optional<double> longitude = s.longitude;
-      boost::optional<double> elevation = s.elevation;
-      boost::optional<std::string> stationtype = s.type;
+      std::optional<double> latitude = s.latitude;
+      std::optional<double> longitude = s.longitude;
+      std::optional<double> elevation = s.elevation;
+      std::optional<std::string> stationtype = s.type;
 
       int parameter = row.get<int>(2);
-      boost::optional<double> data_value;
+      std::optional<double> data_value;
       if (row.column_type(3) != SQLITE_NULL)
         data_value = row.get<double>(3);
-      boost::optional<int> sensor_no = row.get<int>(4);
-      boost::optional<int> data_quality = row.get<int>(5);
+      std::optional<int> sensor_no = row.get<int>(4);
+      std::optional<int> data_quality = row.get<int>(5);
 
       cacheData.fmisidsAll.push_back(fmisid);
       cacheData.obstimesAll.push_back(obstime);

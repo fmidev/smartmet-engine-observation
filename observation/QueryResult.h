@@ -68,27 +68,27 @@ class QueryResult : public QueryResultBase
     try
     {
       if (value->type() == typeid(int32_t))
-        return static_cast<T>(boost::any_cast<int32_t>(*value));
+        return static_cast<T>(std::any_cast<int32_t>(*value));
       if (value->type() == typeid(uint32_t))
-        return static_cast<T>(boost::any_cast<uint32_t>(*value));
+        return static_cast<T>(std::any_cast<uint32_t>(*value));
       if (value->type() == typeid(int64_t))
-        return static_cast<T>(boost::any_cast<int64_t>(*value));
+        return static_cast<T>(std::any_cast<int64_t>(*value));
       if (value->type() == typeid(uint64_t))
-        return static_cast<T>(boost::any_cast<uint64_t>(*value));
+        return static_cast<T>(std::any_cast<uint64_t>(*value));
       if (value->type() == typeid(int16_t))
-        return static_cast<T>(boost::any_cast<int16_t>(*value));
+        return static_cast<T>(std::any_cast<int16_t>(*value));
       if (value->type() == typeid(uint16_t))
-        return static_cast<T>(boost::any_cast<uint16_t>(*value));
+        return static_cast<T>(std::any_cast<uint16_t>(*value));
       if (value->type() == typeid(float))
-        return static_cast<T>(boost::any_cast<float>(*value));
+        return static_cast<T>(std::any_cast<float>(*value));
       if (value->type() == typeid(double))
-        return static_cast<T>(boost::any_cast<double>(*value));
+        return static_cast<T>(std::any_cast<double>(*value));
 
       throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("QueryResult::toString : Unsupported data type '{}'.",
                                  value->type().name()));
     }
-    catch (const boost::bad_any_cast& e)
+    catch (const std::bad_any_cast& e)
     {
       throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("QueryResult::castTo : Bad any cast from '{}' type. {}",

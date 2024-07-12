@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Property.h"
-#include <boost/any.hpp>
+#include <any>
 #include <boost/bind/bind.hpp>
 #include <boost/function.hpp>
 #include <fmt/format.h>
@@ -29,7 +29,7 @@ class OperationMap
   using NameType = std::string;
   using IdType = int;
   using OperationMapValueType =
-      boost::function2<std::shared_ptr<const Property::Base>, const NameType&, const boost::any&>;
+      boost::function2<std::shared_ptr<const Property::Base>, const NameType&, const std::any&>;
   using OperationMapType = std::map<NameType, OperationMapValueType>;
 
   /**
@@ -102,7 +102,7 @@ class FEConformanceClassBase : public OperationMap
    * @return Operation object or empty object (if no match with the \a operationName).
    */
   virtual std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
-      const std::string& field, const std::string& operationName, const boost::any& toWhat) = 0;
+      const std::string& field, const std::string& operationName, const std::any& toWhat) = 0;
 };
 
 }  // namespace Observation

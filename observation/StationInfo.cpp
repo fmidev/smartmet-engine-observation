@@ -7,7 +7,7 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/vector.hpp>
@@ -82,13 +82,13 @@ bool groupok(const Spine::Station& station, const std::set<std::string>& groups)
 
 void createSerializedStationsDirectory(const std::string& filename)
 {
-  boost::filesystem::path path = boost::filesystem::path(filename);
-  boost::filesystem::path directory = path.parent_path();
+  std::filesystem::path path = std::filesystem::path(filename);
+  std::filesystem::path directory = path.parent_path();
 
   try
   {
-    if (!boost::filesystem::is_directory(directory))
-      boost::filesystem::create_directories(directory);
+    if (!std::filesystem::is_directory(directory))
+      std::filesystem::create_directories(directory);
   }
   catch (...)
   {
@@ -142,7 +142,7 @@ void StationInfo::serialize(const std::string& filename) const
     // Rename to final filename
     try
     {
-      boost::filesystem::rename(tmpfile, filename);
+      std::filesystem::rename(tmpfile, filename);
     }
     catch (...)
     {

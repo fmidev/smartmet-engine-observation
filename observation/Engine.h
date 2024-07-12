@@ -15,7 +15,7 @@ namespace Engine
 {
 namespace Observation
 {
-using ContentTable = std::pair<boost::shared_ptr<Spine::Table>, Spine::TableFormatter::Names>;
+using ContentTable = std::pair<std::shared_ptr<Spine::Table>, Spine::TableFormatter::Names>;
 
 class DBRegistry;
 class QueryBase;
@@ -108,13 +108,13 @@ class Engine : public SmartMet::Spine::SmartMetEngine
    * \param[in] producer If producer is given return info only of that producer, otherwise of all
    * producers \return Info of producer(s)
    */
-  virtual ContentTable getProducerInfo(const boost::optional<std::string> &producer) const;
+  virtual ContentTable getProducerInfo(const std::optional<std::string> &producer) const;
 
   /* \brief Get parameter info of producer(s)
    * \param[in] producer If producer is given return info only of that producer, otherwise of all
    * producers \return Parameter info of producer(s)
    */
-  virtual ContentTable getParameterInfo(const boost::optional<std::string> &producer) const;
+  virtual ContentTable getParameterInfo(const std::optional<std::string> &producer) const;
 
   /* \brief Get station info
    * \param[in] StationOptions Defines query options

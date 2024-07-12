@@ -1,7 +1,7 @@
 #pragma once
 
 #include <macgyver/DateTime.h>
-#include <boost/optional.hpp>
+#include <optional>
 #include <vector>
 
 namespace SmartMet
@@ -17,11 +17,11 @@ class MagnetometerDataItem
   std::string magnetometer;
   int level;
   Fmi::DateTime data_time;
-  boost::optional<double> x;
-  boost::optional<double> y;
-  boost::optional<double> z;
-  boost::optional<double> t;
-  boost::optional<double> f;
+  std::optional<double> x;
+  std::optional<double> y;
+  std::optional<double> z;
+  std::optional<double> t;
+  std::optional<double> f;
   int data_quality{2};  // TODO
   Fmi::DateTime modified_last;
 

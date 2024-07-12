@@ -257,12 +257,12 @@ void EngineImpl::shutdown()
 
 void EngineImpl::unserializeStations()
 {
-  boost::filesystem::path path = itsEngineParameters->serializedStationsFile;
+  std::filesystem::path path = itsEngineParameters->serializedStationsFile;
 
   try
   {
-    auto stationinfo = boost::make_shared<StationInfo>();
-    if (boost::filesystem::exists(path) && !boost::filesystem::is_empty(path))
+    auto stationinfo = std::make_shared<StationInfo>();
+    if (std::filesystem::exists(path) && !std::filesystem::is_empty(path))
     {
       stationinfo->unserialize(itsEngineParameters->serializedStationsFile);
 
@@ -565,11 +565,11 @@ void EngineImpl::reloadStations()
   itsDatabaseDriver->reloadStations();
 }
 
-ContentTable EngineImpl::getProducerInfo(const boost::optional<std::string> &producer) const
+ContentTable EngineImpl::getProducerInfo(const std::optional<std::string> &producer) const
 {
   try
   {
-    boost::shared_ptr<Spine::Table> resultTable(new Spine::Table);
+    std::shared_ptr<Spine::Table> resultTable(new Spine::Table);
 
     std::set<std::string> types = getValidStationTypes();
 
@@ -645,11 +645,11 @@ ContentTable EngineImpl::getProducerInfo(const boost::optional<std::string> &pro
   }
 }
 
-ContentTable EngineImpl::getParameterInfo(const boost::optional<std::string> &producer) const
+ContentTable EngineImpl::getParameterInfo(const std::optional<std::string> &producer) const
 {
   try
   {
-    boost::shared_ptr<Spine::Table> resultTable(new Spine::Table);
+    std::shared_ptr<Spine::Table> resultTable(new Spine::Table);
 
     if (producer)
     {
@@ -719,7 +719,7 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
 
   try
   {
-    boost::shared_ptr<Spine::Table> resultTable(new Spine::Table);
+    std::shared_ptr<Spine::Table> resultTable(new Spine::Table);
 
     Spine::TableFormatter::Names headers{"#",
                                          "name",
@@ -747,7 +747,7 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
     const bool check_name = !options.name.empty();
     const bool check_iso2 = !options.iso2.empty();
     const bool check_region = !options.region.empty();
-    const bool check_bbox = (options.bbox != boost::none);
+    const bool check_bbox = (options.bbox != std::nullopt);
     const bool only_starttime =
         (!options.start_time.is_not_a_date_time() && options.end_time.is_not_a_date_time());
     const bool only_endtime =

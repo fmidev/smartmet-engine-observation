@@ -149,7 +149,7 @@ void MastQueryParams::addField(const NameType& field, const NameType& alias)
 void MastQueryParams::addOperation(const std::string& groupName,
                                    const NameType& field,
                                    const NameType& operationName,
-                                   const boost::any& toWhat)
+                                   const std::any& toWhat)
 {
   try
   {

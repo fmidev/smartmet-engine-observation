@@ -88,38 +88,38 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
       Fmi::AsyncTask::interruption_point();
 
       MobileExternalDataItem dataItem;
-      dataItem.prod_id = boost::get<int>(rsr["prod_id"]);
+      dataItem.prod_id = std::get<int>(rsr["prod_id"]);
       if (rsr["station_id"] != none)
-        dataItem.station_id = boost::get<int>(rsr["station_id"]);
+        dataItem.station_id = std::get<int>(rsr["station_id"]);
       if (rsr["dataset_id"] != none)
-        dataItem.dataset_id = boost::get<std::string>(rsr["dataset_id"]);
+        dataItem.dataset_id = std::get<std::string>(rsr["dataset_id"]);
       if (rsr["data_level"] != none)
-        dataItem.data_level = boost::get<int>(rsr["data_level"]);
-      dataItem.mid = boost::get<int>(rsr["mid"]);
+        dataItem.data_level = std::get<int>(rsr["data_level"]);
+      dataItem.mid = std::get<int>(rsr["mid"]);
       if (rsr["sensor_no"] != none)
-        dataItem.sensor_no = boost::get<int>(rsr["sensor_no"]);
-      dataItem.data_time = (boost::get<Fmi::LocalDateTime>(rsr["data_time"]).utc_time());
-      dataItem.data_value = boost::get<double>(rsr["data_value"]);
+        dataItem.sensor_no = std::get<int>(rsr["sensor_no"]);
+      dataItem.data_time = (std::get<Fmi::LocalDateTime>(rsr["data_time"]).utc_time());
+      dataItem.data_value = std::get<double>(rsr["data_value"]);
       if (rsr["data_value_txt"] != none)
-        dataItem.data_value_txt = boost::get<std::string>(rsr["data_value_txt"]);
+        dataItem.data_value_txt = std::get<std::string>(rsr["data_value_txt"]);
       if (rsr["data_quality"] != none)
-        dataItem.data_quality = boost::get<int>(rsr["data_quality"]);
+        dataItem.data_quality = std::get<int>(rsr["data_quality"]);
       if (rsr["ctrl_status"] != none)
-        dataItem.ctrl_status = boost::get<int>(rsr["ctrl_status"]);
-      dataItem.created = (boost::get<Fmi::LocalDateTime>(rsr["created"]).utc_time());
+        dataItem.ctrl_status = std::get<int>(rsr["ctrl_status"]);
+      dataItem.created = (std::get<Fmi::LocalDateTime>(rsr["created"]).utc_time());
       if (producer == FMI_IOT_PRODUCER)
       {
         if (rsr["station_code"] != none)
-          dataItem.station_code = boost::get<std::string>(rsr["station_code"]);
+          dataItem.station_code = std::get<std::string>(rsr["station_code"]);
       }
       else
       {
         if (rsr["longitude"] != none)
-          dataItem.longitude = boost::get<double>(rsr["longitude"]);
+          dataItem.longitude = std::get<double>(rsr["longitude"]);
         if (rsr["latitude"] != none)
-          dataItem.latitude = boost::get<double>(rsr["latitude"]);
+          dataItem.latitude = std::get<double>(rsr["latitude"]);
         if (rsr["altitude"] != none)
-          dataItem.altitude = boost::get<double>(rsr["altitude"]);
+          dataItem.altitude = std::get<double>(rsr["altitude"]);
       }
       cacheData.push_back(dataItem);
     }
@@ -654,22 +654,22 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
     for (auto row : result_set)
     {
       Fmi::AsyncTask::interruption_point();
-      boost::optional<int> fmisid = as_int(row[0]);
+      std::optional<int> fmisid = as_int(row[0]);
       Fmi::DateTime obstime = Fmi::date_time::from_time_t(row[1].as<time_t>());
-      boost::optional<std::string> parameter = row[2].as<std::string>();
+      std::optional<std::string> parameter = row[2].as<std::string>();
       int int_parameter = itsParameterMap->getRoadAndForeignIds().stringToInteger(*parameter);
 
       // Get latitude, longitude, elevation from station info
       const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes, obstime);
 
-      boost::optional<double> latitude = s.latitude;
-      boost::optional<double> longitude = s.longitude;
-      boost::optional<double> elevation = s.elevation;
-      boost::optional<std::string> stationtype = s.type;
+      std::optional<double> latitude = s.latitude;
+      std::optional<double> longitude = s.longitude;
+      std::optional<double> elevation = s.elevation;
+      std::optional<std::string> stationtype = s.type;
 
-      boost::optional<double> data_value;
-      boost::optional<int> data_quality;
-      boost::optional<int> sensor_no;
+      std::optional<double> data_value;
+      std::optional<int> data_quality;
+      std::optional<int> sensor_no;
       if (!row[3].is_null())
         data_value = as_double(row[3]);
       if (!row[4].is_null())
