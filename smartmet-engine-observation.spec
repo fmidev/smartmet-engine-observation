@@ -73,9 +73,10 @@ BuildRequires: librttopo-devel
 #TestRequires: libspatialite50-devel
 #TestRequires: librttopo-devel
 #TestRequires: sqlite-devel >= 3.22.0
-#TestRequires: catch-devel >= 2.1.3
 %if 0%{?rhel} && 0%{rhel} >= 9
 #TestRequires: catch2-devel >= 2.1.3
+%else
+#TestRequires: catch-devel >= 2.1.3
 %endif
 BuildRequires: libpqxx-devel >= 7.7.0 libpqxx-devel < 1:7.8.0
 %else
@@ -85,7 +86,7 @@ BuildRequires: libspatialite-devel
 BuildRequires: librttopo-devel
 Requires: sqlite-libs >= 3.22.0
 BuildRequires: sqlite-devel >= 3.22.0
-#TestRequires: catch-devel
+#TestRequires: catch2-devel
 %endif
 %endif
 
