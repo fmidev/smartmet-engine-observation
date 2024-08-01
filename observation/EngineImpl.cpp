@@ -34,6 +34,7 @@ bool string_found(const std::string &s1, const std::string &s2)
   return (str1.find(str2) != std::string::npos);
 }
 
+#if 0
 bool stationHasRightType(const Spine::Station &station, const Settings &settings)
 {
   try
@@ -81,6 +82,7 @@ bool stationHasRightType(const Spine::Station &station, const Settings &settings
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
+#endif
 
 void afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
                 const Settings &settings,
