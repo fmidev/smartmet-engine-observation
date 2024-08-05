@@ -32,9 +32,9 @@
 using namespace std;
 
 using Fmi::DateTime;
+using Fmi::LocalDateTime;
 using Fmi::date_time::from_time_t;
 using Fmi::date_time::Milliseconds;
-using Fmi::LocalDateTime;
 
 namespace
 {
@@ -1210,7 +1210,7 @@ Fmi::DateTime SpatiaLite::getOldestMagnetometerDataTime()
 }
 
 Fmi::DateTime SpatiaLite::getLatestTimeFromTable(const std::string &tablename,
-                                         const std::string &time_field)
+                                                 const std::string &time_field)
 {
   try
   {
@@ -1233,7 +1233,7 @@ Fmi::DateTime SpatiaLite::getLatestTimeFromTable(const std::string &tablename,
 }
 
 Fmi::DateTime SpatiaLite::getOldestTimeFromTable(const std::string &tablename,
-                                         const std::string &time_field)
+                                                 const std::string &time_field)
 {
   try
   {
@@ -1485,7 +1485,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMobileAndExternalData(const Settings &set
     for (auto row : qry)
     {
       map<std::string, TS::Value> result;
-      const Fmi::TimeZonePtr& zone = Fmi::TimeZonePtr::utc;
+      const Fmi::TimeZonePtr &zone = Fmi::TimeZonePtr::utc;
       Fmi::LocalDateTime timestep(Fmi::DateTime::NOT_A_DATE_TIME, zone);
       for (int i = 0; i < column_count; i++)
       {
@@ -2790,8 +2790,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMagnetometerData(
             TS::TimedValue(localtime, s.elevation));
 
       if (timeseriesPositions.find("stationtype") != timeseriesPositions.end())
-        result[timeseriesPositions.at("stationtype")].push_back(
-            TS::TimedValue(localtime, s.type));
+        result[timeseriesPositions.at("stationtype")].push_back(TS::TimedValue(localtime, s.type));
 
       timesteps.insert(localtime);
 
@@ -2889,15 +2888,17 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
     auto starttimeString = Fmi::to_string(to_epoch(settings.starttime));
     auto endtimeString = Fmi::to_string(to_epoch(settings.endtime));
 
-    std::string query;
-    query =
+    std::string query =
         "SELECT stroke_time AS stroke_time, "
         "stroke_time_fraction, flash_id, "
         "X(stroke_location) AS longitude, "
-        "Y(stroke_location) AS latitude, " +
-        param +
-        " "
-        "FROM flash_data flash "
+        "Y(stroke_location) AS latitude";
+
+    if (!param.empty())
+      query += ", " + param;
+
+    query +=
+        " FROM flash_data flash "
         "WHERE flash.stroke_time >= " +
         starttimeString + " AND flash.stroke_time <= " + endtimeString + " ";
 
