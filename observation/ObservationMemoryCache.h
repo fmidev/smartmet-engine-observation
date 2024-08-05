@@ -4,7 +4,7 @@
 #include "LocationDataItem.h"
 #include "ParameterMap.h"
 #include "Settings.h"
-#include <boost/smart_ptr/atomic_shared_ptr.hpp>
+#include <macgyver/AtomicSharedPtr.h>
 #include <macgyver/TimeZones.h>
 #include <spine/Station.h>
 #include <timeseries/TimeSeriesInclude.h>
@@ -70,11 +70,11 @@ class ObservationMemoryCache
  private:
   // The actual observations are divided by fmisid into vectors which are sorted by time
 
-  using Observations = std::map<int, boost::atomic_shared_ptr<DataItems> *>;
-  mutable boost::atomic_shared_ptr<Observations> itsObservations;
+  using Observations = std::map<int, Fmi::AtomicSharedPtr<DataItems> *>;
+  mutable Fmi::AtomicSharedPtr<Observations> itsObservations;
 
   // Last value passed to clean()
-  mutable boost::atomic_shared_ptr<Fmi::DateTime> itsStartTime;
+  mutable Fmi::AtomicSharedPtr<Fmi::DateTime> itsStartTime;
 
   // All the hash values for the observations in the cache
   mutable std::unordered_set<std::size_t> itsHashValues;

@@ -98,13 +98,13 @@ class EngineImpl : public Engine
    * \param[in] producer If producer is given return info only of that producer, otherwise of all
    * producers \return Info of producer(s)
    */
-  ContentTable getProducerInfo(const boost::optional<std::string> &producer) const override;
+  ContentTable getProducerInfo(const std::optional<std::string> &producer) const override;
 
   /* \brief Get parameter info of producer(s)
    * \param[in] producer If producer is given return info only of that producer, otherwise of all
    * producers \return Parameter info of producer(s)
    */
-  ContentTable getParameterInfo(const boost::optional<std::string> &producer) const override;
+  ContentTable getParameterInfo(const std::optional<std::string> &producer) const override;
 
   /* \brief Get station info
    * \param[in] StationOptions Defines query options

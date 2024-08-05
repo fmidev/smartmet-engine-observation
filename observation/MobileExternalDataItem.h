@@ -1,7 +1,7 @@
 #pragma once
 
 #include <macgyver/DateTime.h>
-#include <boost/optional.hpp>
+#include <optional>
 #include <vector>
 
 namespace SmartMet
@@ -15,15 +15,15 @@ class MobileExternalDataItem
  public:
   Fmi::DateTime created;
   Fmi::DateTime data_time;
-  boost::optional<std::string> station_code;
-  boost::optional<std::string> dataset_id;
-  boost::optional<std::string> data_value_txt;
-  boost::optional<double> altitude;
-  boost::optional<int> station_id;
-  boost::optional<int> data_level;
-  boost::optional<int> sensor_no;
-  boost::optional<int> data_quality;
-  boost::optional<int> ctrl_status;
+  std::optional<std::string> station_code;
+  std::optional<std::string> dataset_id;
+  std::optional<std::string> data_value_txt;
+  std::optional<double> altitude;
+  std::optional<int> station_id;
+  std::optional<int> data_level;
+  std::optional<int> sensor_no;
+  std::optional<int> data_quality;
+  std::optional<int> ctrl_status;
   double data_value = 0;
   double longitude = 0;
   double latitude = 0;

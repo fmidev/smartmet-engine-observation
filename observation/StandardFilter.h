@@ -37,7 +37,7 @@ class StandardFilter : public MinimumStandardFilter
   StandardFilter operator=(const StandardFilter& other) = delete;
 
   std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
-      const NameType& field, const NameType& operationName, const boost::any& toWhat) override;
+      const NameType& field, const NameType& operationName, const std::any& toWhat) override;
 };
 
 /**
@@ -68,7 +68,7 @@ class ExtendedStandardFilter : public StandardFilter
   }
 
   std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
-      const NameType& field, const NameType& operationName, const boost::any& toWhat) override
+      const NameType& field, const NameType& operationName, const std::any& toWhat) override
   {
     try
     {

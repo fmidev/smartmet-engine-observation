@@ -5,6 +5,7 @@
 #include <macgyver/StringConversion.h>
 #include <macgyver/TypeMap.h>
 #include <macgyver/TypeName.h>
+#include <functional>
 #include <tuple>
 
 namespace ba = boost::algorithm;
@@ -72,7 +73,7 @@ Base::NameType Base::getExpression(const NameType& viewName,
 
 namespace
 {
-using value2str_t = std::function<std::string(const boost::any&, const std::string)>;
+using value2str_t = std::function<std::string(const std::any&, const std::string)>;
 
 struct TypeConv
 {
@@ -82,10 +83,10 @@ struct TypeConv
 };
 
 template <typename ValueType>
-std::string value_vect2str(const boost::any& value, const std::string& database, value2str_t conv)
+std::string value_vect2str(const std::any& value, const std::string& database, value2str_t conv)
 {
   std::vector<std::string> parts;
-  const std::vector<ValueType>& args = boost::any_cast<std::vector<ValueType> >(value);
+  const std::vector<ValueType>& args = std::any_cast<std::vector<ValueType> >(value);
   std::transform(args.begin(),
                  args.end(),
                  std::back_inserter(parts),
@@ -98,7 +99,7 @@ void add_type(Fmi::TypeMap<TypeConv>& type_map, value2str_t f, const std::string
 {
   type_map.add<ValueType>({f, type_name, false});
   type_map.add<std::vector<ValueType> >(
-      {[f](const boost::any& value, const std::string& database) -> std::string
+      {[f](const std::any& value, const std::string& database) -> std::string
        { return value_vect2str<ValueType>(value, database, f); },
        type_name,
        true});
@@ -107,11 +108,11 @@ void add_type(Fmi::TypeMap<TypeConv>& type_map, value2str_t f, const std::string
 template <typename ValueType>
 void add_type(Fmi::TypeMap<TypeConv>& type_map, const std::string& type_name)
 {
-  const auto f = [](const boost::any& value, const std::string&) -> std::string
-  { return Fmi::to_string(boost::any_cast<ValueType>(value)); };
+  const auto f = [](const std::any& value, const std::string&) -> std::string
+  { return Fmi::to_string(std::any_cast<ValueType>(value)); };
   type_map.add<ValueType>({f, type_name, false});
   type_map.add<std::vector<ValueType> >(
-      {[f](const boost::any& value, const std::string& database) -> std::string
+      {[f](const std::any& value, const std::string& database) -> std::string
        { return value_vect2str<ValueType>(value, database, f); },
        type_name,
        true});
@@ -148,20 +149,20 @@ Fmi::TypeMap<TypeConv> create_value_to_string_converter()
 
   add_type<std::string>(
       conv,
-      [](const boost::any& value, const std::string&) -> std::string
-      { return "'" + boost::any_cast<std::string>(value) + "'"; },
+      [](const std::any& value, const std::string&) -> std::string
+      { return "'" + std::any_cast<std::string>(value) + "'"; },
       "string");
 
   add_type<Fmi::DateTime>(
       conv,
-      [](const boost::any& value, const std::string& database) -> std::string
+      [](const std::any& value, const std::string& database) -> std::string
       {
         if (database == "oracle")
           return "TO_DATE('" +
-                 Fmi::to_simple_string(boost::any_cast<Fmi::DateTime>(value)) +
+                 Fmi::to_simple_string(std::any_cast<Fmi::DateTime>(value)) +
                  "','YYYY-MM-DD HH24:MI:SS')";
         // PostgreSQL
-        return Fmi::to_simple_string(boost::any_cast<Fmi::DateTime>(value));
+        return Fmi::to_simple_string(std::any_cast<Fmi::DateTime>(value));
       },
       "Fmi::DateTime");
   return conv;
@@ -175,7 +176,7 @@ Fmi::TypeMap<TypeConv>& get_value_to_string_converter_map()
 
 }  // namespace
 
-Base::NameType Base::toWhatString(const boost::any& value,
+Base::NameType Base::toWhatString(const std::any& value,
                                   const std::string& database /*= "oracle"*/) const
 {
   try
@@ -218,7 +219,7 @@ Base::NameType Base::getValueTypeString() const
   }
 }
 
-void Base::set(const NameType& property, const boost::any& toWhat, const NameType& op)
+void Base::set(const NameType& property, const std::any& toWhat, const NameType& op)
 {
   // Verify that provided value (toWhat) is compatible with operation
   static auto converter_map = get_value_to_string_converter_map();

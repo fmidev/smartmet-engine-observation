@@ -33,7 +33,7 @@ class PostgreSQLDatabaseDriver : public DatabaseDriverBase
   void readConfig(Spine::ConfigBase &cfg);
 
   std::unique_ptr<PostgreSQLObsDBConnectionPool> itsPostgreSQLConnectionPool;
-  boost::atomic_shared_ptr<ObservationCacheAdminPostgreSQL> itsObservationCacheAdmin;
+  Fmi::AtomicSharedPtr<ObservationCacheAdminPostgreSQL> itsObservationCacheAdmin;
   PostgreSQLDriverParameters itsParameters;
   Engine *itsObsEngine{nullptr};
 };

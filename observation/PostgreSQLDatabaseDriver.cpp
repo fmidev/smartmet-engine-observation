@@ -112,7 +112,7 @@ void PostgreSQLDatabaseDriver::init(Engine *obsengine)
     initializeConnectionPool();
 
     // Caches
-    boost::shared_ptr<ObservationCacheAdminPostgreSQL> cacheAdmin(
+    std::shared_ptr<ObservationCacheAdminPostgreSQL> cacheAdmin(
         new ObservationCacheAdminPostgreSQL(
             itsParameters, itsPostgreSQLConnectionPool, getGeonames(), itsConnectionsOK, itsTimer));
 

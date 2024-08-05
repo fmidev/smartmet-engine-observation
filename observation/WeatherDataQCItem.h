@@ -1,7 +1,7 @@
 #pragma once
 
 #include <macgyver/DateTime.h>
-#include <boost/optional.hpp>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -17,7 +17,7 @@ class WeatherDataQCItem
   Fmi::DateTime obstime;
   Fmi::DateTime modified_last{Fmi::DateTime::NOT_A_DATE_TIME};
   std::string parameter;
-  boost::optional<double> value;
+  std::optional<double> value;
   int fmisid;
   int sensor_no;
   int flag;

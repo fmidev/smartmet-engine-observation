@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/optional.hpp>
+#include <optional>
 #include <macgyver/DateTime.h>
 #include <spine/Value.h>
 #include <set>
@@ -26,7 +26,7 @@ struct StationOptions
   std::string timeformat;
   Fmi::DateTime start_time;
   Fmi::DateTime end_time;
-  boost::optional<Spine::BoundingBox> bbox;
+  std::optional<Spine::BoundingBox> bbox;
 };
 
 }  // namespace Observation

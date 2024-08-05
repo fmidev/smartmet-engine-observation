@@ -90,7 +90,7 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
     if (!new_items.empty())
     {
       // Make a new cache
-      auto new_cache = boost::make_shared<Observations>();
+      auto new_cache = std::make_shared<Observations>();
 
       // Copy pointers to existing observations if there are any
       auto old_cache = itsObservations.load();
@@ -121,9 +121,9 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
         auto pos = observations.find(fmisid);
         if (pos == observations.end())
         {
-          auto items = boost::make_shared<DataItems>();
+          auto items = std::make_shared<DataItems>();
           pos = observations
-                    .insert(std::make_pair(fmisid, new boost::atomic_shared_ptr<DataItems>(items)))
+                    .insert(std::make_pair(fmisid, new Fmi::AtomicSharedPtr<DataItems>(items)))
                     .first;
         }
 
@@ -131,7 +131,7 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
         auto shared_obs = pos->second->load();
 
         // Copy all old observations
-        auto newobs = boost::make_shared<DataItems>(*shared_obs);
+        auto newobs = std::make_shared<DataItems>(*shared_obs);
 
 #if 0        
         auto newdata_start = newobs->end();
@@ -180,7 +180,7 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
     {
       // We intentionally store a not_a_date_time, and let the cache cleaner determine
       // what the oldest observation in the cache is.
-      starttime = boost::make_shared<Fmi::DateTime>(Fmi::DateTime::NOT_A_DATE_TIME);
+      starttime = std::make_shared<Fmi::DateTime>(Fmi::DateTime::NOT_A_DATE_TIME);
       itsStartTime.store(starttime);
     }
 
@@ -208,11 +208,11 @@ void ObservationMemoryCache::clean(const Fmi::DateTime& newstarttime) const
 
     // Update new start time for the cache first so no-one can request data before it
     // while the data is being cleaned
-    auto starttime = boost::make_shared<Fmi::DateTime>(newstarttime);
+    auto starttime = std::make_shared<Fmi::DateTime>(newstarttime);
     itsStartTime.store(starttime);
 
     // Make a new cache
-    auto new_cache = boost::make_shared<Observations>();
+    auto new_cache = std::make_shared<Observations>();
 
     // Copy pointers to existing observations if there are any
     *new_cache = *old_cache;
@@ -235,7 +235,7 @@ void ObservationMemoryCache::clean(const Fmi::DateTime& newstarttime) const
       if (it != obsdata.begin())
       {
         // Make a new copy of the data
-        auto new_obsdata = boost::make_shared<DataItems>(it, obsdata.end());
+        auto new_obsdata = std::make_shared<DataItems>(it, obsdata.end());
 
         fmisid_obsdata.second->store(new_obsdata);
       }

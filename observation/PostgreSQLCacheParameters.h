@@ -47,7 +47,7 @@ struct PostgreSQLCacheParameters
   bool quiet = true;
   std::shared_ptr<Fmi::TimePeriod> flashCachePeriod;
   // Externally owned, may be modified by a different thread
-  const boost::atomic_shared_ptr<StationInfo>* stationInfo;
+  const Fmi::AtomicSharedPtr<StationInfo>* stationInfo;
   const ParameterMapPtr& parameterMap;
   StationtypeConfig& stationtypeConfig;
   const ExternalAndMobileProducerConfig& externalAndMobileProducerConfig;

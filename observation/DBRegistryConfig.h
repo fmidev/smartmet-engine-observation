@@ -2,7 +2,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <macgyver/StringConversion.h>
 #include <spine/ConfigBase.h>
 #include <list>

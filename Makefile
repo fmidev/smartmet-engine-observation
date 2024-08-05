@@ -22,8 +22,8 @@ CFLAGS += -Wno-pedantic
 
 INCLUDES += -isystem $(includedir)/mysql
 
-LIBS += $(REQUIRED_LIBS) \
-	-L$(libdir) \
+LIBS += $(PREFIX_LDFLAGS) \
+	$(REQUIRED_LIBS) \
 	-lsmartmet-timeseries \
 	-lsmartmet-spine \
         -lsmartmet-macgyver \
@@ -35,7 +35,6 @@ LIBS += $(REQUIRED_LIBS) \
         -lboost_system \
         -lboost_serialization \
 	-latomic \
-	$(REQUIRED_LIBS) \
         -lbz2 -lz \
 	-lpthread
 
@@ -75,7 +74,7 @@ $(LIBFILE): $(OBJS)
 clean:
 	rm -f $(LIBFILE) *~ $(SUBNAME)/*~
 	rm -rf obj
-	make -C test clean
+	$(MAKE) -C test $@
 
 format:
 	clang-format -i -style=file $(SUBNAME)/*.h $(SUBNAME)/*.cpp

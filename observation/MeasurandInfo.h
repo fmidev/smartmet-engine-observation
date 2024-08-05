@@ -1,8 +1,9 @@
 #pragma once
 
-#include <boost/optional.hpp>
+#include <optional>
 #include <map>
 #include <set>
+#include <string>
 
 namespace SmartMet
 {
@@ -29,7 +30,7 @@ struct measurand_info
   std::string base_phenomenon;
   std::string measurand_period;
   std::string measurand_layer;
-  boost::optional<double> standard_level;
+  std::optional<double> standard_level;
   std::string measurand_unit;
   std::set<int> producers;  // Valid producers for this parameter
   const std::string& get_name(const std::string& language_code) const;
