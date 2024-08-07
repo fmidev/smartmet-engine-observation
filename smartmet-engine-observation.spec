@@ -28,14 +28,14 @@ BuildRequires: gdal38-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 24.7.12
-BuildRequires: smartmet-library-locus-devel >= 24.7.12
-BuildRequires: smartmet-library-macgyver-devel >= 24.7.31
-BuildRequires: smartmet-library-spine-devel >= 24.7.30
-BuildRequires: smartmet-library-timeseries-devel >= 24.7.22
+BuildRequires: smartmet-engine-geonames-devel >= 24.8.7
+BuildRequires: smartmet-library-locus-devel >= 24.8.7
+BuildRequires: smartmet-library-macgyver-devel >= 24.8.7
+BuildRequires: smartmet-library-spine-devel >= 24.8.7
+BuildRequires: smartmet-library-timeseries-devel >= 24.8.7
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
-BuildRequires: smartmet-utils-devel >= 24.7.19
+BuildRequires: smartmet-utils-devel >= 24.8.7
 BuildRequires: zlib-devel
 Requires: %{smartmet_boost}-iostreams
 Requires: %{smartmet_boost}-locale
@@ -45,12 +45,12 @@ Requires: %{smartmet_boost}-thread
 Requires: fmt-libs >= %{smartmet_fmt_min}, fmt-libs < %{smartmet_fmt_max}
 Requires: gdal38-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 24.7.12
-Requires: smartmet-library-locus >= 24.7.12
-Requires: smartmet-library-macgyver >= 24.7.31
-Requires: smartmet-library-spine >= 24.7.30
-Requires: smartmet-library-timeseries >= 24.7.22
-Requires: smartmet-server >= 24.7.30
+Requires: smartmet-engine-geonames >= 24.8.7
+Requires: smartmet-library-locus >= 24.8.7
+Requires: smartmet-library-macgyver >= 24.8.7
+Requires: smartmet-library-spine >= 24.8.7
+Requires: smartmet-library-timeseries >= 24.8.7
+Requires: smartmet-server >= 24.8.7
 Requires: unixODBC
 
 %if 0%{?rhel} && 0%{rhel} == 8
@@ -125,7 +125,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 24.7.30
+Requires: smartmet-library-spine-devel >= 24.8.7
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
