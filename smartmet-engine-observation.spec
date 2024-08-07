@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 24.8.5
+Version: 24.8.7
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -159,6 +159,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Aug  7 2024 Andris Pavēnis <andris.pavenis@fmi.fi> 24.8.7-1.fmi
+- Update to gdal-3.8, geos-3.12, proj-94 and fmt-11
+
 * Mon Aug  5 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.8.5-1.fmi
 - Fixed bug in generating flash SQL queries when no special details on flashes are requested
 
