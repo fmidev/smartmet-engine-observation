@@ -364,7 +364,6 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
   void createFlashDataTable();
   void createRoadCloudDataTable();
   void createNetAtmoDataTable();
-  void createBKHydrometaDataTable();
   void createFmiIoTDataTable();
   void createIndex(const std::string &table,
                    const std::string &column,

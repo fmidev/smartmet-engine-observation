@@ -145,10 +145,6 @@ class PostgreSQLCache : public ObservationCache
   mutable Fmi::DateTime itsNetAtmoTimeIntervalStart;
   mutable Fmi::DateTime itsNetAtmoTimeIntervalEnd;
 
-  mutable Spine::MutexType itsBKHydrometaTimeIntervalMutex;
-  mutable Fmi::DateTime itsBKHydrometaTimeIntervalStart;
-  mutable Fmi::DateTime itsBKHydrometaTimeIntervalEnd;
-
   mutable Spine::MutexType itsFmiIoTTimeIntervalMutex;
   mutable Fmi::DateTime itsFmiIoTTimeIntervalStart;
   mutable Fmi::DateTime itsFmiIoTTimeIntervalEnd;

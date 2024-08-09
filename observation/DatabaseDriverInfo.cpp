@@ -114,8 +114,6 @@ void readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
         cfg.get_optional_config_param<int>(common_key + ".roadCloudInsertCacheSize", 0));
     params["netAtmoInsertCacheSize"] = Fmi::to_string(
         cfg.get_optional_config_param<int>(common_key + ".netAtmoInsertCacheSize", 0));
-    params["bkHydrometaInsertCacheSize"] = Fmi::to_string(
-        cfg.get_optional_config_param<int>(common_key + ".bkHydrometaInsertCacheSize", 0));
     params["fmiIoTInsertCacheSize"] = Fmi::to_string(
         cfg.get_optional_config_param<int>(common_key + ".fmiIoTInsertCacheSize", 0));
     params["magnetometerInsertCacheSize"] = Fmi::to_string(
@@ -261,17 +259,12 @@ void readPostgreSQLMobileCommonInfo(Spine::ConfigBase& cfg,
       cfg.get_optional_config_param<std::size_t>(common_key + ".roadCloudCacheUpdateInterval", 0));
   params["netAtmoCacheUpdateInterval"] = Fmi::to_string(
       cfg.get_optional_config_param<std::size_t>(common_key + ".netAtmoCacheUpdateInterval", 0));
-  params["bkHydrometaCacheUpdateInterval"] =
-      Fmi::to_string(cfg.get_optional_config_param<std::size_t>(
-          common_key + ".bkHydrometaCacheUpdateInterval", 0));
   params["fmiIoTCacheUpdateInterval"] = Fmi::to_string(
       cfg.get_optional_config_param<std::size_t>(common_key + ".fmiIoTCacheUpdateInterval", 0));
   params["roadCloudCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".roadCloudCacheDuration", 0));
   params["netAtmoCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".netAtmoCacheDuration", 0));
-  params["bkHydrometaCacheDuration"] = Fmi::to_string(
-      cfg.get_optional_config_param<int>(common_key + ".bkHydrometaCacheDuration", 0));
   params["fmiIoTCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".fmiIoTCacheDuration", 0));
 }
@@ -614,8 +607,6 @@ void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
       cfg.get_optional_config_param<int>(common_key + ".roadCloudInsertCacheSize", 0));
   params["netAtmoInsertCacheSize"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".netAtmoInsertCacheSize", 0));
-  params["bkHydrometaInsertCacheSize"] = Fmi::to_string(
-      cfg.get_optional_config_param<int>(common_key + ".bkHydrometaInsertCacheSize", 0));
   params["fmiIoTInsertCacheSize"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".fmiIoTInsertCacheSize", 0));
   params["magnetometerInsertCacheSize"] = Fmi::to_string(

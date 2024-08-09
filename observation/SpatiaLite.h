@@ -337,9 +337,6 @@ class SpatiaLite : public CommonDatabaseFunctions
 
   TS::TimeSeriesVectorPtr getNetAtmoData(const Settings &settings, const Fmi::TimeZones &timezones);
 
-  TS::TimeSeriesVectorPtr getBKHydrometaData(const Settings &settings,
-                                             const Fmi::TimeZones &timezones);
-
   TS::TimeSeriesVectorPtr getFmiIoTData(const Settings &settings, const Fmi::TimeZones &timezones);
 
   TS::TimeSeriesVectorPtr getFlashData(const Settings &settings,
@@ -458,7 +455,6 @@ class SpatiaLite : public CommonDatabaseFunctions
   void createRoadCloudDataTable();
   void createNetAtmoDataTable();
   void createFmiIoTDataTable();
-  void createBKHydrometaDataTable();
   void createMagnetometerDataTable();
 
   TS::TimeSeriesVectorPtr getMobileAndExternalData(const Settings &settings,
