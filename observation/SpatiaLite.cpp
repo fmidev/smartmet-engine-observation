@@ -1768,7 +1768,7 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
       return new_item_count;
 
     const char *sqltemplate =
-        "INSERT OR IGNORE INTO weather_data_qc "
+        "INSERT OR REPLACE INTO weather_data_qc "
         "VALUES (:fmisid,:obstime,:parameter,:sensor_no,:value,:flag,:modified_last)";
 
     // Loop over all observations, inserting only new items in groups to the cache
@@ -1880,7 +1880,7 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &cacheData,
       return new_item_count;
 
     const char *sqltemplate =
-        "INSERT OR IGNORE INTO flash_data "
+        "INSERT OR REPLACE INTO flash_data "
         "(stroke_time, stroke_time_fraction, flash_id, multiplicity, "
         "peak_current, sensors, freedom_degree, ellipse_angle, "
         "ellipse_major, "
