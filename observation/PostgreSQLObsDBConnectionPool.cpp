@@ -108,6 +108,7 @@ std::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(
      * 2. Sleep and start over
      */
     size_t countTimeOut = 0;
+    auto failures = 0;
     while (true)
     {
       // Local scope to minimize lock life time
@@ -125,6 +126,12 @@ std::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(
             itsWorkerList[pos]->setConnectionId(pos);
             itsWorkerList[pos]->setDebug(debug);
             itsLastConnectionID = pos;
+            if (failures > 0)
+              std::cerr << fmt::format(
+                  "Success: after {} failure(s) got a free connection from the PostgreSQL "
+                  "connection pool\n",
+                  failures);
+
             return {itsWorkerList[pos].get(), Releaser<PostgreSQLObsDB>(this)};
           }
         }
@@ -136,6 +143,9 @@ std::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(
         throw Fmi::Exception(
             BCP, "Could not get a database connection. All the database connections are in use!");
       }
+
+      if (failures++ == 0)
+        std::cerr << "Warning: failed to get a connection from the PostgreSQL connection pool\n";
 
       // The timeout counter above assumes the sleep time here is one second. Should be rewritten.
       boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));

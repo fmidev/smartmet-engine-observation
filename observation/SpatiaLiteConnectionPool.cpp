@@ -71,6 +71,8 @@ std::shared_ptr<SpatiaLite> SpatiaLiteConnectionPool::getConnection()
      * 3. Sleep and start over
      */
 
+    auto failures = 0;
+
     while (true)
     {
       {
@@ -81,6 +83,11 @@ std::shared_ptr<SpatiaLite> SpatiaLiteConnectionPool::getConnection()
           {
             itsWorkingList[i] = 1;
             itsWorkerList[i]->setConnectionId(i);
+            if (failures > 0)
+              std::cerr << fmt::format(
+                  "Success: after {} failure(s) got a free connection from the Spatialite "
+                  "connection pool\n",
+                  failures);
             return {itsWorkerList[i].get(), Releaser<SpatiaLite>(this)};
           }
         }
@@ -88,6 +95,9 @@ std::shared_ptr<SpatiaLite> SpatiaLiteConnectionPool::getConnection()
       // If we cannot get the mutex, let other threads to try to get it.
       // This potentially helps to recover from situations where many threads are trying to get the
       // same lock.
+      if (failures++ == 0)
+        std::cerr << "Warning: failed to get a connection from the Spatialite connection pool\n";
+
       boost::this_thread::yield();
     }
   }
