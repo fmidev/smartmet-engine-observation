@@ -35,7 +35,6 @@ void FmiIoTStations::addStation(const std::string& id,
                                 const Fmi::DateTime& from,
                                 const Fmi::DateTime& to)
 {
-printf("*** Adding %s %d\n",id.c_str(),tgid);
   itsStations[id].insert(FmiIoTStation(id, tgid, lon, lat, elev, from, to));
 }
 
