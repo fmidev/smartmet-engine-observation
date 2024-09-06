@@ -61,6 +61,7 @@ Spine::MutexType flash_data_write_mutex;
 Spine::MutexType roadcloud_data_write_mutex;
 Spine::MutexType netatmo_data_write_mutex;
 Spine::MutexType fmi_iot_data_write_mutex;
+Spine::MutexType tapsi_qc_data_write_mutex;
 }  // namespace
 
 namespace Engine
@@ -80,6 +81,7 @@ PostgreSQLCacheDB::PostgreSQLCacheDB(const PostgreSQLCacheParameters &options)
       itsRoadCloudInsertCache(options.roadCloudInsertCacheSize),
       itsNetAtmoInsertCache(options.netAtmoInsertCacheSize),
       itsFmiIoTInsertCache(options.fmiIoTInsertCacheSize),
+      itsTapsiQcInsertCache(options.tapsiQcInsertCacheSize),
       itsExternalAndMobileProducerConfig(options.externalAndMobileProducerConfig)
 {
   itsIsCacheDatabase = true;
@@ -102,6 +104,8 @@ void PostgreSQLCacheDB::createTables(const std::set<std::string> &tables)
       createNetAtmoDataTable();
     if (tables.find(FMI_IOT_DATA_TABLE) != tables.end())
       createFmiIoTDataTable();
+    if (tables.find(TAPSI_QC_DATA_TABLE) != tables.end())
+      createTapsiQcDataTable();
   }
   catch (...)
   {
@@ -355,6 +359,44 @@ void PostgreSQLCacheDB::createFmiIoTDataTable()
   }
 }
 
+void PostgreSQLCacheDB::createTapsiQcDataTable()
+{
+  try
+  {
+    itsDB.executeNonTransaction(
+        "CREATE TABLE IF NOT EXISTS ext_obsdata_tapsi_qc("
+        "prod_id INTEGER, "
+        "station_id INTEGER DEFAULT 0, "
+        "dataset_id character VARYING(50) DEFAULT 0, "
+        "data_level INTEGER DEFAULT 0, "
+        "mid INTEGER, "
+        "sensor_no INTEGER DEFAULT 0, "
+        "data_time timestamp without time zone NOT NULL, "
+        "data_value NUMERIC, "
+        "data_value_txt character VARYING(30), "
+        "data_quality INTEGER, "
+        "ctrl_status INTEGER, "
+        "created timestamp without time zone DEFAULT timezone('UTC'::text, now()), "
+        "altitude NUMERIC)");
+    pqxx::result result_set = itsDB.executeNonTransaction(
+        "SELECT * FROM geometry_columns WHERE f_table_name='ext_obsdata_tapsi_qc'");
+    if (result_set.empty())
+    {
+      itsDB.executeNonTransaction(
+          "SELECT AddGeometryColumn('ext_obsdata_tapsi_qc', 'geom', 4326, 'POINT', 2)");
+      itsDB.executeNonTransaction(
+          "CREATE INDEX IF NOT EXISTS ext_obsdata_tapsi_qc_gix ON ext_obsdata_tapsi_qc USING GIST "
+          "(geom)");
+      itsDB.executeNonTransaction(
+          "ALTER TABLE ext_obsdata_tapsi_qc ADD PRIMARY KEY (prod_id,mid,data_time, geom)");
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Creation of ext_obsdata_tapsi_qc table failed!");
+  }
+}
+
 size_t PostgreSQLCacheDB::selectCount(const std::string &queryString)
 {
   try
@@ -605,6 +647,48 @@ Fmi::DateTime PostgreSQLCacheDB::getLatestFmiIoTCreatedTime()
   }
 }
 
+Fmi::DateTime PostgreSQLCacheDB::getOldestTapsiQcDataTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_tapsi_qc";
+    string time_field = "data_time";
+    return getOldestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Oldest TapsiQc data time query failed!");
+  }
+}
+
+Fmi::DateTime PostgreSQLCacheDB::getLatestTapsiQcDataTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_tapsi_qc";
+    string time_field = "data_time";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Latest TapsiQc data time query failed!");
+  }
+}
+
+Fmi::DateTime PostgreSQLCacheDB::getLatestTapsiQcCreatedTime()
+{
+  try
+  {
+    string tablename = "ext_obsdata_tapsi_qc";
+    string time_field = "created";
+    return getLatestTimeFromTable(tablename, time_field);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Latest TapsiQc created time query failed!");
+  }
+}
+
 Fmi::DateTime PostgreSQLCacheDB::getLatestTimeFromTable(const std::string &tablename,
                                                         const std::string &time_field)
 {
@@ -736,6 +820,27 @@ void PostgreSQLCacheDB::cleanFmiIoTCache(const Fmi::DateTime &newstarttime)
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Cleaning of FmiIoT cache failed!");
+  }
+}
+
+void PostgreSQLCacheDB::cleanTapsiQcCache(const Fmi::DateTime &newstarttime)
+{
+  try
+  {
+    auto oldest = getOldestTapsiQcDataTime();
+
+    if (newstarttime <= oldest)
+      return;
+
+    Spine::WriteLock lock(tapsi_qc_data_write_mutex);
+    std::string sqlStmt = ("DELETE FROM ext_obsdata_tapsi_qc WHERE data_time < '" +
+                           Fmi::to_iso_extended_string(newstarttime) + "'");
+
+    itsDB.executeNonTransaction(sqlStmt);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Cleaning of TapsiQc cache failed!");
   }
 }
 
@@ -1553,6 +1658,12 @@ std::size_t PostgreSQLCacheDB::fillFmiIoTCache(
   return 0;
 }
 
+std::size_t PostgreSQLCacheDB::fillTapsiQcCache(
+    const MobileExternalDataItems & /* mobileExternalCacheData */)
+{
+  return 0;
+}
+
 TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getRoadCloudData(const Settings &settings,
                                                             const ParameterMapPtr &parameterMap,
                                                             const Fmi::TimeZones &timezones)
@@ -1570,6 +1681,13 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getNetAtmoData(const Settings &settin
 TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getFmiIoTData(const Settings &settings,
                                                          const ParameterMapPtr &parameterMap,
                                                          const Fmi::TimeZones &timezones)
+{
+  return getMobileAndExternalData(settings, parameterMap, timezones);
+}
+
+TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getTapsiQcData(const Settings &settings,
+                                                          const ParameterMapPtr &parameterMap,
+                                                          const Fmi::TimeZones &timezones)
 {
   return getMobileAndExternalData(settings, parameterMap, timezones);
 }

@@ -114,7 +114,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
     }
 
     std::string sqlStmt;
-    if (settings.stationtype == FMI_IOT_PRODUCER)
+    if ((settings.stationtype == FMI_IOT_PRODUCER) || (settings.stationtype == TAPSI_QC_PRODUCER))
     {
       std::vector<const FmiIoTStation *> validStations = itsStations->getStations(settings.wktArea);
 

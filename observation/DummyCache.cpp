@@ -187,6 +187,30 @@ std::size_t DummyCache::fillFmiIoTCache(
 
 void DummyCache::cleanFmiIoTCache(const Fmi::TimeDuration & /* timetokeep */) const {}
 
+bool DummyCache::tapsiQcIntervalIsCached(const Fmi::DateTime & /* starttime */,
+                                         const Fmi::DateTime & /* endtime */) const
+{
+  return false;
+}
+
+Fmi::DateTime DummyCache::getLatestTapsiQcDataTime() const
+{
+  return Fmi::DateTime::NOT_A_DATE_TIME;
+}
+
+Fmi::DateTime DummyCache::getLatestTapsiQcCreatedTime() const
+{
+  return Fmi::DateTime::NOT_A_DATE_TIME;
+}
+
+std::size_t DummyCache::fillTapsiQcCache(
+    const MobileExternalDataItems & /* mobileExternalCacheData */) const
+{
+  return 0;
+}
+
+void DummyCache::cleanTapsiQcCache(const Fmi::TimeDuration & /* timetokeep */) const {}
+
 bool DummyCache::magnetometerIntervalIsCached(const Fmi::DateTime & /* starttime */,
                                               const Fmi::DateTime & /* endtime */) const
 {

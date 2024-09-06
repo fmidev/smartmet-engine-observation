@@ -95,6 +95,16 @@ class SpatiaLiteCache : public ObservationCache
   void cleanFmiIoTCache(const Fmi::TimeDuration &timetokeep) const override;
   TS::TimeSeriesVectorPtr fmiIoTValuesFromSpatiaLite(const Settings &settings) const;
 
+  // TapsiQc
+  bool tapsiQcIntervalIsCached(const Fmi::DateTime &starttime,
+                               const Fmi::DateTime &endtime) const override;
+  Fmi::DateTime getLatestTapsiQcDataTime() const override;
+  Fmi::DateTime getLatestTapsiQcCreatedTime() const override;
+  std::size_t fillTapsiQcCache(
+      const MobileExternalDataItems &mobileExternalCacheData) const override;
+  void cleanTapsiQcCache(const Fmi::TimeDuration &timetokeep) const override;
+  TS::TimeSeriesVectorPtr tapsiQcValuesFromSpatiaLite(const Settings &settings) const;
+
   // Magnetometer
   bool magnetometerIntervalIsCached(const Fmi::DateTime &starttime,
                                     const Fmi::DateTime &endtime) const override;
@@ -168,6 +178,10 @@ class SpatiaLiteCache : public ObservationCache
   mutable Fmi::DateTime itsFmiIoTTimeIntervalStart;
   mutable Fmi::DateTime itsFmiIoTTimeIntervalEnd;
 
+  mutable Spine::MutexType itsTapsiQcTimeIntervalMutex;
+  mutable Fmi::DateTime itsTapsiQcTimeIntervalStart;
+  mutable Fmi::DateTime itsTapsiQcTimeIntervalEnd;
+
   mutable Spine::MutexType itsMagnetometerTimeIntervalMutex;
   mutable Fmi::DateTime itsMagnetometerTimeIntervalStart;
   mutable Fmi::DateTime itsMagnetometerTimeIntervalEnd;
@@ -180,6 +194,7 @@ class SpatiaLiteCache : public ObservationCache
   mutable InsertStatus itsRoadCloudInsertCache;
   mutable InsertStatus itsNetAtmoInsertCache;
   mutable InsertStatus itsFmiIoTInsertCache;
+  mutable InsertStatus itsTapsiQcInsertCache;
   mutable InsertStatus itsMagnetometerInsertCache;
 
   // Memory caches smaller than the spatialite cache itself

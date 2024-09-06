@@ -77,6 +77,14 @@ class DummyCache : public ObservationCache
       const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanFmiIoTCache(const Fmi::TimeDuration &timetokeep) const override;
 
+  bool tapsiQcIntervalIsCached(const Fmi::DateTime &starttime,
+                               const Fmi::DateTime &endtime) const override;
+  Fmi::DateTime getLatestTapsiQcDataTime() const override;
+  Fmi::DateTime getLatestTapsiQcCreatedTime() const override;
+  std::size_t fillTapsiQcCache(
+      const MobileExternalDataItems &mobileExternalCacheData) const override;
+  void cleanTapsiQcCache(const Fmi::TimeDuration &timetokeep) const override;
+
   bool magnetometerIntervalIsCached(const Fmi::DateTime &starttime,
                                     const Fmi::DateTime &endtime) const override;
   Fmi::DateTime getLatestMagnetometerDataTime() const override;

@@ -90,6 +90,7 @@ void ObservationCacheAdminBase::init()
     std::shared_ptr<ObservationCache> netatmoCache;
     std::shared_ptr<ObservationCache> roadcloudCache;
     std::shared_ptr<ObservationCache> fmiIoTCache;
+    std::shared_ptr<ObservationCache> tapsiQcCache;
     std::shared_ptr<ObservationCache> magnetometerCache;
     std::set<ObservationCache*> cache_set;
 
@@ -124,6 +125,11 @@ void ObservationCacheAdminBase::init()
       {
         fmiIoTCache = getCache(FMI_IOT_DATA_TABLE);
         cache_set.insert(fmiIoTCache.get());
+      }
+      else if (tablename == TAPSI_QC_DATA_TABLE)
+      {
+        tapsiQcCache = getCache(TAPSI_QC_DATA_TABLE);
+        cache_set.insert(tapsiQcCache.get());
       }
       else if (tablename == MAGNETOMETER_DATA_TABLE)
       {
@@ -212,6 +218,16 @@ void ObservationCacheAdminBase::init()
         if (itsParameters.fmiIoTCacheUpdateInterval > 0)
         {
           itsBackgroundTasks->add("Init fmi_iot cache", [this]() { updateFmiIoTCache(); });
+        }
+      }
+
+      if (tapsiQcCache)
+      {
+        tapsiQcCache->cleanTapsiQcCache(Fmi::Hours(itsParameters.tapsiQcCacheDuration));
+
+        if (itsParameters.tapsiQcCacheUpdateInterval > 0)
+        {
+          itsBackgroundTasks->add("Init tapsi_qc cache", [this]() { updateTapsiQcCache(); });
         }
       }
 
@@ -315,6 +331,12 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
         itsParameters.fmiIoTCacheUpdateInterval > 0)
     {
       itsBackgroundTasks->add("fmi_iot cache update loop", [this]() { updateFmiIoTCacheLoop(); });
+    }
+
+    if (tables.find(TAPSI_QC_DATA_TABLE) != tables.end() &&
+        itsParameters.tapsiQcCacheUpdateInterval > 0)
+    {
+      itsBackgroundTasks->add("tapsi_qc cache update loop", [this]() { updateTapsiQcCacheLoop(); });
     }
 
     if (tables.find(MAGNETOMETER_DATA_TABLE) != tables.end() &&
@@ -1135,6 +1157,113 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
   }
 }
 
+void ObservationCacheAdminBase::updateTapsiQcCache() const
+{
+  try
+  {
+    if (Spine::Reactor::isShuttingDown())
+      return;
+
+    std::shared_ptr<ObservationCache> tapsiQcCache = getCache(TAPSI_QC_DATA_TABLE);
+
+    std::vector<MobileExternalDataItem> cacheData;
+
+    Fmi::DateTime last_time = tapsiQcCache->getLatestTapsiQcDataTime();
+    Fmi::DateTime last_created_time = tapsiQcCache->getLatestTapsiQcCreatedTime();
+
+    // Make sure the time is not in the future
+    Fmi::DateTime now = Fmi::SecondClock::universal_time();
+    if (!last_time.is_not_a_date_time() && last_time > now)
+      last_time = now;
+
+    // Making sure that we do not request more data than we actually store into
+    // the cache.
+    Fmi::DateTime min_last_time =
+        Fmi::SecondClock::universal_time() - Fmi::Hours(itsParameters.tapsiQcCacheDuration);
+
+    static int update_count = 0;
+
+    if (!last_time.is_not_a_date_time() &&
+        last_time < min_last_time)  // do not read too old observations
+    {
+      last_time = min_last_time;
+    }
+
+    // Note: observations are always delayed. Do not make the latter update interval
+    // too short! Experimentally 3 minutes was too short at FMI.
+
+    // Big update every 10 updates to get delayed observations.
+    bool long_update = (++update_count % 10 == 0);
+
+    if (!last_time.is_not_a_date_time() && update_count > 0)
+    {
+      if (long_update)
+        last_time -= Fmi::Hours(3);
+      else
+        last_time -= Fmi::Minutes(15);
+    }
+
+    if (last_time.is_not_a_date_time())
+    {
+      last_time =
+          Fmi::SecondClock::universal_time() - Fmi::Hours(itsParameters.tapsiQcCacheDuration);
+    }
+
+    {
+      auto begin = std::chrono::high_resolution_clock::now();
+
+      readMobileCacheData(TAPSI_QC_PRODUCER, cacheData, last_time, last_created_time, itsTimeZones);
+
+      auto end = std::chrono::high_resolution_clock::now();
+
+      if (itsTimer)
+        std::cout << Spine::log_time_str() << driverName() << " database driver read "
+                  << cacheData.size() << TAPSI_QC_PRODUCER << " observations starting from "
+                  << last_time << " finished in "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
+                  << " ms" << std::endl;
+    }
+
+    if (Spine::Reactor::isShuttingDown())
+      return;
+
+    {
+      auto begin = std::chrono::high_resolution_clock::now();
+      auto count = tapsiQcCache->fillTapsiQcCache(cacheData);
+      auto end = std::chrono::high_resolution_clock::now();
+
+      if (itsTimer)
+        std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
+                  << TAPSI_QC_PRODUCER << " observations starting from " << last_time
+                  << " finished in "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
+                  << " ms" << std::endl;
+    }
+
+    if (Spine::Reactor::isShuttingDown())
+      return;
+
+    // Delete too old observations from the Cache database
+
+    {
+      auto begin = std::chrono::high_resolution_clock::now();
+      tapsiQcCache->cleanTapsiQcCache(Fmi::Hours(itsParameters.tapsiQcCacheDuration));
+      auto end = std::chrono::high_resolution_clock::now();
+
+      if (itsTimer)
+        std::cout << Spine::log_time_str() << driverName() << " database driver "
+                  << TAPSI_QC_PRODUCER << " cache cleaner finished in "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
+                  << " ms" << std::endl;
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP,
+                                ("Updating " + std::string(TAPSI_QC_PRODUCER) + " cache failed!"));
+  }
+}
+
 void ObservationCacheAdminBase::updateMagnetometerCache() const
 {
   try
@@ -1414,6 +1543,38 @@ void ObservationCacheAdminBase::updateFmiIoTCacheLoop()
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Failure in fmiIoTCacheLoop-function!");
+  }
+}
+
+void ObservationCacheAdminBase::updateTapsiQcCacheLoop()
+{
+  try
+  {
+    while (!Spine::Reactor::isShuttingDown())
+    {
+      Fmi::AsyncTask::interruption_point();
+      try
+      {
+        updateTapsiQcCache();
+      }
+      catch (std::exception& err)
+      {
+        logMessage(std::string(": updateTapsiQcCache(): ") + err.what(), itsParameters.quiet);
+      }
+      catch (...)
+      {
+        logMessage(": updateTapsiQcCache(): unknown error", itsParameters.quiet);
+      }
+
+      // Use absolute time to wait, not duration since there may be spurious wakeups.
+      std::size_t wait_duration = itsParameters.tapsiQcCacheUpdateInterval;
+      boost::this_thread::sleep_until(boost::chrono::system_clock::now() +
+                                      boost::chrono::seconds(wait_duration));
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Failure in tapsiQcCacheLoop-function!");
   }
 }
 

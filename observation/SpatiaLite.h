@@ -299,11 +299,32 @@ class SpatiaLite : public CommonDatabaseFunctions
   Fmi::DateTime getOldestFmiIoTDataTime();
 
   /**
-   * @brief Get the time of the oldest Magnetometer in observation_data table
-
-   * @return Fmi::DateTime The time of the oldest FmiIoT observation
+   * @brief Get the time of the newest TapsiQc observation in ext_obsdata_roadcloud table
+   * @return Fmi::DateTime The time of the newest TapsiQc observation
    */
 
+  Fmi::DateTime getLatestTapsiQcDataTime();
+
+  /**
+   * @brief Get the time of the latest TapsiQc creation time in ext_obsdata table
+   * @return Fmi::DateTime The latest creation time
+   */
+
+  Fmi::DateTime getLatestTapsiQcCreatedTime();
+
+  /**
+   * @brief Get the time of the oldest TapsiQc observation in ext_obsdata_roadcloud table
+
+   * @return Fmi::DateTime The time of the oldest TapsiQc observation
+   */
+
+  Fmi::DateTime getOldestTapsiQcDataTime();
+
+  /**
+   * @brief Get the time of the oldest Magnetometer in observation_data table
+
+   * @return Fmi::DateTime The time of the oldest Magnetometer observation
+   */
   Fmi::DateTime getOldestMagnetometerDataTime();
 
   /**
@@ -318,6 +339,19 @@ class SpatiaLite : public CommonDatabaseFunctions
    * @param timetokeep Delete FmiIoT data which is older than given duration
    */
   void cleanFmiIoTCache(const Fmi::DateTime &newstarttime);
+
+  /**
+   * @brief Insert cached observations into ext_obsdata_roadcloud table
+   * @param TapsiQc observation data to be inserted into the table
+   */
+  std::size_t fillTapsiQcCache(const MobileExternalDataItems &mobileExternalCacheData,
+                               InsertStatus &insertStatus);
+
+  /**
+   * @brief Delete old TapsiQc observation data from ext_obsdata_roadcloud table
+   * @param timetokeep Delete TapsiQc data which is older than given duration
+   */
+  void cleanTapsiQcCache(const Fmi::DateTime &newstarttime);
 
   /**
    * @brief Insert cached observations into magnetometer_data table
@@ -338,6 +372,8 @@ class SpatiaLite : public CommonDatabaseFunctions
   TS::TimeSeriesVectorPtr getNetAtmoData(const Settings &settings, const Fmi::TimeZones &timezones);
 
   TS::TimeSeriesVectorPtr getFmiIoTData(const Settings &settings, const Fmi::TimeZones &timezones);
+
+  TS::TimeSeriesVectorPtr getTapsiQcData(const Settings &settings, const Fmi::TimeZones &timezones);
 
   TS::TimeSeriesVectorPtr getFlashData(const Settings &settings,
                                        const Fmi::TimeZones &timezones) override;
@@ -455,6 +491,7 @@ class SpatiaLite : public CommonDatabaseFunctions
   void createRoadCloudDataTable();
   void createNetAtmoDataTable();
   void createFmiIoTDataTable();
+  void createTapsiQcDataTable();
   void createMagnetometerDataTable();
 
   TS::TimeSeriesVectorPtr getMobileAndExternalData(const Settings &settings,

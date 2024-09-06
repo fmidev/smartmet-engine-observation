@@ -100,6 +100,15 @@ void PostgreSQLCache::initializeConnectionPool()
       itsFmiIoTTimeIntervalEnd = end;
     }
 
+    // TapsiQc
+    if (cacheTables.find(TAPSI_QC_DATA_TABLE) != cacheTables.end())
+    {
+      auto start = db->getOldestTapsiQcDataTime();
+      auto end = db->getLatestTapsiQcDataTime();
+      itsTapsiQcTimeIntervalStart = start;
+      itsTapsiQcTimeIntervalEnd = end;
+    }
+
     logMessage("[Observation Engine] PostgreSQL connection pool ready.", itsParameters.quiet);
   }
   catch (...)
@@ -129,6 +138,9 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
 
     if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTValuesFromPostgreSQL(settings);
+
+    if (settings.stationtype == TAPSI_QC_PRODUCER)
+      return tapsiQcValuesFromPostgreSQL(settings);
 
     if (settings.stationtype == FLASH_PRODUCER)
       return flashValuesFromPostgreSQL(settings);
@@ -184,6 +196,9 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
 
     if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTValuesFromPostgreSQL(settings);
+
+    if (settings.stationtype == TAPSI_QC_PRODUCER)
+      return tapsiQcValuesFromPostgreSQL(settings);
 
     if (settings.stationtype == FLASH_PRODUCER)
       return flashValuesFromPostgreSQL(settings);
@@ -300,6 +315,25 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(const Settin
   }
 }
 
+TS::TimeSeriesVectorPtr PostgreSQLCache::tapsiQcValuesFromPostgreSQL(const Settings &settings) const
+{
+  try
+  {
+    TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
+
+    std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
+    ++itsCacheStatistics.at(TAPSI_QC_DATA_TABLE).hits;
+    ret = db->getTapsiQcData(settings, itsParameters.parameterMap, itsTimeZones);
+
+    return ret;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Getting TapsiQc values from cache failed!");
+  }
+}
+
 bool PostgreSQLCache::timeIntervalIsCached(const Fmi::DateTime &starttime,
                                            const Fmi::DateTime & /* endtime */) const
 {
@@ -404,6 +438,9 @@ bool PostgreSQLCache::dataAvailableInCache(const Settings &settings) const
 
     if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTIntervalIsCached(settings.starttime, settings.endtime);
+
+    if (settings.stationtype == TAPSI_QC_PRODUCER)
+      return tapsiQcIntervalIsCached(settings.starttime, settings.endtime);
 
     // Either the stationtype is not cached or the requested time interval is
     // not cached
@@ -842,9 +879,9 @@ bool PostgreSQLCache::fmiIoTIntervalIsCached(const Fmi::DateTime &starttime,
     }
 
     if (ok)
-      hit(NETATMO_DATA_TABLE);
+      hit(FMI_IOT_DATA_TABLE);
     else
-      miss(NETATMO_DATA_TABLE);
+      miss(FMI_IOT_DATA_TABLE);
     return ok;
   }
   catch (...)
@@ -917,6 +954,96 @@ void PostgreSQLCache::cleanFmiIoTCache(const Fmi::TimeDuration &timetokeep) cons
   }
 }
 
+bool PostgreSQLCache::tapsiQcIntervalIsCached(const Fmi::DateTime &starttime,
+                                              const Fmi::DateTime &) const
+{
+  try
+  {
+    bool ok = false;
+    {
+      Spine::ReadLock lock(itsTapsiQcTimeIntervalMutex);
+      // We ignore end time intentionally
+      ok = (!itsTapsiQcTimeIntervalStart.is_not_a_date_time() &&
+            !itsTapsiQcTimeIntervalEnd.is_not_a_date_time() &&
+            starttime >= itsTapsiQcTimeIntervalStart);
+    }
+
+    if (ok)
+      hit(TAPSI_QC_DATA_TABLE);
+    else
+      miss(TAPSI_QC_DATA_TABLE);
+    return ok;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Checking if TapsiQc interval is cached failed!");
+  }
+}
+
+Fmi::DateTime PostgreSQLCache::getLatestTapsiQcDataTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestTapsiQcDataTime();
+}
+
+Fmi::DateTime PostgreSQLCache::getLatestTapsiQcCreatedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestTapsiQcCreatedTime();
+}
+
+std::size_t PostgreSQLCache::fillTapsiQcCache(
+    const MobileExternalDataItems &mobileExternalCacheData) const
+{
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillTapsiQcCache(mobileExternalCacheData);
+
+    // Update what really now really is in the database
+    auto start = conn->getOldestTapsiQcDataTime();
+    auto end = conn->getLatestTapsiQcDataTime();
+    Spine::WriteLock lock(itsTapsiQcTimeIntervalMutex);
+    itsTapsiQcTimeIntervalStart = start;
+    itsTapsiQcTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Filling TapsiQc cache failed!");
+  }
+}
+
+void PostgreSQLCache::cleanTapsiQcCache(const Fmi::TimeDuration &timetokeep) const
+{
+  try
+  {
+    // Dont clean fake cache
+    if (isFakeCache(TAPSI_QC_DATA_TABLE))
+      return;
+
+    Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
+    t = round_down_to_cache_clean_interval(t);
+
+    auto conn = itsConnectionPool->getConnection();
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsTapsiQcTimeIntervalMutex);
+      itsTapsiQcTimeIntervalStart = t;
+    }
+    conn->cleanTapsiQcCache(t);
+
+    // Update what really remains in the database
+    auto start = conn->getOldestTapsiQcDataTime();
+    auto end = conn->getLatestTapsiQcDataTime();
+    Spine::WriteLock lock(itsTapsiQcTimeIntervalMutex);
+    itsTapsiQcTimeIntervalStart = start;
+    itsTapsiQcTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Cleaning TapsiQc cache failed!");
+  }
+}
+
 bool PostgreSQLCache::magnetometerIntervalIsCached(const Fmi::DateTime & /* starttime */,
                                                    const Fmi::DateTime & /* endtime */) const
 {
@@ -986,6 +1113,8 @@ void PostgreSQLCache::readConfig(const Spine::ConfigBase & /* cfg */)
         Fmi::stoi(itsCacheInfo.params.at("netAtmoInsertCacheSize"));
     itsParameters.fmiIoTInsertCacheSize =
         Fmi::stoi(itsCacheInfo.params.at("fmiIoTInsertCacheSize"));
+    itsParameters.tapsiQcInsertCacheSize =
+        Fmi::stoi(itsCacheInfo.params.at("tapsiQcInsertCacheSize"));
   }
   catch (...)
   {

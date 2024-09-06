@@ -107,6 +107,15 @@ void SpatiaLiteCache::initializeConnectionPool()
       itsFmiIoTTimeIntervalEnd = end;
     }
 
+    // TapsiQc
+    if (cacheTables.find(TAPSI_QC_DATA_TABLE) != cacheTables.end())
+    {
+      auto start = db->getOldestTapsiQcDataTime();
+      auto end = db->getLatestTapsiQcDataTime();
+      itsTapsiQcTimeIntervalStart = start;
+      itsTapsiQcTimeIntervalEnd = end;
+    }
+
     // Magnetometer
     if (cacheTables.find(MAGNETOMETER_DATA_TABLE) != cacheTables.end())
     {
@@ -178,6 +187,9 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
 
     if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTValuesFromSpatiaLite(settings);
+
+    if (settings.stationtype == TAPSI_QC_PRODUCER)
+      return tapsiQcValuesFromSpatiaLite(settings);
 
     if (settings.stationtype == FLASH_PRODUCER)
       return flashValuesFromSpatiaLite(settings);
@@ -260,6 +272,9 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
 
     if (settings.stationtype == FMI_IOT_PRODUCER)
       return fmiIoTValuesFromSpatiaLite(settings);
+
+    if (settings.stationtype == TAPSI_QC_PRODUCER)
+      return tapsiQcValuesFromSpatiaLite(settings);
 
     if (settings.stationtype == FLASH_PRODUCER)
       return flashValuesFromSpatiaLite(settings);
@@ -462,6 +477,9 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
 
     if (s == FMI_IOT_PRODUCER)
       return fmiIoTIntervalIsCached(settings.starttime, settings.endtime);
+
+    if (s == TAPSI_QC_PRODUCER)
+      return tapsiQcIntervalIsCached(settings.starttime, settings.endtime);
 
     if (s == MAGNETO_PRODUCER)
       return magnetometerIntervalIsCached(settings.starttime, settings.endtime);
@@ -924,6 +942,115 @@ Fmi::DateTime SpatiaLiteCache::getLatestFmiIoTCreatedTime() const
   return itsConnectionPool->getConnection()->getLatestFmiIoTCreatedTime();
 }
 
+bool SpatiaLiteCache::tapsiQcIntervalIsCached(const Fmi::DateTime &starttime,
+                                              const Fmi::DateTime &) const
+{
+  try
+  {
+    bool ok = false;
+
+    {
+      Spine::ReadLock lock(itsTapsiQcTimeIntervalMutex);
+      ok = (!itsTapsiQcTimeIntervalStart.is_not_a_date_time() &&
+            !itsTapsiQcTimeIntervalEnd.is_not_a_date_time() &&
+            starttime >= itsTapsiQcTimeIntervalStart);
+    }
+
+    if (ok)
+      hit(TAPSI_QC_DATA_TABLE);
+    else
+      miss(TAPSI_QC_DATA_TABLE);
+    return ok;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Checking if TapsiQc interval is cached failed!");
+  }
+}
+
+std::size_t SpatiaLiteCache::fillTapsiQcCache(
+    const MobileExternalDataItems &mobileExternalCacheData) const
+{
+  try
+  {
+    auto conn = itsConnectionPool->getConnection();
+    auto sz = conn->fillTapsiQcCache(mobileExternalCacheData, itsTapsiQcInsertCache);
+
+    // Update what really now really is in the database
+    auto start = conn->getOldestTapsiQcDataTime();
+    auto end = conn->getLatestTapsiQcDataTime();
+    Spine::WriteLock lock(itsTapsiQcTimeIntervalMutex);
+    itsTapsiQcTimeIntervalStart = start;
+    itsTapsiQcTimeIntervalEnd = end;
+    return sz;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Filling TapsiQc cache failed!");
+  }
+}
+
+void SpatiaLiteCache::cleanTapsiQcCache(const Fmi::TimeDuration &timetokeep) const
+{
+  try
+  {
+    // Dont clean fake cache
+    if (isFakeCache(TAPSI_QC_DATA_TABLE))
+      return;
+
+    Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
+    t = round_down_to_cache_clean_interval(t);
+
+    auto conn = itsConnectionPool->getConnection();
+    {
+      // We know the cache will not contain anything before this after the update
+      Spine::WriteLock lock(itsTapsiQcTimeIntervalMutex);
+      itsTapsiQcTimeIntervalStart = t;
+    }
+    conn->cleanTapsiQcCache(t);
+
+    // Update what really remains in the database
+    auto start = conn->getOldestTapsiQcDataTime();
+    auto end = conn->getLatestTapsiQcDataTime();
+    Spine::WriteLock lock(itsTapsiQcTimeIntervalMutex);
+    itsTapsiQcTimeIntervalStart = start;
+    itsTapsiQcTimeIntervalEnd = end;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Cleaning TapsiQc cache failed!");
+  }
+}
+
+TS::TimeSeriesVectorPtr SpatiaLiteCache::tapsiQcValuesFromSpatiaLite(const Settings &settings) const
+{
+  try
+  {
+    TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
+
+    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    db->setDebug(settings.debug_options);
+    hit(TAPSI_QC_DATA_TABLE);
+    ret = db->getTapsiQcData(settings, itsTimeZones);
+
+    return ret;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Getting TapsiQc values from cache failed!");
+  }
+}
+
+Fmi::DateTime SpatiaLiteCache::getLatestTapsiQcDataTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestTapsiQcDataTime();
+}
+
+Fmi::DateTime SpatiaLiteCache::getLatestTapsiQcCreatedTime() const
+{
+  return itsConnectionPool->getConnection()->getLatestTapsiQcCreatedTime();
+}
+
 Fmi::DateTime SpatiaLiteCache::getLatestObservationModifiedTime() const
 {
   return itsConnectionPool->getConnection()->getLatestObservationModifiedTime();
@@ -1249,6 +1376,7 @@ void SpatiaLiteCache::readConfig(const Spine::ConfigBase & /* cfg */)
     itsRoadCloudInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("roadCloudInsertCacheSize")));
     itsNetAtmoInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("netAtmoInsertCacheSize")));
     itsFmiIoTInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("fmiIoTInsertCacheSize")));
+    itsTapsiQcInsertCache.resize(Fmi::stoi(itsCacheInfo.params.at("tapsiQcInsertCacheSize")));
     itsMagnetometerInsertCache.resize(
         Fmi::stoi(itsCacheInfo.params.at("magnetometerInsertCacheSize")));
 

@@ -97,6 +97,14 @@ class ObservationCache
       const MobileExternalDataItems &mobileExternalCacheData) const = 0;
   virtual void cleanFmiIoTCache(const Fmi::TimeDuration &timetokeep) const = 0;
 
+  virtual bool tapsiQcIntervalIsCached(const Fmi::DateTime &starttime,
+                                       const Fmi::DateTime &endtime) const = 0;
+  virtual Fmi::DateTime getLatestTapsiQcDataTime() const = 0;
+  virtual Fmi::DateTime getLatestTapsiQcCreatedTime() const = 0;
+  virtual std::size_t fillTapsiQcCache(
+      const MobileExternalDataItems &mobileExternalCacheData) const = 0;
+  virtual void cleanTapsiQcCache(const Fmi::TimeDuration &timetokeep) const = 0;
+
   virtual bool magnetometerIntervalIsCached(const Fmi::DateTime &starttime,
                                             const Fmi::DateTime &endtime) const = 0;
   virtual Fmi::DateTime getLatestMagnetometerDataTime() const = 0;

@@ -174,7 +174,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
   Spine::TaggedFMISIDList result;
 
   if (settings.stationtype == NETATMO_PRODUCER || settings.stationtype == ROADCLOUD_PRODUCER ||
-      settings.stationtype == FMI_IOT_PRODUCER)
+      settings.stationtype == FMI_IOT_PRODUCER || settings.stationtype == TAPSI_QC_PRODUCER)
     return result;
 
   auto info = itsObservationEngineParameters->stationInfo.load();

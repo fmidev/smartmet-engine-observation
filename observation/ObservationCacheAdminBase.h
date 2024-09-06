@@ -110,6 +110,7 @@ class ObservationCacheAdminBase
   void updateNetAtmoCache() const;
   void updateRoadCloudCache() const;
   void updateFmiIoTCache() const;
+  void updateTapsiQcCache() const;
   void updateMagnetometerCache() const;
 
   void updateFlashCacheLoop();
@@ -118,6 +119,7 @@ class ObservationCacheAdminBase
   void updateNetAtmoCacheLoop();
   void updateRoadCloudCacheLoop();
   void updateFmiIoTCacheLoop();
+  void updateTapsiQcCacheLoop();
   void updateMagnetometerCacheLoop();
   void updateStationsCacheLoop();
 

@@ -275,6 +275,40 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
    */
   void cleanFmiIoTCache(const Fmi::DateTime &newstarttime);
 
+  /**
+   * @brief Get the time of the newest TapsiQc observation in ext_obsdata_roadcloud table
+   * @return Fmi::DateTime The time of the newest TapsiQc observation
+   */
+
+  Fmi::DateTime getLatestTapsiQcDataTime();
+
+  /**
+   * @brief Get the time of the latest TapsiQc creation time in ext_obsdata table
+   * @return Fmi::DateTime The latest creation time
+   */
+
+  Fmi::DateTime getLatestTapsiQcCreatedTime();
+
+  /**
+   * @brief Get the time of the oldest TapsiQc observation in ext_obsdata_roadcloud table
+
+   * @return Fmi::DateTime The time of the oldest TapsiQc observation
+   */
+
+  Fmi::DateTime getOldestTapsiQcDataTime();
+
+  /**
+   * @brief Insert cached observations into ext_obsdata_roadcloud table
+   * @param TapsiQc observation data to be inserted into the table
+   */
+  static std::size_t fillTapsiQcCache(const MobileExternalDataItems &mobileExternalCacheData);
+
+  /**
+   * @brief Delete old TapsiQc observation data from ext_obsdata_roadcloud table
+   * @param timetokeep Delete TapsiQc data which is older than given duration
+   */
+  void cleanTapsiQcCache(const Fmi::DateTime &newstarttime);
+
   TS::TimeSeriesVectorPtr getRoadCloudData(const Settings &settings,
                                            const ParameterMapPtr &parameterMap,
                                            const Fmi::TimeZones &timezones);
@@ -286,6 +320,10 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
   TS::TimeSeriesVectorPtr getFmiIoTData(const Settings &settings,
                                         const ParameterMapPtr &parameterMap,
                                         const Fmi::TimeZones &timezones);
+
+  TS::TimeSeriesVectorPtr getTapsiQcData(const Settings &settings,
+                                         const ParameterMapPtr &parameterMap,
+                                         const Fmi::TimeZones &timezones);
 
   void shutdown();
 
@@ -328,6 +366,7 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
   InsertStatus itsRoadCloudInsertCache;
   InsertStatus itsNetAtmoInsertCache;
   InsertStatus itsFmiIoTInsertCache;
+  InsertStatus itsTapsiQcInsertCache;
   const ExternalAndMobileProducerConfig &itsExternalAndMobileProducerConfig;
 
   // Private methods
@@ -365,6 +404,7 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
   void createRoadCloudDataTable();
   void createNetAtmoDataTable();
   void createFmiIoTDataTable();
+  void createTapsiQcDataTable();
   void createIndex(const std::string &table,
                    const std::string &column,
                    const std::string &idx_name,

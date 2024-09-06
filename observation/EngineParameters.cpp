@@ -160,7 +160,7 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
 
         // Mobile and external producers
         if (stationtype == "roadcloud" || stationtype == "teconer" || stationtype == "netatmo" ||
-            stationtype == "fmi_iot")
+            stationtype == "fmi_iot" || stationtype == "tapsi_qc")
         {
           if (producerIdVector.empty())
             throw Fmi::Exception(BCP, "Invalid parameter value!")

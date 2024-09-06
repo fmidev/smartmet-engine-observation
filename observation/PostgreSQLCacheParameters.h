@@ -43,6 +43,7 @@ struct PostgreSQLCacheParameters
   std::size_t roadCloudInsertCacheSize = 0;
   std::size_t netAtmoInsertCacheSize = 0;
   std::size_t fmiIoTInsertCacheSize = 0;
+  std::size_t tapsiQcInsertCacheSize = 0;
 
   bool quiet = true;
   std::shared_ptr<Fmi::TimePeriod> flashCachePeriod;

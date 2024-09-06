@@ -21,7 +21,7 @@ void add_where_conditions(std::string &sqlStmt,
                           const std::string &wktAreaFilter,
                           const DataFilter &dataFilter)
 {
-  if (!wktAreaFilter.empty() && producer != FMI_IOT_PRODUCER)
+  if (!wktAreaFilter.empty() && producer != FMI_IOT_PRODUCER && producer != TAPSI_QC_PRODUCER)
   {
     sqlStmt += " AND ST_Contains(ST_GeomFromText('";
     sqlStmt += wktAreaFilter;
@@ -80,7 +80,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
 
   std::string producerName = itsProducerConfig->producerId().name();
   std::string producerId = itsProducerConfig->producerId().asString();
-  if (producerName == FMI_IOT_PRODUCER)
+  if ((producerName == FMI_IOT_PRODUCER) || (producerName == TAPSI_QC_PRODUCER))
   {
     sqlStmt = "SELECT obs.prod_id, obs.station_id, obs.dataset_id, obs.data_level";
     for (auto mid : measurandIds)
@@ -203,7 +203,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
         "data_value_txt,obs.data_quality,obs.ctrl_status,longitude,latitude,stat.altitude,stat."
         "station_id ORDER BY obs.data_time, stat.station_id ASC";
   }
-  else if (producerName == FMI_IOT_PRODUCER)
+  else if ((producerName == FMI_IOT_PRODUCER) || (producerName == TAPSI_QC_PRODUCER))
   {
     sqlStmt +=
         " GROUP BY "
@@ -275,6 +275,20 @@ std::string ExternalAndMobileDBInfo::sqlSelectForCache(const std::string &produc
          "AND obs.prod_id=stat.prod_id AND obs.station_id=stat.station_id AND obs.data_time>='" +
          Fmi::to_iso_extended_string(from_data_time) + "'" + created_stmt);
   }
+  else if (producer == TAPSI_QC_PRODUCER)
+  {
+    // Join ext_obsdata and ext_station_v1 tables
+    sqlStmt =
+        ("select obs.prod_id, obs.station_id, obs.dataset_id, obs.data_level, obs.mid "
+         ",obs.sensor_no, EXTRACT(EPOCH FROM obs.data_time) as data_time, obs.data_value, "
+         "obs.data_value_txt, obs.data_quality, obs.ctrl_status, EXTRACT(EPOCH FROM obs.created) "
+         "as created, stat.station_code FROM " +
+         tablename +
+         " obs, ext_station_v1 stat WHERE "
+         "obs.prod_id=15 "
+         "AND obs.prod_id=stat.prod_id AND obs.station_id=stat.station_id AND obs.data_time>='" +
+         Fmi::to_iso_extended_string(from_data_time) + "'" + created_stmt);
+  }
 
   return sqlStmt;
 }
@@ -292,14 +306,15 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
   std::string producerName = itsProducerConfig->producerId().name();
 
   if (producerName != NETATMO_PRODUCER && producerName != ROADCLOUD_PRODUCER &&
-      producerName != TECONER_PRODUCER && producerName != FMI_IOT_PRODUCER)
+      producerName != TECONER_PRODUCER && producerName != FMI_IOT_PRODUCER &&
+      producerName != TAPSI_QC_PRODUCER)
   {
     throw Fmi::Exception(BCP, "SQL select not defined for producer " + producerName);
   }
 
   std::string sqlStmt;
 
-  if (producerName == FMI_IOT_PRODUCER)
+  if ((producerName == FMI_IOT_PRODUCER) || (producerName == TAPSI_QC_PRODUCER))
   {
     sqlStmt =
         "SELECT obs.prod_id, obs.station_id, obs.station_code, obs.dataset_id, obs.data_level";
@@ -357,7 +372,7 @@ std::string ExternalAndMobileDBInfo::sqlSelectFromCache(const std::vector<int> &
         "data_value_txt,obs.data_quality,obs.ctrl_status,longitude,latitude,obs.altitude,obs."
         "station_id ORDER BY obs.data_time, obs.station_id ASC";
   }
-  else if (producerName == FMI_IOT_PRODUCER)
+  else if ((producerName == FMI_IOT_PRODUCER) || (producerName == TAPSI_QC_PRODUCER))
   {
     sqlStmt +=
         " GROUP BY "
@@ -515,6 +530,18 @@ std::string ExternalAndMobileDBInfo::measurandFieldname(int measurandId) const
         return "ws_n";
       case 113104:
         return "ws_e";
+      default:
+        return "";
+    }
+  }
+  else if (producer == TAPSI_QC_PRODUCER)
+  {
+    switch (measurandId)
+    {
+      case 113148:
+        return "rh";
+      case 113149:
+        return "ta";
       default:
         return "";
     }

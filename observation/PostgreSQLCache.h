@@ -92,6 +92,15 @@ class PostgreSQLCache : public ObservationCache
       const MobileExternalDataItems &mobileExternalCacheData) const override;
   void cleanFmiIoTCache(const Fmi::TimeDuration &timetokeep) const override;
 
+  // TapsiQc
+  bool tapsiQcIntervalIsCached(const Fmi::DateTime &starttime,
+                               const Fmi::DateTime &endtime) const override;
+  Fmi::DateTime getLatestTapsiQcDataTime() const override;
+  Fmi::DateTime getLatestTapsiQcCreatedTime() const override;
+  std::size_t fillTapsiQcCache(
+      const MobileExternalDataItems &mobileExternalCacheData) const override;
+  void cleanTapsiQcCache(const Fmi::TimeDuration &timetokeep) const override;
+
   // Magnetometer
   bool magnetometerIntervalIsCached(const Fmi::DateTime &starttime,
                                     const Fmi::DateTime &endtime) const override;
@@ -120,6 +129,7 @@ class PostgreSQLCache : public ObservationCache
   TS::TimeSeriesVectorPtr roadCloudValuesFromPostgreSQL(const Settings &settings) const;
   TS::TimeSeriesVectorPtr netAtmoValuesFromPostgreSQL(const Settings &settings) const;
   TS::TimeSeriesVectorPtr fmiIoTValuesFromPostgreSQL(const Settings &settings) const;
+  TS::TimeSeriesVectorPtr tapsiQcValuesFromPostgreSQL(const Settings &settings) const;
 
   PostgreSQLCacheParameters itsParameters;
 
@@ -148,6 +158,10 @@ class PostgreSQLCache : public ObservationCache
   mutable Spine::MutexType itsFmiIoTTimeIntervalMutex;
   mutable Fmi::DateTime itsFmiIoTTimeIntervalStart;
   mutable Fmi::DateTime itsFmiIoTTimeIntervalEnd;
+
+  mutable Spine::MutexType itsTapsiQcTimeIntervalMutex;
+  mutable Fmi::DateTime itsTapsiQcTimeIntervalStart;
+  mutable Fmi::DateTime itsTapsiQcTimeIntervalEnd;
 
   std::unique_ptr<ObservationMemoryCache> itsObservationMemoryCache;
 

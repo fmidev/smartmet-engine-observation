@@ -116,6 +116,8 @@ void readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
         cfg.get_optional_config_param<int>(common_key + ".netAtmoInsertCacheSize", 0));
     params["fmiIoTInsertCacheSize"] = Fmi::to_string(
         cfg.get_optional_config_param<int>(common_key + ".fmiIoTInsertCacheSize", 0));
+    params["tapsiQcInsertCacheSize"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".tapsiQcInsertCacheSize", 0));
     params["magnetometerInsertCacheSize"] = Fmi::to_string(
         cfg.get_optional_config_param<int>(common_key + ".magnetometerInsertCacheSize", 0));
   }
@@ -261,12 +263,16 @@ void readPostgreSQLMobileCommonInfo(Spine::ConfigBase& cfg,
       cfg.get_optional_config_param<std::size_t>(common_key + ".netAtmoCacheUpdateInterval", 0));
   params["fmiIoTCacheUpdateInterval"] = Fmi::to_string(
       cfg.get_optional_config_param<std::size_t>(common_key + ".fmiIoTCacheUpdateInterval", 0));
+  params["tapsiQcCacheUpdateInterval"] = Fmi::to_string(
+      cfg.get_optional_config_param<std::size_t>(common_key + ".tapsiQcCacheUpdateInterval", 0));
   params["roadCloudCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".roadCloudCacheDuration", 0));
   params["netAtmoCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".netAtmoCacheDuration", 0));
   params["fmiIoTCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".fmiIoTCacheDuration", 0));
+  params["tapsiQcCacheDuration"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".tapsiQcCacheDuration", 0));
 }
 
 void readFakeCacheInfo(Spine::ConfigBase& cfg,
@@ -609,6 +615,8 @@ void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".netAtmoInsertCacheSize", 0));
   params["fmiIoTInsertCacheSize"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".fmiIoTInsertCacheSize", 0));
+  params["tapsiQcInsertCacheSize"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".tapsiQcInsertCacheSize", 0));
   params["magnetometerInsertCacheSize"] = Fmi::to_string(
       cfg.get_optional_config_param<int>(common_key + ".magnetometerInsertCacheSize", 0));
 }
@@ -687,6 +695,7 @@ void DatabaseDriverInfoItem::parseCacheInfo(const std::set<std::string>& cachein
       table_set.insert(NETATMO_DATA_TABLE);
       table_set.insert(ROADCLOUD_DATA_TABLE);
       table_set.insert(FMI_IOT_DATA_TABLE);
+      table_set.insert(TAPSI_QC_DATA_TABLE);
       table_set.insert(MAGNETOMETER_DATA_TABLE);
     }
     if (itsCacheInfoItems.find(cachename) == itsCacheInfoItems.end())
