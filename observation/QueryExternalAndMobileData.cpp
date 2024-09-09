@@ -178,7 +178,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
       std::optional<double> longitudeValue;
       std::optional<double> latitudeValue;
       std::optional<double> elevationValue;
-      if (settings.stationtype == FMI_IOT_PRODUCER)
+      if ((settings.stationtype == FMI_IOT_PRODUCER) || (settings.stationtype == TAPSI_QC_PRODUCER))
       {
         std::string station_code = *(std::get_if<std::string>(&rsr["station_code"]));
 
@@ -201,7 +201,8 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
           std::string fieldValue = db.getTimeFormatter()->format(dt);
           ret->at(index).emplace_back(TS::TimedValue(obstime, fieldValue));
         }
-        else if (settings.stationtype == FMI_IOT_PRODUCER &&
+        else if ((settings.stationtype == FMI_IOT_PRODUCER ||
+                 (settings.stationtype == TAPSI_QC_PRODUCER)) &&
                  (fieldname == "longitude" || fieldname == "latitude" || fieldname == "altitude"))
         {
           TS::Value value;
@@ -213,6 +214,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
           {
             value = *latitudeValue;
           }
+	  // BUG ??? elevation is configurable (null op test), altitude is not
           else if ((fieldname == "altitude" || fieldname == "elevation") && elevationValue)
           {
             value = *elevationValue;
