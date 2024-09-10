@@ -299,7 +299,7 @@ class SpatiaLite : public CommonDatabaseFunctions
   Fmi::DateTime getOldestFmiIoTDataTime();
 
   /**
-   * @brief Get the time of the newest TapsiQc observation in ext_obsdata_roadcloud table
+   * @brief Get the time of the newest TapsiQc observation in ext_obsdata table
    * @return Fmi::DateTime The time of the newest TapsiQc observation
    */
 
@@ -313,7 +313,7 @@ class SpatiaLite : public CommonDatabaseFunctions
   Fmi::DateTime getLatestTapsiQcCreatedTime();
 
   /**
-   * @brief Get the time of the oldest TapsiQc observation in ext_obsdata_roadcloud table
+   * @brief Get the time of the oldest TapsiQc observation in ext_obsdata table
 
    * @return Fmi::DateTime The time of the oldest TapsiQc observation
    */
@@ -341,14 +341,14 @@ class SpatiaLite : public CommonDatabaseFunctions
   void cleanFmiIoTCache(const Fmi::DateTime &newstarttime);
 
   /**
-   * @brief Insert cached observations into ext_obsdata_roadcloud table
+   * @brief Insert cached observations into ext_obsdata table
    * @param TapsiQc observation data to be inserted into the table
    */
   std::size_t fillTapsiQcCache(const MobileExternalDataItems &mobileExternalCacheData,
                                InsertStatus &insertStatus);
 
   /**
-   * @brief Delete old TapsiQc observation data from ext_obsdata_roadcloud table
+   * @brief Delete old TapsiQc observation data from ext_obsdata table
    * @param timetokeep Delete TapsiQc data which is older than given duration
    */
   void cleanTapsiQcCache(const Fmi::DateTime &newstarttime);
