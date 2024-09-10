@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 24.8.15
-Release: 2%{?dist}.fmi
+Version: 24.9.10
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -35,7 +35,7 @@ BuildRequires: smartmet-library-spine-devel >= 24.8.12
 BuildRequires: smartmet-library-timeseries-devel >= 24.8.7
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
-BuildRequires: smartmet-utils-devel >= 24.8.7
+BuildRequires: smartmet-utils-devel >= 24.9.10
 BuildRequires: zlib-devel
 Requires: %{smartmet_boost}-iostreams
 Requires: %{smartmet_boost}-locale
@@ -159,6 +159,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Sep 10 2024 Pertti Kinnia <pertti.kinnia@fmi.fi> - 24.9.10-1.fmi
+- TAPSI observations support (BRAINSTORM-3008)
+
 * Thu Aug 15 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.8.15-2.fmi
 - Added warnings if Spatialite or PostgreSQL connection pools are busy
 
