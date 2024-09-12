@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 24.9.10
+Version: 24.9.12
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -159,6 +159,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Sep 12 2024 Pertti Kinnia <pertti.kinnia@fmi.fi> - 24.9.12-1.fmi
+- Added 'postgresql_mobile_observations' driver boolean config setting 'loadFmiIoTStations' (defaults to true) to control loading of iot stations from cldb since stations can't be fetched when using opendata connection
+- Added loading of config value for some TAPSI observations cache control settings (BRAINSTORM-3008)
+
 * Tue Sep 10 2024 Pertti Kinnia <pertti.kinnia@fmi.fi> - 24.9.10-1.fmi
 - TAPSI observations support (BRAINSTORM-3008)
 

@@ -123,9 +123,12 @@ void DatabaseDriverProxy::init(Engine *obsengine)
                      [this, obsengine]()
                      {
                        itsOracleDriver->init(obsengine);
-                       std::shared_ptr<FmiIoTStations> &stations =
-                           itsPostgreSQLMobileDataDriver->getFmiIoTStations();
-                       itsOracleDriver->getFMIIoTStations(stations);
+                       if (itsPostgreSQLMobileDataDriver->loadFmiIoTStations())
+                       {
+                         std::shared_ptr<FmiIoTStations> &stations =
+                             itsPostgreSQLMobileDataDriver->getFmiIoTStations();
+                         itsOracleDriver->getFMIIoTStations(stations);
+                       }
                      });
       init_tasks.wait();
       oracleDriverInitialized = true;

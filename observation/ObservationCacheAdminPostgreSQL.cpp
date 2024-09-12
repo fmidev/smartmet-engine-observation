@@ -116,7 +116,7 @@ void ObservationCacheAdminPostgreSQL::readMobileCacheData(
 {
   std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
   db->readMobileCacheDataFromPostgreSQL(producer, cacheData, lastTime, lastCreatedTime, timeZones);
-  if (producer == FMI_IOT_PRODUCER)
+  if ((producer == FMI_IOT_PRODUCER) || (producer == TAPSI_QC_PRODUCER))
   {
     const auto& p = static_cast<const PostgreSQLDriverParameters&>(itsParameters);
 

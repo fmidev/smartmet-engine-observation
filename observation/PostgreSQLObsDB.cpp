@@ -107,7 +107,7 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
       if (rsr["ctrl_status"] != none)
         dataItem.ctrl_status = std::get<int>(rsr["ctrl_status"]);
       dataItem.created = (std::get<Fmi::LocalDateTime>(rsr["created"]).utc_time());
-      if (producer == FMI_IOT_PRODUCER)
+      if ((producer == FMI_IOT_PRODUCER) || (producer == TAPSI_QC_PRODUCER))
       {
         if (rsr["station_code"] != none)
           dataItem.station_code = std::get<std::string>(rsr["station_code"]);

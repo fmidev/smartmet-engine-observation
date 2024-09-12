@@ -24,6 +24,7 @@ struct PostgreSQLDriverParameters : public DatabaseDriverParameters
 
   std::vector<Fmi::Database::PostgreSQLConnectionOptions> connectionOptions;
   const ExternalAndMobileProducerConfig& externalAndMobileProducerConfig;
+  bool loadFmiIoTStations = true;
   std::shared_ptr<FmiIoTStations> fmiIoTStations;
 };
 

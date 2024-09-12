@@ -375,12 +375,15 @@ void PostgreSQLDatabaseDriverForMobileData::readConfig(Spine::ConfigBase &cfg)
     const DatabaseDriverInfoItem &driverInfo =
         itsParameters.params->databaseDriverInfo.getDatabaseDriverInfo(itsDriverName);
 
+    itsParameters.loadFmiIoTStations = (driverInfo.params.at("loadFmiIoTStations") != "0");
     itsParameters.netAtmoCacheUpdateInterval =
         Fmi::stoi(driverInfo.params.at("netAtmoCacheUpdateInterval"));
     itsParameters.roadCloudCacheUpdateInterval =
         Fmi::stoi(driverInfo.params.at("roadCloudCacheUpdateInterval"));
     itsParameters.fmiIoTCacheUpdateInterval =
         Fmi::stoi(driverInfo.params.at("fmiIoTCacheUpdateInterval"));
+    itsParameters.tapsiQcCacheUpdateInterval =
+        Fmi::stoi(driverInfo.params.at("tapsiQcCacheUpdateInterval"));
 
     if (!itsParameters.disableAllCacheUpdates)
     {
@@ -388,6 +391,7 @@ void PostgreSQLDatabaseDriverForMobileData::readConfig(Spine::ConfigBase &cfg)
       itsParameters.roadCloudCacheDuration =
           Fmi::stoi(driverInfo.params.at("roadCloudCacheDuration"));
       itsParameters.fmiIoTCacheDuration = Fmi::stoi(driverInfo.params.at("fmiIoTCacheDuration"));
+      itsParameters.tapsiQcCacheDuration = Fmi::stoi(driverInfo.params.at("tapsiQcCacheDuration"));
     }
 
     // Read part of config in base class

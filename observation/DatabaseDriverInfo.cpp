@@ -255,6 +255,8 @@ void readPostgreSQLMobileCommonInfo(Spine::ConfigBase& cfg,
       Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".poolSize", 10));
   params["connectionTimeout"] =
       Fmi::to_string(cfg.get_optional_config_param<size_t>(common_key + ".connectionTimeout", 30));
+  params["loadFmiIoTStations"] =
+      Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".loadFmiIoTStations", true));
   params["disableAllCacheUpdates"] = Fmi::to_string(
       cfg.get_optional_config_param<bool>(common_key + ".disableAllCacheUpdates", false));
   params["roadCloudCacheUpdateInterval"] = Fmi::to_string(
