@@ -81,6 +81,8 @@ void readPostgreSQLConnectInfo(Spine::ConfigBase& cfg,
   params["encoding"] = cfg.get_mandatory_config_param<std::string>(common_key + ".encoding");
   params["connect_timeout"] =
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".connect_timeout"));
+  params["slow_query_limit"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".slow_query_limit", 0));
 }
 
 void readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,

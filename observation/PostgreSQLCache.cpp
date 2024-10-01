@@ -1101,6 +1101,11 @@ void PostgreSQLCache::readConfig(const Spine::ConfigBase & /* cfg */)
     itsParameters.postgresql.password = itsCacheInfo.params.at("password");
     itsParameters.postgresql.encoding = itsCacheInfo.params.at("encoding");
     itsParameters.postgresql.connect_timeout = Fmi::stoi(itsCacheInfo.params.at("connect_timeout"));
+
+    auto pos = itsCacheInfo.params.find("slow_query_limit");
+    if (pos != itsCacheInfo.params.end())
+      itsParameters.postgresql.slow_query_limit = Fmi::stoi(pos->second);
+
     itsParameters.connectionPoolSize = Fmi::stoi(itsCacheInfo.params.at("poolSize"));
     itsParameters.maxInsertSize = Fmi::stoi(itsCacheInfo.params.at("maxInsertSize"));
     itsParameters.dataInsertCacheSize = Fmi::stoi(itsCacheInfo.params.at("dataInsertCacheSize"));

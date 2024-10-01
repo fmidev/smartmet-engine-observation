@@ -71,6 +71,11 @@ void PostgreSQLDatabaseDriver::readConfig(Spine::ConfigBase &cfg)
     connectionOptions.password = driverInfo.params.at("password");
     connectionOptions.encoding = driverInfo.params.at("encoding");
     connectionOptions.connect_timeout = Fmi::stoi(driverInfo.params.at("connect_timeout"));
+
+    auto pos = driverInfo.params.find("slow_query_limit");
+    if (pos != driverInfo.params.end())
+      connectionOptions.slow_query_limit = Fmi::stoi(pos->second);
+
     itsParameters.connectionOptions.push_back(connectionOptions);
     itsParameters.connectionPoolSize.push_back(Fmi::stoi(driverInfo.params.at("poolSize")));
 
@@ -112,9 +117,8 @@ void PostgreSQLDatabaseDriver::init(Engine *obsengine)
     initializeConnectionPool();
 
     // Caches
-    std::shared_ptr<ObservationCacheAdminPostgreSQL> cacheAdmin(
-        new ObservationCacheAdminPostgreSQL(
-            itsParameters, itsPostgreSQLConnectionPool, getGeonames(), itsConnectionsOK, itsTimer));
+    std::shared_ptr<ObservationCacheAdminPostgreSQL> cacheAdmin(new ObservationCacheAdminPostgreSQL(
+        itsParameters, itsPostgreSQLConnectionPool, getGeonames(), itsConnectionsOK, itsTimer));
 
     if (!Spine::Reactor::isShuttingDown())
     {
