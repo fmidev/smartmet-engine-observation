@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 24.9.12
+Version: 24.9.28
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -30,7 +30,7 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 24.8.7
 BuildRequires: smartmet-library-locus-devel >= 24.8.7
-BuildRequires: smartmet-library-macgyver-devel >= 24.8.7
+BuildRequires: smartmet-library-macgyver-devel >= 24.9.28
 BuildRequires: smartmet-library-spine-devel >= 24.8.12
 BuildRequires: smartmet-library-timeseries-devel >= 24.8.7
 BuildRequires: sqlite3pp-devel >= 1.0.9
@@ -47,7 +47,7 @@ Requires: gdal38-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 24.8.7
 Requires: smartmet-library-locus >= 24.8.7
-Requires: smartmet-library-macgyver >= 24.8.7
+Requires: smartmet-library-macgyver >= 24.9.28
 Requires: smartmet-library-spine >= 24.8.12
 Requires: smartmet-library-timeseries >= 24.8.7
 Requires: smartmet-server >= 24.8.7
@@ -159,6 +159,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Sat Sep 28 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.9.28-1.fmi
+- Added optional slow_query_limit (seconds) for PG drivers for reporting slow SQL queries
+
 * Tue Sep 12 2024 Pertti Kinnia <pertti.kinnia@fmi.fi> - 24.9.12-1.fmi
 - Added 'postgresql_mobile_observations' driver boolean config setting 'loadFmiIoTStations' (defaults to true) to control loading of iot stations from cldb since stations can't be fetched when using opendata connection
 - Added loading of config value for some TAPSI observations cache control settings (BRAINSTORM-3008)
