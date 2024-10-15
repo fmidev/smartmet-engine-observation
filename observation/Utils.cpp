@@ -3,13 +3,13 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
-#include <filesystem>
 #include <boost/serialization/vector.hpp>
 #include <macgyver/Astronomy.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TypeName.h>
 #include <spine/Convenience.h>
+#include <filesystem>
 #include <fstream>
 #include <unordered_set>
 
@@ -53,7 +53,6 @@ bool not_special(const Spine::Parameter& theParam)
     switch (theParam.type())
     {
       case Spine::Parameter::Type::Data:
-      case Spine::Parameter::Type::Landscaped:
         return true;
       case Spine::Parameter::Type::DataDerived:
       case Spine::Parameter::Type::DataIndependent:
@@ -327,11 +326,11 @@ void logMessage(const std::string& message, bool quiet)
 }
 
 std::optional<int> calcSmartsymbolNumber(int wawa,
-                                           int cloudiness,
-                                           double temperature,
-                                           const Fmi::LocalDateTime& ldt,
-                                           double lat,
-                                           double lon)
+                                         int cloudiness,
+                                         double temperature,
+                                         const Fmi::LocalDateTime& ldt,
+                                         double lat,
+                                         double lon)
 {
   std::optional<int> smartsymbol = {};
 
@@ -571,8 +570,7 @@ TS::TimeSeriesVectorPtr initializeResultVector(const Settings& settings)
 
 Fmi::DateTime epoch2ptime(double epoch)
 {
-  Fmi::DateTime ret =
-      Fmi::date_time::from_time_t(static_cast<std::time_t>(floor(epoch)));
+  Fmi::DateTime ret = Fmi::date_time::from_time_t(static_cast<std::time_t>(floor(epoch)));
   ret += Fmi::date_time::Microseconds(static_cast<long>((epoch - floor(epoch)) * 1000000));
 
   return ret;
