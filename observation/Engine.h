@@ -15,7 +15,7 @@ namespace Engine
 {
 namespace Observation
 {
-using ContentTable = std::pair<std::shared_ptr<Spine::Table>, Spine::TableFormatter::Names>;
+using ContentTable = std::unique_ptr<Spine::Table>;
 
 class DBRegistry;
 class QueryBase;

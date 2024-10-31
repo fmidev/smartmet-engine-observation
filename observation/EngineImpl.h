@@ -142,6 +142,14 @@ class EngineImpl : public Engine
 
   Fmi::Cache::CacheStatistics getCacheStats() const override;
 
+  std::unique_ptr<Spine::Table> requestProducerInfo(const Spine::HTTP::Request& theRequest) const;
+
+  std::unique_ptr<Spine::Table> requestParameterInfo(const Spine::HTTP::Request& theRequest) const;
+
+  std::unique_ptr<Spine::Table> requestStationInfo(const Spine::HTTP::Request& theRequest) const;
+
+  bool requestReloadStations(const Spine::HTTP::Request& theRequest);
+
   /* \brief get producer ids from engine parameters
    * \return Set of producer ids
    */

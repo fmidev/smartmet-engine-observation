@@ -3,6 +3,7 @@
 #include "DatabaseDriverFactory.h"
 #include "ObservationCacheFactory.h"
 #include "SpecialParameters.h"
+#include "StationOptions.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/make_shared.hpp>
@@ -10,6 +11,7 @@
 #include <macgyver/Geometry.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TypeName.h>
+#include <spine/ConfigTools.h>
 #include <spine/Convenience.h>
 #include <spine/Reactor.h>
 #include <timeseries/ParameterTools.h>
@@ -235,12 +237,120 @@ void EngineImpl::init()
 
     // Get measurand info from DB
     initMeasurandInfo();
+
+    Spine::Reactor* reactor = Spine::Reactor::instance;
+    if (reactor)
+    {
+      reactor->addAdminTableRequestHandler(
+        this,
+        "obsproducers",
+        false,
+        std::bind(&EngineImpl::requestProducerInfo, this, std::placeholders::_2),
+        "Observation producers");
+
+      reactor->addAdminTableRequestHandler(
+        this,
+        "obsparameters",
+        false,
+        std::bind(&EngineImpl::requestParameterInfo, this, std::placeholders::_2),
+        "Observation parameters");
+
+      reactor->addAdminTableRequestHandler(
+        this,
+        "stations",
+        false,
+        std::bind(&EngineImpl::requestStationInfo, this, std::placeholders::_2),
+        "Observation stations");
+
+      reactor->addAdminBoolRequestHandler(
+        this,
+        "reloadstations",
+        true,
+        std::bind(&EngineImpl::requestReloadStations, this, std::placeholders::_2),
+        "Reload stations");
+    }
   }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Observation-engine initialization failed");
   }
 }
+
+namespace
+{
+void parseIntOption(std::set<int> &output, const std::string &option)
+{
+  if (option.empty())
+    return;
+
+  std::vector<std::string> parts;
+  boost::algorithm::split(parts, option, boost::algorithm::is_any_of(","));
+  for (const auto &p : parts)
+    output.insert(Fmi::stoi(p));
+}
+} // anonymous namespace
+
+std::unique_ptr<Spine::Table> EngineImpl::requestProducerInfo(const Spine::HTTP::Request& theRequest) const
+{
+  // Optional producer filter
+  auto producer = theRequest.getParameter("producer");
+
+  std::unique_ptr<Spine::Table> obsengineProducerInfo = getProducerInfo(producer);
+
+  return obsengineProducerInfo;
+}
+
+
+std::unique_ptr<Spine::Table> EngineImpl::requestParameterInfo(const Spine::HTTP::Request& theRequest) const
+{
+  // Optional producer filter
+  auto producer = theRequest.getParameter("producer");
+
+  std::unique_ptr<Spine::Table> obsengineParameterInfo = getParameterInfo(producer);
+
+  return obsengineParameterInfo;
+}
+
+
+std::unique_ptr<Spine::Table> EngineImpl::requestStationInfo(const Spine::HTTP::Request& theRequest) const
+{
+  StationOptions options;
+  parseIntOption(options.fmisid, Spine::optional_string(theRequest.getParameter("fmisid"), ""));
+  parseIntOption(options.lpnn, Spine::optional_string(theRequest.getParameter("lpnn"), ""));
+  parseIntOption(options.wmo, Spine::optional_string(theRequest.getParameter("wmo"), ""));
+  parseIntOption(options.rwsid, Spine::optional_string(theRequest.getParameter("rwsid"), ""));
+  options.type = Spine::optional_string(theRequest.getParameter("type"), "");
+  options.name = Spine::optional_string(theRequest.getParameter("name"), "");
+  options.iso2 = Spine::optional_string(theRequest.getParameter("country"), "");
+  options.region = Spine::optional_string(theRequest.getParameter("region"), "");
+  options.timeformat = Spine::optional_string(theRequest.getParameter("timeformat"), "sql");
+  std::string starttime = Spine::optional_string(theRequest.getParameter("starttime"), "");
+  std::string endtime = Spine::optional_string(theRequest.getParameter("endtime"), "");
+  if (!starttime.empty())
+    options.start_time = Fmi::TimeParser::parse(starttime);
+  else
+    options.start_time = Fmi::DateTime::NOT_A_DATE_TIME;
+  if (!endtime.empty())
+    options.end_time = Fmi::TimeParser::parse(endtime);
+  else
+    options.end_time = Fmi::DateTime::NOT_A_DATE_TIME;
+
+  std::string bbox_string = Spine::optional_string(theRequest.getParameter("bbox"), "");
+  if (!bbox_string.empty())
+    options.bbox = Spine::BoundingBox(bbox_string);
+
+  std::unique_ptr<Spine::Table> obsengineStationInfo = getStationInfo(options);
+
+  return obsengineStationInfo;
+}
+
+
+bool EngineImpl::requestReloadStations(const Spine::HTTP::Request& theRequest)
+{
+  reloadStations();
+  return true;
+}
+
 
 // ----------------------------------------------------------------------
 /*!
@@ -571,20 +681,21 @@ ContentTable EngineImpl::getProducerInfo(const std::optional<std::string> &produ
 {
   try
   {
-    std::shared_ptr<Spine::Table> resultTable(new Spine::Table);
+    std::unique_ptr<Spine::Table> resultTable(new Spine::Table);
+    Spine::TableFormatter::Names headers{"#", "Producer", "ProducerId", "StationGroups"};
+
+    resultTable->setNames(headers);
 
     std::set<std::string> types = getValidStationTypes();
 
     if (producer)
     {
       if (types.find(*producer) == types.end())
-        return std::make_pair(resultTable, Spine::TableFormatter::Names());
+        return resultTable;
 
       types.clear();
       types.insert(*producer);
     }
-
-    Spine::TableFormatter::Names headers{"#", "Producer", "ProducerId", "StationGroups"};
 
     unsigned int row = 0;
     for (const auto &t : types)
@@ -639,7 +750,7 @@ ContentTable EngineImpl::getProducerInfo(const std::optional<std::string> &produ
       row++;
     }
 
-    return std::make_pair(resultTable, headers);
+    return resultTable;
   }
   catch (...)
   {
@@ -651,13 +762,16 @@ ContentTable EngineImpl::getParameterInfo(const std::optional<std::string> &prod
 {
   try
   {
-    std::shared_ptr<Spine::Table> resultTable(new Spine::Table);
+    std::unique_ptr<Spine::Table> resultTable(new Spine::Table);
+    Spine::TableFormatter::Names headers{"#", "Parameter", "Producer", "ParameterId"};
+
+    resultTable->setNames(headers);
 
     if (producer)
     {
       std::set<std::string> types = getValidStationTypes();
       if (types.find(*producer) == types.end())
-        return std::make_pair(resultTable, Spine::TableFormatter::Names());
+        return resultTable;
     }
 
     /*
@@ -673,7 +787,6 @@ ContentTable EngineImpl::getParameterInfo(const std::optional<std::string> &prod
     }
     */
 
-    Spine::TableFormatter::Names headers{"#", "Parameter", "Producer", "ParameterId"};
 
     unsigned int row = 0;
     unsigned int param_counter = 1;
@@ -703,7 +816,7 @@ ContentTable EngineImpl::getParameterInfo(const std::optional<std::string> &prod
       param_counter++;
     }
 
-    return std::make_pair(resultTable, headers);
+    return resultTable;
   }
   catch (...)
   {
@@ -721,7 +834,7 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
 
   try
   {
-    std::shared_ptr<Spine::Table> resultTable(new Spine::Table);
+    std::unique_ptr<Spine::Table> resultTable(new Spine::Table);
 
     Spine::TableFormatter::Names headers{"#",
                                          "name",
@@ -739,6 +852,8 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
                                          "timezone",
                                          "country",
                                          "region"};
+
+    resultTable->setNames(headers);
 
     const bool check_fmisid = !options.fmisid.empty();
     const bool check_wsi = !options.wsi.empty();
@@ -884,7 +999,7 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
         row++;
       }
     }
-    return std::make_pair(resultTable, headers);
+    return resultTable;
   }
   catch (...)
   {
