@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 24.11.8
+Version: 24.11.12
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -31,7 +31,7 @@ BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 24.11.8
 BuildRequires: smartmet-library-locus-devel >= 24.9.28
 BuildRequires: smartmet-library-macgyver-devel >= 24.10.28
-BuildRequires: smartmet-library-spine-devel >= 24.11.8
+BuildRequires: smartmet-library-spine-devel >= 24.11.11
 BuildRequires: smartmet-library-timeseries-devel >= 24.11.8
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
@@ -48,7 +48,7 @@ Requires: libatomic
 Requires: smartmet-engine-geonames >= 24.11.8
 Requires: smartmet-library-locus >= 24.9.28
 Requires: smartmet-library-macgyver >= 24.10.28
-Requires: smartmet-library-spine >= 24.11.8
+Requires: smartmet-library-spine >= 24.11.11
 Requires: smartmet-library-timeseries >= 24.11.8
 Requires: smartmet-server >= 24.11.8
 Requires: unixODBC
@@ -125,7 +125,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 24.11.8
+Requires: smartmet-library-spine-devel >= 24.11.11
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -159,6 +159,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Nov 12 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.11.12-1.fmi
+- Removed unnecessary GROUP BY clauses which unnecessarily slow down PG requests
+
 * Fri Nov  8 2024 Andris Pavēnis <andris.pavenis@fmi.fi> 24.11.8-1.fmi
 - Register admin requests to SmartMet::Spine::Reactor
 
