@@ -145,8 +145,6 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
 
     sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
     sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") +
-               " GROUP BY data.fmisid, data.sensor_no, data.data_time, data.measurand_id, "
-               "data.data_value, data.data_quality, data.data_source "
                "ORDER BY fmisid ASC, obstime ASC";
 
     if (itsDebug)
@@ -3646,10 +3644,7 @@ void SpatiaLite::initObservationMemoryCache(
         "producer_id, measurand_no, data_quality, data_source "
         "FROM observation_data "
         "WHERE observation_data.data_time >= " +
-        Fmi::to_string(to_epoch(starttime)) +
-        " GROUP BY fmisid, sensor_no, data_time, measurand_id, data_value, data_quality, "
-        "data_source "
-        "ORDER BY fmisid ASC, data_time ASC";
+        Fmi::to_string(to_epoch(starttime)) + " ORDER BY fmisid ASC, data_time ASC";
 
     sqlite3pp::query qry(itsDB, sql.c_str());
 
@@ -3797,9 +3792,7 @@ std::string SpatiaLite::sqlSelectFromWeatherDataQCData(const Settings &settings,
 
       sqlStmt += " AND data.parameter IN (" + params + ") AND " +
                  settings.dataFilter.getSqlClause("data_quality", "data.flag") +
-                 " GROUP BY data.fmisid, data.obstime, data.parameter, "
-                 "data.sensor_no "
-                 "ORDER BY fmisid ASC, obstime ASC;";
+                 " ORDER BY fmisid ASC, obstime ASC;";
     }
 
     if (itsDebug)

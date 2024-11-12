@@ -319,51 +319,31 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
     std::string starttime = Fmi::to_iso_extended_string(settings.starttime);
     std::string endtime = Fmi::to_iso_extended_string(settings.endtime);
 
-    std::string sqlStmt;
-    if (itsIsCacheDatabase)
-    {
-      sqlStmt =
-          "SELECT data.fmisid AS fmisid, data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM "
-          "data.data_time) AS obstime, "
-          "measurand_id, data_value, data_quality, data_source "
-          "FROM observation_data data "
-          "WHERE data.fmisid IN (" +
-          qstations +
-          ") "
-          "AND data.data_time >= '" +
-          starttime + "' AND data.data_time <= '" + endtime + "' AND data.measurand_id IN (" +
-          measurand_ids + ") ";
-      if (!producerIds.empty())
-        sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
+    // Determine table and columns based on database type
+    std::string tableName = itsIsCacheDatabase ? "observation_data" : "observation_data_r1";
+    std::string stationColumn = itsIsCacheDatabase ? "fmisid" : "station_id AS fmisid";
+    std::string timestampColumn =
+        itsIsCacheDatabase ? "data.data_time" : "date_trunc('seconds', data.data_time)";
 
-      sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
-      sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") +
-                 " GROUP BY data.fmisid, data.sensor_no, data.data_time, data.measurand_id, "
-                 "data.data_value, data.data_quality, data.data_source "
-                 "ORDER BY fmisid ASC, obstime ASC";
-    }
-    else
-    {
-      sqlStmt =
-          "SELECT data.station_id AS fmisid, data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM "
-          "date_trunc('seconds', data.data_time)) AS obstime, "
-          "measurand_id, data_value, data_quality, data_source "
-          "FROM observation_data_r1 data "
-          "WHERE data.station_id IN (" +
-          qstations +
-          ") "
-          "AND data.data_time >= '" +
-          starttime + "' AND data.data_time <= '" + endtime + "' AND data.measurand_id IN (" +
-          measurand_ids + ") ";
-      if (!producerIds.empty())
-        sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
+    // Construct base SQL statement
+    std::string sqlStmt =
+        "SELECT data." + stationColumn + ", data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM " +
+        timestampColumn +
+        ") AS obstime, measurand_id, data_value, data_quality, data_source FROM " + tableName +
+        " data WHERE data." + (itsIsCacheDatabase ? "fmisid" : "station_id") + " IN (" + qstations +
+        ") AND data.data_time >= '" + starttime + "' AND data.data_time <= '" + endtime +
+        "' AND data.measurand_id IN (" + measurand_ids + ") ";
 
-      sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
-      sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") +
-                 " GROUP BY data.station_id, data.sensor_no, data.data_time, data.measurand_id, "
-                 "data.data_value, data.data_quality, data.data_source "
-                 "ORDER BY fmisid ASC, obstime ASC";
-    }
+    // Add producer ID filter if needed
+    if (!producerIds.empty())
+      sqlStmt += "AND data.producer_id IN (" + producerIds + ") ";
+
+    // Add sensor query condition and data quality filter
+    sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
+    sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") + " ";
+
+    // Add ordering clause
+    sqlStmt += "ORDER BY fmisid ASC, obstime ASC";
 
     if (itsDebug)
       std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
@@ -940,8 +920,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
       result[timeseriesPositions.at("elevation")].push_back(TS::TimedValue(localtime, s.elevation));
 
     if (timeseriesPositions.find("stationtype") != timeseriesPositions.end())
-      result[timeseriesPositions.at("stationtype")].push_back(
-          TS::TimedValue(localtime, s.type));
+      result[timeseriesPositions.at("stationtype")].push_back(TS::TimedValue(localtime, s.type));
 
     timesteps.insert(localtime);
   }
