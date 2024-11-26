@@ -1,8 +1,8 @@
 #pragma once
 
 #include <macgyver/DateTime.h>
-#include <optional>
 #include <macgyver/StringConversion.h>
+#include <optional>
 #include <vector>
 
 namespace SmartMet
@@ -29,6 +29,9 @@ class DataItem
   std::size_t hash_value() const;
   std::string get_value() const;
   std::string get_data_source() const;
+
+  bool operator==(const DataItem& other) const;  // fixed metadata comparison only
+  bool operator<(const DataItem& other) const;   // also compares modified_last
 };
 
 using DataItems = std::vector<DataItem>;

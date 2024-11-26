@@ -142,20 +142,20 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
         for (std::size_t k = i; k < j; k++)
           newobs->push_back(cacheData[new_items[k]]);
 
-        // Sort the data based on time
+          // Sort the data based on time
 
-        auto cmp = [](const DataItem& obs1, const DataItem& obs2) -> bool
-        { return (obs1.data_time < obs2.data_time); };
-
-        // The two segments are already sorted. However, on RHEL7 the inplace_merge does not
-        // produce a sorted container. Could not find a bug by searching the net, but most
-        // definitely it does not work as expected.
+          // The two segments are already sorted. However, on RHEL7 the inplace_merge does not
+          // produce a sorted container. Could not find a bug by searching the net, but most
+          // definitely it does not work as expected.
 
 #if 0
         std::inplace_merge(newobs->begin(), newdata_start, newobs->end(), cmp);
 #else
-        std::sort(newobs->begin(), newobs->end(), cmp);
+        std::sort(newobs->begin(), newobs->end());
 #endif
+        // Remove modified observations
+        auto last = std::unique(newobs->begin(), newobs->end());
+        newobs->erase(last, newobs->end());
 
         // And store the new station data back to the atomic_shared_ptr
         pos->second->store(newobs);
@@ -328,7 +328,7 @@ LocationDataItems ObservationMemoryCache::read_observations(
             qmap.measurandIds.end())
           continue;
 
-        // Wanted sensords
+        // Wanted sensors
         bool sensorOK = false;
         if ((obs->measurand_no == 1 &&
              (valid_sensors.find(-1) != valid_sensors.end() || valid_sensors.empty())) ||

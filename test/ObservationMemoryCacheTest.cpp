@@ -16,6 +16,63 @@
 std::string stationFile = "/usr/share/smartmet/test/data/sqlite/stations.txt";
 SmartMet::Engine::Observation::StationInfo stationinfo(stationFile);
 
+TEST_CASE("Test modified_last")
+{
+  SECTION("Mark observation bad")
+  {
+    Fmi::DateTime t = Fmi::DateTime::from_string("2020-01-01 00:00:00");
+    Fmi::DateTime modtime = Fmi::DateTime::from_string("2020-01-01 01:00:00");
+    int fmisid = 101004;
+
+    SmartMet::Engine::Observation::ObservationMemoryCache cache;
+
+    SmartMet::Engine::Observation::DataItems items;
+
+    // Original observation
+    SmartMet::Engine::Observation::DataItem item;
+    item.data_time = t;
+    item.modified_last = t;
+    item.data_value = 0;
+    item.fmisid = fmisid;
+    item.data_quality = 1;
+    item.producer_id = 1;
+    items.push_back(item);
+    cache.fill(items);
+
+    items.clear();
+
+    // Modified observation
+    item.modified_last = modtime;
+    item.data_quality = 9;
+    items.push_back(item);
+    cache.fill(items);
+
+    // Check contents
+    SmartMet::Engine::Observation::Settings settings;
+    settings.starttime = t;
+    settings.endtime = modtime;
+    settings.starttimeGiven = true;
+    settings.producer_ids.insert(1);
+    SmartMet::Spine::Station station;
+    station.fmisid = fmisid;
+    SmartMet::Spine::Stations stations{station};
+
+    std::set<std::string> groups;
+    SmartMet::Engine::Observation::QueryMapping qmap;
+    int measurand_count = 10;
+    for (int i = 0; i < measurand_count; i++)
+    {
+      qmap.sensorNumberToMeasurandIds[i] = std::set<int>{i};
+      qmap.measurandIds.push_back(i);
+    }
+
+    auto obs = cache.read_observations(stations, settings, stationinfo, groups, qmap);
+
+    REQUIRE(obs.size() == 1);
+    REQUIRE(obs[0].data.data_quality == 9);
+  }
+}
+
 TEST_CASE("Test observation memory cache in parallel (TSAN)")
 {
   SECTION("Insert and find in parallel")

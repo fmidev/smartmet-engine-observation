@@ -43,6 +43,41 @@ std::string DataItem::get_data_source() const
   return Fmi::to_string(data_source);
 }
 
+bool DataItem::operator==(const DataItem& other) const
+{
+  // modified_last, data_value and data_quality may change with obs updates
+
+  // clang-format off
+  return (data_time == other.data_time &&
+          fmisid == other.fmisid &&
+          sensor_no == other.sensor_no &&
+          measurand_id == other.measurand_id &&
+          producer_id == other.producer_id &&
+          measurand_no == other.measurand_no &&
+          data_source == other.data_source);
+  // clang-format on
+}
+
+bool DataItem::operator<(const DataItem& other) const
+{
+  if (fmisid != other.fmisid)
+    return fmisid < other.fmisid;
+  if (data_time != other.data_time)
+    return data_time < other.data_time;
+  if (measurand_id < other.measurand_id)
+    return measurand_id < other.measurand_id;
+  if (measurand_no < other.measurand_no)
+    return measurand_no < other.measurand_no;
+  if (producer_id != other.producer_id)
+    return producer_id < other.producer_id;
+  if (data_source != other.data_source)
+    return data_source < other.data_source;
+  if (sensor_no != other.sensor_no)
+    return sensor_no < other.sensor_no;
+
+  return modified_last > other.modified_last;  // YES, WE WANT LATER OBS TO BE FIRST!
+}
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
