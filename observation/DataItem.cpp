@@ -64,9 +64,9 @@ bool DataItem::operator<(const DataItem& other) const
     return fmisid < other.fmisid;
   if (data_time != other.data_time)
     return data_time < other.data_time;
-  if (measurand_id < other.measurand_id)
+  if (measurand_id != other.measurand_id)
     return measurand_id < other.measurand_id;
-  if (measurand_no < other.measurand_no)
+  if (measurand_no != other.measurand_no)
     return measurand_no < other.measurand_no;
   if (producer_id != other.producer_id)
     return producer_id < other.producer_id;
