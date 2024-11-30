@@ -16,6 +16,8 @@ namespace Engine
 {
 namespace Observation
 {
+const std::string globe = "POLYGON ((-180 -90,-180 90,180 90,180 -90,-180 -90))";
+
 using namespace Utils;
 
 CommonPostgreSQLFunctions::CommonPostgreSQLFunctions(
@@ -202,25 +204,28 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataOfMovingStations
           "data.data_time) AS obstime, "
           "measurand_id, data_value, data_quality, data_source "
           "FROM observation_data data WHERE ";
-      if (!fmisids.empty())
-        sqlStmt += "data.fmisid IN (" + fmisids + ") ";
-      if (!wktString.empty())
-      {
-        if (!fmisids.empty())
-          sqlStmt += " AND ";
-        sqlStmt += ("ST_Contains(ST_GeomFromText('" + wktString +
-                    "',4326),ST_SetSRID(ST_MakePoint(m.lon, m.lat),4326)) ");
-      }
-      sqlStmt += "AND data.data_time >= '" + starttime + "' AND data.data_time <= '" + endtime +
+
+      sqlStmt += "data.data_time >= '" + starttime + "' AND data.data_time <= '" + endtime +
                  "' AND data.measurand_id IN (" + measurand_ids + ") ";
+
+      if (!fmisids.empty())
+        sqlStmt += "AND data.fmisid IN (" + fmisids + ") ";
+
       if (!producerIds.empty())
         sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
 
       sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
-      sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") +
-                 " GROUP BY data.fmisid, data.sensor_no, data.data_time, data.measurand_id, "
-                 "data.data_value, data.data_quality, data.data_source "
-                 "ORDER BY fmisid ASC, obstime ASC";
+
+      sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality");
+
+      if (!wktString.empty() && wktString != globe)
+        sqlStmt += "AND ST_Contains(ST_GeomFromText('" + wktString +
+                   "',4326),ST_SetSRID(ST_MakePoint(m.lon, m.lat),4326)) ";
+
+      sqlStmt +=
+          " GROUP BY data.fmisid, data.sensor_no, data.data_time, data.measurand_id, "
+          "data.data_value, data.data_quality, data.data_source "
+          "ORDER BY fmisid ASC, obstime ASC";
     }
     else
     {
@@ -231,24 +236,28 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataOfMovingStations
           "m.elev "
           "FROM observation_data_r1 data JOIN moving_locations_v1 m ON (m.station_id = "
           "data.station_id and data.data_time between m.sdate and m.edate) WHERE ";
+
+      sqlStmt += "data.data_time >= '" + starttime + "' AND data.data_time <= '" + endtime +
+                 "' AND data.measurand_id IN (" + measurand_ids + ")";
+
       if (!fmisids.empty())
-        sqlStmt += "data.station_id IN (" + fmisids + ") ";
-      if (!wktString.empty())
-      {
-        if (!fmisids.empty())
-          sqlStmt += " AND ";
-        sqlStmt += ("ST_Contains(ST_GeomFromText('" + wktString +
-                    "',4326),ST_SetSRID(ST_MakePoint(m.lon, m.lat),4326)) ");
-      }
-      sqlStmt += "AND data.data_time >= '" + starttime + "' AND data.data_time <= '" + endtime +
-                 "' AND data.measurand_id IN (" + measurand_ids + ") ";
+        sqlStmt += " AND data.station_id IN (" + fmisids + ") ";
+
       if (!producerIds.empty())
-        sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
+        sqlStmt += "AND data.producer_id IN (" + producerIds + ") ";
+
       sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
-      sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") +
-                 " GROUP BY data.station_id, data.sensor_no, data.data_time, data.measurand_id, "
-                 "data.data_value, data.data_quality, data.data_source, m.lon, m.lat, m.elev "
-                 "ORDER BY fmisid ASC, obstime ASC";
+
+      sqlStmt += " AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality");
+
+      if (!wktString.empty() && wktString != globe)
+        sqlStmt += " AND ST_Contains(ST_GeomFromText('" + wktString +
+                   "',4326),ST_SetSRID(ST_MakePoint(m.lon, m.lat),4326)) ";
+
+      sqlStmt +=
+          " GROUP BY data.station_id, data.sensor_no, data.data_time, data.measurand_id, "
+          "data.data_value, data.data_quality, data.data_source, m.lon, m.lat, m.elev "
+          "ORDER BY fmisid ASC, obstime ASC";
     }
 
     if (itsDebug)

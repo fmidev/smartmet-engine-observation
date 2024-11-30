@@ -21,14 +21,6 @@ void add_where_conditions(std::string &sqlStmt,
                           const std::string &wktAreaFilter,
                           const DataFilter &dataFilter)
 {
-  if (!wktAreaFilter.empty() && producer != FMI_IOT_PRODUCER && producer != TAPSI_QC_PRODUCER)
-  {
-    sqlStmt += " AND ST_Contains(ST_GeomFromText('";
-    sqlStmt += wktAreaFilter;
-    sqlStmt +=
-        ("', 4326), " + std::string(((producer == NETATMO_PRODUCER) ? "stat.geom)" : "obs.geom)")));
-  }
-
   if (!measurandIds.empty())
   {
     sqlStmt += " AND obs.mid IN (";
@@ -55,6 +47,20 @@ void add_where_conditions(std::string &sqlStmt,
     sqlStmt += " AND " + dataFilter.getSqlClause("station_id", "obs.station_id");
   if (dataFilter.exist("data_quality"))
     sqlStmt += " AND " + dataFilter.getSqlClause("data_quality", "obs.data_quality");
+
+  // Apply potentially slow ST_Contains last
+
+  if (!wktAreaFilter.empty() && producer != FMI_IOT_PRODUCER && producer != TAPSI_QC_PRODUCER)
+  {
+    const std::string globe = "POLYGON ((-180 -90,-180 90,180 90,180 -90,-180 -90))";
+    if (wktAreaFilter != globe)
+    {
+      sqlStmt += " AND ST_Contains(ST_GeomFromText('";
+      sqlStmt += wktAreaFilter;
+      sqlStmt += ("', 4326), " +
+                  std::string(((producer == NETATMO_PRODUCER) ? "stat.geom)" : "obs.geom)")));
+    }
+  }
 
   boost::algorithm::replace_all(sqlStmt, "WHERE AND", "WHERE");
 }
