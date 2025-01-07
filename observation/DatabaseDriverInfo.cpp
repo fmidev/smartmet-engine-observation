@@ -686,6 +686,10 @@ void DatabaseDriverInfoItem::parseCacheInfo(const std::set<std::string>& cachein
   {
     std::vector<std::string> parts;
     boost::algorithm::split(parts, c, boost::algorithm::is_any_of(":"));
+    if (parts.size() != 2)
+    {
+      throw Fmi::Exception (BCP, "Invalid cache info string: " + c);
+    }
     std::string cachename = parts[0];
     std::string tablenames = parts[1];
     std::set<std::string> table_set;
