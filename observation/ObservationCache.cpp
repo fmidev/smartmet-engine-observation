@@ -32,6 +32,12 @@ std::vector<std::map<std::string, std::string>> ObservationCache::getFakeCacheSe
         continue;
       std::vector<std::string> config_vector;
       boost::algorithm::split(config_vector, config_item, boost::algorithm::is_any_of(";"));
+      if (config_vector.size() != 4)
+      {
+        Fmi::Exception err(BCP, "Exactly 4 values separated by ';' expected");
+        err.addParameter("Got", config_item);
+        throw err;
+      }
       std::map<std::string, std::string> config_map;
       config_map["starttime"] = config_vector[0];
       config_map["endtime"] = config_vector[1];
