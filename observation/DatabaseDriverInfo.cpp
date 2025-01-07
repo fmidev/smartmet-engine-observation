@@ -696,6 +696,11 @@ void DatabaseDriverInfoItem::parseCacheInfo(const std::set<std::string>& cachein
     boost::algorithm::split(table_set, tablenames, boost::algorithm::is_any_of(","));
     if (table_set.find("*") != table_set.end())
     {
+      // Require '*' to be the only specified name
+      if (table_set.size() > 1)
+      {
+        throw Fmi::Exception(BCP, "Invalid cache info string: " + c);
+      }
       table_set.clear();
       table_set.insert(OBSERVATION_DATA_TABLE);
       table_set.insert(WEATHER_DATA_QC_TABLE);
