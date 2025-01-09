@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 24.11.30
+Version: 25.1.9
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -159,6 +159,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Jan  9 2025 Andris Pavēnis <andris.pavenis@fmi.fi> 25.1.9-1.fmi
+- Fix missing size check of boost::algorithm::split result before use
+
 * Sat Nov 30 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.11.30-1.fmi
 - Speeded up BBOX queries
 
