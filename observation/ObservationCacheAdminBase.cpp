@@ -1702,7 +1702,8 @@ void ObservationCacheAdminBase::addInfoToStations(Spine::Stations& stations,
   {
     if (Spine::Reactor::isShuttingDown())
       throw Fmi::Exception(BCP,
-                           "[ObservationCacheAdminBase] Station updates aborted due to shutdown");
+                           "[ObservationCacheAdminBase] Station updates aborted due to shutdown")
+            .disableLogging();
     if (processed_stations.find(station.fmisid) == processed_stations.end())
       addInfoToStation(station, language);
   }
