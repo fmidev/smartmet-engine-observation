@@ -241,31 +241,33 @@ void EngineImpl::init()
     Spine::Reactor* reactor = Spine::Reactor::instance;
     if (reactor)
     {
+      using AdminRequestAccess = Spine::Reactor::AdminRequestAccess;
+
       reactor->addAdminTableRequestHandler(
         this,
         "obsproducers",
-        false,
+        AdminRequestAccess::Public,
         std::bind(&EngineImpl::requestProducerInfo, this, std::placeholders::_2),
         "Observation producers");
 
       reactor->addAdminTableRequestHandler(
         this,
         "obsparameters",
-        false,
+        AdminRequestAccess::Public,
         std::bind(&EngineImpl::requestParameterInfo, this, std::placeholders::_2),
         "Observation parameters");
 
       reactor->addAdminTableRequestHandler(
         this,
         "stations",
-        false,
+        AdminRequestAccess::Public,
         std::bind(&EngineImpl::requestStationInfo, this, std::placeholders::_2),
         "Observation stations");
 
       reactor->addAdminBoolRequestHandler(
         this,
         "reloadstations",
-        true,
+        AdminRequestAccess::RequiresAuthentication,
         std::bind(&EngineImpl::requestReloadStations, this, std::placeholders::_2),
         "Reload stations");
     }

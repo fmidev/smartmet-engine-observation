@@ -28,10 +28,10 @@ BuildRequires: gdal310-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 24.11.19
+BuildRequires: smartmet-engine-geonames-devel >= 25.1.10
 BuildRequires: smartmet-library-locus-devel >= 24.9.28
 BuildRequires: smartmet-library-macgyver-devel >= 24.11.27
-BuildRequires: smartmet-library-spine-devel >= 24.11.27
+BuildRequires: smartmet-library-spine-devel >= 25.1.10
 BuildRequires: smartmet-library-timeseries-devel >= 24.11.28
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
@@ -45,10 +45,10 @@ Requires: %{smartmet_boost}-thread
 Requires: fmt-libs >= %{smartmet_fmt_min}, fmt-libs < %{smartmet_fmt_max}
 Requires: gdal310-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 24.11.19
+Requires: smartmet-engine-geonames >= 25.1.10
 Requires: smartmet-library-locus >= 24.9.28
 Requires: smartmet-library-macgyver >= 24.11.27
-Requires: smartmet-library-spine >= 24.11.27
+Requires: smartmet-library-spine >= 25.1.10
 Requires: smartmet-library-timeseries >= 24.11.28
 Requires: smartmet-server >= 24.11.27
 Requires: unixODBC
