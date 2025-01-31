@@ -6,7 +6,10 @@
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <timeseries/ParameterTools.h>
 #include <timeseries/TimeSeriesInclude.h>
+#include <algorithm>
 #include <numeric>
+
+namespace ba = boost::algorithm;
 
 namespace SmartMet
 {
@@ -163,6 +166,17 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
     }
 
     std::string params = getWeatherDataQCParams(param_set);
+
+    if (params.empty())
+    {
+      std::vector<std::string> param_names;
+      std::transform(settings.parameters.begin(), settings.parameters.end(), std::back_inserter(param_names),
+                     [](const Spine::Parameter &p) { return p.name(); });
+      Fmi::Exception error(BCP, "No available parameters found for weather data query");
+      error.addParameter("Stationtype", stationtype);
+      error.addParameter("Requested parameters", ba::join(param_names, ", "));
+      throw error;
+    }
 
     auto qmap = buildQueryMapping(settings, stationtype, true);
 
