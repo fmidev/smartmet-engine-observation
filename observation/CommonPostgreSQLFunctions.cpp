@@ -5,6 +5,7 @@
 #include "Utils.h"
 #include <gis/OGR.h>
 #include <macgyver/Exception.h>
+#include <macgyver/Join.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeFormatter.h>
 #include <spine/Value.h>
@@ -174,20 +175,11 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataOfMovingStations
     if (qmap.measurandIds.empty())
       return ret;
 
-    std::string measurand_ids;
-    for (const auto &id : qmap.measurandIds)
-      measurand_ids += Fmi::to_string(id) + ",";
-    measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
+    std::string measurand_ids = Fmi::join(qmap.measurandIds);
+    std::string producerIds = Fmi::join(settings.producer_ids);
 
-    std::vector<std::string> producer_id_vector;
-    for (const auto &prod_id : settings.producer_ids)
-      producer_id_vector.emplace_back(Fmi::to_string(prod_id));
-    std::string producerIds = boost::algorithm::join(producer_id_vector, ",");
-
-    std::vector<std::string> fmisid_vector;
-    for (const auto &item : settings.taggedFMISIDs)
-      fmisid_vector.emplace_back(Fmi::to_string(item.fmisid));
-    auto fmisids = boost::algorithm::join(fmisid_vector, ",");
+    auto fmisids =
+        Fmi::join(settings.taggedFMISIDs, [](const auto &value) { return value.fmisid; });
 
     if (fmisids.empty() && wktString.empty())
       throw Fmi::Exception::Trace(
@@ -308,22 +300,18 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
     if (qmap.measurandIds.empty())
       return ret;
 
-    std::string measurand_ids;
-    for (const auto &id : qmap.measurandIds)
-      measurand_ids += Fmi::to_string(id) + ",";
+    std::string measurand_ids = Fmi::join(qmap.measurandIds);
 
-    measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
+    auto station_ids =
+        buildStationList(stations, stationgroup_codes, stationInfo, settings.requestLimits);
 
-    auto qstations =
-        buildSqlStationList(stations, stationgroup_codes, stationInfo, settings.requestLimits);
-
-    if (qstations.empty())
+    if (station_ids.empty())
       return ret;
 
-    std::list<std::string> producer_id_str_list;
-    for (auto prodId : settings.producer_ids)
-      producer_id_str_list.emplace_back(std::to_string(prodId));
-    std::string producerIds = boost::algorithm::join(producer_id_str_list, ",");
+    // Generate comma separated values
+    std::string stationsql = Fmi::join(station_ids);
+
+    std::string producerIds = Fmi::join(settings.producer_ids);
 
     std::string starttime = Fmi::to_iso_extended_string(settings.starttime);
     std::string endtime = Fmi::to_iso_extended_string(settings.endtime);
@@ -339,9 +327,9 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
         "SELECT data." + stationColumn + ", data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM " +
         timestampColumn +
         ") AS obstime, measurand_id, data_value, data_quality, data_source FROM " + tableName +
-        " data WHERE data." + (itsIsCacheDatabase ? "fmisid" : "station_id") + " IN (" + qstations +
-        ") AND data.data_time >= '" + starttime + "' AND data.data_time <= '" + endtime +
-        "' AND data.measurand_id IN (" + measurand_ids + ") ";
+        " data WHERE data." + (itsIsCacheDatabase ? "fmisid" : "station_id") + " IN (" +
+        stationsql + ") AND data.data_time >= '" + starttime + "' AND data.data_time <= '" +
+        endtime + "' AND data.measurand_id IN (" + measurand_ids + ") ";
 
     // Add producer ID filter if needed
     if (!producerIds.empty())

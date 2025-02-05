@@ -7,17 +7,15 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
-#include <filesystem>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/vector.hpp>
+#include <fmt/format.h>
 #include <gis/OGR.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
+#include <filesystem>
 #include <fstream>
-
-#include <boost/algorithm/string/join.hpp>
-#include <fmt/format.h>
 
 namespace SmartMet
 {
@@ -664,7 +662,7 @@ const Spine::Station& StationInfo::getStation(unsigned int fmisid,
   bool debug = (fmisid = 101004);
   if (debug)
   {
-    std::cout << "Requested groups: " << boost::algorithm::join(groups, ", ") << "\n";
+    std::cout << "Requested groups: " << Fmi::join(groups, ", ") << "\n";
     for (const auto id : ids)
     {
       const auto& station = stations.at(id);

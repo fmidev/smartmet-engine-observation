@@ -5,7 +5,6 @@
 #include "ObservationCacheFactory.h"
 #include "SpecialParameters.h"
 #include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/join.hpp>
 #include <boost/make_shared.hpp>
 #include <macgyver/AnsiEscapeCodes.h>
 #include <macgyver/Geometry.h>
@@ -194,7 +193,7 @@ const ProducerMeasurandInfo &Engine::getMeasurandInfo() const
 }
 
 Fmi::DateTime Engine::getLatestDataUpdateTime(const std::string &producer,
-                                                         const Fmi::DateTime &from) const
+                                              const Fmi::DateTime &from) const
 {
   REPORT_DISABLED;
 }

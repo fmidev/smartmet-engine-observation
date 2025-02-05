@@ -7,6 +7,7 @@
 #include "SpatiaLiteCacheParameters.h"
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
+#include <macgyver/Join.h>
 #include <macgyver/StringConversion.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <spine/Convenience.h>
@@ -101,26 +102,18 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
   {
     LocationDataItems ret;
 
-    // Safety check
-    if (qmap.measurandIds.empty())
+    if (qmap.measurandIds.empty())  // Safety check, has happened
       return ret;
 
-    std::string measurand_ids;
-    for (const auto &id : qmap.measurandIds)
-      measurand_ids += Fmi::to_string(id) + ",";
+    auto station_ids =
+        buildStationList(stations, stationgroup_codes, stationInfo, settings.requestLimits);
 
-    measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
-
-    auto qstations =
-        buildSqlStationList(stations, stationgroup_codes, stationInfo, settings.requestLimits);
-
-    if (qstations.empty())
+    if (station_ids.empty())
       return ret;
 
-    std::list<std::string> producer_id_str_list;
-    for (auto prodId : settings.producer_ids)
-      producer_id_str_list.emplace_back(std::to_string(prodId));
-    std::string producerIds = boost::algorithm::join(producer_id_str_list, ",");
+    auto measurandsql = Fmi::join(qmap.measurandIds);
+    auto stationsql = Fmi::join(station_ids);
+    auto producersql = Fmi::join(settings.producer_ids);
 
     auto starttime = to_epoch(settings.starttime);
     auto endtime = to_epoch(settings.endtime);
@@ -130,7 +123,7 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
         "measurand_id, measurand_no, data_value, data_quality, data_source FROM observation_data "
         "data "
         "WHERE data.fmisid IN (" +
-        qstations +
+        stationsql +
         ") "
         "AND data.data_time";
 
@@ -139,9 +132,9 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
     else
       sqlStmt += " BETWEEN " + Fmi::to_string(starttime) + " AND " + Fmi::to_string(endtime);
 
-    sqlStmt += " AND data.measurand_id IN (" + measurand_ids + ") ";
-    if (!producerIds.empty())
-      sqlStmt += ("AND data.producer_id IN (" + producerIds + ") ");
+    sqlStmt += " AND data.measurand_id IN (" + measurandsql + ") ";
+    if (!producersql.empty())
+      sqlStmt += ("AND data.producer_id IN (" + producersql + ") ");
 
     sqlStmt += getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
     sqlStmt += "AND " + settings.dataFilter.getSqlClause("data_quality", "data.data_quality") +
@@ -3559,20 +3552,11 @@ LocationDataItems SpatiaLite::readObservationDataOfMovingStationsFromDB(
     if (qmap.measurandIds.empty())
       return ret;
 
-    std::string measurand_ids;
-    for (const auto &id : qmap.measurandIds)
-      measurand_ids += Fmi::to_string(id) + ",";
-    measurand_ids.resize(measurand_ids.size() - 1);  // remove last ","
+    auto measurand_ids = Fmi::join(qmap.measurandIds);
+    auto producerIds = Fmi::join(settings.producer_ids);
 
-    std::vector<std::string> producer_id_vector;
-    for (const auto &prod_id : settings.producer_ids)
-      producer_id_vector.emplace_back(Fmi::to_string(prod_id));
-    std::string producerIds = boost::algorithm::join(producer_id_vector, ",");
-
-    std::vector<std::string> fmisid_vector;
-    for (const auto &item : settings.taggedFMISIDs)
-      fmisid_vector.emplace_back(Fmi::to_string(item.fmisid));
-    auto fmisids = boost::algorithm::join(fmisid_vector, ",");
+    auto fmisids =
+        Fmi::join(settings.taggedFMISIDs, [](const auto &value) { return value.fmisid; });
 
     std::string starttime = Fmi::to_string(to_epoch(settings.starttime));
     std::string endtime = Fmi::to_string(to_epoch(settings.endtime));

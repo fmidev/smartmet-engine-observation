@@ -1,6 +1,5 @@
 #include "DatabaseDriverInfo.h"
 #include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/join.hpp>
 #include <boost/asio/ip/host_name.hpp>
 #include <macgyver/AnsiEscapeCodes.h>
 #include <macgyver/Exception.h>
@@ -688,7 +687,7 @@ void DatabaseDriverInfoItem::parseCacheInfo(const std::set<std::string>& cachein
     boost::algorithm::split(parts, c, boost::algorithm::is_any_of(":"));
     if (parts.size() != 2)
     {
-      throw Fmi::Exception (BCP, "Invalid cache info string: " + c);
+      throw Fmi::Exception(BCP, "Invalid cache info string: " + c);
     }
     std::string cachename = parts[0];
     std::string tablenames = parts[1];

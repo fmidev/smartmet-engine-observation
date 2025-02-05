@@ -65,11 +65,11 @@ class DBQueryUtils
   virtual StationMap mapQueryStations(const Spine::Stations &stations,
                                       const std::set<int> &observed_fmisids) const;
 
-  // Build fmisid1,fmisid2,... list
-  virtual std::string buildSqlStationList(const Spine::Stations &stations,
-                                          const std::set<std::string> &stationgroup_codes,
-                                          const StationInfo &stationInfo,
-                                          const TS::RequestLimits &requestLimits) const;
+  // Build list of allowed stations
+  virtual std::set<int> buildStationList(const Spine::Stations &stations,
+                                         const std::set<std::string> &stationgroup_codes,
+                                         const StationInfo &stationInfo,
+                                         const TS::RequestLimits &requestLimits) const;
 
   static std::string getSensorQueryCondition(
       const std::map<int, std::set<int>> &sensorNumberToMeasurandIds);
