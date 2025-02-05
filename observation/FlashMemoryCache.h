@@ -3,10 +3,10 @@
 #include "FlashDataItem.h"
 #include "Settings.h"
 #include "SpatiaLite.h"
-#include <memory>
 #include <macgyver/AtomicSharedPtr.h>
 #include <macgyver/TimeZones.h>
 #include <timeseries/TimeSeriesInclude.h>
+#include <memory>
 #include <unordered_set>
 
 namespace SmartMet

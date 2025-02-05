@@ -16,8 +16,8 @@
 #include "StationSettings.h"
 #include "Utils.h"
 #include <boost/atomic.hpp>
-#include <macgyver/DateTime.h>
 #include <boost/thread/condition.hpp>
+#include <macgyver/DateTime.h>
 #include <spine/Station.h>
 #include <timeseries/TimeSeriesInclude.h>
 
@@ -73,10 +73,9 @@ class DatabaseDriverBase
 
   virtual void shutdown() = 0;
 
-  virtual Fmi::DateTime getLatestDataUpdateTime(
-      const std::string &producer,
-      const Fmi::DateTime &from,
-      const MeasurandInfo &measurand_info) const;
+  virtual Fmi::DateTime getLatestDataUpdateTime(const std::string &producer,
+                                                const Fmi::DateTime &from,
+                                                const MeasurandInfo &measurand_info) const;
 
   const std::set<std::string> &supportedProducers() const { return itsSupportedProducers; }
   virtual void getFMIIoTStations(std::shared_ptr<FmiIoTStations> &stations) const {}

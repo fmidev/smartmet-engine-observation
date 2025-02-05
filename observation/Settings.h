@@ -1,13 +1,13 @@
 #pragma once
 
 #include <macgyver/DateTime.h>
-#include <optional>
 #include <macgyver/ValueFormatter.h>
 #include <spine/Location.h>
 #include <spine/Parameter.h>
 #include <spine/Station.h>
 #include <timeseries/TimeSeriesInclude.h>
 #include <locale>
+#include <optional>
 #include <ostream>
 #include <set>
 
@@ -53,8 +53,7 @@ class Settings
   std::string timezone = "localtime";
   std::string wktArea;
   Fmi::DateTime endtime = Fmi::SecondClock::universal_time();  // now
-  Fmi::DateTime starttime =
-      Fmi::SecondClock::universal_time() - Fmi::Hours(24);
+  Fmi::DateTime starttime = Fmi::SecondClock::universal_time() - Fmi::Hours(24);
 
   // starttime...endtime may actuall be a time interval from which we actually only want the
   // observation closest to a specific "wanted" time. The wanted time may actually be equal to the

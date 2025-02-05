@@ -56,11 +56,10 @@ bool ObservationCache::isFakeCache(const std::string& tablename) const
   return (itsCacheInfo.params.find(tablename) != itsCacheInfo.params.end());
 }
 
-Fmi::DateTime ObservationCache::getLatestDataUpdateTime(
-    const std::string& /*tablename*/,
-    const Fmi::DateTime& /*starttime*/,
-    const std::string& /*producer_ids*/,
-    const std::string& /*measurand_ids*/) const
+Fmi::DateTime ObservationCache::getLatestDataUpdateTime(const std::string& /*tablename*/,
+                                                        const Fmi::DateTime& /*starttime*/,
+                                                        const std::string& /*producer_ids*/,
+                                                        const std::string& /*measurand_ids*/) const
 {
   return Fmi::DateTime::NOT_A_DATE_TIME;
 }

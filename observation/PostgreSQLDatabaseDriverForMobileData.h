@@ -42,10 +42,9 @@ class PostgreSQLDatabaseDriverForMobileData : public PostgreSQLDatabaseDriver
   void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const override;
   bool loadFmiIoTStations() { return itsParameters.loadFmiIoTStations; }
   std::shared_ptr<FmiIoTStations> &getFmiIoTStations() { return itsParameters.fmiIoTStations; }
-  Fmi::DateTime getLatestDataUpdateTime(
-      const std::string &producer,
-      const Fmi::DateTime &from,
-      const MeasurandInfo &measurand_info) const override;
+  Fmi::DateTime getLatestDataUpdateTime(const std::string &producer,
+                                        const Fmi::DateTime &from,
+                                        const MeasurandInfo &measurand_info) const override;
 
  private:
   void readConfig(Spine::ConfigBase &cfg);

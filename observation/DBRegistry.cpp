@@ -1,10 +1,10 @@
 #include "DBRegistry.h"
 #include <boost/algorithm/string.hpp>
-#include <filesystem>
 #include <macgyver/Exception.h>
 #include <spine/ConfigBase.h>
 #include <spine/Convenience.h>
 #include <exception>
+#include <filesystem>
 #include <iostream>
 #include <sstream>
 
@@ -42,8 +42,7 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
     // FIXME!! Check here the folder permissions (read, execute).
 
     std::filesystem::directory_iterator it;
-    for (it = std::filesystem::directory_iterator(p);
-         it != std::filesystem::directory_iterator();
+    for (it = std::filesystem::directory_iterator(p); it != std::filesystem::directory_iterator();
          ++it)
     {
       const std::filesystem::path entry = *it;

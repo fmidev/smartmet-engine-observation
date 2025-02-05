@@ -1,6 +1,6 @@
 #include "QueryParamsBase.h"
-#include <macgyver/DateTime.h>
 #include <fmt/format.h>
+#include <macgyver/DateTime.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 

@@ -138,8 +138,8 @@ class Engine : public SmartMet::Spine::SmartMetEngine
   /* \brief Get latest data update time of given producer
    * \return Time when data of a producer was last time updated
    */
-  virtual Fmi::DateTime getLatestDataUpdateTime(
-      const std::string &producer, const Fmi::DateTime &from) const;
+  virtual Fmi::DateTime getLatestDataUpdateTime(const std::string &producer,
+                                                const Fmi::DateTime &from) const;
 
   void init() override;
   void shutdown() override;

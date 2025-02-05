@@ -15,15 +15,13 @@ ObservationCacheAdminSpatiaLite::ObservationCacheAdminSpatiaLite(
 {
 }
 
-std::pair<Fmi::DateTime, Fmi::DateTime>
-ObservationCacheAdminSpatiaLite::getLatestWeatherDataQCTime(
+std::pair<Fmi::DateTime, Fmi::DateTime> ObservationCacheAdminSpatiaLite::getLatestWeatherDataQCTime(
     const std::shared_ptr<ObservationCache>& /* cache */) const
 {
   return {Fmi::DateTime::NOT_A_DATE_TIME, Fmi::DateTime::NOT_A_DATE_TIME};
 }
 
-std::pair<Fmi::DateTime, Fmi::DateTime>
-ObservationCacheAdminSpatiaLite::getLatestObservationTime(
+std::pair<Fmi::DateTime, Fmi::DateTime> ObservationCacheAdminSpatiaLite::getLatestObservationTime(
     const std::shared_ptr<ObservationCache>& /* cache */) const
 {
   return {Fmi::DateTime::NOT_A_DATE_TIME, Fmi::DateTime::NOT_A_DATE_TIME};

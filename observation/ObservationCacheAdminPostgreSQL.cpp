@@ -174,8 +174,8 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
       if (Spine::Reactor::isShuttingDown())
         return;
 
-      if (station.type == "AWS" || station.type == "SYNOP" ||
-          station.type == "CLIM" || station.type == "AVI")
+      if (station.type == "AWS" || station.type == "SYNOP" || station.type == "CLIM" ||
+          station.type == "AVI")
       {
         station.isFmi = true;
       }
@@ -187,8 +187,7 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
       {
         station.isBuoy = true;
       }
-      else if (station.type == "RWS" || station.type == "EXTRWS" ||
-               station.type == "EXTRWYWS")
+      else if (station.type == "RWS" || station.type == "EXTRWS" || station.type == "EXTRWYWS")
       {
         station.isRoad = true;
       }

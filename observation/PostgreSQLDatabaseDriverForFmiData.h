@@ -55,10 +55,9 @@ class PostgreSQLDatabaseDriverForFmiData : public PostgreSQLDatabaseDriver
                             const Fmi::DateTime &endtime,
                             const Spine::TaggedLocationList &locations) const override;
   MeasurandInfo getMeasurandInfo() const override;
-  Fmi::DateTime getLatestDataUpdateTime(
-      const std::string &producer,
-      const Fmi::DateTime &from,
-      const MeasurandInfo &measurand_info) const override;
+  Fmi::DateTime getLatestDataUpdateTime(const std::string &producer,
+                                        const Fmi::DateTime &from,
+                                        const MeasurandInfo &measurand_info) const override;
 
  private:
   void readConfig(Spine::ConfigBase &cfg);

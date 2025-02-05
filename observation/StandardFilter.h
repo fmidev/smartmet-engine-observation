@@ -67,8 +67,9 @@ class ExtendedStandardFilter : public StandardFilter
                                 Property::MinuteValueModuloIsEqualToZero());
   }
 
-  std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(
-      const NameType& field, const NameType& operationName, const std::any& toWhat) override
+  std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(const NameType& field,
+                                                                    const NameType& operationName,
+                                                                    const std::any& toWhat) override
   {
     try
     {

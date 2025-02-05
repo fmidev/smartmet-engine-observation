@@ -1,14 +1,14 @@
 #pragma once
 
 #include "QueryResultBase.h"
-#include <macgyver/DateTime.h>
+#include <boost/lexical_cast.hpp>
 #include <fmt/format.h>
+#include <macgyver/DateTime.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <algorithm>
 #include <memory>
 #include <vector>
-#include <boost/lexical_cast.hpp>
 
 namespace SmartMet
 {
@@ -158,8 +158,7 @@ class QueryResult : public QueryResultBase
 };
 
 template <>
-Fmi::DateTime QueryResult::castTo(
-    const QueryResult::ValueVectorType::const_iterator& value);
+Fmi::DateTime QueryResult::castTo(const QueryResult::ValueVectorType::const_iterator& value);
 
 }  // namespace Observation
 }  // namespace Engine

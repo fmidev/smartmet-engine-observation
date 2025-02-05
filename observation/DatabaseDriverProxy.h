@@ -54,8 +54,8 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
   void getStationGroups(StationGroups &sg) const override;
   void getProducerGroups(ProducerGroups &pg) const override;
   MeasurandInfo getMeasurandInfo() const override;
-  Fmi::DateTime getLatestDataUpdateTime(
-      const std::string &producer, const Fmi::DateTime &from) const override;
+  Fmi::DateTime getLatestDataUpdateTime(const std::string &producer,
+                                        const Fmi::DateTime &from) const override;
 
  private:
   const StationtypeConfig &itsStationtypeConfig;
