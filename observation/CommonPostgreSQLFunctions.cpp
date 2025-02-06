@@ -318,6 +318,7 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
 
     // Determine table and columns based on database type
     std::string tableName = itsIsCacheDatabase ? "observation_data" : "observation_data_r1";
+    std::string idColumn = itsIsCacheDatabase ? "fmisid" : "station_id";
     std::string stationColumn = itsIsCacheDatabase ? "fmisid" : "station_id AS fmisid";
     std::string timestampColumn =
         itsIsCacheDatabase ? "data.data_time" : "date_trunc('seconds', data.data_time)";
@@ -327,9 +328,22 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
         "SELECT data." + stationColumn + ", data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM " +
         timestampColumn +
         ") AS obstime, measurand_id, data_value, data_quality, data_source FROM " + tableName +
-        " data WHERE data." + (itsIsCacheDatabase ? "fmisid" : "station_id") + " IN (" +
-        stationsql + ") AND data.data_time >= '" + starttime + "' AND data.data_time <= '" +
-        endtime + "' AND data.measurand_id IN (" + measurand_ids + ") ";
+        " data ";
+
+    // Using JOIN on large station lists may be faster than just using an IN clause.
+    // PostgreSQL converts the IN clause into a "if x=A or x=B or x=C ..." clause, so
+    // wrapping even a single value into IN() does not slow things up.
+
+    if (station_ids.size() < 10)
+      sqlStmt += "WHERE " + idColumn + " IN (" + stationsql + ")";
+    else
+      sqlStmt +=
+          "JOIN observations_v2 o ON (o.observation_id = data.observation_id ) "
+          "WHERE o." +
+          idColumn + " IN (" + stationsql + ")";
+
+    sqlStmt += " AND data.data_time >= '" + starttime + "' AND data.data_time <= '" + endtime +
+               "' AND data.measurand_id IN (" + measurand_ids + ") ";
 
     // Add producer ID filter if needed
     if (!producerIds.empty())
