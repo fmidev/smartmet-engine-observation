@@ -327,7 +327,7 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
     std::string sqlStmt =
         "SELECT data." + stationColumn + ", data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM " +
         timestampColumn +
-        ") AS obstime, measurand_id, data_value, data_quality, data_source FROM " + tableName +
+        ") AS obstime, data.measurand_id, data_value, data_quality, data_source FROM " + tableName +
         " data ";
 
     // Using JOIN on large station lists may be faster than just using an IN clause.
