@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 25.2.5
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -159,6 +159,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Feb  6 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.2.5-2.fmi
+- Fixed error in optimized SQL query
+
 * Wed Feb  5 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.2.5-1.fmi
 - Optimized PG queries with a large list of station IDs
 
