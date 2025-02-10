@@ -88,7 +88,8 @@ DBRegistryConfig::DBRegistryConfig(const std::shared_ptr<Spine::ConfigBase>& con
       if (not fieldMethod.empty())
         m_fieldMethodMap.insert(std::pair<NameType, NameType>(fieldName, fieldMethod));
 
-      std::vector<std::string> valueTypeList{"int", "uint", "float", "double", "string", "Fmi::DateTime"};
+      std::vector<std::string> valueTypeList{
+          "int", "uint", "float", "double", "string", "Fmi::DateTime"};
       if (std::find(valueTypeList.begin(), valueTypeList.end(), fieldValueType) !=
           valueTypeList.end())
         m_fieldValueTypeMap.insert(std::pair<NameType, NameType>(fieldName, fieldValueType));

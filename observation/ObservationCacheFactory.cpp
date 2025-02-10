@@ -2,7 +2,6 @@
 #include "DummyCache.h"
 #include "PostgreSQLCache.h"
 #include "SpatiaLiteCache.h"
-#include <boost/algorithm/string/join.hpp>
 
 namespace SmartMet
 {

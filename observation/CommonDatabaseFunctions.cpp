@@ -2,6 +2,7 @@
 #include "Utils.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/functional/hash.hpp>
+#include <macgyver/Join.h>
 #include <macgyver/StringConversion.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <timeseries/ParameterTools.h>
@@ -170,11 +171,13 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
     if (params.empty())
     {
       std::vector<std::string> param_names;
-      std::transform(settings.parameters.begin(), settings.parameters.end(), std::back_inserter(param_names),
+      std::transform(settings.parameters.begin(),
+                     settings.parameters.end(),
+                     std::back_inserter(param_names),
                      [](const Spine::Parameter &p) { return p.name(); });
       Fmi::Exception error(BCP, "No available parameters found for weather data query");
       error.addParameter("Stationtype", stationtype);
-      error.addParameter("Requested parameters", ba::join(param_names, ", "));
+      error.addParameter("Requested parameters", Fmi::join(param_names, ", "));
       throw error;
     }
 

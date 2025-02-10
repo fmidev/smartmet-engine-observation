@@ -1,13 +1,13 @@
 #pragma once
 
 #include "Property.h"
-#include <any>
 #include <boost/bind/bind.hpp>
 #include <boost/function.hpp>
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <spine/ConfigBase.h>
+#include <any>
 #include <iostream>
 #include <map>
 #include <memory>

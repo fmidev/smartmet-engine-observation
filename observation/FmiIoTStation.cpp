@@ -38,8 +38,7 @@ void FmiIoTStations::addStation(const std::string& id,
   itsStations[id].insert(FmiIoTStation(id, tgid, lon, lat, elev, from, to));
 }
 
-const FmiIoTStation& FmiIoTStations::getStation(const std::string& id,
-                                                const Fmi::DateTime& t) const
+const FmiIoTStation& FmiIoTStations::getStation(const std::string& id, const Fmi::DateTime& t) const
 {
   if (itsStations.find(id) == itsStations.end())
     return emptyStation;

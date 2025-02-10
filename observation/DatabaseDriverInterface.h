@@ -63,8 +63,8 @@ class DatabaseDriverInterface
   virtual void getStationGroups(StationGroups &sg) const = 0;
   virtual void getProducerGroups(ProducerGroups &pg) const = 0;
   virtual MeasurandInfo getMeasurandInfo() const = 0;
-  virtual Fmi::DateTime getLatestDataUpdateTime(
-      const std::string &producer, const Fmi::DateTime &from) const = 0;
+  virtual Fmi::DateTime getLatestDataUpdateTime(const std::string &producer,
+                                                const Fmi::DateTime &from) const = 0;
 
  protected:
   DatabaseDriverInterface() = default;

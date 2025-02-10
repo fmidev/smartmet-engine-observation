@@ -43,10 +43,9 @@ std::set<unsigned int> ProducerGroups::getProducerIds(const std::string& group_n
   return ret;
 }
 
-std::set<std::string> ProducerGroups::getProducerIdsString(
-    const std::string& group_name,
-    const Fmi::DateTime& starttime,
-    const Fmi::DateTime& endtime) const
+std::set<std::string> ProducerGroups::getProducerIdsString(const std::string& group_name,
+                                                           const Fmi::DateTime& starttime,
+                                                           const Fmi::DateTime& endtime) const
 {
   std::set<std::string> ret;
 

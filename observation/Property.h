@@ -1,7 +1,7 @@
 #pragma once
 
-#include <any>
 #include <macgyver/DateTime.h>
+#include <any>
 #include <string>
 #include <vector>
 
@@ -257,9 +257,8 @@ class MinuteValueModuloIsEqualToZero : public Base
                                const std::string& database = "oracle") const override;
 
   // Owerrides the base class implementation!
-  // return "Fmi::DateTime" for the following types: int16_t, int32_t, int64_t, int64_t, uint16_t, uint32_t,
-  // uint64_t
-  // otherwise "unknown"
+  // return "Fmi::DateTime" for the following types: int16_t, int32_t, int64_t, int64_t, uint16_t,
+  // uint32_t, uint64_t otherwise "unknown"
   NameType getValueTypeString() const override;
 };
 

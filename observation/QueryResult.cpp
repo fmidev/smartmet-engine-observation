@@ -279,8 +279,7 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
         }
         else if ((*first).type() == typeid(uint16_t))
         {
-          *oFirst++ =
-              Fmi::to_string(static_cast<unsigned long>(std::any_cast<uint16_t>(*first++)));
+          *oFirst++ = Fmi::to_string(static_cast<unsigned long>(std::any_cast<uint16_t>(*first++)));
         }
         else if ((*first).type() == typeid(float))
         {
@@ -296,9 +295,7 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
         }
         else if ((*first).type() == typeid(Fmi::DateTime))
         {
-          *oFirst++ =
-              Fmi::to_iso_extended_string(std::any_cast<Fmi::DateTime>(*first++)) +
-              "Z";
+          *oFirst++ = Fmi::to_iso_extended_string(std::any_cast<Fmi::DateTime>(*first++)) + "Z";
         }
         else if (!(*first).has_value())
         {
@@ -484,8 +481,7 @@ size_t QueryResult::size() const
 }
 
 template <>
-Fmi::DateTime QueryResult::castTo(
-    const QueryResult::ValueVectorType::const_iterator& value)
+Fmi::DateTime QueryResult::castTo(const QueryResult::ValueVectorType::const_iterator& value)
 {
   if (!value->has_value())
     return {};
@@ -496,8 +492,7 @@ Fmi::DateTime QueryResult::castTo(
   throw Fmi::Exception(BCP,
                        "QueryResult::castTo<Fmi::DateTime>:"
                        " cannot convert " +
-                           Fmi::demangle_cpp_type_name(value->type().name()) +
-                           " to Fmi::DateTime");
+                           Fmi::demangle_cpp_type_name(value->type().name()) + " to Fmi::DateTime");
 }
 
 }  // namespace Observation

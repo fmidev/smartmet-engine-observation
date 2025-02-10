@@ -1,10 +1,10 @@
 #include "FlashMemoryCache.h"
 #include "Keywords.h"
 #include "Utils.h"
-#include <optional>
 #include <macgyver/Geometry.h>
 #include <spine/Value.h>
 #include <list>
+#include <optional>
 
 namespace SmartMet
 {

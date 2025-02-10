@@ -20,10 +20,9 @@ void DatabaseDriverContainer::addDriver(const std::string &tablename,
   itsDatabaseDrivers[tablename].emplace_back(max_days, driver);
 }
 
-DatabaseDriverBase *DatabaseDriverContainer::resolveDriver(
-    const std::string &tablename,
-    const Fmi::DateTime &starttime,
-    const Fmi::DateTime &endtime) const
+DatabaseDriverBase *DatabaseDriverContainer::resolveDriver(const std::string &tablename,
+                                                           const Fmi::DateTime &starttime,
+                                                           const Fmi::DateTime &endtime) const
 {
   try
   {
@@ -58,8 +57,7 @@ DatabaseDriverBase *DatabaseDriverContainer::resolveDriver(
           return item.driver;
         }
 
-        Fmi::DateTime driver_data_start_time =
-            (now - Fmi::date_time::Days(item.max_days));
+        Fmi::DateTime driver_data_start_time = (now - Fmi::date_time::Days(item.max_days));
 
         if (starttime >= driver_data_start_time)
         {

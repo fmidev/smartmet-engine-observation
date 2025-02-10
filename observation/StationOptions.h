@@ -1,8 +1,8 @@
 #pragma once
 
-#include <optional>
 #include <macgyver/DateTime.h>
 #include <spine/Value.h>
+#include <optional>
 #include <set>
 
 namespace SmartMet

@@ -5,14 +5,14 @@
 #include "ParameterMap.h"
 #include "Settings.h"
 #include <boost/algorithm/string.hpp>
-#include <macgyver/LocalDateTime.h>
-#include <optional>
 #include <boost/utility.hpp>
+#include <macgyver/LocalDateTime.h>
 #include <spine/ConfigBase.h>
 #include <spine/Parameter.h>
 #include <spine/Station.h>
 #include <timeseries/TimeSeriesInclude.h>
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -96,11 +96,11 @@ void logMessage(const std::string& message, bool quiet);
 // ----------------------------------------------------------------------
 
 std::optional<int> calcSmartsymbolNumber(int wawa,
-                                           int cloudiness,
-                                           double temperature,
-                                           const Fmi::LocalDateTime& ldt,
-                                           double lat,
-                                           double lon);
+                                         int cloudiness,
+                                         double temperature,
+                                         const Fmi::LocalDateTime& ldt,
+                                         double lat,
+                                         double lon);
 
 // ----------------------------------------------------------------------
 /*!

@@ -3,8 +3,8 @@
 #include "QueryResult.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
-#include <macgyver/DateTime.h>
 #include <boost/make_shared.hpp>
+#include <macgyver/DateTime.h>
 #include <spine/Convenience.h>
 #include <spine/Reactor.h>
 #include <timeseries/TimeSeriesInclude.h>

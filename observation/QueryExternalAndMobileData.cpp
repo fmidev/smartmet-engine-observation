@@ -172,8 +172,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
     for (auto rsr : rsrs)
     {
       // FIXME: may dereference nullptr
-      Fmi::LocalDateTime obstime =
-          *(std::get_if<Fmi::LocalDateTime>(&rsr["data_time"]));
+      Fmi::LocalDateTime obstime = *(std::get_if<Fmi::LocalDateTime>(&rsr["data_time"]));
 
       std::optional<double> longitudeValue;
       std::optional<double> latitudeValue;
@@ -202,7 +201,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
           ret->at(index).emplace_back(TS::TimedValue(obstime, fieldValue));
         }
         else if ((settings.stationtype == FMI_IOT_PRODUCER ||
-                 (settings.stationtype == TAPSI_QC_PRODUCER)) &&
+                  (settings.stationtype == TAPSI_QC_PRODUCER)) &&
                  (fieldname == "longitude" || fieldname == "latitude" || fieldname == "altitude"))
         {
           TS::Value value;
@@ -214,7 +213,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
           {
             value = *latitudeValue;
           }
-	  // BUG ??? elevation is configurable (null op test), altitude is not
+          // BUG ??? elevation is configurable (null op test), altitude is not
           else if ((fieldname == "altitude" || fieldname == "elevation") && elevationValue)
           {
             value = *elevationValue;

@@ -326,10 +326,9 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem
   }
 }
 
-void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(
-    std::vector<FlashDataItem> &cacheData,
-    const Fmi::TimePeriod &dataPeriod,
-    const Fmi::TimeZones &timezones)
+void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem> &cacheData,
+                                                       const Fmi::TimePeriod &dataPeriod,
+                                                       const Fmi::TimeZones &timezones)
 {
   try
   {

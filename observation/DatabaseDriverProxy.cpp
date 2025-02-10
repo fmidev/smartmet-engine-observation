@@ -518,8 +518,8 @@ MeasurandInfo DatabaseDriverProxy::getMeasurandInfo() const
   return {};
 }
 
-Fmi::DateTime DatabaseDriverProxy::getLatestDataUpdateTime(
-    const std::string &producer, const Fmi::DateTime &from) const
+Fmi::DateTime DatabaseDriverProxy::getLatestDataUpdateTime(const std::string &producer,
+                                                           const Fmi::DateTime &from) const
 {
   try
   {

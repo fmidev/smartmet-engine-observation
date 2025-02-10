@@ -5,8 +5,8 @@
 #include "QueryResult.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
-#include <macgyver/DateTime.h>
 #include <boost/make_shared.hpp>
+#include <macgyver/DateTime.h>
 #include <spine/Convenience.h>
 #include <spine/Reactor.h>
 #include <atomic>
@@ -34,8 +34,7 @@ void setSettings(Settings &settings, PostgreSQLObsDB &db)
     db.allPlaces = settings.allplaces;
     db.wantedTime = settings.wantedtime;
 
-    Fmi::DateTime startTime =
-        Fmi::SecondClock::universal_time() - Fmi::Hours(24);
+    Fmi::DateTime startTime = Fmi::SecondClock::universal_time() - Fmi::Hours(24);
     Fmi::DateTime endTime = Fmi::SecondClock::universal_time();
     int timeStep = 1;
     if (!settings.starttime.is_not_a_date_time())
@@ -508,9 +507,7 @@ MeasurandInfo PostgreSQLDatabaseDriverForFmiData::getMeasurandInfo() const
 }
 
 Fmi::DateTime PostgreSQLDatabaseDriverForFmiData::getLatestDataUpdateTime(
-    const std::string &producer,
-    const Fmi::DateTime &from,
-    const MeasurandInfo &minfo) const
+    const std::string &producer, const Fmi::DateTime &from, const MeasurandInfo &minfo) const
 {
   try
   {

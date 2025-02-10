@@ -1,6 +1,7 @@
 #include "ObservationCacheAdminBase.h"
 #include "Utils.h"
 #include <macgyver/AnsiEscapeCodes.h>
+#include <macgyver/Join.h>
 #include <spine/Convenience.h>
 #include <spine/Reactor.h>
 
@@ -284,7 +285,7 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
     {
       std::cout << Spine::log_time_str() << ANSI_FG_GREEN
                 << " Note! Observation cache updates disabled for tables "
-                << boost::algorithm::join(tables, ", ") << "! " << ANSI_FG_DEFAULT << std::endl;
+                << Fmi::join(tables, ", ") << "! " << ANSI_FG_DEFAULT << std::endl;
       return;
     }
 
@@ -1703,7 +1704,7 @@ void ObservationCacheAdminBase::addInfoToStations(Spine::Stations& stations,
     if (Spine::Reactor::isShuttingDown())
       throw Fmi::Exception(BCP,
                            "[ObservationCacheAdminBase] Station updates aborted due to shutdown")
-            .disableLogging();
+          .disableLogging();
     if (processed_stations.find(station.fmisid) == processed_stations.end())
       addInfoToStation(station, language);
   }

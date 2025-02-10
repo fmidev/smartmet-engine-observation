@@ -16,10 +16,7 @@ struct MetaData
       : bbox(std::move(b)), period(p), timestep(step)
   {
   }
-  MetaData()
-      : bbox(0.0, 0.0, 0.0, 0.0), period(Fmi::DateTime(), Fmi::DateTime())
-  {
-  }
+  MetaData() : bbox(0.0, 0.0, 0.0, 0.0), period(Fmi::DateTime(), Fmi::DateTime()) {}
   MetaData(const MetaData &md) = default;
   MetaData &operator=(const MetaData &md) = default;
   MetaData(MetaData &&md) = default;

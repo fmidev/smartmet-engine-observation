@@ -1,14 +1,12 @@
 #include "Property.h"
-#include <boost/algorithm/string/join.hpp>
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
+#include <macgyver/Join.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TypeMap.h>
 #include <macgyver/TypeName.h>
 #include <functional>
 #include <tuple>
-
-namespace ba = boost::algorithm;
 
 namespace SmartMet
 {
@@ -91,7 +89,7 @@ std::string value_vect2str(const std::any& value, const std::string& database, v
                  args.end(),
                  std::back_inserter(parts),
                  [&database, &conv](const ValueType& x) { return conv(x, database); });
-  return "(" + ba::join(parts, std::string(", ")) + ")";
+  return "(" + Fmi::join(parts, ", ") + ")";
 }
 
 template <typename ValueType>
@@ -158,8 +156,7 @@ Fmi::TypeMap<TypeConv> create_value_to_string_converter()
       [](const std::any& value, const std::string& database) -> std::string
       {
         if (database == "oracle")
-          return "TO_DATE('" +
-                 Fmi::to_simple_string(std::any_cast<Fmi::DateTime>(value)) +
+          return "TO_DATE('" + Fmi::to_simple_string(std::any_cast<Fmi::DateTime>(value)) +
                  "','YYYY-MM-DD HH24:MI:SS')";
         // PostgreSQL
         return Fmi::to_simple_string(std::any_cast<Fmi::DateTime>(value));

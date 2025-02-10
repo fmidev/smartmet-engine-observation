@@ -398,13 +398,11 @@ void addParameterToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColumns,
           else
           {
             auto sensor_values = data.at(temppos);
-            float temp =
-                std::get<double>(get_default_sensor_value(sensor_values, fmisid, temppos));
+            float temp = std::get<double>(get_default_sensor_value(sensor_values, fmisid, temppos));
             sensor_values = data.at(rhpos);
             float rh = std::get<double>(get_default_sensor_value(sensor_values, fmisid, rhpos));
             sensor_values = data.at(windpos);
-            float wind =
-                std::get<double>(get_default_sensor_value(sensor_values, fmisid, windpos));
+            float wind = std::get<double>(get_default_sensor_value(sensor_values, fmisid, windpos));
 
             TS::Value feelslike = TS::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
             timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, feelslike));
@@ -424,8 +422,7 @@ void addParameterToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColumns,
           else
           {
             auto sensor_values = data.at(temppos);
-            float temp =
-                std::get<double>(get_default_sensor_value(sensor_values, fmisid, temppos));
+            float temp = std::get<double>(get_default_sensor_value(sensor_values, fmisid, temppos));
             sensor_values = data.at(totalcloudcoverpos);
             int totalcloudcover = static_cast<int>(std::get<double>(
                 get_default_sensor_value(sensor_values, fmisid, totalcloudcoverpos)));
@@ -482,8 +479,8 @@ void addParameterToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColumns,
 
               double cla_val =
                   std::get<double>(get_default_sensor_value(cla_sensor_values, fmisid, cla_pos));
-              double clhb_val = std::get<double>(
-                  get_default_sensor_value(clhb_sensor_values, fmisid, clhb_pos));
+              double clhb_val =
+                  std::get<double>(get_default_sensor_value(clhb_sensor_values, fmisid, clhb_pos));
               if (cla_val >= 5 && cla_val <= 9)
               {
                 if (special.first == "cloudceilingft")
@@ -1115,27 +1112,20 @@ StationMap DBQueryUtils::mapQueryStations(const Spine::Stations &stations,
 }
 
 // Build fmisid1,fmisid2,... list
-std::string DBQueryUtils::buildSqlStationList(const Spine::Stations &stations,
-                                              const std::set<std::string> &stationgroup_codes,
-                                              const StationInfo &stationInfo,
-                                              const TS::RequestLimits &requestLimits) const
+std::set<int> DBQueryUtils::buildStationList(const Spine::Stations &stations,
+                                             const std::set<std::string> &stationgroup_codes,
+                                             const StationInfo &stationInfo,
+                                             const TS::RequestLimits &requestLimits) const
 {
   try
   {
-    std::string ret;
-    std::set<std::string> station_ids;
+    std::set<int> station_ids;
     for (const Spine::Station &s : stations)
-    {
       if (stationInfo.belongsToGroup(s.fmisid, stationgroup_codes))
-        station_ids.insert(Fmi::to_string(s.fmisid));
-    }
-    check_request_limit(requestLimits, station_ids.size(), TS::RequestLimitMember::LOCATIONS);
+        station_ids.insert(s.fmisid);
 
-    return std::accumulate(std::begin(station_ids),
-                           std::end(station_ids),
-                           std::string{},
-                           [](const std::string &a, const std::string &b)
-                           { return a.empty() ? b : a + ',' + b; });
+    check_request_limit(requestLimits, station_ids.size(), TS::RequestLimitMember::LOCATIONS);
+    return station_ids;
   }
   catch (...)
   {

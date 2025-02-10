@@ -5,10 +5,10 @@
 #include "SpecialParameters.h"
 #include "StationOptions.h"
 #include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/join.hpp>
 #include <boost/make_shared.hpp>
 #include <fmt/format.h>
 #include <macgyver/Geometry.h>
+#include <macgyver/Join.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TypeName.h>
 #include <spine/ConfigTools.h>
@@ -238,38 +238,38 @@ void EngineImpl::init()
     // Get measurand info from DB
     initMeasurandInfo();
 
-    Spine::Reactor* reactor = Spine::Reactor::instance;
+    Spine::Reactor *reactor = Spine::Reactor::instance;
     if (reactor)
     {
       using AdminRequestAccess = Spine::Reactor::AdminRequestAccess;
 
       reactor->addAdminTableRequestHandler(
-        this,
-        "obsproducers",
-        AdminRequestAccess::Public,
-        std::bind(&EngineImpl::requestProducerInfo, this, std::placeholders::_2),
-        "Observation producers");
+          this,
+          "obsproducers",
+          AdminRequestAccess::Public,
+          std::bind(&EngineImpl::requestProducerInfo, this, std::placeholders::_2),
+          "Observation producers");
 
       reactor->addAdminTableRequestHandler(
-        this,
-        "obsparameters",
-        AdminRequestAccess::Public,
-        std::bind(&EngineImpl::requestParameterInfo, this, std::placeholders::_2),
-        "Observation parameters");
+          this,
+          "obsparameters",
+          AdminRequestAccess::Public,
+          std::bind(&EngineImpl::requestParameterInfo, this, std::placeholders::_2),
+          "Observation parameters");
 
       reactor->addAdminTableRequestHandler(
-        this,
-        "stations",
-        AdminRequestAccess::Public,
-        std::bind(&EngineImpl::requestStationInfo, this, std::placeholders::_2),
-        "Observation stations");
+          this,
+          "stations",
+          AdminRequestAccess::Public,
+          std::bind(&EngineImpl::requestStationInfo, this, std::placeholders::_2),
+          "Observation stations");
 
       reactor->addAdminBoolRequestHandler(
-        this,
-        "reloadstations",
-        AdminRequestAccess::RequiresAuthentication,
-        std::bind(&EngineImpl::requestReloadStations, this, std::placeholders::_2),
-        "Reload stations");
+          this,
+          "reloadstations",
+          AdminRequestAccess::RequiresAuthentication,
+          std::bind(&EngineImpl::requestReloadStations, this, std::placeholders::_2),
+          "Reload stations");
     }
   }
   catch (...)
@@ -290,9 +290,10 @@ void parseIntOption(std::set<int> &output, const std::string &option)
   for (const auto &p : parts)
     output.insert(Fmi::stoi(p));
 }
-} // anonymous namespace
+}  // anonymous namespace
 
-std::unique_ptr<Spine::Table> EngineImpl::requestProducerInfo(const Spine::HTTP::Request& theRequest) const
+std::unique_ptr<Spine::Table> EngineImpl::requestProducerInfo(
+    const Spine::HTTP::Request &theRequest) const
 {
   // Optional producer filter
   auto producer = theRequest.getParameter("producer");
@@ -302,8 +303,8 @@ std::unique_ptr<Spine::Table> EngineImpl::requestProducerInfo(const Spine::HTTP:
   return obsengineProducerInfo;
 }
 
-
-std::unique_ptr<Spine::Table> EngineImpl::requestParameterInfo(const Spine::HTTP::Request& theRequest) const
+std::unique_ptr<Spine::Table> EngineImpl::requestParameterInfo(
+    const Spine::HTTP::Request &theRequest) const
 {
   // Optional producer filter
   auto producer = theRequest.getParameter("producer");
@@ -313,8 +314,8 @@ std::unique_ptr<Spine::Table> EngineImpl::requestParameterInfo(const Spine::HTTP
   return obsengineParameterInfo;
 }
 
-
-std::unique_ptr<Spine::Table> EngineImpl::requestStationInfo(const Spine::HTTP::Request& theRequest) const
+std::unique_ptr<Spine::Table> EngineImpl::requestStationInfo(
+    const Spine::HTTP::Request &theRequest) const
 {
   StationOptions options;
   parseIntOption(options.fmisid, Spine::optional_string(theRequest.getParameter("fmisid"), ""));
@@ -346,13 +347,11 @@ std::unique_ptr<Spine::Table> EngineImpl::requestStationInfo(const Spine::HTTP::
   return obsengineStationInfo;
 }
 
-
-bool EngineImpl::requestReloadStations(const Spine::HTTP::Request& theRequest)
+bool EngineImpl::requestReloadStations(const Spine::HTTP::Request &theRequest)
 {
   reloadStations();
   return true;
 }
-
 
 // ----------------------------------------------------------------------
 /*!
@@ -717,18 +716,14 @@ ContentTable EngineImpl::getProducerInfo(const std::optional<std::string> &produ
       {
         if (itsEngineParameters->stationtypeConfig.hasProducerIds(t))
         {
-          const std::set<uint> &producers =
-              itsEngineParameters->stationtypeConfig.getProducerIdSetByStationtype(t);
-          std::list<std::string> producer_id_list;
-          for (auto id : producers)
-            producer_id_list.emplace_back(Fmi::to_string(id));
-          producer_ids = boost::algorithm::join(producer_id_list, ",");
+          producer_ids =
+              Fmi::join(itsEngineParameters->stationtypeConfig.getProducerIdSetByStationtype(t));
         }
         if (itsEngineParameters->stationtypeConfig.hasGroupCodes(t))
         {
           std::shared_ptr<const std::set<std::string>> group_code_set =
               itsEngineParameters->stationtypeConfig.getGroupCodeSetByStationtype(t);
-          group_codes = boost::algorithm::join(*group_code_set, ",");
+          group_codes = Fmi::join(*group_code_set);
         }
       }
 
@@ -788,7 +783,6 @@ ContentTable EngineImpl::getParameterInfo(const std::optional<std::string> &prod
       newbase_parameters.insert(Fmi::ascii_tolower_copy(param_name));
     }
     */
-
 
     unsigned int row = 0;
     unsigned int param_counter = 1;
@@ -981,7 +975,7 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
       {
         const auto &s = all_locations.at(group.indexes.at(0));  // representative station
         unsigned int column = 0;
-        auto grouplist = boost::algorithm::join(group.stationtypes, ", ");
+        auto grouplist = Fmi::join(group.stationtypes, ", ");
         resultTable->set(column++, row, Fmi::to_string(row + 1));                 // Row number
         resultTable->set(column++, row, s.station_formal_name("fi"));             // Name
         resultTable->set(column++, row, grouplist);                               // Type
