@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.2.5
-Release: 2%{?dist}.fmi
+Version: 25.2.12
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -159,6 +159,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Feb 12 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.2.12-1.fmi
+- Removed "cached" setting from producers, the information is now read from the database
+
 * Thu Feb  6 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.2.5-2.fmi
 - Fixed error in optimized SQL query
 
