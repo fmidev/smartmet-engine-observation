@@ -200,11 +200,9 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
         else
         {
           auto useCommonQueryMethod = false;
-          auto stationTypeIsCached = false;
           std::vector<std::string> stationgroupCodeVector;
 
           stationtype_settings.lookupValue("useCommonQueryMethod", useCommonQueryMethod);
-          stationtype_settings.lookupValue("cached", stationTypeIsCached);
 
           if (stationtype_settings.exists("stationGroups"))
             stationgroupCodeVector =
@@ -212,17 +210,6 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
           else
             stationgroupCodeVector.emplace_back("VOID_AND_MISSING");
 
-          /*
-          // Producer ids are now fetched from database
-          if ((useCommonQueryMethod || stationTypeIsCached) && producerIdVector.empty())
-                {
-                  throw Fmi::Exception(BCP, "Invalid parameter value!")
-                        .addDetail(fmt::format(
-                                                                   "At least one producer id must be
-          defined into producerIds " "array for the stationtype '{}' if the useCommonQueryMethod
-          value is true.", stationtype));
-                }
-          */
           if (databaseTableName.empty() && useCommonQueryMethod)
           {
             throw Fmi::Exception(BCP, "Invalid parameter value!")
