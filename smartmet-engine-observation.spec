@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.2.12
+Version: 25.2.18
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -159,6 +159,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Feb 18 2025 Andris Pavēnis <andris.pavenis@fmi.fi> 25.2.18-1.fmi
+- Update to gdal-3.10, geos-3.13 and proj-9.5
+
 * Wed Feb 12 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.2.12-1.fmi
 - Removed "cached" setting from producers, the information is now read from the database
 
