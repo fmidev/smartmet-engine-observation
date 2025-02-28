@@ -345,8 +345,9 @@ LocationDataItems ObservationMemoryCache::read_observations(
           continue;
 
         // Check producer_id
-        if (settings.producer_ids.find(obs->producer_id) == settings.producer_ids.end())
-          continue;
+        if (!settings.producer_ids.empty())
+          if (settings.producer_ids.find(obs->producer_id) == settings.producer_ids.end())
+            continue;
 
         // Construct LocationDataItem from the DataItem
 
