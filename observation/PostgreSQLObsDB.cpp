@@ -23,6 +23,8 @@ namespace Observation
 {
 namespace
 {
+const std::string globe = "POLYGON ((-180 -90,-180 90,180 90,180 -90,-180 -90))";
+
 bool between(const Fmi::DateTime &t, const Fmi::DateTime &t1, const Fmi::DateTime &t2)
 {
   return (t >= t1 && t <= t2);
@@ -1025,12 +1027,11 @@ void PostgreSQLObsDB::getMovingStations(Spine::Stations &stations,
   {
     auto sdate = Fmi::to_iso_extended_string(settings.starttime);
     auto edate = Fmi::to_iso_extended_string(settings.endtime);
-    // clang-format off
 
     // 1 = station groups, 81 = station type
-    
-    std::string sqlStmt = fmt::format(R"sql(        
-SELECT distinct m.station_id
+
+    // clang-format off
+    std::string sqlStmt = fmt::format(R"SQL(SELECT distinct m.station_id
 FROM moving_locations_v1 m
 JOIN target_group_member_t1 tgm on (tgm.target_id = m.station_id )
 JOIN target_group_t1 tg on (tg.target_group_id = tgm.target_group_id )
@@ -1042,16 +1043,16 @@ WHERE
  )
 AND tg.group_class_id IN( 1, 81 )
 AND tg.group_name IN( '{}')
-AND ST_Contains(
-    ST_GeomFromText('{}'),
-    ST_MakePoint(lon, lat)
-                ))sql",
+)SQL",
     sdate, edate,
     sdate, edate,
     sdate, edate,
-    Fmi::ascii_toupper_copy(settings.stationtype),
-    wkt);
+    Fmi::ascii_toupper_copy(settings.stationtype));
     // clang-format on
+
+    if (wkt != globe)
+      sqlStmt +=
+          fmt::format(" AND ST_Contains(ST_GeomFromText('{}'), ST_MakePoint(lon, lat))", wkt);
 
     // std::cout << "PostgreSQL: " << sqlStmt << std::endl;
 
