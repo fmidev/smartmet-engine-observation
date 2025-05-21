@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.3.21
+Version: 25.5.21
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -159,6 +159,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed May 21 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.5.21-1.fmi
+- Improved logging messages
+
 * Fri Mar 21 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.3.21-1.fmi
 - Optimized a global moving locations query for speed
 
