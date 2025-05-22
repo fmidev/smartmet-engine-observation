@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.5.21
+Version: 25.5.22
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -30,9 +30,9 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 25.2.18
 BuildRequires: smartmet-library-locus-devel >= 25.2.18
-BuildRequires: smartmet-library-macgyver-devel >= 25.2.18
-BuildRequires: smartmet-library-spine-devel >= 25.3.3
-BuildRequires: smartmet-library-timeseries-devel >= 25.2.18
+BuildRequires: smartmet-library-macgyver-devel >= 25.5.22
+BuildRequires: smartmet-library-spine-devel >= 25.5.13
+BuildRequires: smartmet-library-timeseries-devel >= 25.5.22
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
 BuildRequires: smartmet-utils-devel >= 25.2.18
@@ -47,10 +47,10 @@ Requires: gdal310-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 25.2.18
 Requires: smartmet-library-locus >= 25.2.18
-Requires: smartmet-library-macgyver >= 25.2.18
-Requires: smartmet-library-spine >= 25.3.3
-Requires: smartmet-library-timeseries >= 25.2.18
-Requires: smartmet-server >= 25.2.18
+Requires: smartmet-library-macgyver >= 25.5.22
+Requires: smartmet-library-spine >= 25.5.13
+Requires: smartmet-library-timeseries >= 25.5.22
+Requires: smartmet-server >= 25.5.13
 Requires: unixODBC
 
 %if 0%{?rhel} && 0%{rhel} == 8
@@ -125,7 +125,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 25.3.3
+Requires: smartmet-library-spine-devel >= 25.5.13
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -159,6 +159,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu May 22 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.5.22-1.fmi
+- Repackaged to hide dark() implementation details
+
 * Wed May 21 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.5.21-1.fmi
 - Improved logging messages
 
