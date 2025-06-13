@@ -20,47 +20,122 @@ auto lcmp = [](const FlashDataItem& flash, const Fmi::DateTime& t) -> bool
 auto ucmp = [](const Fmi::DateTime& t, const FlashDataItem& flash) -> bool
 { return (flash.stroke_time > t); };
 
-TS::Value get_flash_value(const FlashDataItem& flash, const std::string& name)
+// For speeding up data retrieval we want to use enum switch instead of string comparisons
+enum class FlashParam
+{
+  None,
+  FlashId,
+  Longitude,
+  Latitude,
+  Multiplicity,
+  PeakCurrent,
+  CloudIndicator,
+  AngleIndicator,
+  SignalIndicator,
+  TimingIndicator,
+  StrokeStatus,
+  DataSource,
+  Sensors,
+  FreedomDegree,
+  EllipseAngle,
+  EllipseMajor,
+  EllipseMinor,
+  ChiSquare,
+  RiseTime,
+  PtzTime
+};
+
+FlashParam parse_flash_param(const std::string& name)
 {
   if (name == "flash_id")
-    return static_cast<int>(flash.flash_id);
+    return FlashParam::FlashId;
   if (name == "longitude")
-    return flash.longitude;
+    return FlashParam::Longitude;
   if (name == "latitude")
-    return flash.latitude;
+    return FlashParam::Latitude;
   if (name == "multiplicity")
-    return flash.multiplicity;
+    return FlashParam::Multiplicity;
   if (name == "peak_current")
-    return flash.peak_current;
+    return FlashParam::PeakCurrent;
   if (name == "cloud_indicator")
-    return flash.cloud_indicator;
+    return FlashParam::CloudIndicator;
   if (name == "angle_indicator")
-    return flash.angle_indicator;
+    return FlashParam::AngleIndicator;
   if (name == "signal_indicator")
-    return flash.signal_indicator;
+    return FlashParam::SignalIndicator;
   if (name == "timing_indicator")
-    return flash.timing_indicator;
+    return FlashParam::TimingIndicator;
   if (name == "stroke_status")
-    return flash.stroke_status;
+    return FlashParam::StrokeStatus;
   if (name == "data_source")
-    return flash.data_source;
+    return FlashParam::DataSource;
   if (name == "sensors")
-    return flash.sensors;
+    return FlashParam::Sensors;
   if (name == "freedom_degree")
-    return flash.freedom_degree;
+    return FlashParam::FreedomDegree;
   if (name == "ellipse_angle")
-    return flash.ellipse_angle;
+    return FlashParam::EllipseAngle;
   if (name == "ellipse_major")
-    return flash.ellipse_major;
+    return FlashParam::EllipseMajor;
   if (name == "ellipse_minor")
-    return flash.ellipse_minor;
+    return FlashParam::EllipseMinor;
   if (name == "chi_square")
-    return flash.chi_square;
+    return FlashParam::ChiSquare;
   if (name == "rise_time")
-    return flash.rise_time;
+    return FlashParam::RiseTime;
   if (name == "ptz_time")
-    return flash.ptz_time;
-  return {};  // missing value
+    return FlashParam::PtzTime;
+  return FlashParam::None;
+}
+
+// TODO: we really should convert the strings to an enum for better speed in case where fetching
+// thousands of flashes from memory. A single day may have > 100k flashes.
+
+TS::Value get_flash_value(const FlashDataItem& flash, FlashParam param)
+{
+  switch (param)
+  {
+    case FlashParam::FlashId:
+      return static_cast<int>(flash.flash_id);
+    case FlashParam::Longitude:
+      return flash.longitude;
+    case FlashParam::Latitude:
+      return flash.latitude;
+    case FlashParam::Multiplicity:
+      return flash.multiplicity;
+    case FlashParam::PeakCurrent:
+      return flash.peak_current;
+    case FlashParam::CloudIndicator:
+      return flash.cloud_indicator;
+    case FlashParam::AngleIndicator:
+      return flash.angle_indicator;
+    case FlashParam::SignalIndicator:
+      return flash.signal_indicator;
+    case FlashParam::TimingIndicator:
+      return flash.timing_indicator;
+    case FlashParam::StrokeStatus:
+      return flash.stroke_status;
+    case FlashParam::DataSource:
+      return flash.data_source;
+    case FlashParam::Sensors:
+      return flash.sensors;
+    case FlashParam::FreedomDegree:
+      return flash.freedom_degree;
+    case FlashParam::EllipseAngle:
+      return flash.ellipse_angle;
+    case FlashParam::EllipseMajor:
+      return flash.ellipse_major;
+    case FlashParam::EllipseMinor:
+      return flash.ellipse_minor;
+    case FlashParam::ChiSquare:
+      return flash.chi_square;
+    case FlashParam::RiseTime:
+      return flash.rise_time;
+    case FlashParam::PtzTime:
+      return flash.ptz_time;
+    default:
+      return {};  // missing value
+  }
 }
 
 // If there are tagged locations, we must filter flash data based on
@@ -172,6 +247,11 @@ std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
       auto& flashvector = *new_cache;
       for (auto new_item : new_items)
         flashvector.push_back(flashCacheData[new_item]);
+
+      // Sort by stroke_time and flash_id, and remove duplicates
+      std::sort(flashvector.begin(), flashvector.end());
+      auto last = std::unique(flashvector.begin(), flashvector.end());
+      flashvector.erase(last, flashvector.end());
 
       // Mark them inserted based on hash value
       for (const auto& hash : new_hashes)
@@ -293,8 +373,12 @@ TS::TimeSeriesVectorPtr FlashMemoryCache::getData(const Settings& settings,
       }
     }
 
-    // Collect the results
+    // Collect parameter enums
+    std::vector<FlashParam> column_params;
+    for (const auto& name : column_names)
+      column_params.push_back(parse_flash_param(name));
 
+    // Collect the results
     auto localtz = timezones.time_zone_from_string(settings.timezone);
 
     // Parse the bboxes only once instead of inside the below loop for every flash
@@ -311,11 +395,9 @@ TS::TimeSeriesVectorPtr FlashMemoryCache::getData(const Settings& settings,
 
       Fmi::LocalDateTime localtime(flash.stroke_time, localtz);
 
-      for (std::size_t i = 0; i < column_names.size(); i++)
+      for (std::size_t i = 0; i < column_params.size(); i++)
       {
-        const auto& name = column_names[i];
-
-        auto val = get_flash_value(flash, name);
+        auto val = get_flash_value(flash, column_params[i]);
 
         result->at(i).emplace_back(TS::TimedValue(localtime, val));
       }

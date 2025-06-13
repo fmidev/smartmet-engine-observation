@@ -38,6 +38,9 @@ class FlashDataItem
   unsigned int flash_id = 0;
 
   std::size_t hash_value() const;
+
+  bool operator==(const FlashDataItem& other) const;
+  bool operator<(const FlashDataItem& other) const;
 };
 
 using FlashDataItems = std::vector<FlashDataItem>;

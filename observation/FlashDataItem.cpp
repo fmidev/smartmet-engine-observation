@@ -45,6 +45,22 @@ std::size_t FlashDataItem::hash_value() const
   }
 }
 
+bool FlashDataItem::operator==(const FlashDataItem& other) const
+{
+  return flash_id == other.flash_id;
+}
+
+bool FlashDataItem::operator<(const FlashDataItem& other) const
+{
+  if (stroke_time != other.stroke_time)
+    return stroke_time < other.stroke_time;
+  if (stroke_time_fraction != other.stroke_time_fraction)
+    return stroke_time_fraction < other.stroke_time_fraction;
+  if (flash_id != other.flash_id)
+    return flash_id < other.flash_id;
+  return modified_last > other.modified_last;  // YES, WE WANT LATER OBS TO BE FIRST!
+}
+
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet
