@@ -12,6 +12,57 @@ namespace Engine
 {
 namespace Observation
 {
+namespace
+{
+auto lcmp = [](const FlashDataItem& flash, const Fmi::DateTime& t) -> bool
+{ return (flash.stroke_time < t); };
+
+auto ucmp = [](const Fmi::DateTime& t, const FlashDataItem& flash) -> bool
+{ return (flash.stroke_time > t); };
+
+TS::Value get_flash_value(const FlashDataItem& flash, const std::string& name)
+{
+  if (name == "flash_id")
+    return static_cast<int>(flash.flash_id);
+  if (name == "longitude")
+    return flash.longitude;
+  if (name == "latitude")
+    return flash.latitude;
+  if (name == "multiplicity")
+    return flash.multiplicity;
+  if (name == "peak_current")
+    return flash.peak_current;
+  if (name == "cloud_indicator")
+    return flash.cloud_indicator;
+  if (name == "angle_indicator")
+    return flash.angle_indicator;
+  if (name == "signal_indicator")
+    return flash.signal_indicator;
+  if (name == "timing_indicator")
+    return flash.timing_indicator;
+  if (name == "stroke_status")
+    return flash.stroke_status;
+  if (name == "data_source")
+    return flash.data_source;
+  if (name == "sensors")
+    return flash.sensors;
+  if (name == "freedom_degree")
+    return flash.freedom_degree;
+  if (name == "ellipse_angle")
+    return flash.ellipse_angle;
+  if (name == "ellipse_major")
+    return flash.ellipse_major;
+  if (name == "ellipse_minor")
+    return flash.ellipse_minor;
+  if (name == "chi_square")
+    return flash.chi_square;
+  if (name == "rise_time")
+    return flash.rise_time;
+  if (name == "ptz_time")
+    return flash.ptz_time;
+  return {};  // missing value
+}
+
 // If there are tagged locations, we must filter flash data based on
 // 1) a radius from a point
 // 2) a bounding box
@@ -59,6 +110,7 @@ BBoxes parse_bboxes(const Spine::TaggedLocationList& tlocs)
   }
   return bboxes;
 }
+}  // namespace
 
 // After the cache has been initialized, we store the time of the
 // latest deleted observations instead of the actual last
@@ -158,10 +210,7 @@ void FlashMemoryCache::clean(const Fmi::DateTime& newstarttime) const
     {
       // Find first position newer than the given start time
 
-      auto cmp = [](const Fmi::DateTime& t, const FlashDataItem& flash) -> bool
-      { return (flash.stroke_time > t); };
-
-      auto pos = std::upper_bound(cache->begin(), cache->end(), newstarttime, cmp);
+      auto pos = std::upper_bound(cache->begin(), cache->end(), newstarttime, ucmp);
 
       must_clean = (pos != cache->begin());
 
@@ -214,18 +263,12 @@ TS::TimeSeriesVectorPtr FlashMemoryCache::getData(const Settings& settings,
 
     // Find time interval from the cache data
 
-    auto lcmp = [](const FlashDataItem& flash, const Fmi::DateTime& t) -> bool
-    { return (flash.stroke_time < t); };
-
     auto pos1 = std::lower_bound(cache->begin(), cache->end(), settings.starttime, lcmp);
 
     // Nothing to do if there is nothing with a time lower than the starttime, or if there is
     // nothing after it
     if (pos1 == cache->end() || ++pos1 == cache->end())
       return result;
-
-    auto ucmp = [](const Fmi::DateTime& t, const FlashDataItem& flash) -> bool
-    { return (flash.stroke_time > t); };
 
     auto pos2 = std::upper_bound(cache->begin(), cache->end(), settings.endtime, ucmp);
 
@@ -272,47 +315,7 @@ TS::TimeSeriesVectorPtr FlashMemoryCache::getData(const Settings& settings,
       {
         const auto& name = column_names[i];
 
-        TS::Value val;  // missing value
-
-        // strcmp is slow, but reordering the loops would look ugly
-        if (name == "longitude")
-          val = flash.longitude;
-        else if (name == "latitude")
-          val = flash.latitude;
-        else if (name == "multiplicity")
-          val = flash.multiplicity;
-        else if (name == "peak_current")
-          val = flash.peak_current;
-        else if (name == "cloud_indicator")
-          val = flash.cloud_indicator;
-        else if (name == "angle_indicator")
-          val = flash.angle_indicator;
-        else if (name == "signal_indicator")
-          val = flash.signal_indicator;
-        else if (name == "timing_indicator")
-          val = flash.timing_indicator;
-        else if (name == "stroke_status")
-          val = flash.stroke_status;
-        else if (name == "data_source")
-          val = flash.data_source;
-        else if (name == "sensors")
-          val = flash.sensors;
-        else if (name == "flash_id")
-          val = static_cast<int>(flash.flash_id);
-        else if (name == "freedom_degree")
-          val = flash.freedom_degree;
-        else if (name == "ellipse_angle")
-          val = flash.ellipse_angle;
-        else if (name == "ellipse_major")
-          val = flash.ellipse_major;
-        else if (name == "ellipse_minor")
-          val = flash.ellipse_minor;
-        else if (name == "chi_square")
-          val = flash.chi_square;
-        else if (name == "rise_time")
-          val = flash.rise_time;
-        else if (name == "ptz_time")
-          val = flash.ptz_time;
+        auto val = get_flash_value(flash, name);
 
         result->at(i).emplace_back(TS::TimedValue(localtime, val));
       }
@@ -342,18 +345,12 @@ FlashCounts FlashMemoryCache::getFlashCount(const Fmi::DateTime& starttime,
 
     // Find time interval from the cache data
 
-    auto lcmp = [](const FlashDataItem& flash, const Fmi::DateTime& t) -> bool
-    { return (flash.stroke_time < t); };
-
     auto pos1 = std::lower_bound(cache->begin(), cache->end(), starttime, lcmp);
 
     // Nothing to do if there is nothing with a time lower than the starttime, or if there is
     // nothing after it
     if (pos1 == cache->end() || ++pos1 == cache->end())
       return result;
-
-    auto ucmp = [](const Fmi::DateTime& t, const FlashDataItem& flash) -> bool
-    { return (flash.stroke_time > t); };
 
     auto pos2 = std::upper_bound(cache->begin(), cache->end(), endtime, ucmp);
 
