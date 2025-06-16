@@ -243,8 +243,11 @@ std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
       if (old_cache)
         *new_cache = *old_cache;
 
-      // Append new data
       auto& flashvector = *new_cache;
+#if 0
+      // This could be slow if there are originally thousands of flashes even if there is only one update
+      
+      // Append new data
       for (auto new_item : new_items)
         flashvector.push_back(flashCacheData[new_item]);
 
@@ -252,6 +255,27 @@ std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
       std::sort(flashvector.begin(), flashvector.end());
       auto last = std::unique(flashvector.begin(), flashvector.end());
       flashvector.erase(last, flashvector.end());
+#else
+      // This is fast if the updates are smallish, since the full vector is not sorted
+
+      // We must reserve enough capacity first, otherwise push_back may invalidate iterators
+      flashvector.reserve(flashvector.size() + new_items.size());
+
+      // Find first position with the smallest updated stroke_time
+      const auto& min_time = flashCacheData[new_items[0]];
+      auto lower_pos = std::lower_bound(flashvector.begin(), flashvector.end(), min_time);
+
+      // Append new data
+      for (auto new_item : new_items)
+        flashvector.push_back(flashCacheData[new_item]);
+
+      // Sort only the affected portion with possibly overlapping times
+      std::sort(lower_pos, flashvector.end());
+
+      // Remove duplicates only from the affected portion
+      auto last = std::unique(lower_pos, flashvector.end());
+      flashvector.erase(last, flashvector.end());
+#endif
 
       // Mark them inserted based on hash value
       for (const auto& hash : new_hashes)
