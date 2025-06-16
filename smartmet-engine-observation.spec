@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.6.13
+Version: 25.6.16
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -159,6 +159,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Jun 16 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.16-1.fmi
+- Fixed FLashMemoryCache update segfault possibility
+
+* Fri Jun 13 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.13-2.fmi
+- Optimized FlashMemoryCache updates for speed
+
 * Fri Jun 13 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.13-1.fmi
 - Fixed FlashMemoryCache to handle duplicate FlashDataItems
 
