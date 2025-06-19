@@ -371,10 +371,10 @@ void DatabaseDriverProxy::shutdown()
     dbdriver->shutdown();
 }
 
-MetaData DatabaseDriverProxy::metaData(const std::string &producer) const
+MetaData DatabaseDriverProxy::metaData(const std::string &producer, const Settings &settings) const
 {
   DatabaseDriverBase *pDriver = resolveDatabaseDriverByProducer(producer);
-  return pDriver->metaData(producer);
+  return pDriver->metaData(producer, settings);
 }
 
 std::string DatabaseDriverProxy::id() const

@@ -176,7 +176,7 @@ ContentTable Engine::getStationInfo(const StationOptions & /*options*/) const
   REPORT_DISABLED;
 }
 
-MetaData Engine::metaData(const std::string & /*producer*/) const
+MetaData Engine::metaData(const std::string & /*producer*/, const Settings & /*settings*/) const
 {
   REPORT_DISABLED;
 }

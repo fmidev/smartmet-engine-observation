@@ -212,15 +212,15 @@ void DatabaseDriverBase::readMetaData(Spine::ConfigBase &cfg)
   }
 }
 
-MetaData DatabaseDriverBase::metaData(const std::string &producer) const
+MetaData DatabaseDriverBase::metaData(const std::string &producer, const Settings &settings)
 {
-  MetaData ret;
+  MetaData empty;
 
   try
   {
     if (itsMetaData.find(producer) != itsMetaData.end())
     {
-      ret = itsMetaData.at(producer);
+      auto &ret = itsMetaData.at(producer);
       if (!ret.fixedPeriodEndTime)
       {
         // update period end time
@@ -228,8 +228,10 @@ MetaData DatabaseDriverBase::metaData(const std::string &producer) const
         // subtract seconds so we have even minutes
         long sec = currentTime.time_of_day().seconds();
         currentTime = currentTime - Fmi::Seconds(sec);
-        ret.period = Fmi::TimePeriod(ret.period.begin(), currentTime);
+        ret.periodLevelMetaData.period = Fmi::TimePeriod(ret.period().begin(), currentTime);
       }
+
+      return metaData(producer, settings, ret);
     }
   }
   catch (...)
@@ -237,7 +239,7 @@ MetaData DatabaseDriverBase::metaData(const std::string &producer) const
     throw Fmi::Exception::Trace(BCP, "Reading meta data (PostgreSQL database driver) failed!");
   }
 
-  return ret;
+  return empty;
 }
 
 std::shared_ptr<ObservationCache> DatabaseDriverBase::resolveCache(

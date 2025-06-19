@@ -46,7 +46,7 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
   DatabaseDriverBase *resolveDatabaseDriverByTable(const std::string &table) const;
 
   void shutdown() override;
-  MetaData metaData(const std::string &producer) const override;
+  MetaData metaData(const std::string &producer, const Settings &settings) const override;
   std::string id() const override;
   std::string name() const override;
 

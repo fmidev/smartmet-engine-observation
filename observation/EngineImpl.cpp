@@ -594,11 +594,11 @@ TS::TimeSeriesVectorPtr EngineImpl::values(Settings &settings,
   }
 }
 
-MetaData EngineImpl::metaData(const std::string &producer) const
+MetaData EngineImpl::metaData(const std::string &producer, const Settings &settings) const
 {
   try
   {
-    auto ret = itsDatabaseDriver->metaData(producer);
+    auto ret = itsDatabaseDriver->metaData(producer, settings);
 
     for (const auto &param : *itsEngineParameters->parameterMap)
     {
@@ -640,6 +640,16 @@ Settings EngineImpl::beforeQuery(const Settings &settings,
     {
       const auto &p = settings.parameters.at(i);
       std::string pname = Fmi::ascii_tolower_copy(p.name());
+
+      // BRAINSTORM-3116 'level' kludge, FIXME !
+      //
+      if (pname == EDR_OBSERVATION_LEVEL)
+      {
+        ret.parameters.push_back(
+            Spine::Parameter("level", Spine::Parameter::Type::DataIndependent));
+        continue;
+      }
+
       if (!isParameter(pname, settings.stationtype) && !TimeSeries::is_special_parameter(pname))
       {
         unknownParameterIndexes.push_back(i);

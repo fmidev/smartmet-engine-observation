@@ -122,7 +122,7 @@ class Engine : public SmartMet::Spine::SmartMetEngine
    */
   virtual ContentTable getStationInfo(const StationOptions &options) const;
 
-  virtual MetaData metaData(const std::string &producer) const;
+  virtual MetaData metaData(const std::string &producer, const Settings &settings) const;
 
   /* \brief Translates WMO,RWID,LPNN,GEOID,Bounding box to FMISID
    * \return List of FMISIDs

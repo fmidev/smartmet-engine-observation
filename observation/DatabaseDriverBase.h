@@ -79,7 +79,13 @@ class DatabaseDriverBase
 
   const std::set<std::string> &supportedProducers() const { return itsSupportedProducers; }
   virtual void getFMIIoTStations(std::shared_ptr<FmiIoTStations> &stations) const {}
-  MetaData metaData(const std::string &producer) const;
+  virtual MetaData metaData(const std::string &producer, const Settings &settings);
+  virtual MetaData metaData(const std::string &producer,
+                            const Settings &settings,
+                            MetaData &md)
+  {
+    return md;
+  }
   const std::string &name() const { return itsDriverName; }
 
   bool responsibleForLoadingStations() const { return itsLoadStations; }
