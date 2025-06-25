@@ -571,7 +571,7 @@ void ObservationCacheAdminBase::updateObservationFakeCache(
 
   for (const auto& setting : settings)
   {
-    std::vector<DataItem> cacheData;
+    DataItems cacheData;
     Fmi::DateTime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
     Fmi::DateTime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
     Fmi::TimePeriod dataPeriod(starttime, endtime);
@@ -609,7 +609,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
     if (observationCache->isFakeCache(OBSERVATION_DATA_TABLE))
       return updateObservationFakeCache(observationCache);
 
-    std::vector<DataItem> cacheData;
+    DataItems cacheData;
     std::vector<MovingLocationItem> cacheDataMovingLocations;
 
     // pair of data_time, modified_last
