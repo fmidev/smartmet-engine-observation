@@ -520,7 +520,452 @@ void addParameterToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColumns,
   }
 }
 
+Fmi::LocalDateTime find_wanted_time(const TimedMeasurandData &timed_measurand_data,
+                                    const Settings &settings)
+{
+  try
+  {
+    if (timed_measurand_data.size() == 1)  // speed optimization if there is only one choice
+      return timed_measurand_data.begin()->first;
+
+    if (*settings.wantedtime <= settings.starttime)  // earliest time
+      return timed_measurand_data.begin()->first;
+
+    if (*settings.wantedtime >= settings.endtime)  // latest time
+      return timed_measurand_data.rbegin()->first;
+
+    // Look for the closest time
+
+    auto best_time = timed_measurand_data.begin()->first;
+    auto best_diff = std::abs((best_time.utc_time() - *settings.wantedtime).total_seconds());
+
+    for (const auto &tmp : timed_measurand_data)
+    {
+      auto diff = std::abs((tmp.first.utc_time() - *settings.wantedtime).total_seconds());
+      if (diff < best_diff)
+      {
+        best_diff = diff;
+        best_time = tmp.first;
+      }
+    }
+
+    return best_time;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Building query mapping failed!");
+  }
+}
+
+// Extract all timesteps from data
+std::map<int, std::set<Fmi::LocalDateTime>> getAllTimestepsFromData(
+    const StationTimedMeasurandData &station_data)
+{
+  try
+  {
+    std::map<int, std::set<Fmi::LocalDateTime>> fmisid_timesteps;
+
+    for (const auto &item : station_data)
+    {
+      int fmisid = item.first;
+      const auto &timed_measurand_data = item.second;
+      for (const auto &item2 : timed_measurand_data)
+      {
+        fmisid_timesteps[fmisid].insert(item2.first);
+      }
+    }
+
+    return fmisid_timesteps;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Building query mapping failed!");
+  }
+}
+
+// Extract wanted timesteps
+std::map<int, std::set<Fmi::LocalDateTime>> getWantedTimesteps(
+    const StationTimedMeasurandData &station_data, const Settings &settings)
+{
+  try
+  {
+    std::map<int, std::set<Fmi::LocalDateTime>> fmisid_timesteps;
+
+    for (const auto &item : station_data)
+    {
+      int fmisid = item.first;
+      const auto &timed_measurand_data = item.second;
+      auto obstime = find_wanted_time(timed_measurand_data, settings);
+      fmisid_timesteps[fmisid].insert(obstime);
+    }
+
+    return fmisid_timesteps;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Building query mapping failed!");
+  }
+}
+
+// Extract data and requested timesteps
+std::map<int, std::set<Fmi::LocalDateTime>> getDataAndRequestedTimesteps(
+    const StationTimedMeasurandData &station_data,
+    const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const Fmi::TimeZones &timezones,
+    const Settings &settings)
+{
+  try
+  {
+    std::map<int, std::set<Fmi::LocalDateTime>> fmisid_timesteps;
+
+    std::set<int> fmisids;
+    std::set<Fmi::LocalDateTime> timesteps;
+
+    // Collect all timesteps from data
+    for (const auto &item : station_data)
+    {
+      fmisids.insert(item.first);
+      const auto &timed_measurand_data = item.second;
+      for (const auto &item2 : timed_measurand_data)
+      {
+        timesteps.insert(item2.first);
+      }
+    }
+
+    // Add generated timesteps
+    const auto tlist = TS::TimeSeriesGenerator::generate(
+        timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+    timesteps.insert(tlist.begin(), tlist.end());
+
+    // Assign all timesteps to all stations
+    for (const auto &fmisid : fmisids)
+      fmisid_timesteps[fmisid].insert(timesteps.begin(), timesteps.end());
+
+    return fmisid_timesteps;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Building query mapping failed!");
+  }
+}
+
+// Extract listed timesteps
+std::map<int, std::set<Fmi::LocalDateTime>> getListedTimesteps(
+    const StationTimedMeasurandData &station_data,
+    const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const Fmi::TimeZones &timezones,
+    const Settings &settings)
+{
+  try
+  {
+    std::map<int, std::set<Fmi::LocalDateTime>> fmisid_timesteps;
+
+    const auto tlist = TS::TimeSeriesGenerator::generate(
+        timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+
+    for (const auto &item : station_data)
+      fmisid_timesteps[item.first].insert(tlist.begin(), tlist.end());
+
+    return fmisid_timesteps;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Building query mapping failed!");
+  }
+}
+
+// Extract special field determination
+struct SpecialFieldFlags
+{
+  bool addDataQualityField = false;
+  bool addDataSourceField = false;
+};
+
+SpecialFieldFlags determineSpecialFields(const QueryMapping &qmap)
+{
+  SpecialFieldFlags flags;
+
+  for (auto const &item : qmap.specialPositions)
+  {
+    if (isDataSourceField(item.first))
+      flags.addDataSourceField = true;
+    if (isDataQualityField(item.first))
+      flags.addDataQualityField = true;
+  }
+
+  return flags;
+}
+
+// Extract continuous parameter map building
+std::map<int, std::string> buildContinuousParameterMap(const QueryMapping &qmap)
+{
+  try
+  {
+    std::map<int, std::string> continuous;
+
+    for (const auto &item : qmap.specialPositions)
+    {
+      if (SpecialParameters::instance().is_supported(item.first))
+        continuous.emplace(item.second, item.first);
+    }
+
+    return continuous;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Building query mapping failed!");
+  }
+}
+
+// Extract timed data processing for a single station
+void processStationTimedData(TS::TimeSeriesVectorPtr resultVector,
+                             const TimedMeasurandData &timed_measurand_data,
+                             const std::set<Fmi::LocalDateTime> &valid_timesteps,
+                             int fmisid,
+                             const QueryMapping &qmap,
+                             const std::string &stationtype,
+                             const Spine::Station &station,
+                             const Settings &settings,
+                             const ParameterMapPtr &parameterMap)
+{
+  try
+  {
+    for (const auto &data : timed_measurand_data)
+    {
+      if (valid_timesteps.find(data.first) == valid_timesteps.end())
+        continue;
+
+      addParameterToTimeSeries(resultVector,
+                               data,
+                               fmisid,
+                               qmap.specialPositions,
+                               qmap.parameterNameIdMap,
+                               qmap.timeseriesPositionsString,
+                               stationtype,
+                               station,
+                               settings,
+                               parameterMap);
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Building query mapping failed!");
+  }
+}
+
+// Extract special fields addition
+void addSpecialFieldsIfNeeded(TS::TimeSeriesVectorPtr resultVector,
+                              int fmisid,
+                              const TimedMeasurandData &timed_measurand_data,
+                              const std::set<Fmi::LocalDateTime> &valid_timesteps,
+                              const QueryMapping &qmap,
+                              const SpecialFieldFlags &flags)
+{
+  try
+  {
+    if (flags.addDataSourceField)
+      addSpecialFieldsToTimeSeries(resultVector,
+                                   fmisid,
+                                   timed_measurand_data,
+                                   valid_timesteps,
+                                   qmap.specialPositions,
+                                   qmap.parameterNameMap,
+                                   true);
+
+    if (flags.addDataQualityField)
+      addSpecialFieldsToTimeSeries(resultVector,
+                                   fmisid,
+                                   timed_measurand_data,
+                                   valid_timesteps,
+                                   qmap.specialPositions,
+                                   qmap.parameterNameMap,
+                                   false);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Building query mapping failed!");
+  }
+}
+
+// Extract gap filling for individual time series
+TS::TimeSeries fillTimeSeriesGaps(const TS::TimeSeries &ts,
+                                  const std::set<Fmi::LocalDateTime> &valid_timesteps,
+                                  const std::map<int, std::string> &continuous,
+                                  int series_index,
+                                  const std::string &stationtype,
+                                  const StationMap &fmisid_to_station,
+                                  const Settings &settings)
+{
+  try
+  {
+    TS::Value missing_value = TS::None();
+    TS::TimeSeries new_ts;
+    auto timestep_iter = valid_timesteps.cbegin();
+
+    // Lambda for filling missing values
+    const auto fill_missing = [&]() -> void
+    {
+      auto it = continuous.find(series_index);
+      if (it != continuous.end())
+      {
+        // Find appropriate station for this timestep (simplified - may need adjustment)
+        if (!fmisid_to_station.empty())
+        {
+          const auto &station = fmisid_to_station.begin()->second;
+          Fmi::LocalDateTime now(Fmi::SecondClock::universal_time(), timestep_iter->zone());
+          SpecialParameters::Args args(
+              station, stationtype, *timestep_iter, now, settings.timezone, &settings);
+          auto value = SpecialParameters::instance().getTimedValue(it->second, args);
+          new_ts.emplace_back(value);
+        }
+      }
+      else
+      {
+        new_ts.emplace_back(TS::TimedValue(*timestep_iter, missing_value));
+      }
+    };
+
+    // Fill gaps in the time series
+    for (auto &timed_value : ts)
+    {
+      while (timestep_iter != valid_timesteps.cend() && *timestep_iter < timed_value.time)
+      {
+        fill_missing();
+        timestep_iter++;
+      }
+      new_ts.push_back(timed_value);
+      timestep_iter++;
+    }
+
+    // Handle remaining timesteps after the last data point
+    if (timestep_iter != valid_timesteps.cend() &&
+        (!new_ts.empty() && *timestep_iter == new_ts.back().time))
+      timestep_iter++;
+
+    while (timestep_iter != valid_timesteps.cend())
+    {
+      fill_missing();
+      timestep_iter++;
+    }
+
+    return new_ts;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Building query mapping failed!");
+  }
+}
+
+// Extract missing timestep filling logic
+void fillMissingTimesteps(TS::TimeSeriesVectorPtr resultVector,
+                          TS::TimeSeriesVectorPtr timeSeriesColumns,
+                          const std::map<int, std::set<Fmi::LocalDateTime>> &fmisid_timesteps,
+                          const std::map<int, std::string> &continuous,
+                          const std::string &stationtype,
+                          const StationMap &fmisid_to_station,
+                          const Settings &settings)
+{
+  try
+  {
+    // Get all unique timesteps across all stations
+    std::set<Fmi::LocalDateTime> all_valid_timesteps;
+    for (const auto &item : fmisid_timesteps)
+    {
+      const auto &timesteps = item.second;
+      all_valid_timesteps.insert(timesteps.begin(), timesteps.end());
+    }
+
+    for (unsigned int i = 0; i < resultVector->size(); i++)
+    {
+      auto &ts = resultVector->at(i);
+
+      TS::TimeSeries new_ts = fillTimeSeriesGaps(
+          ts, all_valid_timesteps, continuous, i, stationtype, fmisid_to_station, settings);
+
+      timeSeriesColumns->at(i).insert(timeSeriesColumns->at(i).end(), new_ts.begin(), new_ts.end());
+      ts.clear();
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Building query mapping failed!");
+  }
+}
+
+// Extract station data processing
+void processStationData(TS::TimeSeriesVectorPtr resultVector,
+                        const StationTimedMeasurandData &station_data,
+                        const std::map<int, std::set<Fmi::LocalDateTime>> &fmisid_timesteps,
+                        const StationMap &fmisid_to_station,
+                        const QueryMapping &qmap,
+                        const std::string &stationtype,
+                        const Settings &settings,
+                        const ParameterMapPtr &parameterMap,
+                        const SpecialFieldFlags &specialFieldFlags)
+{
+  try
+  {
+    for (const auto &item : station_data)
+    {
+      int fmisid = item.first;
+      const TimedMeasurandData &timed_measurand_data = item.second;
+      const auto &valid_timesteps = fmisid_timesteps.at(fmisid);
+
+      if (fmisid_to_station.find(fmisid) == fmisid_to_station.end())
+        continue;
+
+      const auto &station = fmisid_to_station.at(fmisid);
+
+      processStationTimedData(resultVector,
+                              timed_measurand_data,
+                              valid_timesteps,
+                              fmisid,
+                              qmap,
+                              stationtype,
+                              station,
+                              settings,
+                              parameterMap);
+
+      addSpecialFieldsIfNeeded(
+          resultVector, fmisid, timed_measurand_data, valid_timesteps, qmap, specialFieldFlags);
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Building query mapping failed!");
+  }
+}
+
 }  // namespace
+
+// Extract timestep resolution logic
+std::map<int, std::set<Fmi::LocalDateTime>> DBQueryUtils::resolveTimestepsForStations(
+    const Settings &settings,
+    const StationTimedMeasurandData &station_data,
+    const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const Fmi::TimeZones &timezones) const
+{
+  try
+  {
+    std::map<int, std::set<Fmi::LocalDateTime>> fmisid_timesteps;
+
+    if (timeSeriesOptions.all() && !settings.wantedtime)
+      return getAllTimestepsFromData(station_data);
+
+    if (settings.wantedtime)
+      return getWantedTimesteps(station_data, settings);
+
+    if (!timeSeriesOptions.all() && !settings.wantedtime &&
+        itsGetRequestedAndDataTimesteps == AdditionalTimestepOption::RequestedAndDataTimesteps)
+      return getDataAndRequestedTimesteps(station_data, timeSeriesOptions, timezones, settings);
+
+    return getListedTimesteps(station_data, timeSeriesOptions, timezones, settings);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Building query mapping failed!");
+  }
+}
 
 QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
                                              const std::string &stationtype,
@@ -732,36 +1177,6 @@ StationTimedMeasurandData DBQueryUtils::buildStationTimedMeasurandData(
   return ret;
 }
 
-Fmi::LocalDateTime find_wanted_time(const TimedMeasurandData &timed_measurand_data,
-                                    const Settings &settings)
-{
-  if (timed_measurand_data.size() == 1)  // speed optimization if there is only one choice
-    return timed_measurand_data.begin()->first;
-
-  if (*settings.wantedtime <= settings.starttime)  // earliest time
-    return timed_measurand_data.begin()->first;
-
-  if (*settings.wantedtime >= settings.endtime)  // latest time
-    return timed_measurand_data.rbegin()->first;
-
-  // Look for the closest time
-
-  auto best_time = timed_measurand_data.begin()->first;
-  auto best_diff = std::abs((best_time.utc_time() - *settings.wantedtime).total_seconds());
-
-  for (const auto &tmp : timed_measurand_data)
-  {
-    auto diff = std::abs((tmp.first.utc_time() - *settings.wantedtime).total_seconds());
-    if (diff < best_diff)
-    {
-      best_diff = diff;
-      best_time = tmp.first;
-    }
-  }
-
-  return best_time;
-}
-
 TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
     const Settings &settings,
     const std::string &stationtype,
@@ -773,208 +1188,35 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
 {
   try
   {
-    // Resolve timesteps for each fmisid
-    std::map<int, std::set<Fmi::LocalDateTime>> fmisid_timesteps;
-    if (timeSeriesOptions.all() && !settings.wantedtime)
-    {
-      // std::cout << "**** ALL timesteps in data \n";
-      // All timesteps
-      for (const auto &item : station_data)
-      {
-        int fmisid = item.first;
-        const auto &timed_measurand_data = item.second;
-        for (const auto &item2 : timed_measurand_data)
-        {
-          fmisid_timesteps[fmisid].insert(item2.first);
-        }
-      }
-    }
-    else if (settings.wantedtime)
-    {
-      // std::cout << "**** WANTED timestep\n";
+    auto fmisid_timesteps =
+        resolveTimestepsForStations(settings, station_data, timeSeriesOptions, timezones);
 
-      for (const auto &item : station_data)
-      {
-        int fmisid = item.first;
-        const auto &timed_measurand_data = item.second;
-        auto obstime = find_wanted_time(timed_measurand_data, settings);
-        fmisid_timesteps[fmisid].insert(obstime);
-      }
-    }
-    else if (!timeSeriesOptions.all() && !settings.wantedtime &&
-             itsGetRequestedAndDataTimesteps == AdditionalTimestepOption::RequestedAndDataTimesteps)
-    {
-      // std::cout << "**** ALL timesteps in data + listed timesteps\n";
-      // All FMISDS must have all timesteps in data and all listed timesteps
-      std::set<int> fmisids;
-      std::set<Fmi::LocalDateTime> timesteps;
-      for (const auto &item : station_data)
-      {
-        fmisids.insert(item.first);
-        const auto &timed_measurand_data = item.second;
-        for (const auto &item2 : timed_measurand_data)
-        {
-          timesteps.insert(item2.first);
-        }
-      }
-      const auto tlist = TS::TimeSeriesGenerator::generate(
-          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
-      timesteps.insert(tlist.begin(), tlist.end());
-
-      for (const auto &fmisid : fmisids)
-        fmisid_timesteps[fmisid].insert(timesteps.begin(), timesteps.end());
-    }
-    else
-    {
-      // std::cout << "**** LISTED timesteps\n";
-      // Listed timesteps
-      const auto tlist = TS::TimeSeriesGenerator::generate(
-          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
-      for (const auto &item : station_data)
-        fmisid_timesteps[item.first].insert(tlist.begin(), tlist.end());
-    }
-
-    // std::cout << "station_data:\n" << station_data << std::endl;
-
-    TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
-
-    bool addDataQualityField = false;
-    bool addDataSourceField = false;
-
-    for (auto const &item : qmap.specialPositions)
-    {
-      if (isDataSourceField(item.first))
-        addDataSourceField = true;
-      if (isDataQualityField(item.first))
-        addDataQualityField = true;
-    }
-
-    std::map<int, std::string> continuous;
-
-    for (const auto &item : qmap.specialPositions)
-    {
-      if (SpecialParameters::instance().is_supported(item.first))
-        continuous.emplace(item.second, item.first);
-    }
+    auto specialFieldFlags = determineSpecialFields(qmap);
+    auto continuous = buildContinuousParameterMap(qmap);
 
     TS::TimeSeriesVectorPtr resultVector = initializeResultVector(settings);
-    for (const auto &item : station_data)
-    {
-      int fmisid = item.first;
+    TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
-      const auto &timed_measurand_data = item.second;
-      const auto &valid_timesteps = fmisid_timesteps.at(fmisid);
+    processStationData(resultVector,
+                       station_data,
+                       fmisid_timesteps,
+                       fmisid_to_station,
+                       qmap,
+                       stationtype,
+                       settings,
+                       itsParameterMap,
+                       specialFieldFlags);
 
-      if (fmisid_to_station.find(fmisid) == fmisid_to_station.end())
-      {
-        //		       std::cout << "Station not found for " << fmisid << std::endl;
-        continue;
-      }
+    if (resultVector->empty() || resultVector->at(0).empty())
+      return timeSeriesColumns;
 
-      const auto &station = fmisid_to_station.at(fmisid);
-
-      for (const auto &data : timed_measurand_data)
-      {
-        if (valid_timesteps.find(data.first) == valid_timesteps.end())
-        {
-          //				  std::cout << "Invalid timestep " << data.first << " for
-          // station
-          //"
-          //<< fmisid  << std::endl;
-          continue;
-        }
-
-        addParameterToTimeSeries(resultVector,
-                                 data,
-                                 fmisid,
-                                 qmap.specialPositions,
-                                 qmap.parameterNameIdMap,
-                                 qmap.timeseriesPositionsString,
-                                 stationtype,
-                                 station,
-                                 settings,
-                                 itsParameterMap);
-      }
-
-      if (addDataSourceField)
-        addSpecialFieldsToTimeSeries(resultVector,
-                                     fmisid,
-                                     timed_measurand_data,
-                                     valid_timesteps,
-                                     qmap.specialPositions,
-                                     qmap.parameterNameMap,
-                                     true);
-      if (addDataQualityField)
-        addSpecialFieldsToTimeSeries(resultVector,
-                                     fmisid,
-                                     timed_measurand_data,
-                                     valid_timesteps,
-                                     qmap.specialPositions,
-                                     qmap.parameterNameMap,
-                                     false);
-
-      // If no results found return from here
-      if (resultVector->empty() || resultVector->at(0).empty())
-        return timeSeriesColumns;
-
-      // All possible missing timesteps
-      for (unsigned int i = 0; i < resultVector->size(); i++)
-      {
-        auto &ts = resultVector->at(i);
-
-        TS::Value missing_value = TS::None();
-
-        TS::TimeSeries new_ts;
-        auto timestep_iter = valid_timesteps.cbegin();
-
-        // TODO: This is rather ugly and perhaps not very efficient.
-        //       Perhaps could be optimized sometimes
-        const auto fill_missing = [&]() -> void
-        {
-          auto it = continuous.find(i);
-          if (it != continuous.end())
-          {
-            Fmi::LocalDateTime now(Fmi::SecondClock::universal_time(), timestep_iter->zone());
-            SpecialParameters::Args args(
-                station, stationtype, *timestep_iter, now, settings.timezone, &settings);
-            auto value = SpecialParameters::instance().getTimedValue(it->second, args);
-            new_ts.emplace_back(value);
-          }
-          else
-          {
-            new_ts.emplace_back(TS::TimedValue(*timestep_iter, missing_value));
-          }
-        };
-
-        for (auto &timed_value : ts)
-        {
-          while (timestep_iter != valid_timesteps.cend() && *timestep_iter < timed_value.time)
-          {
-            fill_missing();
-            timestep_iter++;
-          }
-          new_ts.push_back(timed_value);
-          timestep_iter++;
-        }
-
-        if (timestep_iter != valid_timesteps.cend() &&
-            (!new_ts.empty() && *timestep_iter == new_ts.back().time))
-          timestep_iter++;
-
-        while (timestep_iter != valid_timesteps.cend())
-        {
-          fill_missing();
-          timestep_iter++;
-        }
-        /*
-        ts = new_ts;
-        timeSeriesColumns->at(i).insert(timeSeriesColumns->at(i).end(), ts.begin(), ts.end());
-        */
-        timeSeriesColumns->at(i).insert(
-            timeSeriesColumns->at(i).end(), new_ts.begin(), new_ts.end());
-        ts.clear();
-      }
-    }
+    fillMissingTimesteps(resultVector,
+                         timeSeriesColumns,
+                         fmisid_timesteps,
+                         continuous,
+                         stationtype,
+                         fmisid_to_station,
+                         settings);
 
     return timeSeriesColumns;
   }
@@ -990,100 +1232,108 @@ TimestepsByFMISID DBQueryUtils::getValidTimeSteps(
     const Fmi::TimeZones &timezones,
     std::map<int, TS::TimeSeriesVectorPtr> &fmisid_results) const
 {
-  // Resolve timesteps for each fmisid
-  std::map<int, std::set<Fmi::LocalDateTime>> fmisid_timesteps;
-
-  if (timeSeriesOptions.all() && !settings.wantedtime)
+  try
   {
-    // std::cout << "**** ALL timesteps in data \n";
-    // All timesteps
-    for (const auto &item : fmisid_results)
-    {
-      int fmisid = item.first;
-      const auto &ts_vector = *item.second;
-      for (const auto &item2 : ts_vector)
-        for (const auto &item3 : item2)
-        {
-          fmisid_timesteps[fmisid].insert(item3.time);
-        }
-    }
-  }
-  else if (settings.wantedtime)
-  {
-    // std::cout << "**** WANTED timestep\n";
+    // Resolve timesteps for each fmisid
+    std::map<int, std::set<Fmi::LocalDateTime>> fmisid_timesteps;
 
-    for (const auto &item : fmisid_results)
+    if (timeSeriesOptions.all() && !settings.wantedtime)
     {
-      int fmisid = item.first;
-      const auto &ts_vector = *item.second;
-      for (const auto &item2 : ts_vector)
+      // std::cout << "**** ALL timesteps in data \n";
+      // All timesteps
+      for (const auto &item : fmisid_results)
       {
-        if (item2.size() == 1 ||
-            *settings.wantedtime <= settings.starttime)  // quick select for earliest time
-          fmisid_timesteps[fmisid].insert(item2.front().time);
-        else if (*settings.wantedtime >= settings.endtime)  // quick select for latest time
-          fmisid_timesteps[fmisid].insert(item2.back().time);
-        else
-        {
-          // Find closest time
-          auto best_time = item2.front().time;
-          auto best_diff = std::abs((*settings.wantedtime - best_time.utc_time()).total_seconds());
+        int fmisid = item.first;
+        const auto &ts_vector = *item.second;
+        for (const auto &item2 : ts_vector)
           for (const auto &item3 : item2)
           {
-            auto diff = std::abs((*settings.wantedtime - item3.time.utc_time()).total_seconds());
-            if (diff < best_diff)
-            {
-              best_diff = diff;
-              best_time = item3.time;
-            }
+            fmisid_timesteps[fmisid].insert(item3.time);
           }
-          fmisid_timesteps[fmisid].insert(best_time);
+      }
+    }
+    else if (settings.wantedtime)
+    {
+      // std::cout << "**** WANTED timestep\n";
+
+      for (const auto &item : fmisid_results)
+      {
+        int fmisid = item.first;
+        const auto &ts_vector = *item.second;
+        for (const auto &item2 : ts_vector)
+        {
+          if (item2.size() == 1 ||
+              *settings.wantedtime <= settings.starttime)  // quick select for earliest time
+            fmisid_timesteps[fmisid].insert(item2.front().time);
+          else if (*settings.wantedtime >= settings.endtime)  // quick select for latest time
+            fmisid_timesteps[fmisid].insert(item2.back().time);
+          else
+          {
+            // Find closest time
+            auto best_time = item2.front().time;
+            auto best_diff =
+                std::abs((*settings.wantedtime - best_time.utc_time()).total_seconds());
+            for (const auto &item3 : item2)
+            {
+              auto diff = std::abs((*settings.wantedtime - item3.time.utc_time()).total_seconds());
+              if (diff < best_diff)
+              {
+                best_diff = diff;
+                best_time = item3.time;
+              }
+            }
+            fmisid_timesteps[fmisid].insert(best_time);
+          }
         }
       }
     }
-  }
-  else if (!timeSeriesOptions.all() && !settings.wantedtime &&
-           itsGetRequestedAndDataTimesteps == AdditionalTimestepOption::RequestedAndDataTimesteps)
-  {
-    // std::cout << "**** ALL timesteps in data + listed timesteps\n";
-    // All FMISDS must have all timesteps in data and all listed timesteps
-    std::set<int> fmisids;
-    std::set<Fmi::LocalDateTime> timesteps;
-    for (const auto &item : fmisid_results)
+    else if (!timeSeriesOptions.all() && !settings.wantedtime &&
+             itsGetRequestedAndDataTimesteps == AdditionalTimestepOption::RequestedAndDataTimesteps)
     {
-      int fmisid = item.first;
-      fmisids.insert(fmisid);
-      const auto &ts_vector = *item.second;
-      for (const auto &item2 : ts_vector)
-        for (const auto &item3 : item2)
-        {
-          timesteps.insert(item3.time);
-        }
+      // std::cout << "**** ALL timesteps in data + listed timesteps\n";
+      // All FMISDS must have all timesteps in data and all listed timesteps
+      std::set<int> fmisids;
+      std::set<Fmi::LocalDateTime> timesteps;
+      for (const auto &item : fmisid_results)
+      {
+        int fmisid = item.first;
+        fmisids.insert(fmisid);
+        const auto &ts_vector = *item.second;
+        for (const auto &item2 : ts_vector)
+          for (const auto &item3 : item2)
+          {
+            timesteps.insert(item3.time);
+          }
+      }
+
+      const auto tlist = TS::TimeSeriesGenerator::generate(
+          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+
+      timesteps.insert(tlist.begin(), tlist.end());
+
+      for (const auto &fmisid : fmisids)
+        fmisid_timesteps[fmisid].insert(timesteps.begin(), timesteps.end());
+    }
+    else
+    {
+      //	  std::cout << "**** LISTED timesteps\n";
+      // Listed timesteps
+      const auto tlist = TS::TimeSeriesGenerator::generate(
+          timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+
+      for (const auto &item : fmisid_results)
+      {
+        int fmisid = item.first;
+        fmisid_timesteps[fmisid].insert(tlist.begin(), tlist.end());
+      }
     }
 
-    const auto tlist = TS::TimeSeriesGenerator::generate(
-        timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
-
-    timesteps.insert(tlist.begin(), tlist.end());
-
-    for (const auto &fmisid : fmisids)
-      fmisid_timesteps[fmisid].insert(timesteps.begin(), timesteps.end());
+    return fmisid_timesteps;
   }
-  else
+  catch (...)
   {
-    //	  std::cout << "**** LISTED timesteps\n";
-    // Listed timesteps
-    const auto tlist = TS::TimeSeriesGenerator::generate(
-        timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
-
-    for (const auto &item : fmisid_results)
-    {
-      int fmisid = item.first;
-      fmisid_timesteps[fmisid].insert(tlist.begin(), tlist.end());
-    }
+    throw Fmi::Exception::Trace(BCP, "Building query mapping failed!");
   }
-
-  return fmisid_timesteps;
 }
 
 void DBQueryUtils::setAdditionalTimestepOption(AdditionalTimestepOption opt)
