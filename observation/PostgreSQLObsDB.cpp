@@ -171,7 +171,7 @@ void PostgreSQLObsDB::readMovingStationsCacheDataFromPostgreSQL(
   }
 }
 
-void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
+void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems &cacheData,
                                                   const std::string &sqlStmt,
                                                   const Fmi::TimeZones & /* timezones */)
 {
@@ -207,7 +207,7 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
   }
 }
 
-void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
+void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems &cacheData,
                                                   const Fmi::TimePeriod &dataPeriod,
                                                   const std::string &fmisid,
                                                   const std::string &measurandId,
@@ -237,7 +237,7 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheDa
   }
 }
 
-void PostgreSQLObsDB::readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
+void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems &cacheData,
                                                   const Fmi::DateTime & /* startTime */,
                                                   const Fmi::DateTime &lastModifiedTime,
                                                   const Fmi::TimeZones &timezones)

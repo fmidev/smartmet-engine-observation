@@ -58,7 +58,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
                                          Fmi::DateTime lastTime,
                                          Fmi::DateTime lastCreatedTime,
                                          const Fmi::TimeZones &timezones);
-  void readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
+  void readCacheDataFromPostgreSQL(DataItems &cacheData,
                                    const Fmi::TimePeriod &dataPeriod,
                                    const std::string &fmisid,
                                    const std::string &measurandId,
@@ -75,7 +75,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
                                                  const Fmi::DateTime &startTime,
                                                  const Fmi::DateTime &lastModifiedTime,
                                                  const Fmi::TimeZones &timezones);
-  void readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
+  void readCacheDataFromPostgreSQL(DataItems &cacheData,
                                    const Fmi::DateTime &startTime,
                                    const Fmi::DateTime &lastModifiedTime,
                                    const Fmi::TimeZones &timezones);
@@ -132,7 +132,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
  private:
   TS::TimeSeriesVectorPtr itsTimeSeriesColumns;
 
-  void readCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
+  void readCacheDataFromPostgreSQL(DataItems &cacheData,
                                    const std::string &sqlStmt,
                                    const Fmi::TimeZones &timezones);
   void readWeatherDataQCCacheDataFromPostgreSQL(std::vector<WeatherDataQCItem> &cacheData,

@@ -22,7 +22,7 @@ class ObservationCacheAdminBase
   ObservationCacheAdminBase& operator=(const ObservationCacheAdminBase& other) = delete;
   ObservationCacheAdminBase& operator=(ObservationCacheAdminBase&& other) = delete;
 
-  virtual void readObservationCacheData(std::vector<DataItem>& cacheData,
+  virtual void readObservationCacheData(DataItems& cacheData,
                                         const Fmi::TimePeriod& dataPeriod,
                                         const std::string& fmisid,
                                         const std::string& measuradId,
@@ -39,7 +39,7 @@ class ObservationCacheAdminBase
                                            const Fmi::DateTime& startTime,
                                            const Fmi::DateTime& lastModifiedTime,
                                            const Fmi::TimeZones& timezones) const = 0;
-  virtual void readObservationCacheData(std::vector<DataItem>& cacheData,
+  virtual void readObservationCacheData(DataItems& cacheData,
                                         const Fmi::DateTime& startTime,
                                         const Fmi::DateTime& lastModifiedTime,
                                         const Fmi::TimeZones& timezones) const = 0;

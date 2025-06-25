@@ -22,7 +22,7 @@ ObservationCacheAdminPostgreSQL::ObservationCacheAdminPostgreSQL(
 }
 
 void ObservationCacheAdminPostgreSQL::readObservationCacheData(
-    std::vector<DataItem>& cacheData,
+    DataItems& cacheData,
     const Fmi::TimePeriod& dataPeriod,
     const std::string& fmisid,
     const std::string& measurandId,
@@ -65,7 +65,7 @@ void ObservationCacheAdminPostgreSQL::readMovingStationsCacheData(
 }
 
 void ObservationCacheAdminPostgreSQL::readObservationCacheData(
-    std::vector<DataItem>& cacheData,
+    DataItems& cacheData,
     const Fmi::DateTime& startTime,
     const Fmi::DateTime& lastModifiedTime,
     const Fmi::TimeZones& /* timezones */) const
