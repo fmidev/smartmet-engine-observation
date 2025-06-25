@@ -50,7 +50,7 @@ class DummyCache : public ObservationCache
 
   Fmi::DateTime getLatestWeatherDataQCTime() const override;
   Fmi::DateTime getLatestWeatherDataQCModifiedTime() const override;
-  std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const override;
+  std::size_t fillWeatherDataQCCache(const DataItems &cacheData) const override;
   void cleanWeatherDataQCCache(const Fmi::TimeDuration &timetokeep) const override;
 
   bool roadCloudIntervalIsCached(const Fmi::DateTime &starttime,

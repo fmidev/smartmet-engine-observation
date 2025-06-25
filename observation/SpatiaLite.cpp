@@ -1883,7 +1883,7 @@ std::size_t SpatiaLite::fillMovingLocationsCache(const MovingLocationItems &cach
   }
 }
 
-std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData,
+std::size_t SpatiaLite::fillWeatherDataQCCache(const DataItems &cacheData,
                                                InsertStatus &insertStatus)
 {
   try
@@ -1936,13 +1936,12 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
         for (std::size_t i = 0; i < insert_size; i++)
         {
           const auto &obs = cacheData[new_items[i]];
-          data_times.emplace_back(to_epoch(obs.obstime));
+          data_times.emplace_back(to_epoch(obs.data_time));
           if (item.modified_last.is_not_a_date_time())
             modified_last_times.push_back(0);
           else
             modified_last_times.emplace_back(to_epoch(obs.modified_last));
-          parameter_ids.emplace_back(
-              itsParameterMap->getRoadAndForeignIds().stringToInteger(obs.parameter));
+          parameter_ids.push_back(obs.measurand_id);
         }
 
         {
@@ -1959,11 +1958,11 @@ std::size_t SpatiaLite::fillWeatherDataQCCache(const WeatherDataQCItems &cacheDa
             cmd.bind(":obstime", data_times[i]);
             cmd.bind(":parameter", parameter_ids[i]);
             cmd.bind(":sensor_no", data.sensor_no);
-            if (data.value)
-              cmd.bind(":value", *data.value);
+            if (data.data_value)
+              cmd.bind(":value", *data.data_value);
             else
               cmd.bind(":value");  // NULL
-            cmd.bind(":flag", data.flag);
+            cmd.bind(":flag", data.data_quality);
             cmd.bind(":modified_last", modified_last_times[i]);
             cmd.execute();
             // Must reset, previous values cannot be replaced
@@ -3667,11 +3666,11 @@ void SpatiaLite::initObservationMemoryCache(
   }
 }
 
-void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
+void SpatiaLite::fetchLocationDataItems(const std::string &sqlStmt,
                                         const StationInfo &stationInfo,
                                         const std::set<std::string> &stationgroup_codes,
                                         const TS::RequestLimits &requestLimits,
-                                        WeatherDataQCData &cacheData)
+                                        LocationDataItems &cacheData)
 {
   try
   {
@@ -3699,16 +3698,11 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
       std::optional<int> sensor_no = row.get<int>(4);
       std::optional<int> data_quality = row.get<int>(5);
 
-      cacheData.fmisidsAll.push_back(fmisid);
-      cacheData.obstimesAll.push_back(obstime);
-      cacheData.latitudesAll.push_back(latitude);
-      cacheData.longitudesAll.push_back(longitude);
-      cacheData.elevationsAll.push_back(elevation);
-      cacheData.stationtypesAll.push_back(stationtype);
-      cacheData.parametersAll.emplace_back(parameter);
-      cacheData.data_valuesAll.push_back(data_value);
-      cacheData.sensor_nosAll.push_back(sensor_no);
-      cacheData.data_qualityAll.push_back(data_quality);
+      DataItem item{
+          obstime, obstime, data_value, *fmisid, *sensor_no, parameter, 0, 0, *data_quality, -1};
+      LocationDataItem loc_item{
+          item, *longitude, *latitude, *elevation, stationtype ? *stationtype : "TODO"};
+      cacheData.push_back(loc_item);
 
       if (fmisid)
         fmisids.insert(*fmisid);
@@ -3716,18 +3710,17 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
 
       check_request_limit(requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
       check_request_limit(requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
-      check_request_limit(
-          requestLimits, cacheData.data_valuesAll.size(), TS::RequestLimitMember::ELEMENTS);
+      check_request_limit(requestLimits, cacheData.size(), TS::RequestLimitMember::ELEMENTS);
     }
   }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP,
-                                "Fetching data from SpatiaLite WeatherDataQCData cache failed!");
+                                "Fetching data from SpatiaLite LocationDataItems cache failed!");
   }
 }
 
-std::string SpatiaLite::sqlSelectFromWeatherDataQCData(const Settings &settings,
+std::string SpatiaLite::sqlSelectFromLocationDataItems(const Settings &settings,
                                                        const std::string &params,
                                                        const std::string &station_ids) const
 {

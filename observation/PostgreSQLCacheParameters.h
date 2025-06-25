@@ -6,7 +6,7 @@
 #include "MovingLocationItem.h"
 #include "Settings.h"
 #include "Utils.h"
-#include "WeatherDataQCItem.h"
+#include "DataItem.h"
 #include <macgyver/PostgreSQLConnection.h>
 #include <spine/Station.h>
 #include <timeseries/TimeSeriesInclude.h>

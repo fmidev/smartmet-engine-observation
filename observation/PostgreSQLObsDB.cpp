@@ -428,7 +428,7 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem
 }
 
 void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
-    std::vector<WeatherDataQCItem> &cacheData,
+    std::vector<DataItem> &cacheData,
     const std::string &sqlStmt,
     const Fmi::TimeZones & /* timezones */)
 {
@@ -443,15 +443,16 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
       {
         Fmi::AsyncTask::interruption_point();
       }
-      WeatherDataQCItem item;
+      DataItem item;
 
       item.fmisid = as_int(row[0]);
-      item.obstime = Fmi::date_time::from_time_t(row[1].as<time_t>());
-      item.parameter = row[2].as<std::string>();
+      item.data_time = Fmi::date_time::from_time_t(row[1].as<time_t>());
+      auto param = row[2].as<std::string>();
+      item.measurand_id = itsParameterMap->getRoadAndForeignIds().stringToInteger(param);
       item.sensor_no = as_int(row[3]);
       if (!row[4].is_null())
-        item.value = as_double(row[4]);
-      item.flag = as_int(row[5]);
+        item.data_value = as_double(row[4]);
+      item.data_quality = as_int(row[5]);
       item.modified_last = Fmi::date_time::from_time_t(row[6].as<time_t>());
 
       cacheData.emplace_back(item);
@@ -463,12 +464,11 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
   }
 }
 
-void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
-    std::vector<WeatherDataQCItem> &cacheData,
-    const Fmi::TimePeriod &dataPeriod,
-    const std::string &fmisid,
-    const std::string &measurandId,
-    const Fmi::TimeZones &timezones)
+void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
+                                                               const Fmi::TimePeriod &dataPeriod,
+                                                               const std::string &fmisid,
+                                                               const std::string &measurandId,
+                                                               const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -493,11 +493,10 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
   }
 }
 
-void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
-    std::vector<WeatherDataQCItem> &cacheData,
-    Fmi::DateTime lastTime,
-    Fmi::DateTime lastModifiedTime,
-    const Fmi::TimeZones &timezones)
+void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
+                                                               Fmi::DateTime lastTime,
+                                                               Fmi::DateTime lastModifiedTime,
+                                                               const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -640,11 +639,11 @@ void PostgreSQLObsDB::setTimeInterval(const Fmi::DateTime &theStartTime,
   }
 }
 
-void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
+void PostgreSQLObsDB::fetchLocationDataItems(const std::string &sqlStmt,
                                              const StationInfo &stationInfo,
                                              const std::set<std::string> &stationgroup_codes,
                                              const TS::RequestLimits &requestLimits,
-                                             WeatherDataQCData &cacheData)
+                                             LocationDataItems &cacheData)
 {
   try
   {
@@ -678,16 +677,19 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       if (!row[5].is_null())
         data_quality = as_int(row[5]);
 
-      cacheData.fmisidsAll.push_back(fmisid);
-      cacheData.obstimesAll.push_back(obstime);
-      cacheData.latitudesAll.push_back(latitude);
-      cacheData.longitudesAll.push_back(longitude);
-      cacheData.elevationsAll.push_back(elevation);
-      cacheData.stationtypesAll.push_back(stationtype);
-      cacheData.parametersAll.push_back(int_parameter);
-      cacheData.data_valuesAll.push_back(data_value);
-      cacheData.sensor_nosAll.push_back(sensor_no);
-      cacheData.data_qualityAll.push_back(data_quality);
+      DataItem item{obstime,
+                    obstime,
+                    data_value,
+                    *fmisid,
+                    *sensor_no,
+                    int_parameter,
+                    0,
+                    0,
+                    *data_quality,
+                    -1};
+      LocationDataItem loc_item{
+          item, *longitude, *latitude, *elevation, stationtype ? *stationtype : "TODO"};
+      cacheData.push_back(loc_item);
 
       if (fmisid)
         fmisids.insert(*fmisid);
@@ -695,18 +697,17 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
 
       check_request_limit(requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
       check_request_limit(requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
-      check_request_limit(
-          requestLimits, cacheData.data_valuesAll.size(), TS::RequestLimitMember::ELEMENTS);
+      check_request_limit(requestLimits, cacheData.size(), TS::RequestLimitMember::ELEMENTS);
     }
   }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP,
-                                "Fetching data from PostgreSQL WeatherDataQCData cache failed!");
+                                "Fetching data from PostgreSQL LocationDataItems cache failed!");
   }
 }
 
-std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(const Settings &settings,
+std::string PostgreSQLObsDB::sqlSelectFromLocationDataItems(const Settings &settings,
                                                             const std::string &params,
                                                             const std::string &station_ids) const
 {

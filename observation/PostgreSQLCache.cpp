@@ -164,7 +164,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
         ++itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hits;
-        ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
+        ret = db->getLocationDataItems(stations, settings, *sinfo, itsTimeZones);
       }
       else
       {
@@ -222,7 +222,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
         ++itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hits;
-        ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
+        ret = db->getLocationDataItems(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
       else
       {
@@ -627,7 +627,7 @@ Fmi::DateTime PostgreSQLCache::getLatestWeatherDataQCModifiedTime() const
   return itsConnectionPool->getConnection()->getLatestWeatherDataQCModifiedTime();
 }
 
-std::size_t PostgreSQLCache::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const
+std::size_t PostgreSQLCache::fillWeatherDataQCCache(const DataItems &cacheData) const
 {
   try
   {

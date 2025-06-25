@@ -996,7 +996,7 @@ std::size_t PostgreSQLCacheDB::fillMovingLocationsCache(const MovingLocationItem
   }
 }
 
-std::size_t PostgreSQLCacheDB::fillWeatherDataQCCache(const WeatherDataQCItems &cacheData)
+std::size_t PostgreSQLCacheDB::fillWeatherDataQCCache(const DataItems &cacheData)
 {
   try
   {
@@ -1053,9 +1053,9 @@ std::size_t PostgreSQLCacheDB::fillWeatherDataQCCache(const WeatherDataQCItems &
           {
             const auto &item = cacheData[i];
             // obstime, fmisid, parameter, sensor_no
-            std::string key = Fmi::to_iso_string(item.obstime);
+            std::string key = Fmi::to_iso_string(item.data_time);
             key += Fmi::to_string(item.fmisid);
-            key += item.parameter;
+            key += Fmi::to_string(item.measurand_id);
             key += Fmi::to_string(item.sensor_no);
             if (key_set.find(key) != key_set.end())
             {
@@ -1066,16 +1066,14 @@ std::size_t PostgreSQLCacheDB::fillWeatherDataQCCache(const WeatherDataQCItems &
               key_set.insert(key);
               std::string values = "(";
               values += Fmi::to_string(item.fmisid) + ",";
-              values += ("'" + Fmi::to_iso_string(item.obstime) + "',");
-              values += (Fmi::to_string(itsParameterMap->getRoadAndForeignIds().stringToInteger(
-                             item.parameter)) +
-                         ",");
+              values += ("'" + Fmi::to_iso_string(item.data_time) + "',");
+              values += Fmi::to_string(item.measurand_id) + ",";
               values += Fmi::to_string(item.sensor_no) + ",";
-              if (item.value)
-                values += Fmi::to_string(*item.value) + ",";
+              if (item.data_value)
+                values += Fmi::to_string(*item.data_value) + ",";
               else
                 values += "NULL,";
-              values += Fmi::to_string(item.flag) + ")";
+              values += Fmi::to_string(item.data_quality) + ")";
               values_vector.push_back(values);
             }
 
@@ -2178,11 +2176,11 @@ ResultSetRows PostgreSQLCacheDB::getResultSetForMobileExternalData(
   return ret;
 }
 
-void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
+void PostgreSQLCacheDB::fetchLocationDataItems(const std::string &sqlStmt,
                                                const StationInfo &stationInfo,
                                                const std::set<std::string> &stationgroup_codes,
                                                const TS::RequestLimits &requestLimits,
-                                               WeatherDataQCData &cacheData)
+                                               LocationDataItems &cacheData)
 {
   try
   {
@@ -2214,16 +2212,11 @@ void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       if (!row[5].is_null())
         data_quality = as_int(row[5]);
 
-      cacheData.fmisidsAll.push_back(fmisid);
-      cacheData.obstimesAll.push_back(obstime);
-      cacheData.latitudesAll.push_back(latitude);
-      cacheData.longitudesAll.push_back(longitude);
-      cacheData.elevationsAll.push_back(elevation);
-      cacheData.stationtypesAll.push_back(stationtype);
-      cacheData.parametersAll.push_back(parameter);
-      cacheData.data_valuesAll.push_back(data_value);
-      cacheData.sensor_nosAll.push_back(sensor_no);
-      cacheData.data_qualityAll.push_back(data_quality);
+      DataItem item{
+          obstime, obstime, data_value, *fmisid, *sensor_no, *parameter, 0, 0, *data_quality, -1};
+      LocationDataItem loc_item{
+          item, *longitude, *latitude, *elevation, stationtype ? *stationtype : "TODO"};
+      cacheData.push_back(loc_item);
 
       if (fmisid)
         fmisids.insert(*fmisid);
@@ -2231,18 +2224,17 @@ void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
 
       check_request_limit(requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
       check_request_limit(requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
-      check_request_limit(
-          requestLimits, cacheData.data_valuesAll.size(), TS::RequestLimitMember::ELEMENTS);
+      check_request_limit(requestLimits, cacheData.size(), TS::RequestLimitMember::ELEMENTS);
     }
   }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP,
-                                "Fetching data from PostgreSQL WeatherDataQCData cache failed!");
+                                "Fetching data from PostgreSQL LocationDataItems cache failed!");
   }
 }
 
-std::string PostgreSQLCacheDB::sqlSelectFromWeatherDataQCData(const Settings &settings,
+std::string PostgreSQLCacheDB::sqlSelectFromLocationDataItems(const Settings &settings,
                                                               const std::string &params,
                                                               const std::string &station_ids) const
 {

@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.6.16
+Version: 25.6.25
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -159,8 +159,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jun 25 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.25-1.fmi
+- Increased use of numeric instead of text parameter IDs for weather_data_qc
+
 * Mon Jun 16 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.16-1.fmi
-- Fixed FLashMemoryCache update segfault possibility
+- Fixed FlashMemoryCache update segfault possibility
 
 * Fri Jun 13 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.13-2.fmi
 - Optimized FlashMemoryCache updates for speed

@@ -8,7 +8,7 @@
 #include "MobileExternalDataItem.h"
 #include "MovingLocationItem.h"
 #include "Utils.h"
-#include "WeatherDataQCItem.h"
+#include "DataItem.h"
 
 #ifdef __llvm__
 #pragma clang diagnostic push
@@ -150,7 +150,7 @@ class SpatiaLite : public CommonDatabaseFunctions
    *        which is used to store data from road and foreign stations
    * @param[in] cacheData Data from weather_data_qc.
    */
-  std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData,
+  std::size_t fillWeatherDataQCCache(const DataItems &cacheData,
                                      InsertStatus &insertStatus);
 
   /**
@@ -195,7 +195,7 @@ class SpatiaLite : public CommonDatabaseFunctions
   void cleanWeatherDataQCCache(const Fmi::DateTime &newstarttime);
 
   /*
-  TS::TimeSeriesVectorPtr getWeatherDataQCData(
+  TS::TimeSeriesVectorPtr getLocationDataItems(
       const Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
@@ -438,12 +438,12 @@ class SpatiaLite : public CommonDatabaseFunctions
 
   FlashDataItems readFlashCacheData(const Fmi::DateTime &starttime);
 
-  void fetchWeatherDataQCData(const std::string &sqlStmt,
+  void fetchLocationDataItems(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
                               const TS::RequestLimits &requestLimits,
-                              WeatherDataQCData &cacheData) override;
-  std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
+                              LocationDataItems &cacheData) override;
+  std::string sqlSelectFromLocationDataItems(const Settings &settings,
                                              const std::string &params,
                                              const std::string &station_ids) const override;
 
