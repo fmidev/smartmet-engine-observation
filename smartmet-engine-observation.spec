@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.6.16
+Version: 25.6.26
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -30,7 +30,7 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 25.2.18
 BuildRequires: smartmet-library-locus-devel >= 25.6.4
-BuildRequires: smartmet-library-macgyver-devel >= 25.5.30
+BuildRequires: smartmet-library-macgyver-devel >= 25.6.19
 BuildRequires: smartmet-library-spine-devel >= 25.5.13
 BuildRequires: smartmet-library-timeseries-devel >= 25.6.9
 BuildRequires: sqlite3pp-devel >= 1.0.9
@@ -47,7 +47,7 @@ Requires: gdal310-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 25.2.18
 Requires: smartmet-library-locus >= 25.6.4
-Requires: smartmet-library-macgyver >= 25.5.30
+Requires: smartmet-library-macgyver >= 25.6.19
 Requires: smartmet-library-spine >= 25.5.13
 Requires: smartmet-library-timeseries >= 25.6.9
 Requires: smartmet-server >= 25.5.13
@@ -159,8 +159,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Jun 26 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.26-1.fmi
+- Refactored time series generation for readability
+
 * Mon Jun 16 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.16-1.fmi
-- Fixed FLashMemoryCache update segfault possibility
+- Fixed FlashMemoryCache update segfault possibility
 
 * Fri Jun 13 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.13-2.fmi
 - Optimized FlashMemoryCache updates for speed
