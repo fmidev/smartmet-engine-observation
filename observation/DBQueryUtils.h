@@ -71,6 +71,12 @@ class DBQueryUtils
                                          const StationInfo &stationInfo,
                                          const TS::RequestLimits &requestLimits) const;
 
+  virtual std::map<int, std::set<Fmi::LocalDateTime>> resolveTimestepsForStations(
+      const Settings &settings,
+      const StationTimedMeasurandData &station_data,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Fmi::TimeZones &timezones) const;
+
   static std::string getSensorQueryCondition(
       const std::map<int, std::set<int>> &sensorNumberToMeasurandIds);
 
