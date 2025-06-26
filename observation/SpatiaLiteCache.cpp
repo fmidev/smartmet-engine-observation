@@ -213,7 +213,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
         hit(WEATHER_DATA_QC_TABLE);
-        ret = db->getLocationDataItems(stations, settings, *sinfo, itsTimeZones);
+        ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
       }
       else if (settings.stationtype == MAGNETO_PRODUCER &&
                magnetometerIntervalIsCached(settings.starttime, settings.endtime))
@@ -305,7 +305,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
         hit(WEATHER_DATA_QC_TABLE);
-        ret = db->getLocationDataItems(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
+        ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
       }
       else if (settings.stationtype == MAGNETO_PRODUCER &&
                magnetometerIntervalIsCached(settings.starttime, settings.endtime))

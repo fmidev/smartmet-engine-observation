@@ -2176,7 +2176,7 @@ ResultSetRows PostgreSQLCacheDB::getResultSetForMobileExternalData(
   return ret;
 }
 
-void PostgreSQLCacheDB::fetchLocationDataItems(const std::string &sqlStmt,
+void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
                                                const StationInfo &stationInfo,
                                                const std::set<std::string> &stationgroup_codes,
                                                const TS::RequestLimits &requestLimits,
@@ -2234,7 +2234,7 @@ void PostgreSQLCacheDB::fetchLocationDataItems(const std::string &sqlStmt,
   }
 }
 
-std::string PostgreSQLCacheDB::sqlSelectFromLocationDataItems(const Settings &settings,
+std::string PostgreSQLCacheDB::sqlSelectFromWeatherDataQCData(const Settings &settings,
                                                               const std::string &params,
                                                               const std::string &station_ids) const
 {

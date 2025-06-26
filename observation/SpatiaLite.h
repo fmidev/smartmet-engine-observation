@@ -195,7 +195,7 @@ class SpatiaLite : public CommonDatabaseFunctions
   void cleanWeatherDataQCCache(const Fmi::DateTime &newstarttime);
 
   /*
-  TS::TimeSeriesVectorPtr getLocationDataItems(
+  TS::TimeSeriesVectorPtr getWeatherDataQCData(
       const Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
@@ -438,12 +438,12 @@ class SpatiaLite : public CommonDatabaseFunctions
 
   FlashDataItems readFlashCacheData(const Fmi::DateTime &starttime);
 
-  void fetchLocationDataItems(const std::string &sqlStmt,
+  void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
                               const TS::RequestLimits &requestLimits,
                               LocationDataItems &cacheData) override;
-  std::string sqlSelectFromLocationDataItems(const Settings &settings,
+  std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,
                                              const std::string &station_ids) const override;
 

@@ -3666,7 +3666,7 @@ void SpatiaLite::initObservationMemoryCache(
   }
 }
 
-void SpatiaLite::fetchLocationDataItems(const std::string &sqlStmt,
+void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
                                         const StationInfo &stationInfo,
                                         const std::set<std::string> &stationgroup_codes,
                                         const TS::RequestLimits &requestLimits,
@@ -3720,7 +3720,7 @@ void SpatiaLite::fetchLocationDataItems(const std::string &sqlStmt,
   }
 }
 
-std::string SpatiaLite::sqlSelectFromLocationDataItems(const Settings &settings,
+std::string SpatiaLite::sqlSelectFromWeatherDataQCData(const Settings &settings,
                                                        const std::string &params,
                                                        const std::string &station_ids) const
 {

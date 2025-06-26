@@ -428,7 +428,7 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem
 }
 
 void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
-    std::vector<DataItem> &cacheData,
+    DataItems &cacheData,
     const std::string &sqlStmt,
     const Fmi::TimeZones & /* timezones */)
 {
@@ -464,7 +464,7 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
   }
 }
 
-void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
+void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheData,
                                                                const Fmi::TimePeriod &dataPeriod,
                                                                const std::string &fmisid,
                                                                const std::string &measurandId,
@@ -493,7 +493,7 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(std::vector<DataI
   }
 }
 
-void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
+void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheData,
                                                                Fmi::DateTime lastTime,
                                                                Fmi::DateTime lastModifiedTime,
                                                                const Fmi::TimeZones &timezones)
@@ -639,7 +639,7 @@ void PostgreSQLObsDB::setTimeInterval(const Fmi::DateTime &theStartTime,
   }
 }
 
-void PostgreSQLObsDB::fetchLocationDataItems(const std::string &sqlStmt,
+void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
                                              const StationInfo &stationInfo,
                                              const std::set<std::string> &stationgroup_codes,
                                              const TS::RequestLimits &requestLimits,
@@ -707,7 +707,7 @@ void PostgreSQLObsDB::fetchLocationDataItems(const std::string &sqlStmt,
   }
 }
 
-std::string PostgreSQLObsDB::sqlSelectFromLocationDataItems(const Settings &settings,
+std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(const Settings &settings,
                                                             const std::string &params,
                                                             const std::string &station_ids) const
 {

@@ -28,7 +28,7 @@ class ObservationCacheAdminSpatiaLite : public ObservationCacheAdminBase
                                 const Fmi::TimeZones& timezones) const override
   {
   }
-  void readWeatherDataQCCacheData(std::vector<DataItem>& cacheData,
+  void readWeatherDataQCCacheData(DataItems& cacheData,
                                   const Fmi::TimePeriod& dataPeriod,
                                   const std::string& fmisid,
                                   const std::string& measurandId,
@@ -47,7 +47,7 @@ class ObservationCacheAdminSpatiaLite : public ObservationCacheAdminBase
                                 const Fmi::TimeZones& timezones) const override
   {
   }
-  void readWeatherDataQCCacheData(std::vector<DataItem>& cacheData,
+  void readWeatherDataQCCacheData(DataItems& cacheData,
                                   const Fmi::DateTime& startTime,
                                   const Fmi::DateTime& lastModifiedTime,
                                   const Fmi::TimeZones& timezones) const override

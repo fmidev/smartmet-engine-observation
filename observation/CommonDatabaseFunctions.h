@@ -30,7 +30,7 @@ class CommonDatabaseFunctions : public DBQueryUtils
   CommonDatabaseFunctions &operator=(const CommonDatabaseFunctions &other) = delete;
   CommonDatabaseFunctions &operator=(CommonDatabaseFunctions &&other) = delete;
 
-  virtual std::string sqlSelectFromLocationDataItems(const Settings &settings,
+  virtual std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                                      const std::string &params,
                                                      const std::string &station_ids) const = 0;
 
@@ -60,19 +60,19 @@ class CommonDatabaseFunctions : public DBQueryUtils
                                     const Fmi::DateTime &endtime,
                                     const Spine::TaggedLocationList &locations) = 0;
 
-  TS::TimeSeriesVectorPtr getLocationDataItems(const Spine::Stations &stations,
+  TS::TimeSeriesVectorPtr getWeatherDataQCData(const Spine::Stations &stations,
                                                const Settings &settings,
                                                const StationInfo &stationInfo,
                                                const Fmi::TimeZones &timezones);
 
-  TS::TimeSeriesVectorPtr getLocationDataItems(
+  TS::TimeSeriesVectorPtr getWeatherDataQCData(
       const Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
       const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones);
 
-  virtual void fetchLocationDataItems(const std::string &sqlStmt,
+  virtual void fetchWeatherDataQCData(const std::string &sqlStmt,
                                       const StationInfo &stationInfo,
                                       const std::set<std::string> &stationgroup_codes,
                                       const TS::RequestLimits &requestLimits,
