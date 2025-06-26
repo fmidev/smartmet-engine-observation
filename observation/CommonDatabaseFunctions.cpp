@@ -36,7 +36,7 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getMagnetometerData(
   return getMagnetometerData(stations, settings, stationInfo, opt, timezones);
 }
 
-TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getLocationDataItems(
+TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
     const Spine::Stations &stations,
     const Settings &settings,
     const StationInfo &stationInfo,
@@ -49,10 +49,10 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getLocationDataItems(
   opt.startTimeUTC = false;
   opt.endTimeUTC = false;
 
-  return getLocationDataItems(stations, settings, stationInfo, opt, timezones);
+  return getWeatherDataQCData(stations, settings, stationInfo, opt, timezones);
 }
 
-TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getLocationDataItems(
+TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
     const Spine::Stations &stations,
     const Settings &settings,
     const StationInfo &stationInfo,
@@ -185,11 +185,11 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getLocationDataItems(
 
     TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
-    std::string query = sqlSelectFromLocationDataItems(settings, params, qstations);
+    std::string query = sqlSelectFromWeatherDataQCData(settings, params, qstations);
 
     LocationDataItems weatherDataQCData;
 
-    fetchLocationDataItems(
+    fetchWeatherDataQCData(
         query, stationInfo, settings.stationgroups, settings.requestLimits, weatherDataQCData);
 
     StationTimedMeasurandData station_data;

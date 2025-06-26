@@ -66,7 +66,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
   void readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem> &flashCacheData,
                                         const Fmi::TimePeriod &dataPeriod,
                                         const Fmi::TimeZones &timezones);
-  void readWeatherDataQCCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
+  void readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheData,
                                                 const Fmi::TimePeriod &dataPeriod,
                                                 const std::string &fmisid,
                                                 const std::string &measurandId,
@@ -84,7 +84,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
                                         const Fmi::DateTime &lastStrokeTime,
                                         const Fmi::DateTime &lastModifiedTime,
                                         const Fmi::TimeZones &timezones);
-  void readWeatherDataQCCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
+  void readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheData,
                                                 Fmi::DateTime lastTime,
                                                 Fmi::DateTime lastModifiedTime,
                                                 const Fmi::TimeZones &timezones);
@@ -105,12 +105,12 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
 
   void resetTimeSeries() { itsTimeSeriesColumns.reset(); }
   void setTimeInterval(const Fmi::DateTime &starttime, const Fmi::DateTime &endtime, int timestep);
-  void fetchLocationDataItems(const std::string &sqlStmt,
+  void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
                               const TS::RequestLimits &requestLimits,
                               LocationDataItems &weatherDataQCData) override;
-  std::string sqlSelectFromLocationDataItems(const Settings &settings,
+  std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
                                              const std::string &params,
                                              const std::string &station_ids) const override;
 
@@ -135,7 +135,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
   void readCacheDataFromPostgreSQL(DataItems &cacheData,
                                    const std::string &sqlStmt,
                                    const Fmi::TimeZones &timezones);
-  void readWeatherDataQCCacheDataFromPostgreSQL(std::vector<DataItem> &cacheData,
+  void readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheData,
                                                 const std::string &sqlStmt,
                                                 const Fmi::TimeZones &timezones);
   void readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem> &flashCacheData,

@@ -715,7 +715,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCFakeCache(
 
   for (const auto& setting : settings)
   {
-    std::vector<DataItem> cacheData;
+    DataItems cacheData;
     Fmi::DateTime starttime = Fmi::TimeParser::parse(setting.at("starttime"));
     Fmi::DateTime endtime = Fmi::TimeParser::parse(setting.at("endtime"));
     Fmi::TimePeriod dataPeriod(starttime, endtime);
@@ -752,7 +752,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
     if (weatherDataQCCache->isFakeCache(WEATHER_DATA_QC_TABLE))
       return updateWeatherDataQCFakeCache(weatherDataQCCache);
 
-    std::vector<DataItem> cacheData;
+    DataItems cacheData;
 
     std::pair<Fmi::DateTime, Fmi::DateTime> last_time_pair =
         getLatestWeatherDataQCTime(weatherDataQCCache);
