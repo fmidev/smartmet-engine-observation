@@ -46,8 +46,8 @@ const libconfig::Setting& lookupDatabase(const std::string& common_key,
           if (boost::algorithm::starts_with(name, host) && override[i].exists(setting))
             return override[i][setting.c_str()];
         }  // for int j
-      }    // for int i
-    }      // if
+      }  // for int i
+    }  // if
     return default_value;
   }
   catch (libconfig::SettingNotFoundException& ex)
@@ -151,6 +151,8 @@ void readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
         cfg.get_optional_config_param<int>(common_key + ".finMemoryCacheDuration", 0));
     params["extCacheDuration"] =
         Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extCacheDuration", 0));
+    params["extMemoryCacheDuration"] = Fmi::to_string(
+        cfg.get_optional_config_param<int>(common_key + ".extMemoryCacheDuration", 0));
     params["flashCacheDuration"] =
         Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashCacheDuration", 0));
     params["flashMemoryCacheDuration"] = Fmi::to_string(
@@ -214,6 +216,8 @@ void readOracleCommonInfo(Spine::ConfigBase& cfg,
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".finMemoryCacheDuration", 0));
   params["extCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extCacheDuration", 0));
+  params["extMemoryCacheDuration"] =
+      Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".extMemoryCacheDuration", 0));
   params["flashCacheDuration"] =
       Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".flashCacheDuration", 0));
   params["flashMemoryCacheDuration"] = Fmi::to_string(

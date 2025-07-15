@@ -1,10 +1,10 @@
 #pragma once
 
 #include "DBQueryUtils.h"
+#include "LocationDataItem.h"
 #include "MeasurandInfo.h"
 #include "StationtypeConfig.h"
 #include "Utils.h"
-#include "LocationDataItem.h"
 
 namespace SmartMet
 {
@@ -60,17 +60,20 @@ class CommonDatabaseFunctions : public DBQueryUtils
                                     const Fmi::DateTime &endtime,
                                     const Spine::TaggedLocationList &locations) = 0;
 
-  TS::TimeSeriesVectorPtr getWeatherDataQCData(const Spine::Stations &stations,
-                                               const Settings &settings,
-                                               const StationInfo &stationInfo,
-                                               const Fmi::TimeZones &timezones);
+  virtual TS::TimeSeriesVectorPtr getWeatherDataQCData(
+      const Spine::Stations &stations,
+      const Settings &settings,
+      const StationInfo &stationInfo,
+      const Fmi::TimeZones &timezones,
+      const std::unique_ptr<ObservationMemoryCache> &extMemoryCache);
 
-  TS::TimeSeriesVectorPtr getWeatherDataQCData(
+  virtual TS::TimeSeriesVectorPtr getWeatherDataQCData(
       const Spine::Stations &stations,
       const Settings &settings,
       const StationInfo &stationInfo,
       const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones);
+      const Fmi::TimeZones &timezones,
+      const std::unique_ptr<ObservationMemoryCache> &extMemoryCache);
 
   virtual void fetchWeatherDataQCData(const std::string &sqlStmt,
                                       const StationInfo &stationInfo,

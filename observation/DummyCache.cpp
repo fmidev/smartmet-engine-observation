@@ -19,6 +19,7 @@ void DummyCache::initializeConnectionPool()
 void DummyCache::initializeCaches(int /* finCacheDuration */,
                                   int /* finMemoryCacheDuration */,
                                   int /* extCacheDuration */,
+                                  int /* extMemoryCacheDuration */,
                                   int /* flashCacheDuration */,
                                   int /* flashMemoryCacheDuration */)
 {
@@ -113,7 +114,10 @@ std::size_t DummyCache::fillWeatherDataQCCache(const DataItems & /* cacheData */
   return 0;
 }
 
-void DummyCache::cleanWeatherDataQCCache(const Fmi::TimeDuration & /* timetokeep */) const {}
+void DummyCache::cleanWeatherDataQCCache(const Fmi::TimeDuration & /* timetokeep */,
+                                         const Fmi::TimeDuration & /* timetokeep_memory */) const
+{
+}
 
 bool DummyCache::roadCloudIntervalIsCached(const Fmi::DateTime & /* starttime */,
                                            const Fmi::DateTime & /* endtime */) const

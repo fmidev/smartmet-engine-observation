@@ -270,7 +270,8 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
           stations, settings, *info, timeSeriesOptions, itsTimeZones, dummy);
     }
     if (tablename == WEATHER_DATA_QC_TABLE)
-      return db->getWeatherDataQCData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
+      return db->getWeatherDataQCData(
+          stations, settings, *info, timeSeriesOptions, itsTimeZones, dummy);
     if (tablename == FLASH_DATA_TABLE)
       return db->getFlashData(settings, itsTimeZones);
     if (tablename == MAGNETOMETER_DATA_TABLE)
@@ -383,7 +384,8 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
           stations, settings, *info, timeSeriesOptions, itsTimeZones, dummy);
     }
     if (tablename == WEATHER_DATA_QC_TABLE)
-      return db->getWeatherDataQCData(stations, settings, *info, timeSeriesOptions, itsTimeZones);
+      return db->getWeatherDataQCData(
+          stations, settings, *info, timeSeriesOptions, itsTimeZones, dummy);
     if (tablename == FLASH_DATA_TABLE)
       return db->getFlashData(settings, itsTimeZones);
     if (tablename == MAGNETOMETER_DATA_TABLE)

@@ -40,7 +40,8 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
     const Spine::Stations &stations,
     const Settings &settings,
     const StationInfo &stationInfo,
-    const Fmi::TimeZones &timezones)
+    const Fmi::TimeZones &timezones,
+    const std::unique_ptr<ObservationMemoryCache> &extMemoryCache)
 {
   TS::TimeSeriesGeneratorOptions opt;
   opt.startTime = settings.starttime;
@@ -49,7 +50,7 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
   opt.startTimeUTC = false;
   opt.endTimeUTC = false;
 
-  return getWeatherDataQCData(stations, settings, stationInfo, opt, timezones);
+  return getWeatherDataQCData(stations, settings, stationInfo, opt, timezones, extMemoryCache);
 }
 
 TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
@@ -57,10 +58,13 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
     const Settings &settings,
     const StationInfo &stationInfo,
     const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-    const Fmi::TimeZones &timezones)
+    const Fmi::TimeZones &timezones,
+    const std::unique_ptr<ObservationMemoryCache> &extMemoryCache)
 {
   try
   {
+    // TODO: extMemoryCache???
+
     // Producer 'fmi' is deprecated
     std::string stationtype = settings.stationtype;
     if (stationtype == "fmi")

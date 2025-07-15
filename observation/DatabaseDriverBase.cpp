@@ -125,6 +125,8 @@ void DatabaseDriverBase::readConfig(Spine::ConfigBase &cfg, DatabaseDriverParame
           "finMemoryCacheDuration", parameters.finMemoryCacheDuration);
       parameters.extCacheDuration =
           driverInfo.getIntParameterValue("extCacheDuration", parameters.extCacheDuration);
+      parameters.extMemoryCacheDuration = driverInfo.getIntParameterValue(
+          "extMemoryCacheDuration", parameters.extMemoryCacheDuration);
       parameters.flashCacheDuration =
           driverInfo.getIntParameterValue("flashCacheDuration", parameters.flashCacheDuration);
       parameters.flashMemoryCacheDuration = driverInfo.getIntParameterValue(
