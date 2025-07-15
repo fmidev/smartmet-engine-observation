@@ -40,6 +40,7 @@ struct DatabaseDriverParameters
   int finCacheDuration = 0;
   int finMemoryCacheDuration = 0;
   int extCacheDuration = 0;
+  int extMemoryCacheDuration = 0;
   int flashCacheDuration = 0;
   int flashMemoryCacheDuration = 0;
   int netAtmoCacheDuration = 0;

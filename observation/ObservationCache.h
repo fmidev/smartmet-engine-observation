@@ -9,7 +9,6 @@
 #include "MovingLocationItem.h"
 #include "Settings.h"
 #include "Utils.h"
-#include "DataItem.h"
 #include <macgyver/CacheStats.h>
 #include <spine/Station.h>
 #include <timeseries/TimeSeriesInclude.h>
@@ -36,6 +35,7 @@ class ObservationCache
   virtual void initializeCaches(int finCacheDuration,
                                 int finMemoryCacheDuration,
                                 int extCacheDuration,
+                                int extMemoryCacheDuration,
                                 int flashCacheDuration,
                                 int flashMemoryCacheDuration) = 0;
 
@@ -71,7 +71,8 @@ class ObservationCache
   virtual Fmi::DateTime getLatestWeatherDataQCTime() const = 0;
   virtual Fmi::DateTime getLatestWeatherDataQCModifiedTime() const = 0;
   virtual std::size_t fillWeatherDataQCCache(const DataItems &cacheData) const = 0;
-  virtual void cleanWeatherDataQCCache(const Fmi::TimeDuration &timetokeep) const = 0;
+  virtual void cleanWeatherDataQCCache(const Fmi::TimeDuration &timetokeep,
+                                       const Fmi::TimeDuration &timetokeep_memory) const = 0;
 
   virtual bool roadCloudIntervalIsCached(const Fmi::DateTime &starttime,
                                          const Fmi::DateTime &endtime) const = 0;

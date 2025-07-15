@@ -120,6 +120,7 @@ void PostgreSQLCache::initializeConnectionPool()
 void PostgreSQLCache::initializeCaches(int finCacheDuration,
                                        int finMemoryCacheDuration,
                                        int extCacheDuration,
+                                       int extMemoryCacheDuration,
                                        int flashCacheDuration,
                                        int flashMemoryCacheDuration)
 {
@@ -164,7 +165,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
         ++itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hits;
-        ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
+        ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones, itsExtMemoryCache);
       }
       else
       {
@@ -222,7 +223,8 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
         ++itsCacheStatistics.at(WEATHER_DATA_QC_TABLE).hits;
-        ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
+        ret = db->getWeatherDataQCData(
+            stations, settings, *sinfo, timeSeriesOptions, itsTimeZones, itsExtMemoryCache);
       }
       else
       {
@@ -648,7 +650,8 @@ std::size_t PostgreSQLCache::fillWeatherDataQCCache(const DataItems &cacheData) 
   }
 }
 
-void PostgreSQLCache::cleanWeatherDataQCCache(const Fmi::TimeDuration &timetokeep) const
+void PostgreSQLCache::cleanWeatherDataQCCache(
+    const Fmi::TimeDuration &timetokeep, const Fmi::TimeDuration & /* timetokeep_memory */) const
 {
   try
   {

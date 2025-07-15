@@ -35,6 +35,7 @@ class PostgreSQLCache : public ObservationCache
   void initializeCaches(int finCacheDuration,
                         int finMemoryCacheDuration,
                         int extCacheDuration,
+                        int extMemoryCacheDuration,
                         int flashCacheDuration,
                         int flashMemoryCacheDuration) override;
 
@@ -63,7 +64,8 @@ class PostgreSQLCache : public ObservationCache
   Fmi::DateTime getLatestWeatherDataQCTime() const override;
   Fmi::DateTime getLatestWeatherDataQCModifiedTime() const override;
   std::size_t fillWeatherDataQCCache(const DataItems &cacheData) const override;
-  void cleanWeatherDataQCCache(const Fmi::TimeDuration &timetokeep) const override;
+  void cleanWeatherDataQCCache(const Fmi::TimeDuration &timetokeep,
+                               const Fmi::TimeDuration &timetokeep_memory) const override;
 
   // RoadCloud
   bool roadCloudIntervalIsCached(const Fmi::DateTime &starttime,
@@ -164,6 +166,7 @@ class PostgreSQLCache : public ObservationCache
   mutable Fmi::DateTime itsTapsiQcTimeIntervalEnd;
 
   std::unique_ptr<ObservationMemoryCache> itsObservationMemoryCache;
+  std::unique_ptr<ObservationMemoryCache> itsExtMemoryCache;
 
   // Cache statistics
   void hit(const std::string &name) const;

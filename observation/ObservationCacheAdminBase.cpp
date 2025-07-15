@@ -146,6 +146,7 @@ void ObservationCacheAdminBase::init()
       cache->initializeCaches(itsParameters.finCacheDuration,
                               itsParameters.finMemoryCacheDuration,
                               itsParameters.extCacheDuration,
+                              itsParameters.extMemoryCacheDuration,
                               itsParameters.flashCacheDuration,
                               itsParameters.flashMemoryCacheDuration);
     }
@@ -174,7 +175,9 @@ void ObservationCacheAdminBase::init()
 
       if (weatherDataQCCache)
       {
-        weatherDataQCCache->cleanWeatherDataQCCache(Fmi::Hours(itsParameters.extCacheDuration));
+        weatherDataQCCache->cleanWeatherDataQCCache(
+            Fmi::Hours(itsParameters.extCacheDuration),
+            Fmi::Hours(itsParameters.extMemoryCacheDuration));
 
         if (itsParameters.extCacheUpdateInterval > 0)
         {
@@ -820,7 +823,8 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
     // Delete too old observations from the Cache database
     {
       auto begin = std::chrono::high_resolution_clock::now();
-      weatherDataQCCache->cleanWeatherDataQCCache(Fmi::Hours(itsParameters.extCacheDuration));
+      weatherDataQCCache->cleanWeatherDataQCCache(Fmi::Hours(itsParameters.extCacheDuration),
+                                                  Fmi::Hours(itsParameters.extMemoryCacheDuration));
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)

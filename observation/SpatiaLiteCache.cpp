@@ -137,6 +137,7 @@ void SpatiaLiteCache::initializeConnectionPool()
 void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
                                        int finMemoryCacheDuration,
                                        int /* extCacheDuration */,
+                                       int extMemoryCacheDuration,
                                        int /* flashCacheDuration */,
                                        int flashMemoryCacheDuration)
 {
@@ -164,6 +165,15 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
       auto timetokeep_memory = Fmi::Hours(finMemoryCacheDuration);
       itsConnectionPool->getConnection()->initObservationMemoryCache(now - timetokeep_memory,
                                                                      itsObservationMemoryCache);
+    }
+    if (cacheTables.find(WEATHER_DATA_QC_TABLE) != cacheTables.end() && extMemoryCacheDuration > 0)
+    {
+      logMessage("[Observation Engine] Initializing SpatiaLite EXT observation memory cache",
+                 itsParameters.quiet);
+      itsExtMemoryCache.reset(new ObservationMemoryCache);
+      auto timetokeep_memory = Fmi::Hours(extMemoryCacheDuration);
+      itsConnectionPool->getConnection()->initObservationMemoryCache(now - timetokeep_memory,
+                                                                     itsExtMemoryCache);
     }
 
     logMessage("[Observation Engine] SpatiaLite memory cache ready.", itsParameters.quiet);
@@ -212,8 +222,21 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        hit(WEATHER_DATA_QC_TABLE);
-        ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones);
+        if (itsExtMemoryCache)
+        {
+          // We know that spatialite cache hits will include memory cache hits, but do not
+          // bother to substract the memory cache hits from spatialite hits
+
+          auto cache_start_time = itsExtMemoryCache->getStartTime();
+          bool use_memory_cache =
+              (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
+          if (use_memory_cache)
+            hit("ext_observation_memory");
+          else
+            miss("ext_observation_memory");
+        }
+
+        ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones, itsExtMemoryCache);
       }
       else if (settings.stationtype == MAGNETO_PRODUCER &&
                magnetometerIntervalIsCached(settings.starttime, settings.endtime))
@@ -304,8 +327,23 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        hit(WEATHER_DATA_QC_TABLE);
-        ret = db->getWeatherDataQCData(stations, settings, *sinfo, timeSeriesOptions, itsTimeZones);
+        if (itsExtMemoryCache)
+        {
+          // We know that spatialite cache hits will include memory cache hits, but do not
+          // bother to substract the memory cache hits from spatialite hits
+
+          auto cache_start_time = itsExtMemoryCache->getStartTime();
+          bool use_memory_cache =
+              (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
+
+          if (use_memory_cache)
+            hit("ext_observation_memory");
+          else
+            miss("ext_observation_memory");
+        }
+
+        ret = db->getWeatherDataQCData(
+            stations, settings, *sinfo, timeSeriesOptions, itsTimeZones, itsExtMemoryCache);
       }
       else if (settings.stationtype == MAGNETO_PRODUCER &&
                magnetometerIntervalIsCached(settings.starttime, settings.endtime))
@@ -541,6 +579,19 @@ void SpatiaLiteCache::cleanMemoryDataCache(const Fmi::DateTime &newstarttime) co
   {
     if (itsObservationMemoryCache)
       itsObservationMemoryCache->clean(newstarttime);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Cleaning of memory data cache failed!");
+  }
+}
+
+void SpatiaLiteCache::cleanExtMemoryDataCache(const Fmi::DateTime &newstarttime) const
+{
+  try
+  {
+    if (itsExtMemoryCache)
+      itsExtMemoryCache->clean(newstarttime);
   }
   catch (...)
   {
@@ -1168,6 +1219,11 @@ std::size_t SpatiaLiteCache::fillWeatherDataQCCache(const DataItems &cacheData) 
 {
   try
   {
+    // Update memory cache first
+
+    if (itsExtMemoryCache)
+      itsExtMemoryCache->fill(cacheData);
+
     auto conn = itsConnectionPool->getConnection();
     auto sz = conn->fillWeatherDataQCCache(cacheData, itsWeatherQCInsertCache);
     // Update what really now really is in the database
@@ -1184,13 +1240,21 @@ std::size_t SpatiaLiteCache::fillWeatherDataQCCache(const DataItems &cacheData) 
   }
 }
 
-void SpatiaLiteCache::cleanWeatherDataQCCache(const Fmi::TimeDuration &timetokeep) const
+void SpatiaLiteCache::cleanWeatherDataQCCache(const Fmi::TimeDuration &timetokeep,
+                                              const Fmi::TimeDuration &timetokeep_memory) const
 {
   try
   {
     // Dont clean fake cache
     if (isFakeCache(WEATHER_DATA_QC_TABLE))
       return;
+
+    auto now = Fmi::SecondClock::universal_time();
+
+    auto time1 = round_down_to_cache_clean_interval(now - timetokeep);
+    auto time2 = round_down_to_cache_clean_interval(now - timetokeep_memory);
+
+    cleanExtMemoryDataCache(time2);
 
     Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
@@ -1199,7 +1263,7 @@ void SpatiaLiteCache::cleanWeatherDataQCCache(const Fmi::TimeDuration &timetokee
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsWeatherDataQCTimeIntervalMutex);
-      itsWeatherDataQCTimeIntervalStart = t;
+      itsWeatherDataQCTimeIntervalStart = time1;
     }
     conn->cleanWeatherDataQCCache(t);
 
