@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.3.21
+Version: 25.6.26
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -11,28 +11,38 @@ URL: https://github.com/fmidev/smartmet-engine-observation
 Source0: %{name}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
+# https://fedoraproject.org/wiki/Changes/Broken_RPATH_will_fail_rpmbuild
+%global __brp_check_rpaths %{nil}
+
 %if 0%{?rhel} && 0%{rhel} < 9
 %define smartmet_boost boost169
 %else
 %define smartmet_boost boost
 %endif
 
-%define smartmet_fmt_min 11.0.0
+%if 0%{?rhel} && 0%{rhel} <= 9
+%define smartmet_fmt_min 11.0.1
 %define smartmet_fmt_max 12.0.0
+%define smartmet_fmt fmt-libs >= %{smartmet_fmt_min}, fmt-libs < %{smartmet_fmt_max}
+%define smartmet_fmt_devel fmt-devel >= %{smartmet_fmt_min}, fmt-devel < %{smartmet_fmt_max}
+%else
+%define smartmet_fmt fmt
+%define smartmet_fmt_devel fmt-devel
+%endif
 
 BuildRequires: %{smartmet_boost}-devel
 BuildRequires: bzip2-devel
-BuildRequires: fmt-devel >= %{smartmet_fmt_min}, fmt-devel < %{smartmet_fmt_max}
+BuildRequires: %{smartmet_fmt_devel}
 BuildRequires: gcc-c++
 BuildRequires: gdal310-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 25.2.18
-BuildRequires: smartmet-library-locus-devel >= 25.2.18
-BuildRequires: smartmet-library-macgyver-devel >= 25.2.18
-BuildRequires: smartmet-library-spine-devel >= 25.3.3
-BuildRequires: smartmet-library-timeseries-devel >= 25.2.18
+BuildRequires: smartmet-library-locus-devel >= 25.6.4
+BuildRequires: smartmet-library-macgyver-devel >= 25.6.19
+BuildRequires: smartmet-library-spine-devel >= 25.5.13
+BuildRequires: smartmet-library-timeseries-devel >= 25.6.9
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
 BuildRequires: smartmet-utils-devel >= 25.2.18
@@ -42,27 +52,36 @@ Requires: %{smartmet_boost}-locale
 Requires: %{smartmet_boost}-serialization
 Requires: %{smartmet_boost}-system
 Requires: %{smartmet_boost}-thread
-Requires: fmt-libs >= %{smartmet_fmt_min}, fmt-libs < %{smartmet_fmt_max}
+Requires: %{smartmet_fmt}
 Requires: gdal310-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 25.2.18
-Requires: smartmet-library-locus >= 25.2.18
-Requires: smartmet-library-macgyver >= 25.2.18
-Requires: smartmet-library-spine >= 25.3.3
-Requires: smartmet-library-timeseries >= 25.2.18
-Requires: smartmet-server >= 25.2.18
+Requires: smartmet-library-locus >= 25.6.4
+Requires: smartmet-library-macgyver >= 25.6.19
+Requires: smartmet-library-spine >= 25.5.13
+Requires: smartmet-library-timeseries >= 25.6.9
+Requires: smartmet-server >= 25.5.13
 Requires: unixODBC
 
 %if 0%{?rhel} && 0%{rhel} == 8
-Requires: libpqxx >= 7.7.0 libpqxx < 1:7.8.0
-BuildRequires: libpqxx-devel >= 7.7.0 libpqxx-devel < 1:7.8.0
+Requires: libpqxx >= 1:7.7.0, libpqxx < 1:7.8.0
+BuildRequires: libpqxx-devel >= 1:7.7.0, libpqxx-devel < 1:7.8.0
+#TestRequires: libpqxx-devel >= 1:7.7.0, libpqxx-devel < 1:7.8.0
 %else
-%if 0%{?rhel} && 0%{rhel} >= 9
-Requires: libpqxx >= 7.9.0 libpqxx < 1:8.0.0
-BuildRequires: libpqxx-devel >= 7.9.0 libpqxx-devel < 1:7.10.0
+%if 0%{?rhel} && 0%{rhel} == 9
+Requires: libpqxx >= 1:7.9.0, libpqxx < 1:7.10.0
+BuildRequires: libpqxx-devel >= 1:7.9.0, libpqxx-devel < 1:7.10.0
+#TestRequires: libpqxx-devel >= 1:7.9.0, libpqxx-devel < 1:7.10.0
+%else
+%if 0%{?rhel} && 0%{rhel} >= 10
+Requires: libpqxx >= 1:7.10.0, libpqxx < 1:7.11.0
+BuildRequires: libpqxx-devel >= 1:7.10.0, libpqxx-devel < 1:7.11.0
+#TestRequires: libpqxx-devel >= 1:7.10.0, libpqxx-devel < 1:7.11.0
 %else
 Requires: libpqxx
 BuildRequires: libpqxx-devel
+#TestRequires: libpqxx-devel
+%endif
 %endif
 %endif
 
@@ -125,7 +144,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 25.3.3
+Requires: smartmet-library-spine-devel >= 25.5.13
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -159,6 +178,24 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Jun 26 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.26-1.fmi
+- Refactored time series generation for readability
+
+* Mon Jun 16 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.16-1.fmi
+- Fixed FlashMemoryCache update segfault possibility
+
+* Fri Jun 13 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.13-2.fmi
+- Optimized FlashMemoryCache updates for speed
+
+* Fri Jun 13 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.13-1.fmi
+- Fixed FlashMemoryCache to handle duplicate FlashDataItems
+
+* Thu May 22 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.5.22-1.fmi
+- Repackaged to hide dark() implementation details
+
+* Wed May 21 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.5.21-1.fmi
+- Improved logging messages
+
 * Fri Mar 21 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.3.21-1.fmi
 - Optimized a global moving locations query for speed
 

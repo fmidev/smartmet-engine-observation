@@ -81,7 +81,8 @@ void ObservationCacheAdminBase::init()
     if (!cache_tables.empty())
     {
       for (const auto& item : cache_tables)
-        logMessage("Table '" + item.second + "' is cached in '" + item.first + "'...",
+        logMessage("Table '" + item.second + "' from '" + itsParameters.driverName +
+                       "' is cached in '" + item.first + "'...",
                    itsParameters.quiet);
     }
 
@@ -284,8 +285,8 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
     if (itsParameters.disableAllCacheUpdates)
     {
       std::cout << Spine::log_time_str() << ANSI_FG_GREEN
-                << " Note! Observation cache updates disabled for tables "
-                << Fmi::join(tables, ", ") << "! " << ANSI_FG_DEFAULT << std::endl;
+                << " Note! Observation cache updates disabled for '" << itsParameters.driverName
+                << "' tables " << Fmi::join(tables, ", ") << "! " << ANSI_FG_DEFAULT << std::endl;
       return;
     }
 
@@ -599,7 +600,6 @@ void ObservationCacheAdminBase::updateObservationCache() const
 {
   try
   {
-    //	std::cout << "ObservationCacheAdminBase::updateObservationCache";
     if (Spine::Reactor::isShuttingDown() || itsParameters.disableAllCacheUpdates)
       return;
 
