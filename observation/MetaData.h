@@ -97,8 +97,9 @@ struct MetaData
   }
 
   Spine::BoundingBox bbox;
-  const Fmi::TimePeriod &period() const { return periodLevelMetaData.period; }
-  const Fmi::TimePeriod &period(int station_id) const
+  Fmi::TimePeriod period;
+  const Fmi::TimePeriod &dbperiod() const { return periodLevelMetaData.period; }
+  const Fmi::TimePeriod &dbperiod(int station_id) const
   {
     auto it = stationMetaData.find(station_id);
     return ((it != stationMetaData.end()) ? it->second.period : periodLevelMetaData.period);

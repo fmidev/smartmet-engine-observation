@@ -112,7 +112,8 @@ class EngineImpl : public Engine
    */
   ContentTable getStationInfo(const StationOptions &options) const override;
 
-  MetaData metaData(const std::string &producer, const Settings &settings) const override;
+  MetaData metaData(
+      const std::string &producer, const Settings &settings = Settings()) const override;
 
   /* \brief Translates WMO,RWID,LPNN,GEOID,Bounding box to FMISID
    * \return List of FMISIDs
