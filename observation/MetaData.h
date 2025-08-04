@@ -74,7 +74,7 @@ struct MetaData
 {
   MetaData(Spine::BoundingBox b, const Fmi::TimePeriod &p, int step,
            ObsLevelType lt = ObsLevelType::None)
-      : bbox(std::move(b)), timestep(step), levelType(lt), periodLevelMetaData(p) {}
+      : bbox(std::move(b)), period(p), timestep(step), levelType(lt), periodLevelMetaData(p) {}
   MetaData() : MetaData(Spine::BoundingBox(0.0, 0.0, 0.0, 0.0),
                         Fmi::TimePeriod(Fmi::DateTime(), Fmi::DateTime()), 1) {}
   MetaData(const MetaData &md) = default;

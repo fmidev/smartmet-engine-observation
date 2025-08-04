@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.8.1
+Version: 25.8.4
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -178,7 +178,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Fri Aug  1 2025 Mika Heiskanen <pertti.kinnia@fmi.fi> - 25.8.1-1.fmi
+* Mon Aug  4 2025 Pertti Kinnia <pertti.kinnia@fmi.fi> - 25.8.4-1.fmi
+- Added missing default value for api's metaData() call Settings argument (BRAINSTORM-3116)
+- Added missing initialization for metaData's period (BRAINSTORM-3116)
+
+* Fri Aug  1 2025 Pertti Kinnia <pertti.kinnia@fmi.fi> - 25.8.1-1.fmi
 - Load sounding metadata from database (BRAINSTORM-3116)
 
 * Thu Jun 26 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.26-1.fmi
