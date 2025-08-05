@@ -229,7 +229,6 @@ MetaData DatabaseDriverBase::metaData(const std::string &producer, const Setting
         long sec = currentTime.time_of_day().seconds();
         currentTime = currentTime - Fmi::Seconds(sec);
         ret.period = Fmi::TimePeriod(ret.period.begin(), currentTime);
-        ret.periodLevelMetaData.period = Fmi::TimePeriod(ret.dbperiod().begin(), currentTime);
       }
 
       return metaData(producer, settings, ret);

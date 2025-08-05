@@ -44,7 +44,7 @@ struct PeriodLevelMetaData
   void update(const Fmi::DateTime &minTime, const Fmi::DateTime &maxTime,
               ObsLevelType levelType, double minLevel, double maxLevel)
   {
-    if (period.is_null())
+    if (period.is_null() || levels.empty())
       period = Fmi::TimePeriod(minTime, maxTime);
     else if (maxTime > period.end())
       period = Fmi::TimePeriod(period.begin(), maxTime);
