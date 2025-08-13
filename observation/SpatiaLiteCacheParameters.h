@@ -7,7 +7,7 @@
 #include "Settings.h"
 #include "SpatiaLiteOptions.h"
 #include "Utils.h"
-#include "WeatherDataQCItem.h"
+#include "DataItem.h"
 #include <spine/Station.h>
 #include <timeseries/TimeSeriesInclude.h>
 #include <string>

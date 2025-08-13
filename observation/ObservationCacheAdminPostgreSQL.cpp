@@ -42,7 +42,7 @@ void ObservationCacheAdminPostgreSQL::readFlashCacheData(
 }
 
 void ObservationCacheAdminPostgreSQL::readWeatherDataQCCacheData(
-    std::vector<WeatherDataQCItem>& cacheData,
+    std::vector<DataItem>& cacheData,
     const Fmi::TimePeriod& dataPeriod,
     const std::string& fmisid,
     const std::string& measurandId,
@@ -97,7 +97,7 @@ void ObservationCacheAdminPostgreSQL::readFlashCacheData(
 }
 
 void ObservationCacheAdminPostgreSQL::readWeatherDataQCCacheData(
-    std::vector<WeatherDataQCItem>& cacheData,
+    std::vector<DataItem>& cacheData,
     const Fmi::DateTime& startTime,
     const Fmi::DateTime& lastModifiedTime,
     const Fmi::TimeZones& /* timezones */) const

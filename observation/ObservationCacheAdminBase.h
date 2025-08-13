@@ -30,7 +30,7 @@ class ObservationCacheAdminBase
   virtual void readFlashCacheData(std::vector<FlashDataItem>& cacheData,
                                   const Fmi::TimePeriod& dataPeriod,
                                   const Fmi::TimeZones& timezones) const = 0;
-  virtual void readWeatherDataQCCacheData(std::vector<WeatherDataQCItem>& cacheData,
+  virtual void readWeatherDataQCCacheData(std::vector<DataItem>& cacheData,
                                           const Fmi::TimePeriod& dataPeriod,
                                           const std::string& fmisid,
                                           const std::string& measuradId,
@@ -48,7 +48,7 @@ class ObservationCacheAdminBase
                                   const Fmi::DateTime& lastStrokeTime,
                                   const Fmi::DateTime& lastModifiedTime,
                                   const Fmi::TimeZones& timezones) const = 0;
-  virtual void readWeatherDataQCCacheData(std::vector<WeatherDataQCItem>& cacheData,
+  virtual void readWeatherDataQCCacheData(std::vector<DataItem>& cacheData,
                                           const Fmi::DateTime& startTime,
                                           const Fmi::DateTime& lastModifiedTime,
                                           const Fmi::TimeZones& timezones) const = 0;

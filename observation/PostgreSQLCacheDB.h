@@ -9,7 +9,6 @@
 #include "MobileExternalDataItem.h"
 #include "MovingLocationItem.h"
 #include "Utils.h"
-#include "WeatherDataQCItem.h"
 #include <macgyver/PostgreSQLConnection.h>
 #include <string>
 
@@ -24,6 +23,7 @@ using ResultSetRows = std::vector<ResultSetRow>;
 
 struct PostgreSQLCacheParameters;
 
+#if 0
 struct cached_data
 {
   std::vector<std::optional<int>> fmisidsAll;
@@ -37,6 +37,7 @@ struct cached_data
   std::vector<std::optional<int>> data_sourcesAll;
   std::vector<std::optional<double>> sensor_nosAll;
 };
+#endif
 
 class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
 {
@@ -134,7 +135,7 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
    *        which is used to store data from road and foreign stations
    * @param[in] cacheData Data from weather_data_qc.
    */
-  std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData);
+  std::size_t fillWeatherDataQCCache(const DataItems &cacheData);
 
   /**
    * @brief Insert cached observations into observation_data table
@@ -345,12 +346,12 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
   static ResultSetRows getResultSetForMobileExternalData(
       const pqxx::result &pgResultSet, const std::map<unsigned int, std::string> &pgDataTypes);
 
-  void fetchWeatherDataQCData(const std::string &sqlStmt,
+  void fetchLocationDataItems(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
                               const TS::RequestLimits &requestLimits,
-                              WeatherDataQCData &cacheData) override;
-  std::string sqlSelectFromWeatherDataQCData(const Settings &settings,
+                              LocationDataItems &cacheData) override;
+  std::string sqlSelectFromLocationDataItems(const Settings &settings,
                                              const std::string &params,
                                              const std::string &station_ids) const override;
 

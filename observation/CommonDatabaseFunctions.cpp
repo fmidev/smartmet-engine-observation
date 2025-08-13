@@ -36,7 +36,7 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getMagnetometerData(
   return getMagnetometerData(stations, settings, stationInfo, opt, timezones);
 }
 
-TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
+TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getLocationDataItems(
     const Spine::Stations &stations,
     const Settings &settings,
     const StationInfo &stationInfo,
@@ -49,10 +49,10 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
   opt.startTimeUTC = false;
   opt.endTimeUTC = false;
 
-  return getWeatherDataQCData(stations, settings, stationInfo, opt, timezones);
+  return getLocationDataItems(stations, settings, stationInfo, opt, timezones);
 }
 
-TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
+TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getLocationDataItems(
     const Spine::Stations &stations,
     const Settings &settings,
     const StationInfo &stationInfo,
@@ -185,43 +185,40 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
 
     TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
-    std::string query = sqlSelectFromWeatherDataQCData(settings, params, qstations);
+    std::string query = sqlSelectFromLocationDataItems(settings, params, qstations);
 
-    WeatherDataQCData weatherDataQCData;
+    LocationDataItems weatherDataQCData;
 
-    fetchWeatherDataQCData(
+    fetchLocationDataItems(
         query, stationInfo, settings.stationgroups, settings.requestLimits, weatherDataQCData);
 
     StationTimedMeasurandData station_data;
 
-    unsigned int i = 0;
-
-    for (const auto &time : weatherDataQCData.obstimesAll)
+    for (const auto &item : weatherDataQCData)
     {
-      int fmisid = *weatherDataQCData.fmisidsAll[i];
+      int fmisid = item.data.fmisid;
 
-      Fmi::DateTime utctime = time;
+      Fmi::DateTime utctime = item.data.data_time;
       std::string zone(settings.timezone == "localtime" ? fmisid_to_station.at(fmisid).timezone
                                                         : settings.timezone);
       auto localtz = timezones.time_zone_from_string(zone);
       Fmi::LocalDateTime obstime = Fmi::LocalDateTime(utctime, localtz);
 
-      int measurand_id = *weatherDataQCData.parametersAll[i];
-      int sensor_no = *weatherDataQCData.sensor_nosAll[i];
+      int measurand_id = item.data.measurand_id;
+      int sensor_no = item.data.sensor_no;
 
       TS::Value val;
-      if (weatherDataQCData.data_valuesAll[i])
-        val = TS::Value(*weatherDataQCData.data_valuesAll[i]);
+      if (item.data.data_value)
+        val = TS::Value(*item.data.data_value);
 
       TS::Value val_quality = TS::None();
-      if (weatherDataQCData.data_qualityAll[i])
-        val_quality = TS::Value(*weatherDataQCData.data_qualityAll[i]);
+      if (item.data.data_quality)
+        val_quality = TS::Value(item.data.data_quality);
 
       bool data_from_default_sensor = (sensor_no == 1);
 
       station_data[fmisid][obstime][measurand_id][sensor_no] =
           DataWithQuality(val, val_quality, TS::None(), data_from_default_sensor);
-      i++;
     }
 
     return buildTimeseries(

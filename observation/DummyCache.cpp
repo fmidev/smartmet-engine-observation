@@ -108,7 +108,7 @@ Fmi::DateTime DummyCache::getLatestWeatherDataQCModifiedTime() const
   return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
-std::size_t DummyCache::fillWeatherDataQCCache(const WeatherDataQCItems & /* cacheData */) const
+std::size_t DummyCache::fillWeatherDataQCCache(const DataItems & /* cacheData */) const
 {
   return 0;
 }

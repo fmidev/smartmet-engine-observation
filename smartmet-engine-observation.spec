@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.8.5
+Version: 25.8.13
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -178,6 +178,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Aug 13 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.8.13-1.fmi
+- Added memory cache for external observations
+- Cache external observations to sqlite using common database structures
+
 * Tue Aug  5 2025 Pertti Kinnia <pertti.kinnia@fmi.fi> - 25.8.5-1.fmi
 - More observation period fixes (BRAINSTORM-3017, BRAINSTORM-3116)
 
@@ -190,6 +194,9 @@ rm -rf $RPM_BUILD_ROOT
 
 * Thu Jun 26 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.26-1.fmi
 - Refactored time series generation for readability
+
+* Wed Jun 25 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.25-1.fmi
+- Increased use of numeric instead of text parameter IDs for weather_data_qc
 
 * Mon Jun 16 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.6.16-1.fmi
 - Fixed FlashMemoryCache update segfault possibility

@@ -62,7 +62,7 @@ class PostgreSQLCache : public ObservationCache
                       const Fmi::TimeDuration &timetokeep_memory) const override;
   Fmi::DateTime getLatestWeatherDataQCTime() const override;
   Fmi::DateTime getLatestWeatherDataQCModifiedTime() const override;
-  std::size_t fillWeatherDataQCCache(const WeatherDataQCItems &cacheData) const override;
+  std::size_t fillWeatherDataQCCache(const DataItems &cacheData) const override;
   void cleanWeatherDataQCCache(const Fmi::TimeDuration &timetokeep) const override;
 
   // RoadCloud
