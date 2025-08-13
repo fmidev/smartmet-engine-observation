@@ -219,12 +219,9 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
     {
       observations = extMemoryCache->read_observations(
           stations, settings, stationInfo, settings.stationgroups, qmap);
-      std::cout << "Found " << observations.size() << " observations from memory cache\n";
     }
     else
     {
-      std::cout << "fetching observations from some database\n";
-
       // But this is WRONG. Only Oracle and DB should generate this SQL query, and sqlite
       // should use its own code instead.
 
