@@ -32,7 +32,9 @@ class DBQueryUtils
   // If timesteps requested, timeseries must have all requested and data timesteps (because of
   // aggregation) but wms, wfs must have only requested timesteps
   void setAdditionalTimestepOption(AdditionalTimestepOption opt);
+
   const ParameterMapPtr &getParameterMap() const { return itsParameterMap; }
+
   void setDebug(bool state) { itsDebug = state; }
   bool getDebug() const { return itsDebug; }
 

@@ -1,4 +1,5 @@
 #include "CommonDatabaseFunctions.h"
+#include "ObservationMemoryCache.h"
 #include "Utils.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/functional/hash.hpp>
@@ -26,14 +27,22 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getMagnetometerData(
     const StationInfo &stationInfo,
     const Fmi::TimeZones &timezones)
 {
-  TS::TimeSeriesGeneratorOptions opt;
-  opt.startTime = settings.starttime;
-  opt.endTime = settings.endtime;
-  opt.timeStep = settings.timestep;
-  opt.startTimeUTC = false;
-  opt.endTimeUTC = false;
+  try
+  {
+    TS::TimeSeriesGeneratorOptions opt;
+    opt.startTime = settings.starttime;
+    opt.endTime = settings.endtime;
+    opt.timeStep = settings.timestep;
+    opt.startTimeUTC = false;
+    opt.endTimeUTC = false;
 
-  return getMagnetometerData(stations, settings, stationInfo, opt, timezones);
+    return getMagnetometerData(stations, settings, stationInfo, opt, timezones);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP,
+                                "Fetching data from SpatiaLite LocationDataItems cache failed!");
+  }
 }
 
 TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
@@ -43,14 +52,22 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
     const Fmi::TimeZones &timezones,
     const std::unique_ptr<ObservationMemoryCache> &extMemoryCache)
 {
-  TS::TimeSeriesGeneratorOptions opt;
-  opt.startTime = settings.starttime;
-  opt.endTime = settings.endtime;
-  opt.timeStep = settings.timestep;
-  opt.startTimeUTC = false;
-  opt.endTimeUTC = false;
+  try
+  {
+    TS::TimeSeriesGeneratorOptions opt;
+    opt.startTime = settings.starttime;
+    opt.endTime = settings.endtime;
+    opt.timeStep = settings.timestep;
+    opt.startTimeUTC = false;
+    opt.endTimeUTC = false;
 
-  return getWeatherDataQCData(stations, settings, stationInfo, opt, timezones, extMemoryCache);
+    return getWeatherDataQCData(stations, settings, stationInfo, opt, timezones, extMemoryCache);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP,
+                                "Fetching data from SpatiaLite LocationDataItems cache failed!");
+  }
 }
 
 TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
@@ -63,8 +80,6 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
 {
   try
   {
-    // TODO: extMemoryCache???
-
     // Producer 'fmi' is deprecated
     std::string stationtype = settings.stationtype;
     if (stationtype == "fmi")
@@ -189,16 +204,41 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
 
     TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
-    std::string query = sqlSelectFromWeatherDataQCData(settings, params, qstations);
+    LocationDataItems observations;
 
-    LocationDataItems weatherDataQCData;
+    // See if we can use the memory cache if it exists and starttime is ok
+    bool use_memory_cache = (extMemoryCache != nullptr);
+    if (use_memory_cache)
+    {
+      auto cache_start_time = extMemoryCache->getStartTime();
+      use_memory_cache =
+          (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
+    }
 
-    fetchWeatherDataQCData(
-        query, stationInfo, settings.stationgroups, settings.requestLimits, weatherDataQCData);
+    if (use_memory_cache)
+    {
+      observations = extMemoryCache->read_observations(
+          stations, settings, stationInfo, settings.stationgroups, qmap);
+      std::cout << "Found " << observations.size() << " observations from memory cache\n";
+    }
+    else
+    {
+      std::cout << "fetching observations from some database\n";
+
+      // But this is WRONG. Only Oracle and DB should generate this SQL query, and sqlite
+      // should use its own code instead.
+
+      std::string query = sqlSelectFromWeatherDataQCData(settings, params, qstations);
+      fetchWeatherDataQCData(
+          query, stationInfo, settings.stationgroups, settings.requestLimits, observations);
+    }
+
+    // The rest may also be WRONG. sqlite should retutn the data correctly. Needs comparing
+    // code with sqlite between this part and the final buildTimeseries code.
 
     StationTimedMeasurandData station_data;
 
-    for (const auto &item : weatherDataQCData)
+    for (const auto &item : observations)
     {
       int fmisid = item.data.fmisid;
 
@@ -241,25 +281,41 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getObservationData(
     const Fmi::TimeZones &timezones,
     const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache)
 {
-  TS::TimeSeriesGeneratorOptions opt;
-  opt.startTime = settings.starttime;
-  opt.endTime = settings.endtime;
-  opt.timeStep = settings.timestep;
-  opt.startTimeUTC = false;
-  opt.endTimeUTC = false;
+  try
+  {
+    TS::TimeSeriesGeneratorOptions opt;
+    opt.startTime = settings.starttime;
+    opt.endTime = settings.endtime;
+    opt.timeStep = settings.timestep;
+    opt.startTimeUTC = false;
+    opt.endTimeUTC = false;
 
-  return getObservationData(
-      stations, settings, stationInfo, opt, timezones, observationMemoryCache);
+    return getObservationData(
+        stations, settings, stationInfo, opt, timezones, observationMemoryCache);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP,
+                                "Fetching data from SpatiaLite LocationDataItems cache failed!");
+  }
 }
 
 std::string CommonDatabaseFunctions::getWeatherDataQCParams(
     const std::set<std::string> &param_set) const
 {
-  std::string params;
-  for (const auto &pname : param_set)
-    params += ("'" + pname + "',");
-  params = trimCommasFromEnd(params);
-  return params;
+  try
+  {
+    std::string params;
+    for (const auto &pname : param_set)
+      params += ("'" + pname + "',");
+    params = trimCommasFromEnd(params);
+    return params;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP,
+                                "Fetching data from SpatiaLite LocationDataItems cache failed!");
+  }
 }
 
 }  // namespace Observation

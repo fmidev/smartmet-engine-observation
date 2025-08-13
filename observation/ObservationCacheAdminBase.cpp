@@ -652,7 +652,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
         {
           auto t2 = t1 + Fmi::Hours(length);
           Fmi::TimePeriod period(t1, t2);
-          std::cout << "Reading FIN period " << period << "\n";
+          std::cout << Spine::log_time_str() << " Reading FIN period " << period << "\n";
           readObservationCacheData(cacheData, period, fmisid, measurandId, itsTimeZones);
           t1 = t2;
         }
@@ -787,6 +787,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
         {
           auto t2 = t1 + Fmi::Hours(length);
           Fmi::TimePeriod period(t1, t2);
+          std::cout << Spine::log_time_str() << " Reading EXT period " << period << "\n";
           readWeatherDataQCCacheData(cacheData, period, fmisid, measurandId, itsTimeZones);
           t1 = t2;
         }

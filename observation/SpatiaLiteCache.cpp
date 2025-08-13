@@ -172,8 +172,8 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
                  itsParameters.quiet);
       itsExtMemoryCache.reset(new ObservationMemoryCache);
       auto timetokeep_memory = Fmi::Hours(extMemoryCacheDuration);
-      itsConnectionPool->getConnection()->initObservationMemoryCache(now - timetokeep_memory,
-                                                                     itsExtMemoryCache);
+      itsConnectionPool->getConnection()->initExtMemoryCache(now - timetokeep_memory,
+                                                             itsExtMemoryCache);
     }
 
     logMessage("[Observation Engine] SpatiaLite memory cache ready.", itsParameters.quiet);
@@ -1122,7 +1122,7 @@ std::size_t SpatiaLiteCache::fillDataCache(const DataItems &cacheData) const
       itsObservationMemoryCache->fill(cacheData);
 
     auto conn = itsConnectionPool->getConnection();
-    auto sz = conn->fillDataCache(cacheData, itsDataInsertCache);
+    auto sz = conn->fillDataCache("observation_data", cacheData, itsDataInsertCache);
 
     // Update what really now really is in the database
     auto start = conn->getOldestObservationTime();
@@ -1220,12 +1220,12 @@ std::size_t SpatiaLiteCache::fillWeatherDataQCCache(const DataItems &cacheData) 
   try
   {
     // Update memory cache first
-
     if (itsExtMemoryCache)
       itsExtMemoryCache->fill(cacheData);
 
     auto conn = itsConnectionPool->getConnection();
-    auto sz = conn->fillWeatherDataQCCache(cacheData, itsWeatherQCInsertCache);
+    auto sz = conn->fillDataCache("weather_data", cacheData, itsWeatherQCInsertCache);
+
     // Update what really now really is in the database
     auto start = conn->getOldestWeatherDataQCTime();
     auto end = conn->getLatestWeatherDataQCTime();
@@ -1402,13 +1402,12 @@ SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
       itsCacheStatistics.insert(std::make_pair(tablename, Fmi::Cache::CacheStats()));
 
       if (tablename == OBSERVATION_DATA_TABLE)
-      {
         itsCacheStatistics.insert(std::make_pair("observation_memory", Fmi::Cache::CacheStats()));
-      }
       else if (tablename == FLASH_DATA_TABLE)
-      {
         itsCacheStatistics.insert(std::make_pair("flash_memory", Fmi::Cache::CacheStats()));
-      }
+      else if (tablename == WEATHER_DATA_QC_TABLE)
+        itsCacheStatistics.insert(
+            std::make_pair("ext_observation_memory", Fmi::Cache::CacheStats()));
     }
 
     readConfig(cfg);

@@ -255,7 +255,7 @@ rm -rf $RPM_BUILD_ROOT
 * Sat Sep 28 2024 Mika Heiskanen <mika.heiskanen@fmi.fi> - 24.9.28-1.fmi
 - Added optional slow_query_limit (seconds) for PG drivers for reporting slow SQL queries
 
-* Tue Sep 12 2024 Pertti Kinnia <pertti.kinnia@fmi.fi> - 24.9.12-1.fmi
+* Thu Sep 12 2024 Pertti Kinnia <pertti.kinnia@fmi.fi> - 24.9.12-1.fmi
 - Added 'postgresql_mobile_observations' driver boolean config setting 'loadFmiIoTStations' (defaults to true) to control loading of iot stations from cldb since stations can't be fetched when using opendata connection
 - Added loading of config value for some TAPSI observations cache control settings (BRAINSTORM-3008)
 

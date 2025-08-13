@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommonDatabaseFunctions.h"
+#include "DataItem.h"
 #include "ExternalAndMobileProducerConfig.h"
 #include "FlashDataItem.h"
 #include "InsertStatus.h"
@@ -8,7 +9,6 @@
 #include "MobileExternalDataItem.h"
 #include "MovingLocationItem.h"
 #include "Utils.h"
-#include "DataItem.h"
 
 #ifdef __llvm__
 #pragma clang diagnostic push
@@ -45,6 +45,7 @@ class ObservationMemoryCache;
 
 struct QueryMapping;
 
+// class SpatiaLite : public CommonDatabaseFunctions
 class SpatiaLite : public CommonDatabaseFunctions
 {
  public:
@@ -135,7 +136,9 @@ class SpatiaLite : public CommonDatabaseFunctions
    *        from stations maintained by FMI.
    * @param[in] cacheData Data from observation_data.
    */
-  std::size_t fillDataCache(const DataItems &cacheData, InsertStatus &insertStatus);
+  std::size_t fillDataCache(const std::string &tablename,
+                            const DataItems &cacheData,
+                            InsertStatus &insertStatus);
   /**
    * @brief Update moving_locations with data from Oracle's
    *        moving_locations table which is used to store data
@@ -144,14 +147,6 @@ class SpatiaLite : public CommonDatabaseFunctions
    */
   std::size_t fillMovingLocationsCache(const MovingLocationItems &cacheData,
                                        InsertStatus &insertStatus);
-
-  /**
-   * @brief Update weather_data_qc with data from Oracle's respective table
-   *        which is used to store data from road and foreign stations
-   * @param[in] cacheData Data from weather_data_qc.
-   */
-  std::size_t fillWeatherDataQCCache(const DataItems &cacheData,
-                                     InsertStatus &insertStatus);
 
   /**
    * @brief Insert cached observations into observation_data table
@@ -438,6 +433,8 @@ class SpatiaLite : public CommonDatabaseFunctions
 
   FlashDataItems readFlashCacheData(const Fmi::DateTime &starttime);
 
+  std::string getWeatherDataQCParams(const std::set<std::string> &param_set) const override;
+
   void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,
@@ -447,11 +444,12 @@ class SpatiaLite : public CommonDatabaseFunctions
                                              const std::string &params,
                                              const std::string &station_ids) const override;
 
-  std::string getWeatherDataQCParams(const std::set<std::string> &param_set) const override;
-
   void initObservationMemoryCache(
       const Fmi::DateTime &starttime,
       const std::unique_ptr<ObservationMemoryCache> &observationMemoryCache);
+
+  void initExtMemoryCache(const Fmi::DateTime &starttime,
+                          const std::unique_ptr<ObservationMemoryCache> &extMemoryCache);
 
   TS::TimeSeriesVectorPtr getMagnetometerData(
       const Spine::Stations &stations,
@@ -486,7 +484,7 @@ class SpatiaLite : public CommonDatabaseFunctions
   void initSpatialMetaData();
   void createMovingLocationsDataTable();
   void createObservationDataTable();
-  void createWeatherDataQCTable();
+  void createWeatherDataTable();
   void createFlashDataTable();
   void createRoadCloudDataTable();
   void createNetAtmoDataTable();

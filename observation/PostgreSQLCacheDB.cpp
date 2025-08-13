@@ -70,6 +70,8 @@ namespace Observation
 {
 using namespace Utils;
 
+PostgreSQLCacheDB::~PostgreSQLCacheDB() {}
+
 PostgreSQLCacheDB::PostgreSQLCacheDB(const PostgreSQLCacheParameters &options)
     : CommonPostgreSQLFunctions(
           options.postgresql, options.stationtypeConfig, options.parameterMap),
@@ -2286,7 +2288,6 @@ std::string PostgreSQLCacheDB::sqlSelectFromWeatherDataQCData(const Settings &se
                                 "Constructing SQL statement for PostgreSQL cache query failed!");
   }
 }
-
 }  // namespace Observation
 }  // namespace Engine
 }  // namespace SmartMet

@@ -43,6 +43,7 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
 {
  public:
   explicit PostgreSQLCacheDB(const PostgreSQLCacheParameters &options);
+  ~PostgreSQLCacheDB() override;
   PostgreSQLCacheDB() = delete;
   PostgreSQLCacheDB(const PostgreSQLCacheDB &other) = delete;
   PostgreSQLCacheDB &operator=(const PostgreSQLCacheDB &other) = delete;

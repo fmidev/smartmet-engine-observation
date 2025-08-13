@@ -55,12 +55,19 @@ int get_mid(const std::string &param_name,
             const std::string &stationtype,
             const ParameterMapPtr &parameterMap)
 {
-  auto sparam = parameterMap->getParameter(param_name, stationtype);
+  try
+  {
+    auto sparam = parameterMap->getParameter(param_name, stationtype);
 
-  if (stationtype == "foreign" || stationtype == "road")
-    return parameterMap->getRoadAndForeignIds().stringToInteger(sparam);
+    if (stationtype == "foreign" || stationtype == "road")
+      return parameterMap->getRoadAndForeignIds().stringToInteger(sparam);
 
-  return Fmi::stoi(sparam);
+    return Fmi::stoi(sparam);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed");
+  }
 }
 
 template <typename Container, typename Key>
@@ -79,30 +86,37 @@ TS::Value get_default_sensor_value(const SensorData &sensor_data,
                                    int /* measurand_id */,
                                    DataFieldSpecifier specifier = DataFieldSpecifier::Value)
 {
-  for (const auto &item : sensor_data)
+  try
   {
-    if (item.second.is_default_sensor_data)
+    for (const auto &item : sensor_data)
     {
-      if (specifier == DataFieldSpecifier::Value)
-        return item.second.value;
-      if (specifier == DataFieldSpecifier::DataQuality)
-        return item.second.data_quality;
-      if (specifier == DataFieldSpecifier::DataSource)
-        return item.second.data_source;
+      if (item.second.is_default_sensor_data)
+      {
+        if (specifier == DataFieldSpecifier::Value)
+          return item.second.value;
+        if (specifier == DataFieldSpecifier::DataQuality)
+          return item.second.data_quality;
+        if (specifier == DataFieldSpecifier::DataSource)
+          return item.second.data_source;
+      }
     }
+
+    // If no default sensor found return the first
+    const auto &default_item = *(sensor_data.begin());
+
+    if (specifier == DataFieldSpecifier::Value)
+      return default_item.second.value;
+    if (specifier == DataFieldSpecifier::DataQuality)
+      return default_item.second.data_quality;
+    if (specifier == DataFieldSpecifier::DataSource)
+      return default_item.second.data_source;
+
+    return TS::None();
   }
-
-  // If no default sensor found return the first
-  const auto &default_item = *(sensor_data.begin());
-
-  if (specifier == DataFieldSpecifier::Value)
-    return default_item.second.value;
-  if (specifier == DataFieldSpecifier::DataQuality)
-    return default_item.second.data_quality;
-  if (specifier == DataFieldSpecifier::DataSource)
-    return default_item.second.data_source;
-
-  return TS::None();
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed");
+  }
 }
 
 TS::Value get_sensor_value(const SensorData &sensor_data,
@@ -111,26 +125,33 @@ TS::Value get_sensor_value(const SensorData &sensor_data,
                            int measurand_id,
                            DataFieldSpecifier specifier = DataFieldSpecifier::Value)
 {
-  if (sensor_data.empty())
-    return TS::None();
-
-  if (sensor_no == "default" || sensor_no.empty())
-    return get_default_sensor_value(sensor_data, fmisid, measurand_id, specifier);
-
-  int sensor_nro = Fmi::stoi(sensor_no);
-  if (sensor_data.find(sensor_nro) != sensor_data.end())
+  try
   {
-    if (specifier == DataFieldSpecifier::Value)
-      return sensor_data.at(sensor_nro).value;
+    if (sensor_data.empty())
+      return TS::None();
 
-    if (specifier == DataFieldSpecifier::DataQuality)
-      return sensor_data.at(sensor_nro).data_quality;
+    if (sensor_no == "default" || sensor_no.empty())
+      return get_default_sensor_value(sensor_data, fmisid, measurand_id, specifier);
 
-    if (specifier == DataFieldSpecifier::DataSource)
-      return sensor_data.at(sensor_nro).data_source;
+    int sensor_nro = Fmi::stoi(sensor_no);
+    if (sensor_data.find(sensor_nro) != sensor_data.end())
+    {
+      if (specifier == DataFieldSpecifier::Value)
+        return sensor_data.at(sensor_nro).value;
+
+      if (specifier == DataFieldSpecifier::DataQuality)
+        return sensor_data.at(sensor_nro).data_quality;
+
+      if (specifier == DataFieldSpecifier::DataSource)
+        return sensor_data.at(sensor_nro).data_source;
+    }
+
+    return TS::None();
   }
-
-  return TS::None();
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed");
+  }
 }
 
 bool isDataSourceField(const std::string &fieldname)

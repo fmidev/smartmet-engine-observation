@@ -13,7 +13,6 @@
 #include "Settings.h"
 #include "StationGroups.h"
 #include "StationtypeConfig.h"
-#include "DataItem.h"
 #include <boost/atomic.hpp>
 #include <macgyver/PostgreSQLConnection.h>
 #include <macgyver/TimeZones.h>
@@ -32,6 +31,7 @@ class PostgreSQLDatabaseDriver;
 class PostgreSQLObsDB : public CommonPostgreSQLFunctions
 {
  public:
+  ~PostgreSQLObsDB() override;
   PostgreSQLObsDB(const Fmi::Database::PostgreSQLConnectionOptions &connectionOptions,
                   const StationtypeConfig &stc,
                   const ParameterMapPtr &pm);
@@ -84,6 +84,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
                                         const Fmi::DateTime &lastStrokeTime,
                                         const Fmi::DateTime &lastModifiedTime,
                                         const Fmi::TimeZones &timezones);
+
   void readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheData,
                                                 Fmi::DateTime lastTime,
                                                 Fmi::DateTime lastModifiedTime,
@@ -105,6 +106,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
 
   void resetTimeSeries() { itsTimeSeriesColumns.reset(); }
   void setTimeInterval(const Fmi::DateTime &starttime, const Fmi::DateTime &endtime, int timestep);
+
   void fetchWeatherDataQCData(const std::string &sqlStmt,
                               const StationInfo &stationInfo,
                               const std::set<std::string> &stationgroup_codes,

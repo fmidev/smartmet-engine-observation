@@ -39,6 +39,8 @@ std::atomic<bool> bigFlashRequestReported{false};
 
 using namespace Utils;
 
+PostgreSQLObsDB::~PostgreSQLObsDB() {}
+
 PostgreSQLObsDB::PostgreSQLObsDB(
     const Fmi::Database::PostgreSQLConnectionOptions &connectionOptions,
     const StationtypeConfig &stc,
@@ -428,9 +430,7 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem
 }
 
 void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
-    DataItems &cacheData,
-    const std::string &sqlStmt,
-    const Fmi::TimeZones & /* timezones */)
+    DataItems &cacheData, const std::string &sqlStmt, const Fmi::TimeZones & /* timezones */)
 {
   try
   {
@@ -484,7 +484,8 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheD
       sqlStmt += (" AND parameter IN (" + measurandId + ")");
     if (!fmisid.empty())
       sqlStmt += (" AND fmisid IN (" + fmisid + ")");
-
+    sqlStmt += " ORDER BY fmisid ASC, obstime ASC";
+    
     return readWeatherDataQCCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
   }
   catch (...)
