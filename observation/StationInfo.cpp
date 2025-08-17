@@ -873,6 +873,16 @@ void StationInfo::update() const
   }
 
   stationtree.flush();
+
+  // Determine quickly type of external stations
+
+  for(const auto& station : stations)
+  {
+    if(station.isRoad)
+      roadfmisids.insert(station.fmisid);
+    else if(station.isForeign)
+      foreignfmisids.insert(station.fmisid);
+  }
 }
 
 Spine::TaggedFMISIDList StationInfo::translateWMOToFMISID(const std::vector<int>& wmos,

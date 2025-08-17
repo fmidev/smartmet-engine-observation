@@ -334,18 +334,18 @@ LocationDataItems ObservationMemoryCache::read_observations(
         if(obs->measurand_no == 1)
         {
           // default measurand for observation_data
-          if(valid_sensors.empty())
+          if(valid_sensors.empty() || (valid_sensors.find(-1) != valid_sensors.end()))
             sensorOK = true;
           else
-            sensorOK = valid_sensors.find(-1) != valid_sensors.end();
+            sensorOK = valid_sensors.find(obs->sensor_no) != valid_sensors.end();
         }
         else if(obs->measurand_no == 0)
         {
           // weather_data_qc default seems to be 0 instead of 1
-          if(valid_sensors.empty())
+          if(valid_sensors.empty() || (valid_sensors.find(-1) != valid_sensors.end()))
             sensorOK = true;
           else
-            sensorOK = valid_sensors.find(-1) != valid_sensors.end();
+            sensorOK = valid_sensors.find(obs->sensor_no) != valid_sensors.end();
         }
         else
         {

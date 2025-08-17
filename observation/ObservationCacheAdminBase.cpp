@@ -710,6 +710,32 @@ void ObservationCacheAdminBase::updateObservationCache() const
   }
 }
 
+// weather_data_qc table does not contain producer info. We add "road" or "foreign" information
+// based on the fmisid of the station.
+void ObservationCacheAdminBase::fixWeatherDataQCProducers(DataItems& data) const
+{
+  auto stationinfo = itsParameters.params->stationInfo.load();
+
+  int last_fmisid = -1;
+  int last_producer_id = 0;
+  
+  for(auto& item : data)
+  {
+    if(item.fmisid == last_fmisid)
+      item.producer_id = last_producer_id;
+    else
+    {
+      if(stationinfo->isRoadStation(item.fmisid))
+        last_producer_id = item.producer_id = RoadProducer;
+      else if(stationinfo->isForeignStation(item.fmisid))
+        last_producer_id = item.producer_id = ForeignProducer;
+      else
+        last_producer_id = 0;
+      last_fmisid = item.fmisid;
+    }
+  }
+}
+
 void ObservationCacheAdminBase::updateWeatherDataQCFakeCache(
     std::shared_ptr<ObservationCache>& cache) const
 {
@@ -733,6 +759,8 @@ void ObservationCacheAdminBase::updateWeatherDataQCFakeCache(
               << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - begin1).count()
               << " ms" << std::endl;
 
+    fixWeatherDataQCProducers(cacheData);
+    
     auto begin2 = std::chrono::high_resolution_clock::now();
     auto count = cache->fillWeatherDataQCCache(cacheData);
     auto end2 = std::chrono::high_resolution_clock::now();
@@ -793,6 +821,8 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
         }
       }
 
+      fixWeatherDataQCProducers(cacheData);
+      
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)

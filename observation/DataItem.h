@@ -11,6 +11,11 @@ namespace Engine
 {
 namespace Observation
 {
+
+// Self assigned numbers for the producers
+const int ForeignProducer = 1001;
+const int RoadProducer = 1002;
+
 class DataItem
 {
  public:

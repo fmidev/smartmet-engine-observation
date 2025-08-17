@@ -1,5 +1,6 @@
 #include "RoadAndForeignIds.h"
 #include <iostream>
+#include <macgyver/Exception.h>
 
 namespace SmartMet
 {
@@ -10,27 +11,100 @@ namespace Observation
 const std::string missing_string = "MISSING";
 const int missing_integer = 9999;
 
+// NOTE: There are no duplicate names!
+
 RoadAndForeignIds::RoadAndForeignIds()
-    : itsStringToInteger{
-          {"CH", 1},        {"CHL1", 2},      {"CHL2", 3},   {"CHL3", 4},      {"CHL4", 5},
-          {"CN", 6},        {"CNH", 7},       {"CNL1", 8},   {"CNL2", 9},      {"CNL3", 10},
-          {"CNL4", 11},     {"CTCH", 12},     {"CTCL", 13},  {"CTCM", 14},     {"CTL1", 15},
-          {"CTL2", 16},     {"CTL3", 17},     {"CTL4", 18},  {"E", 19},        {"NET", 20},
-          {"P0", 21},       {"Pa", 22},       {"PPP", 23},   {"GPM", 24},      {"PR_12H", 25},
-          {"PR_1H", 26},    {"PR_24H", 27},   {"PR_6H", 28}, {"PSEA", 29},     {"RH", 30},
-          {"SD", 31},       {"SUNDUR", 32},   {"TA", 33},    {"TAMAX12H", 34}, {"TAMAX24H", 35},
-          {"TAMIN12H", 36}, {"TAMIN24H", 37}, {"TG", 38},    {"TD", 39},       {"VV", 40},
-          {"WD", 41},       {"WG", 42},       {"WG1H", 43},  {"WS", 44},       {"WW", 45},
-          {"W1", 46},       {"W2", 47},       {"AKKUJ", 48}, {"AVIKA", 49},    {"DILMA", 50},
-          {"DIPAINE", 51},  {"DTIEL", 52},    {"ILMA", 53},  {"IPAINE", 54},   {"JAATJ", 55},
-          {"JAATP", 56},    {"KASTEP", 57},   {"KELI", 58},  {"KELI2", 59},    {"KITKA", 60},
-          {"KOSM", 61},     {"KOSTE", 62},    {"KPERO", 63}, {"KTUULI", 64},   {"LI", 65},
-          {"LS", 66},       {"LUNTA", 67},    {"LW", 68},    {"MAAL", 69},     {"MTUULI", 70},
-          {"PSING", 71},    {"RINT", 72},     {"RST", 73},   {"RSUM", 74},     {"RSUM1H", 75},
-          {"SADE", 76},     {"SADEON", 77},   {"SJOHT", 78}, {"STILA", 79},    {"STST", 80},
-          {"SUOM", 81},     {"SUOV", 82},     {"TIE", 83},   {"TSUUNT", 84},   {"TURL", 85},
-          {"VALO", 86},     {"VARO", 87},     {"VARO3", 88}, {"VIRTA", 89},    {"VIS", 90},
-          {"VSAA", 91}}
+    : itsForeignNames{
+          {"CH", 120},
+          {"CHL1", 132},
+          {"CHL2", 133},
+          {"CHL3", 134},
+          {"CHL4", 135},
+          {"CN", 119},
+          {"CNH", 175},
+          {"CNL1", 121},
+          {"CNL2", 122},
+          {"CNL3", 123},
+          {"CNL4", 124},
+          {"CTCH", 125},
+          {"CTCL", 126},
+          {"CTCM", 127},
+          {"E", 148},
+          {"MISSING", missing_integer}, // Legacy kludge
+          {"NET", 613},
+          {"P0", 38},
+          {"Pa", 39},
+          {"PR_12H", 63},
+          {"PR_1H", 61},
+          {"PR_24H", 64},
+          {"PR_6H", 62},
+          {"PSEA", 37},
+          {"RH",29},
+          {"SD", 84},
+          {"SUNDUR", 100},
+          {"TA", 1},
+          {"TAMAX12H", 21},
+          {"TAMAX24H", 25},
+          {"TAMIN12H", 22},
+          {"TAMIN24H", 26},
+          {"TD", 32},
+          {"VV", 54},
+          {"WD", 44},
+          {"WG", 47},
+          {"WG1H", 47},
+          {"WS", 41},
+          {"WW", 56},
+          // These four are for some reason defined in parameters.conf as "MISSING" to make them valid
+          // for the producer but any search would return nothing. Must be some legacy kludge.
+          {"PoP", missing_integer},
+          {"WeatherSymbol3", missing_integer},
+          {"ri_10min", missing_integer},
+          {"ww_aws", missing_integer}}
+    , itsRoadNames{
+          {"AKKUJ", 186},
+          {"AVIKA", 191},
+          {"DILMA", 9},
+          {"DIPAINE", 40},
+          {"DTIEL", 10},
+          {"ILMA", 1},
+          {"IPAINE", 38},
+          {"JAATJ", 90},
+          {"JAATP", 8},
+          {"KASTEP", 32},
+          {"KELI", 86},
+          {"KELI2", 193},
+          {"KITKA", 195},
+          {"KOSM", 202},
+          {"KOSTE", 29},
+          {"KPERO", 201},
+          {"KTUULI", 41},
+          {"LI", 198},
+          {"LS", 197},
+          {"LUNTA", 84},
+          {"LW", 196},
+          {"MAAL", 6},
+          {"MISSING", missing_integer}, // Legacy kludge
+          {"MTUULI", 47},
+          {"PSING", 89},
+          {"RINT", 67},
+          {"RST", 81},
+          {"RSUM", 203},
+          {"RSUM1H",61},
+          {"SADE", 150},
+          {"SADEON", 69},
+          {"SJOHT", 88},
+          {"STILA",80},
+          {"STST", 138},
+          {"SUOM", 204},
+          {"SUOV", 205},
+          {"TIE", 5},
+          {"TSUUNT", 44},
+          {"TURL", 206},
+          {"VARO", 87},
+          {"VARO3", 194},
+          {"VIRTA", 192},
+          {"VIS", 54},
+          {"VSAA", 199}}    
 {
   // Actual ids for parametrs can be found on wiki pages
   // https://wiki.fmi.fi/pages/viewpage.action?pageId=37040091
@@ -43,27 +117,70 @@ RoadAndForeignIds::RoadAndForeignIds()
   // same measurand id for different parameters (e.g. 'ILMA'/'TA','MTUULI'/'WG') and we dont want to
   // add producer column in cache table
 
-  for (const auto& item : itsStringToInteger)
-    itsIntegerToString.insert(std::make_pair(item.second, item.first));
+  for (const auto& item : itsForeignNames)
+    itsForeignNumbers.insert(std::make_pair(item.second, item.first));
+
+  for (const auto& item : itsRoadNames)
+    itsRoadNumbers.insert(std::make_pair(item.second, item.first));
 }
 
-const std::string& RoadAndForeignIds::integerToString(int int_value) const
+int RoadAndForeignIds::stringToInteger(const std::string& string_value, const std::string& producer) const
 {
-  const auto pos = itsIntegerToString.find(int_value);
-  if (pos == itsIntegerToString.end())
-    return missing_string;
+  if(producer == "foreign")
+  {
+    const auto pos = itsForeignNames.find(string_value);
+    if (pos != itsForeignNames.end())
+      return pos->second;
+  }
+  else if(producer == "road")
+  {
+    const auto pos = itsRoadNames.find(string_value);
+    if (pos != itsRoadNames.end())
+      return pos->second;
+  }
+  else
+    throw Fmi::Exception(BCP, "Unknown EXT producer name '" + producer +"'");
 
-  return pos->second;
+  return missing_integer;
 }
 
 int RoadAndForeignIds::stringToInteger(const std::string& string_value) const
 {
-  const auto pos = itsStringToInteger.find(string_value);
-  if (pos == itsStringToInteger.end())
-    return missing_integer;
-
-  return pos->second;
+  {
+    const auto pos = itsForeignNames.find(string_value);
+    if (pos != itsForeignNames.end())
+      return pos->second;
+  }
+  
+  {
+    const auto pos = itsRoadNames.find(string_value);
+    if (pos != itsRoadNames.end())
+      return pos->second;
+  }
+  
+  return missing_integer;
 }
+
+const std::string& RoadAndForeignIds::integerToString(int int_value, const std::string& producer) const
+{
+  if(producer == "foreign")
+  {
+    const auto pos = itsForeignNumbers.find(int_value);
+    if (pos != itsForeignNumbers.end())
+      return pos->second;
+  }
+  else if(producer == "road")
+  {
+    const auto pos = itsRoadNumbers.find(int_value);
+    if (pos != itsRoadNumbers.end())
+      return pos->second;
+  }
+  else
+    throw Fmi::Exception(BCP, "Unknown EXT producer name '" + producer +"'");
+
+  return missing_string;
+}
+
 
 }  // namespace Observation
 

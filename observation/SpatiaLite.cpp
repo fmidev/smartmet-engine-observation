@@ -3617,7 +3617,6 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
                                         const TS::RequestLimits &requestLimits,
                                         LocationDataItems &cacheData)
 {
-  // XXXXXXXXXXXXXXXXXXXXXXX
   try
   {
     sqlite3pp::query qry(itsDB, sqlStmt.c_str());
@@ -3626,32 +3625,46 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
     std::set<Fmi::DateTime> obstimes;
     for (const auto &row : qry)
     {
-      std::optional<int> fmisid = row.get<int>(0);
+      int fmisid = row.get<int>(0);
       unsigned int obstime_db = row.get<int>(1);
       Fmi::DateTime obstime = Fmi::date_time::from_time_t(obstime_db);
       // Get latitude, longitude, elevation from station info
-      const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes, obstime);
+      const Spine::Station &s = stationInfo.getStation(fmisid, stationgroup_codes, obstime);
 
       std::optional<double> latitude = s.latitude;
       std::optional<double> longitude = s.longitude;
       std::optional<double> elevation = s.elevation;
       std::optional<std::string> stationtype = s.type;
 
-      int parameter = row.get<int>(2);
+      int measurand_id = row.get<int>(2);
       std::optional<double> data_value;
       if (row.column_type(3) != SQLITE_NULL)
         data_value = row.get<double>(3);
-      std::optional<int> sensor_no = row.get<int>(4);
-      std::optional<int> data_quality = row.get<int>(5);
+      int measurand_no = row.get<int>(4);
+      int sensor_no = row.get<int>(5);
+      int data_quality = 0;
+      if (row.column_type(6) != SQLITE_NULL)
+        data_quality = row.get<int>(6);
+      int data_source = -1;
+      if (row.column_type(7) != SQLITE_NULL)
+        data_source = row.get<int>(7);
+      int producer_id = row.get<int>(8);
 
-      DataItem item{
-          obstime, obstime, data_value, *fmisid, *sensor_no, parameter, 0, 0, *data_quality, -1};
+      DataItem item{obstime,
+                    obstime,
+                    data_value,
+                    fmisid,
+                    sensor_no,
+                    measurand_id,
+                    producer_id,
+                    measurand_no,
+                    data_quality,
+                    data_source};
       LocationDataItem loc_item{
-          item, *longitude, *latitude, *elevation, stationtype ? *stationtype : "TODO"};
+          item, *longitude, *latitude, *elevation, stationtype ? *stationtype : "UNKNOWN"};
       cacheData.push_back(loc_item);
 
-      if (fmisid)
-        fmisids.insert(*fmisid);
+      fmisids.insert(fmisid);
       obstimes.insert(obstime);
 
       check_request_limit(requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
@@ -3679,9 +3692,9 @@ std::string SpatiaLite::sqlSelectFromWeatherDataQCData(const Settings &settings,
     auto endtime = to_epoch(settings.endtime);
 
     std::string sqlStmt =
-        "SELECT data.fmisid AS fmisid, data.sensor_no AS sensor_no, data.data_time AS obstime, "
-        "measurand_id, measurand_no, data_value, data_quality, data_source FROM observation_data "
-        "data "
+        "SELECT data.fmisid AS fmisid, data.data_time AS obstime, measurand_id, data_value, "
+        "measurand_no, data.sensor_no AS sensor_no, data_quality, data_source, producer_id FROM "
+        "weather_data data "
         "WHERE data.fmisid IN (" +
         station_ids +
         ") "

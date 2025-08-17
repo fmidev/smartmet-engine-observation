@@ -60,7 +60,7 @@ int get_mid(const std::string &param_name,
     auto sparam = parameterMap->getParameter(param_name, stationtype);
 
     if (stationtype == "foreign" || stationtype == "road")
-      return parameterMap->getRoadAndForeignIds().stringToInteger(sparam);
+      return parameterMap->getRoadAndForeignIds().stringToInteger(sparam, stationtype);
 
     return Fmi::stoi(sparam);
   }
@@ -378,7 +378,7 @@ void addParameterToTimeSeries(const TS::TimeSeriesVectorPtr &timeSeriesColumns,
           std::string sparam = parameterMap->getParameter("winddirection", stationtype);
           int mid = (!isWeatherDataQCTable
                          ? Fmi::stoi(sparam)
-                         : parameterMap->getRoadAndForeignIds().stringToInteger(sparam));
+                     : parameterMap->getRoadAndForeignIds().stringToInteger(sparam,stationtype));
           if (data.count(mid) == 0)
           {
             timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, missing));
@@ -848,7 +848,7 @@ QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
           {
             int nparam = (!isWeatherDataQCTable
                               ? Fmi::stoi(sparam)
-                              : itsParameterMap->getRoadAndForeignIds().stringToInteger(sparam));
+                          : itsParameterMap->getRoadAndForeignIds().stringToInteger(sparam, stationtype));
 
             ret.timeseriesPositionsString[name_plus_sensor_number] = pos;
             ret.parameterNameMap[name_plus_sensor_number] = sparam;

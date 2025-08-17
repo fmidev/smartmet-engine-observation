@@ -123,6 +123,9 @@ class StationInfo
                                                const Fmi::DateTime& t) const;
   void setStationGroups(const StationGroups& sg) { itsStationGroups = sg; }
 
+  bool isRoadStation(int fmisid) const { return roadfmisids.find(fmisid) != roadfmisids.end(); }
+  bool isForeignStation(int fmisid) const { return foreignfmisids.find(fmisid) != foreignfmisids.end(); }
+  
  private:
   void update() const;
 
@@ -141,6 +144,10 @@ class StationInfo
   mutable StationTree stationtree;        // search tree for nearest stations
   mutable GroupMembers members;           // group id --> indexes of stations
 
+  mutable std::set<int> roadfmisids; // all stations where isRoad=true
+  mutable std::set<int> foreignfmisids; // all stations where isForeign=true
+
+  
   StationGroups itsStationGroups;
 };
 

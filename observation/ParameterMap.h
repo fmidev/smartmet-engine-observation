@@ -40,13 +40,13 @@ class ParameterMap
 
   NameToStationParameterMap::const_iterator begin() const { return params.begin(); }
   NameToStationParameterMap::const_iterator end() const { return params.end(); }
-  const RoadAndForeignIds& getRoadAndForeignIds() const { return road_foregn_ids; }
+  const RoadAndForeignIds& getRoadAndForeignIds() const { return road_foreign_ids; }
 
  private:
   NameToStationParameterMap params;
   NameToStationParameterMap params_id_map;
   StationParameters emptymap;
-  RoadAndForeignIds road_foregn_ids;
+  RoadAndForeignIds road_foreign_ids;
 };
 
 using ParameterMapPtr = std::shared_ptr<const ParameterMap>;
