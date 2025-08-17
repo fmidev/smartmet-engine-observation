@@ -167,7 +167,7 @@ TEST_CASE("Test station and data searches")
     SECTION("All EXTRWS stations are searched")
     {
       auto stations = stationinfo.findStationsInGroup(stationgroup_codes, starttime, endtime);
-      REQUIRE(stations.size() == 1507);
+      REQUIRE(stations.size() == 1508);
     }
 
     SECTION("Using EXTSYNOP group")
