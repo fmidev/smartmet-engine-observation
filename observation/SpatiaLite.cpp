@@ -479,7 +479,7 @@ void SpatiaLite::createWeatherDataTable()
         "weather_data(modified_last);");
 
     // Delete legacy table if it exists
-    itsDB.execute("DELETE TABLE IF EXISTS weather_data_qc");
+    itsDB.execute("DROP TABLE IF EXISTS weather_data_qc");
   }
   catch (...)
   {
