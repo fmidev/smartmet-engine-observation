@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.8.17
+Version: 25.8.18
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -178,6 +178,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Aug 18 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.8.18-1.fmi
+- Fixed dropping old weather_data_qc table
+
 * Sun Aug 17 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.8.17-1.fmi
 - Added memory cache for external observations
 - Cache external observations to sqlite using common database structures
