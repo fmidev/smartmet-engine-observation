@@ -228,6 +228,8 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
   std::vector<StationDistance> distances;
   double previous_distance = -1;
 
+  std::set<int> used_fmisids;
+
   for (const auto& candidate : candidates)
   {
     StationID id = candidate.second.ID();
@@ -247,7 +249,11 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
 
     previous_distance = distance;
 
-    distances.emplace_back(distance, id);
+    // Output the same fmisid only once, you're supposed to filter by groups if you
+    // need a specific station type.
+
+    if (used_fmisids.insert(station.fmisid).second)
+      distances.emplace_back(distance, id);
   }
 
   // The vector is already sorted by distance. We want stations at the same distance to be
@@ -264,7 +270,6 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
             });
 
   // Accept only max count stations
-
   if (distances.size() > maxcount)
     distances.resize(numberofstations);
 
@@ -876,11 +881,11 @@ void StationInfo::update() const
 
   // Determine quickly type of external stations
 
-  for(const auto& station : stations)
+  for (const auto& station : stations)
   {
-    if(station.isRoad)
+    if (station.isRoad)
       roadfmisids.insert(station.fmisid);
-    else if(station.isForeign)
+    else if (station.isForeign)
       foreignfmisids.insert(station.fmisid);
   }
 }
