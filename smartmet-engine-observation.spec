@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.8.22
+Version: 25.9.4
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -40,12 +40,12 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 25.2.18
 BuildRequires: smartmet-library-locus-devel >= 25.6.4
-BuildRequires: smartmet-library-macgyver-devel >= 25.7.28
-BuildRequires: smartmet-library-spine-devel >= 25.5.13
+BuildRequires: smartmet-library-macgyver-devel >= 25.9.3
+BuildRequires: smartmet-library-spine-devel >= 25.9.2
 BuildRequires: smartmet-library-timeseries-devel >= 25.8.1
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
-BuildRequires: smartmet-utils-devel >= 25.8.6
+BuildRequires: smartmet-utils-devel >= 25.8.19
 BuildRequires: zlib-devel
 Requires: %{smartmet_boost}-iostreams
 Requires: %{smartmet_boost}-locale
@@ -57,10 +57,10 @@ Requires: gdal310-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 25.2.18
 Requires: smartmet-library-locus >= 25.6.4
-Requires: smartmet-library-macgyver >= 25.7.28
-Requires: smartmet-library-spine >= 25.5.13
+Requires: smartmet-library-macgyver >= 25.9.3
+Requires: smartmet-library-spine >= 25.9.2
 Requires: smartmet-library-timeseries >= 25.8.1
-Requires: smartmet-server >= 25.5.13
+Requires: smartmet-server >= 25.8.21
 Requires: unixODBC
 
 %if 0%{?rhel} && 0%{rhel} == 8
@@ -144,7 +144,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 25.5.13
+Requires: smartmet-library-spine-devel >= 25.9.2
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -178,6 +178,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Sep  4 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> 25.9.4-1.fmi
+- Return the same fmisid only once when searching for nearest stations
+
 * Fri Aug 22 2025 Andris Pavēnis <andris.pavenis@fmi.fi> 25.8.22-1.fmi
 - Move methods of measurand_info to header file
 
