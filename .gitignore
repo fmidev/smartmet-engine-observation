@@ -1,4 +1,5 @@
-obj/
+/obj
+/doc
 compile_commands.json
 observation.so
 .gdb_history
