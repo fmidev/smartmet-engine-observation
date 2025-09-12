@@ -88,7 +88,7 @@ class ObservationCacheAdminBase
   void addInfoToStations(Spine::Stations& stations, const std::string& language) const;
 
   const DatabaseDriverParameters& itsParameters;
-  const std::shared_ptr<ObservationCacheProxy>& itsCacheProxy;
+  const std::shared_ptr<ObservationCacheProxy> itsCacheProxy;
   SmartMet::Engine::Geonames::Engine* itsGeonames;
   std::atomic<bool>& itsConnectionsOK;
   bool itsTimer{false};
