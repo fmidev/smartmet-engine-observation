@@ -2,6 +2,7 @@
 
 #include "SpatiaLite.h"
 #include "SpatiaLiteCacheParameters.h"
+#include <macgyver/Pool.h>
 #include <spine/Thread.h>
 
 namespace SmartMet
@@ -10,26 +11,31 @@ namespace Engine
 {
 namespace Observation
 {
-class SpatiaLiteConnectionPool
+
+class SpatiaLiteConnectionPool final
 {
+  using PoolType =
+      Fmi::Pool<Fmi::PoolInitType::Sequential, SpatiaLite, std::string, SpatiaLiteCacheParameters>;
+
  public:
+
+  using Ptr = PoolType::Ptr;
+
   explicit SpatiaLiteConnectionPool(const SpatiaLiteCacheParameters& options);
-  SpatiaLiteConnectionPool() = delete;
 
-  std::shared_ptr<SpatiaLite> getConnection();
-
-  void releaseConnection(int connectionId);
-
-  void shutdown();
+  Ptr getConnection();
 
  private:
+  SpatiaLiteConnectionPool() = delete;
+  SpatiaLiteConnectionPool(const SpatiaLiteConnectionPool&) = delete;
+  SpatiaLiteConnectionPool& operator=(const SpatiaLiteConnectionPool&) = delete;
+  SpatiaLiteConnectionPool(SpatiaLiteConnectionPool&&) = delete;
+  SpatiaLiteConnectionPool& operator=(SpatiaLiteConnectionPool&&) = delete;
+
   std::string itsSpatialiteFile;
   SpatiaLiteCacheParameters itsOptions;
 
-  std::vector<int> itsWorkingList;
-  std::vector<std::shared_ptr<SpatiaLite> > itsWorkerList;
-
-  Spine::MutexType itsGetMutex;
+  PoolType itsPool;
 };
 
 }  // namespace Observation

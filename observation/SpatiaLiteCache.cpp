@@ -48,7 +48,7 @@ void SpatiaLiteCache::initializeConnectionPool()
     // 1) stations
     // 2) locations
     // 3) observation_data
-    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
     const std::set<std::string> &cacheTables = itsCacheInfo.tables;
 
     db->createTables(cacheTables);
@@ -215,7 +215,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
     // Get data if we have stations
     if (!stations.empty())
     {
-      std::shared_ptr<CommonDatabaseFunctions> db = itsConnectionPool->getConnection();
+      SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
       db->setDebug(settings.debug_options);
       db->setAdditionalTimestepOption(AdditionalTimestepOption::JustRequestedTimesteps);
 
@@ -242,7 +242,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
                magnetometerIntervalIsCached(settings.starttime, settings.endtime))
       {
         hit(MAGNETOMETER_DATA_TABLE);
-        ret = db->getMagnetometerData(stations, settings, *sinfo, itsTimeZones);
+        ret = db->CommonDatabaseFunctions::getMagnetometerData(stations, settings, *sinfo, itsTimeZones);
       }
       else if (settings.stationtype == ICEBUOY_PRODUCER ||
                settings.stationtype == COPERNICUS_PRODUCER)
@@ -268,7 +268,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
             miss("observation_memory");
         }
 
-        ret = db->getObservationData(
+        ret = db->CommonDatabaseFunctions::getObservationData(
             stations, settings, *sinfo, itsTimeZones, itsObservationMemoryCache);
       }
     }
@@ -304,7 +304,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
 
     if (settings.stationtype == ICEBUOY_PRODUCER || settings.stationtype == COPERNICUS_PRODUCER)
     {
-      std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+      SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
       db->setDebug(settings.debug_options);
       return db->getObservationDataForMovingStations(settings, timeSeriesOptions, itsTimeZones);
     }
@@ -320,7 +320,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
     // Get data if we have stations
     if (!stations.empty())
     {
-      std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+      SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
       db->setDebug(settings.debug_options);
       db->setAdditionalTimestepOption(AdditionalTimestepOption::RequestedAndDataTimesteps);
 
@@ -400,7 +400,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(const Setting
     }
 
     // Must use disk cache instead
-    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
 
     return db->getFlashData(settings, itsTimeZones);
@@ -552,7 +552,7 @@ FlashCounts SpatiaLiteCache::getFlashCount(const Fmi::DateTime &starttime,
     }
 
     // Must use disk cache instead
-    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
     db->setDebug(false);
 
     return db->getFlashCount(starttime, endtime, locations);
@@ -763,7 +763,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpatiaLite(
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     hit(ROADCLOUD_DATA_TABLE);
     ret = db->getRoadCloudData(settings, itsTimeZones);
@@ -861,7 +861,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaLite(const Setti
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     hit(NETATMO_DATA_TABLE);
     ret = db->getNetAtmoData(settings, itsTimeZones);
@@ -970,7 +970,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLite(const Settin
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     hit(FMI_IOT_DATA_TABLE);
     ret = db->getFmiIoTData(settings, itsTimeZones);
@@ -1079,7 +1079,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::tapsiQcValuesFromSpatiaLite(const Setti
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    std::shared_ptr<SpatiaLite> db = itsConnectionPool->getConnection();
+    SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     hit(TAPSI_QC_DATA_TABLE);
     ret = db->getTapsiQcData(settings, itsTimeZones);
@@ -1371,9 +1371,11 @@ void SpatiaLiteCache::cleanMagnetometerCache(const Fmi::TimeDuration &timetokeep
 
 void SpatiaLiteCache::shutdown()
 {
+#if 0
   if (itsConnectionPool)
     itsConnectionPool->shutdown();
   itsConnectionPool = nullptr;
+#endif
 }
 
 // This has been added for flash emulator
