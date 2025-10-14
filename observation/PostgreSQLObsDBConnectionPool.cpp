@@ -1,22 +1,9 @@
 #include "PostgreSQLObsDBConnectionPool.h"
+#include "PostgreSQLDriverParameters.h"
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
 
 using namespace std;
-
-namespace
-{
-template <class T>
-struct Releaser
-{
-  explicit Releaser(SmartMet::Engine::Observation::PostgreSQLObsDBConnectionPool* pool_handle)
-      : poolHandle(pool_handle)
-  {
-  }
-  void operator()(T* t) { poolHandle->releaseConnection(t->connectionId()); }
-  SmartMet::Engine::Observation::PostgreSQLObsDBConnectionPool* poolHandle;
-};
-}  // namespace
 
 namespace SmartMet
 {
@@ -24,10 +11,6 @@ namespace Engine
 {
 namespace Observation
 {
-PostgreSQLObsDBConnectionPool::PostgreSQLObsDBConnectionPool(PostgreSQLDatabaseDriver* /* driver */)
-{
-}
-
 bool PostgreSQLObsDBConnectionPool::addService(
     const Fmi::Database::PostgreSQLConnectionOptions& connectionOptions, int poolSize)
 {
@@ -45,6 +28,23 @@ bool PostgreSQLObsDBConnectionPool::addService(
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
   return true;
+}
+
+bool PostgreSQLObsDBConnectionPool::initializePool(const PostgreSQLDriverParameters& itsParameters)
+try
+{
+    for (uint i = 0; i < itsParameters.connectionOptions.size(); ++i)
+    {
+      addService(itsParameters.connectionOptions[i], itsParameters.connectionPoolSize[i]);
+    }
+    setGetConnectionTimeOutSeconds(itsParameters.connectionTimeoutSeconds);
+
+    return initializePool(itsParameters.params->stationtypeConfig,
+                          itsParameters.params->parameterMap);
+}
+catch (...)
+{
+  throw Fmi::Exception::Trace(BCP, "Operation failed!");
 }
 
 bool PostgreSQLObsDBConnectionPool::initializePool(const StationtypeConfig& stc,
@@ -132,7 +132,9 @@ std::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(
                   "connection pool\n",
                   failures);
 
-            return {itsWorkerList[pos].get(), Releaser<PostgreSQLObsDB>(this)};
+            return {
+                itsWorkerList[pos].get(),
+                [this](PostgreSQLObsDB* t) -> void { this->releaseConnection(t->connectionId()); }};
           }
         }
       }
@@ -203,11 +205,14 @@ void PostgreSQLObsDBConnectionPool::releaseConnection(int connectionId)
     // Do "destructor" stuff here, because PostgreSQL instances are never destructed
 
     // Release the worker to the pool
-    itsWorkingList[static_cast<unsigned>(connectionId)] = 0;
+    itsWorkingList.at(static_cast<unsigned>(connectionId)) = 0;
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+    auto error = Fmi::Exception::Trace(BCP, "Operation failed!");
+    error.addParameter("connectionId", Fmi::to_string(connectionId));
+    error.addParameter("itsWorkingList.size()", Fmi::to_string(itsWorkingList.size()));
+    throw error;
   }
 }
 

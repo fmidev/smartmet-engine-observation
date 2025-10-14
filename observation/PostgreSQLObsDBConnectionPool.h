@@ -10,25 +10,28 @@ namespace Engine
 {
 namespace Observation
 {
-class PostgreSQLDatabaseDriver;
+class PostgreSQLDriverParameters;
 
 class PostgreSQLObsDBConnectionPool
 {
  public:
-  ~PostgreSQLObsDBConnectionPool() = default;
-  PostgreSQLObsDBConnectionPool() = delete;
-  PostgreSQLObsDBConnectionPool(const PostgreSQLObsDBConnectionPool& other) = delete;
-  PostgreSQLObsDBConnectionPool(PostgreSQLObsDBConnectionPool&& other) = delete;
-  PostgreSQLObsDBConnectionPool& operator=(const PostgreSQLObsDBConnectionPool& other) = delete;
-  PostgreSQLObsDBConnectionPool& operator=(PostgreSQLObsDBConnectionPool&& other) = delete;
+  PostgreSQLObsDBConnectionPool() = default;
 
-  bool initializePool(const StationtypeConfig& stc, const ParameterMapPtr& pm);
+  ~PostgreSQLObsDBConnectionPool() = default;
+
+  bool initializePool(const PostgreSQLDriverParameters& itsParameters);
 
   std::shared_ptr<PostgreSQLObsDB> getConnection(bool debug);
-  void releaseConnection(int connectionId);
-  explicit PostgreSQLObsDBConnectionPool(PostgreSQLDatabaseDriver* driver);
+
+  void shutdown();
+
+ private:
+  bool initializePool(const StationtypeConfig& stc, const ParameterMapPtr& pm);
+
   bool addService(const Fmi::Database::PostgreSQLConnectionOptions& connectionOptions,
                   int poolSize);
+
+  void releaseConnection(int connectionId);
 
   /**
    * @brief How long we wait an inactive connection if all the connections are active.
@@ -36,9 +39,11 @@ class PostgreSQLObsDBConnectionPool
    */
   void setGetConnectionTimeOutSeconds(std::size_t seconds);
 
-  void shutdown();
+  PostgreSQLObsDBConnectionPool(const PostgreSQLObsDBConnectionPool& other) = delete;
+  PostgreSQLObsDBConnectionPool(PostgreSQLObsDBConnectionPool&& other) = delete;
+  PostgreSQLObsDBConnectionPool& operator=(const PostgreSQLObsDBConnectionPool& other) = delete;
+  PostgreSQLObsDBConnectionPool& operator=(PostgreSQLObsDBConnectionPool&& other) = delete;
 
- private:
   std::vector<int> itsWorkingList;
   std::vector<std::shared_ptr<PostgreSQLObsDB> > itsWorkerList;
   Spine::MutexType itsGetMutex;

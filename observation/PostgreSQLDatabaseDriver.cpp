@@ -22,18 +22,9 @@ void PostgreSQLDatabaseDriver::initializeConnectionPool()
 {
   try
   {
-    itsPostgreSQLConnectionPool.reset(new PostgreSQLObsDBConnectionPool(this));
+    itsPostgreSQLConnectionPool = std::make_unique<PostgreSQLObsDBConnectionPool>();
 
-    for (uint i = 0; i < itsParameters.connectionOptions.size(); ++i)
-    {
-      itsPostgreSQLConnectionPool->addService(itsParameters.connectionOptions[i],
-                                              itsParameters.connectionPoolSize[i]);
-    }
-    itsPostgreSQLConnectionPool->setGetConnectionTimeOutSeconds(
-        itsParameters.connectionTimeoutSeconds);
-
-    if (itsPostgreSQLConnectionPool->initializePool(itsParameters.params->stationtypeConfig,
-                                                    itsParameters.params->parameterMap))
+    if (itsPostgreSQLConnectionPool->initializePool(itsParameters))
     {
       itsConnectionsOK = true;
       logMessage(
