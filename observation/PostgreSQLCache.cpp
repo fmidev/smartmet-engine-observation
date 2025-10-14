@@ -42,7 +42,7 @@ void PostgreSQLCache::initializeConnectionPool()
     // 1) stations
     // 2) locations
     // 3) observation_data
-    std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
+    PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
     const std::set<std::string> &cacheTables = itsCacheInfo.tables;
 
     db->createTables(cacheTables);
@@ -157,7 +157,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
     // Get data if we have stations
     if (!stations.empty())
     {
-      std::shared_ptr<CommonDatabaseFunctions> db = itsConnectionPool->getConnection();
+      PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
       db->setDebug(settings.debug_options);
       db->setAdditionalTimestepOption(AdditionalTimestepOption::JustRequestedTimesteps);
 
@@ -171,7 +171,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
       {
         ++itsCacheStatistics.at(OBSERVATION_DATA_TABLE).hits;
 
-        ret = db->getObservationData(
+        ret = db->CommonDatabaseFunctions::getObservationData(
             stations, settings, *sinfo, itsTimeZones, itsObservationMemoryCache);
       }
     }
@@ -215,7 +215,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
     // Get data if we have stations
     if (!stations.empty())
     {
-      std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
+      PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
       db->setDebug(settings.debug_options);
       db->setAdditionalTimestepOption(AdditionalTimestepOption::RequestedAndDataTimesteps);
 
@@ -247,7 +247,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(const Setting
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
+    PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     ++itsCacheStatistics.at(FLASH_DATA_TABLE).hits;
     ret = db->getFlashData(settings, itsTimeZones);
@@ -266,7 +266,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
+    PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     ++itsCacheStatistics.at(ROADCLOUD_DATA_TABLE).hits;
     ret = db->getRoadCloudData(settings, itsParameters.parameterMap, itsTimeZones);
@@ -285,7 +285,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(const Setti
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
+    PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     ++itsCacheStatistics.at(NETATMO_DATA_TABLE).hits;
     ret = db->getNetAtmoData(settings, itsParameters.parameterMap, itsTimeZones);
@@ -304,7 +304,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(const Settin
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
+    PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     ++itsCacheStatistics.at(FMI_IOT_DATA_TABLE).hits;
     ret = db->getFmiIoTData(settings, itsParameters.parameterMap, itsTimeZones);
@@ -323,7 +323,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::tapsiQcValuesFromPostgreSQL(const Setti
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    std::shared_ptr<PostgreSQLCacheDB> db = itsConnectionPool->getConnection();
+    PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
     db->setDebug(settings.debug_options);
     ++itsCacheStatistics.at(TAPSI_QC_DATA_TABLE).hits;
     ret = db->getTapsiQcData(settings, itsParameters.parameterMap, itsTimeZones);

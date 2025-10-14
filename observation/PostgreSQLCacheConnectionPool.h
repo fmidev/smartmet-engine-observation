@@ -2,6 +2,8 @@
 
 #include "PostgreSQLCacheDB.h"
 #include "PostgreSQLCacheParameters.h"
+#include <macgyver/Exception.h>
+#include <macgyver/Pool.h>
 #include <spine/Thread.h>
 
 namespace SmartMet
@@ -10,25 +12,33 @@ namespace Engine
 {
 namespace Observation
 {
-class PostgreSQLCacheConnectionPool
+
+class PostgreSQLCacheConnectionPool final
 {
+  using PoolType = Fmi::Pool<Fmi::PoolInitType::Parallel,
+                             PostgreSQLCacheDB,
+                             PostgreSQLCacheParameters>;
+
  public:
-  std::shared_ptr<PostgreSQLCacheDB> getConnection();
 
-  void releaseConnection(int connectionId);
+  using Ptr = PoolType::Ptr;
 
-  PostgreSQLCacheConnectionPool() = delete;
+  Ptr getConnection();
+
   explicit PostgreSQLCacheConnectionPool(const PostgreSQLCacheParameters& options);
 
   void shutdown();
 
  private:
+  PostgreSQLCacheConnectionPool() = delete;
+  PostgreSQLCacheConnectionPool(const PostgreSQLCacheConnectionPool&) = delete;
+  PostgreSQLCacheConnectionPool& operator=(const PostgreSQLCacheConnectionPool&) = delete;
+  PostgreSQLCacheConnectionPool(PostgreSQLCacheConnectionPool&&) = delete;
+  PostgreSQLCacheConnectionPool& operator=(PostgreSQLCacheConnectionPool&&) = delete;
+
   PostgreSQLCacheParameters itsOptions;
 
-  std::vector<int> itsWorkingList;
-  std::vector<std::shared_ptr<PostgreSQLCacheDB>> itsWorkerList;
-
-  Spine::MutexType itsGetMutex;
+  PoolType itsPool;
 };
 
 }  // namespace Observation
