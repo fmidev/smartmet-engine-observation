@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.9.4
+Version: 25.10.15
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -178,6 +178,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Oct 15 2025 Andris Pavēnis <andris.pavenis@fmi.fi> 25.10.15-1.fmi
+- Connection pools update
+
 * Thu Sep  4 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> 25.9.4-1.fmi
 - Return the same fmisid only once when searching for nearest stations
 
