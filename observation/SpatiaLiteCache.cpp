@@ -42,13 +42,17 @@ void SpatiaLiteCache::initializeConnectionPool()
     logMessage("[Observation Engine] Initializing SpatiaLite cache connection pool...",
                itsParameters.quiet);
 
-    itsConnectionPool.reset(new SpatiaLiteConnectionPool(itsParameters));
+    itsConnectionPool = std::make_unique<PoolType>(
+      itsParameters.connectionPoolSize,
+      itsParameters.connectionPoolSize,
+      itsParameters.cacheFile,
+      itsParameters);
 
     // Ensure that necessary tables exists:
     // 1) stations
     // 2) locations
     // 3) observation_data
-    SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
+    PoolType::Ptr db = itsConnectionPool->get();
     const std::set<std::string> &cacheTables = itsCacheInfo.tables;
 
     db->createTables(cacheTables);
@@ -154,7 +158,7 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
       itsFlashMemoryCache.reset(new FlashMemoryCache);
       auto timetokeep_memory = Fmi::Hours(flashMemoryCacheDuration);
       auto flashdata =
-          itsConnectionPool->getConnection()->readFlashCacheData(now - timetokeep_memory);
+          itsConnectionPool->get()->readFlashCacheData(now - timetokeep_memory);
       itsFlashMemoryCache->fill(flashdata);
     }
     if (cacheTables.find(OBSERVATION_DATA_TABLE) != cacheTables.end() && finMemoryCacheDuration > 0)
@@ -163,7 +167,7 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
                  itsParameters.quiet);
       itsObservationMemoryCache.reset(new ObservationMemoryCache);
       auto timetokeep_memory = Fmi::Hours(finMemoryCacheDuration);
-      itsConnectionPool->getConnection()->initObservationMemoryCache(now - timetokeep_memory,
+      itsConnectionPool->get()->initObservationMemoryCache(now - timetokeep_memory,
                                                                      itsObservationMemoryCache);
     }
     if (cacheTables.find(WEATHER_DATA_QC_TABLE) != cacheTables.end() && extMemoryCacheDuration > 0)
@@ -172,7 +176,7 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
                  itsParameters.quiet);
       itsExtMemoryCache.reset(new ObservationMemoryCache);
       auto timetokeep_memory = Fmi::Hours(extMemoryCacheDuration);
-      itsConnectionPool->getConnection()->initExtMemoryCache(now - timetokeep_memory,
+      itsConnectionPool->get()->initExtMemoryCache(now - timetokeep_memory,
                                                              itsExtMemoryCache);
     }
 
@@ -215,7 +219,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
     // Get data if we have stations
     if (!stations.empty())
     {
-      SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
+      PoolType::Ptr db = itsConnectionPool->get();
       db->setDebug(settings.debug_options);
       db->setAdditionalTimestepOption(AdditionalTimestepOption::JustRequestedTimesteps);
 
@@ -304,7 +308,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
 
     if (settings.stationtype == ICEBUOY_PRODUCER || settings.stationtype == COPERNICUS_PRODUCER)
     {
-      SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
+      PoolType::Ptr db = itsConnectionPool->get();
       db->setDebug(settings.debug_options);
       return db->getObservationDataForMovingStations(settings, timeSeriesOptions, itsTimeZones);
     }
@@ -320,7 +324,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
     // Get data if we have stations
     if (!stations.empty())
     {
-      SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
+      PoolType::Ptr db = itsConnectionPool->get();
       db->setDebug(settings.debug_options);
       db->setAdditionalTimestepOption(AdditionalTimestepOption::RequestedAndDataTimesteps);
 
@@ -400,7 +404,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::flashValuesFromSpatiaLite(const Setting
     }
 
     // Must use disk cache instead
-    SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
+    PoolType::Ptr db = itsConnectionPool->get();
     db->setDebug(settings.debug_options);
 
     return db->getFlashData(settings, itsTimeZones);
@@ -552,7 +556,7 @@ FlashCounts SpatiaLiteCache::getFlashCount(const Fmi::DateTime &starttime,
     }
 
     // Must use disk cache instead
-    SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
+    PoolType::Ptr db = itsConnectionPool->get();
     db->setDebug(false);
 
     return db->getFlashCount(starttime, endtime, locations);
@@ -565,12 +569,12 @@ FlashCounts SpatiaLiteCache::getFlashCount(const Fmi::DateTime &starttime,
 
 Fmi::DateTime SpatiaLiteCache::getLatestFlashModifiedTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestFlashModifiedTime();
+  return itsConnectionPool->get()->getLatestFlashModifiedTime();
 }
 
 Fmi::DateTime SpatiaLiteCache::getLatestFlashTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestFlashTime();
+  return itsConnectionPool->get()->getLatestFlashTime();
 }
 
 void SpatiaLiteCache::cleanMemoryDataCache(const Fmi::DateTime &newstarttime) const
@@ -608,7 +612,7 @@ std::size_t SpatiaLiteCache::fillFlashDataCache(const FlashDataItems &flashCache
       itsFlashMemoryCache->fill(flashCacheData);
 
     // Then disk cache
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillFlashDataCache(flashCacheData, itsFlashInsertCache);
 
     // Update info on what is in the database
@@ -644,7 +648,7 @@ void SpatiaLiteCache::cleanFlashDataCache(const Fmi::TimeDuration &timetokeep,
     // How old observations to keep in the disk cache:
     auto t = round_down_to_cache_clean_interval(now - timetokeep);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsFlashTimeIntervalMutex);
@@ -694,12 +698,12 @@ bool SpatiaLiteCache::roadCloudIntervalIsCached(const Fmi::DateTime &starttime,
 
 Fmi::DateTime SpatiaLiteCache::getLatestRoadCloudDataTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestRoadCloudDataTime();
+  return itsConnectionPool->get()->getLatestRoadCloudDataTime();
 }
 
 Fmi::DateTime SpatiaLiteCache::getLatestRoadCloudCreatedTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestRoadCloudCreatedTime();
+  return itsConnectionPool->get()->getLatestRoadCloudCreatedTime();
 }
 
 std::size_t SpatiaLiteCache::fillRoadCloudCache(
@@ -707,7 +711,7 @@ std::size_t SpatiaLiteCache::fillRoadCloudCache(
 {
   try
   {
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillRoadCloudCache(mobileExternalCacheData, itsRoadCloudInsertCache);
 
     // Update what really now really is in the database
@@ -735,7 +739,7 @@ void SpatiaLiteCache::cleanRoadCloudCache(const Fmi::TimeDuration &timetokeep) c
     Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsRoadCloudTimeIntervalMutex);
@@ -763,7 +767,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpatiaLite(
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
+    PoolType::Ptr db = itsConnectionPool->get();
     db->setDebug(settings.debug_options);
     hit(ROADCLOUD_DATA_TABLE);
     ret = db->getRoadCloudData(settings, itsTimeZones);
@@ -806,7 +810,7 @@ std::size_t SpatiaLiteCache::fillNetAtmoCache(
 {
   try
   {
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillNetAtmoCache(mobileExternalCacheData, itsNetAtmoInsertCache);
 
     // Update what really now really is in the database
@@ -834,7 +838,7 @@ void SpatiaLiteCache::cleanNetAtmoCache(const Fmi::TimeDuration &timetokeep) con
     Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsNetAtmoTimeIntervalMutex);
@@ -861,7 +865,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaLite(const Setti
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
+    PoolType::Ptr db = itsConnectionPool->get();
     db->setDebug(settings.debug_options);
     hit(NETATMO_DATA_TABLE);
     ret = db->getNetAtmoData(settings, itsTimeZones);
@@ -876,12 +880,12 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::netAtmoValuesFromSpatiaLite(const Setti
 
 Fmi::DateTime SpatiaLiteCache::getLatestNetAtmoDataTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestNetAtmoDataTime();
+  return itsConnectionPool->get()->getLatestNetAtmoDataTime();
 }
 
 Fmi::DateTime SpatiaLiteCache::getLatestNetAtmoCreatedTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestNetAtmoCreatedTime();
+  return itsConnectionPool->get()->getLatestNetAtmoCreatedTime();
 }
 
 bool SpatiaLiteCache::fmiIoTIntervalIsCached(const Fmi::DateTime &starttime,
@@ -915,7 +919,7 @@ std::size_t SpatiaLiteCache::fillFmiIoTCache(
 {
   try
   {
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillFmiIoTCache(mobileExternalCacheData, itsFmiIoTInsertCache);
 
     // Update what really now really is in the database
@@ -943,7 +947,7 @@ void SpatiaLiteCache::cleanFmiIoTCache(const Fmi::TimeDuration &timetokeep) cons
     Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsFmiIoTTimeIntervalMutex);
@@ -970,7 +974,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLite(const Settin
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
+    PoolType::Ptr db = itsConnectionPool->get();
     db->setDebug(settings.debug_options);
     hit(FMI_IOT_DATA_TABLE);
     ret = db->getFmiIoTData(settings, itsTimeZones);
@@ -985,12 +989,12 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::fmiIoTValuesFromSpatiaLite(const Settin
 
 Fmi::DateTime SpatiaLiteCache::getLatestFmiIoTDataTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestFmiIoTDataTime();
+  return itsConnectionPool->get()->getLatestFmiIoTDataTime();
 }
 
 Fmi::DateTime SpatiaLiteCache::getLatestFmiIoTCreatedTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestFmiIoTCreatedTime();
+  return itsConnectionPool->get()->getLatestFmiIoTCreatedTime();
 }
 
 bool SpatiaLiteCache::tapsiQcIntervalIsCached(const Fmi::DateTime &starttime,
@@ -1024,7 +1028,7 @@ std::size_t SpatiaLiteCache::fillTapsiQcCache(
 {
   try
   {
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillTapsiQcCache(mobileExternalCacheData, itsTapsiQcInsertCache);
 
     // Update what really now really is in the database
@@ -1052,7 +1056,7 @@ void SpatiaLiteCache::cleanTapsiQcCache(const Fmi::TimeDuration &timetokeep) con
     Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsTapsiQcTimeIntervalMutex);
@@ -1079,7 +1083,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::tapsiQcValuesFromSpatiaLite(const Setti
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    SpatiaLiteConnectionPool::Ptr db = itsConnectionPool->getConnection();
+    PoolType::Ptr db = itsConnectionPool->get();
     db->setDebug(settings.debug_options);
     hit(TAPSI_QC_DATA_TABLE);
     ret = db->getTapsiQcData(settings, itsTimeZones);
@@ -1094,22 +1098,22 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::tapsiQcValuesFromSpatiaLite(const Setti
 
 Fmi::DateTime SpatiaLiteCache::getLatestTapsiQcDataTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestTapsiQcDataTime();
+  return itsConnectionPool->get()->getLatestTapsiQcDataTime();
 }
 
 Fmi::DateTime SpatiaLiteCache::getLatestTapsiQcCreatedTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestTapsiQcCreatedTime();
+  return itsConnectionPool->get()->getLatestTapsiQcCreatedTime();
 }
 
 Fmi::DateTime SpatiaLiteCache::getLatestObservationModifiedTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestObservationModifiedTime();
+  return itsConnectionPool->get()->getLatestObservationModifiedTime();
 }
 
 Fmi::DateTime SpatiaLiteCache::getLatestObservationTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestObservationTime();
+  return itsConnectionPool->get()->getLatestObservationTime();
 }
 
 std::size_t SpatiaLiteCache::fillDataCache(const DataItems &cacheData) const
@@ -1121,7 +1125,7 @@ std::size_t SpatiaLiteCache::fillDataCache(const DataItems &cacheData) const
     if (itsObservationMemoryCache)
       itsObservationMemoryCache->fill(cacheData);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillDataCache("observation_data", cacheData, itsDataInsertCache);
 
     // Update what really now really is in the database
@@ -1148,7 +1152,7 @@ if (itsObservationMemoryCache)
   itsObservationMemoryCache->fill(cacheData);
     */
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillMovingLocationsCache(cacheData, itsMovingLocationsInsertCache);
     // itsTimeIntervalStart, itsTimeIntervalEnd are updated in fillDataCache()
     /*
@@ -1188,7 +1192,7 @@ void SpatiaLiteCache::cleanDataCache(const Fmi::TimeDuration &timetokeep,
       Spine::WriteLock lock(itsTimeIntervalMutex);
       itsTimeIntervalStart = time1;
     }
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     conn->cleanMovingLocationsCache(time1);
     conn->cleanDataCache(time1);
 
@@ -1207,12 +1211,12 @@ void SpatiaLiteCache::cleanDataCache(const Fmi::TimeDuration &timetokeep,
 
 Fmi::DateTime SpatiaLiteCache::getLatestWeatherDataQCTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestWeatherDataQCTime();
+  return itsConnectionPool->get()->getLatestWeatherDataQCTime();
 }
 
 Fmi::DateTime SpatiaLiteCache::getLatestWeatherDataQCModifiedTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestWeatherDataQCModifiedTime();
+  return itsConnectionPool->get()->getLatestWeatherDataQCModifiedTime();
 }
 
 std::size_t SpatiaLiteCache::fillWeatherDataQCCache(const DataItems &cacheData) const
@@ -1223,7 +1227,7 @@ std::size_t SpatiaLiteCache::fillWeatherDataQCCache(const DataItems &cacheData) 
     if (itsExtMemoryCache)
       itsExtMemoryCache->fill(cacheData);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillDataCache("weather_data", cacheData, itsWeatherQCInsertCache);
 
     // Update what really now really is in the database
@@ -1259,7 +1263,7 @@ void SpatiaLiteCache::cleanWeatherDataQCCache(const Fmi::TimeDuration &timetokee
     Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsWeatherDataQCTimeIntervalMutex);
@@ -1307,12 +1311,12 @@ bool SpatiaLiteCache::magnetometerIntervalIsCached(const Fmi::DateTime &starttim
 
 Fmi::DateTime SpatiaLiteCache::getLatestMagnetometerDataTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestMagnetometerDataTime();
+  return itsConnectionPool->get()->getLatestMagnetometerDataTime();
 }
 
 Fmi::DateTime SpatiaLiteCache::getLatestMagnetometerModifiedTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestMagnetometerModifiedTime();
+  return itsConnectionPool->get()->getLatestMagnetometerModifiedTime();
 }
 
 std::size_t SpatiaLiteCache::fillMagnetometerCache(
@@ -1320,7 +1324,7 @@ std::size_t SpatiaLiteCache::fillMagnetometerCache(
 {
   try
   {
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillMagnetometerDataCache(magnetometerCacheData, itsMagnetometerInsertCache);
     // Update what really now really is in the database
     auto start = conn->getOldestMagnetometerDataTime();
@@ -1347,7 +1351,7 @@ void SpatiaLiteCache::cleanMagnetometerCache(const Fmi::TimeDuration &timetokeep
     auto now = Fmi::SecondClock::universal_time();
     auto t = round_down_to_cache_clean_interval(now - timetokeep);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsMagnetometerTimeIntervalMutex);
@@ -1383,7 +1387,7 @@ int SpatiaLiteCache::getMaxFlashId() const
 {
   try
   {
-    return itsConnectionPool->getConnection()->getMaxFlashId();
+    return itsConnectionPool->get()->getMaxFlashId();
   }
   catch (...)
   {
@@ -1479,7 +1483,7 @@ void SpatiaLiteCache::getMovingStations(Spine::Stations &stations,
                                         const Settings &settings,
                                         const std::string &wkt) const
 {
-  itsConnectionPool->getConnection()->getMovingStations(stations, settings, wkt);
+  itsConnectionPool->get()->getMovingStations(stations, settings, wkt);
 }
 
 Fmi::DateTime SpatiaLiteCache::getLatestDataUpdateTime(const std::string &tablename,
@@ -1487,7 +1491,7 @@ Fmi::DateTime SpatiaLiteCache::getLatestDataUpdateTime(const std::string &tablen
                                                        const std::string &producer_ids,
                                                        const std::string &measurand_ids) const
 {
-  return itsConnectionPool->getConnection()->getLatestDataUpdateTime(
+  return itsConnectionPool->get()->getLatestDataUpdateTime(
       tablename, starttime, producer_ids, measurand_ids);
 }
 

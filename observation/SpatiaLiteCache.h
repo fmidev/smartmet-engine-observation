@@ -4,8 +4,8 @@
 #include "InsertStatus.h"
 #include "ObservationCache.h"
 #include "Settings.h"
+#include "SpatiaLite.h"
 #include "SpatiaLiteCacheParameters.h"
-#include "SpatiaLiteConnectionPool.h"
 #include "StationtypeConfig.h"
 #include <string>
 
@@ -150,7 +150,13 @@ class SpatiaLiteCache : public ObservationCache
                          const Settings &settings,
                          const std::string &wkt) const override;
 
-  std::unique_ptr<SpatiaLiteConnectionPool> itsConnectionPool;
+  using PoolType = Fmi::Pool<
+    Fmi::PoolInitType::Sequential,
+    SpatiaLite,
+    std::string,
+    SpatiaLiteCacheParameters>;
+
+  std::unique_ptr<PoolType> itsConnectionPool;
   Fmi::TimeZones itsTimeZones;
 
   SpatiaLiteCacheParameters itsParameters;
