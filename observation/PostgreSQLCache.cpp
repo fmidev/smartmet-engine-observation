@@ -1,9 +1,11 @@
 #include "PostgreSQLCache.h"
 #include "ObservationMemoryCache.h"
+#include "DBQueryUtils.h"
 #include <boost/make_shared.hpp>
 #include <macgyver/StringConversion.h>
 
 #include <atomic>
+#include <memory>
 
 namespace SmartMet
 {
@@ -36,13 +38,16 @@ void PostgreSQLCache::initializeConnectionPool()
     logMessage("[Observation Engine] Initializing PostgreSQL cache connection pool...",
                itsParameters.quiet);
 
-    itsConnectionPool.reset(new PostgreSQLCacheConnectionPool(itsParameters));
+    itsConnectionPool = std::make_unique<PoolType>(
+      itsParameters.connectionPoolSize,
+      itsParameters.connectionPoolSize,
+      itsParameters);
 
     // Ensure that necessary tables exists:
     // 1) stations
     // 2) locations
     // 3) observation_data
-    PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
+    PoolType::Ptr db = itsConnectionPool->get();
     const std::set<std::string> &cacheTables = itsCacheInfo.tables;
 
     db->createTables(cacheTables);
@@ -157,7 +162,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(Settings &settings)
     // Get data if we have stations
     if (!stations.empty())
     {
-      PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
+      PoolType::Ptr db = itsConnectionPool->get();
       db->setDebug(settings.debug_options);
       db->setAdditionalTimestepOption(AdditionalTimestepOption::JustRequestedTimesteps);
 
@@ -215,7 +220,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::valuesFromCache(
     // Get data if we have stations
     if (!stations.empty())
     {
-      PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
+      PoolType::Ptr db = itsConnectionPool->get();
       db->setDebug(settings.debug_options);
       db->setAdditionalTimestepOption(AdditionalTimestepOption::RequestedAndDataTimesteps);
 
@@ -247,7 +252,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::flashValuesFromPostgreSQL(const Setting
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
+    PoolType::Ptr db = itsConnectionPool->get();
     db->setDebug(settings.debug_options);
     ++itsCacheStatistics.at(FLASH_DATA_TABLE).hits;
     ret = db->getFlashData(settings, itsTimeZones);
@@ -266,8 +271,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::roadCloudValuesFromPostgreSQL(
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
-    db->setDebug(settings.debug_options);
+    PoolType::Ptr db = itsConnectionPool->get();
     ++itsCacheStatistics.at(ROADCLOUD_DATA_TABLE).hits;
     ret = db->getRoadCloudData(settings, itsParameters.parameterMap, itsTimeZones);
 
@@ -285,7 +289,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::netAtmoValuesFromPostgreSQL(const Setti
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
+    PoolType::Ptr db = itsConnectionPool->get();
     db->setDebug(settings.debug_options);
     ++itsCacheStatistics.at(NETATMO_DATA_TABLE).hits;
     ret = db->getNetAtmoData(settings, itsParameters.parameterMap, itsTimeZones);
@@ -304,7 +308,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::fmiIoTValuesFromPostgreSQL(const Settin
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
+    PoolType::Ptr db = itsConnectionPool->get();
     db->setDebug(settings.debug_options);
     ++itsCacheStatistics.at(FMI_IOT_DATA_TABLE).hits;
     ret = db->getFmiIoTData(settings, itsParameters.parameterMap, itsTimeZones);
@@ -323,7 +327,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCache::tapsiQcValuesFromPostgreSQL(const Setti
   {
     TS::TimeSeriesVectorPtr ret(new TS::TimeSeriesVector);
 
-    PostgreSQLCacheConnectionPool::Ptr db = itsConnectionPool->getConnection();
+    PoolType::Ptr db = itsConnectionPool->get();
     db->setDebug(settings.debug_options);
     ++itsCacheStatistics.at(TAPSI_QC_DATA_TABLE).hits;
     ret = db->getTapsiQcData(settings, itsParameters.parameterMap, itsTimeZones);
@@ -461,24 +465,24 @@ FlashCounts PostgreSQLCache::getFlashCount(const Fmi::DateTime &starttime,
                                            const Fmi::DateTime &endtime,
                                            const Spine::TaggedLocationList &locations) const
 {
-  return itsConnectionPool->getConnection()->getFlashCount(starttime, endtime, locations);
+  return itsConnectionPool->get()->getFlashCount(starttime, endtime, locations);
 }
 
 Fmi::DateTime PostgreSQLCache::getLatestFlashModifiedTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestFlashModifiedTime();
+  return itsConnectionPool->get()->getLatestFlashModifiedTime();
 }
 
 Fmi::DateTime PostgreSQLCache::getLatestFlashTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestFlashTime();
+  return itsConnectionPool->get()->getLatestFlashTime();
 }
 
 std::size_t PostgreSQLCache::fillFlashDataCache(const FlashDataItems &flashCacheData) const
 {
   try
   {
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillFlashDataCache(flashCacheData);
 
     // Update info on what is in the database
@@ -510,7 +514,7 @@ void PostgreSQLCache::cleanFlashDataCache(const Fmi::TimeDuration &timetokeep,
     // How old observations to keep in the disk cache:
     auto t = round_down_to_cache_clean_interval(now - timetokeep);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsFlashTimeIntervalMutex);
@@ -535,19 +539,19 @@ void PostgreSQLCache::cleanFlashDataCache(const Fmi::TimeDuration &timetokeep,
 
 Fmi::DateTime PostgreSQLCache::getLatestObservationModifiedTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestObservationModifiedTime();
+  return itsConnectionPool->get()->getLatestObservationModifiedTime();
 }
 
 Fmi::DateTime PostgreSQLCache::getLatestObservationTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestObservationTime();
+  return itsConnectionPool->get()->getLatestObservationTime();
 }
 
 std::size_t PostgreSQLCache::fillDataCache(const DataItems &cacheData) const
 {
   try
   {
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillDataCache(cacheData);
 
     // Update what really now really is in the database
@@ -568,7 +572,7 @@ std::size_t PostgreSQLCache::fillMovingLocationsCache(const MovingLocationItems 
 {
   try
   {
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillMovingLocationsCache(cacheData);
 
     // Update what really now really is in the database
@@ -598,7 +602,7 @@ void PostgreSQLCache::cleanDataCache(const Fmi::TimeDuration &timetokeep,
 
     auto t = round_down_to_cache_clean_interval(now - timetokeep);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsTimeIntervalMutex);
@@ -621,19 +625,19 @@ void PostgreSQLCache::cleanDataCache(const Fmi::TimeDuration &timetokeep,
 
 Fmi::DateTime PostgreSQLCache::getLatestWeatherDataQCTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestWeatherDataQCTime();
+  return itsConnectionPool->get()->getLatestWeatherDataQCTime();
 }
 
 Fmi::DateTime PostgreSQLCache::getLatestWeatherDataQCModifiedTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestWeatherDataQCModifiedTime();
+  return itsConnectionPool->get()->getLatestWeatherDataQCModifiedTime();
 }
 
 std::size_t PostgreSQLCache::fillWeatherDataQCCache(const DataItems &cacheData) const
 {
   try
   {
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillWeatherDataQCCache(cacheData);
 
     // Update what really now really is in the database
@@ -662,7 +666,7 @@ void PostgreSQLCache::cleanWeatherDataQCCache(
     Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsWeatherDataQCTimeIntervalMutex);
@@ -713,12 +717,12 @@ bool PostgreSQLCache::roadCloudIntervalIsCached(const Fmi::DateTime &starttime,
 
 Fmi::DateTime PostgreSQLCache::getLatestRoadCloudDataTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestRoadCloudDataTime();
+  return itsConnectionPool->get()->getLatestRoadCloudDataTime();
 }
 
 Fmi::DateTime PostgreSQLCache::getLatestRoadCloudCreatedTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestRoadCloudCreatedTime();
+  return itsConnectionPool->get()->getLatestRoadCloudCreatedTime();
 }
 
 std::size_t PostgreSQLCache::fillRoadCloudCache(
@@ -726,7 +730,7 @@ std::size_t PostgreSQLCache::fillRoadCloudCache(
 {
   try
   {
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillRoadCloudCache(mobileExternalCacheData);
 
     // Update what really now really is in the database
@@ -754,7 +758,7 @@ void PostgreSQLCache::cleanRoadCloudCache(const Fmi::TimeDuration &timetokeep) c
     Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsRoadCloudTimeIntervalMutex);
@@ -805,12 +809,12 @@ bool PostgreSQLCache::netAtmoIntervalIsCached(const Fmi::DateTime &starttime,
 
 Fmi::DateTime PostgreSQLCache::getLatestNetAtmoDataTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestNetAtmoDataTime();
+  return itsConnectionPool->get()->getLatestNetAtmoDataTime();
 }
 
 Fmi::DateTime PostgreSQLCache::getLatestNetAtmoCreatedTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestNetAtmoCreatedTime();
+  return itsConnectionPool->get()->getLatestNetAtmoCreatedTime();
 }
 
 std::size_t PostgreSQLCache::fillNetAtmoCache(
@@ -818,7 +822,7 @@ std::size_t PostgreSQLCache::fillNetAtmoCache(
 {
   try
   {
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillNetAtmoCache(mobileExternalCacheData);
 
     // Update what really now really is in the database
@@ -846,7 +850,7 @@ void PostgreSQLCache::cleanNetAtmoCache(const Fmi::TimeDuration &timetokeep) con
     Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsNetAtmoTimeIntervalMutex);
@@ -895,12 +899,12 @@ bool PostgreSQLCache::fmiIoTIntervalIsCached(const Fmi::DateTime &starttime,
 
 Fmi::DateTime PostgreSQLCache::getLatestFmiIoTDataTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestFmiIoTDataTime();
+  return itsConnectionPool->get()->getLatestFmiIoTDataTime();
 }
 
 Fmi::DateTime PostgreSQLCache::getLatestFmiIoTCreatedTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestFmiIoTCreatedTime();
+  return itsConnectionPool->get()->getLatestFmiIoTCreatedTime();
 }
 
 std::size_t PostgreSQLCache::fillFmiIoTCache(
@@ -908,7 +912,7 @@ std::size_t PostgreSQLCache::fillFmiIoTCache(
 {
   try
   {
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillFmiIoTCache(mobileExternalCacheData);
 
     // Update what really now really is in the database
@@ -936,7 +940,7 @@ void PostgreSQLCache::cleanFmiIoTCache(const Fmi::TimeDuration &timetokeep) cons
     Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsFmiIoTTimeIntervalMutex);
@@ -985,12 +989,12 @@ bool PostgreSQLCache::tapsiQcIntervalIsCached(const Fmi::DateTime &starttime,
 
 Fmi::DateTime PostgreSQLCache::getLatestTapsiQcDataTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestTapsiQcDataTime();
+  return itsConnectionPool->get()->getLatestTapsiQcDataTime();
 }
 
 Fmi::DateTime PostgreSQLCache::getLatestTapsiQcCreatedTime() const
 {
-  return itsConnectionPool->getConnection()->getLatestTapsiQcCreatedTime();
+  return itsConnectionPool->get()->getLatestTapsiQcCreatedTime();
 }
 
 std::size_t PostgreSQLCache::fillTapsiQcCache(
@@ -998,7 +1002,7 @@ std::size_t PostgreSQLCache::fillTapsiQcCache(
 {
   try
   {
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     auto sz = conn->fillTapsiQcCache(mobileExternalCacheData);
 
     // Update what really now really is in the database
@@ -1026,7 +1030,7 @@ void PostgreSQLCache::cleanTapsiQcCache(const Fmi::TimeDuration &timetokeep) con
     Fmi::DateTime t = Fmi::SecondClock::universal_time() - timetokeep;
     t = round_down_to_cache_clean_interval(t);
 
-    auto conn = itsConnectionPool->getConnection();
+    auto conn = itsConnectionPool->get();
     {
       // We know the cache will not contain anything before this after the update
       Spine::WriteLock lock(itsTapsiQcTimeIntervalMutex);
@@ -1073,9 +1077,7 @@ void PostgreSQLCache::cleanMagnetometerCache(const Fmi::TimeDuration &timetokeep
 
 void PostgreSQLCache::shutdown()
 {
-  if (itsConnectionPool)
-    itsConnectionPool->shutdown();
-  itsConnectionPool = nullptr;
+  itsConnectionPool.reset();
 }
 
 PostgreSQLCache::PostgreSQLCache(const std::string &name,

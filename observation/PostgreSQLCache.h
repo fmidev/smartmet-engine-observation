@@ -2,8 +2,8 @@
 
 #include "EngineParameters.h"
 #include "ObservationCache.h"
-#include "PostgreSQLCacheConnectionPool.h"
 #include "PostgreSQLCacheParameters.h"
+#include "PostgreSQLCacheDB.h"
 #include "Settings.h"
 #include "StationtypeConfig.h"
 
@@ -119,7 +119,12 @@ class PostgreSQLCache : public ObservationCache
                          const std::string &wkt) const override;
 
  private:
-  std::unique_ptr<PostgreSQLCacheConnectionPool> itsConnectionPool;
+
+  using PoolType = Fmi::Pool<Fmi::PoolInitType::Parallel,
+                             PostgreSQLCacheDB,
+                             PostgreSQLCacheParameters>;
+
+  std::unique_ptr<PoolType> itsConnectionPool;
 
   Fmi::TimeZones itsTimeZones;
 
