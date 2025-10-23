@@ -34,6 +34,8 @@ class EngineImpl : public Engine
 
   bool ready() const override;
 
+  // Get pointer to Geonames engine (engine owns shared ptr to Geonames engine,
+  // so no need for any more management here)
   Geonames::Engine *getGeonames() const override;
 
   std::shared_ptr<DBRegistry> dbRegistry() const override { return itsDatabaseRegistry; }
@@ -169,6 +171,8 @@ class EngineImpl : public Engine
   std::shared_ptr<DBRegistry> itsDatabaseRegistry;
 
   std::unique_ptr<DatabaseDriverInterface> itsDatabaseDriver;
+
+  std::shared_ptr<Geonames::Engine> itsGeonames;
 };
 
 }  // namespace Observation

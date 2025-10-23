@@ -207,6 +207,8 @@ void EngineImpl::init()
 
     itsDatabaseRegistry->loadConfigurations(itsEngineParameters->dbRegistryFolderPath);
 
+    itsGeonames = itsReactor->getEngine<Geonames::Engine>("Geonames", nullptr);
+
     // Initialize the caches
     initializeCache();
 
@@ -435,9 +437,7 @@ bool EngineImpl::ready() const
 
 Geonames::Engine *EngineImpl::getGeonames() const
 {
-  // this will wait until the engine is ready
-  auto *engine = itsReactor->getSingleton("Geonames", nullptr);
-  return reinterpret_cast<Geonames::Engine *>(engine);
+  return itsGeonames.get();
 }
 
 FlashCounts EngineImpl::getFlashCount(const Fmi::DateTime &starttime,
