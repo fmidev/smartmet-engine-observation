@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.10.24
+Version: 25.10.27
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -178,6 +178,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Oct 27 2025 Andris Pavēnis <andris.pavenis@fmi.fi> 25.10.27-1.fmi
+- Update due to smartmet-library-spine ABI changes
+
 * Wed Oct 15 2025 Andris Pavēnis <andris.pavenis@fmi.fi> 25.10.15-1.fmi
 - Connection pools update
 
