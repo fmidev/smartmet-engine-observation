@@ -21,7 +21,6 @@ LIBS += \
 	-lboost_serialization \
 	-lboost_regex \
 	-lboost_iostreams \
-	-lboost_system \
 	$(REQUIRED_LIBS) \
 	-lbz2 -lz -lpthread
 

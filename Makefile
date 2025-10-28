@@ -32,7 +32,6 @@ LIBS += $(PREFIX_LDFLAGS) \
         -lboost_thread \
         -lboost_iostreams \
         -lboost_locale \
-        -lboost_system \
         -lboost_serialization \
 	-latomic \
         -lbz2 -lz \
