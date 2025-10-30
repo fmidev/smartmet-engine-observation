@@ -40,7 +40,7 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 25.2.18
 BuildRequires: smartmet-library-locus-devel >= 25.6.4
-BuildRequires: smartmet-library-macgyver-devel >= 25.10.15
+BuildRequires: smartmet-library-macgyver-devel >= 25.10.30
 BuildRequires: smartmet-library-spine-devel >= 25.10.27
 BuildRequires: smartmet-library-timeseries-devel >= 25.8.1
 BuildRequires: sqlite3pp-devel >= 1.0.9
@@ -57,7 +57,7 @@ Requires: gdal310-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 25.2.18
 Requires: smartmet-library-locus >= 25.6.4
-Requires: smartmet-library-macgyver >= 25.10.15
+Requires: smartmet-library-macgyver >= 25.10.30
 Requires: smartmet-library-spine >= 25.10.27
 Requires: smartmet-library-timeseries >= 25.8.1
 Requires: smartmet-server >= 25.10.27
