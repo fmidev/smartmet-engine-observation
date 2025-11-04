@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 25.11.4
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -178,6 +178,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Nov  4 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.11.4-2.fmi
+- Fixed sqlite cache to discard measurand id 9999 which indicates missing parameters
+
 * Tue Nov  3 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> 25.11.4-1
 - Fixed memory cache to discard measurand id 9999 which indicates missing parameters
 
