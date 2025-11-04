@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.10.30
+Version: 25.11.4
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -38,14 +38,14 @@ BuildRequires: gdal310-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 25.2.18
-BuildRequires: smartmet-library-locus-devel >= 25.6.4
+BuildRequires: smartmet-engine-geonames-devel >= 25.11.3
+BuildRequires: smartmet-library-locus-devel >= 25.9.29
 BuildRequires: smartmet-library-macgyver-devel >= 25.10.30
 BuildRequires: smartmet-library-spine-devel >= 25.10.27
 BuildRequires: smartmet-library-timeseries-devel >= 25.8.1
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
-BuildRequires: smartmet-utils-devel >= 25.8.19
+BuildRequires: smartmet-utils-devel >= 25.10.10
 BuildRequires: zlib-devel
 Requires: %{smartmet_boost}-iostreams
 Requires: %{smartmet_boost}-locale
@@ -55,8 +55,8 @@ Requires: %{smartmet_boost}-thread
 Requires: %{smartmet_fmt}
 Requires: gdal310-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 25.2.18
-Requires: smartmet-library-locus >= 25.6.4
+Requires: smartmet-engine-geonames >= 25.11.3
+Requires: smartmet-library-locus >= 25.9.29
 Requires: smartmet-library-macgyver >= 25.10.30
 Requires: smartmet-library-spine >= 25.10.27
 Requires: smartmet-library-timeseries >= 25.8.1
@@ -144,7 +144,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 25.9.2
+Requires: smartmet-library-spine-devel >= 25.10.27
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -178,6 +178,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Nov  3 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> 25.11.4-1
+- Fixed memory cache to discard measurand id 9999 which indicates missing parameters
+
 * Thu Oct 30 2025 Andris Pavēnis <andris.pavenis@fmi.fi> 25.10.30-1.fmi
 - Repackage due to Fmi::Pool<> bugfix (smartmet-library-macgyver)
 
