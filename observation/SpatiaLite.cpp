@@ -1729,8 +1729,11 @@ std::size_t SpatiaLite::fillDataCache(const std::string &tablename,
         for (std::size_t i = 0; i < insert_size; i++)
         {
           const auto &obs = cacheData[new_items[i]];
-          data_times.emplace_back(to_epoch(obs.data_time));
-          modified_last_times.emplace_back(to_epoch(obs.modified_last));
+          if(obs.data_value != 9999) // Ignore parameters marked MISSING
+          {
+            data_times.emplace_back(to_epoch(obs.data_time));
+            modified_last_times.emplace_back(to_epoch(obs.modified_last));
+          }
         }
 
         {
