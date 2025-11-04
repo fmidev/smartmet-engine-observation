@@ -140,13 +140,18 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
         // Indices i...j-1 have the same fmisid
 
         for (std::size_t k = i; k < j; k++)
-          newobs->push_back(cacheData[new_items[k]]);
+        {
+          const auto& item = cacheData[new_items[k]];
+          // Discard special MISSING parameters
+          if (item.measurand_id != 9999)
+            newobs->push_back(cacheData[new_items[k]]);
+        }
 
-          // Sort the data based on time
+        // Sort the data based on time
 
-          // The two segments are already sorted. However, on RHEL7 the inplace_merge does not
-          // produce a sorted container. Could not find a bug by searching the net, but most
-          // definitely it does not work as expected.
+        // The two segments are already sorted. However, on RHEL7 the inplace_merge does not
+        // produce a sorted container. Could not find a bug by searching the net, but most
+        // definitely it does not work as expected.
 
 #if 0
         std::inplace_merge(newobs->begin(), newdata_start, newobs->end(), cmp);
@@ -329,20 +334,20 @@ LocationDataItems ObservationMemoryCache::read_observations(
           continue;
 
         // Wanted sensors.
-        
+
         bool sensorOK = false;
-        if(obs->measurand_no == 1)
+        if (obs->measurand_no == 1)
         {
           // default measurand for observation_data
-          if(valid_sensors.empty() || (valid_sensors.find(-1) != valid_sensors.end()))
+          if (valid_sensors.empty() || (valid_sensors.find(-1) != valid_sensors.end()))
             sensorOK = true;
           else
             sensorOK = valid_sensors.find(obs->sensor_no) != valid_sensors.end();
         }
-        else if(obs->measurand_no == 0)
+        else if (obs->measurand_no == 0)
         {
           // weather_data_qc default seems to be 0 instead of 1
-          if(valid_sensors.empty() || (valid_sensors.find(-1) != valid_sensors.end()))
+          if (valid_sensors.empty() || (valid_sensors.find(-1) != valid_sensors.end()))
             sensorOK = true;
           else
             sensorOK = valid_sensors.find(obs->sensor_no) != valid_sensors.end();
