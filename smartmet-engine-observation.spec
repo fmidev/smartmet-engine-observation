@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 25.12.2
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -40,7 +40,7 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 25.11.3
 BuildRequires: smartmet-library-locus-devel >= 25.9.29
-BuildRequires: smartmet-library-macgyver-devel >= 25.10.30
+BuildRequires: smartmet-library-macgyver-devel >= 25.12.2
 BuildRequires: smartmet-library-spine-devel >= 25.10.27
 BuildRequires: smartmet-library-timeseries-devel >= 25.8.1
 BuildRequires: sqlite3pp-devel >= 1.0.9
@@ -57,7 +57,7 @@ Requires: gdal310-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 25.11.3
 Requires: smartmet-library-locus >= 25.9.29
-Requires: smartmet-library-macgyver >= 25.10.30
+Requires: smartmet-library-macgyver >= 25.12.2
 Requires: smartmet-library-spine >= 25.10.27
 Requires: smartmet-library-timeseries >= 25.8.1
 Requires: smartmet-server >= 25.10.27
@@ -178,7 +178,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Tue Dec  2 2025 Andris Pavēnis <andris.pavenis@fmi.fi> 25.12.2-1.fmi
+* Tue Dec  2 2025 Andris Pavēnis <andris.pavenis@fmi.fi> 25.12.2-2.fmi
 - Repackage due to Fmi::Pool<> changes
 
 * Tue Nov  4 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.11.4-2.fmi
