@@ -18,7 +18,7 @@ class EngineImpl : public Engine
  public:
   ~EngineImpl() override = default;
   EngineImpl() = delete;
-  explicit EngineImpl(const std::string &configfile);
+  explicit EngineImpl(std::string configfile);
 
   TS::TimeSeriesVectorPtr values(Settings &settings) override;
   TS::TimeSeriesVectorPtr values(Settings &settings,

@@ -191,8 +191,8 @@ void afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
 
 }  // namespace
 
-EngineImpl::EngineImpl(const std::string &configfile)
-    : itsConfigFile(configfile), itsDatabaseRegistry(new DBRegistry())
+EngineImpl::EngineImpl(std::string configfile)
+    : itsConfigFile(std::move(configfile)), itsDatabaseRegistry(new DBRegistry())
 {
 }
 
