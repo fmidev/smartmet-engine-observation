@@ -413,7 +413,7 @@ bool QueryResult::set(const std::shared_ptr<QueryResultBase>& input)
                   std::back_inserter(m_valueContainer.at(i)));
       }
     }
-    catch (const std::exception& e)
+    catch (const std::exception& /* e */)
     {
       return false;
     }
