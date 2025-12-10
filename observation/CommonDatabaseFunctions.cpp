@@ -9,9 +9,6 @@
 #include <timeseries/ParameterTools.h>
 #include <timeseries/TimeSeriesInclude.h>
 #include <algorithm>
-#include <numeric>
-
-namespace ba = boost::algorithm;
 
 namespace SmartMet
 {
