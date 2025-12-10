@@ -245,7 +245,7 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(Settings &
     {
       std::cerr << "[PostgreSQLDatabaseDriverForMobileData] values(): No connections to PostgreSQL "
                    "database!"
-                << std::endl;
+                << '\n';
       return std::make_shared<TS::TimeSeriesVector>();
     }
 
@@ -311,7 +311,7 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForMobileData::values(
     {
       std::cerr << "[PostgreSQLDatabaseDriverForMobileData] values(): No connections to PostgreSQL "
                    "database!"
-                << std::endl;
+                << '\n';
       return std::make_shared<TS::TimeSeriesVector>();
     }
 

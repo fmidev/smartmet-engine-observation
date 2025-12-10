@@ -13,9 +13,9 @@ void print_vector(const std::vector<int>& data, const std::string& header, std::
   if (data.empty())
     return;
 
-  out << header << std::endl;
+  out << header << '\n';
   for (auto i : data)
-    out << i << std::endl;
+    out << i << '\n';
 }
 }  // anonymous namespace
 
@@ -23,22 +23,22 @@ std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings&
 {
   if (!settings.parameters.empty())
   {
-    out << "parameters:" << std::endl;
+    out << "parameters:\n";
     unsigned int i = 0;
     for (const auto& p : settings.parameters)
-      out << "parameter #" << i++ << ": " << p.name() << std::endl;
+      out << "parameter #" << i++ << ": " << p.name() << '\n';
   }
   else
-    out << "parameters: none" << std::endl;
+    out << "parameters: none\n";
 
   if (!settings.taggedLocations.empty())
   {
-    out << "taggedLocations:" << std::endl;
+    out << "taggedLocations:\n";
     unsigned int i = 0;
     for (const auto& l : settings.taggedLocations)
     {
-      out << "taggedLocation #" << i++ << std::endl;
-      out << "tag: " << l.tag << std::endl;
+      out << "taggedLocation #" << i++ << '\n';
+      out << "tag: " << l.tag << '\n';
       out << Spine::formatLocation(*(l.loc));
     }
   }
@@ -47,73 +47,73 @@ std::ostream& operator<<(std::ostream& out, const Engine::Observation::Settings&
   print_vector(settings.weekdays, "weekdays", out);
   if (!settings.taggedFMISIDs.empty())
   {
-    out << "fmisids" << std::endl;
+    out << "fmisids\n";
     for (const auto& item : settings.taggedFMISIDs)
     {
-      out << item.fmisid << std::endl;
+      out << item.fmisid << '\n';
     }
   }
 
-  out << "locale: " << settings.locale.name() << std::endl;
+  out << "locale: " << settings.locale.name() << '\n';
 
   if (!settings.boundingBox.empty())
   {
-    out << "boundingBox:" << std::endl;
+    out << "boundingBox:\n";
     for (const auto& item : settings.boundingBox)
-      out << item.first << " -> " << item.second << std::endl;
+      out << item.first << " -> " << item.second << '\n';
   }
 
   if (!settings.dataFilter.empty())
   {
-    out << "dataFilter:" << std::endl;
+    out << "dataFilter:\n";
     settings.dataFilter.print();
   }
 
   if (!settings.producer_ids.empty())
   {
-    out << "producer_ids:" << std::endl;
+    out << "producer_ids:\n";
     for (auto item : settings.producer_ids)
-      out << item << std::endl;
+      out << item << '\n';
   }
   else
-    out << "producer_ids: none" << std::endl;
+    out << "producer_ids: none\n";
 
-  out << "cacheKey: " << settings.cacheKey << std::endl;
-  out << "format: " << settings.format << std::endl;
-  out << "language: " << settings.language << std::endl;
-  out << "localename: " << settings.localename << std::endl;
-  out << "missingtext: " << settings.missingtext << std::endl;
-  out << "stationtype: " << settings.stationtype << std::endl;
-  out << "timeformat: " << settings.timeformat << std::endl;
-  out << "timestring: " << settings.timestring << std::endl;
-  out << "timezone: " << settings.timezone << std::endl;
+  out << "cacheKey: " << settings.cacheKey << '\n';
+  out << "format: " << settings.format << '\n';
+  out << "language: " << settings.language << '\n';
+  out << "localename: " << settings.localename << '\n';
+  out << "missingtext: " << settings.missingtext << '\n';
+  out << "stationtype: " << settings.stationtype << '\n';
+  out << "timeformat: " << settings.timeformat << '\n';
+  out << "timestring: " << settings.timestring << '\n';
+  out << "timezone: " << settings.timezone << '\n';
   std::string wktString = settings.wktArea;
   if (wktString.size() > 50)
   {
     wktString.resize(50);
     wktString += " ... ";
   }
-  std::cout << "wktArea: " << wktString << std::endl;
-  out << "starttime: " << settings.starttime << std::endl;
-  out << "endtime: " << settings.endtime << std::endl;
+  std::cout << "wktArea: " << wktString << '\n';
+  out << "starttime: " << settings.starttime << '\n';
+  out << "endtime: " << settings.endtime << '\n';
   if (settings.wantedtime)
-    out << "wantedtime: " << *settings.wantedtime << std::endl;
+    out << "wantedtime: " << *settings.wantedtime << '\n';
   else
-    out << "wantedtime: -" << std::endl;
-  out << "maxdistance: " << settings.maxdistance << std::endl;
-  out << "numberofstations: " << settings.numberofstations << std::endl;
-  out << "timestep: " << settings.timestep << std::endl;
-  out << "allplaces: " << settings.allplaces << std::endl;
-  out << "starttimeGiven: " << settings.starttimeGiven << std::endl;
-  out << "useCommonQueryMethod: " << settings.useCommonQueryMethod << std::endl;
-  out << "useDataCache: " << settings.useDataCache << std::endl;
-  out << "preventDatabaseQuery: " << settings.preventDatabaseQuery << std::endl;
-  out << "requestLimits.maxlocations: " << settings.requestLimits.maxlocations << std::endl;
-  out << "requestLimits.maxparameters: " << settings.requestLimits.maxparameters << std::endl;
-  out << "requestLimits.maxtimes: " << settings.requestLimits.maxtimes << std::endl;
-  out << "requestLimits.maxlevels: " << settings.requestLimits.maxlevels << std::endl;
-  out << "requestLimits.maxelements: " << settings.requestLimits.maxelements << std::endl;
-  out << "debug_options: " << settings.debug_options << std::endl;
+    out << "wantedtime: -\n";
+  out << "maxdistance: " << settings.maxdistance << '\n';
+  out << "numberofstations: " << settings.numberofstations << '\n';
+  out << "timestep: " << settings.timestep << '\n';
+  out << "allplaces: " << settings.allplaces << '\n';
+  out << "starttimeGiven: " << settings.starttimeGiven << '\n';
+  out << "useCommonQueryMethod: " << settings.useCommonQueryMethod << '\n';
+  out << "useDataCache: " << settings.useDataCache << '\n';
+  out << "preventDatabaseQuery: " << settings.preventDatabaseQuery << '\n';
+  out << "requestLimits.maxlocations: " << settings.requestLimits.maxlocations << '\n';
+  out << "requestLimits.maxparameters: " << settings.requestLimits.maxparameters << '\n';
+  out << "requestLimits.maxtimes: " << settings.requestLimits.maxtimes << '\n';
+  out << "requestLimits.maxlevels: " << settings.requestLimits.maxlevels << '\n';
+  out << "requestLimits.maxelements: " << settings.requestLimits.maxelements << '\n';
+  out << "debug_options: " << settings.debug_options << '\n';
 
   return out;
 }

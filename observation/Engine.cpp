@@ -42,7 +42,7 @@ Engine *Engine::create(const std::string &configfile)
       {
         std::cout << Spine::log_time_str() << ' ' << ANSI_FG_RED << name
                   << ": configuration file not specified or its name is empty string: "
-                  << "engine disabled." << ANSI_FG_DEFAULT << std::endl;
+                  << "engine disabled." << ANSI_FG_DEFAULT << '\n';
         return true;
       }
 
@@ -50,7 +50,7 @@ Engine *Engine::create(const std::string &configfile)
       const bool result = cfg.get_optional_config_param<bool>("disabled", false);
       if (result)
         std::cout << Spine::log_time_str() << ' ' << ANSI_FG_RED << name << ": engine disabled"
-                  << ANSI_FG_DEFAULT << std::endl;
+                  << ANSI_FG_DEFAULT << '\n';
       return result;
     }();
 

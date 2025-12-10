@@ -79,7 +79,7 @@ bool PostgreSQLObsDBConnectionPool::initializePool(const StationtypeConfig& stc,
       }
       catch (...)
       {
-        cerr << "PostgreSQLObsDBConnectionPool::initializePool: Unknown error." << endl;
+        cerr << "PostgreSQLObsDBConnectionPool::initializePool: Unknown error.\n";
         return false;
       }
     }

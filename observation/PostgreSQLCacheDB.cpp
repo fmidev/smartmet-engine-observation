@@ -2278,7 +2278,7 @@ std::string PostgreSQLCacheDB::sqlSelectFromWeatherDataQCData(const Settings &se
     }
 
     if (itsDebug)
-      std::cout << "PostgreSQL(cache): " << sqlStmt << std::endl;
+      std::cout << "PostgreSQL(cache): " << sqlStmt << '\n';
 
     return sqlStmt;
   }

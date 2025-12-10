@@ -303,7 +303,7 @@ void DatabaseStations::getStations(Spine::Stations &stations, const Settings &se
     auto stationendtime = day_end(settings.endtime);
 
 #ifdef MYDEBUG
-    std::cout << "station search start" << std::endl;
+    std::cout << "station search start\n";
 #endif
     // Get all stations by different methods
 
@@ -325,9 +325,9 @@ void DatabaseStations::getStations(Spine::Stations &stations, const Settings &se
     std::sort(stations.begin(), stations.end(), sort_stations_function);
 
 #ifdef MYDEBUG
-    std::cout << "total number of stations: " << stations.size() << std::endl;
-    std::cout << "station search end" << std::endl;
-    std::cout << "observation query start" << std::endl;
+    std::cout << "total number of stations: " << stations.size() << '\n';
+    std::cout << "station search end\n";
+    std::cout << "observation query start\n";
 #endif
   }
   catch (...)

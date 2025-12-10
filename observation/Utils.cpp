@@ -317,7 +317,7 @@ void logMessage(const std::string& message, bool quiet)
   try
   {
     if (!quiet)
-      std::cout << Spine::log_time_str() << ' ' << message << std::endl;
+      std::cout << Spine::log_time_str() << ' ' << message << '\n';
   }
   catch (...)
   {

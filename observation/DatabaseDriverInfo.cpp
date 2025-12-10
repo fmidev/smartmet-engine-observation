@@ -178,7 +178,7 @@ void readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
   }
   /*
   else
-    std::cout << "Flash emulator not active in driver " << name << std::endl;
+    std::cout << "Flash emulator not active in driver " << name << '\n';
   */
 }
 
@@ -242,7 +242,7 @@ void readOracleCommonInfo(Spine::ConfigBase& cfg,
   }
   /*
   else
-    std::cout << "Flash emulator not active in driver " << name << std::endl;
+    std::cout << "Flash emulator not active in driver " << name << '\n';
   */
 }
 
@@ -469,7 +469,7 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
            "Stations are loaded by driver '" +
            load_stations_active_driver + "', not by driver " + load_stations_disabled_drivers +
            ".");
-      std::cout << Spine::log_time_str() << ANSI_FG_RED << message << ANSI_FG_DEFAULT << std::endl;
+      std::cout << Spine::log_time_str() << ANSI_FG_RED << message << ANSI_FG_DEFAULT << '\n';
     }
   }
   catch (...)
@@ -748,50 +748,50 @@ const std::map<std::string, CacheInfoItem>& DatabaseDriverInfoItem::getCacheInfo
 std::ostream& operator<<(std::ostream& out,
                          const SmartMet::Engine::Observation::DatabaseDriverInfo& driverInfo)
 {
-  out << "** DatabaseDriverInfo **" << std::endl;
-  out << " ** Driver settings **" << std::endl;
+  out << "** DatabaseDriverInfo **\n";
+  out << " ** Driver settings **\n";
   const std::vector<SmartMet::Engine::Observation::DatabaseDriverInfoItem>& driverInfoItems =
       driverInfo.getDatabaseDriverInfo();
 
   for (const auto& item : driverInfoItems)
   {
-    out << ANSI_FG_GREEN << "  name: " << item.name << ANSI_FG_DEFAULT << std::endl;
-    out << "  active: " << item.active << std::endl;
+    out << ANSI_FG_GREEN << "  name: " << item.name << ANSI_FG_DEFAULT << '\n';
+    out << "  active: " << item.active << '\n';
 
-    out << "  tables: " << std::endl;
+    out << "  tables: \n";
     for (const auto& t : item.tables)
     {
       if (item.table_days.at(t) == INT_MAX)
-        out << "   " << t << " -> all data available" << std::endl;
+        out << "   " << t << " -> all data available\n";
       else
-        out << "   " << t << " -> max " << item.table_days.at(t) << " days" << std::endl;
+        out << "   " << t << " -> max " << item.table_days.at(t) << " days\n";
     }
 
-    out << "  caches: " << std::endl;
+    out << "  caches: \n";
     for (const auto& cache : item.caches)
-      out << "   " << cache << std::endl;
+      out << "   " << cache << '\n';
 
-    out << "  parameters: " << std::endl;
+    out << "  parameters: \n";
     if (!item.params.empty())
     {
       for (const auto& param : item.params)
-        out << "  " << param.first << " -> " << param.second << std::endl;
+        out << "  " << param.first << " -> " << param.second << '\n';
     }
 
     if (!item.params_vector.empty())
     {
       for (const auto& param : item.params_vector)
       {
-        out << "  " << param.first << " -> " << std::endl;
+        out << "  " << param.first << " -> \n";
         for (const auto& param2 : param.second)
         {
-          out << "   " << param2 << std::endl;
+          out << "   " << param2 << '\n';
         }
       }
     }
   }
 
-  out << " ** Cache settings **" << std::endl;
+  out << " ** Cache settings **\n";
 
   const std::vector<SmartMet::Engine::Observation::DatabaseDriverInfoItem>& ddi_vector =
       driverInfo.getDatabaseDriverInfo();
@@ -803,59 +803,59 @@ std::ostream& operator<<(std::ostream& out,
 
     for (const auto& ci : cii_map)
     {
-      out << ANSI_FG_GREEN << "  name: " << ci.second.name << ANSI_FG_DEFAULT << std::endl;
-      out << "  active: " << ci.second.active << std::endl;
-      out << "  tables: " << std::endl;
+      out << ANSI_FG_GREEN << "  name: " << ci.second.name << ANSI_FG_DEFAULT << '\n';
+      out << "  active: " << ci.second.active << '\n';
+      out << "  tables: \n";
       for (const auto& table : ci.second.tables)
-        out << "   " << table << std::endl;
+        out << "   " << table << '\n';
 
       if (!ci.second.params.empty())
       {
         for (const auto& param : ci.second.params)
-          out << "  " << param.first << " -> " << param.second << std::endl;
+          out << "  " << param.first << " -> " << param.second << '\n';
       }
 
       if (!ci.second.params_vector.empty())
       {
         for (const auto& param : ci.second.params_vector)
         {
-          out << "  " << param.first << " -> " << std::endl;
+          out << "  " << param.first << " -> \n";
           for (const auto& param2 : param.second)
           {
-            out << "   " << param2 << std::endl;
+            out << "   " << param2 << '\n';
           }
         }
       }
     }
   }
 
-  out << " *\n* Aggregate cache settings **" << std::endl;
+  out << " *\n* Aggregate cache settings **\n";
 
   const std::map<std::string, SmartMet::Engine::Observation::CacheInfoItem>& aggregateCacheInfo =
       driverInfo.getAggregateCacheInfo();
 
   for (const auto& item : aggregateCacheInfo)
   {
-    out << ANSI_FG_GREEN << "  name: " << item.first << ANSI_FG_DEFAULT << std::endl;
-    out << "  active: " << item.second.active << std::endl;
-    out << "  tables: " << std::endl;
+    out << ANSI_FG_GREEN << "  name: " << item.first << ANSI_FG_DEFAULT << '\n';
+    out << "  active: " << item.second.active << '\n';
+    out << "  tables: \n";
     for (const auto& table : item.second.tables)
-      out << "   " << table << std::endl;
+      out << "   " << table << '\n';
 
     if (!item.second.params.empty())
     {
       for (const auto& param : item.second.params)
-        out << "  " << param.first << " -> " << param.second << std::endl;
+        out << "  " << param.first << " -> " << param.second << '\n';
     }
 
     if (!item.second.params_vector.empty())
     {
       for (const auto& param : item.second.params_vector)
       {
-        out << "  " << param.first << " -> " << std::endl;
+        out << "  " << param.first << " -> \n";
         for (const auto& param2 : param.second)
         {
-          out << "   " << param2 << std::endl;
+          out << "   " << param2 << '\n';
         }
       }
     }

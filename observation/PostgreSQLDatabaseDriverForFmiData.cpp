@@ -227,7 +227,7 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(Settings &set
     {
       std::cerr << "[PostgreSQLDatabaseDriverForFmiData] values(): No connections to PostgreSQL "
                    "database!"
-                << std::endl;
+                << '\n';
       return ret;
     }
 
@@ -340,7 +340,7 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
     if (settings.preventDatabaseQuery)
     {
       std::cerr << "[PostgreSQLDatabaseDriverForFmiData] values(): Database queries prevented!"
-                << std::endl;
+                << '\n';
       return ret;
     }
 
@@ -348,7 +348,7 @@ TS::TimeSeriesVectorPtr PostgreSQLDatabaseDriverForFmiData::values(
     {
       std::cerr << "[PostgreSQLDatabaseDriverForFmiData] values(): No connections to PostgreSQL "
                    "database!"
-                << std::endl;
+                << '\n';
       return ret;
     }
 
