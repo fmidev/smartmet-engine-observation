@@ -74,7 +74,7 @@ bool PostgreSQLObsDBConnectionPool::initializePool(const StationtypeConfig& stc,
       }
       catch (std::exception& err)
       {
-        cerr << "PostgreSQLObsDBConnectionPool::initializePool: " << err.what() << endl;
+        cerr << "PostgreSQLObsDBConnectionPool::initializePool: " << err.what() << '\n';
         return false;
       }
       catch (...)
