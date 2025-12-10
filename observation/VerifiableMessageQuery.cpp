@@ -1,5 +1,6 @@
 #include "VerifiableMessageQuery.h"
 #include <macgyver/Exception.h>
+#include <memory>
 #include <string>
 
 namespace SmartMet
@@ -92,7 +93,7 @@ std::shared_ptr<QueryResult> VerifiableMessageQuery::getQueryResultContainer()
     if (not m_queryResult)
     {
       if (!m_select.empty())
-        m_queryResult.reset(new QueryResult(m_select.size()));
+        m_queryResult = std::make_shared<QueryResult>(m_select.size());
     }
 
     return m_queryResult;

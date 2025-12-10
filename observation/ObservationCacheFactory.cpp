@@ -26,11 +26,11 @@ std::shared_ptr<ObservationCacheProxy> ObservationCacheFactory::create(const Eng
     const std::string& cacheName = item.first;
 
     if (boost::algorithm::starts_with(cacheName, "postgresql_"))
-      cache.reset(new PostgreSQLCache(cacheName, p, cfg));
+      cache = std::make_shared<PostgreSQLCache>(cacheName, p, cfg);
     else if (boost::algorithm::starts_with(cacheName, "spatialite_"))
-      cache.reset(new SpatiaLiteCache(cacheName, p, cfg));
+      cache = std::make_shared<SpatiaLiteCache>(cacheName, p, cfg);
     else if (boost::algorithm::starts_with(cacheName, "dummy_"))
-      cache.reset(new DummyCache(cacheName, p));
+      cache = std::make_shared<DummyCache>(cacheName, p);
 
     if (cache)
     {

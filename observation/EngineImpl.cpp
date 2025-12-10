@@ -16,6 +16,7 @@
 #include <spine/Reactor.h>
 #include <timeseries/ParameterTools.h>
 #include <timeseries/TimeSeriesInclude.h>
+#include <memory>
 
 namespace SmartMet
 {
@@ -131,7 +132,7 @@ void afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
     }
 
     // Create and initialize data structure for results
-    TS::TimeSeriesVectorPtr result = TS::TimeSeriesVectorPtr(new TS::TimeSeriesVector);
+    TS::TimeSeriesVectorPtr result = std::make_shared<TS::TimeSeriesVector>();
     for (unsigned int i = 0; i < tsvPtr->size(); i++)
       result->emplace_back(TS::TimeSeries());
 
@@ -201,7 +202,7 @@ void EngineImpl::init()
   {
     Spine::ConfigBase cfg(itsConfigFile);
 
-    itsEngineParameters.reset(new EngineParameters(cfg));
+    itsEngineParameters = std::make_shared<EngineParameters>(cfg);
 
     //    std::cout << itsEngineParameters->databaseDriverInfo << '\n';
 
