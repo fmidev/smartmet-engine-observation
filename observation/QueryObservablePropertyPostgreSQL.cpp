@@ -49,7 +49,7 @@ std::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostgre
     boost::replace_all(sqlStmt, "fi", language);
 
     if (db.getDebug())
-      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+      std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     Fmi::Database::PostgreSQLConnection &connection = db.getConnection();
 

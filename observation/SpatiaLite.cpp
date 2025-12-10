@@ -141,7 +141,7 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
                "ORDER BY fmisid ASC, obstime ASC";
 
     if (itsDebug)
-      std::cout << "SpatiaLite: " << sqlStmt << std::endl;
+      std::cout << "SpatiaLite: " << sqlStmt << '\n';
 
     sqlite3pp::query qry(itsDB, sqlStmt.c_str());
 
@@ -432,20 +432,20 @@ void SpatiaLite::createObservationDataTable()
     {
       std::cout << Spine::log_time_str()
                 << " [SpatiaLite] Adding modified_last column to observation_data table"
-                << std::endl;
+                << '\n';
       itsDB.execute(
           "ALTER TABLE observation_data ADD COLUMN modified_last INTEGER NOT NULL DEFAULT 0");
       std::cout << Spine::log_time_str()
                 << " [SpatiaLite] ... Updating all modified_last columns in observation_data table"
-                << std::endl;
+                << '\n';
       itsDB.execute("UPDATE observation_data SET modified_last=data_time");
       std::cout << Spine::log_time_str()
                 << " [SpatiaLite] ... Creating modified_last index in observation_data table"
-                << std::endl;
+                << '\n';
       itsDB.execute(
           "CREATE INDEX observation_data_modified_last_idx ON observation_data(modified_last)");
       std::cout << Spine::log_time_str() << " [SpatiaLite] modified_last processing done"
-                << std::endl;
+                << '\n';
     }
     catch (const std::exception &e)
     {
@@ -548,7 +548,7 @@ void SpatiaLite::createFlashDataTable()
     if (spatial_index_enabled == 0)
     {
       std::cout << Spine::log_time_str() << " [SpatiaLite] Adding spatial index to flash_data table"
-                << std::endl;
+                << '\n';
       itsDB.execute("SELECT CreateSpatialIndex('flash_data', 'stroke_location')");
     }
   }
@@ -640,7 +640,7 @@ void SpatiaLite::createRoadCloudDataTable()
     if (spatial_index_enabled == 0)
     {
       std::cout << Spine::log_time_str()
-                << " [SpatiaLite] Adding spatial index to ext_obsdata_roadcloud table" << std::endl;
+                << " [SpatiaLite] Adding spatial index to ext_obsdata_roadcloud table\n";
       itsDB.execute("SELECT CreateSpatialIndex('ext_obsdata_roadcloud', 'geom')");
     }
   }
@@ -702,7 +702,7 @@ void SpatiaLite::createNetAtmoDataTable()
     if (spatial_index_enabled == 0)
     {
       std::cout << Spine::log_time_str()
-                << " [SpatiaLite] Adding spatial index to ext_obsdata_netatmo table" << std::endl;
+                << " [SpatiaLite] Adding spatial index to ext_obsdata_netatmo table\n";
       itsDB.execute("SELECT CreateSpatialIndex('ext_obsdata_netatmo', 'geom')");
     }
   }
@@ -764,7 +764,7 @@ void SpatiaLite::createFmiIoTDataTable()
     if (spatial_index_enabled == 0)
     {
       std::cout << Spine::log_time_str()
-                << " [SpatiaLite] Adding spatial index to ext_obsdata_fmi_iot table" << std::endl;
+                << " [SpatiaLite] Adding spatial index to ext_obsdata_fmi_iot table\n";
       itsDB.execute("SELECT CreateSpatialIndex('ext_obsdata_fmi_iot', 'geom')");
     }
   }
@@ -826,7 +826,7 @@ void SpatiaLite::createTapsiQcDataTable()
     if (spatial_index_enabled == 0)
     {
       std::cout << Spine::log_time_str()
-                << " [SpatiaLite] Adding spatial index to ext_obsdata_tapsi_qc table" << std::endl;
+                << " [SpatiaLite] Adding spatial index to ext_obsdata_tapsi_qc table\n";
       itsDB.execute("SELECT CreateSpatialIndex('ext_obsdata_tapsi_qc', 'geom')");
     }
   }
@@ -2025,7 +2025,7 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &cacheData,
             }
             catch (const std::exception &e)
             {
-              std::cerr << "Problem updating flash data: " << e.what() << std::endl;
+              std::cerr << "Problem updating flash data: " << e.what() << '\n';
             }
           }
 
@@ -2179,7 +2179,7 @@ std::size_t SpatiaLite::fillRoadCloudCache(const MobileExternalDataItems &mobile
         }
         catch (const std::exception &e)
         {
-          std::cerr << "Problem updating RoadCloud cache: " << e.what() << std::endl;
+          std::cerr << "Problem updating RoadCloud cache: " << e.what() << '\n';
         }
       }
       xct.commit();
@@ -2323,7 +2323,7 @@ std::size_t SpatiaLite::fillNetAtmoCache(const MobileExternalDataItems &mobileEx
         }
         catch (const std::exception &e)
         {
-          std::cerr << "Problem updating NetAtmo cache: " << e.what() << std::endl;
+          std::cerr << "Problem updating NetAtmo cache: " << e.what() << '\n';
         }
       }
       xct.commit();
@@ -2467,7 +2467,7 @@ std::size_t SpatiaLite::fillFmiIoTCache(const MobileExternalDataItems &mobileExt
         }
         catch (const std::exception &e)
         {
-          std::cerr << "Problem updating FmiIoT cache: " << e.what() << std::endl;
+          std::cerr << "Problem updating FmiIoT cache: " << e.what() << '\n';
         }
       }
       xct.commit();
@@ -2611,7 +2611,7 @@ std::size_t SpatiaLite::fillTapsiQcCache(const MobileExternalDataItems &mobileEx
         }
         catch (const std::exception &e)
         {
-          std::cerr << "Problem updating TapsiQc cache: " << e.what() << std::endl;
+          std::cerr << "Problem updating TapsiQc cache: " << e.what() << '\n';
         }
       }
       xct.commit();
@@ -2735,7 +2735,7 @@ std::size_t SpatiaLite::fillMagnetometerDataCache(
         }
         catch (const std::exception &e)
         {
-          std::cerr << "Problem updating Magnetometer cache: " << e.what() << std::endl;
+          std::cerr << "Problem updating Magnetometer cache: " << e.what() << '\n';
         }
       }
       xct.commit();
@@ -2853,7 +2853,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMagnetometerData(
       sqlStmt += (" AND " + settings.dataFilter.getSqlClause("data_quality", "data_quality"));
 
     if (itsDebug)
-      std::cout << "SpatiaLite: " << sqlStmt << std::endl;
+      std::cout << "SpatiaLite: " << sqlStmt << '\n';
 
     auto localtz = timezones.time_zone_from_string(settings.timezone);
 
@@ -3105,7 +3105,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
     query += "ORDER BY flash.stroke_time ASC, flash.stroke_time_fraction ASC;";
 
     if (itsDebug)
-      std::cout << "SpatiaLite: " << query << std::endl;
+      std::cout << "SpatiaLite: " << query << '\n';
 
     TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
@@ -3219,7 +3219,7 @@ FlashDataItems SpatiaLite::readFlashCacheData(const Fmi::DateTime &starttime)
         starttimeString + " ORDER BY stroke_time, flash_id";
 
     if (itsDebug)
-      std::cout << "SpatiaLite: " << sql << std::endl;
+      std::cout << "SpatiaLite: " << sql << '\n';
 
     FlashDataItems result;
 
@@ -3321,7 +3321,7 @@ FlashCounts SpatiaLite::getFlashCount(const Fmi::DateTime &starttime,
     sqltemplate += ";";
 
     if (itsDebug)
-      std::cout << "SpatiaLite: " << sqltemplate << std::endl;
+      std::cout << "SpatiaLite: " << sqltemplate << '\n';
 
     sqlite3pp::query qry(itsDB, sqltemplate.c_str());
     sqlite3pp::query::iterator iter = qry.begin();
@@ -3478,7 +3478,7 @@ LocationDataItems SpatiaLite::readObservationDataOfMovingStationsFromDB(
                "ORDER BY data.fmisid ASC, data.data_time ASC";
 
     if (itsDebug)
-      std::cout << "SpatiaLite: " << sqlStmt << std::endl;
+      std::cout << "SpatiaLite: " << sqlStmt << '\n';
 
     sqlite3pp::query qry(itsDB, sqlStmt.c_str());
 
@@ -3714,7 +3714,7 @@ std::string SpatiaLite::sqlSelectFromWeatherDataQCData(const Settings &settings,
                "ORDER BY fmisid ASC, obstime ASC";
 
     if (itsDebug)
-      std::cout << "SpatiaLite: " << sqlStmt << std::endl;
+      std::cout << "SpatiaLite: " << sqlStmt << '\n';
 
     return sqlStmt;
   }
@@ -3762,7 +3762,7 @@ void SpatiaLite::getMovingStations(Spine::Stations &stations,
          ")) AND ST_Contains(ST_GeomFromText('" + wkt + "'),ST_MakePoint(lon, lat))");
 
     if (itsDebug)
-      std::cout << "SpatiaLite: " << sqlStmt << std::endl;
+      std::cout << "SpatiaLite: " << sqlStmt << '\n';
 
     sqlite3pp::query qry(itsDB, sqlStmt.c_str());
 
@@ -3815,7 +3815,7 @@ Fmi::DateTime SpatiaLite::getLatestDataUpdateTime(const std::string &tablename,
           "modified_last >=" +
           Fmi::to_string(start_time);
 
-    // std::cout << "Spatialite::getLatestDataUpdateTime: "<< sqlStmt << std::endl;
+    // std::cout << "Spatialite::getLatestDataUpdateTime: "<< sqlStmt << '\n';
 
     if (!sqlStmt.empty())
     {

@@ -256,7 +256,7 @@ void ObservationCacheAdminBase::init()
       if (sinfo->stations.empty())
       {
         std::cout << Spine::log_time_str() << driverName()
-                  << " Stations info missing, loading from database! " << std::endl;
+                  << " Stations info missing, loading from database! \n";
         itsBackgroundTasks->add("Load station data", [this]() { loadStations(); });
       }
     }
@@ -289,7 +289,7 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
     {
       std::cout << Spine::log_time_str() << ANSI_FG_GREEN
                 << " Note! Observation cache updates disabled for '" << itsParameters.driverName
-                << "' tables " << Fmi::join(tables, ", ") << "! " << ANSI_FG_DEFAULT << std::endl;
+                << "' tables " << Fmi::join(tables, ", ") << "! " << ANSI_FG_DEFAULT << '\n';
       return;
     }
 
@@ -376,7 +376,7 @@ void ObservationCacheAdminBase::updateFlashFakeCache(std::shared_ptr<Observation
               << cacheData.size() << " FLASH observations between " << starttime << "..." << endtime
               << " finished in "
               << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - begin1).count()
-              << " ms" << std::endl;
+              << " ms\n";
 
     auto begin2 = std::chrono::high_resolution_clock::now();
     auto count = cache->fillFlashDataCache(cacheData);
@@ -384,7 +384,7 @@ void ObservationCacheAdminBase::updateFlashFakeCache(std::shared_ptr<Observation
     std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
               << " FLASH observations between " << starttime << "..." << endtime << " finished in "
               << std::chrono::duration_cast<std::chrono::milliseconds>(end2 - begin2).count()
-              << " ms" << std::endl;
+              << " ms\n";
   }
 }
 
@@ -413,7 +413,7 @@ void ObservationCacheAdminBase::emulateFlashCacheUpdate(
   auto time_iter = starttime;
   auto flash_id = cache->getMaxFlashId() + 1;
   std::cout << "Emulating flash cache database update, id start from: " << flash_id
-            << ", time from: " << time_iter << std::endl;
+            << ", time from: " << time_iter << '\n';
   while (time_iter < endtime)
   {
     auto number_of_seconds = std::min(static_cast<int>((endtime - time_iter).total_seconds()), 60);
@@ -458,7 +458,7 @@ void ObservationCacheAdminBase::emulateFlashCacheUpdate(
       {
         total_count += cache->fillFlashDataCache(cacheData);
         std::cout << "Added 10000 flashes to database, total number of flashes #" << total_count
-                  << std::endl;
+                  << '\n';
         cacheData.clear();
       }
       if (Spine::Reactor::isShuttingDown())
@@ -474,7 +474,7 @@ void ObservationCacheAdminBase::emulateFlashCacheUpdate(
   {
     total_count += cache->fillFlashDataCache(cacheData);
     std::cout << "Added " << cacheData.size() << " flashes to database, total number of flashes #"
-              << total_count << std::endl;
+              << total_count << '\n';
   }
 
   auto function_endtime = std::chrono::high_resolution_clock::now();
@@ -484,7 +484,7 @@ void ObservationCacheAdminBase::emulateFlashCacheUpdate(
             << std::chrono::duration_cast<std::chrono::milliseconds>(function_endtime -
                                                                      function_starttime)
                    .count()
-            << " ms" << std::endl;
+            << " ms\n";
 }
 
 void ObservationCacheAdminBase::updateFlashCache() const
@@ -525,7 +525,7 @@ void ObservationCacheAdminBase::updateFlashCache() const
                   << " and last_modified >= " << last_times.at("last_modified_time")
                   << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
 
     if (Spine::Reactor::isShuttingDown())
@@ -541,7 +541,7 @@ void ObservationCacheAdminBase::updateFlashCache() const
                   << " FLASH observations starting from " << last_times.at("start_time")
                   << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
     if (Spine::Reactor::isShuttingDown())
       return;
@@ -557,7 +557,7 @@ void ObservationCacheAdminBase::updateFlashCache() const
         std::cout << Spine::log_time_str() << driverName()
                   << " database driver FLASH cache cleaner finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
   }
   catch (...)
@@ -587,7 +587,7 @@ void ObservationCacheAdminBase::updateObservationFakeCache(
               << cacheData.size() << " FIN observations between " << starttime << "..." << endtime
               << " finished in "
               << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - begin1).count()
-              << " ms" << std::endl;
+              << " ms\n";
 
     auto begin2 = std::chrono::high_resolution_clock::now();
     auto count = cache->fillDataCache(cacheData);
@@ -595,7 +595,7 @@ void ObservationCacheAdminBase::updateObservationFakeCache(
     std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
               << " FIN observations between " << starttime << "..." << endtime << " finished in "
               << std::chrono::duration_cast<std::chrono::milliseconds>(end2 - begin2).count()
-              << " ms" << std::endl;
+              << " ms\n";
   }
 }
 
@@ -668,7 +668,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
                   << cacheData.size() << " FIN observations starting from " << last_time_pair.first
                   << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
 
     if (Spine::Reactor::isShuttingDown())
@@ -686,7 +686,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
                   << " FIN observations and " << count_moving_locations
                   << " moving locations, starting from " << last_time_pair.first << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
 
     if (Spine::Reactor::isShuttingDown())
@@ -702,7 +702,7 @@ void ObservationCacheAdminBase::updateObservationCache() const
       std::cout << Spine::log_time_str() << driverName()
                 << " database driver FIN cache cleaner finished in "
                 << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                << " ms" << std::endl;
+                << " ms\n";
   }
   catch (...)
   {
@@ -757,7 +757,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCFakeCache(
               << cacheData.size() << " EXT observations between " << starttime << "..." << endtime
               << " finished in "
               << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - begin1).count()
-              << " ms" << std::endl;
+              << " ms\n";
 
     fixWeatherDataQCProducers(cacheData);
     
@@ -767,7 +767,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCFakeCache(
     std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
               << " EXT observations between " << starttime << "..." << endtime << " finished in "
               << std::chrono::duration_cast<std::chrono::milliseconds>(end2 - begin2).count()
-              << " ms" << std::endl;
+              << " ms\n";
   }
 }
 
@@ -830,7 +830,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
                   << cacheData.size() << " EXT observations starting from " << last_time_pair.first
                   << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
 
     if (Spine::Reactor::isShuttingDown())
@@ -845,7 +845,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
         std::cout << Spine::log_time_str() << driverName() << " database driver wrote " << count
                   << " EXT observations starting from " << last_time_pair.first << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
 
     if (Spine::Reactor::isShuttingDown())
@@ -862,7 +862,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
         std::cout << Spine::log_time_str() << driverName()
                   << " database driver EXT cache cleaner finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
   }
   catch (...)
@@ -935,7 +935,7 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
                   << cacheData.size() << NETATMO_PRODUCER << " observations starting from "
                   << last_time << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
 
     if (Spine::Reactor::isShuttingDown())
@@ -951,7 +951,7 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
                   << NETATMO_PRODUCER << " observations starting from " << last_time
                   << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
 
     if (Spine::Reactor::isShuttingDown())
@@ -968,7 +968,7 @@ void ObservationCacheAdminBase::updateNetAtmoCache() const
         std::cout << Spine::log_time_str() << driverName() << " database driver cleaner "
                   << NETATMO_PRODUCER << " cache cleaner finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
   }
   catch (...)
@@ -1043,7 +1043,7 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
                   << cacheData.size() << ROADCLOUD_PRODUCER << " observations starting from "
                   << last_time << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
 
     if (Spine::Reactor::isShuttingDown())
@@ -1059,7 +1059,7 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
                   << ROADCLOUD_PRODUCER << " observations starting from " << last_time
                   << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
 
     if (Spine::Reactor::isShuttingDown())
@@ -1076,7 +1076,7 @@ void ObservationCacheAdminBase::updateRoadCloudCache() const
         std::cout << Spine::log_time_str() << driverName() << " database driver "
                   << ROADCLOUD_PRODUCER << " cache cleaner finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
   }
   catch (...)
@@ -1150,7 +1150,7 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
                   << cacheData.size() << FMI_IOT_PRODUCER << " observations starting from "
                   << last_time << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
 
     if (Spine::Reactor::isShuttingDown())
@@ -1166,7 +1166,7 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
                   << FMI_IOT_PRODUCER << " observations starting from " << last_time
                   << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
 
     if (Spine::Reactor::isShuttingDown())
@@ -1183,7 +1183,7 @@ void ObservationCacheAdminBase::updateFmiIoTCache() const
         std::cout << Spine::log_time_str() << driverName() << " database driver "
                   << FMI_IOT_PRODUCER << " cache cleaner finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
   }
   catch (...)
@@ -1257,7 +1257,7 @@ void ObservationCacheAdminBase::updateTapsiQcCache() const
                   << cacheData.size() << TAPSI_QC_PRODUCER << " observations starting from "
                   << last_time << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
 
     if (Spine::Reactor::isShuttingDown())
@@ -1273,7 +1273,7 @@ void ObservationCacheAdminBase::updateTapsiQcCache() const
                   << TAPSI_QC_PRODUCER << " observations starting from " << last_time
                   << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
 
     if (Spine::Reactor::isShuttingDown())
@@ -1290,7 +1290,7 @@ void ObservationCacheAdminBase::updateTapsiQcCache() const
         std::cout << Spine::log_time_str() << driverName() << " database driver "
                   << TAPSI_QC_PRODUCER << " cache cleaner finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
   }
   catch (...)
@@ -1350,7 +1350,7 @@ void ObservationCacheAdminBase::updateMagnetometerCache() const
                   << cacheData.size() << " Magnetometer observations starting from "
                   << last_time_pair.first << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
 
     if (Spine::Reactor::isShuttingDown())
@@ -1366,7 +1366,7 @@ void ObservationCacheAdminBase::updateMagnetometerCache() const
                   << " Magnetometer observations starting from " << last_time_pair.first
                   << " finished in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                  << " ms" << std::endl;
+                  << " ms\n";
     }
 
     if (Spine::Reactor::isShuttingDown())
@@ -1381,7 +1381,7 @@ void ObservationCacheAdminBase::updateMagnetometerCache() const
       std::cout << Spine::log_time_str() << driverName()
                 << " database driver Magnetometer cache cleaner finished in "
                 << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
-                << " ms" << std::endl;
+                << " ms\n";
   }
   catch (...)
   {
@@ -1751,7 +1751,7 @@ void ObservationCacheAdminBase::reloadStations()
   {
     std::cout << Spine::log_time_str() << ANSI_FG_GREEN
               << " Stations update loop is running! Reload request ignored!" << ANSI_FG_DEFAULT
-              << std::endl;
+              << '\n';
     return;
   }
 
@@ -1771,7 +1771,7 @@ void ObservationCacheAdminBase::loadStations()
     {
       std::cout << Spine::log_time_str() << ANSI_FG_GREEN
                 << " Stations are being loaded currently! Reload request ignored!"
-                << ANSI_FG_DEFAULT << std::endl;
+                << ANSI_FG_DEFAULT << '\n';
       return;
     }
 

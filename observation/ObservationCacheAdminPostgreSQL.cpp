@@ -145,7 +145,7 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
     // We have no PostgreSQL connections, we cannot update
     if (!itsConnectionsOK)
     {
-      std::cerr << "loadStations(): No connection to PostgreSQL." << std::endl;
+      std::cerr << "loadStations(): No connection to PostgreSQL.\n";
       return;
     }
 

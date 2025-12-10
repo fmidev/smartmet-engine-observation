@@ -27,7 +27,7 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
 {
   try
   {
-    //  std::cout << p->databaseDriverInfo << std::endl;
+    //  std::cout << p->databaseDriverInfo << '\n';
 
     PostgreSQLDatabaseDriverForFmiData *pPostgreSQLFmiDataDriver = nullptr;
 
@@ -92,7 +92,7 @@ DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::Co
       itsDatabaseDriverContainer.addDriver("*", INT_MAX, dbDriver);
       std::cout << Spine::log_time_str() << ANSI_FG_RED
                 << " Note! No active database drivers configured -> creating a dummy driver!"
-                << ANSI_FG_DEFAULT << std::endl;
+                << ANSI_FG_DEFAULT << '\n';
     }
 
     init_tasks.on_task_error(
@@ -208,7 +208,7 @@ TS::TimeSeriesVectorPtr DatabaseDriverProxy::values(Settings &settings)
     DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
 
     if (settings.debug_options & Settings::DUMP_SETTINGS)
-      std::cout << "Database driver: " << pDriver->name() << std::endl;
+      std::cout << "Database driver: " << pDriver->name() << '\n';
 
     TS::TimeSeriesVectorPtr ret = pDriver->checkForEmptyQuery(settings);
 
@@ -231,7 +231,7 @@ TS::TimeSeriesVectorPtr DatabaseDriverProxy::values(
     DatabaseDriverBase *pDriver = resolveDatabaseDriver(settings);
 
     if (settings.debug_options & Settings::DUMP_SETTINGS)
-      std::cout << "Database driver: " << pDriver->name() << std::endl;
+      std::cout << "Database driver: " << pDriver->name() << '\n';
 
     TS::TimeSeriesVectorPtr ret = pDriver->checkForEmptyQuery(settings, timeSeriesOptions);
 

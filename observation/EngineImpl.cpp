@@ -203,7 +203,7 @@ void EngineImpl::init()
 
     itsEngineParameters.reset(new EngineParameters(cfg));
 
-    //    std::cout << itsEngineParameters->databaseDriverInfo << std::endl;
+    //    std::cout << itsEngineParameters->databaseDriverInfo << '\n';
 
     itsDatabaseRegistry->loadConfigurations(itsEngineParameters->dbRegistryFolderPath);
 
@@ -363,7 +363,7 @@ bool EngineImpl::requestReloadStations(const Spine::HTTP::Request &theRequest)
 
 void EngineImpl::shutdown()
 {
-  std::cout << "  -- Shutdown requested (Observation)" << std::endl;
+  std::cout << "  -- Shutdown requested (Observation)\n";
   if (itsDatabaseDriver)
   {
     itsDatabaseDriver->shutdown();
@@ -431,7 +431,7 @@ void EngineImpl::initializeCache()
 
 bool EngineImpl::ready() const
 {
-  std::cout << "Warning: obsengine::ready called" << std::endl;
+  std::cout << "Warning: obsengine::ready called\n";
   return true;
 }
 
@@ -479,7 +479,7 @@ TS::TimeSeriesVectorPtr EngineImpl::values(Settings &settings)
     std::vector<unsigned int> unknownParameterIndexes;
     if (settings.debug_options & Settings::DUMP_SETTINGS)
     {
-      std::cout << "EngineImpl::Observation::Settings:\n" << settings << std::endl;
+      std::cout << "EngineImpl::Observation::Settings:\n" << settings << '\n';
     }
     Settings querySettings = beforeQuery(settings, unknownParameterIndexes);
 
@@ -575,8 +575,8 @@ TS::TimeSeriesVectorPtr EngineImpl::values(Settings &settings,
     std::vector<unsigned int> unknownParameterIndexes;
     if (settings.debug_options & Settings::DUMP_SETTINGS)
     {
-      std::cout << "EngineImpl::Observation::Settings:\n" << settings << std::endl;
-      std::cout << "TS::TimeSeriesGeneratorOptions:\n" << timeSeriesOptions << std::endl;
+      std::cout << "EngineImpl::Observation::Settings:\n" << settings << '\n';
+      std::cout << "TS::TimeSeriesGeneratorOptions:\n" << timeSeriesOptions << '\n';
     }
     Settings querySettings = beforeQuery(settings, unknownParameterIndexes);
 

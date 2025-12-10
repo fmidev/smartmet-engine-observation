@@ -131,7 +131,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
       "data_value_txt,obs.data_quality,obs.ctrl_status,stat."
       "station_id, stat.station_code ORDER BY obs.data_time, stat.station_id ASC";
 
-  // std::cout << "SQL: " << sqlStmt << std::endl;
+  // std::cout << "SQL: " << sqlStmt << '\n';
 
   return sqlStmt;
 }
@@ -218,7 +218,7 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
         "station_id, stat.station_code ORDER BY obs.data_time, stat.station_id ASC";
   }
 
-  // std::cout << "SQL: " << sqlStmt << std::endl;
+  // std::cout << "SQL: " << sqlStmt << '\n';
 
   return sqlStmt;
 }

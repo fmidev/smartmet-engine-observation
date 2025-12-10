@@ -254,7 +254,7 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataOfMovingStations
 
     if (itsDebug)
       std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
-                << std::endl;
+                << '\n';
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -358,7 +358,7 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
 
     if (itsDebug)
       std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
-                << std::endl;
+                << '\n';
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -529,7 +529,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
 
     if (itsDebug)
       std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
-                << std::endl;
+                << '\n';
 
     TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
@@ -685,7 +685,7 @@ FlashCounts CommonPostgreSQLFunctions::getFlashCount(const Fmi::DateTime &startt
 
     if (itsDebug)
       std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
-                << std::endl;
+                << '\n';
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
     for (auto row : result_set)
@@ -819,7 +819,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
 
   if (itsDebug)
     std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
-              << std::endl;
+              << '\n';
 
   pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 

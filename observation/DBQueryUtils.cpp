@@ -23,18 +23,18 @@ std::ostream &operator<<(std::ostream &out,
 {
   for (const auto &item1 : data)
   {
-    std::cout << "fmisid: " << item1.first << " -> " << std::endl;
+    std::cout << "fmisid: " << item1.first << " -> \n";
     for (const auto &item2 : item1.second)
     {
-      std::cout << " observationtime: " << item2.first << " -> " << std::endl;
+      std::cout << " observationtime: " << item2.first << " -> \n";
       for (const auto &item3 : item2.second)
       {
-        std::cout << "  measurand: " << item3.first << " -> " << std::endl;
+        std::cout << "  measurand: " << item3.first << " -> \n";
         for (const auto &item4 : item3.second)
         {
           std::cout << "   sensor -> value: " << item4.first << " -> " << item4.second.value << ", "
                     << item4.second.data_quality << ", " << item4.second.data_source << ", "
-                    << item4.second.is_default_sensor_data << std::endl;
+                    << item4.second.is_default_sensor_data << '\n';
         }
       }
     }
@@ -811,7 +811,7 @@ QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
 {
   try
   {
-    //	std::cout << "DbQueryUtils::buildQueryMapping" << std::endl;
+    //	std::cout << "DbQueryUtils::buildQueryMapping\n";
 
     QueryMapping ret;
 
@@ -1035,7 +1035,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
     auto specialFieldFlags = determineSpecialFields(qmap);
     auto continuous = buildContinuousParameterMap(qmap);
 
-    // std::cout << "station_data:\n" << station_data << std::endl;
+    // std::cout << "station_data:\n" << station_data << '\n';
 
     TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
     TS::TimeSeriesVectorPtr resultVector = initializeResultVector(settings);

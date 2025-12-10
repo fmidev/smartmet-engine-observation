@@ -77,7 +77,7 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
         ExternalAndMobileDBInfo::sqlSelectForCache(producer, lastTime, lastCreatedTime);
 
     if (itsDebug)
-      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+      std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     // Execute SQL statement
     Fmi::Database::PostgreSQLConnection &conn = getConnection();
@@ -149,7 +149,7 @@ void PostgreSQLObsDB::readMovingStationsCacheDataFromPostgreSQL(
         Fmi::to_iso_extended_string(startTime) + "' ORDER BY station_id ASC, sdate ASC";
 
     if (itsDebug)
-      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+      std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -264,11 +264,11 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems &cacheData,
       std::cout << (Spine::log_time_str() +
                     " [PostgreSQLObsDB] Performing a large OBS cache update starting from " +
                     Fmi::to_simple_string(lastModifiedTime))
-                << std::endl;
+                << '\n';
     }
 
     if (itsDebug)
-      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+      std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     return readCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
   }
@@ -398,7 +398,7 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem
         std::cout << (Spine::log_time_str() +
                       " [PostgreSQLObsDB] Performing a large FLASH cache update starting from " +
                       Fmi::to_simple_string(lastModifiedTime))
-                  << std::endl;
+                  << '\n';
       }
     }
 
@@ -419,7 +419,7 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem
         Fmi::to_iso_extended_string(lastModifiedTime) + "' ORDER BY stroke_time, flash_id";
 
     if (itsDebug)
-      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+      std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     readFlashCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
   }
@@ -520,7 +520,7 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheD
       std::cout << (Spine::log_time_str() +
                     " [PostgreSQLObsDB] Performing a large EXT cache update starting from " +
                     Fmi::to_simple_string(starttime))
-                << std::endl;
+                << '\n';
     }
 
     std::string sqlStmt =
@@ -568,7 +568,7 @@ void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
           << (Spine::log_time_str() +
               " [PostgreSQLObsDB] Performing a large Magnetometer cache update starting from " +
               Fmi::to_simple_string(starttime))
-          << std::endl;
+          << '\n';
     }
 
     std::string sqlStmt =
@@ -581,7 +581,7 @@ void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
     sqlStmt += (" AND magnetometer NOT IN ('NUR2','GAS1')");
 
     if (itsDebug)
-      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+      std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -752,7 +752,7 @@ std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(const Settings &sett
     }
 
     if (itsDebug)
-      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+      std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     return sqlStmt;
   }
@@ -864,7 +864,7 @@ WHERE  tg.group_class_id IN( 1, 81 )
     // clang-format on
 
     if (itsDebug)
-      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+      std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -879,7 +879,7 @@ WHERE  tg.group_class_id IN( 1, 81 )
       if (access_policy_id != 0 && s.type != "EXTRWYWS")
       {
         // std::cerr << "PROTECTED station " << station_id << " " << formal_name_fi << " of
-        // type " << type << std::endl;
+        // type " << type << '\n';
         continue;
       }
 
@@ -951,7 +951,7 @@ void PostgreSQLObsDB::getStationGroups(StationGroups &sg) const
         "select group_id, group_name from station_groups_v1 where class_id in (1,81)";
 
     if (itsDebug)
-      std::cout << "PostgreSQL (station groups): " << sqlStmt << std::endl;
+      std::cout << "PostgreSQL (station groups): " << sqlStmt << '\n';
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -967,7 +967,7 @@ void PostgreSQLObsDB::getStationGroups(StationGroups &sg) const
     sqlStmt = "select group_id, station_id, valid_from, valid_to from group_members_v1";
 
     if (itsDebug)
-      std::cout << "PostgreSQL (station group members): " << sqlStmt << std::endl;
+      std::cout << "PostgreSQL (station group members): " << sqlStmt << '\n';
 
     result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -1002,7 +1002,7 @@ void PostgreSQLObsDB::getProducerGroups(ProducerGroups &pg) const
         "producer_group_members_v1 where group_in_use=1 and namespace='cldb'";
 
     if (itsDebug)
-      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+      std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -1056,7 +1056,7 @@ AND tg.group_name IN( '{}')
       sqlStmt +=
           fmt::format(" AND ST_Contains(ST_GeomFromText('{}'), ST_MakePoint(lon, lat))", wkt);
 
-    // std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+    // std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     auto result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -1087,7 +1087,7 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
         "standard_level,measurand_unit from measurands_v1";
 
     if (itsDebug)
-      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+      std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     auto result_set = itsDB.executeNonTransaction(sqlStmt);
     //    auto producers = engineParameters->producerGroups.getProducerGroups();
@@ -1120,7 +1120,7 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
         "select distinct measurand_id,producer_id from configurations_v2 order by measurand_id asc";
 
     if (itsDebug)
-      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+      std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     result_set = itsDB.executeNonTransaction(sqlStmt);
     for (const auto &row : result_set)
@@ -1248,7 +1248,7 @@ Fmi::DateTime PostgreSQLObsDB::getLatestDataUpdateTime(const std::string &tablen
           Fmi::to_iso_extended_string(starttime) + "' AND modified_last <='" +
           Fmi::to_iso_extended_string(endtime) + "'";
 
-    // std::cout << "PostgreSQL::getLatestDataUpdateTime: " << sqlStmt << std::endl;
+    // std::cout << "PostgreSQL::getLatestDataUpdateTime: " << sqlStmt << '\n';
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 

@@ -147,7 +147,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
     }
 
     if (settings.debug_options)
-      std::cout << "PostgreSQL: " << sqlStmt << std::endl;
+      std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     // Execute SQL statement
     Fmi::Database::PostgreSQLConnection &conn = db.getConnection();
