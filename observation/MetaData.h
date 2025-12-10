@@ -102,7 +102,7 @@ struct MetaData
   {
     periodLevelMetaData.update(minTime, maxTime, levelType, minLevel, maxLevel);
 
-    StationMetaData::iterator smd = stationMetaData.find(stationId);
+    auto smd = stationMetaData.find(stationId);
     if (smd == stationMetaData.end())
       smd = stationMetaData.insert(std::make_pair(stationId, PeriodLevelMetaData())).first;
 
