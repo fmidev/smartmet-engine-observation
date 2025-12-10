@@ -39,7 +39,7 @@ std::atomic<bool> bigFlashRequestReported{false};
 
 using namespace Utils;
 
-PostgreSQLObsDB::~PostgreSQLObsDB() {}
+PostgreSQLObsDB::~PostgreSQLObsDB() = default;
 
 PostgreSQLObsDB::PostgreSQLObsDB(
     const Fmi::Database::PostgreSQLConnectionOptions &connectionOptions,
