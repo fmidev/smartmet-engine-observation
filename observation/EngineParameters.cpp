@@ -197,31 +197,29 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
                   ProducerId(producerIdVector.front()), measurands, databaseTableName)));
           continue;
         }
+
+        auto useCommonQueryMethod = false;
+        std::vector<std::string> stationgroupCodeVector;
+
+        stationtype_settings.lookupValue("useCommonQueryMethod", useCommonQueryMethod);
+
+        if (stationtype_settings.exists("stationGroups"))
+          stationgroupCodeVector =
+              cfg.get_mandatory_config_array<std::string>(stationtype_settings, "stationGroups");
         else
+          stationgroupCodeVector.emplace_back("VOID_AND_MISSING");
+
+        if (databaseTableName.empty() && useCommonQueryMethod)
         {
-          auto useCommonQueryMethod = false;
-          std::vector<std::string> stationgroupCodeVector;
-
-          stationtype_settings.lookupValue("useCommonQueryMethod", useCommonQueryMethod);
-
-          if (stationtype_settings.exists("stationGroups"))
-            stationgroupCodeVector =
-                cfg.get_mandatory_config_array<std::string>(stationtype_settings, "stationGroups");
-          else
-            stationgroupCodeVector.emplace_back("VOID_AND_MISSING");
-
-          if (databaseTableName.empty() && useCommonQueryMethod)
-          {
-            throw Fmi::Exception(BCP, "Invalid parameter value!")
-                .addDetail(
-                    fmt::format("databaseTableName parameter definition is required for the "
-                                "stationtype '{}' if the useCommonQueryMethod value is true.",
-                                stationtype));
-          }
-
-          stationtypeConfig.addStationtype(stationtype, stationgroupCodeVector);
-          stationtypeConfig.setUseCommonQueryMethod(stationtype, useCommonQueryMethod);
+          throw Fmi::Exception(BCP, "Invalid parameter value!")
+              .addDetail(fmt::format("databaseTableName parameter definition is required for the "
+                                     "stationtype '{}' if the useCommonQueryMethod value is true.",
+                                     stationtype));
         }
+
+        stationtypeConfig.addStationtype(stationtype, stationgroupCodeVector);
+        stationtypeConfig.setUseCommonQueryMethod(stationtype, useCommonQueryMethod);
+
         if (!producerIdVector.empty())
           stationtypeConfig.setProducerIds(stationtype, producerIdVector);
         if (!databaseTableName.empty())
