@@ -150,11 +150,8 @@ class SpatiaLiteCache : public ObservationCache
                          const Settings &settings,
                          const std::string &wkt) const override;
 
-  using PoolType = Fmi::Pool<
-    Fmi::PoolInitType::Sequential,
-    SpatiaLite,
-    std::string,
-    SpatiaLiteCacheParameters>;
+  using PoolType =
+      Fmi::Pool<Fmi::PoolInitType::Sequential, SpatiaLite, std::string, SpatiaLiteCacheParameters>;
 
   std::unique_ptr<PoolType> itsConnectionPool;
   Fmi::TimeZones itsTimeZones;

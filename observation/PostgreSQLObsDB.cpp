@@ -485,7 +485,7 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheD
     if (!fmisid.empty())
       sqlStmt += (" AND fmisid IN (" + fmisid + ")");
     sqlStmt += " ORDER BY fmisid ASC, obstime ASC";
-    
+
     return readWeatherDataQCCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
   }
   catch (...)

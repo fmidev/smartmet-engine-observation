@@ -431,8 +431,7 @@ void SpatiaLite::createObservationDataTable()
     try
     {
       std::cout << Spine::log_time_str()
-                << " [SpatiaLite] Adding modified_last column to observation_data table"
-                << '\n';
+                << " [SpatiaLite] Adding modified_last column to observation_data table" << '\n';
       itsDB.execute(
           "ALTER TABLE observation_data ADD COLUMN modified_last INTEGER NOT NULL DEFAULT 0");
       std::cout << Spine::log_time_str()
@@ -444,8 +443,7 @@ void SpatiaLite::createObservationDataTable()
                 << '\n';
       itsDB.execute(
           "CREATE INDEX observation_data_modified_last_idx ON observation_data(modified_last)");
-      std::cout << Spine::log_time_str() << " [SpatiaLite] modified_last processing done"
-                << '\n';
+      std::cout << Spine::log_time_str() << " [SpatiaLite] modified_last processing done" << '\n';
     }
     catch (const std::exception &e)
     {
@@ -1729,7 +1727,7 @@ std::size_t SpatiaLite::fillDataCache(const std::string &tablename,
         for (std::size_t i = 0; i < insert_size; i++)
         {
           const auto &obs = cacheData[new_items[i]];
-          if(obs.data_value != 9999) // Ignore parameters marked MISSING
+          if (obs.data_value != 9999)  // Ignore parameters marked MISSING
           {
             data_times.emplace_back(to_epoch(obs.data_time));
             modified_last_times.emplace_back(to_epoch(obs.modified_last));

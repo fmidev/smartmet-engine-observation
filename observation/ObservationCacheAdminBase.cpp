@@ -718,16 +718,16 @@ void ObservationCacheAdminBase::fixWeatherDataQCProducers(DataItems& data) const
 
   int last_fmisid = -1;
   int last_producer_id = 0;
-  
-  for(auto& item : data)
+
+  for (auto& item : data)
   {
-    if(item.fmisid == last_fmisid)
+    if (item.fmisid == last_fmisid)
       item.producer_id = last_producer_id;
     else
     {
-      if(stationinfo->isRoadStation(item.fmisid))
+      if (stationinfo->isRoadStation(item.fmisid))
         last_producer_id = item.producer_id = RoadProducer;
-      else if(stationinfo->isForeignStation(item.fmisid))
+      else if (stationinfo->isForeignStation(item.fmisid))
         last_producer_id = item.producer_id = ForeignProducer;
       else
         last_producer_id = 0;
@@ -760,7 +760,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCFakeCache(
               << " ms\n";
 
     fixWeatherDataQCProducers(cacheData);
-    
+
     auto begin2 = std::chrono::high_resolution_clock::now();
     auto count = cache->fillWeatherDataQCCache(cacheData);
     auto end2 = std::chrono::high_resolution_clock::now();
@@ -822,7 +822,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
       }
 
       fixWeatherDataQCProducers(cacheData);
-      
+
       auto end = std::chrono::high_resolution_clock::now();
 
       if (itsTimer)

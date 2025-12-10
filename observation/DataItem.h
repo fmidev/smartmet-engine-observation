@@ -24,7 +24,7 @@ class DataItem
   Fmi::DateTime modified_last;
   std::optional<double> data_value;
   int fmisid = 0;
-  int sensor_no = 1; // default sensor_no at FMI
+  int sensor_no = 1;  // default sensor_no at FMI
   int measurand_id = 0;
   int producer_id = 0;
   int measurand_no = 1;

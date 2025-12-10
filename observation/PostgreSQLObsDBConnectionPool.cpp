@@ -33,14 +33,14 @@ bool PostgreSQLObsDBConnectionPool::addService(
 bool PostgreSQLObsDBConnectionPool::initializePool(const PostgreSQLDriverParameters& itsParameters)
 try
 {
-    for (uint i = 0; i < itsParameters.connectionOptions.size(); ++i)
-    {
-      addService(itsParameters.connectionOptions[i], itsParameters.connectionPoolSize[i]);
-    }
-    setGetConnectionTimeOutSeconds(itsParameters.connectionTimeoutSeconds);
+  for (uint i = 0; i < itsParameters.connectionOptions.size(); ++i)
+  {
+    addService(itsParameters.connectionOptions[i], itsParameters.connectionPoolSize[i]);
+  }
+  setGetConnectionTimeOutSeconds(itsParameters.connectionTimeoutSeconds);
 
-    return initializePool(itsParameters.params->stationtypeConfig,
-                          itsParameters.params->parameterMap);
+  return initializePool(itsParameters.params->stationtypeConfig,
+                        itsParameters.params->parameterMap);
 }
 catch (...)
 {
@@ -132,9 +132,9 @@ std::shared_ptr<PostgreSQLObsDB> PostgreSQLObsDBConnectionPool::getConnection(
                   "connection pool\n",
                   failures);
 
-            return {
-                itsWorkerList[pos].get(),
-                [this](PostgreSQLObsDB* t) -> void { this->releaseConnection(t->connectionId()); }};
+            return {itsWorkerList[pos].get(),
+                    [this](PostgreSQLObsDB* t) -> void
+                    { this->releaseConnection(t->connectionId()); }};
           }
         }
       }
