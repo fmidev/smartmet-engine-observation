@@ -673,8 +673,8 @@ int DatabaseDriverInfoItem::getIntParameterValue(const std::string& name, int de
   return Fmi::stoi(params.at(name));
 }
 
-const std::string& DatabaseDriverInfoItem::getStringParameterValue(
-    const std::string& name, const std::string& defaultValue) const
+std::string DatabaseDriverInfoItem::getStringParameterValue(const std::string& name,
+                                                            const std::string& defaultValue) const
 {
   if (!parameterExists(name))
     return defaultValue;

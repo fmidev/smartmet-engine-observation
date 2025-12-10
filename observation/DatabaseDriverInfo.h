@@ -45,8 +45,8 @@ struct DatabaseDriverInfoItem
   bool parameterExists(const std::string& name) const;
   bool parameterVectorExists(const std::string& name) const;
   int getIntParameterValue(const std::string& name, int defaultValue) const;
-  const std::string& getStringParameterValue(const std::string& name,
-                                             const std::string& defaultValue) const;
+  std::string getStringParameterValue(const std::string& name,
+                                      const std::string& defaultValue) const;
   const CacheInfoItem& getCacheInfo(const std::string& name) const;
   const std::map<std::string, CacheInfoItem>& getCacheInfo() const;
 
