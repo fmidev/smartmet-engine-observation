@@ -61,8 +61,8 @@ class ObservationCacheAdminBase
       const std::shared_ptr<ObservationCache>&) const = 0;
   virtual void readMobileCacheData(const std::string& producer,
                                    std::vector<MobileExternalDataItem>& cacheData,
-                                   Fmi::DateTime lastTime,
-                                   Fmi::DateTime lastCreatedTime,
+                                   const Fmi::DateTime& lastTime,
+                                   const Fmi::DateTime& lastCreatedTime,
                                    const Fmi::TimeZones& timezones) const
   {
   }

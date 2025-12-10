@@ -59,7 +59,7 @@ class QueryResult : public QueryResultBase
    * @exception Obs_EngineException::OPERATION_PROCESSING_FAILED
    *            if referenced value type conversion is not supported.
    */
-  static std::string toString(const ValueVectorType::const_iterator value,
+  static std::string toString(const ValueVectorType::const_iterator& value,
                               std::uint32_t precision = 0);
 
   template <typename T>

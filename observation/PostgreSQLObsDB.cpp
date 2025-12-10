@@ -67,8 +67,8 @@ void PostgreSQLObsDB::get(const std::string & /* sqlStatement */,
 
 void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &producer,
                                                         vector<MobileExternalDataItem> &cacheData,
-                                                        Fmi::DateTime lastTime,
-                                                        Fmi::DateTime lastCreatedTime,
+                                                        const Fmi::DateTime &lastTime,
+                                                        const Fmi::DateTime &lastCreatedTime,
                                                         const Fmi::TimeZones & /* timezones */)
 {
   try
@@ -497,10 +497,11 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheD
   }
 }
 
-void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheData,
-                                                               Fmi::DateTime lastTime,
-                                                               Fmi::DateTime lastModifiedTime,
-                                                               const Fmi::TimeZones &timezones)
+void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
+    DataItems &cacheData,
+    const Fmi::DateTime &lastTime,
+    const Fmi::DateTime &lastModifiedTime,
+    const Fmi::TimeZones &timezones)
 {
   try
   {
@@ -545,8 +546,8 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheD
 
 void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
     std::vector<MagnetometerDataItem> &cacheData,
-    Fmi::DateTime lastTime,
-    Fmi::DateTime lastModifiedTime,
+    const Fmi::DateTime &lastTime,
+    const Fmi::DateTime &lastModifiedTime,
     const Fmi::TimeZones & /* timezones */)
 {
   try
@@ -1224,7 +1225,7 @@ Fmi::DateTime PostgreSQLObsDB::getLatestDataUpdateTime(const std::string &tablen
   {
     Fmi::DateTime ret = Fmi::DateTime::NOT_A_DATE_TIME;
 
-    auto starttime = from;
+    const auto &starttime = from;
     auto endtime = Utils::utc_second_clock();
     std::string sqlStmt;
     if (tablename == OBSERVATION_DATA_TABLE)
