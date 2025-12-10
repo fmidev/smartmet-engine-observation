@@ -23,8 +23,8 @@ typedef enum
 class ObservationLevel
 {
  public:
-  ObservationLevel() : levelType(ObsLevelType::None), levelValue(0.0) {};
-  ObservationLevel(ObsLevelType type, double value) : levelType(type), levelValue(value) {};
+  ObservationLevel() : levelType(ObsLevelType::None), levelValue(0.0) {}
+  ObservationLevel(ObsLevelType type, double value) : levelType(type), levelValue(value) {}
 
   ObsLevelType getLevelType() const { return levelType; }
   double getLevelValue() const { return levelValue; }
