@@ -33,23 +33,24 @@ struct measurand_info
   std::optional<double> standard_level;
   std::string measurand_unit;
   std::set<int> producers;  // Valid producers for this parameter
-  inline const std::string& get_name(const std::string& language_code) const throw()
+  inline const std::string& get_name(const std::string& language_code) const
   {
     return get_member(language_code, &measurand_text::measurand_name);
   }
 
-  const std::string& get_description(const std::string& language_code) const throw()
+  const std::string& get_description(const std::string& language_code) const
   {
     return get_member(language_code, &measurand_text::measurand_desc);
   }
 
-  const std::string& get_label(const std::string& language_code) const throw()
+  const std::string& get_label(const std::string& language_code) const
   {
     return get_member(language_code, &measurand_text::measurand_label);
   }
 
-private:
-  inline const std::string& get_member(const std::string& arg, const std::string measurand_text::*member) const throw()
+ private:
+  inline const std::string& get_member(const std::string& arg,
+                                       const std::string measurand_text::* member) const
   {
     static const std::string empty;
     auto it = translations.find(arg);
