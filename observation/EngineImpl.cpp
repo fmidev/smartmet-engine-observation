@@ -349,7 +349,7 @@ std::unique_ptr<Spine::Table> EngineImpl::requestStationInfo(
   return obsengineStationInfo;
 }
 
-bool EngineImpl::requestReloadStations(const Spine::HTTP::Request &theRequest)
+bool EngineImpl::requestReloadStations(const Spine::HTTP::Request & /* theRequest */)
 {
   reloadStations();
   return true;

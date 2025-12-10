@@ -1214,7 +1214,7 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
 Fmi::DateTime PostgreSQLObsDB::getLatestDataUpdateTime(const std::string &tablename,
                                                        const Fmi::DateTime &from,
                                                        const std::string &producer_ids,
-                                                       const std::string &measurand_ids) const
+                                                       const std::string & /*measurand_ids */) const
 {
   try
   {

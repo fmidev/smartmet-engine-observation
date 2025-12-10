@@ -3772,7 +3772,7 @@ void SpatiaLite::getMovingStations(Spine::Stations &stations,
 Fmi::DateTime SpatiaLite::getLatestDataUpdateTime(const std::string &tablename,
                                                   const Fmi::DateTime &starttime,
                                                   const std::string &producer_ids,
-                                                  const std::string &measurand_ids)
+                                                  const std::string & /* measurand_ids */)
 {
   try
   {

@@ -192,8 +192,8 @@ const ProducerMeasurandInfo &Engine::getMeasurandInfo() const
   REPORT_DISABLED;
 }
 
-Fmi::DateTime Engine::getLatestDataUpdateTime(const std::string &producer,
-                                              const Fmi::DateTime &from) const
+Fmi::DateTime Engine::getLatestDataUpdateTime(const std::string & /* producer */,
+                                              const Fmi::DateTime & /* from */) const
 {
   REPORT_DISABLED;
 }

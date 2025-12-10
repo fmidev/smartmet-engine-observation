@@ -438,9 +438,10 @@ void DatabaseDriverBase::updateProducers(const EngineParametersPtr &p, Settings 
   }
 }
 
-Fmi::DateTime DatabaseDriverBase::getLatestDataUpdateTime(const std::string &producer,
-                                                          const Fmi::DateTime &from,
-                                                          const MeasurandInfo &measurand_info) const
+Fmi::DateTime DatabaseDriverBase::getLatestDataUpdateTime(
+    const std::string & /* producer */,
+    const Fmi::DateTime & /* from */,
+    const MeasurandInfo & /* measurand_info */) const
 {
   try
   {
