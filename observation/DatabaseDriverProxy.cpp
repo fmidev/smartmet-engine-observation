@@ -531,7 +531,7 @@ Fmi::DateTime DatabaseDriverProxy::getLatestDataUpdateTime(const std::string &pr
     settings.endtime = Utils::utc_second_clock();
     settings.stationtype = producer;
 
-    auto driver = resolveDatabaseDriver(settings);
+    auto *driver = resolveDatabaseDriver(settings);
 
     return driver->getLatestDataUpdateTime(producer, from, getMeasurandInfo());
   }
