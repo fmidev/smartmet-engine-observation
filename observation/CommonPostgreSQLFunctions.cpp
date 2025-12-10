@@ -73,7 +73,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationDataForMovingSt
         readObservationDataOfMovingStationsFromDB(settings, qmap, settings.stationgroups);
 
     StationMap fmisid_to_station;
-    for (auto item : observations)
+    for (const auto &item : observations)
     {
       Spine::Station station;
       station.fmisid = item.data.fmisid;
@@ -128,7 +128,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationData(
         readObservationDataFromDB(stations, settings, stationInfo, qmap, stationgroup_codes);
 
     std::set<int> observed_fmisids;
-    for (auto item : observations)
+    for (const auto &item : observations)
       observed_fmisids.insert(item.data.fmisid);
 
     // Map fmisid to station information
