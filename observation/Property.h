@@ -62,9 +62,9 @@ class Base
 
  protected:
   Base(const Base& other);
-  inline NameType getProperty() const { return m_property; }
-  inline NameType getOperator() const { return m_operator; }
-  inline std::any getToWhat() const { return m_toWhat; }
+  NameType getProperty() const { return m_property; }
+  NameType getOperator() const { return m_operator; }
+  std::any getToWhat() const { return m_toWhat; }
   NameType toWhatString(const std::any& value, const std::string& database = "oracle") const;
   virtual bool has_vector_argument() const { return false; }
 
