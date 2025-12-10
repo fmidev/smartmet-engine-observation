@@ -350,7 +350,7 @@ TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
     // If only fmisid and place parameters requested return timeseries with null values
     if (settings.parameters.size() == fmisidPlaceParams.size())
     {
-      result = TS::TimeSeriesVectorPtr(new TS::TimeSeriesVector);
+      result = std::make_shared<TS::TimeSeriesVector>();
 
       TS::TimeSeriesGenerator::LocalTimeList tlist = TS::TimeSeriesGenerator::generate(
           timeSeriesOptions, itsTimeZones.time_zone_from_string(settings.timezone));

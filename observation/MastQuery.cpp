@@ -1,5 +1,6 @@
 #include "MastQuery.h"
 #include <macgyver/Exception.h>
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -46,7 +47,7 @@ std::shared_ptr<QueryResult> MastQuery::getQueryResultContainer()
     if (!m_queryResult)
     {
       if (m_selectSize > 0)
-        m_queryResult.reset(new QueryResult(m_selectSize));
+        m_queryResult = std::make_shared<QueryResult>(m_selectSize);
     }
 
     return m_queryResult;
