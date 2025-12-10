@@ -35,7 +35,6 @@ using namespace std;
 using Fmi::DateTime;
 using Fmi::LocalDateTime;
 using Fmi::date_time::from_time_t;
-using Fmi::date_time::Milliseconds;
 
 namespace
 {
