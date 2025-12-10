@@ -147,7 +147,7 @@ SpecialParameters::SpecialParameters()
     if (loc)
       return loc->name;
 
-    if (d.station.requestedName.length() > 0)
+    if (!d.station.requestedName.empty())
       return d.station.requestedName;
 
     return d.station.station_formal_name(d.settings->language);
