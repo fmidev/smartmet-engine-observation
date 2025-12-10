@@ -50,7 +50,7 @@ const libconfig::Setting& lookupDatabase(const std::string& common_key,
     }  // if
     return default_value;
   }
-  catch (libconfig::SettingNotFoundException& ex)
+  catch (libconfig::SettingNotFoundException& /* ex */)
   {
     throw Fmi::Exception::Trace(BCP, "Override configuration error: " + setting);
   }

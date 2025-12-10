@@ -54,7 +54,7 @@ DBRegistryConfig::DBRegistryConfig(const std::shared_ptr<Spine::ConfigBase>& con
         fieldValueType = Fmi::ascii_tolower_copy(
             config->get_optional_config_param<std::string>(item, "type", ""));
       }
-      catch (const std::exception& err)
+      catch (const std::exception& /* err */)
       {
         Fmi::Exception exception(
             BCP, "Error while parsing DBRegistry configuration file!", nullptr);

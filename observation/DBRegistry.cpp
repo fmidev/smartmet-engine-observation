@@ -60,7 +60,7 @@ void DBRegistry::loadConfigurations(const std::string& configFolderPath)
           std::shared_ptr<DBRegistryConfig> registryConfig(new DBRegistryConfig(cBase));
           m_configVector.push_back(std::move(registryConfig));
         }
-        catch (const std::exception& err)
+        catch (const std::exception& /* err */)
         {
           Fmi::Exception exception(BCP, "DBRegistry configuration file reading failed!", nullptr);
           exception.addParameter("File", entry.string());
