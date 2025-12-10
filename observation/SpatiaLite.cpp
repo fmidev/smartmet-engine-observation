@@ -2194,8 +2194,6 @@ std::size_t SpatiaLite::fillRoadCloudCache(const MobileExternalDataItems &mobile
   {
     throw Fmi::Exception::Trace(BCP, "RoadCloud cache update failed!");
   }
-
-  return 0;
 }
 
 std::size_t SpatiaLite::fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData,
@@ -2338,8 +2336,6 @@ std::size_t SpatiaLite::fillNetAtmoCache(const MobileExternalDataItems &mobileEx
   {
     throw Fmi::Exception::Trace(BCP, "NetAtmo cache update failed!");
   }
-
-  return 0;
 }
 
 std::size_t SpatiaLite::fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData,
@@ -2482,8 +2478,6 @@ std::size_t SpatiaLite::fillFmiIoTCache(const MobileExternalDataItems &mobileExt
   {
     throw Fmi::Exception::Trace(BCP, "NetAtmo cache update failed!");
   }
-
-  return 0;
 }
 
 std::size_t SpatiaLite::fillTapsiQcCache(const MobileExternalDataItems &mobileExternalCacheData,
@@ -2626,8 +2620,6 @@ std::size_t SpatiaLite::fillTapsiQcCache(const MobileExternalDataItems &mobileEx
   {
     throw Fmi::Exception::Trace(BCP, "TapsiQc cache update failed!");
   }
-
-  return 0;
 }
 
 std::size_t SpatiaLite::fillMagnetometerDataCache(
@@ -2750,8 +2742,6 @@ std::size_t SpatiaLite::fillMagnetometerDataCache(
   {
     throw Fmi::Exception::Trace(BCP, "NetAtmo cache update failed!");
   }
-
-  return 0;
 }
 
 void SpatiaLite::cleanMagnetometerCache(const Fmi::DateTime &newstarttime)
