@@ -22,8 +22,6 @@ namespace Observation
 namespace Utils
 {
 
-using Fmi::date_time::Milliseconds;
-
 bool removePrefix(std::string& parameter, const std::string& prefix)
 {
   try
