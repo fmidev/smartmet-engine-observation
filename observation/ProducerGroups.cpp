@@ -14,7 +14,7 @@ void ProducerGroups::addGroupPeriod(const std::string& group_name,
                                     const Fmi::DateTime& starttime,
                                     const Fmi::DateTime& endtime)
 {
-  itsGroupPeriods[group_name][producer_id].push_back(ProducerGroupPeriod(starttime, endtime));
+  itsGroupPeriods[group_name][producer_id].emplace_back(starttime, endtime);
 }
 
 std::set<unsigned int> ProducerGroups::getProducerIds(const std::string& group_name,

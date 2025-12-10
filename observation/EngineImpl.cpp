@@ -134,7 +134,7 @@ void afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
     // Create and initialize data structure for results
     TS::TimeSeriesVectorPtr result = std::make_shared<TS::TimeSeriesVector>();
     for (unsigned int i = 0; i < tsvPtr->size(); i++)
-      result->emplace_back(TS::TimeSeries());
+      result->emplace_back();
 
     // FMISIDs are in right order in settings.taggedFMISIDs list
     // Iterate the list and copy data from original data structure to result structure
@@ -646,8 +646,7 @@ Settings EngineImpl::beforeQuery(const Settings &settings,
       //
       if (pname == EDR_OBSERVATION_LEVEL)
       {
-        ret.parameters.push_back(
-            Spine::Parameter("level", Spine::Parameter::Type::DataIndependent));
+        ret.parameters.emplace_back("level", Spine::Parameter::Type::DataIndependent);
         continue;
       }
 
