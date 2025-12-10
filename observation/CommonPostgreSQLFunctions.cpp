@@ -253,8 +253,7 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataOfMovingStations
     }
 
     if (itsDebug)
-      std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
-                << '\n';
+      std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt << '\n';
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -357,8 +356,7 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
     sqlStmt += "ORDER BY fmisid ASC, obstime ASC";
 
     if (itsDebug)
-      std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
-                << '\n';
+      std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt << '\n';
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 
@@ -528,8 +526,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
       sqlStmt += " ORDER BY flash.stroke_time ASC, flash.nseconds ASC;";
 
     if (itsDebug)
-      std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
-                << '\n';
+      std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt << '\n';
 
     TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
 
@@ -684,8 +681,7 @@ FlashCounts CommonPostgreSQLFunctions::getFlashCount(const Fmi::DateTime &startt
     }
 
     if (itsDebug)
-      std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
-                << '\n';
+      std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt << '\n';
 
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
     for (auto row : result_set)
@@ -818,8 +814,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getMagnetometerData(
     sqlStmt += (" AND " + settings.dataFilter.getSqlClause("data_quality", "data_quality"));
 
   if (itsDebug)
-    std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt
-              << '\n';
+    std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt << '\n';
 
   pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
 

@@ -1,6 +1,6 @@
 #include "PostgreSQLCache.h"
-#include "ObservationMemoryCache.h"
 #include "DBQueryUtils.h"
+#include "ObservationMemoryCache.h"
 #include <boost/make_shared.hpp>
 #include <macgyver/StringConversion.h>
 
@@ -39,9 +39,7 @@ void PostgreSQLCache::initializeConnectionPool()
                itsParameters.quiet);
 
     itsConnectionPool = std::make_unique<PoolType>(
-      itsParameters.connectionPoolSize,
-      itsParameters.connectionPoolSize,
-      itsParameters);
+        itsParameters.connectionPoolSize, itsParameters.connectionPoolSize, itsParameters);
 
     // Ensure that necessary tables exists:
     // 1) stations

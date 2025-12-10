@@ -42,11 +42,10 @@ void SpatiaLiteCache::initializeConnectionPool()
     logMessage("[Observation Engine] Initializing SpatiaLite cache connection pool...",
                itsParameters.quiet);
 
-    itsConnectionPool = std::make_unique<PoolType>(
-      itsParameters.connectionPoolSize,
-      itsParameters.connectionPoolSize,
-      itsParameters.cacheFile,
-      itsParameters);
+    itsConnectionPool = std::make_unique<PoolType>(itsParameters.connectionPoolSize,
+                                                   itsParameters.connectionPoolSize,
+                                                   itsParameters.cacheFile,
+                                                   itsParameters);
 
     // Ensure that necessary tables exists:
     // 1) stations
@@ -157,8 +156,7 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
                  itsParameters.quiet);
       itsFlashMemoryCache.reset(new FlashMemoryCache);
       auto timetokeep_memory = Fmi::Hours(flashMemoryCacheDuration);
-      auto flashdata =
-          itsConnectionPool->get()->readFlashCacheData(now - timetokeep_memory);
+      auto flashdata = itsConnectionPool->get()->readFlashCacheData(now - timetokeep_memory);
       itsFlashMemoryCache->fill(flashdata);
     }
     if (cacheTables.find(OBSERVATION_DATA_TABLE) != cacheTables.end() && finMemoryCacheDuration > 0)
@@ -168,7 +166,7 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
       itsObservationMemoryCache.reset(new ObservationMemoryCache);
       auto timetokeep_memory = Fmi::Hours(finMemoryCacheDuration);
       itsConnectionPool->get()->initObservationMemoryCache(now - timetokeep_memory,
-                                                                     itsObservationMemoryCache);
+                                                           itsObservationMemoryCache);
     }
     if (cacheTables.find(WEATHER_DATA_QC_TABLE) != cacheTables.end() && extMemoryCacheDuration > 0)
     {
@@ -176,8 +174,7 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
                  itsParameters.quiet);
       itsExtMemoryCache.reset(new ObservationMemoryCache);
       auto timetokeep_memory = Fmi::Hours(extMemoryCacheDuration);
-      itsConnectionPool->get()->initExtMemoryCache(now - timetokeep_memory,
-                                                             itsExtMemoryCache);
+      itsConnectionPool->get()->initExtMemoryCache(now - timetokeep_memory, itsExtMemoryCache);
     }
 
     logMessage("[Observation Engine] SpatiaLite memory cache ready.", itsParameters.quiet);
@@ -246,7 +243,8 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
                magnetometerIntervalIsCached(settings.starttime, settings.endtime))
       {
         hit(MAGNETOMETER_DATA_TABLE);
-        ret = db->CommonDatabaseFunctions::getMagnetometerData(stations, settings, *sinfo, itsTimeZones);
+        ret = db->CommonDatabaseFunctions::getMagnetometerData(
+            stations, settings, *sinfo, itsTimeZones);
       }
       else if (settings.stationtype == ICEBUOY_PRODUCER ||
                settings.stationtype == COPERNICUS_PRODUCER)

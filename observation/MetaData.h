@@ -2,9 +2,9 @@
 
 #include <macgyver/DateTime.h>
 #include <spine/Value.h>
+#include <map>
 #include <set>
 #include <vector>
-#include <map>
 
 namespace SmartMet
 {
@@ -13,7 +13,8 @@ namespace Engine
 namespace Observation
 {
 
-typedef enum {
+typedef enum
+{
   None,
   Pressure,
   Altitude
@@ -25,15 +26,15 @@ class ObservationLevel
   ObservationLevel() : levelType(ObsLevelType::None), levelValue(0.0) {};
   ObservationLevel(ObsLevelType type, double value) : levelType(type), levelValue(value) {};
 
-  ObsLevelType getLevelType()  const { return levelType; }
-  double       getLevelValue() const { return levelValue; }
+  ObsLevelType getLevelType() const { return levelType; }
+  double getLevelValue() const { return levelValue; }
 
-  void         setLevelType(ObsLevelType type) { levelType = type; }
-  void         setLevelValue(double value) { levelValue = value; }
+  void setLevelType(ObsLevelType type) { levelType = type; }
+  void setLevelValue(double value) { levelValue = value; }
 
  private:
   ObsLevelType levelType;
-  double       levelValue;
+  double levelValue;
 };
 
 struct PeriodLevelMetaData
@@ -41,8 +42,11 @@ struct PeriodLevelMetaData
   PeriodLevelMetaData(const Fmi::TimePeriod &p) : period(p) {}
   PeriodLevelMetaData() : PeriodLevelMetaData(Fmi::TimePeriod(Fmi::DateTime(), Fmi::DateTime())) {}
 
-  void update(const Fmi::DateTime &minTime, const Fmi::DateTime &maxTime,
-              ObsLevelType levelType, double minLevel, double maxLevel)
+  void update(const Fmi::DateTime &minTime,
+              const Fmi::DateTime &maxTime,
+              ObsLevelType levelType,
+              double minLevel,
+              double maxLevel)
   {
     if (period.is_null() || levels.empty())
       period = Fmi::TimePeriod(minTime, maxTime);
@@ -53,7 +57,6 @@ struct PeriodLevelMetaData
     {
       levels.push_back(ObservationLevel(levelType, minLevel));
       levels.push_back(ObservationLevel(levelType, maxLevel));
-
     }
     else
     {
@@ -72,24 +75,36 @@ typedef std::map<int, PeriodLevelMetaData> StationMetaData;
 
 struct MetaData
 {
-  MetaData(Spine::BoundingBox b, const Fmi::TimePeriod &p, int step,
+  MetaData(Spine::BoundingBox b,
+           const Fmi::TimePeriod &p,
+           int step,
            ObsLevelType lt = ObsLevelType::None)
-      : bbox(std::move(b)), period(p), timestep(step), levelType(lt), periodLevelMetaData(p) {}
-  MetaData() : MetaData(Spine::BoundingBox(0.0, 0.0, 0.0, 0.0),
-                        Fmi::TimePeriod(Fmi::DateTime(), Fmi::DateTime()), 1) {}
+      : bbox(std::move(b)), period(p), timestep(step), levelType(lt), periodLevelMetaData(p)
+  {
+  }
+  MetaData()
+      : MetaData(Spine::BoundingBox(0.0, 0.0, 0.0, 0.0),
+                 Fmi::TimePeriod(Fmi::DateTime(), Fmi::DateTime()),
+                 1)
+  {
+  }
   MetaData(const MetaData &md) = default;
   MetaData &operator=(const MetaData &md) = default;
   MetaData(MetaData &&md) = default;
   MetaData &operator=(MetaData &&md) = default;
 
-  void update(int stationId, const Fmi::DateTime &minTime, const Fmi::DateTime &maxTime,
-              ObsLevelType levelType, double minLevel, double maxLevel)
+  void update(int stationId,
+              const Fmi::DateTime &minTime,
+              const Fmi::DateTime &maxTime,
+              ObsLevelType levelType,
+              double minLevel,
+              double maxLevel)
   {
     periodLevelMetaData.update(minTime, maxTime, levelType, minLevel, maxLevel);
 
     StationMetaData::iterator smd = stationMetaData.find(stationId);
     if (smd == stationMetaData.end())
-      smd = stationMetaData.insert(std::make_pair(stationId,PeriodLevelMetaData())).first;
+      smd = stationMetaData.insert(std::make_pair(stationId, PeriodLevelMetaData())).first;
 
     smd->second.update(minTime, maxTime, levelType, minLevel, maxLevel);
 

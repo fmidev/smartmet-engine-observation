@@ -124,7 +124,7 @@ class ObservationCacheAdminBase
   void updateStationsCacheLoop();
 
   void fixWeatherDataQCProducers(DataItems& data) const;
-  
+
   void calculateStationDirection(Spine::Station& station) const;
   void addInfoToStation(Spine::Station& station, const std::string& language) const;
   std::shared_ptr<ObservationCache> getCache(const std::string& tablename) const;
