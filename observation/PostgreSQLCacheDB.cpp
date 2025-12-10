@@ -70,7 +70,7 @@ namespace Observation
 {
 using namespace Utils;
 
-PostgreSQLCacheDB::~PostgreSQLCacheDB() {}
+PostgreSQLCacheDB::~PostgreSQLCacheDB() = default;
 
 PostgreSQLCacheDB::PostgreSQLCacheDB(const PostgreSQLCacheParameters &options)
     : CommonPostgreSQLFunctions(
