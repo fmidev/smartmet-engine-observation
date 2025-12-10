@@ -71,7 +71,7 @@ struct PeriodLevelMetaData
   std::vector<ObservationLevel> levels;  // All levels or min/max range
 };
 
-typedef std::map<int, PeriodLevelMetaData> StationMetaData;
+using StationMetaData = std::map<int, PeriodLevelMetaData>;
 
 struct MetaData
 {
