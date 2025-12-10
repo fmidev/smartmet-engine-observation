@@ -16,8 +16,12 @@ class PostgreSQLObsDBConnectionPool
 {
  public:
   PostgreSQLObsDBConnectionPool() = default;
-
   ~PostgreSQLObsDBConnectionPool() = default;
+
+  PostgreSQLObsDBConnectionPool(const PostgreSQLObsDBConnectionPool& other) = delete;
+  PostgreSQLObsDBConnectionPool(PostgreSQLObsDBConnectionPool&& other) = delete;
+  PostgreSQLObsDBConnectionPool& operator=(const PostgreSQLObsDBConnectionPool& other) = delete;
+  PostgreSQLObsDBConnectionPool& operator=(PostgreSQLObsDBConnectionPool&& other) = delete;
 
   bool initializePool(const PostgreSQLDriverParameters& itsParameters);
 
@@ -38,11 +42,6 @@ class PostgreSQLObsDBConnectionPool
    * @param seconds Timeout seconds (default is 30 seconds)
    */
   void setGetConnectionTimeOutSeconds(std::size_t seconds);
-
-  PostgreSQLObsDBConnectionPool(const PostgreSQLObsDBConnectionPool& other) = delete;
-  PostgreSQLObsDBConnectionPool(PostgreSQLObsDBConnectionPool&& other) = delete;
-  PostgreSQLObsDBConnectionPool& operator=(const PostgreSQLObsDBConnectionPool& other) = delete;
-  PostgreSQLObsDBConnectionPool& operator=(PostgreSQLObsDBConnectionPool&& other) = delete;
 
   std::vector<int> itsWorkingList;
   std::vector<std::shared_ptr<PostgreSQLObsDB> > itsWorkerList;
