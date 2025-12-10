@@ -99,10 +99,10 @@ void MastQueryParams::addJoinOnConfig(const std::shared_ptr<DBRegistryConfig>& d
       throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(fmt::format("Type of join '{}' is not supported.", typeOfJoin));
 
-    m_joinOnListTupleVector.emplace_back(JoinOnListTupleType(m_dbrConfig.at(0)->getTableName(),
-                                                             dbrConfigJoinOn->getTableName(),
-                                                             joinOnFields,
-                                                             typeOfJoinMapIt->second));
+    m_joinOnListTupleVector.emplace_back(m_dbrConfig.at(0)->getTableName(),
+                                         dbrConfigJoinOn->getTableName(),
+                                         joinOnFields,
+                                         typeOfJoinMapIt->second);
   }
   catch (...)
   {
@@ -262,7 +262,7 @@ void MastQueryParams::addOrderBy(const NameType& field, const NameType& ascDesc)
           .addDetail(
               fmt::format("Invalid order '{}'. Only 'ASC' and 'DESC' are allowed.", ascDesc));
 
-    m_orderByVector.emplace_back(std::pair<NameType, NameType>(fieldUpper, ascDescUpper));
+    m_orderByVector.emplace_back(fieldUpper, ascDescUpper);
   }
   catch (...)
   {

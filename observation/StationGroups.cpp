@@ -11,7 +11,7 @@ void StationGroups::addGroupPeriod(int station_id,
                                    const Fmi::DateTime& starttime,
                                    const Fmi::DateTime& endtime)
 {
-  itsGroupPeriods[station_id][group_name].push_back(StationGroupPeriod(starttime, endtime));
+  itsGroupPeriods[station_id][group_name].emplace_back(starttime, endtime);
 }
 
 std::set<std::string> StationGroups::getStationGroups(int station_id) const

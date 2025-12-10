@@ -55,8 +55,8 @@ struct PeriodLevelMetaData
 
     if (levels.empty())
     {
-      levels.push_back(ObservationLevel(levelType, minLevel));
-      levels.push_back(ObservationLevel(levelType, maxLevel));
+      levels.emplace_back(levelType, minLevel);
+      levels.emplace_back(levelType, maxLevel);
     }
     else
     {

@@ -179,9 +179,9 @@ BBoxes parse_bboxes(const Spine::TaggedLocationList& tlocs)
   for (const auto& tloc : tlocs)
   {
     if (tloc.loc->type == Spine::Location::BoundingBox)
-      bboxes.push_back(Spine::BoundingBox(tloc.loc->name));
+      bboxes.emplace_back(Spine::BoundingBox(tloc.loc->name));
     else
-      bboxes.push_back(std::nullopt);
+      bboxes.emplace_back(std::nullopt);
   }
   return bboxes;
 }
