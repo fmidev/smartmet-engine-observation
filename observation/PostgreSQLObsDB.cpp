@@ -270,7 +270,8 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems &cacheData,
     if (itsDebug)
       std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
-    return readCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+    readCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+    return;
   }
   catch (...)
   {
@@ -370,7 +371,8 @@ ORDER  BY stroke_time,
     Fmi::to_iso_extended_string(dataPeriod.end()));
     // clang-format on
 
-    return readFlashCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+    readFlashCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+    return;
   }
   catch (...)
   {
@@ -486,7 +488,8 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheD
       sqlStmt += (" AND fmisid IN (" + fmisid + ")");
     sqlStmt += " ORDER BY fmisid ASC, obstime ASC";
 
-    return readWeatherDataQCCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+    readWeatherDataQCCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+    return;
   }
   catch (...)
   {
@@ -531,7 +534,8 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheD
          "weather_data_qc where modified_last >= '" +
          Fmi::to_iso_extended_string(starttime) + "'");
 
-    return readWeatherDataQCCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+    readWeatherDataQCCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
+    return;
   }
   catch (...)
   {
