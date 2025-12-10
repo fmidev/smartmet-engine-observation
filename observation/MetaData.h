@@ -13,12 +13,12 @@ namespace Engine
 namespace Observation
 {
 
-typedef enum
+enum ObsLevelType
 {
   None,
   Pressure,
   Altitude
-} ObsLevelType;
+};
 
 class ObservationLevel
 {
