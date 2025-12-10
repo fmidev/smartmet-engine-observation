@@ -10,7 +10,7 @@ namespace Engine
 {
 namespace Observation
 {
-class PostgreSQLDriverParameters;
+struct PostgreSQLDriverParameters;
 
 class PostgreSQLObsDBConnectionPool
 {
