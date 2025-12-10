@@ -732,8 +732,8 @@ std::map<int, std::string> buildContinuousParameterMap(const QueryMapping &qmap)
 }
 
 // Missing timestep filling logic
-void fillMissingTimesteps(TS::TimeSeriesVectorPtr resultVector,
-                          TS::TimeSeriesVectorPtr timeSeriesColumns,
+void fillMissingTimesteps(const TS::TimeSeriesVectorPtr &resultVector,
+                          const TS::TimeSeriesVectorPtr &timeSeriesColumns,
                           const std::set<Fmi::LocalDateTime> &valid_timesteps,
                           const std::map<int, std::string> &continuous,
                           const Spine::Station &station,

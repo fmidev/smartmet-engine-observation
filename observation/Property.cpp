@@ -93,7 +93,7 @@ std::string value_vect2str(const std::any& value, const std::string& database, v
 }
 
 template <typename ValueType>
-void add_type(Fmi::TypeMap<TypeConv>& type_map, value2str_t f, const std::string& type_name)
+void add_type(Fmi::TypeMap<TypeConv>& type_map, const value2str_t& f, const std::string& type_name)
 {
   type_map.add<ValueType>({f, type_name, false});
   type_map.add<std::vector<ValueType> >(

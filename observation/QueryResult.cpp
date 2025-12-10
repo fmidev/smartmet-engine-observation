@@ -95,7 +95,7 @@ size_t QueryResult::size(const std::string& valueVectorName)
   }
 }
 
-std::string QueryResult::toString(const ValueVectorType::const_iterator value,
+std::string QueryResult::toString(const ValueVectorType::const_iterator& value,
                                   std::uint32_t precision)
 {
   try

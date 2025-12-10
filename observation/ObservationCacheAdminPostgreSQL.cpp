@@ -110,8 +110,8 @@ void ObservationCacheAdminPostgreSQL::readWeatherDataQCCacheData(
 void ObservationCacheAdminPostgreSQL::readMobileCacheData(
     const std::string& producer,
     std::vector<MobileExternalDataItem>& cacheData,
-    Fmi::DateTime lastTime,
-    Fmi::DateTime lastCreatedTime,
+    const Fmi::DateTime& lastTime,
+    const Fmi::DateTime& lastCreatedTime,
     const Fmi::TimeZones& timeZones) const
 {
   std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);

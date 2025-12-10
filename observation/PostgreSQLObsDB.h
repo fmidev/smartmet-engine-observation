@@ -55,8 +55,8 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
 
   void readMobileCacheDataFromPostgreSQL(const std::string &producer,
                                          std::vector<MobileExternalDataItem> &cacheData,
-                                         Fmi::DateTime lastTime,
-                                         Fmi::DateTime lastCreatedTime,
+                                         const Fmi::DateTime &lastTime,
+                                         const Fmi::DateTime &lastCreatedTime,
                                          const Fmi::TimeZones &timezones);
   void readCacheDataFromPostgreSQL(DataItems &cacheData,
                                    const Fmi::TimePeriod &dataPeriod,
@@ -86,12 +86,12 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
                                         const Fmi::TimeZones &timezones);
 
   void readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheData,
-                                                Fmi::DateTime lastTime,
-                                                Fmi::DateTime lastModifiedTime,
+                                                const Fmi::DateTime &lastTime,
+                                                const Fmi::DateTime &lastModifiedTime,
                                                 const Fmi::TimeZones &timezones);
   void readMagnetometerCacheDataFromPostgreSQL(std::vector<MagnetometerDataItem> &cacheData,
-                                               Fmi::DateTime lastTime,
-                                               Fmi::DateTime lastModifiedTime,
+                                               const Fmi::DateTime &lastTime,
+                                               const Fmi::DateTime &lastModifiedTime,
                                                const Fmi::TimeZones &timezones);
 
   Fmi::DateTime startTime;

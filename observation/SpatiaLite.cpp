@@ -42,7 +42,7 @@ const Fmi::DateTime ptime_epoch_start = from_time_t(0);
 
 // should use std::time_t or long here, but sqlitepp does not support it. Luckily intel 64-bit int
 // is 8 bytes
-int to_epoch(const Fmi::DateTime pt)
+int to_epoch(const Fmi::DateTime &pt)
 {
   if (pt.is_not_a_date_time())
     return 0;
@@ -3362,7 +3362,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getObservationData(
                                 stations, settings, stationInfo, qmap, settings.stationgroups));
 
     std::set<int> observed_fmisids;
-    for (auto item : observations)
+    for (const auto &item : observations)
       observed_fmisids.insert(item.data.fmisid);
 
     // Map fmisid to station information
@@ -3395,7 +3395,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getObservationDataForMovingStations(
         readObservationDataOfMovingStationsFromDB(settings, qmap, settings.stationgroups);
 
     StationMap fmisid_to_station;
-    for (auto item : observations)
+    for (const auto &item : observations)
     {
       Spine::Station station;
       station.fmisid = item.data.fmisid;
