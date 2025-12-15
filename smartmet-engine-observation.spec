@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.12.2
-Release: 2%{?dist}.fmi
+Version: 25.12.15
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -38,14 +38,14 @@ BuildRequires: gdal310-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 25.11.3
+BuildRequires: smartmet-engine-geonames-devel >= 25.12.2
 BuildRequires: smartmet-library-locus-devel >= 25.9.29
 BuildRequires: smartmet-library-macgyver-devel >= 25.12.2
-BuildRequires: smartmet-library-spine-devel >= 25.10.27
-BuildRequires: smartmet-library-timeseries-devel >= 25.8.1
+BuildRequires: smartmet-library-spine-devel >= 25.12.12
+BuildRequires: smartmet-library-timeseries-devel >= 25.12.9
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
-BuildRequires: smartmet-utils-devel >= 25.10.10
+BuildRequires: smartmet-utils-devel >= 25.11.27
 BuildRequires: zlib-devel
 Requires: %{smartmet_boost}-iostreams
 Requires: %{smartmet_boost}-locale
@@ -55,12 +55,12 @@ Requires: %{smartmet_boost}-thread
 Requires: %{smartmet_fmt}
 Requires: gdal310-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 25.11.3
+Requires: smartmet-engine-geonames >= 25.12.2
 Requires: smartmet-library-locus >= 25.9.29
 Requires: smartmet-library-macgyver >= 25.12.2
-Requires: smartmet-library-spine >= 25.10.27
-Requires: smartmet-library-timeseries >= 25.8.1
-Requires: smartmet-server >= 25.10.27
+Requires: smartmet-library-spine >= 25.12.12
+Requires: smartmet-library-timeseries >= 25.12.9
+Requires: smartmet-server >= 25.12.2
 Requires: unixODBC
 
 %if 0%{?rhel} && 0%{rhel} == 8
@@ -144,7 +144,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 25.10.27
+Requires: smartmet-library-spine-devel >= 25.12.12
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -178,6 +178,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Dec 15 2025 Pertti Kinnia <pertti.kinnia@fmi.fi> 25.12.15-1.fmi
+- Repackaged due to timeseries and delfoi library changes
+
 * Tue Dec  2 2025 Andris Pavēnis <andris.pavenis@fmi.fi> 25.12.2-2.fmi
 - Repackage due to Fmi::Pool<> changes
 
