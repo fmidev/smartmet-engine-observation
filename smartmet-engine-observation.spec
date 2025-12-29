@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 25.12.15
+Version: 25.12.29
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -42,7 +42,7 @@ BuildRequires: smartmet-engine-geonames-devel >= 25.12.2
 BuildRequires: smartmet-library-locus-devel >= 25.9.29
 BuildRequires: smartmet-library-macgyver-devel >= 25.12.2
 BuildRequires: smartmet-library-spine-devel >= 25.12.12
-BuildRequires: smartmet-library-timeseries-devel >= 25.12.9
+BuildRequires: smartmet-library-timeseries-devel >= 25.12.29
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
 BuildRequires: smartmet-utils-devel >= 25.11.27
@@ -59,7 +59,7 @@ Requires: smartmet-engine-geonames >= 25.12.2
 Requires: smartmet-library-locus >= 25.9.29
 Requires: smartmet-library-macgyver >= 25.12.2
 Requires: smartmet-library-spine >= 25.12.12
-Requires: smartmet-library-timeseries >= 25.12.9
+Requires: smartmet-library-timeseries >= 25.12.29
 Requires: smartmet-server >= 25.12.2
 Requires: unixODBC
 
@@ -178,6 +178,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Dec 29 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> 25.12.29-1.fmi
+- Silenced several compiler warnings
+
 * Mon Dec 15 2025 Pertti Kinnia <pertti.kinnia@fmi.fi> 25.12.15-1.fmi
 - Repackaged due to timeseries and delfoi library changes
 
