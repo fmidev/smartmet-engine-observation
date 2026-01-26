@@ -34,7 +34,7 @@ BuildRequires: %{smartmet_boost}-devel
 BuildRequires: bzip2-devel
 BuildRequires: %{smartmet_fmt_devel}
 BuildRequires: gcc-c++
-BuildRequires: gdal310-devel
+BuildRequires: gdal312-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
@@ -53,7 +53,7 @@ Requires: %{smartmet_boost}-serialization
 Requires: %{smartmet_boost}-system
 Requires: %{smartmet_boost}-thread
 Requires: %{smartmet_fmt}
-Requires: gdal310-libs
+Requires: gdal312-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 25.12.2
 Requires: smartmet-library-locus >= 25.9.29
@@ -110,7 +110,7 @@ Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: make
 #TestRequires: gcc-c++
-#TestRequires: gdal310-devel
+#TestRequires: gdal312-devel
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
 #TestRequires: smartmet-engine-geonames
@@ -126,12 +126,12 @@ BuildRequires: libspatialite50-devel
 # pkg-config for libspatialite wants these
 BuildRequires: minizip-devel
 BuildRequires: freexl-devel
-BuildRequires: proj95-devel
-Requires: proj95
+BuildRequires: proj97-devel
+Requires: proj97
 BuildRequires: libxml2-devel
 #TestRequires: minizip-devel
 #TestRequires: freexl-devel
-#TestRequires: proj95-devel
+#TestRequires: proj97-devel
 #TestRequires: libxml2-devel
 
 Provides: %{SPECNAME}
