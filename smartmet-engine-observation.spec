@@ -20,32 +20,27 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 %define smartmet_boost boost
 %endif
 
-%if 0%{?rhel} && 0%{rhel} <= 9
-%define smartmet_fmt_min 11.0.1
-%define smartmet_fmt_max 12.0.0
+%define smartmet_fmt_min 12.0.0
+%define smartmet_fmt_max 13.0.0
 %define smartmet_fmt fmt-libs >= %{smartmet_fmt_min}, fmt-libs < %{smartmet_fmt_max}
 %define smartmet_fmt_devel fmt-devel >= %{smartmet_fmt_min}, fmt-devel < %{smartmet_fmt_max}
-%else
-%define smartmet_fmt fmt
-%define smartmet_fmt_devel fmt-devel
-%endif
 
 BuildRequires: %{smartmet_boost}-devel
 BuildRequires: bzip2-devel
 BuildRequires: %{smartmet_fmt_devel}
 BuildRequires: gcc-c++
-BuildRequires: gdal310-devel
+BuildRequires: gdal312-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 25.12.2
-BuildRequires: smartmet-library-locus-devel >= 25.9.29
-BuildRequires: smartmet-library-macgyver-devel >= 25.12.2
-BuildRequires: smartmet-library-spine-devel >= 25.12.12
-BuildRequires: smartmet-library-timeseries-devel >= 25.12.29
+BuildRequires: smartmet-engine-geonames-devel >= 26.2.4
+BuildRequires: smartmet-library-locus-devel >= 26.2.4
+BuildRequires: smartmet-library-macgyver-devel >= 26.2.4
+BuildRequires: smartmet-library-spine-devel >= 26.2.4
+BuildRequires: smartmet-library-timeseries-devel >= 26.2.4
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
-BuildRequires: smartmet-utils-devel >= 25.11.27
+BuildRequires: smartmet-utils-devel >= 26.2.4
 BuildRequires: zlib-devel
 Requires: %{smartmet_boost}-iostreams
 Requires: %{smartmet_boost}-locale
@@ -53,14 +48,14 @@ Requires: %{smartmet_boost}-serialization
 Requires: %{smartmet_boost}-system
 Requires: %{smartmet_boost}-thread
 Requires: %{smartmet_fmt}
-Requires: gdal310-libs
+Requires: gdal312-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 25.12.2
-Requires: smartmet-library-locus >= 25.9.29
-Requires: smartmet-library-macgyver >= 25.12.2
-Requires: smartmet-library-spine >= 25.12.12
-Requires: smartmet-library-timeseries >= 25.12.29
-Requires: smartmet-server >= 25.12.2
+Requires: smartmet-engine-geonames >= 26.2.4
+Requires: smartmet-library-locus >= 26.2.4
+Requires: smartmet-library-macgyver >= 26.2.4
+Requires: smartmet-library-spine >= 26.2.4
+Requires: smartmet-library-timeseries >= 26.2.4
+Requires: smartmet-server >= 26.2.4
 Requires: unixODBC
 
 %if 0%{?rhel} && 0%{rhel} == 8
@@ -110,7 +105,7 @@ Obsoletes: smartmet-brainstorm-obsengine < 16.11.1
 Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: make
 #TestRequires: gcc-c++
-#TestRequires: gdal310-devel
+#TestRequires: gdal312-devel
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
 #TestRequires: smartmet-engine-geonames
@@ -126,12 +121,12 @@ BuildRequires: libspatialite50-devel
 # pkg-config for libspatialite wants these
 BuildRequires: minizip-devel
 BuildRequires: freexl-devel
-BuildRequires: proj95-devel
-Requires: proj95
+BuildRequires: proj97-devel
+Requires: proj97
 BuildRequires: libxml2-devel
 #TestRequires: minizip-devel
 #TestRequires: freexl-devel
-#TestRequires: proj95-devel
+#TestRequires: proj97-devel
 #TestRequires: libxml2-devel
 
 Provides: %{SPECNAME}
@@ -144,7 +139,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 25.12.12
+Requires: smartmet-library-spine-devel >= 26.2.4
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
