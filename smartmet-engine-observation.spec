@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.1.13
+Version: 26.2.4
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -173,6 +173,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Feb  4 2026 Andris Pavēnis <andris.pavenis@fmi.fi> 26.2.4-1.fmi
+- Update to proj-9.7, gdal-3.12, fmt-12
+
 * Tue Jan 13 2026 Andris Pavēnis <andris.pavenis@fmi.fi> 26.1.13-1.fmi
 - Engine: make abstract and move implementation to new class DisabledEngine
 
