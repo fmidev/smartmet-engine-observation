@@ -92,14 +92,23 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
       // Make a new cache
       auto new_cache = std::make_shared<Observations>();
 
-      // Copy pointers to existing observations if there are any
+      // Deep copy AtomicSharedPtr objects from existing observations if there are any
+      // We must create new AtomicSharedPtr objects so that updates to new_cache
+      // don't affect readers still using the old cache
       auto old_cache = itsObservations.load();
       if (old_cache)
-        *new_cache = *old_cache;
+      {
+        for (const auto& item : *old_cache)
+        {
+          // Create a NEW AtomicSharedPtr object pointing to the same data
+          auto new_atomic_ptr = new Fmi::AtomicSharedPtr<DataItems>(item.second->load());
+          (*new_cache)[item.first] = new_atomic_ptr;
+        }
+      }
 
       // The shared_ptrs now point to the original observations. If we reset
       // the data, we do not disturb readers reading the original data, since these
-      // shared_ptrs are our own, and we a free to reset them.
+      // shared_ptrs are our own, and we are free to reset them.
 
       // Add the new data to our own copy
       auto& observations = *new_cache;
@@ -169,13 +178,13 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
         i = j;
       }
 
-      // Mark them inserted based on hash value
+      // Replace old contents first
+      itsObservations.store(new_cache);
+
+      // Mark them inserted based on hash value only after successful cache update
+      // This ensures hash values stay in sync even if exceptions occur
       for (const auto& hash : new_hashes)
         itsHashValues.insert(hash);
-
-      // Replace old contents
-
-      itsObservations.store(new_cache);
     }
 
     // Indicate fill has been called once
@@ -211,16 +220,18 @@ void ObservationMemoryCache::clean(const Fmi::DateTime& newstarttime) const
     if (!old_cache)
       return;
 
-    // Update new start time for the cache first so no-one can request data before it
-    // while the data is being cleaned
-    auto starttime = std::make_shared<Fmi::DateTime>(newstarttime);
-    itsStartTime.store(starttime);
-
     // Make a new cache
     auto new_cache = std::make_shared<Observations>();
 
-    // Copy pointers to existing observations if there are any
-    *new_cache = *old_cache;
+    // Deep copy AtomicSharedPtr objects from existing observations
+    // We must create new AtomicSharedPtr objects so that updates to new_cache
+    // don't affect readers still using the old cache
+    for (const auto& item : *old_cache)
+    {
+      // Create a NEW AtomicSharedPtr object pointing to the same data
+      auto new_atomic_ptr = new Fmi::AtomicSharedPtr<DataItems>(item.second->load());
+      (*new_cache)[item.first] = new_atomic_ptr;
+    }
 
     for (auto& fmisid_obsdata : *new_cache)
     {
@@ -246,7 +257,13 @@ void ObservationMemoryCache::clean(const Fmi::DateTime& newstarttime) const
       }
     }
 
+    // Update cache first
     itsObservations.store(new_cache);
+
+    // Update start time only after cache is successfully cleaned
+    // This ensures readers don't see inconsistent state
+    auto starttime = std::make_shared<Fmi::DateTime>(newstarttime);
+    itsStartTime.store(starttime);
   }
   catch (...)
   {
