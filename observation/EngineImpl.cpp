@@ -795,31 +795,27 @@ ContentTable EngineImpl::getParameterInfo(const std::optional<std::string> &prod
     */
 
     unsigned int row = 0;
-    unsigned int param_counter = 1;
     for (const auto &param : *itsEngineParameters->parameterMap)
     {
-      auto param_counter_str = Fmi::to_string(param_counter);
-
       for (const auto &producer_param : param.second)
       {
         unsigned int column = 0;
 
-        // Param counter
-        resultTable->set(column++, row, param_counter_str);
-        // Parameter
-        resultTable->set(column++, row, param.first);
-
         if (!producer || (*producer == producer_param.first))
         {
+          // Row number
+          resultTable->set(column++, row, Fmi::to_string(row + 1));
+          // Parameter
+          resultTable->set(column++, row, param.first);
           // Producer
           resultTable->set(column++, row, producer_param.first);
           // Parameter id
           resultTable->set(column, row, producer_param.second);
+          row++;
         }
-        row++;
+
       }
 
-      param_counter++;
     }
 
     return resultTable;
