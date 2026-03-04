@@ -9,17 +9,22 @@ namespace Observation
 std::string ParameterMap::getParameter(const std::string& name,
                                        const std::string& stationtype) const
 {
-  if (params.find(name) == params.end())
+  const auto params_it = params.find(name);
+  if (params_it == params.end())
     return {};
 
-  const StationParameters& stationparams = params.at(name);
+  const StationParameters& stationparams = params_it->second;
 
-  if (stationparams.find(stationtype) != stationparams.end())
-    return stationparams.at(stationtype);
+  const auto stationtype_it = stationparams.find(stationtype);
+  if (stationtype_it != stationparams.end())
+    return stationtype_it->second;
 
-  if (stationtype != MAIN_MEASURAND_ID &&
-      stationparams.find(DEFAULT_STATIONTYPE) != stationparams.end())
-    return stationparams.at(DEFAULT_STATIONTYPE);
+  if (stationtype != MAIN_MEASURAND_ID)
+  {
+    const auto default_it = stationparams.find(DEFAULT_STATIONTYPE);
+    if (default_it != stationparams.end())
+      return default_it->second;
+  }
 
   return {};
 }
@@ -28,11 +33,16 @@ std::string ParameterMap::getParameter(const std::string& name,
 std::string ParameterMap::getParameterName(const std::string& id,
                                            const std::string& stationtype) const
 {
-  if (params_id_map.find(stationtype) != params_id_map.end())
+  const auto params_id_it = params_id_map.find(stationtype);
+  if (params_id_it == params_id_map.end())
+    return {};
+
+  const auto stationstype_it = params_id_it->second.find(id);
+  if (stationstype_it != params_id_it->second.end())
   {
-    const StationParameters& stationparams = params_id_map.at(stationtype);
-    if (stationparams.find(id) != stationparams.end())
-      return stationparams.at(id);
+    const StationParameters& stationparams = params_id_it->second;
+    if (stationstype_it != stationparams.end())
+      return stationstype_it->second;
   }
   return {};
 }
@@ -50,8 +60,9 @@ void ParameterMap::addStationParameterMap(const std::string& name,
 
 const ParameterMap::StationParameters& ParameterMap::at(const std::string& name) const
 {
-  if (params.find(name) != params.end())
-    return params.at(name);
+  const auto params_it = params.find(name);
+  if (params_it != params.end())
+    return params_it->second;
 
   return emptymap;
 }
