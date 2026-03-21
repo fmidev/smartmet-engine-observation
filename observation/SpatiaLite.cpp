@@ -1739,12 +1739,15 @@ std::size_t SpatiaLite::fillDataCache(const std::string &tablename,
           sqlite3pp::transaction xct(itsDB);
           sqlite3pp::command cmd(itsDB, sqltemplate.c_str());
 
+          std::size_t j = 0;
           for (std::size_t i = 0; i < insert_size; i++)
           {
             const auto &data = cacheData[new_items[i]];
+            if (data.data_value == 9999)  // Ignore parameters marked MISSING
+              continue;
             cmd.bind(":fmisid", data.fmisid);
             cmd.bind(":sensor_no", data.sensor_no);
-            cmd.bind(":data_time", data_times[i]);
+            cmd.bind(":data_time", data_times[j]);
             cmd.bind(":measurand_id", data.measurand_id);
             cmd.bind(":producer_id", data.producer_id);
             cmd.bind(":measurand_no", data.measurand_no);
@@ -1757,7 +1760,8 @@ std::size_t SpatiaLite::fillDataCache(const std::string &tablename,
               cmd.bind(":data_source", data.data_source);
             else
               cmd.bind(":data_source");  // NULL
-            cmd.bind(":modified_last", modified_last_times[i]);
+            cmd.bind(":modified_last", modified_last_times[j]);
+            j++;
             cmd.execute();
             // Must reset, previous values cannot be replaced
             cmd.reset();
