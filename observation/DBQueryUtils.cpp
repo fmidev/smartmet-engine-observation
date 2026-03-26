@@ -49,20 +49,19 @@ int get_mid(const std::string &param_name,
   }
 }
 
-template <typename Container, typename Key>
-bool exists(const Container &container, const Key &key)
-{
-  return (container.find(key) != container.end());
-}
-
 bool is_data_source_field(const std::string &fieldname)
 {
   return (fieldname.find("_data_source_sensornumber_") != std::string::npos);
 }
 
+bool is_data_quality_field(const std::string &fieldname)
+{
+  return (fieldname.length() > 3 &&
+          (fieldname.compare(0, 3, "qc_") == 0 ||
+           fieldname.find("_data_quality_sensornumber_") != std::string::npos));
+}
+
 TS::Value get_default_sensor_value(const SensorData &sensor_data,
-                                   int /* fmisid */,
-                                   int /* measurand_id */,
                                    DataFieldSpecifier specifier = DataFieldSpecifier::Value)
 {
   try
@@ -100,8 +99,6 @@ TS::Value get_default_sensor_value(const SensorData &sensor_data,
 
 TS::Value get_sensor_value(const SensorData &sensor_data,
                            const std::string &sensor_no,
-                           int fmisid,
-                           int measurand_id,
                            DataFieldSpecifier specifier = DataFieldSpecifier::Value)
 {
   try
@@ -110,7 +107,7 @@ TS::Value get_sensor_value(const SensorData &sensor_data,
       return TS::None();
 
     if (sensor_no == "default" || sensor_no.empty())
-      return get_default_sensor_value(sensor_data, fmisid, measurand_id, specifier);
+      return get_default_sensor_value(sensor_data, specifier);
 
     int sensor_nro = Fmi::stoi(sensor_no);
     if (sensor_data.find(sensor_nro) != sensor_data.end())
@@ -132,20 +129,6 @@ TS::Value get_sensor_value(const SensorData &sensor_data,
     throw Fmi::Exception::Trace(BCP, "Operation failed");
   }
 }
-
-bool isDataSourceField(const std::string &fieldname)
-{
-  return (fieldname.find("_data_source_sensornumber_") != std::string::npos);
-}
-
-bool isDataQualityField(const std::string &fieldname)
-{
-  return (fieldname.length() > 3 &&
-          (fieldname.compare(0, 3, "qc_") == 0 ||
-           fieldname.find("_data_quality_sensornumber_") != std::string::npos));
-}
-
-
 
 void addSpecialParameterToTimeSeries(const std::string &paramname,
                                      const TS::TimeSeriesVectorPtr &timeSeriesColumns,
@@ -404,7 +387,7 @@ PrecomputedParams buildPrecomputedParams(const QueryMapping &qmap,
         entry.clhb_mids[4] = get_mid("clh5_pt1m_instant", stationtype, parameterMap);
       }
     }
-    else if (isDataSourceField(name))
+    else if (is_data_source_field(name))
     {
       entry.kind = SpecialParamEntry::Kind::DataSource;
       const auto masterParamName = name.substr(0, name.find("_data_source_sensornumber_"));
@@ -418,7 +401,7 @@ PrecomputedParams buildPrecomputedParams(const QueryMapping &qmap,
         }
       }
     }
-    else if (isDataQualityField(name))
+    else if (is_data_quality_field(name))
     {
       entry.kind = SpecialParamEntry::Kind::DataQuality;
       entry.sensor_number = name.substr(name.rfind('_') + 1);
@@ -577,8 +560,6 @@ QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
 {
   try
   {
-    //	std::cout << "DbQueryUtils::buildQueryMapping\n";
-
     QueryMapping ret;
 
     unsigned int pos = 0;
@@ -625,8 +606,7 @@ QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
               ret.measurandIds.push_back(nparam);
             int sensor_number = (p.getSensorNumber() ? *(p.getSensorNumber()) : -1);
             // -1 indicates default sensor
-            if (sensor_number >= -1)
-              ret.sensorNumberToMeasurandIds[sensor_number].insert(nparam);
+            ret.sensorNumberToMeasurandIds[sensor_number].insert(nparam);
             mids.insert(nparam);
           }
           else
@@ -1088,12 +1068,11 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeSeriesFromObservations(
         if (mit != group_data.end())
         {
           if (rp.sensor_no < 0)
-            val = get_default_sensor_value(mit->second, grp_fmisid, rp.measurand_id);
+            val = get_default_sensor_value(mit->second);
           else
           {
-            const std::string sno = Fmi::to_string(rp.sensor_no);
-            val = get_sensor_value(
-                mit->second, sno, grp_fmisid, rp.measurand_id, DataFieldSpecifier::Value);
+            const auto sit = mit->second.find(rp.sensor_no);
+            val = (sit != mit->second.end()) ? sit->second.value : TS::None();
           }
         }
         resultVector->at(rp.output_pos).emplace_back(TS::TimedValue(ldt, val));
@@ -1117,7 +1096,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeSeriesFromObservations(
             const auto mit = group_data.find(LONGITUDE_MEASURAND_ID);
             const TS::Value val =
                 (mit != group_data.end())
-                    ? get_default_sensor_value(mit->second, grp_fmisid, LONGITUDE_MEASURAND_ID)
+                    ? get_default_sensor_value(mit->second)
                     : missing;
             resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
             break;
@@ -1127,7 +1106,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeSeriesFromObservations(
             const auto mit = group_data.find(LATITUDE_MEASURAND_ID);
             const TS::Value val =
                 (mit != group_data.end())
-                    ? get_default_sensor_value(mit->second, grp_fmisid, LATITUDE_MEASURAND_ID)
+                    ? get_default_sensor_value(mit->second)
                     : missing;
             resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
             break;
@@ -1137,7 +1116,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeSeriesFromObservations(
             const auto mit = group_data.find(ELEVATION_MEASURAND_ID);
             const TS::Value val =
                 (mit != group_data.end())
-                    ? get_default_sensor_value(mit->second, grp_fmisid, ELEVATION_MEASURAND_ID)
+                    ? get_default_sensor_value(mit->second)
                     : missing;
             resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
             break;
@@ -1153,7 +1132,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeSeriesFromObservations(
             }
             else
             {
-              const TS::Value val = get_default_sensor_value(mit->second, grp_fmisid, sp.mid1);
+              const TS::Value val = get_default_sensor_value(mit->second);
               if (val == TS::None())
               {
                 resultVector->at(pos).emplace_back(TS::TimedValue(ldt, missing));
@@ -1185,11 +1164,11 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeSeriesFromObservations(
             else
             {
               float wind =
-                  std::get<double>(get_default_sensor_value(wit->second, grp_fmisid, sp.mid1));
+                  std::get<double>(get_default_sensor_value(wit->second));
               float rh =
-                  std::get<double>(get_default_sensor_value(rit->second, grp_fmisid, sp.mid2));
+                  std::get<double>(get_default_sensor_value(rit->second));
               float temp =
-                  std::get<double>(get_default_sensor_value(tit->second, grp_fmisid, sp.mid3));
+                  std::get<double>(get_default_sensor_value(tit->second));
               resultVector->at(pos).emplace_back(
                   TS::TimedValue(ldt, TS::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing))));
             }
@@ -1207,11 +1186,11 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeSeriesFromObservations(
             else
             {
               const int wawa = static_cast<int>(
-                  std::get<double>(get_default_sensor_value(wit->second, grp_fmisid, sp.mid1)));
+                  std::get<double>(get_default_sensor_value(wit->second)));
               const int totalcc = static_cast<int>(
-                  std::get<double>(get_default_sensor_value(cit->second, grp_fmisid, sp.mid2)));
+                  std::get<double>(get_default_sensor_value(cit->second)));
               const float temp =
-                  std::get<double>(get_default_sensor_value(tit->second, grp_fmisid, sp.mid3));
+                  std::get<double>(get_default_sensor_value(tit->second));
               const auto value = calcSmartsymbolNumber(
                   wawa, totalcc, temp, ldt, current_station->latitude, current_station->longitude);
               if (!value)
@@ -1233,9 +1212,9 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeSeriesFromObservations(
               if (cla_it != group_data.end() && clhb_it != group_data.end())
               {
                 double cla_val = std::get<double>(
-                    get_default_sensor_value(cla_it->second, grp_fmisid, sp.cla_mids[i]));
+                    get_default_sensor_value(cla_it->second));
                 double clhb_val = std::get<double>(
-                    get_default_sensor_value(clhb_it->second, grp_fmisid, sp.clhb_mids[i]));
+                    get_default_sensor_value(clhb_it->second));
                 if (cla_val >= 5 && cla_val <= 9)
                 {
                   if (sp.kind == SpecialParamEntry::Kind::CloudCeilingFt)
@@ -1257,11 +1236,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeSeriesFromObservations(
             {
               const auto mit = group_data.find(sp.measurand_id);
               if (mit != group_data.end())
-                val = get_sensor_value(mit->second,
-                                       sp.sensor_number,
-                                       grp_fmisid,
-                                       sp.measurand_id,
-                                       DataFieldSpecifier::DataSource);
+                val = get_sensor_value(mit->second, sp.sensor_number, DataFieldSpecifier::DataSource);
             }
             resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
             break;
@@ -1274,8 +1249,7 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeSeriesFromObservations(
             {
               const auto mit = group_data.find(mid);
               if (mit != group_data.end())
-                val = get_sensor_value(
-                    mit->second, sp.sensor_number, grp_fmisid, mid, DataFieldSpecifier::DataQuality);
+                val = get_sensor_value(mit->second, sp.sensor_number, DataFieldSpecifier::DataQuality);
             }
             resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
             break;
