@@ -84,16 +84,8 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationDataForMovingSt
       fmisid_to_station[station.fmisid] = station;
     }
 
-    StationTimedMeasurandData station_data =
-        buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
-
-    return buildTimeseries(settings,
-                           settings.stationtype,
-                           fmisid_to_station,
-                           station_data,
-                           qmap,
-                           timeSeriesOptions,
-                           timezones);
+    return buildTimeSeriesFromObservations(
+        observations, settings, settings.stationtype, fmisid_to_station, qmap, timeSeriesOptions, timezones);
   }
   catch (...)
   {
@@ -134,11 +126,8 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationData(
     // Map fmisid to station information
     StationMap fmisid_to_station = mapQueryStations(stations, observed_fmisids);
 
-    StationTimedMeasurandData station_data =
-        buildStationTimedMeasurandData(observations, settings, timezones, fmisid_to_station);
-
-    return buildTimeseries(
-        settings, stationtype, fmisid_to_station, station_data, qmap, timeSeriesOptions, timezones);
+    return buildTimeSeriesFromObservations(
+        observations, settings, stationtype, fmisid_to_station, qmap, timeSeriesOptions, timezones);
   }
   catch (...)
   {

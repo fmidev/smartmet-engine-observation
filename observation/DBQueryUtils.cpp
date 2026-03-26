@@ -1273,62 +1273,6 @@ QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
   }
 }
 
-StationTimedMeasurandData DBQueryUtils::buildStationTimedMeasurandData(
-    const LocationDataItems &observations,
-    const Settings &settings,
-    const Fmi::TimeZones &timezones,
-    const StationMap &fmisid_to_station) const
-{
-  StationTimedMeasurandData ret;
-
-  // Avoid calling time_zone_from_string too repeatedly:
-  auto current_timezone = settings.timezone;
-  auto current_tz = timezones.time_zone_from_string(current_timezone);
-
-  try
-  {
-    for (const auto &obs : observations)
-    {
-      int fmisid = obs.data.fmisid;
-
-      // Update current_tz only if necessary
-      if (settings.timezone == "localtime")
-      {
-        const auto &new_timezone = fmisid_to_station.at(fmisid).timezone;
-        if (new_timezone != current_timezone)
-        {
-          current_timezone = new_timezone;
-          current_tz = timezones.time_zone_from_string(current_timezone);
-        }
-      }
-
-      Fmi::LocalDateTime obstime(obs.data.data_time, current_tz);
-
-      auto value = (obs.data.data_value ? TS::Value(*obs.data.data_value) : TS::None());
-      auto data_quality = obs.data.data_quality;
-      auto data_source = (obs.data.data_source > -1 ? TS::Value(obs.data.data_source) : TS::None());
-
-      bool data_from_default_sensor = (obs.data.measurand_no == 1);
-
-      auto &pos = ret[fmisid][obstime];
-
-      pos[obs.data.measurand_id][obs.data.sensor_no] =
-          DataWithQuality(value, data_quality, data_source, data_from_default_sensor);
-      pos[LONGITUDE_MEASURAND_ID][obs.data.sensor_no] = DataWithQuality(
-          TS::Value(obs.longitude), data_quality, data_source, data_from_default_sensor);
-      pos[LATITUDE_MEASURAND_ID][obs.data.sensor_no] = DataWithQuality(
-          TS::Value(obs.latitude), data_quality, data_source, data_from_default_sensor);
-      pos[ELEVATION_MEASURAND_ID][obs.data.sensor_no] = DataWithQuality(
-          TS::Value(obs.elevation), data_quality, data_source, data_from_default_sensor);
-    }
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "Mapping observations failed!");
-  }
-
-  return ret;
-}
 
 TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeseries(
     const Settings &settings,

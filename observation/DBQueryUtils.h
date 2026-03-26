@@ -43,12 +43,6 @@ class DBQueryUtils
                                          const std::string &stationtype,
                                          bool isWeatherDataQCTable) const;
 
-  virtual StationTimedMeasurandData buildStationTimedMeasurandData(
-      const LocationDataItems &observations,
-      const Settings &settings,
-      const Fmi::TimeZones &timezones,
-      const StationMap &fmisid_to_station) const;
-
   virtual TS::TimeSeriesVectorPtr buildTimeseries(
       const Settings &settings,
       const std::string &stationtype,
