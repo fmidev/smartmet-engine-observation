@@ -77,8 +77,12 @@ TS::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(Settings &settings)
       itsParameters.params->stationtypeConfig.getUseCommonQueryMethod(settings.stationtype);
 
   if (!settings.dataFilter.exist("data_quality"))
-    settings.dataFilter.setDataFilter(
-        "data_quality", itsParameters.params->dataQualityFilters.at(settings.stationtype));
+  {
+    auto& dataQualityFilters = itsParameters.params->dataQualityFilters;
+    auto it = dataQualityFilters.find(settings.stationtype);
+    if (it != dataQualityFilters.end())
+      settings.dataFilter.setDataFilter("data_quality", it->second);
+  }
 
   // This driver fetched data only from cache
   try
@@ -119,8 +123,12 @@ TS::TimeSeriesVectorPtr SpatiaLiteDatabaseDriver::values(
       itsParameters.params->stationtypeConfig.getUseCommonQueryMethod(settings.stationtype);
 
   if (!settings.dataFilter.exist("data_quality"))
-    settings.dataFilter.setDataFilter(
-        "data_quality", itsParameters.params->dataQualityFilters.at(settings.stationtype));
+  {
+    auto& dataQualityFilters = itsParameters.params->dataQualityFilters;
+    auto it = dataQualityFilters.find(settings.stationtype);
+    if (it != dataQualityFilters.end())
+      settings.dataFilter.setDataFilter("data_quality", it->second);
+  }
 
   // This driver fetched data only from cache
   try
