@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.3.23
+Version: 26.3.26
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -173,6 +173,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Mar 26 2026 Andris Pavēnis <andris.pavenis@fmi.fi> 26.3.26-1.fmi
+- Fix unchecked data retrieval from std::map<>
+
 * Mon Mar 23 2026 Andris Pavēnis <andris.pavenis@fmi.fi> 26.3.23-1.fmi
 - Fix adding new Spatialite cache data
 
