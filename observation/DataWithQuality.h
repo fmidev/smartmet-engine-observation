@@ -1,9 +1,7 @@
 #pragma once
 
-#include <macgyver/LocalDateTime.h>
 #include <timeseries/TimeSeriesInclude.h>
 #include <map>
-#include <string>
 
 namespace SmartMet
 {
@@ -27,17 +25,8 @@ struct DataWithQuality
   bool is_default_sensor_data{false};
 };
 
-// sensor ->
+// sensor_no -> value
 using SensorData = std::map<int, DataWithQuality>;
-// measurand ->
-using MeasurandData = std::map<int, SensorData>;
-// observation time ->
-using TimedMeasurandData = std::map<Fmi::LocalDateTime, MeasurandData>;
-// fmisd ->
-using StationTimedMeasurandData = std::map<int, TimedMeasurandData>;
-
-std::ostream& operator<<(std::ostream& out,
-                         const SmartMet::Engine::Observation::StationTimedMeasurandData& data);
 
 }  // namespace Observation
 }  // namespace Engine

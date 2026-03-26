@@ -1,6 +1,5 @@
 #pragma once
 
-#include "DataWithQuality.h"
 #include "LocationDataItem.h"
 #include "ParameterMap.h"
 #include "QueryMapping.h"
@@ -43,15 +42,6 @@ class DBQueryUtils
                                          const std::string &stationtype,
                                          bool isWeatherDataQCTable) const;
 
-  virtual TS::TimeSeriesVectorPtr buildTimeseries(
-      const Settings &settings,
-      const std::string &stationtype,
-      const StationMap &fmisid_to_station,
-      const StationTimedMeasurandData &station_data,
-      const QueryMapping &qmap,
-      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones) const;
-
   virtual TimestepsByFMISID getValidTimeSteps(
       const Settings &settings,
       const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
@@ -67,15 +57,11 @@ class DBQueryUtils
                                          const StationInfo &stationInfo,
                                          const TS::RequestLimits &requestLimits) const;
 
-  virtual std::map<int, std::set<Fmi::LocalDateTime>> resolveTimestepsForStations(
-      const Settings &settings,
-      const StationTimedMeasurandData &station_data,
-      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones) const;
-
   // Optimized path: builds the time series directly from LocationDataItems without
-  // constructing the intermediate StationTimedMeasurandData (avoids expensive
+  // constructing intermediate StationTimedMeasurandData maps (avoids expensive
   // std::map<Fmi::LocalDateTime,...> insertions and per-observation string map lookups).
+  // Set isWeatherDataQCTable=true for the QC data path (different default-sensor logic,
+  // data_quality stored as None when 0, data_source always None, no lon/lat/elev in group).
   TS::TimeSeriesVectorPtr buildTimeSeriesFromObservations(
       const LocationDataItems &observations,
       const Settings &settings,
@@ -83,7 +69,8 @@ class DBQueryUtils
       const StationMap &fmisid_to_station,
       const QueryMapping &qmap,
       const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
-      const Fmi::TimeZones &timezones) const;
+      const Fmi::TimeZones &timezones,
+      bool isWeatherDataQCTable = false) const;
 
   static std::string getSensorQueryCondition(
       const std::map<int, std::set<int>> &sensorNumberToMeasurandIds);

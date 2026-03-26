@@ -199,8 +199,6 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
 
     auto qmap = buildQueryMapping(settings, stationtype, true);
 
-    TS::TimeSeriesVectorPtr timeSeriesColumns = initializeResultVector(settings);
-
     LocationDataItems observations;
 
     // See if we can use the memory cache if it exists and starttime is ok
@@ -227,40 +225,9 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
           query, stationInfo, settings.stationgroups, settings.requestLimits, observations);
     }
 
-    // The rest may also be WRONG. sqlite should retutn the data correctly. Needs comparing
-    // code with sqlite between this part and the final buildTimeseries code.
-
-    StationTimedMeasurandData station_data;
-
-    for (const auto &item : observations)
-    {
-      int fmisid = item.data.fmisid;
-
-      Fmi::DateTime utctime = item.data.data_time;
-      std::string zone(settings.timezone == "localtime" ? fmisid_to_station.at(fmisid).timezone
-                                                        : settings.timezone);
-      auto localtz = timezones.time_zone_from_string(zone);
-      Fmi::LocalDateTime obstime = Fmi::LocalDateTime(utctime, localtz);
-
-      int measurand_id = item.data.measurand_id;
-      int sensor_no = item.data.sensor_no;
-
-      TS::Value val;
-      if (item.data.data_value)
-        val = TS::Value(*item.data.data_value);
-
-      TS::Value val_quality = TS::None();
-      if (item.data.data_quality)
-        val_quality = TS::Value(item.data.data_quality);
-
-      bool data_from_default_sensor = (sensor_no == 1);
-
-      station_data[fmisid][obstime][measurand_id][sensor_no] =
-          DataWithQuality(val, val_quality, TS::None(), data_from_default_sensor);
-    }
-
-    return buildTimeseries(
-        settings, stationtype, fmisid_to_station, station_data, qmap, timeSeriesOptions, timezones);
+    return buildTimeSeriesFromObservations(
+        observations, settings, stationtype, fmisid_to_station, qmap, timeSeriesOptions, timezones,
+        true);
   }
   catch (...)
   {
