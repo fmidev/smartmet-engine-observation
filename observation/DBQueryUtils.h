@@ -79,6 +79,18 @@ class DBQueryUtils
       const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
       const Fmi::TimeZones &timezones) const;
 
+  // Optimized path: builds the time series directly from LocationDataItems without
+  // constructing the intermediate StationTimedMeasurandData (avoids expensive
+  // std::map<Fmi::LocalDateTime,...> insertions and per-observation string map lookups).
+  TS::TimeSeriesVectorPtr buildTimeSeriesFromObservations(
+      const LocationDataItems &observations,
+      const Settings &settings,
+      const std::string &stationtype,
+      const StationMap &fmisid_to_station,
+      const QueryMapping &qmap,
+      const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+      const Fmi::TimeZones &timezones) const;
+
   static std::string getSensorQueryCondition(
       const std::map<int, std::set<int>> &sensorNumberToMeasurandIds);
 
