@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.3.26
+Version: 26.3.27
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -33,10 +33,10 @@ BuildRequires: gdal312-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 26.2.4
+BuildRequires: smartmet-engine-geonames-devel >= 26.3.10
 BuildRequires: smartmet-library-locus-devel >= 26.2.4
 BuildRequires: smartmet-library-macgyver-devel >= 26.2.4
-BuildRequires: smartmet-library-spine-devel >= 26.2.4
+BuildRequires: smartmet-library-spine-devel >= 26.3.13
 BuildRequires: smartmet-library-timeseries-devel >= 26.2.4
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
@@ -50,12 +50,12 @@ Requires: %{smartmet_boost}-thread
 Requires: %{smartmet_fmt}
 Requires: gdal312-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 26.2.4
+Requires: smartmet-engine-geonames >= 26.3.10
 Requires: smartmet-library-locus >= 26.2.4
 Requires: smartmet-library-macgyver >= 26.2.4
-Requires: smartmet-library-spine >= 26.2.4
+Requires: smartmet-library-spine >= 26.3.13
 Requires: smartmet-library-timeseries >= 26.2.4
-Requires: smartmet-server >= 26.2.4
+Requires: smartmet-server >= 26.3.9
 Requires: unixODBC
 
 %if 0%{?rhel} && 0%{rhel} == 8
@@ -139,7 +139,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 26.2.4
+Requires: smartmet-library-spine-devel >= 26.3.13
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -173,6 +173,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Mar 27 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.3.27-1.fmi
+- Speed improvements
+
 * Thu Mar 26 2026 Andris Pavēnis <andris.pavenis@fmi.fi> 26.3.26-1.fmi
 - Fix unchecked data retrieval from std::map<>
 
