@@ -113,7 +113,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: smartmet-library-timeseries
 #TestRequires: smartmet-library-timeseries-devel
 #TestRequires: smartmet-library-spine
-#TestRequires: smartmet-test-data
+#TestRequires: smartmet-test-data >= 26.3.27
 
 Requires: libspatialite50
 BuildRequires: libspatialite50-devel
