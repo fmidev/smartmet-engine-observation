@@ -70,6 +70,68 @@ namespace Observation
 {
 using namespace Utils;
 
+namespace
+{
+// Returns the canonical parameter name, collapsing common aliases
+std::string canonicalParamName(const std::string &paramname)
+{
+  if (paramname == "stationname") return "station_name";
+  if (paramname == "longitude") return "lon";
+  if (paramname == "latitude") return "lat";
+  if (paramname == "stationlongitude") return "stationlon";
+  if (paramname == "stationlatitude") return "stationlat";
+  if (paramname == "station_elevation") return "elevation";
+  return paramname;
+}
+
+TS::Value positiveIntOrNone(int val)
+{
+  if (val > 0) return val;
+  return TS::None();
+}
+
+TS::Value nonEmptyOrNone(const std::string &s)
+{
+  if (!s.empty()) return s;
+  return TS::None();
+}
+
+TS::Value resolveSpecialParamValue(const std::string &rawname,
+                                   const Spine::Station &station,
+                                   const std::string &stationtype,
+                                   const Fmi::LocalDateTime &obstime)
+{
+  const auto name = canonicalParamName(rawname);
+  if (name == "localtime") return obstime;
+  if (name == "station_name") return station.formal_name_fi;
+  if (name == "fmisid") return station.fmisid;
+  if (name == "geoid") return station.geoid;
+  if (name == "distance") return station.distance;
+  if (name == "direction") return station.stationDirection;
+  if (name == "stationary") return station.isStationary;
+  if (name == "lon") return station.requestedLon;
+  if (name == "lat") return station.requestedLat;
+  if (name == "stationlon") return station.longitude;
+  if (name == "stationlat") return station.latitude;
+  if (name == "elevation") return station.elevation;
+  if (name == "stationtype") return station.type;
+  if (name == "wmo") return positiveIntOrNone(station.wmo);
+  if (name == "lpnn") return positiveIntOrNone(station.lpnn);
+  if (name == "rwsid") return positiveIntOrNone(station.rwsid);
+  if (name == "wsi") return nonEmptyOrNone(station.wsi);
+  if (name == "sensor_no") return TS::Value(1);
+  if (name == "place") return station.tag;
+  if (name == "model") return stationtype;
+  if (name == "modtime") return std::string{};
+
+  Fmi::Exception exception(BCP, "Operation processing failed!");
+  exception.addDetail("PostgreSQLCacheDB::addSpecialParameterToTimeSeries : "
+                      "Unsupported special parameter '" +
+                      rawname + "'");
+  throw exception;
+}
+}  // namespace
+
 PostgreSQLCacheDB::~PostgreSQLCacheDB() = default;
 
 PostgreSQLCacheDB::PostgreSQLCacheDB(const PostgreSQLCacheParameters &options)
@@ -1923,92 +1985,8 @@ void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(const std::string &param
 {
   try
   {
-    if (paramname == "localtime")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, obstime));
-
-    else if (paramname == "station_name" || paramname == "stationname")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.formal_name_fi));
-    else if (paramname == "fmisid")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.fmisid));
-
-    else if (paramname == "geoid")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.geoid));
-
-    else if (paramname == "distance")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.distance));
-
-    else if (paramname == "direction")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.stationDirection));
-
-    else if (paramname == "stationary")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.isStationary));
-
-    else if (paramname == "lon" || paramname == "longitude")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.requestedLon));
-
-    else if (paramname == "lat" || paramname == "latitude")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.requestedLat));
-
-    else if (paramname == "stationlon" || paramname == "stationlongitude")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.longitude));
-
-    else if (paramname == "stationlat" || paramname == "stationlatitude")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.latitude));
-
-    else if (paramname == "elevation" || paramname == "station_elevation")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.elevation));
-
-    else if (paramname == "stationtype")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.type));
-
-    else if (paramname == "wmo")
-    {
-      const TS::Value missing = TS::None();
-      timeSeriesColumns->at(pos).emplace_back(
-          TS::TimedValue(obstime, station.wmo > 0 ? station.wmo : missing));
-    }
-    else if (paramname == "lpnn")
-    {
-      const TS::Value missing = TS::None();
-      timeSeriesColumns->at(pos).emplace_back(
-          TS::TimedValue(obstime, station.lpnn > 0 ? station.lpnn : missing));
-    }
-    else if (paramname == "rwsid")
-    {
-      const TS::Value missing = TS::None();
-      timeSeriesColumns->at(pos).emplace_back(
-          TS::TimedValue(obstime, station.rwsid > 0 ? station.rwsid : missing));
-    }
-    else if (paramname == "wsi")
-    {
-      const TS::Value missing = TS::None();
-      timeSeriesColumns->at(pos).emplace_back(
-          TS::TimedValue(obstime, !station.wsi.empty() ? station.wsi : missing));
-    }
-    else if (paramname == "sensor_no")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, 1));
-
-    else if (paramname == "place")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, station.tag));
-
-    else if (paramname == "model")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, stationtype));
-
-    else if (paramname == "modtime")
-      timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, ""));
-
-    else
-    {
-      std::string msg =
-          "PostgreSQLCacheDB::addSpecialParameterToTimeSeries : "
-          "Unsupported special parameter '" +
-          paramname + "'";
-
-      Fmi::Exception exception(BCP, "Operation processing failed!");
-      // exception.setExceptionCode(Obs_EngineException::OPERATION_PROCESSING_FAILED);
-      exception.addDetail(msg);
-      throw exception;
-    }
+    const auto value = resolveSpecialParamValue(paramname, station, stationtype, obstime);
+    timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, value));
   }
   catch (...)
   {

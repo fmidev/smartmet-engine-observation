@@ -91,79 +91,9 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
         m_select.append(" as ").append(famIt->second);
     }
 
-    // WHERE part of the SQL statement
-    using OperationMapType = MastQueryParams::OperationMapType;
-
-    const std::shared_ptr<OperationMapType> om = qParams->getOperationMap();
-
-    for (const auto &op : *om)
-    {
-      if (op.second.empty())
-        continue;
-
-      if (!m_where.empty())
-      {
-        m_where.append(" and ");
-        m_wherePostgreSQL.append(" and ");
-      }
-
-      m_where.append("(");
-      m_wherePostgreSQL.append("(");
-
-      for (auto it = op.second.begin(); it != op.second.end(); ++it)
-      {
-        if (it != op.second.begin())
-        {
-          m_where.append(" or ");
-          m_wherePostgreSQL.append(" or ");
-        }
-
-        // e.g. " table.column_name = '60'" where it->second is "table" and
-        // it->first is
-        // "column_name
-        // = '60'".
-        // m_where.append((*it).second).append(".").append((*it).first->getExpression());
-        m_where.append((*it).first->getExpression((*it).second));
-        m_wherePostgreSQL.append((*it).first->getExpression((*it).second, "postgresql"));
-      }
-
-      m_where.append(")");
-      m_wherePostgreSQL.append(")");
-    }
-
-    // FROM part of the SQL statement
-    using JoinOnListTupleVectorType = MastQueryParams::JoinOnListTupleVectorType;
-    const std::shared_ptr<JoinOnListTupleVectorType> joinOnListTupleVector =
-        qParams->getJoinOnListTupleVector();
-    m_from.append(" ").append(qParams->getTableName()).append(" ").append(qParams->getTableName());
-
-    if (!joinOnListTupleVector->empty())
-    {
-      auto joinOnIt = joinOnListTupleVector->cbegin();
-      for (; joinOnIt != joinOnListTupleVector->cend(); ++joinOnIt)
-      {
-        m_from.append(" ")
-            .append(std::get<3>(*joinOnIt))
-            .append(" ")
-            .append(std::get<1>(*joinOnIt))
-            .append(" ")
-            .append(std::get<1>(*joinOnIt));
-
-        for (auto joinField = std::get<2>(*joinOnIt).cbegin();
-             joinField != std::get<2>(*joinOnIt).cend();
-             joinField++)
-        {
-          m_from.append(joinField == std::get<2>(*joinOnIt).begin() ? " ON " : " AND ")
-              .append(std::get<0>(*joinOnIt))
-              .append(".")
-              .append(*joinField)
-              .append(" = ")
-              .append(std::get<1>(*joinOnIt))
-              .append(".")
-              .append(*joinField);
-        }
-      }
-    }
+    // WHERE and FROM parts of the SQL statement
+    buildWhereClause(qParams);
+    buildFromClause(qParams);
 
     // ORDER BY part of the SQL statement
     using OrderByVectorType = MastQueryParams::OrderByVectorType;
@@ -178,6 +108,76 @@ void MastQuery::setQueryParams(const MastQueryParams *qParams)
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+void MastQuery::buildWhereClause(const MastQueryParams *qParams)
+{
+  using OperationMapType = MastQueryParams::OperationMapType;
+  const std::shared_ptr<OperationMapType> om = qParams->getOperationMap();
+
+  for (const auto &op : *om)
+  {
+    if (op.second.empty())
+      continue;
+
+    if (!m_where.empty())
+    {
+      m_where.append(" and ");
+      m_wherePostgreSQL.append(" and ");
+    }
+
+    m_where.append("(");
+    m_wherePostgreSQL.append("(");
+
+    for (auto it = op.second.begin(); it != op.second.end(); ++it)
+    {
+      if (it != op.second.begin())
+      {
+        m_where.append(" or ");
+        m_wherePostgreSQL.append(" or ");
+      }
+      // e.g. " table.column_name = '60'" where it->second is "table" and
+      // it->first is "column_name = '60'".
+      m_where.append((*it).first->getExpression((*it).second));
+      m_wherePostgreSQL.append((*it).first->getExpression((*it).second, "postgresql"));
+    }
+
+    m_where.append(")");
+    m_wherePostgreSQL.append(")");
+  }
+}
+
+void MastQuery::buildFromClause(const MastQueryParams *qParams)
+{
+  using JoinOnListTupleVectorType = MastQueryParams::JoinOnListTupleVectorType;
+  const std::shared_ptr<JoinOnListTupleVectorType> joinOnListTupleVector =
+      qParams->getJoinOnListTupleVector();
+
+  m_from.append(" ").append(qParams->getTableName()).append(" ").append(qParams->getTableName());
+
+  for (const auto &joinOn : *joinOnListTupleVector)
+  {
+    m_from.append(" ")
+        .append(std::get<3>(joinOn))
+        .append(" ")
+        .append(std::get<1>(joinOn))
+        .append(" ")
+        .append(std::get<1>(joinOn));
+
+    for (auto joinField = std::get<2>(joinOn).cbegin();
+         joinField != std::get<2>(joinOn).cend();
+         ++joinField)
+    {
+      m_from.append(joinField == std::get<2>(joinOn).begin() ? " ON " : " AND ")
+          .append(std::get<0>(joinOn))
+          .append(".")
+          .append(*joinField)
+          .append(" = ")
+          .append(std::get<1>(joinOn))
+          .append(".")
+          .append(*joinField);
+    }
   }
 }
 

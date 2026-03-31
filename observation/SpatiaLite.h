@@ -481,6 +481,11 @@ class SpatiaLite : public CommonDatabaseFunctions
   Fmi::DateTime getLatestTimeFromTable(const std::string &tablename, const std::string &time_field);
   Fmi::DateTime getOldestTimeFromTable(const std::string &tablename, const std::string &time_field);
 
+  // Common implementation for fillRoadCloudCache / fillNetAtmoCache / fillFmiIoTCache / fillTapsiQcCache
+  std::size_t fillMobileExternalDataCache(const std::string &tableName,
+                                          const MobileExternalDataItems &cacheData,
+                                          InsertStatus &insertStatus);
+
   void initSpatialMetaData();
   void createMovingLocationsDataTable();
   void createObservationDataTable();

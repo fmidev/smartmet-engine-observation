@@ -162,39 +162,7 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
         if (stationtype == "roadcloud" || stationtype == "teconer" || stationtype == "netatmo" ||
             stationtype == "fmi_iot" || stationtype == "tapsi_qc")
         {
-          if (producerIdVector.empty())
-            throw Fmi::Exception(BCP, "Invalid parameter value!")
-                .addDetail(fmt::format(
-                    "One producer id must be defined for external and mobile producers ",
-                    stationtype));
-
-          if (databaseTableName.empty())
-            databaseTableName = "ext_obsdata";
-
-          // Sort out measurands for mobile and external producers
-          Measurands measurands;
-          ParameterMap::NameToStationParameterMap::const_iterator iter;
-          for (iter = parameterMap->begin(); iter != parameterMap->end(); ++iter)
-          {
-            std::string parameter_name = iter->first;
-            for (const auto &it : iter->second)
-            {
-              if (stationtype == it.first)
-              {
-                std::string parameter_id = it.second;
-
-                // Only measurands added here (parameter_id is integer)
-                if (std::string::npos != parameter_id.find_first_not_of("0123456789"))
-                  continue;
-
-                measurands.insert(std::make_pair(parameter_name, Fmi::stoi(parameter_id)));
-              }
-            }
-          }
-          externalAndMobileProducerConfig.insert(std::make_pair(
-              stationtype,
-              ExternalAndMobileProducerConfigItem(
-                  ProducerId(producerIdVector.front()), measurands, databaseTableName)));
+          readExternalProducerConfig(stationtype, databaseTableName, producerIdVector);
           continue;
         }
 
@@ -259,6 +227,40 @@ bool EngineParameters::isParameterVariant(const std::string &name) const
   {
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
+}
+
+void EngineParameters::readExternalProducerConfig(const std::string &stationtype,
+                                                   std::string databaseTableName,
+                                                   const std::vector<uint> &producerIdVector)
+{
+  if (producerIdVector.empty())
+    throw Fmi::Exception(BCP, "Invalid parameter value!")
+        .addDetail(fmt::format(
+            "One producer id must be defined for external and mobile producers ", stationtype));
+
+  if (databaseTableName.empty())
+    databaseTableName = "ext_obsdata";
+
+  // Sort out measurands for mobile and external producers
+  Measurands measurands;
+  for (auto iter = parameterMap->begin(); iter != parameterMap->end(); ++iter)
+  {
+    const auto &parameter_name = iter->first;
+    for (const auto &it : iter->second)
+    {
+      if (stationtype != it.first)
+        continue;
+      const auto &parameter_id = it.second;
+      // Only measurands added here (parameter_id is integer)
+      if (std::string::npos != parameter_id.find_first_not_of("0123456789"))
+        continue;
+      measurands.insert(std::make_pair(parameter_name, Fmi::stoi(parameter_id)));
+    }
+  }
+  externalAndMobileProducerConfig.insert(std::make_pair(
+      stationtype,
+      ExternalAndMobileProducerConfigItem(
+          ProducerId(producerIdVector.front()), measurands, databaseTableName)));
 }
 
 std::string EngineParameters::getParameterIdAsString(const std::string &alias,

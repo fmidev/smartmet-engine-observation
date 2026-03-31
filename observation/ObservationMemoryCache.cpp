@@ -11,6 +11,50 @@ namespace Engine
 {
 namespace Observation
 {
+namespace
+{
+
+void addStationItems(DataItems &newobs,
+                     const DataItems &cacheData,
+                     const std::vector<std::size_t> &new_items,
+                     std::size_t i, std::size_t j)
+{
+  for (std::size_t k = i; k < j; k++)
+  {
+    const auto &item = cacheData[new_items[k]];
+    if (item.measurand_id != 9999)
+      newobs.push_back(item);
+  }
+}
+
+bool isSensorOK(const DataItem &obs, const std::set<int> &valid_sensors)
+{
+  if (obs.measurand_no == 0 || obs.measurand_no == 1)
+    return valid_sensors.empty() || valid_sensors.count(-1) ||
+           valid_sensors.count(obs.sensor_no);
+  return valid_sensors.count(obs.sensor_no) > 0;
+}
+
+bool shouldIncludeObservation(const DataItem &obs,
+                               const Settings &settings,
+                               const QueryMapping &qmap,
+                               const std::set<int> &valid_sensors)
+{
+  if (std::find(qmap.measurandIds.begin(), qmap.measurandIds.end(), obs.measurand_id) ==
+      qmap.measurandIds.end())
+    return false;
+  if (!isSensorOK(obs, valid_sensors))
+    return false;
+  if (!settings.dataFilter.valueOK("data_quality", obs.data_quality))
+    return false;
+  if (!settings.producer_ids.empty() &&
+      settings.producer_ids.find(obs.producer_id) == settings.producer_ids.end())
+    return false;
+  return true;
+}
+
+}  // anonymous namespace
+
 ObservationMemoryCache::~ObservationMemoryCache()
 {
   for (const auto& item : *itsObservations.load())
@@ -138,14 +182,7 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
 #endif
 
         // Indices i...j-1 have the same fmisid
-
-        for (std::size_t k = i; k < j; k++)
-        {
-          const auto& item = cacheData[new_items[k]];
-          // Discard special MISSING parameters
-          if (item.measurand_id != 9999)
-            newobs->push_back(cacheData[new_items[k]]);
-        }
+        addStationItems(*newobs, cacheData, new_items, i, j);
 
         // Sort the data based on time
 
@@ -327,49 +364,8 @@ LocationDataItems ObservationMemoryCache::read_observations(
         // Check sensor number and data_quality condition. The checks should be
         // ordered based on which skips unwanted data the fastest
 
-        // Wanted parameters
-
-        if (std::find(qmap.measurandIds.begin(), qmap.measurandIds.end(), obs->measurand_id) ==
-            qmap.measurandIds.end())
+        if (!shouldIncludeObservation(*obs, settings, qmap, valid_sensors))
           continue;
-
-        // Wanted sensors.
-
-        bool sensorOK = false;
-        if (obs->measurand_no == 1)
-        {
-          // default measurand for observation_data
-          if (valid_sensors.empty() || (valid_sensors.find(-1) != valid_sensors.end()))
-            sensorOK = true;
-          else
-            sensorOK = valid_sensors.find(obs->sensor_no) != valid_sensors.end();
-        }
-        else if (obs->measurand_no == 0)
-        {
-          // weather_data_qc default seems to be 0 instead of 1
-          if (valid_sensors.empty() || (valid_sensors.find(-1) != valid_sensors.end()))
-            sensorOK = true;
-          else
-            sensorOK = valid_sensors.find(obs->sensor_no) != valid_sensors.end();
-        }
-        else
-        {
-          sensorOK = valid_sensors.find(obs->sensor_no) != valid_sensors.end();
-        }
-
-        if (!sensorOK)
-          continue;
-
-        // Required data quality
-        bool dataQualityOK = settings.dataFilter.valueOK("data_quality", obs->data_quality);
-
-        if (!dataQualityOK)
-          continue;
-
-        // Check producer_id
-        if (!settings.producer_ids.empty())
-          if (settings.producer_ids.find(obs->producer_id) == settings.producer_ids.end())
-            continue;
 
         // Construct LocationDataItem from the DataItem
 

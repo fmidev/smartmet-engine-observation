@@ -186,6 +186,32 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
   }
 }
 
+void SpatiaLiteCache::checkExtMemoryCacheHit(const Fmi::DateTime &starttime) const
+{
+  if (!itsExtMemoryCache)
+    return;
+  // We know that spatialite cache hits will include memory cache hits, but do not
+  // bother to subtract the memory cache hits from spatialite hits
+  auto cache_start_time = itsExtMemoryCache->getStartTime();
+  if (!cache_start_time.is_not_a_date_time() && cache_start_time <= starttime)
+    hit("ext_observation_memory");
+  else
+    miss("ext_observation_memory");
+}
+
+void SpatiaLiteCache::checkObsMemoryCacheHit(const Fmi::DateTime &starttime) const
+{
+  if (!itsObservationMemoryCache)
+    return;
+  // We know that spatialite cache hits will include memory cache hits, but do not
+  // bother to subtract the memory cache hits from spatialite hits
+  auto cache_start_time = itsObservationMemoryCache->getStartTime();
+  if (!cache_start_time.is_not_a_date_time() && cache_start_time <= starttime)
+    hit("observation_memory");
+  else
+    miss("observation_memory");
+}
+
 TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
 {
   try
@@ -223,20 +249,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        if (itsExtMemoryCache)
-        {
-          // We know that spatialite cache hits will include memory cache hits, but do not
-          // bother to substract the memory cache hits from spatialite hits
-
-          auto cache_start_time = itsExtMemoryCache->getStartTime();
-          bool use_memory_cache =
-              (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
-          if (use_memory_cache)
-            hit("ext_observation_memory");
-          else
-            miss("ext_observation_memory");
-        }
-
+        checkExtMemoryCacheHit(settings.starttime);
         ret = db->getWeatherDataQCData(stations, settings, *sinfo, itsTimeZones, itsExtMemoryCache);
       }
       else if (settings.stationtype == MAGNETO_PRODUCER &&
@@ -256,20 +269,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(Settings &settings)
       }
       else
       {
-        if (itsObservationMemoryCache)
-        {
-          // We know that spatialite cache hits will include memory cache hits, but do not
-          // bother to substract the memory cache hits from spatialite hits
-
-          auto cache_start_time = itsObservationMemoryCache->getStartTime();
-          bool use_memory_cache =
-              (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
-          if (use_memory_cache)
-            hit("observation_memory");
-          else
-            miss("observation_memory");
-        }
-
+        checkObsMemoryCacheHit(settings.starttime);
         ret = db->CommonDatabaseFunctions::getObservationData(
             stations, settings, *sinfo, itsTimeZones, itsObservationMemoryCache);
       }
@@ -329,21 +329,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
       if ((settings.stationtype == "road" || settings.stationtype == "foreign") &&
           timeIntervalWeatherDataQCIsCached(settings.starttime, settings.endtime))
       {
-        if (itsExtMemoryCache)
-        {
-          // We know that spatialite cache hits will include memory cache hits, but do not
-          // bother to substract the memory cache hits from spatialite hits
-
-          auto cache_start_time = itsExtMemoryCache->getStartTime();
-          bool use_memory_cache =
-              (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
-
-          if (use_memory_cache)
-            hit("ext_observation_memory");
-          else
-            miss("ext_observation_memory");
-        }
-
+        checkExtMemoryCacheHit(settings.starttime);
         ret = db->getWeatherDataQCData(
             stations, settings, *sinfo, timeSeriesOptions, itsTimeZones, itsExtMemoryCache);
       }
@@ -355,21 +341,7 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::valuesFromCache(
       }
       else
       {
-        if (itsObservationMemoryCache)
-        {
-          // We know that spatialite cache hits will include memory cache hits, but do not
-          // bother to substract the memory cache hits from spatialite hits
-
-          auto cache_start_time = itsObservationMemoryCache->getStartTime();
-          bool use_memory_cache =
-              (!cache_start_time.is_not_a_date_time() && cache_start_time <= settings.starttime);
-
-          if (use_memory_cache)
-            hit("observation_memory");
-          else
-            miss("observation_memory");
-        }
-
+        checkObsMemoryCacheHit(settings.starttime);
         ret = db->getObservationData(
             stations, settings, *sinfo, timeSeriesOptions, itsTimeZones, itsObservationMemoryCache);
       }

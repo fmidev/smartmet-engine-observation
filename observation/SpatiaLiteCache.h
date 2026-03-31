@@ -208,6 +208,10 @@ class SpatiaLiteCache : public ObservationCache
   std::unique_ptr<ObservationMemoryCache> itsExtMemoryCache;
   std::unique_ptr<FlashMemoryCache> itsFlashMemoryCache;
 
+  // Track memory cache hit/miss based on cache start time vs. request start time
+  void checkExtMemoryCacheHit(const Fmi::DateTime &starttime) const;
+  void checkObsMemoryCacheHit(const Fmi::DateTime &starttime) const;
+
   // Cache statistics
   void hit(const std::string &name) const;
   void miss(const std::string &name) const;

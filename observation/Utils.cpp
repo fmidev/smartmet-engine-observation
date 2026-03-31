@@ -323,6 +323,83 @@ void logMessage(const std::string& message, bool quiet)
   }
 }
 
+namespace
+{
+
+// ── calcSmartsymbolNumber helpers ─────────────────────────────────────────────
+
+// Cloudiness → symbol on 3-level scale {base, base+3, base+6}, or nullopt when > 9.
+std::optional<int> cloudSymbol3(int base, int cloudiness)
+{
+  if (cloudiness <= 5) return base;
+  if (cloudiness <= 7) return base + 3;
+  if (cloudiness <= 9) return base + 6;
+  return {};
+}
+
+// Cloudiness → symbol on the 5-level clear/overcast scale.
+// top_symbol is 7 (wawa_group1) or 9 (wawa_group2).
+std::optional<int> cloudSymbol5(int cloudiness, int top_symbol)
+{
+  if (cloudiness <= 0) return 1;
+  if (cloudiness <= 1) return 2;
+  if (cloudiness <= 5) return 4;
+  if (cloudiness <= 7) return 6;
+  if (cloudiness <= 9) return top_symbol;
+  return {};
+}
+
+enum class WawaPatternType
+{
+  None,
+  Fixed,       // single symbol when cloudiness <= 9
+  ThreeLevel,  // {base, base+3, base+6} for cloudiness <= 5/7/9
+  FiveLevel    // full clear-overcast scale; base field = top symbol (7 or 9)
+};
+
+struct WawaPattern
+{
+  WawaPatternType type;
+  int base;  // Fixed: symbol; ThreeLevel: first symbol; FiveLevel: top symbol
+};
+
+// Map wawa code + temperature to a symbol pattern.
+WawaPattern wawaToSymbolPattern(int wawa, double temperature)
+{
+  const std::array<int, 10> group1{0, 4, 5, 10, 20, 21, 22, 23, 24, 25};
+  const std::array<int, 5> group2{30, 31, 32, 33, 34};
+
+  if (std::find(std::begin(group1), std::end(group1), wawa) != std::end(group1))
+    return {WawaPatternType::FiveLevel, 7};
+  if (std::find(std::begin(group2), std::end(group2), wawa) != std::end(group2))
+    return {WawaPatternType::FiveLevel, 9};
+
+  switch (wawa)
+  {
+    case 40: case 41: return {WawaPatternType::ThreeLevel, temperature <= 0 ? 51 : 31};
+    case 42:          return {WawaPatternType::ThreeLevel, temperature <= 0 ? 53 : 33};
+    case 60: case 61: return {WawaPatternType::ThreeLevel, 31};
+    case 62:          return {WawaPatternType::ThreeLevel, 32};
+    case 63:          return {WawaPatternType::ThreeLevel, 33};
+    case 67:          return {WawaPatternType::ThreeLevel, 41};
+    case 68:          return {WawaPatternType::ThreeLevel, 42};
+    case 70: case 71: case 74: case 85: return {WawaPatternType::ThreeLevel, 51};
+    case 72: case 75: case 86: return {WawaPatternType::ThreeLevel, 52};
+    case 73: case 76: case 87: return {WawaPatternType::ThreeLevel, 53};
+    case 77: case 78: return {WawaPatternType::Fixed, 57};
+    case 80:          return {WawaPatternType::ThreeLevel, temperature <= 0 ? 51 : 21};
+    case 89:          return {WawaPatternType::ThreeLevel, 61};
+    default: break;
+  }
+  if (wawa >= 50 && wawa <= 53) return {WawaPatternType::Fixed, 11};
+  if (wawa >= 54 && wawa <= 56) return {WawaPatternType::Fixed, 14};
+  if (wawa >= 64 && wawa <= 66) return {WawaPatternType::Fixed, 17};
+  if (wawa >= 81 && wawa <= 84) return {WawaPatternType::ThreeLevel, 21};
+  return {WawaPatternType::None, 0};
+}
+
+}  // namespace
+
 std::optional<int> calcSmartsymbolNumber(int wawa,
                                          int cloudiness,
                                          double temperature,
@@ -330,229 +407,23 @@ std::optional<int> calcSmartsymbolNumber(int wawa,
                                          double lat,
                                          double lon)
 {
-  std::optional<int> smartsymbol = {};
+  const auto pattern = wawaToSymbolPattern(wawa, temperature);
 
-  const std::array<int, 10> wawa_group1{0, 4, 5, 10, 20, 21, 22, 23, 24, 25};
-  const std::array<int, 5> wawa_group2{30, 31, 32, 33, 34};
-
-  const int cloudiness_limit1 = 0;
-  const int cloudiness_limit2 = 1;
-  const int cloudiness_limit3 = 5;
-  const int cloudiness_limit4 = 7;
-  const int cloudiness_limit5 = 9;
-
-  if (std::find(std::begin(wawa_group1), std::end(wawa_group1), wawa) != std::end(wawa_group1))
+  std::optional<int> smartsymbol;
+  switch (pattern.type)
   {
-    if (cloudiness <= cloudiness_limit1)
-      smartsymbol = 1;
-    else if (cloudiness <= cloudiness_limit2)
-      smartsymbol = 2;
-    else if (cloudiness <= cloudiness_limit3)
-      smartsymbol = 4;
-    else if (cloudiness <= cloudiness_limit4)
-      smartsymbol = 6;
-    else if (cloudiness <= cloudiness_limit5)
-      smartsymbol = 7;
-  }
-  else if (std::find(std::begin(wawa_group2), std::end(wawa_group2), wawa) != std::end(wawa_group2))
-  {
-    if (cloudiness <= cloudiness_limit1)
-      smartsymbol = 1;
-    else if (cloudiness <= cloudiness_limit2)
-      smartsymbol = 2;
-    else if (cloudiness <= cloudiness_limit3)
-      smartsymbol = 4;
-    else if (cloudiness <= cloudiness_limit4)
-      smartsymbol = 6;
-    else if (cloudiness <= cloudiness_limit5)
-      smartsymbol = 9;
+    case WawaPatternType::ThreeLevel: smartsymbol = cloudSymbol3(pattern.base, cloudiness); break;
+    case WawaPatternType::FiveLevel:  smartsymbol = cloudSymbol5(cloudiness, pattern.base); break;
+    case WawaPatternType::Fixed:      if (cloudiness <= 9) smartsymbol = pattern.base; break;
+    default: break;
   }
 
-  else if (wawa == 40 || wawa == 41)
-  {
-    if (temperature <= 0)
-    {
-      if (cloudiness <= 5)
-        smartsymbol = 51;
-      else if (cloudiness <= 7)
-        smartsymbol = 54;
-      else if (cloudiness <= 9)
-        smartsymbol = 57;
-    }
-    else
-    {
-      if (cloudiness <= 5)
-        smartsymbol = 31;
-      else if (cloudiness <= 7)
-        smartsymbol = 34;
-      else if (cloudiness <= 9)
-        smartsymbol = 37;
-    }
-  }
-  else if (wawa == 42)
-  {
-    if (temperature <= 0)
-    {
-      if (cloudiness <= 5)
-        smartsymbol = 53;
-      else if (cloudiness <= 7)
-        smartsymbol = 56;
-      else if (cloudiness <= 9)
-        smartsymbol = 59;
-    }
-    else
-    {
-      if (cloudiness <= 5)
-        smartsymbol = 33;
-      else if (cloudiness <= 7)
-        smartsymbol = 36;
-      else if (cloudiness <= 9)
-        smartsymbol = 39;
-    }
-  }
-  else if (wawa >= 50 && wawa <= 53)
-  {
-    if (cloudiness <= 9)
-      smartsymbol = 11;
-  }
-  else if (wawa >= 54 && wawa <= 56)
-  {
-    if (cloudiness <= 9)
-      smartsymbol = 14;
-  }
-  else if (wawa == 60 || wawa == 61)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 31;
-    else if (cloudiness <= 7)
-      smartsymbol = 34;
-    else if (cloudiness <= 9)
-      smartsymbol = 37;
-  }
-  else if (wawa == 62)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 32;
-    else if (cloudiness <= 7)
-      smartsymbol = 35;
-    else if (cloudiness <= 9)
-      smartsymbol = 38;
-  }
-  else if (wawa == 63)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 33;
-    else if (cloudiness <= 7)
-      smartsymbol = 36;
-    else if (cloudiness <= 9)
-      smartsymbol = 39;
-  }
-  else if (wawa >= 64 && wawa <= 66)
-  {
-    if (cloudiness <= 9)
-      smartsymbol = 17;
-  }
-  else if (wawa == 67)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 41;
-    else if (cloudiness <= 7)
-      smartsymbol = 44;
-    else if (cloudiness <= 9)
-      smartsymbol = 47;
-  }
-  else if (wawa == 68)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 42;
-    else if (cloudiness <= 7)
-      smartsymbol = 45;
-    else if (cloudiness <= 9)
-      smartsymbol = 48;
-  }
-  else if (wawa == 70 || wawa == 71 || wawa == 74 || wawa == 85)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 51;
-    else if (cloudiness <= 7)
-      smartsymbol = 54;
-    else if (cloudiness <= 9)
-      smartsymbol = 57;
-  }
-  else if (wawa == 72 || wawa == 75 || wawa == 86)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 52;
-    else if (cloudiness <= 7)
-      smartsymbol = 55;
-    else if (cloudiness <= 9)
-      smartsymbol = 58;
-  }
-  else if (wawa == 73 || wawa == 76 || wawa == 87)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 53;
-    else if (cloudiness <= 7)
-      smartsymbol = 56;
-    else if (cloudiness <= 9)
-      smartsymbol = 59;
-  }
-  else if (wawa == 77 || wawa == 78)
-  {
-    if (cloudiness <= 9)
-      smartsymbol = 57;
-  }
-  else if (wawa == 80)
-  {
-    if (temperature <= 0)
-    {
-      if (cloudiness <= 5)
-        smartsymbol = 51;
-      else if (cloudiness <= 7)
-        smartsymbol = 54;
-      else if (cloudiness <= 9)
-        smartsymbol = 57;
-    }
-    else
-    {
-      if (cloudiness <= 5)
-        smartsymbol = 21;
-      else if (cloudiness <= 7)
-        smartsymbol = 24;
-      else if (cloudiness <= 9)
-        smartsymbol = 27;
-    }
-  }
-  else if (wawa >= 81 && wawa <= 84)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 21;
-    else if (cloudiness <= 7)
-      smartsymbol = 24;
-    else if (cloudiness <= 9)
-      smartsymbol = 27;
-  }
-  else if (wawa == 89)
-  {
-    if (cloudiness <= 5)
-      smartsymbol = 61;
-    else if (cloudiness <= 7)
-      smartsymbol = 64;
-    else if (cloudiness <= 9)
-      smartsymbol = 67;
-  }
+  if (!smartsymbol)
+    return {};
 
   // Add day/night information
   Fmi::Astronomy::solar_position_t sp = Fmi::Astronomy::solar_position(ldt, lon, lat);
-  if (smartsymbol)
-  {
-    if (sp.dark())
-      return 100 + *smartsymbol;
-    return *smartsymbol;
-  }
-
-  // No valid combination found, return empty value
-  return {};
+  return sp.dark() ? 100 + *smartsymbol : *smartsymbol;
 }
 
 TS::TimeSeriesVectorPtr initializeResultVector(const Settings& settings)

@@ -18,6 +18,60 @@ namespace Observation
 {
 using namespace Utils;
 
+namespace
+{
+// Returns the sensor number string for a parameter, or "default" if unspecified.
+std::string sensorNumberString(const Spine::Parameter &p)
+{
+  if (p.getSensorNumber())
+    return Fmi::to_string(*(p.getSensorNumber()));
+  return "default";
+}
+
+// Adds the measurand IDs that a special computed parameter (windcompass, feelslike, etc.)
+// depends on to param_set and timeseriesPositions, and records the output position.
+void collectSpecialParamDependencies(const std::string &name,
+                                     const std::string &stationtype,
+                                     const ParameterMapPtr &paramMap,
+                                     std::set<std::string> &param_set,
+                                     std::map<std::string, int> &specialPositions,
+                                     std::map<std::string, int> &timeseriesPositions,
+                                     unsigned int pos)
+{
+  if (boost::algorithm::starts_with(name, "windcompass"))
+  {
+    const auto winddir = paramMap->getParameter("winddirection", stationtype);
+    param_set.insert(winddir);
+    timeseriesPositions[winddir] = pos;
+  }
+  else if (name == "feelslike")
+  {
+    param_set.insert(paramMap->getParameter("windspeedms", stationtype));
+    param_set.insert(paramMap->getParameter("relativehumidity", stationtype));
+  }
+  else if (name == "smartsymbol")
+  {
+    param_set.insert(paramMap->getParameter("wawa", stationtype));
+    param_set.insert(paramMap->getParameter("totalcloudcover", stationtype));
+    param_set.insert(paramMap->getParameter("temperature", stationtype));
+  }
+  else if (name == "cloudceiling" || name == "cloudceilingft" || name == "cloudceilinghft")
+  {
+    param_set.insert(paramMap->getParameter("cla1_pt1m_acc", stationtype));
+    param_set.insert(paramMap->getParameter("cla2_pt1m_acc", stationtype));
+    param_set.insert(paramMap->getParameter("cla3_pt1m_acc", stationtype));
+    param_set.insert(paramMap->getParameter("cla4_pt1m_acc", stationtype));
+    param_set.insert(paramMap->getParameter("cla5_pt1m_acc", stationtype));
+    param_set.insert(paramMap->getParameter("clhb1_pt1m_instant", stationtype));
+    param_set.insert(paramMap->getParameter("clhb2_pt1m_instant", stationtype));
+    param_set.insert(paramMap->getParameter("clhb3_pt1m_instant", stationtype));
+    param_set.insert(paramMap->getParameter("clhb4_pt1m_instant", stationtype));
+    param_set.insert(paramMap->getParameter("clh5_pt1m_instant", stationtype));
+  }
+  specialPositions[name] = pos;
+}
+}  // namespace
+
 TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getMagnetometerData(
     const Spine::Stations &stations,
     const Settings &settings,
@@ -122,9 +176,7 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
         if (!itsParameterMap->getParameter(shortname, stationtype).empty())
         {
           std::string nameInDatabase = itsParameterMap->getParameter(shortname, stationtype);
-          std::string sensor_number_string =
-              (p.getSensorNumber() ? Fmi::to_string(*(p.getSensorNumber())) : "default");
-          std::string name_plus_sensor_number = name + "_sensornumber_" + sensor_number_string;
+          std::string name_plus_sensor_number = name + "_sensornumber_" + sensorNumberString(p);
 
           timeseriesPositions[name_plus_sensor_number] = pos;
           parameterNameMap[name_plus_sensor_number] = nameInDatabase;
@@ -137,47 +189,8 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
       {
         std::string name = p.name();
         Fmi::ascii_tolower(name);
-
-        if (boost::algorithm::starts_with(name, "windcompass"))
-        {
-          param_set.insert(itsParameterMap->getParameter("winddirection", stationtype));
-          timeseriesPositions[itsParameterMap->getParameter("winddirection", stationtype)] = pos;
-          specialPositions[name] = pos;
-        }
-        else if (name == "feelslike")
-        {
-          param_set.insert(itsParameterMap->getParameter("windspeedms", stationtype));
-          param_set.insert(itsParameterMap->getParameter("relativehumidity", stationtype));
-          param_set.insert(itsParameterMap->getParameter("relativehumidity", stationtype));
-          specialPositions[name] = pos;
-        }
-        else if (name == "smartsymbol")
-        {
-          param_set.insert(itsParameterMap->getParameter("wawa", stationtype));
-          param_set.insert(itsParameterMap->getParameter("totalcloudcover", stationtype));
-          param_set.insert(itsParameterMap->getParameter("temperature", stationtype));
-
-          specialPositions[name] = pos;
-        }
-        else if (name == "cloudceiling" || name == "cloudceilingft" || name == "cloudceilinghft")
-        {
-          param_set.insert(itsParameterMap->getParameter("cla1_pt1m_acc", stationtype));
-          param_set.insert(itsParameterMap->getParameter("cla2_pt1m_acc", stationtype));
-          param_set.insert(itsParameterMap->getParameter("cla3_pt1m_acc", stationtype));
-          param_set.insert(itsParameterMap->getParameter("cla4_pt1m_acc", stationtype));
-          param_set.insert(itsParameterMap->getParameter("cla5_pt1m_acc", stationtype));
-          param_set.insert(itsParameterMap->getParameter("clhb1_pt1m_instant", stationtype));
-          param_set.insert(itsParameterMap->getParameter("clhb2_pt1m_instant", stationtype));
-          param_set.insert(itsParameterMap->getParameter("clhb3_pt1m_instant", stationtype));
-          param_set.insert(itsParameterMap->getParameter("clhb4_pt1m_instant", stationtype));
-          param_set.insert(itsParameterMap->getParameter("clh5_pt1m_instant", stationtype));
-
-          specialPositions[name] = pos;
-        }
-        else
-        {
-          specialPositions[name] = pos;
-        }
+        collectSpecialParamDependencies(
+            name, stationtype, itsParameterMap, param_set, specialPositions, timeseriesPositions, pos);
       }
       pos++;
     }

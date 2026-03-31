@@ -81,6 +81,21 @@ class DBQueryUtils
  private:
   AdditionalTimestepOption itsGetRequestedAndDataTimesteps{
       AdditionalTimestepOption::RequestedAndDataTimesteps};
+
+  // Adds the measurand IDs that computed special parameters (feelslike, windcompass, etc.)
+  // depend on, so they are fetched from the database. No-op for QC table (IDs are different).
+  void addDependentMeasurandIds(QueryMapping &ret,
+                                const std::string &name,
+                                const std::string &stationtype) const;
+
+  // Processes a single regular (non-special) parameter in buildQueryMapping.
+  void processRegularParam(const Spine::Parameter &p,
+                           std::string name,  // by value: removePrefix mutates it
+                           const std::string &stationtype,
+                           bool isWeatherDataQCTable,
+                           unsigned pos,
+                           QueryMapping &ret,
+                           std::set<int> &mids) const;
 };
 
 }  // namespace Observation

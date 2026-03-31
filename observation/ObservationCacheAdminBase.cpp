@@ -96,47 +96,27 @@ void ObservationCacheAdminBase::init()
     std::shared_ptr<ObservationCache> magnetometerCache;
     std::set<ObservationCache*> cache_set;
 
+    std::vector<std::pair<std::string, std::shared_ptr<ObservationCache>*>> tableToCache = {
+        {OBSERVATION_DATA_TABLE, &observationCache},
+        {WEATHER_DATA_QC_TABLE, &weatherDataQCCache},
+        {FLASH_DATA_TABLE, &flashCache},
+        {NETATMO_DATA_TABLE, &netatmoCache},
+        {ROADCLOUD_DATA_TABLE, &roadcloudCache},
+        {FMI_IOT_DATA_TABLE, &fmiIoTCache},
+        {TAPSI_QC_DATA_TABLE, &tapsiQcCache},
+        {MAGNETOMETER_DATA_TABLE, &magnetometerCache},
+    };
+
     for (const auto& tablename : tablenames)
     {
-      if (tablename == OBSERVATION_DATA_TABLE)
+      for (auto& [name, ptr] : tableToCache)
       {
-        observationCache = getCache(OBSERVATION_DATA_TABLE);
-        cache_set.insert(observationCache.get());
-      }
-      else if (tablename == WEATHER_DATA_QC_TABLE)
-      {
-        weatherDataQCCache = getCache(WEATHER_DATA_QC_TABLE);
-        cache_set.insert(weatherDataQCCache.get());
-      }
-      else if (tablename == FLASH_DATA_TABLE)
-      {
-        flashCache = getCache(FLASH_DATA_TABLE);
-        cache_set.insert(flashCache.get());
-      }
-      else if (tablename == NETATMO_DATA_TABLE)
-      {
-        netatmoCache = getCache(NETATMO_DATA_TABLE);
-        cache_set.insert(netatmoCache.get());
-      }
-      else if (tablename == ROADCLOUD_DATA_TABLE)
-      {
-        roadcloudCache = getCache(ROADCLOUD_DATA_TABLE);
-        cache_set.insert(roadcloudCache.get());
-      }
-      else if (tablename == FMI_IOT_DATA_TABLE)
-      {
-        fmiIoTCache = getCache(FMI_IOT_DATA_TABLE);
-        cache_set.insert(fmiIoTCache.get());
-      }
-      else if (tablename == TAPSI_QC_DATA_TABLE)
-      {
-        tapsiQcCache = getCache(TAPSI_QC_DATA_TABLE);
-        cache_set.insert(tapsiQcCache.get());
-      }
-      else if (tablename == MAGNETOMETER_DATA_TABLE)
-      {
-        magnetometerCache = getCache(MAGNETOMETER_DATA_TABLE);
-        cache_set.insert(magnetometerCache.get());
+        if (tablename == name)
+        {
+          *ptr = getCache(tablename);
+          cache_set.insert(ptr->get());
+          break;
+        }
       }
     }
 
@@ -153,101 +133,14 @@ void ObservationCacheAdminBase::init()
 
     // Update all caches once in parallel
     if (!itsParameters.disableAllCacheUpdates)
-    {
-      if (observationCache)
-      {
-        // First clean all caches once. If the server has been down for a long
-        // time, the sqlite file will increase in size significantly if this
-        // is not done first. We will not start threads for these since sqlite
-        // would do them serially anyway.
-
-        observationCache->cleanDataCache(Fmi::Hours(itsParameters.finCacheDuration),
-                                         Fmi::Hours(itsParameters.finMemoryCacheDuration));
-
-        // Oracle reads can be parallelized. The writes will be done
-        // in practise serially, even though the threads will give
-        // each other some timeslices.
-        if (itsParameters.finCacheUpdateInterval > 0)
-        {
-          itsBackgroundTasks->add("Init observation cache", [this]() { updateObservationCache(); });
-        }
-      }
-
-      if (weatherDataQCCache)
-      {
-        weatherDataQCCache->cleanWeatherDataQCCache(
-            Fmi::Hours(itsParameters.extCacheDuration),
-            Fmi::Hours(itsParameters.extMemoryCacheDuration));
-
-        if (itsParameters.extCacheUpdateInterval > 0)
-        {
-          itsBackgroundTasks->add("Init weather data QC cache",
-                                  [this]() { updateWeatherDataQCCache(); });
-        }
-      }
-
-      if (flashCache)
-      {
-        flashCache->cleanFlashDataCache(Fmi::Hours(itsParameters.flashCacheDuration),
-                                        Fmi::Hours(itsParameters.flashMemoryCacheDuration));
-
-        if (itsParameters.flashCacheUpdateInterval > 0)
-        {
-          itsBackgroundTasks->add("Init flash cache", [this]() { updateFlashCache(); });
-        }
-      }
-      if (netatmoCache)
-      {
-        netatmoCache->cleanNetAtmoCache(Fmi::Hours(itsParameters.netAtmoCacheDuration));
-
-        if (itsParameters.netAtmoCacheUpdateInterval > 0)
-        {
-          itsBackgroundTasks->add("Init Netatmo cache", [this]() { updateNetAtmoCache(); });
-        }
-      }
-
-      if (roadcloudCache)
-      {
-        roadcloudCache->cleanRoadCloudCache(Fmi::Hours(itsParameters.roadCloudCacheDuration));
-
-        if (itsParameters.roadCloudCacheUpdateInterval > 0)
-        {
-          itsBackgroundTasks->add("Init roadcloud cache", [this]() { updateRoadCloudCache(); });
-        }
-      }
-
-      if (fmiIoTCache)
-      {
-        fmiIoTCache->cleanFmiIoTCache(Fmi::Hours(itsParameters.fmiIoTCacheDuration));
-
-        if (itsParameters.fmiIoTCacheUpdateInterval > 0)
-        {
-          itsBackgroundTasks->add("Init fmi_iot cache", [this]() { updateFmiIoTCache(); });
-        }
-      }
-
-      if (tapsiQcCache)
-      {
-        tapsiQcCache->cleanTapsiQcCache(Fmi::Hours(itsParameters.tapsiQcCacheDuration));
-
-        if (itsParameters.tapsiQcCacheUpdateInterval > 0)
-        {
-          itsBackgroundTasks->add("Init tapsi_qc cache", [this]() { updateTapsiQcCache(); });
-        }
-      }
-
-      if (magnetometerCache)
-      {
-        magnetometerCache->cleanMagnetometerCache(
-            Fmi::Hours(itsParameters.magnetometerCacheDuration));
-
-        if (itsParameters.magnetometerCacheUpdateInterval > 0)
-        {
-          itsBackgroundTasks->add("Init magnetometer cache",
-                                  [this]() { updateMagnetometerCache(); });
-        }
-      }
-    }
+      startInitialCacheUpdates(observationCache,
+                               weatherDataQCCache,
+                               flashCache,
+                               netatmoCache,
+                               roadcloudCache,
+                               fmiIoTCache,
+                               tapsiQcCache,
+                               magnetometerCache);
 
     // If stations info does not exist (stations.txt file  missing), load info from database
     if (itsParameters.loadStations)
@@ -268,6 +161,83 @@ void ObservationCacheAdminBase::init()
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+void ObservationCacheAdminBase::startInitialCacheUpdates(
+    std::shared_ptr<ObservationCache> observationCache,
+    std::shared_ptr<ObservationCache> weatherDataQCCache,
+    std::shared_ptr<ObservationCache> flashCache,
+    std::shared_ptr<ObservationCache> netatmoCache,
+    std::shared_ptr<ObservationCache> roadcloudCache,
+    std::shared_ptr<ObservationCache> fmiIoTCache,
+    std::shared_ptr<ObservationCache> tapsiQcCache,
+    std::shared_ptr<ObservationCache> magnetometerCache)
+{
+  // First clean all caches once. If the server has been down for a long time, the sqlite
+  // file will increase in size significantly if this is not done first. We will not start
+  // threads for these since sqlite would do them serially anyway.
+  if (observationCache)
+  {
+    observationCache->cleanDataCache(Fmi::Hours(itsParameters.finCacheDuration),
+                                     Fmi::Hours(itsParameters.finMemoryCacheDuration));
+    // Oracle reads can be parallelized. The writes will be done in practice serially,
+    // even though the threads will give each other some timeslices.
+    if (itsParameters.finCacheUpdateInterval > 0)
+      itsBackgroundTasks->add("Init observation cache", [this]() { updateObservationCache(); });
+  }
+
+  if (weatherDataQCCache)
+  {
+    weatherDataQCCache->cleanWeatherDataQCCache(Fmi::Hours(itsParameters.extCacheDuration),
+                                                Fmi::Hours(itsParameters.extMemoryCacheDuration));
+    if (itsParameters.extCacheUpdateInterval > 0)
+      itsBackgroundTasks->add("Init weather data QC cache",
+                              [this]() { updateWeatherDataQCCache(); });
+  }
+
+  if (flashCache)
+  {
+    flashCache->cleanFlashDataCache(Fmi::Hours(itsParameters.flashCacheDuration),
+                                    Fmi::Hours(itsParameters.flashMemoryCacheDuration));
+    if (itsParameters.flashCacheUpdateInterval > 0)
+      itsBackgroundTasks->add("Init flash cache", [this]() { updateFlashCache(); });
+  }
+
+  if (netatmoCache)
+  {
+    netatmoCache->cleanNetAtmoCache(Fmi::Hours(itsParameters.netAtmoCacheDuration));
+    if (itsParameters.netAtmoCacheUpdateInterval > 0)
+      itsBackgroundTasks->add("Init Netatmo cache", [this]() { updateNetAtmoCache(); });
+  }
+
+  if (roadcloudCache)
+  {
+    roadcloudCache->cleanRoadCloudCache(Fmi::Hours(itsParameters.roadCloudCacheDuration));
+    if (itsParameters.roadCloudCacheUpdateInterval > 0)
+      itsBackgroundTasks->add("Init roadcloud cache", [this]() { updateRoadCloudCache(); });
+  }
+
+  if (fmiIoTCache)
+  {
+    fmiIoTCache->cleanFmiIoTCache(Fmi::Hours(itsParameters.fmiIoTCacheDuration));
+    if (itsParameters.fmiIoTCacheUpdateInterval > 0)
+      itsBackgroundTasks->add("Init fmi_iot cache", [this]() { updateFmiIoTCache(); });
+  }
+
+  if (tapsiQcCache)
+  {
+    tapsiQcCache->cleanTapsiQcCache(Fmi::Hours(itsParameters.tapsiQcCacheDuration));
+    if (itsParameters.tapsiQcCacheUpdateInterval > 0)
+      itsBackgroundTasks->add("Init tapsi_qc cache", [this]() { updateTapsiQcCache(); });
+  }
+
+  if (magnetometerCache)
+  {
+    magnetometerCache->cleanMagnetometerCache(Fmi::Hours(itsParameters.magnetometerCacheDuration));
+    if (itsParameters.magnetometerCacheUpdateInterval > 0)
+      itsBackgroundTasks->add("Init magnetometer cache",
+                              [this]() { updateMagnetometerCache(); });
   }
 }
 

@@ -84,6 +84,16 @@ class DatabaseDriverInfo
   void parseCacheInfo(const std::set<std::string>& cacheinfostring,
                       std::set<std::string>& cachenames);
 
+  void readDriverConnectionInfo(Spine::ConfigBase& cfg,
+                                const std::string& name,
+                                DatabaseDriverInfoItem& item);
+  void readCacheConnectionInfo(Spine::ConfigBase& cfg,
+                               const std::string& name,
+                               CacheInfoItem& cii);
+  void consolidateLoadStationsParam(DatabaseDriverInfoItem& ddii,
+                                    std::string& activeDriver,
+                                    std::string& disabledDrivers);
+
   std::vector<DatabaseDriverInfoItem> itsDatabaseDriverInfoItems;
   std::map<std::string, CacheInfoItem> itsCacheInfoItems;  // Cache name -> cahecinfo
 };

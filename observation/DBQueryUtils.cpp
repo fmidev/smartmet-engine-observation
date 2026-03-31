@@ -288,6 +288,124 @@ struct PrecomputedParams
   std::vector<int> all_quality_measurand_ids;  // for DataQuality "last match wins"
 };
 
+SpecialParamEntry::Kind windCompassKind(const std::string &name)
+{
+  if (name == "windcompass8") return SpecialParamEntry::Kind::WindCompass8;
+  if (name == "windcompass16") return SpecialParamEntry::Kind::WindCompass16;
+  return SpecialParamEntry::Kind::WindCompass32;
+}
+
+SpecialParamEntry::Kind cloudCeilingKind(const std::string &name)
+{
+  if (name == "cloudceilingft") return SpecialParamEntry::Kind::CloudCeilingFt;
+  if (name == "cloudceilinghft") return SpecialParamEntry::Kind::CloudCeilingHFt;
+  return SpecialParamEntry::Kind::CloudCeiling;
+}
+
+// Resolves the measurand_id for a data_source special parameter by searching parameterNameMap
+// for the matching sensornumber entry of the master parameter.
+SpecialParamEntry resolveDataSourceEntry(const std::string &name,
+                                         unsigned pos,
+                                         const QueryMapping &qmap)
+{
+  SpecialParamEntry entry;
+  entry.output_pos = static_cast<int>(pos);
+  entry.kind = SpecialParamEntry::Kind::DataSource;
+  entry.sensor_number = name.substr(name.rfind('_') + 1);
+  const auto masterParamName = name.substr(0, name.find("_data_source_sensornumber_"));
+  for (const auto &item : qmap.parameterNameMap)
+  {
+    if (boost::algorithm::starts_with(item.first, masterParamName + "_sensornumber_"))
+    {
+      entry.measurand_id = Fmi::stoi(item.second);
+      break;
+    }
+  }
+  return entry;
+}
+
+SpecialParamEntry buildSpecialParamEntry(const std::string &name,
+                                         unsigned pos,
+                                         bool isQCTable,
+                                         const ParameterMapPtr &parameterMap,
+                                         const std::string &stationtype,
+                                         const QueryMapping &qmap)
+{
+  SpecialParamEntry entry;
+  entry.output_pos = static_cast<int>(pos);
+
+  if (name == "longitude" || name == "lon")
+  {
+    entry.kind = SpecialParamEntry::Kind::Longitude;
+  }
+  else if (name == "latitude" || name == "lat")
+  {
+    entry.kind = SpecialParamEntry::Kind::Latitude;
+  }
+  else if (boost::algorithm::starts_with(name, "elevation"))
+  {
+    entry.kind = SpecialParamEntry::Kind::Elevation;
+  }
+  else if (boost::algorithm::starts_with(name, "windcompass"))
+  {
+    entry.kind = windCompassKind(name);
+    if (!isQCTable)
+      entry.mid1 = Fmi::stoi(parameterMap->getParameter("winddirection", stationtype));
+  }
+  else if (name == "feelslike")
+  {
+    entry.kind = SpecialParamEntry::Kind::FeelsLike;
+    if (!isQCTable)
+    {
+      entry.mid1 = Fmi::stoi(parameterMap->getParameter("windspeedms", stationtype));
+      entry.mid2 = Fmi::stoi(parameterMap->getParameter("relativehumidity", stationtype));
+      entry.mid3 = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
+    }
+  }
+  else if (name == "smartsymbol")
+  {
+    entry.kind = SpecialParamEntry::Kind::SmartSymbol;
+    if (!isQCTable)
+    {
+      entry.mid1 = Fmi::stoi(parameterMap->getParameter("wawa", stationtype));
+      entry.mid2 = Fmi::stoi(parameterMap->getParameter("totalcloudcover", stationtype));
+      entry.mid3 = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
+    }
+  }
+  else if (name == "cloudceiling" || name == "cloudceilingft" || name == "cloudceilinghft")
+  {
+    entry.kind = cloudCeilingKind(name);
+    if (!isQCTable)
+    {
+      entry.cla_mids[0] = get_mid("cla1_pt1m_acc", stationtype, parameterMap);
+      entry.cla_mids[1] = get_mid("cla2_pt1m_acc", stationtype, parameterMap);
+      entry.cla_mids[2] = get_mid("cla3_pt1m_acc", stationtype, parameterMap);
+      entry.cla_mids[3] = get_mid("cla4_pt1m_acc", stationtype, parameterMap);
+      entry.cla_mids[4] = get_mid("cla5_pt1m_acc", stationtype, parameterMap);
+      entry.clhb_mids[0] = get_mid("clhb1_pt1m_instant", stationtype, parameterMap);
+      entry.clhb_mids[1] = get_mid("clhb2_pt1m_instant", stationtype, parameterMap);
+      entry.clhb_mids[2] = get_mid("clhb3_pt1m_instant", stationtype, parameterMap);
+      entry.clhb_mids[3] = get_mid("clhb4_pt1m_instant", stationtype, parameterMap);
+      entry.clhb_mids[4] = get_mid("clh5_pt1m_instant", stationtype, parameterMap);
+    }
+  }
+  else if (is_data_source_field(name))
+  {
+    return resolveDataSourceEntry(name, pos, qmap);
+  }
+  else if (is_data_quality_field(name))
+  {
+    entry.kind = SpecialParamEntry::Kind::DataQuality;
+    entry.sensor_number = name.substr(name.rfind('_') + 1);
+  }
+  else
+  {
+    entry.kind = SpecialParamEntry::Kind::Other;
+    entry.name = name;
+  }
+  return entry;
+}
+
 PrecomputedParams buildPrecomputedParams(const QueryMapping &qmap,
                                          const std::string &stationtype,
                                          const ParameterMapPtr &parameterMap)
@@ -315,109 +433,136 @@ PrecomputedParams buildPrecomputedParams(const QueryMapping &qmap,
   for (const auto &item : qmap.parameterNameIdMap)
     result.all_quality_measurand_ids.push_back(item.second);
 
-  // Special parameters
+  // Special parameters — each entry is built by a separate function to keep this loop flat
   for (const auto &special : qmap.specialPositions)
-  {
-    SpecialParamEntry entry;
-    entry.output_pos = special.second;
-    const std::string &name = special.first;
-
-    if (name == "longitude" || name == "lon")
-    {
-      entry.kind = SpecialParamEntry::Kind::Longitude;
-    }
-    else if (name == "latitude" || name == "lat")
-    {
-      entry.kind = SpecialParamEntry::Kind::Latitude;
-    }
-    else if (boost::algorithm::starts_with(name, "elevation"))
-    {
-      entry.kind = SpecialParamEntry::Kind::Elevation;
-    }
-    else if (boost::algorithm::starts_with(name, "windcompass"))
-    {
-      if (name == "windcompass8")
-        entry.kind = SpecialParamEntry::Kind::WindCompass8;
-      else if (name == "windcompass16")
-        entry.kind = SpecialParamEntry::Kind::WindCompass16;
-      else
-        entry.kind = SpecialParamEntry::Kind::WindCompass32;
-      if (!isQCTable)
-        entry.mid1 = Fmi::stoi(parameterMap->getParameter("winddirection", stationtype));
-    }
-    else if (name == "feelslike")
-    {
-      entry.kind = SpecialParamEntry::Kind::FeelsLike;
-      if (!isQCTable)
-      {
-        entry.mid1 = Fmi::stoi(parameterMap->getParameter("windspeedms", stationtype));
-        entry.mid2 = Fmi::stoi(parameterMap->getParameter("relativehumidity", stationtype));
-        entry.mid3 = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
-      }
-    }
-    else if (name == "smartsymbol")
-    {
-      entry.kind = SpecialParamEntry::Kind::SmartSymbol;
-      if (!isQCTable)
-      {
-        entry.mid1 = Fmi::stoi(parameterMap->getParameter("wawa", stationtype));
-        entry.mid2 = Fmi::stoi(parameterMap->getParameter("totalcloudcover", stationtype));
-        entry.mid3 = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
-      }
-    }
-    else if (name == "cloudceiling" || name == "cloudceilingft" || name == "cloudceilinghft")
-    {
-      if (name == "cloudceiling")
-        entry.kind = SpecialParamEntry::Kind::CloudCeiling;
-      else if (name == "cloudceilingft")
-        entry.kind = SpecialParamEntry::Kind::CloudCeilingFt;
-      else
-        entry.kind = SpecialParamEntry::Kind::CloudCeilingHFt;
-      if (!isQCTable)
-      {
-        entry.cla_mids[0] = get_mid("cla1_pt1m_acc", stationtype, parameterMap);
-        entry.cla_mids[1] = get_mid("cla2_pt1m_acc", stationtype, parameterMap);
-        entry.cla_mids[2] = get_mid("cla3_pt1m_acc", stationtype, parameterMap);
-        entry.cla_mids[3] = get_mid("cla4_pt1m_acc", stationtype, parameterMap);
-        entry.cla_mids[4] = get_mid("cla5_pt1m_acc", stationtype, parameterMap);
-        entry.clhb_mids[0] = get_mid("clhb1_pt1m_instant", stationtype, parameterMap);
-        entry.clhb_mids[1] = get_mid("clhb2_pt1m_instant", stationtype, parameterMap);
-        entry.clhb_mids[2] = get_mid("clhb3_pt1m_instant", stationtype, parameterMap);
-        entry.clhb_mids[3] = get_mid("clhb4_pt1m_instant", stationtype, parameterMap);
-        entry.clhb_mids[4] = get_mid("clh5_pt1m_instant", stationtype, parameterMap);
-      }
-    }
-    else if (is_data_source_field(name))
-    {
-      entry.kind = SpecialParamEntry::Kind::DataSource;
-      const auto masterParamName = name.substr(0, name.find("_data_source_sensornumber_"));
-      entry.sensor_number = name.substr(name.rfind('_') + 1);
-      for (const auto &item : qmap.parameterNameMap)
-      {
-        if (boost::algorithm::starts_with(item.first, masterParamName + "_sensornumber_"))
-        {
-          entry.measurand_id = Fmi::stoi(item.second);
-          break;
-        }
-      }
-    }
-    else if (is_data_quality_field(name))
-    {
-      entry.kind = SpecialParamEntry::Kind::DataQuality;
-      entry.sensor_number = name.substr(name.rfind('_') + 1);
-    }
-    else
-    {
-      entry.kind = SpecialParamEntry::Kind::Other;
-      entry.name = name;
-    }
-    result.special.push_back(entry);
-  }
+    result.special.push_back(
+        buildSpecialParamEntry(special.first, special.second, isQCTable, parameterMap, stationtype, qmap));
 
   return result;
 }
 
 // Compute valid timestep sets from sorted observations (no LocalDateTime map key needed)
+// Case 2 of computeValidTimestepsSorted: find the single closest timestamp per fmisid to wantedtime.
+std::map<int, std::set<Fmi::LocalDateTime>> computeWantedTimestepsSorted(
+    const std::vector<const LocationDataItem *> &sorted_obs,
+    const Settings &settings,
+    const Fmi::TimeZones &timezones,
+    const StationMap &fmisid_to_station)
+{
+  struct FmisidRange
+  {
+    Fmi::DateTime first_utctime;
+    Fmi::DateTime last_utctime;
+    Fmi::DateTime closest_utctime;
+    long long closest_diff = 0;
+    bool found = false;
+  };
+
+  std::map<int, FmisidRange> ranges;
+  for (const auto *obs : sorted_obs)
+  {
+    const int fmisid = obs->data.fmisid;
+    if (!fmisid_to_station.count(fmisid))
+      continue;
+    const Fmi::DateTime &utctime = obs->data.data_time;
+    auto &rng = ranges[fmisid];
+    const auto diff = std::abs((utctime - *settings.wantedtime).total_seconds());
+    if (!rng.found)
+    {
+      rng.first_utctime = rng.closest_utctime = utctime;
+      rng.closest_diff = diff;
+      rng.found = true;
+    }
+    else if (diff < rng.closest_diff)
+    {
+      rng.closest_diff = diff;
+      rng.closest_utctime = utctime;
+    }
+    rng.last_utctime = utctime;
+  }
+
+  std::map<int, std::set<Fmi::LocalDateTime>> result;
+  for (const auto &kv : ranges)
+  {
+    const int fmisid = kv.first;
+    const auto &rng = kv.second;
+    const auto tz = (settings.timezone == "localtime")
+                        ? timezones.time_zone_from_string(fmisid_to_station.at(fmisid).timezone)
+                        : timezones.time_zone_from_string(settings.timezone);
+    Fmi::DateTime winner;
+    if (*settings.wantedtime <= settings.starttime)
+      winner = rng.first_utctime;
+    else if (*settings.wantedtime >= settings.endtime)
+      winner = rng.last_utctime;
+    else
+      winner = rng.closest_utctime;
+    result[fmisid].insert(Fmi::LocalDateTime(winner, tz));
+  }
+  return result;
+}
+
+// Case 4 of computeValidTimestepsSorted: only the generated (listed) timesteps, assigned to all
+// fmisids found in sorted_obs.
+std::map<int, std::set<Fmi::LocalDateTime>> computeListedTimestepsSorted(
+    const std::vector<const LocationDataItem *> &sorted_obs,
+    const Settings &settings,
+    const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const Fmi::TimeZones &timezones,
+    const StationMap &fmisid_to_station)
+{
+  std::map<int, std::set<Fmi::LocalDateTime>> result;
+  const auto tlist = TS::TimeSeriesGenerator::generate(
+      timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+  for (const auto *obs : sorted_obs)
+  {
+    if (fmisid_to_station.count(obs->data.fmisid))
+      result[obs->data.fmisid];  // ensure key exists
+  }
+  for (auto &kv : result)
+    kv.second.insert(tlist.begin(), tlist.end());
+  return result;
+}
+
+// Branch 1 of getValidTimeSteps: collect all data timestamps per fmisid.
+TimestepsByFMISID collectAllDataTimesteps(const std::map<int, TS::TimeSeriesVectorPtr> &fmisid_results)
+{
+  TimestepsByFMISID fmisid_timesteps;
+  for (const auto &item : fmisid_results)
+  {
+    const int fmisid = item.first;
+    for (const auto &ts : *item.second)
+      for (const auto &tv : ts)
+        fmisid_timesteps[fmisid].insert(tv.time);
+  }
+  return fmisid_timesteps;
+}
+
+// Branch 3 of getValidTimeSteps: union of data timestamps and generated timestamps for all fmisids.
+TimestepsByFMISID collectDataAndListedTimesteps(
+    const std::map<int, TS::TimeSeriesVectorPtr> &fmisid_results,
+    const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
+    const Fmi::TimeZones &timezones,
+    const Settings &settings)
+{
+  std::set<int> fmisids;
+  std::set<Fmi::LocalDateTime> timesteps;
+  for (const auto &item : fmisid_results)
+  {
+    fmisids.insert(item.first);
+    for (const auto &ts : *item.second)
+      for (const auto &tv : ts)
+        timesteps.insert(tv.time);
+  }
+  const auto tlist = TS::TimeSeriesGenerator::generate(
+      timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+  timesteps.insert(tlist.begin(), tlist.end());
+
+  TimestepsByFMISID result;
+  for (const int fmisid : fmisids)
+    result[fmisid].insert(timesteps.begin(), timesteps.end());
+  return result;
+}
+
 std::map<int, std::set<Fmi::LocalDateTime>> computeValidTimestepsSorted(
     const std::vector<const LocationDataItem *> &sorted_obs,
     const Settings &settings,
@@ -426,80 +571,18 @@ std::map<int, std::set<Fmi::LocalDateTime>> computeValidTimestepsSorted(
     const StationMap &fmisid_to_station,
     AdditionalTimestepOption additionalTimestepOption)
 {
-  std::map<int, std::set<Fmi::LocalDateTime>> result;
-
   // Case 4: only generated (listed) timesteps
   if (!timeSeriesOptions.all() && !settings.wantedtime &&
       additionalTimestepOption == AdditionalTimestepOption::JustRequestedTimesteps)
-  {
-    const auto tlist = TS::TimeSeriesGenerator::generate(
-        timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
-    for (const auto *obs : sorted_obs)
-    {
-      if (fmisid_to_station.count(obs->data.fmisid))
-        result[obs->data.fmisid];  // ensure key exists
-    }
-    for (auto &kv : result)
-      kv.second.insert(tlist.begin(), tlist.end());
-    return result;
-  }
+    return computeListedTimestepsSorted(
+        sorted_obs, settings, timeSeriesOptions, timezones, fmisid_to_station);
 
   // Case 2: closest timestamp to wantedtime per fmisid
   if (settings.wantedtime)
-  {
-    struct FmisidRange
-    {
-      Fmi::DateTime first_utctime;
-      Fmi::DateTime last_utctime;
-      Fmi::DateTime closest_utctime;
-      long long closest_diff = 0;
-      bool found = false;
-    };
-    std::map<int, FmisidRange> ranges;
-
-    for (const auto *obs : sorted_obs)
-    {
-      const int fmisid = obs->data.fmisid;
-      if (!fmisid_to_station.count(fmisid))
-        continue;
-      const Fmi::DateTime &utctime = obs->data.data_time;
-      auto &rng = ranges[fmisid];
-      const auto diff = std::abs((utctime - *settings.wantedtime).total_seconds());
-      if (!rng.found)
-      {
-        rng.first_utctime = utctime;
-        rng.closest_utctime = utctime;
-        rng.closest_diff = diff;
-        rng.found = true;
-      }
-      else if (diff < rng.closest_diff)
-      {
-        rng.closest_diff = diff;
-        rng.closest_utctime = utctime;
-      }
-      rng.last_utctime = utctime;
-    }
-
-    for (const auto &kv : ranges)
-    {
-      const int fmisid = kv.first;
-      const auto &rng = kv.second;
-      const auto tz = (settings.timezone == "localtime")
-                          ? timezones.time_zone_from_string(fmisid_to_station.at(fmisid).timezone)
-                          : timezones.time_zone_from_string(settings.timezone);
-      Fmi::DateTime winner;
-      if (*settings.wantedtime <= settings.starttime)
-        winner = rng.first_utctime;
-      else if (*settings.wantedtime >= settings.endtime)
-        winner = rng.last_utctime;
-      else
-        winner = rng.closest_utctime;
-      result[fmisid].insert(Fmi::LocalDateTime(winner, tz));
-    }
-    return result;
-  }
+    return computeWantedTimestepsSorted(sorted_obs, settings, timezones, fmisid_to_station);
 
   // Cases 1 and 3: scan data timestamps
+  std::map<int, std::set<Fmi::LocalDateTime>> result;
   auto current_tz_name = settings.timezone;
   auto current_tz = timezones.time_zone_from_string(current_tz_name);
   int prev_fmisid = -1;
@@ -552,7 +635,432 @@ std::map<int, std::set<Fmi::LocalDateTime>> computeValidTimestepsSorted(
   return result;
 }
 
+// Case 2 of getValidTimeSteps: find the single closest timestamp per fmisid in already-built
+// time series vectors.
+TimestepsByFMISID collectWantedTimesteps(const std::map<int, TS::TimeSeriesVectorPtr> &fmisid_results,
+                                          const Settings &settings)
+{
+  TimestepsByFMISID fmisid_timesteps;
+  for (const auto &item : fmisid_results)
+  {
+    const int fmisid = item.first;
+    const auto &ts_vector = *item.second;
+    for (const auto &series : ts_vector)
+    {
+      if (series.empty())
+        continue;
+      if (series.size() == 1 || *settings.wantedtime <= settings.starttime)
+      {
+        fmisid_timesteps[fmisid].insert(series.front().time);
+        continue;
+      }
+      if (*settings.wantedtime >= settings.endtime)
+      {
+        fmisid_timesteps[fmisid].insert(series.back().time);
+        continue;
+      }
+      // Find the closest timestamp to wantedtime
+      auto best_time = series.front().time;
+      auto best_diff = std::abs((*settings.wantedtime - best_time.utc_time()).total_seconds());
+      for (const auto &tv : series)
+      {
+        const auto diff = std::abs((*settings.wantedtime - tv.time.utc_time()).total_seconds());
+        if (diff < best_diff)
+        {
+          best_diff = diff;
+          best_time = tv.time;
+        }
+      }
+      fmisid_timesteps[fmisid].insert(best_time);
+    }
+  }
+  return fmisid_timesteps;
+}
+
+using GroupData = std::unordered_map<int, SensorData>;
+
+// Collect all observations at a single (fmisid, data_time) into a measurand_id → sensor_no → value map.
+// Advances 'it' past the consumed observations.
+GroupData collectGroupData(std::vector<const LocationDataItem *>::const_iterator &it,
+                           std::vector<const LocationDataItem *>::const_iterator end,
+                           int grp_fmisid,
+                           const Fmi::DateTime &grp_utctime,
+                           bool isWeatherDataQCTable)
+{
+  GroupData group_data;
+  while (it != end && (*it)->data.fmisid == grp_fmisid && (*it)->data.data_time == grp_utctime)
+  {
+    const auto &obs = **it;
+    const bool is_default = isWeatherDataQCTable ? (obs.data.sensor_no == 1)
+                                                 : (obs.data.measurand_no == 1);
+    const auto value = (obs.data.data_value ? TS::Value(*obs.data.data_value) : TS::None());
+    TS::Value dq;
+    if (isWeatherDataQCTable)
+      dq = obs.data.data_quality ? TS::Value(obs.data.data_quality) : TS::None();
+    else
+      dq = TS::Value(obs.data.data_quality);
+    TS::Value ds;
+    if (isWeatherDataQCTable)
+      ds = TS::None();
+    else
+      ds = obs.data.data_source > -1 ? TS::Value(obs.data.data_source) : TS::None();
+
+    group_data[obs.data.measurand_id][obs.data.sensor_no] = DataWithQuality(value, dq, ds, is_default);
+    if (!isWeatherDataQCTable)
+    {
+      group_data[LONGITUDE_MEASURAND_ID][obs.data.sensor_no] =
+          DataWithQuality(TS::Value(obs.longitude), dq, ds, is_default);
+      group_data[LATITUDE_MEASURAND_ID][obs.data.sensor_no] =
+          DataWithQuality(TS::Value(obs.latitude), dq, ds, is_default);
+      group_data[ELEVATION_MEASURAND_ID][obs.data.sensor_no] =
+          DataWithQuality(TS::Value(obs.elevation), dq, ds, is_default);
+    }
+    ++it;
+  }
+  return group_data;
+}
+
+// Emit all regular (non-special) parameters for a single (fmisid, timestep) group.
+void emitRegularParams(const PrecomputedParams &procParams,
+                       const GroupData &group_data,
+                       const Fmi::LocalDateTime &ldt,
+                       TS::TimeSeriesVectorPtr &resultVector)
+{
+  for (const auto &rp : procParams.regular)
+  {
+    TS::Value val = TS::None();
+    const auto mit = group_data.find(rp.measurand_id);
+    if (mit != group_data.end())
+    {
+      if (rp.sensor_no < 0)
+        val = get_default_sensor_value(mit->second);
+      else
+      {
+        const auto sit = mit->second.find(rp.sensor_no);
+        val = (sit != mit->second.end()) ? sit->second.value : TS::None();
+      }
+    }
+    resultVector->at(rp.output_pos).emplace_back(TS::TimedValue(ldt, val));
+  }
+}
+
+// Compute cloud ceiling value (in meters, feet, or hundreds-of-feet) from group data.
+TS::Value computeCloudCeiling(const SpecialParamEntry &sp, const GroupData &group_data)
+{
+  for (int i = 0; i < 5; i++)
+  {
+    const auto cla_it = group_data.find(sp.cla_mids[i]);
+    const auto clhb_it = group_data.find(sp.clhb_mids[i]);
+    if (cla_it != group_data.end() && clhb_it != group_data.end())
+    {
+      double cla_val = std::get<double>(get_default_sensor_value(cla_it->second));
+      double clhb_val = std::get<double>(get_default_sensor_value(clhb_it->second));
+      if (cla_val >= 5 && cla_val <= 9)
+      {
+        if (sp.kind == SpecialParamEntry::Kind::CloudCeilingFt)
+          clhb_val *= 3.28;
+        else if (sp.kind == SpecialParamEntry::Kind::CloudCeilingHFt)
+          clhb_val *= 0.0328;
+        return clhb_val;
+      }
+    }
+  }
+  return TS::None();
+}
+
+// Convert a wind direction value to a wind compass string (8-, 16-, or 32-point rose).
+std::string windCompassString(SpecialParamEntry::Kind kind,
+                              double wd,
+                              const std::string &missingtext)
+{
+  if (kind == SpecialParamEntry::Kind::WindCompass8)
+    return windCompass8(wd, missingtext);
+  if (kind == SpecialParamEntry::Kind::WindCompass16)
+    return windCompass16(wd, missingtext);
+  return windCompass32(wd, missingtext);
+}
+
+// Resolve the data_source value for a DataSource special parameter entry.
+TS::Value dataSourceValue(const SpecialParamEntry &sp, const GroupData &group_data)
+{
+  if (sp.measurand_id <= 0)
+    return TS::None();
+  const auto mit = group_data.find(sp.measurand_id);
+  if (mit == group_data.end())
+    return TS::None();
+  return get_sensor_value(mit->second, sp.sensor_number, DataFieldSpecifier::DataSource);
+}
+
+// Resolve the data_quality value for a DataQuality entry ("last match wins").
+TS::Value dataQualityValue(const SpecialParamEntry &sp,
+                           const GroupData &group_data,
+                           const PrecomputedParams &procParams)
+{
+  TS::Value val = TS::None();
+  for (const int mid : procParams.all_quality_measurand_ids)
+  {
+    const auto mit = group_data.find(mid);
+    if (mit != group_data.end())
+      val = get_sensor_value(mit->second, sp.sensor_number, DataFieldSpecifier::DataQuality);
+  }
+  return val;
+}
+
+// Emit a single special parameter entry (one switch-case dispatch + try/catch).
+void emitSpecialParam(const SpecialParamEntry &sp,
+                      const Fmi::LocalDateTime &ldt,
+                      const GroupData &group_data,
+                      const PrecomputedParams &procParams,
+                      const SpecialParameters::Args &args,
+                      const Settings &settings,
+                      const Spine::Station &station,
+                      TS::TimeSeriesVectorPtr &resultVector)
+{
+  const int pos = sp.output_pos;
+  const TS::Value missing = TS::None();
+  try
+  {
+    switch (sp.kind)
+    {
+    case SpecialParamEntry::Kind::Longitude:
+    {
+      const auto mit = group_data.find(LONGITUDE_MEASURAND_ID);
+      const TS::Value val = (mit != group_data.end()) ? get_default_sensor_value(mit->second) : missing;
+      resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
+      break;
+    }
+    case SpecialParamEntry::Kind::Latitude:
+    {
+      const auto mit = group_data.find(LATITUDE_MEASURAND_ID);
+      const TS::Value val = (mit != group_data.end()) ? get_default_sensor_value(mit->second) : missing;
+      resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
+      break;
+    }
+    case SpecialParamEntry::Kind::Elevation:
+    {
+      const auto mit = group_data.find(ELEVATION_MEASURAND_ID);
+      const TS::Value val = (mit != group_data.end()) ? get_default_sensor_value(mit->second) : missing;
+      resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
+      break;
+    }
+    case SpecialParamEntry::Kind::WindCompass8:
+    case SpecialParamEntry::Kind::WindCompass16:
+    case SpecialParamEntry::Kind::WindCompass32:
+    {
+      const auto mit = group_data.find(sp.mid1);
+      const TS::Value val = (mit != group_data.end()) ? get_default_sensor_value(mit->second) : missing;
+      const TS::Value result =
+          (val == TS::None())
+              ? missing
+              : TS::Value(windCompassString(sp.kind, std::get<double>(val), settings.missingtext));
+      resultVector->at(pos).emplace_back(TS::TimedValue(ldt, result));
+      break;
+    }
+    case SpecialParamEntry::Kind::FeelsLike:
+    {
+      const auto wit = group_data.find(sp.mid1);  // windspeedms
+      const auto rit = group_data.find(sp.mid2);  // relativehumidity
+      const auto tit = group_data.find(sp.mid3);  // temperature
+      if (wit == group_data.end() || rit == group_data.end() || tit == group_data.end())
+      {
+        resultVector->at(pos).emplace_back(TS::TimedValue(ldt, missing));
+      }
+      else
+      {
+        const float wind = std::get<double>(get_default_sensor_value(wit->second));
+        const float rh = std::get<double>(get_default_sensor_value(rit->second));
+        const float temp = std::get<double>(get_default_sensor_value(tit->second));
+        resultVector->at(pos).emplace_back(
+            TS::TimedValue(ldt, TS::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing))));
+      }
+      break;
+    }
+    case SpecialParamEntry::Kind::SmartSymbol:
+    {
+      const auto wit = group_data.find(sp.mid1);  // wawa
+      const auto cit = group_data.find(sp.mid2);  // totalcloudcover
+      const auto tit = group_data.find(sp.mid3);  // temperature
+      if (wit == group_data.end() || cit == group_data.end() || tit == group_data.end())
+      {
+        resultVector->at(pos).emplace_back(TS::TimedValue(ldt, missing));
+      }
+      else
+      {
+        const int wawa = static_cast<int>(std::get<double>(get_default_sensor_value(wit->second)));
+        const int totalcc = static_cast<int>(std::get<double>(get_default_sensor_value(cit->second)));
+        const float temp = std::get<double>(get_default_sensor_value(tit->second));
+        const auto value =
+            calcSmartsymbolNumber(wawa, totalcc, temp, ldt, station.latitude, station.longitude);
+        if (!value)
+          resultVector->at(pos).emplace_back(TS::TimedValue(ldt, missing));
+        else
+          resultVector->at(pos).emplace_back(TS::TimedValue(ldt, TS::Value(*value)));
+      }
+      break;
+    }
+    case SpecialParamEntry::Kind::CloudCeiling:
+    case SpecialParamEntry::Kind::CloudCeilingFt:
+    case SpecialParamEntry::Kind::CloudCeilingHFt:
+      resultVector->at(pos).emplace_back(TS::TimedValue(ldt, computeCloudCeiling(sp, group_data)));
+      break;
+    case SpecialParamEntry::Kind::DataSource:
+      resultVector->at(pos).emplace_back(TS::TimedValue(ldt, dataSourceValue(sp, group_data)));
+      break;
+    case SpecialParamEntry::Kind::DataQuality:
+      // Replicate "last match wins" behavior of addSpecialFieldsToTimeSeries
+      resultVector->at(pos).emplace_back(
+          TS::TimedValue(ldt, dataQualityValue(sp, group_data, procParams)));
+      break;
+    default:  // Kind::Other
+      addSpecialParameterToTimeSeries(sp.name, resultVector, pos, args);
+      break;
+    }
+  }
+  catch (...)
+  {
+    resultVector->at(pos).emplace_back(TS::TimedValue(ldt, missing));
+  }
+}
+
+// Advance iterator past all observations for the given fmisid.
+void skipFmisidGroup(std::vector<const LocationDataItem *>::const_iterator &it,
+                     std::vector<const LocationDataItem *>::const_iterator end,
+                     int fmisid)
+{
+  while (it != end && (*it)->data.fmisid == fmisid)
+    ++it;
+}
+
+// Finalize a completed station: fills resultVector into timeSeriesColumns for the station's valid
+// timesteps. Returns timeSeriesColumns if the caller should early-return (no data yet), else nullptr.
+// No-op (returns nullptr) when station is nullptr.
+TS::TimeSeriesVectorPtr tryFinalizeStation(int fmisid,
+                                           const TimestepsByFMISID &fmisid_valid_timesteps,
+                                           const std::map<int, std::string> &continuous,
+                                           const Spine::Station *station,
+                                           const std::string &stationtype,
+                                           const Settings &settings,
+                                           TS::TimeSeriesVectorPtr &resultVector,
+                                           TS::TimeSeriesVectorPtr &timeSeriesColumns)
+{
+  if (!station)
+    return nullptr;
+  const auto ts_it = fmisid_valid_timesteps.find(fmisid);
+  if (ts_it == fmisid_valid_timesteps.end())
+    return nullptr;
+  if (resultVector->empty() || resultVector->at(0).empty())
+    return timeSeriesColumns;
+  fillMissingTimesteps(
+      resultVector, timeSeriesColumns, ts_it->second, continuous, *station, stationtype, settings);
+  return nullptr;
+}
+
+// Process a single (fmisid, utc_time) observation group: collect measurand data and emit all
+// parameters. Advances 'it' past consumed observations. Skips if ldt is not in valid_timesteps.
+void processObservationGroup(std::vector<const LocationDataItem *>::const_iterator &it,
+                             std::vector<const LocationDataItem *>::const_iterator end,
+                             int grp_fmisid,
+                             const Fmi::DateTime &grp_utctime,
+                             const Fmi::LocalDateTime &ldt,
+                             const std::set<Fmi::LocalDateTime> &valid_timesteps,
+                             bool isWeatherDataQCTable,
+                             const PrecomputedParams &procParams,
+                             const Spine::Station &station,
+                             const std::string &stationtype,
+                             const Settings &settings,
+                             TS::TimeSeriesVectorPtr &resultVector)
+{
+  auto group_data = collectGroupData(it, end, grp_fmisid, grp_utctime, isWeatherDataQCTable);
+  if (valid_timesteps.find(ldt) == valid_timesteps.end())
+    return;
+  emitRegularParams(procParams, group_data, ldt, resultVector);
+  const Fmi::LocalDateTime now(Fmi::SecondClock::universal_time(), ldt.zone());
+  const SpecialParameters::Args args(station, stationtype, ldt, now, settings.timezone, &settings);
+  for (const auto &sp : procParams.special)
+    emitSpecialParam(sp, ldt, group_data, procParams, args, settings, station, resultVector);
+}
+
 }  // namespace
+
+void DBQueryUtils::addDependentMeasurandIds(QueryMapping &ret,
+                                            const std::string &name,
+                                            const std::string &stationtype) const
+{
+  auto push = [&](const char *pname)
+  { ret.measurandIds.push_back(Fmi::stoi(itsParameterMap->getParameter(pname, stationtype))); };
+
+  if (name.find("windcompass") != std::string::npos)
+  {
+    push("winddirection");
+  }
+  else if (name.find("feelslike") != std::string::npos)
+  {
+    push("windspeedms");
+    push("relativehumidity");
+    push("temperature");
+  }
+  else if (name.find("smartsymbol") != std::string::npos)
+  {
+    push("wawa");
+    push("totalcloudcover");
+    push("temperature");
+  }
+  else if (name.find("cloudceiling") != std::string::npos)
+  {
+    // cloudceiling, cloudceilingft and cloudceilinghft all share the same source measurands
+    for (const char *pname :
+         {"cla1_pt1m_acc", "cla2_pt1m_acc", "cla3_pt1m_acc", "cla4_pt1m_acc", "cla5_pt1m_acc",
+          "clhb1_pt1m_instant", "clhb2_pt1m_instant", "clhb3_pt1m_instant", "clhb4_pt1m_instant",
+          "clh5_pt1m_instant"})
+      push(pname);
+  }
+}
+
+void DBQueryUtils::processRegularParam(const Spine::Parameter &p,
+                                       std::string name,  // by value: removePrefix mutates it
+                                       const std::string &stationtype,
+                                       bool isWeatherDataQCTable,
+                                       unsigned pos,
+                                       QueryMapping &ret,
+                                       std::set<int> &mids) const
+{
+  bool isDataQualityField = removePrefix(name, "qc_");
+  if (!isDataQualityField)
+    isDataQualityField = (p.getSensorParameter() == "qc");
+
+  const std::string sensor_number_string =
+      (p.getSensorNumber() ? Fmi::to_string(*(p.getSensorNumber())) : "default");
+  std::string name_plus_sensor_number = name;
+  if (isDataQualityField)
+    name_plus_sensor_number += "_data_quality";
+  name_plus_sensor_number += ("_sensornumber_" + sensor_number_string);
+
+  if (isDataQualityField || is_data_source_field(name_plus_sensor_number))
+  {
+    ret.specialPositions[name_plus_sensor_number] = pos;
+    return;
+  }
+
+  const auto sparam = itsParameterMap->getParameter(name, stationtype);
+  if (sparam.empty())
+    throw Fmi::Exception::Trace(
+        BCP, "Parameter " + name + " for stationtype " + stationtype + " not found!");
+
+  const int nparam = isWeatherDataQCTable
+                         ? itsParameterMap->getRoadAndForeignIds().stringToInteger(sparam, stationtype)
+                         : Fmi::stoi(sparam);
+
+  ret.timeseriesPositionsString[name_plus_sensor_number] = pos;
+  ret.parameterNameMap[name_plus_sensor_number] = sparam;
+  ret.parameterNameIdMap[name_plus_sensor_number] = nparam;
+  ret.paramVector.push_back(nparam);
+  if (mids.find(nparam) == mids.end())
+    ret.measurandIds.push_back(nparam);
+  // -1 indicates default sensor
+  const int sensor_number = (p.getSensorNumber() ? *(p.getSensorNumber()) : -1);
+  ret.sensorNumberToMeasurandIds[sensor_number].insert(nparam);
+  mids.insert(nparam);
+}
 
 QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
                                              const std::string &stationtype,
@@ -561,141 +1069,21 @@ QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
   try
   {
     QueryMapping ret;
-
     unsigned int pos = 0;
     std::set<int> mids;
+
     for (const Spine::Parameter &p : settings.parameters)
     {
       std::string name = p.name();
       Fmi::ascii_tolower(name);
 
       if (not_special(p))
-      {
-        bool isDataQualityField = removePrefix(name, "qc_");
-        if (!isDataQualityField)
-          isDataQualityField = (p.getSensorParameter() == "qc");
-
-        std::string sensor_number_string =
-            (p.getSensorNumber() ? Fmi::to_string(*(p.getSensorNumber())) : "default");
-        std::string name_plus_sensor_number = name;
-        if (isDataQualityField)
-          name_plus_sensor_number += "_data_quality";
-        name_plus_sensor_number += ("_sensornumber_" + sensor_number_string);
-        bool isDataSourceField = is_data_source_field(name_plus_sensor_number);
-
-        if (isDataQualityField || isDataSourceField)
-        {
-          ret.specialPositions[name_plus_sensor_number] = pos;
-        }
-        else
-        {
-          auto sparam = itsParameterMap->getParameter(name, stationtype);
-
-          if (!sparam.empty())
-          {
-            int nparam =
-                (!isWeatherDataQCTable ? Fmi::stoi(sparam)
-                                       : itsParameterMap->getRoadAndForeignIds().stringToInteger(
-                                             sparam, stationtype));
-
-            ret.timeseriesPositionsString[name_plus_sensor_number] = pos;
-            ret.parameterNameMap[name_plus_sensor_number] = sparam;
-            ret.parameterNameIdMap[name_plus_sensor_number] = nparam;
-            ret.paramVector.push_back(nparam);
-            if (mids.find(nparam) == mids.end())
-              ret.measurandIds.push_back(nparam);
-            int sensor_number = (p.getSensorNumber() ? *(p.getSensorNumber()) : -1);
-            // -1 indicates default sensor
-            ret.sensorNumberToMeasurandIds[sensor_number].insert(nparam);
-            mids.insert(nparam);
-          }
-          else
-          {
-            // Note: settings.stationtype may have been converted to a generic narrow table producer
-            // into the stationtype variable, but the original requested type is still in the
-            // settings.
-            throw Fmi::Exception::Trace(
-                BCP,
-                "Parameter " + name + " for stationtype " + settings.stationtype + " not found!");
-          }
-        }
-      }
+        processRegularParam(p, name, stationtype, isWeatherDataQCTable, pos, ret, mids);
       else
       {
-        if (name.find("windcompass") != std::string::npos)
-        {
-          if (!isWeatherDataQCTable)
-          {
-            auto nparam = Fmi::stoi(itsParameterMap->getParameter("winddirection", stationtype));
-            ret.measurandIds.push_back(nparam);
-          }
-          ret.specialPositions[name] = pos;
-        }
-        else if (name.find("feelslike") != std::string::npos)
-        {
-          if (!isWeatherDataQCTable)
-          {
-            auto nparam1 = Fmi::stoi(itsParameterMap->getParameter("windspeedms", stationtype));
-            auto nparam2 =
-                Fmi::stoi(itsParameterMap->getParameter("relativehumidity", stationtype));
-            auto nparam3 = Fmi::stoi(itsParameterMap->getParameter("temperature", stationtype));
-            ret.measurandIds.push_back(nparam1);
-            ret.measurandIds.push_back(nparam2);
-            ret.measurandIds.push_back(nparam3);
-          }
-          ret.specialPositions[name] = pos;
-        }
-        else if (name.find("smartsymbol") != std::string::npos)
-        {
-          if (!isWeatherDataQCTable)
-          {
-            auto nparam1 = Fmi::stoi(itsParameterMap->getParameter("wawa", stationtype));
-            auto nparam2 = Fmi::stoi(itsParameterMap->getParameter("totalcloudcover", stationtype));
-            auto nparam3 = Fmi::stoi(itsParameterMap->getParameter("temperature", stationtype));
-            ret.measurandIds.push_back(nparam1);
-            ret.measurandIds.push_back(nparam2);
-            ret.measurandIds.push_back(nparam3);
-          }
-          ret.specialPositions[name] = pos;
-        }
-        else if (name.find("cloudceiling") != std::string::npos ||
-                 name.find("cloudceilingft") != std::string::npos ||
-                 name.find("cloudceilinghft") != std::string::npos)
-        {
-          if (!isWeatherDataQCTable)
-          {
-            auto nparam1 = Fmi::stoi(itsParameterMap->getParameter("cla1_pt1m_acc", stationtype));
-            auto nparam2 = Fmi::stoi(itsParameterMap->getParameter("cla2_pt1m_acc", stationtype));
-            auto nparam3 = Fmi::stoi(itsParameterMap->getParameter("cla3_pt1m_acc", stationtype));
-            auto nparam4 = Fmi::stoi(itsParameterMap->getParameter("cla4_pt1m_acc", stationtype));
-            auto nparam5 = Fmi::stoi(itsParameterMap->getParameter("cla5_pt1m_acc", stationtype));
-            auto nparam6 =
-                Fmi::stoi(itsParameterMap->getParameter("clhb1_pt1m_instant", stationtype));
-            auto nparam7 =
-                Fmi::stoi(itsParameterMap->getParameter("clhb2_pt1m_instant", stationtype));
-            auto nparam8 =
-                Fmi::stoi(itsParameterMap->getParameter("clhb3_pt1m_instant", stationtype));
-            auto nparam9 =
-                Fmi::stoi(itsParameterMap->getParameter("clhb4_pt1m_instant", stationtype));
-            auto nparam10 =
-                Fmi::stoi(itsParameterMap->getParameter("clh5_pt1m_instant", stationtype));
-            ret.measurandIds.push_back(nparam1);
-            ret.measurandIds.push_back(nparam2);
-            ret.measurandIds.push_back(nparam3);
-            ret.measurandIds.push_back(nparam4);
-            ret.measurandIds.push_back(nparam5);
-            ret.measurandIds.push_back(nparam6);
-            ret.measurandIds.push_back(nparam7);
-            ret.measurandIds.push_back(nparam8);
-            ret.measurandIds.push_back(nparam9);
-            ret.measurandIds.push_back(nparam10);
-          }
-          ret.specialPositions[name] = pos;
-        }
-        else
-        {
-          ret.specialPositions[name] = pos;
-        }
+        if (!isWeatherDataQCTable)
+          addDependentMeasurandIds(ret, name, stationtype);
+        ret.specialPositions[name] = pos;
       }
       pos++;
     }
@@ -719,94 +1107,20 @@ TimestepsByFMISID DBQueryUtils::getValidTimeSteps(
   std::map<int, std::set<Fmi::LocalDateTime>> fmisid_timesteps;
 
   if (timeSeriesOptions.all() && !settings.wantedtime)
-  {
-    // std::cout << "**** ALL timesteps in data \n";
-    // All timesteps
-    for (const auto &item : fmisid_results)
-    {
-      int fmisid = item.first;
-      const auto &ts_vector = *item.second;
-      for (const auto &item2 : ts_vector)
-        for (const auto &item3 : item2)
-        {
-          fmisid_timesteps[fmisid].insert(item3.time);
-        }
-    }
-  }
-  else if (settings.wantedtime)
-  {
-    // std::cout << "**** WANTED timestep\n";
+    return collectAllDataTimesteps(fmisid_results);
 
-    for (const auto &item : fmisid_results)
-    {
-      int fmisid = item.first;
-      const auto &ts_vector = *item.second;
-      for (const auto &item2 : ts_vector)
-      {
-        if (item2.size() == 1 ||
-            *settings.wantedtime <= settings.starttime)  // quick select for earliest time
-          fmisid_timesteps[fmisid].insert(item2.front().time);
-        else if (*settings.wantedtime >= settings.endtime)  // quick select for latest time
-          fmisid_timesteps[fmisid].insert(item2.back().time);
-        else
-        {
-          // Find closest time
-          auto best_time = item2.front().time;
-          auto best_diff = std::abs((*settings.wantedtime - best_time.utc_time()).total_seconds());
-          for (const auto &item3 : item2)
-          {
-            auto diff = std::abs((*settings.wantedtime - item3.time.utc_time()).total_seconds());
-            if (diff < best_diff)
-            {
-              best_diff = diff;
-              best_time = item3.time;
-            }
-          }
-          fmisid_timesteps[fmisid].insert(best_time);
-        }
-      }
-    }
-  }
-  else if (!timeSeriesOptions.all() && !settings.wantedtime &&
-           itsGetRequestedAndDataTimesteps == AdditionalTimestepOption::RequestedAndDataTimesteps)
-  {
-    // std::cout << "**** ALL timesteps in data + listed timesteps\n";
-    // All FMISDS must have all timesteps in data and all listed timesteps
-    std::set<int> fmisids;
-    std::set<Fmi::LocalDateTime> timesteps;
-    for (const auto &item : fmisid_results)
-    {
-      int fmisid = item.first;
-      fmisids.insert(fmisid);
-      const auto &ts_vector = *item.second;
-      for (const auto &item2 : ts_vector)
-        for (const auto &item3 : item2)
-        {
-          timesteps.insert(item3.time);
-        }
-    }
+  if (settings.wantedtime)
+    return collectWantedTimesteps(fmisid_results, settings);
 
-    const auto tlist = TS::TimeSeriesGenerator::generate(
-        timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+  if (!timeSeriesOptions.all() && !settings.wantedtime &&
+      itsGetRequestedAndDataTimesteps == AdditionalTimestepOption::RequestedAndDataTimesteps)
+    return collectDataAndListedTimesteps(fmisid_results, timeSeriesOptions, timezones, settings);
 
-    timesteps.insert(tlist.begin(), tlist.end());
-
-    for (const auto &fmisid : fmisids)
-      fmisid_timesteps[fmisid].insert(timesteps.begin(), timesteps.end());
-  }
-  else
-  {
-    //	  std::cout << "**** LISTED timesteps\n";
-    // Listed timesteps
-    const auto tlist = TS::TimeSeriesGenerator::generate(
-        timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
-
-    for (const auto &item : fmisid_results)
-    {
-      int fmisid = item.first;
-      fmisid_timesteps[fmisid].insert(tlist.begin(), tlist.end());
-    }
-  }
+  // Listed timesteps only
+  const auto tlist = TS::TimeSeriesGenerator::generate(
+      timeSeriesOptions, timezones.time_zone_from_string(settings.timezone));
+  for (const auto &item : fmisid_results)
+    fmisid_timesteps[item.first].insert(tlist.begin(), tlist.end());
 
   return fmisid_timesteps;
 }
@@ -963,28 +1277,15 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeSeriesFromObservations(
       if (grp_fmisid != current_fmisid)
       {
         // Finalize the previous station's time series
-        if (current_station)
-        {
-          auto ts_it = fmisid_valid_timesteps.find(current_fmisid);
-          if (ts_it != fmisid_valid_timesteps.end())
-          {
-            if (resultVector->empty() || resultVector->at(0).empty())
-              return timeSeriesColumns;
-            fillMissingTimesteps(resultVector,
-                                 timeSeriesColumns,
-                                 ts_it->second,
-                                 continuous,
-                                 *current_station,
-                                 stationtype,
-                                 settings);
-          }
-        }
+        if (auto result = tryFinalizeStation(current_fmisid, fmisid_valid_timesteps, continuous,
+                                             current_station, stationtype, settings,
+                                             resultVector, timeSeriesColumns))
+          return result;
 
         // Skip stations not in fmisid_to_station (unknown stations)
         if (fmisid_to_station.find(grp_fmisid) == fmisid_to_station.end())
         {
-          while (it != sorted_obs.cend() && (*it)->data.fmisid == grp_fmisid)
-            ++it;
+          skipFmisidGroup(it, sorted_obs.cend(), grp_fmisid);
           current_fmisid = grp_fmisid;
           current_station = nullptr;
           continue;
@@ -994,14 +1295,10 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeSeriesFromObservations(
         current_station = &fmisid_to_station.at(grp_fmisid);
 
         // Update timezone for new station (same lazy logic as buildStationTimedMeasurandData)
-        if (settings.timezone == "localtime")
+        if (settings.timezone == "localtime" && current_station->timezone != current_tz_name)
         {
-          const auto &tz_name = current_station->timezone;
-          if (tz_name != current_tz_name)
-          {
-            current_tz_name = tz_name;
-            current_tz = timezones.time_zone_from_string(current_tz_name);
-          }
+          current_tz_name = current_station->timezone;
+          current_tz = timezones.time_zone_from_string(current_tz_name);
         }
       }
 
@@ -1014,275 +1311,23 @@ TS::TimeSeriesVectorPtr DBQueryUtils::buildTimeSeriesFromObservations(
       const auto ts_it = fmisid_valid_timesteps.find(grp_fmisid);
       if (ts_it == fmisid_valid_timesteps.end())
       {
-        // Skip all observations for this fmisid
-        while (it != sorted_obs.cend() && (*it)->data.fmisid == grp_fmisid)
-          ++it;
+        skipFmisidGroup(it, sorted_obs.cend(), grp_fmisid);
         continue;
       }
 
-      // Convert UTC time to LocalDateTime ONCE per (fmisid, utc_time) group
-      Fmi::LocalDateTime ldt(grp_utctime, current_tz);
-
-      // Collect this group's observations into a temporary unordered_map (O(1) lookups)
-      std::unordered_map<int, SensorData> group_data;
-      while (it != sorted_obs.cend() && (*it)->data.fmisid == grp_fmisid &&
-             (*it)->data.data_time == grp_utctime)
-      {
-        const auto &obs = **it;
-        // QC path: default sensor is determined by sensor_no==1, quality is None when 0,
-        // data_source is not available, and lon/lat/elev are not stored in group_data.
-        const bool is_default = isWeatherDataQCTable ? (obs.data.sensor_no == 1)
-                                                     : (obs.data.measurand_no == 1);
-        const auto value = (obs.data.data_value ? TS::Value(*obs.data.data_value) : TS::None());
-        const TS::Value dq = isWeatherDataQCTable
-                                 ? (obs.data.data_quality ? TS::Value(obs.data.data_quality)
-                                                          : TS::None())
-                                 : TS::Value(obs.data.data_quality);
-        const TS::Value ds = isWeatherDataQCTable
-                                 ? TS::None()
-                                 : (obs.data.data_source > -1 ? TS::Value(obs.data.data_source)
-                                                              : TS::None());
-
-        group_data[obs.data.measurand_id][obs.data.sensor_no] = DataWithQuality(value, dq, ds, is_default);
-        if (!isWeatherDataQCTable)
-        {
-          group_data[LONGITUDE_MEASURAND_ID][obs.data.sensor_no] =
-              DataWithQuality(TS::Value(obs.longitude), dq, ds, is_default);
-          group_data[LATITUDE_MEASURAND_ID][obs.data.sensor_no] =
-              DataWithQuality(TS::Value(obs.latitude), dq, ds, is_default);
-          group_data[ELEVATION_MEASURAND_ID][obs.data.sensor_no] =
-              DataWithQuality(TS::Value(obs.elevation), dq, ds, is_default);
-        }
-        ++it;
-      }
-
-      // Skip groups not in the valid timestep set
-      if (ts_it->second.find(ldt) == ts_it->second.end())
-        continue;
-
-      // Emit regular parameters (pre-computed vector, no string map lookups)
-      for (const auto &rp : procParams.regular)
-      {
-        TS::Value val = TS::None();
-        const auto mit = group_data.find(rp.measurand_id);
-        if (mit != group_data.end())
-        {
-          if (rp.sensor_no < 0)
-            val = get_default_sensor_value(mit->second);
-          else
-          {
-            const auto sit = mit->second.find(rp.sensor_no);
-            val = (sit != mit->second.end()) ? sit->second.value : TS::None();
-          }
-        }
-        resultVector->at(rp.output_pos).emplace_back(TS::TimedValue(ldt, val));
-      }
-
-      // Emit special parameters (pre-computed kinds and measurand IDs)
-      const Fmi::LocalDateTime now(Fmi::SecondClock::universal_time(), ldt.zone());
-      const SpecialParameters::Args args(
-          *current_station, stationtype, ldt, now, settings.timezone, &settings);
-      const TS::Value missing = TS::None();
-
-      for (const auto &sp : procParams.special)
-      {
-        const int pos = sp.output_pos;
-        try
-        {
-          switch (sp.kind)
-          {
-          case SpecialParamEntry::Kind::Longitude:
-          {
-            const auto mit = group_data.find(LONGITUDE_MEASURAND_ID);
-            const TS::Value val =
-                (mit != group_data.end())
-                    ? get_default_sensor_value(mit->second)
-                    : missing;
-            resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
-            break;
-          }
-          case SpecialParamEntry::Kind::Latitude:
-          {
-            const auto mit = group_data.find(LATITUDE_MEASURAND_ID);
-            const TS::Value val =
-                (mit != group_data.end())
-                    ? get_default_sensor_value(mit->second)
-                    : missing;
-            resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
-            break;
-          }
-          case SpecialParamEntry::Kind::Elevation:
-          {
-            const auto mit = group_data.find(ELEVATION_MEASURAND_ID);
-            const TS::Value val =
-                (mit != group_data.end())
-                    ? get_default_sensor_value(mit->second)
-                    : missing;
-            resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
-            break;
-          }
-          case SpecialParamEntry::Kind::WindCompass8:
-          case SpecialParamEntry::Kind::WindCompass16:
-          case SpecialParamEntry::Kind::WindCompass32:
-          {
-            const auto mit = group_data.find(sp.mid1);
-            if (mit == group_data.end())
-            {
-              resultVector->at(pos).emplace_back(TS::TimedValue(ldt, missing));
-            }
-            else
-            {
-              const TS::Value val = get_default_sensor_value(mit->second);
-              if (val == TS::None())
-              {
-                resultVector->at(pos).emplace_back(TS::TimedValue(ldt, missing));
-              }
-              else
-              {
-                const double wd = std::get<double>(val);
-                std::string compass;
-                if (sp.kind == SpecialParamEntry::Kind::WindCompass8)
-                  compass = windCompass8(wd, settings.missingtext);
-                else if (sp.kind == SpecialParamEntry::Kind::WindCompass16)
-                  compass = windCompass16(wd, settings.missingtext);
-                else
-                  compass = windCompass32(wd, settings.missingtext);
-                resultVector->at(pos).emplace_back(TS::TimedValue(ldt, TS::Value(compass)));
-              }
-            }
-            break;
-          }
-          case SpecialParamEntry::Kind::FeelsLike:
-          {
-            const auto wit = group_data.find(sp.mid1);  // windspeedms
-            const auto rit = group_data.find(sp.mid2);  // relativehumidity
-            const auto tit = group_data.find(sp.mid3);  // temperature
-            if (wit == group_data.end() || rit == group_data.end() || tit == group_data.end())
-            {
-              resultVector->at(pos).emplace_back(TS::TimedValue(ldt, missing));
-            }
-            else
-            {
-              float wind =
-                  std::get<double>(get_default_sensor_value(wit->second));
-              float rh =
-                  std::get<double>(get_default_sensor_value(rit->second));
-              float temp =
-                  std::get<double>(get_default_sensor_value(tit->second));
-              resultVector->at(pos).emplace_back(
-                  TS::TimedValue(ldt, TS::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing))));
-            }
-            break;
-          }
-          case SpecialParamEntry::Kind::SmartSymbol:
-          {
-            const auto wit = group_data.find(sp.mid1);  // wawa
-            const auto cit = group_data.find(sp.mid2);  // totalcloudcover
-            const auto tit = group_data.find(sp.mid3);  // temperature
-            if (wit == group_data.end() || cit == group_data.end() || tit == group_data.end())
-            {
-              resultVector->at(pos).emplace_back(TS::TimedValue(ldt, missing));
-            }
-            else
-            {
-              const int wawa = static_cast<int>(
-                  std::get<double>(get_default_sensor_value(wit->second)));
-              const int totalcc = static_cast<int>(
-                  std::get<double>(get_default_sensor_value(cit->second)));
-              const float temp =
-                  std::get<double>(get_default_sensor_value(tit->second));
-              const auto value = calcSmartsymbolNumber(
-                  wawa, totalcc, temp, ldt, current_station->latitude, current_station->longitude);
-              if (!value)
-                resultVector->at(pos).emplace_back(TS::TimedValue(ldt, missing));
-              else
-                resultVector->at(pos).emplace_back(TS::TimedValue(ldt, TS::Value(*value)));
-            }
-            break;
-          }
-          case SpecialParamEntry::Kind::CloudCeiling:
-          case SpecialParamEntry::Kind::CloudCeilingFt:
-          case SpecialParamEntry::Kind::CloudCeilingHFt:
-          {
-            TS::Value cloudceiling = TS::None();
-            for (int i = 0; i < 5; i++)
-            {
-              const auto cla_it = group_data.find(sp.cla_mids[i]);
-              const auto clhb_it = group_data.find(sp.clhb_mids[i]);
-              if (cla_it != group_data.end() && clhb_it != group_data.end())
-              {
-                double cla_val = std::get<double>(
-                    get_default_sensor_value(cla_it->second));
-                double clhb_val = std::get<double>(
-                    get_default_sensor_value(clhb_it->second));
-                if (cla_val >= 5 && cla_val <= 9)
-                {
-                  if (sp.kind == SpecialParamEntry::Kind::CloudCeilingFt)
-                    clhb_val *= 3.28;
-                  else if (sp.kind == SpecialParamEntry::Kind::CloudCeilingHFt)
-                    clhb_val *= 0.0328;
-                  cloudceiling = clhb_val;
-                  break;
-                }
-              }
-            }
-            resultVector->at(pos).emplace_back(TS::TimedValue(ldt, cloudceiling));
-            break;
-          }
-          case SpecialParamEntry::Kind::DataSource:
-          {
-            TS::Value val = TS::None();
-            if (sp.measurand_id > 0)
-            {
-              const auto mit = group_data.find(sp.measurand_id);
-              if (mit != group_data.end())
-                val = get_sensor_value(mit->second, sp.sensor_number, DataFieldSpecifier::DataSource);
-            }
-            resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
-            break;
-          }
-          case SpecialParamEntry::Kind::DataQuality:
-          {
-            // Replicate "last match wins" behavior of addSpecialFieldsToTimeSeries
-            TS::Value val = TS::None();
-            for (const int mid : procParams.all_quality_measurand_ids)
-            {
-              const auto mit = group_data.find(mid);
-              if (mit != group_data.end())
-                val = get_sensor_value(mit->second, sp.sensor_number, DataFieldSpecifier::DataQuality);
-            }
-            resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
-            break;
-          }
-          default:  // Kind::Other
-            addSpecialParameterToTimeSeries(sp.name, resultVector, pos, args);
-            break;
-          }
-        }
-        catch (...)
-        {
-          resultVector->at(pos).emplace_back(TS::TimedValue(ldt, missing));
-        }
-      }
+      // Convert UTC time to LocalDateTime ONCE per (fmisid, utc_time) group, then collect and
+      // emit all parameters for this (fmisid, utc_time) group (skips if ldt not in valid set).
+      const Fmi::LocalDateTime ldt(grp_utctime, current_tz);
+      processObservationGroup(it, sorted_obs.cend(), grp_fmisid, grp_utctime, ldt,
+                              ts_it->second, isWeatherDataQCTable, procParams,
+                              *current_station, stationtype, settings, resultVector);
     }
 
     // Finalize the last station
-    if (current_station)
-    {
-      const auto ts_it = fmisid_valid_timesteps.find(current_fmisid);
-      if (ts_it != fmisid_valid_timesteps.end())
-      {
-        if (resultVector->empty() || resultVector->at(0).empty())
-          return timeSeriesColumns;
-        fillMissingTimesteps(resultVector,
-                             timeSeriesColumns,
-                             ts_it->second,
-                             continuous,
-                             *current_station,
-                             stationtype,
-                             settings);
-      }
-    }
+    if (auto result = tryFinalizeStation(current_fmisid, fmisid_valid_timesteps, continuous,
+                                         current_station, stationtype, settings,
+                                         resultVector, timeSeriesColumns))
+      return result;
 
     return timeSeriesColumns;
   }

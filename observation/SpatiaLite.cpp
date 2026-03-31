@@ -88,6 +88,97 @@ namespace Engine
 namespace Observation
 {
 using namespace Utils;
+
+namespace
+{
+// Bind and execute a single data item in fillDataCache (factored out to reduce nesting depth).
+void bindDataItem(sqlite3pp::command &cmd,
+                  const DataItem &data,
+                  int data_time,
+                  int modified_last)
+{
+  cmd.bind(":fmisid", data.fmisid);
+  cmd.bind(":sensor_no", data.sensor_no);
+  cmd.bind(":data_time", data_time);
+  cmd.bind(":measurand_id", data.measurand_id);
+  cmd.bind(":producer_id", data.producer_id);
+  cmd.bind(":measurand_no", data.measurand_no);
+  if (data.data_value)
+    cmd.bind(":data_value", *data.data_value);
+  else
+    cmd.bind(":data_value");  // NULL
+  cmd.bind(":data_quality", data.data_quality);
+  if (data.data_source >= 0)
+    cmd.bind(":data_source", data.data_source);
+  else
+    cmd.bind(":data_source");  // NULL
+  cmd.bind(":modified_last", modified_last);
+}
+
+// Build the per-item INSERT SQL and bind+execute it for fillMobileExternalDataCache.
+// Geometry is embedded inline because SQLite geometry parameters require WKT string injection.
+void bindAndExecuteMobileExternalItem(sqlite3pp::database &db,
+                                      const MobileExternalDataItem &item,
+                                      const std::string &tableName,
+                                      const std::string &srid)
+{
+  const std::string obs_location =
+      "GeomFromText('POINT(" + Fmi::to_string("%.10g", item.longitude) + " " +
+      Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
+
+  const std::string sqlStmt =
+      "INSERT OR IGNORE INTO " + tableName +
+      " (prod_id, station_id, dataset_id, data_level, mid, sensor_no,"
+      " data_time, data_value, data_value_txt, data_quality, ctrl_status,"
+      " created, altitude, geom)"
+      " VALUES (:prod_id, :station_id, :dataset_id, :data_level, :mid, :sensor_no,"
+      " :data_time, :data_value, :data_value_txt, :data_quality, :ctrl_status,"
+      " :created, :altitude, " +
+      obs_location + ")";
+
+  sqlite3pp::command cmd(db, sqlStmt.c_str());
+  cmd.bind(":prod_id", item.prod_id);
+  if (item.station_id)
+    cmd.bind(":station_id", *item.station_id);
+  else
+    cmd.bind(":station_id");
+  if (item.dataset_id)
+    cmd.bind(":dataset_id", *item.dataset_id, sqlite3pp::nocopy);
+  else
+    cmd.bind(":dataset_id");
+  if (item.data_level)
+    cmd.bind(":data_level", *item.data_level);
+  else
+    cmd.bind(":data_level");
+  cmd.bind(":mid", item.mid);
+  if (item.sensor_no)
+    cmd.bind(":sensor_no", *item.sensor_no);
+  else
+    cmd.bind(":sensor_no");
+  cmd.bind(":data_time", to_epoch(item.data_time));
+  cmd.bind(":data_value", item.data_value);
+  if (item.data_value_txt)
+    cmd.bind(":data_value_txt", *item.data_value_txt, sqlite3pp::nocopy);
+  else
+    cmd.bind(":data_value_txt");
+  if (item.data_quality)
+    cmd.bind(":data_quality", *item.data_quality);
+  else
+    cmd.bind(":data_quality");
+  if (item.ctrl_status)
+    cmd.bind(":ctrl_status", *item.ctrl_status);
+  else
+    cmd.bind(":ctrl_status");
+  cmd.bind(":created", to_epoch(item.created));
+  if (item.altitude)
+    cmd.bind(":altitude", *item.altitude);
+  else
+    cmd.bind(":altitude");
+  cmd.execute();
+  cmd.reset();
+}
+}  // namespace
+
 // Results read from the sqlite database
 
 LocationDataItems SpatiaLite::readObservationDataFromDB(
@@ -1719,7 +1810,9 @@ std::size_t SpatiaLite::fillDataCache(const std::string &tablename,
       {
         const auto insert_size = new_items.size();
 
-        // Prepare strings outside the lock to minimize lock time
+        // Pre-filter: compute epoch times only for non-missing (data_value != 9999) items.
+        // Preparing timestamps outside the lock minimizes lock time.
+        std::vector<std::size_t> valid_items;
         data_times.reserve(insert_size);
         modified_last_times.reserve(insert_size);
 
@@ -1728,6 +1821,7 @@ std::size_t SpatiaLite::fillDataCache(const std::string &tablename,
           const auto &obs = cacheData[new_items[i]];
           if (obs.data_value != 9999)  // Ignore parameters marked MISSING
           {
+            valid_items.push_back(new_items[i]);
             data_times.emplace_back(to_epoch(obs.data_time));
             modified_last_times.emplace_back(to_epoch(obs.modified_last));
           }
@@ -1735,39 +1829,16 @@ std::size_t SpatiaLite::fillDataCache(const std::string &tablename,
 
         {
           Spine::WriteLock lock(write_mutex);
-
           sqlite3pp::transaction xct(itsDB);
           sqlite3pp::command cmd(itsDB, sqltemplate.c_str());
 
-          std::size_t j = 0;
-          for (std::size_t i = 0; i < insert_size; i++)
+          for (std::size_t i = 0; i < valid_items.size(); i++)
           {
-            const auto &data = cacheData[new_items[i]];
-            if (data.data_value == 9999)  // Ignore parameters marked MISSING
-              continue;
-            cmd.bind(":fmisid", data.fmisid);
-            cmd.bind(":sensor_no", data.sensor_no);
-            cmd.bind(":data_time", data_times[j]);
-            cmd.bind(":measurand_id", data.measurand_id);
-            cmd.bind(":producer_id", data.producer_id);
-            cmd.bind(":measurand_no", data.measurand_no);
-            if (data.data_value)
-              cmd.bind(":data_value", *data.data_value);
-            else
-              cmd.bind(":data_value");  // NULL
-            cmd.bind(":data_quality", data.data_quality);
-            if (data.data_source >= 0)
-              cmd.bind(":data_source", data.data_source);
-            else
-              cmd.bind(":data_source");  // NULL
-            cmd.bind(":modified_last", modified_last_times[j]);
-            j++;
+            bindDataItem(cmd, cacheData[valid_items[i]], data_times[i], modified_last_times[i]);
             cmd.execute();
-            // Must reset, previous values cannot be replaced
-            cmd.reset();
+            cmd.reset();  // Must reset; previous values cannot be replaced
           }
           xct.commit();
-          // lock is released
         }
 
         // Update insert status, giving readers some time to obtain a read lock
@@ -2057,23 +2128,23 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &cacheData,
   }
 }
 
-std::size_t SpatiaLite::fillRoadCloudCache(const MobileExternalDataItems &mobileExternalCacheData,
-                                           InsertStatus &insertStatus)
+std::size_t SpatiaLite::fillMobileExternalDataCache(const std::string &tableName,
+                                                    const MobileExternalDataItems &cacheData,
+                                                    InsertStatus &insertStatus)
 {
   try
   {
-    if (mobileExternalCacheData.empty())
+    if (cacheData.empty())
       return 0;
 
     // Collect new items before taking a lock - we might avoid one completely
     std::vector<std::size_t> new_items;
     std::vector<std::size_t> new_hashes;
 
-    for (std::size_t i = 0; i < mobileExternalCacheData.size(); i++)
+    for (std::size_t i = 0; i < cacheData.size(); i++)
     {
-      const auto &item = mobileExternalCacheData[i];
+      const auto &item = cacheData[i];
       auto hash = item.hash_value();
-
       if (!insertStatus.exists(hash))
       {
         new_items.push_back(i);
@@ -2081,18 +2152,13 @@ std::size_t SpatiaLite::fillRoadCloudCache(const MobileExternalDataItems &mobile
       }
     }
 
-    // Abort if so requested
     if (Spine::Reactor::isShuttingDown())
       return 0;
 
-    // Abort if nothing to do
     if (new_items.empty())
       return 0;
 
-    // Insert the new items
-
     std::size_t pos1 = 0;
-
     Spine::WriteLock lock(write_mutex);
 
     while (pos1 < new_items.size())
@@ -2102,89 +2168,19 @@ std::size_t SpatiaLite::fillRoadCloudCache(const MobileExternalDataItems &mobile
 
       sqlite3pp::transaction xct(itsDB);
 
-      std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, new_items.size());
+      const std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, new_items.size());
       for (std::size_t i = pos1; i < pos2; i++)
       {
-        const auto &item = mobileExternalCacheData[new_items[i]];
-
-        std::string obs_location = "GeomFromText('POINT(" +
-                                   Fmi::to_string("%.10g", item.longitude) + " " +
-                                   Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
-
-        std::string sqlStmt =
-            "INSERT OR IGNORE INTO ext_obsdata_roadcloud "
-            "(prod_id, station_id, dataset_id, data_level, mid, sensor_no, "
-            "data_time, data_value, data_value_txt, data_quality, ctrl_status, "
-            "created, altitude, geom) "
-            "VALUES ("
-            ":prod_id, "
-            ":station_id, "
-            ":dataset_id,"
-            ":data_level,"
-            ":mid,"
-            ":sensor_no,"
-            ":data_time,"
-            ":data_value,"
-            ":data_value_txt,"
-            ":data_quality,"
-            ":ctrl_status,"
-            ":created,"
-            ":altitude," +
-            obs_location + ");";
-
-        sqlite3pp::command cmd(itsDB, sqlStmt.c_str());
-
         try
         {
-          cmd.bind(":prod_id", item.prod_id);
-          if (item.station_id)
-            cmd.bind(":station_id", *item.station_id);
-          else
-            cmd.bind(":station_id");
-          if (item.dataset_id)
-            cmd.bind(":dataset_id", *item.dataset_id, sqlite3pp::nocopy);
-          else
-            cmd.bind(":dataset_id");
-          if (item.data_level)
-            cmd.bind(":data_level", *item.data_level);
-          else
-            cmd.bind(":data_level");
-          cmd.bind(":mid", item.mid);
-          if (item.sensor_no)
-            cmd.bind(":sensor_no", *item.sensor_no);
-          else
-            cmd.bind(":sensor_no");
-          auto data_time = to_epoch(item.data_time);
-          cmd.bind(":data_time", data_time);
-          cmd.bind(":data_value", item.data_value);
-          if (item.data_value_txt)
-            cmd.bind(":data_value_txt", *item.data_value_txt, sqlite3pp::nocopy);
-          else
-            cmd.bind(":data_value_txt");
-          if (item.data_quality)
-            cmd.bind(":data_quality", *item.data_quality);
-          else
-            cmd.bind(":data_quality");
-          if (item.ctrl_status)
-            cmd.bind(":ctrl_status", *item.ctrl_status);
-          else
-            cmd.bind(":ctrl_status");
-          auto created_time = to_epoch(item.created);
-          cmd.bind(":created", created_time);
-          if (item.altitude)
-            cmd.bind(":altitude", *item.altitude);
-          else
-            cmd.bind(":altitude");
-          cmd.execute();
-          cmd.reset();
+          bindAndExecuteMobileExternalItem(itsDB, cacheData[new_items[i]], tableName, srid);
         }
         catch (const std::exception &e)
         {
-          std::cerr << "Problem updating RoadCloud cache: " << e.what() << '\n';
+          std::cerr << "Problem updating " << tableName << " cache: " << e.what() << '\n';
         }
       }
       xct.commit();
-
       pos1 = pos2;
     }
 
@@ -2195,438 +2191,60 @@ std::size_t SpatiaLite::fillRoadCloudCache(const MobileExternalDataItems &mobile
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(BCP, "RoadCloud cache update failed!");
+    throw Fmi::Exception::Trace(BCP, tableName + " cache update failed!");
   }
+}
+
+std::size_t SpatiaLite::fillRoadCloudCache(const MobileExternalDataItems &mobileExternalCacheData,
+                                           InsertStatus &insertStatus)
+{
+  return fillMobileExternalDataCache("ext_obsdata_roadcloud", mobileExternalCacheData, insertStatus);
 }
 
 std::size_t SpatiaLite::fillNetAtmoCache(const MobileExternalDataItems &mobileExternalCacheData,
                                          InsertStatus &insertStatus)
 {
-  try
-  {
-    if (mobileExternalCacheData.empty())
-      return 0;
-
-    // Collect new items before taking a lock - we might avoid one completely
-    std::vector<std::size_t> new_items;
-    std::vector<std::size_t> new_hashes;
-
-    for (std::size_t i = 0; i < mobileExternalCacheData.size(); i++)
-    {
-      const auto &item = mobileExternalCacheData[i];
-      auto hash = item.hash_value();
-
-      if (!insertStatus.exists(hash))
-      {
-        new_items.push_back(i);
-        new_hashes.push_back(hash);
-      }
-    }
-
-    // Abort if so requested
-    if (Spine::Reactor::isShuttingDown())
-      return 0;
-
-    // Abort if nothing to do
-    if (new_items.empty())
-      return 0;
-
-    // Insert the new items
-
-    std::size_t pos1 = 0;
-
-    Spine::WriteLock lock(write_mutex);
-
-    while (pos1 < new_items.size())
-    {
-      if (Spine::Reactor::isShuttingDown())
-        return 0;
-
-      sqlite3pp::transaction xct(itsDB);
-
-      std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, new_items.size());
-      for (std::size_t i = pos1; i < pos2; i++)
-      {
-        const auto &item = mobileExternalCacheData[new_items[i]];
-
-        std::string obs_location = "GeomFromText('POINT(" +
-                                   Fmi::to_string("%.10g", item.longitude) + " " +
-                                   Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
-
-        std::string sqlStmt =
-            "INSERT OR IGNORE INTO ext_obsdata_netatmo "
-            "(prod_id, station_id, dataset_id, data_level, mid, sensor_no, "
-            "data_time, data_value, data_value_txt, data_quality, ctrl_status, "
-            "created, altitude, geom) "
-            "VALUES ("
-            ":prod_id, "
-            ":station_id, "
-            ":dataset_id,"
-            ":data_level,"
-            ":mid,"
-            ":sensor_no,"
-            ":data_time,"
-            ":data_value,"
-            ":data_value_txt,"
-            ":data_quality,"
-            ":ctrl_status,"
-            ":created,"
-            ":altitude," +
-            obs_location + ");";
-
-        sqlite3pp::command cmd(itsDB, sqlStmt.c_str());
-
-        try
-        {
-          cmd.bind(":prod_id", item.prod_id);
-          if (item.station_id)
-            cmd.bind(":station_id", *item.station_id);
-          else
-            cmd.bind(":station_id");
-          if (item.dataset_id)
-            cmd.bind(":dataset_id", *item.dataset_id, sqlite3pp::nocopy);
-          else
-            cmd.bind(":dataset_id");
-          if (item.data_level)
-            cmd.bind(":data_level", *item.data_level);
-          else
-            cmd.bind(":data_level");
-          cmd.bind(":mid", item.mid);
-          if (item.sensor_no)
-            cmd.bind(":sensor_no", *item.sensor_no);
-          else
-            cmd.bind(":sensor_no");
-          auto data_time = to_epoch(item.data_time);
-          cmd.bind(":data_time", data_time);
-          cmd.bind(":data_value", item.data_value);
-          if (item.data_value_txt)
-            cmd.bind(":data_value_txt", *item.data_value_txt, sqlite3pp::nocopy);
-          else
-            cmd.bind(":data_value_txt");
-          if (item.data_quality)
-            cmd.bind(":data_quality", *item.data_quality);
-          else
-            cmd.bind(":data_quality");
-          if (item.ctrl_status)
-            cmd.bind(":ctrl_status", *item.ctrl_status);
-          else
-            cmd.bind(":ctrl_status");
-          auto created_time = to_epoch(item.created);
-          cmd.bind(":created", created_time);
-          if (item.altitude)
-            cmd.bind(":altitude", *item.altitude);
-          else
-            cmd.bind(":altitude");
-          cmd.execute();
-          cmd.reset();
-        }
-        catch (const std::exception &e)
-        {
-          std::cerr << "Problem updating NetAtmo cache: " << e.what() << '\n';
-        }
-      }
-      xct.commit();
-
-      pos1 = pos2;
-    }
-
-    for (const auto &hash : new_hashes)
-      insertStatus.add(hash);
-
-    return new_items.size();
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "NetAtmo cache update failed!");
-  }
+  return fillMobileExternalDataCache("ext_obsdata_netatmo", mobileExternalCacheData, insertStatus);
 }
 
 std::size_t SpatiaLite::fillFmiIoTCache(const MobileExternalDataItems &mobileExternalCacheData,
                                         InsertStatus &insertStatus)
 {
-  try
-  {
-    if (mobileExternalCacheData.empty())
-      return 0;
-
-    // Collect new items before taking a lock - we might avoid one completely
-    std::vector<std::size_t> new_items;
-    std::vector<std::size_t> new_hashes;
-
-    for (std::size_t i = 0; i < mobileExternalCacheData.size(); i++)
-    {
-      const auto &item = mobileExternalCacheData[i];
-      auto hash = item.hash_value();
-
-      if (!insertStatus.exists(hash))
-      {
-        new_items.push_back(i);
-        new_hashes.push_back(hash);
-      }
-    }
-
-    // Abort if so requested
-    if (Spine::Reactor::isShuttingDown())
-      return 0;
-
-    // Abort if nothing to do
-    if (new_items.empty())
-      return 0;
-
-    // Insert the new items
-
-    std::size_t pos1 = 0;
-
-    Spine::WriteLock lock(write_mutex);
-
-    while (pos1 < new_items.size())
-    {
-      if (Spine::Reactor::isShuttingDown())
-        return 0;
-
-      sqlite3pp::transaction xct(itsDB);
-
-      std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, new_items.size());
-      for (std::size_t i = pos1; i < pos2; i++)
-      {
-        const auto &item = mobileExternalCacheData[new_items[i]];
-
-        std::string obs_location = "GeomFromText('POINT(" +
-                                   Fmi::to_string("%.10g", item.longitude) + " " +
-                                   Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
-
-        std::string sqlStmt =
-            "INSERT OR IGNORE INTO ext_obsdata_fmi_iot "
-            "(prod_id, station_id, dataset_id, data_level, mid, sensor_no, "
-            "data_time, data_value, data_value_txt, data_quality, ctrl_status, "
-            "created, altitude, geom) "
-            "VALUES ("
-            ":prod_id, "
-            ":station_id, "
-            ":dataset_id,"
-            ":data_level,"
-            ":mid,"
-            ":sensor_no,"
-            ":data_time,"
-            ":data_value,"
-            ":data_value_txt,"
-            ":data_quality,"
-            ":ctrl_status,"
-            ":created,"
-            ":altitude," +
-            obs_location + ");";
-
-        sqlite3pp::command cmd(itsDB, sqlStmt.c_str());
-
-        try
-        {
-          cmd.bind(":prod_id", item.prod_id);
-          if (item.station_id)
-            cmd.bind(":station_id", *item.station_id);
-          else
-            cmd.bind(":station_id");
-          if (item.dataset_id)
-            cmd.bind(":dataset_id", *item.dataset_id, sqlite3pp::nocopy);
-          else
-            cmd.bind(":dataset_id");
-          if (item.data_level)
-            cmd.bind(":data_level", *item.data_level);
-          else
-            cmd.bind(":data_level");
-          cmd.bind(":mid", item.mid);
-          if (item.sensor_no)
-            cmd.bind(":sensor_no", *item.sensor_no);
-          else
-            cmd.bind(":sensor_no");
-          auto data_time = to_epoch(item.data_time);
-          cmd.bind(":data_time", data_time);
-          cmd.bind(":data_value", item.data_value);
-          if (item.data_value_txt)
-            cmd.bind(":data_value_txt", *item.data_value_txt, sqlite3pp::nocopy);
-          else
-            cmd.bind(":data_value_txt");
-          if (item.data_quality)
-            cmd.bind(":data_quality", *item.data_quality);
-          else
-            cmd.bind(":data_quality");
-          if (item.ctrl_status)
-            cmd.bind(":ctrl_status", *item.ctrl_status);
-          else
-            cmd.bind(":ctrl_status");
-          auto created_time = to_epoch(item.created);
-          cmd.bind(":created", created_time);
-          if (item.altitude)
-            cmd.bind(":altitude", *item.altitude);
-          else
-            cmd.bind(":altitude");
-          cmd.execute();
-          cmd.reset();
-        }
-        catch (const std::exception &e)
-        {
-          std::cerr << "Problem updating FmiIoT cache: " << e.what() << '\n';
-        }
-      }
-      xct.commit();
-
-      pos1 = pos2;
-    }
-
-    for (const auto &hash : new_hashes)
-      insertStatus.add(hash);
-
-    return new_items.size();
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "NetAtmo cache update failed!");
-  }
+  return fillMobileExternalDataCache("ext_obsdata_fmi_iot", mobileExternalCacheData, insertStatus);
 }
 
 std::size_t SpatiaLite::fillTapsiQcCache(const MobileExternalDataItems &mobileExternalCacheData,
                                          InsertStatus &insertStatus)
 {
-  try
-  {
-    if (mobileExternalCacheData.empty())
-      return 0;
-
-    // Collect new items before taking a lock - we might avoid one completely
-    std::vector<std::size_t> new_items;
-    std::vector<std::size_t> new_hashes;
-
-    for (std::size_t i = 0; i < mobileExternalCacheData.size(); i++)
-    {
-      const auto &item = mobileExternalCacheData[i];
-      auto hash = item.hash_value();
-
-      if (!insertStatus.exists(hash))
-      {
-        new_items.push_back(i);
-        new_hashes.push_back(hash);
-      }
-    }
-
-    // Abort if so requested
-    if (Spine::Reactor::isShuttingDown())
-      return 0;
-
-    // Abort if nothing to do
-    if (new_items.empty())
-      return 0;
-
-    // Insert the new items
-
-    std::size_t pos1 = 0;
-
-    Spine::WriteLock lock(write_mutex);
-
-    while (pos1 < new_items.size())
-    {
-      if (Spine::Reactor::isShuttingDown())
-        return 0;
-
-      sqlite3pp::transaction xct(itsDB);
-
-      std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, new_items.size());
-      for (std::size_t i = pos1; i < pos2; i++)
-      {
-        const auto &item = mobileExternalCacheData[new_items[i]];
-
-        std::string obs_location = "GeomFromText('POINT(" +
-                                   Fmi::to_string("%.10g", item.longitude) + " " +
-                                   Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
-
-        std::string sqlStmt =
-            "INSERT OR IGNORE INTO ext_obsdata_tapsi_qc "
-            "(prod_id, station_id, dataset_id, data_level, mid, sensor_no, "
-            "data_time, data_value, data_value_txt, data_quality, ctrl_status, "
-            "created, altitude, geom) "
-            "VALUES ("
-            ":prod_id, "
-            ":station_id, "
-            ":dataset_id,"
-            ":data_level,"
-            ":mid,"
-            ":sensor_no,"
-            ":data_time,"
-            ":data_value,"
-            ":data_value_txt,"
-            ":data_quality,"
-            ":ctrl_status,"
-            ":created,"
-            ":altitude," +
-            obs_location + ");";
-
-        sqlite3pp::command cmd(itsDB, sqlStmt.c_str());
-
-        try
-        {
-          cmd.bind(":prod_id", item.prod_id);
-          if (item.station_id)
-            cmd.bind(":station_id", *item.station_id);
-          else
-            cmd.bind(":station_id");
-          if (item.dataset_id)
-            cmd.bind(":dataset_id", *item.dataset_id, sqlite3pp::nocopy);
-          else
-            cmd.bind(":dataset_id");
-          if (item.data_level)
-            cmd.bind(":data_level", *item.data_level);
-          else
-            cmd.bind(":data_level");
-          cmd.bind(":mid", item.mid);
-          if (item.sensor_no)
-            cmd.bind(":sensor_no", *item.sensor_no);
-          else
-            cmd.bind(":sensor_no");
-          auto data_time = to_epoch(item.data_time);
-          cmd.bind(":data_time", data_time);
-          cmd.bind(":data_value", item.data_value);
-          if (item.data_value_txt)
-            cmd.bind(":data_value_txt", *item.data_value_txt, sqlite3pp::nocopy);
-          else
-            cmd.bind(":data_value_txt");
-          if (item.data_quality)
-            cmd.bind(":data_quality", *item.data_quality);
-          else
-            cmd.bind(":data_quality");
-          if (item.ctrl_status)
-            cmd.bind(":ctrl_status", *item.ctrl_status);
-          else
-            cmd.bind(":ctrl_status");
-          auto created_time = to_epoch(item.created);
-          cmd.bind(":created", created_time);
-          if (item.altitude)
-            cmd.bind(":altitude", *item.altitude);
-          else
-            cmd.bind(":altitude");
-          cmd.execute();
-          cmd.reset();
-        }
-        catch (const std::exception &e)
-        {
-          std::cerr << "Problem updating TapsiQc cache: " << e.what() << '\n';
-        }
-      }
-      xct.commit();
-
-      pos1 = pos2;
-    }
-
-    for (const auto &hash : new_hashes)
-      insertStatus.add(hash);
-
-    return new_items.size();
-  }
-  catch (...)
-  {
-    throw Fmi::Exception::Trace(BCP, "TapsiQc cache update failed!");
-  }
+  return fillMobileExternalDataCache("ext_obsdata_tapsi_qc", mobileExternalCacheData, insertStatus);
 }
 
-std::size_t SpatiaLite::fillMagnetometerDataCache(
-    const MagnetometerDataItems &magnetometerCacheData, InsertStatus &insertStatus)
+namespace
+{
+const char *magnetometer_sql =
+    "INSERT OR IGNORE INTO magnetometer_data"
+    " (station_id, magnetometer, level, data_time, x, y, z, t, f, data_quality, modified_last)"
+    " VALUES (:station_id, :magnetometer, :level, :data_time, :x, :y, :z, :t, :f,"
+    " :data_quality, :modified_last)";
+
+void bindMagnetometerItem(sqlite3pp::command &cmd, const MagnetometerDataItem &item)
+{
+  cmd.bind(":station_id", item.fmisid);
+  cmd.bind(":magnetometer", item.magnetometer, sqlite3pp::nocopy);
+  cmd.bind(":level", item.level);
+  cmd.bind(":data_time", to_epoch(item.data_time));
+  if (item.x)  cmd.bind(":x", *item.x);  else  cmd.bind(":x");
+  if (item.y)  cmd.bind(":y", *item.y);  else  cmd.bind(":y");
+  if (item.z)  cmd.bind(":z", *item.z);  else  cmd.bind(":z");
+  if (item.t)  cmd.bind(":t", *item.t);  else  cmd.bind(":t");
+  if (item.f)  cmd.bind(":f", *item.f);  else  cmd.bind(":f");
+  cmd.bind(":data_quality", item.data_quality);
+  cmd.bind(":modified_last", to_epoch(item.modified_last));
+}
+}  // namespace
+
+std::size_t SpatiaLite::fillMagnetometerDataCache(const MagnetometerDataItems &magnetometerCacheData,
+                                                  InsertStatus &insertStatus)
 {
   try
   {
@@ -2640,8 +2258,7 @@ std::size_t SpatiaLite::fillMagnetometerDataCache(
     for (std::size_t i = 0; i < magnetometerCacheData.size(); i++)
     {
       const auto &item = magnetometerCacheData[i];
-      auto hash = item.hash_value();
-
+      const auto hash = item.hash_value();
       if (!insertStatus.exists(hash))
       {
         new_items.push_back(i);
@@ -2649,18 +2266,13 @@ std::size_t SpatiaLite::fillMagnetometerDataCache(
       }
     }
 
-    // Abort if so requested
     if (Spine::Reactor::isShuttingDown())
       return 0;
 
-    // Abort if nothing to do
     if (new_items.empty())
       return 0;
 
-    // Insert the new items
-
     std::size_t pos1 = 0;
-
     Spine::WriteLock lock(write_mutex);
 
     while (pos1 < new_items.size())
@@ -2670,59 +2282,14 @@ std::size_t SpatiaLite::fillMagnetometerDataCache(
 
       sqlite3pp::transaction xct(itsDB);
 
-      std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, new_items.size());
+      const std::size_t pos2 = std::min(pos1 + itsMaxInsertSize, new_items.size());
       for (std::size_t i = pos1; i < pos2; i++)
       {
         const auto &item = magnetometerCacheData[new_items[i]];
-
-        std::string sqlStmt =
-            "INSERT OR IGNORE INTO magnetometer_data "
-            "(station_id, magnetometer, level, data_time, x, y, z, t, f, data_quality, "
-            "modified_last)"
-            "VALUES ("
-            ":station_id, "
-            ":magnetometer,"
-            ":level,"
-            ":data_time,"
-            ":x,"
-            ":y,"
-            ":z,"
-            ":t,"
-            ":f,"
-            ":data_quality,"
-            ":modified_last)";
-
-        sqlite3pp::command cmd(itsDB, sqlStmt.c_str());
-
+        sqlite3pp::command cmd(itsDB, magnetometer_sql);
         try
         {
-          cmd.bind(":station_id", item.fmisid);
-          cmd.bind(":magnetometer", item.magnetometer, sqlite3pp::nocopy);
-          cmd.bind(":level", item.level);
-          auto data_time = to_epoch(item.data_time);
-          cmd.bind(":data_time", data_time);
-          if (item.x)
-            cmd.bind(":x", *item.x);
-          else
-            cmd.bind(":x");
-          if (item.y)
-            cmd.bind(":y", *item.y);
-          else
-            cmd.bind(":y");
-          if (item.z)
-            cmd.bind(":z", *item.z);
-          else
-            cmd.bind(":z");
-          if (item.t)
-            cmd.bind(":t", *item.t);
-          else
-            cmd.bind(":t");
-          if (item.f)
-            cmd.bind(":f", *item.f);
-          else
-            cmd.bind(":f");
-          cmd.bind(":data_quality", item.data_quality);
-          cmd.bind(":modified_last", to_epoch(item.modified_last));
+          bindMagnetometerItem(cmd, item);
           cmd.execute();
           cmd.reset();
         }
@@ -2732,7 +2299,6 @@ std::size_t SpatiaLite::fillMagnetometerDataCache(
         }
       }
       xct.commit();
-
       pos1 = pos2;
     }
 
@@ -2743,7 +2309,7 @@ std::size_t SpatiaLite::fillMagnetometerDataCache(
   }
   catch (...)
   {
-    throw Fmi::Exception::Trace(BCP, "NetAtmo cache update failed!");
+    throw Fmi::Exception::Trace(BCP, "Magnetometer cache update failed!");
   }
 }
 

@@ -315,6 +315,87 @@ void readFakeCacheInfo(Spine::ConfigBase& cfg,
   }
 }
 
+void parseCachestrings(const libconfig::Setting& caches, std::set<std::string>& cache_set)
+{
+  int num = caches.getLength();
+  for (int j = 0; j < num; ++j)
+  {
+    std::string cs = caches[j];
+    if (!cs.empty())
+      cache_set.insert(cs);
+  }
+}
+
+void parseTables(const libconfig::Setting& tables,
+                 std::set<std::string>& table_set,
+                 std::map<std::string, int>& table_days)
+{
+  int num = tables.getLength();
+  for (int j = 0; j < num; ++j)
+  {
+    std::string tablename = tables[j];
+    if (tablename.find(':') != std::string::npos)
+    {
+      std::vector<std::string> parts;
+      boost::algorithm::split(parts, tablename, boost::algorithm::is_any_of(":"));
+      tablename = parts.at(0);
+      table_days[tablename] = Fmi::stoi(parts.at(1));
+    }
+    else
+      table_days[tablename] = INT_MAX;
+    if (!tablename.empty())
+      table_set.insert(tablename);
+  }
+}
+
+void printParamVectors(std::ostream& out,
+                       const std::map<std::string, std::string>& params,
+                       const std::map<std::string, std::vector<std::string>>& params_vector)
+{
+  if (!params.empty())
+    for (const auto& param : params)
+      out << "  " << param.first << " -> " << param.second << '\n';
+  if (!params_vector.empty())
+    for (const auto& param : params_vector)
+    {
+      out << "  " << param.first << " -> \n";
+      for (const auto& param2 : param.second)
+        out << "   " << param2 << '\n';
+    }
+}
+
+void printCacheInfoItem(std::ostream& out,
+                        const std::string& name,
+                        const SmartMet::Engine::Observation::CacheInfoItem& ci)
+{
+  out << ANSI_FG_GREEN << "  name: " << name << ANSI_FG_DEFAULT << '\n';
+  out << "  active: " << ci.active << '\n';
+  out << "  tables: \n";
+  for (const auto& table : ci.tables)
+    out << "   " << table << '\n';
+  printParamVectors(out, ci.params, ci.params_vector);
+}
+
+void printDriverInfoItem(std::ostream& out,
+                         const SmartMet::Engine::Observation::DatabaseDriverInfoItem& item)
+{
+  out << ANSI_FG_GREEN << "  name: " << item.name << ANSI_FG_DEFAULT << '\n';
+  out << "  active: " << item.active << '\n';
+  out << "  tables: \n";
+  for (const auto& t : item.tables)
+  {
+    if (item.table_days.at(t) == INT_MAX)
+      out << "   " << t << " -> all data available\n";
+    else
+      out << "   " << t << " -> max " << item.table_days.at(t) << " days\n";
+  }
+  out << "  caches: \n";
+  for (const auto& cache : item.caches)
+    out << "   " << cache << '\n';
+  out << "  parameters: \n";
+  printParamVectors(out, item.params, item.params_vector);
+}
+
 }  // namespace
 
 void CacheInfoItem::mergeCacheInfo(const CacheInfoItem& cii_from)
@@ -351,34 +432,10 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
       std::set<std::string> table_set;
       std::map<std::string, int> table_days;
       const libconfig::Setting& tables = driver_settings[i]["tables"];
-      int num = tables.getLength();
-      for (int j = 0; j < num; ++j)
-      {
-        std::string tablename = tables[j];
-        if (tablename.find(':') != std::string::npos)
-        {
-          std::vector<std::string> parts;
-          boost::algorithm::split(parts, tablename, boost::algorithm::is_any_of(":"));
-          tablename = parts.at(0);
-          std::string table_day_string = parts.at(1);
-          table_days[tablename] = Fmi::stoi(table_day_string);
-        }
-        else
-          table_days[tablename] = INT_MAX;
-
-        if (!tablename.empty())
-          table_set.insert(tablename);
-      }  // for int j
+      parseTables(tables, table_set, table_days);
       // Caches
       std::set<std::string> cache_set;
-      const libconfig::Setting& caches = driver_settings[i]["caches"];
-      num = caches.getLength();
-      for (int j = 0; j < num; ++j)
-      {
-        std::string cachestring = caches[j];
-        if (!cachestring.empty())
-          cache_set.insert(cachestring);
-      }  // for int j
+      parseCachestrings(driver_settings[i]["caches"], cache_set);
       itsDatabaseDriverInfoItems.emplace_back(name, active, table_set, table_days, cache_set);
     }  // for int i
 
@@ -392,47 +449,15 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
       if (!boost::algorithm::ends_with(name, "_observations"))
         continue;
 
-      if (boost::algorithm::starts_with(name, "spatialite_"))
-      {
-        readSpatiaLiteCommonInfo(cfg, name, item.params);
-        if (boost::algorithm::ends_with(name, "_cache"))
-          readSpatiaLiteConnectInfo(cfg, name, item.params);
-      }
-      if (boost::algorithm::starts_with(name, "postgresql_"))
-      {
-        if (boost::algorithm::ends_with(name, "mobile_observations"))
-          readPostgreSQLMobileCommonInfo(cfg, name, item.params);
-        else
-          readPostgreSQLCommonInfo(cfg, name, item.params);
-        readPostgreSQLConnectInfo(cfg, name, item.params);
-      }
-      if (boost::algorithm::starts_with(name, "oracle_"))
-      {
-        readOracleCommonInfo(cfg, name, item.params);
-        readOracleConnectInfo(cfg, name, item.params_vector);
-      }
+      readDriverConnectionInfo(cfg, name, item);
 
       std::map<std::string, CacheInfoItem>& cii_map = item.itsCacheInfoItems;
       for (auto& cii : cii_map)
       {
-        name = cii.first;
-
-        if (!boost::algorithm::ends_with(name, "_cache"))
+        const std::string& cacheName = cii.first;
+        if (!boost::algorithm::ends_with(cacheName, "_cache"))
           continue;
-
-        if (boost::algorithm::starts_with(name, "spatialite_"))
-        {
-          readSpatiaLiteCommonInfo(cfg, name, cii.second.params);
-          readSpatiaLiteConnectInfo(cfg, name, cii.second.params);
-        }
-        if (boost::algorithm::starts_with(name, "postgresql_"))
-        {
-          if (boost::algorithm::ends_with(name, "mobile_observations"))
-            readPostgreSQLMobileCommonInfo(cfg, name, cii.second.params);
-          else
-            readPostgreSQLCommonInfo(cfg, name, cii.second.params);
-          readPostgreSQLConnectInfo(cfg, name, cii.second.params);
-        }
+        readCacheConnectionInfo(cfg, cacheName, cii.second);
       }
     }
 
@@ -441,20 +466,7 @@ void DatabaseDriverInfo::readConfig(Spine::ConfigBase& cfg)
     // Cache info (with same name) from different drivers are aggregated to one place
     for (auto& ddii : itsDatabaseDriverInfoItems)
     {
-      if (ddii.parameterExists("loadStations") && ddii.getIntParameterValue("loadStations", 0) > 0)
-      {
-        if (load_stations_active_driver.empty())
-        {
-          load_stations_active_driver = ddii.name;
-        }
-        else
-        {
-          ddii.params["loadStations"] = "0";
-          if (!load_stations_disabled_drivers.empty())
-            load_stations_disabled_drivers += ", ";
-          load_stations_disabled_drivers += ("'" + ddii.name + "'");
-        }
-      }
+      consolidateLoadStationsParam(ddii, load_stations_active_driver, load_stations_disabled_drivers);
 
       for (const auto& cii_from : ddii.itsCacheInfoItems)
         if (itsCacheInfoItems.find(cii_from.first) == itsCacheInfoItems.end())
@@ -741,125 +753,88 @@ const std::map<std::string, CacheInfoItem>& DatabaseDriverInfoItem::getCacheInfo
   return itsCacheInfoItems;
 }
 
-}  // namespace Observation
-}  // namespace Engine
-}  // namespace SmartMet
+void DatabaseDriverInfo::readDriverConnectionInfo(Spine::ConfigBase& cfg,
+                                                  const std::string& name,
+                                                  DatabaseDriverInfoItem& item)
+{
+  if (boost::algorithm::starts_with(name, "spatialite_"))
+  {
+    readSpatiaLiteCommonInfo(cfg, name, item.params);
+    if (boost::algorithm::ends_with(name, "_cache"))
+      readSpatiaLiteConnectInfo(cfg, name, item.params);
+  }
+  if (boost::algorithm::starts_with(name, "postgresql_"))
+  {
+    if (boost::algorithm::ends_with(name, "mobile_observations"))
+      readPostgreSQLMobileCommonInfo(cfg, name, item.params);
+    else
+      readPostgreSQLCommonInfo(cfg, name, item.params);
+    readPostgreSQLConnectInfo(cfg, name, item.params);
+  }
+  if (boost::algorithm::starts_with(name, "oracle_"))
+  {
+    readOracleCommonInfo(cfg, name, item.params);
+    readOracleConnectInfo(cfg, name, item.params_vector);
+  }
+}
 
-std::ostream& operator<<(std::ostream& out,
-                         const SmartMet::Engine::Observation::DatabaseDriverInfo& driverInfo)
+void DatabaseDriverInfo::readCacheConnectionInfo(Spine::ConfigBase& cfg,
+                                                  const std::string& name,
+                                                  CacheInfoItem& cii)
+{
+  if (boost::algorithm::starts_with(name, "spatialite_"))
+  {
+    readSpatiaLiteCommonInfo(cfg, name, cii.params);
+    readSpatiaLiteConnectInfo(cfg, name, cii.params);
+  }
+  if (boost::algorithm::starts_with(name, "postgresql_"))
+  {
+    if (boost::algorithm::ends_with(name, "mobile_observations"))
+      readPostgreSQLMobileCommonInfo(cfg, name, cii.params);
+    else
+      readPostgreSQLCommonInfo(cfg, name, cii.params);
+    readPostgreSQLConnectInfo(cfg, name, cii.params);
+  }
+}
+
+void DatabaseDriverInfo::consolidateLoadStationsParam(DatabaseDriverInfoItem& ddii,
+                                                       std::string& activeDriver,
+                                                       std::string& disabledDrivers)
+{
+  if (!ddii.parameterExists("loadStations") || ddii.getIntParameterValue("loadStations", 0) <= 0)
+    return;
+  if (activeDriver.empty())
+  {
+    activeDriver = ddii.name;
+  }
+  else
+  {
+    ddii.params["loadStations"] = "0";
+    if (!disabledDrivers.empty())
+      disabledDrivers += ", ";
+    disabledDrivers += ("'" + ddii.name + "'");
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, const DatabaseDriverInfo& driverInfo)
 {
   out << "** DatabaseDriverInfo **\n";
   out << " ** Driver settings **\n";
-  const std::vector<SmartMet::Engine::Observation::DatabaseDriverInfoItem>& driverInfoItems =
-      driverInfo.getDatabaseDriverInfo();
-
-  for (const auto& item : driverInfoItems)
-  {
-    out << ANSI_FG_GREEN << "  name: " << item.name << ANSI_FG_DEFAULT << '\n';
-    out << "  active: " << item.active << '\n';
-
-    out << "  tables: \n";
-    for (const auto& t : item.tables)
-    {
-      if (item.table_days.at(t) == INT_MAX)
-        out << "   " << t << " -> all data available\n";
-      else
-        out << "   " << t << " -> max " << item.table_days.at(t) << " days\n";
-    }
-
-    out << "  caches: \n";
-    for (const auto& cache : item.caches)
-      out << "   " << cache << '\n';
-
-    out << "  parameters: \n";
-    if (!item.params.empty())
-    {
-      for (const auto& param : item.params)
-        out << "  " << param.first << " -> " << param.second << '\n';
-    }
-
-    if (!item.params_vector.empty())
-    {
-      for (const auto& param : item.params_vector)
-      {
-        out << "  " << param.first << " -> \n";
-        for (const auto& param2 : param.second)
-        {
-          out << "   " << param2 << '\n';
-        }
-      }
-    }
-  }
+  for (const auto& item : driverInfo.getDatabaseDriverInfo())
+    printDriverInfoItem(out, item);
 
   out << " ** Cache settings **\n";
-
-  const std::vector<SmartMet::Engine::Observation::DatabaseDriverInfoItem>& ddi_vector =
-      driverInfo.getDatabaseDriverInfo();
-
-  for (const auto& ddi : ddi_vector)
-  {
-    const std::map<std::string, SmartMet::Engine::Observation::CacheInfoItem>& cii_map =
-        ddi.getCacheInfo();
-
-    for (const auto& ci : cii_map)
-    {
-      out << ANSI_FG_GREEN << "  name: " << ci.second.name << ANSI_FG_DEFAULT << '\n';
-      out << "  active: " << ci.second.active << '\n';
-      out << "  tables: \n";
-      for (const auto& table : ci.second.tables)
-        out << "   " << table << '\n';
-
-      if (!ci.second.params.empty())
-      {
-        for (const auto& param : ci.second.params)
-          out << "  " << param.first << " -> " << param.second << '\n';
-      }
-
-      if (!ci.second.params_vector.empty())
-      {
-        for (const auto& param : ci.second.params_vector)
-        {
-          out << "  " << param.first << " -> \n";
-          for (const auto& param2 : param.second)
-          {
-            out << "   " << param2 << '\n';
-          }
-        }
-      }
-    }
-  }
+  for (const auto& ddi : driverInfo.getDatabaseDriverInfo())
+    for (const auto& ci : ddi.getCacheInfo())
+      printCacheInfoItem(out, ci.second.name, ci.second);
 
   out << " *\n* Aggregate cache settings **\n";
-
-  const std::map<std::string, SmartMet::Engine::Observation::CacheInfoItem>& aggregateCacheInfo =
-      driverInfo.getAggregateCacheInfo();
-
-  for (const auto& item : aggregateCacheInfo)
-  {
-    out << ANSI_FG_GREEN << "  name: " << item.first << ANSI_FG_DEFAULT << '\n';
-    out << "  active: " << item.second.active << '\n';
-    out << "  tables: \n";
-    for (const auto& table : item.second.tables)
-      out << "   " << table << '\n';
-
-    if (!item.second.params.empty())
-    {
-      for (const auto& param : item.second.params)
-        out << "  " << param.first << " -> " << param.second << '\n';
-    }
-
-    if (!item.second.params_vector.empty())
-    {
-      for (const auto& param : item.second.params_vector)
-      {
-        out << "  " << param.first << " -> \n";
-        for (const auto& param2 : param.second)
-        {
-          out << "   " << param2 << '\n';
-        }
-      }
-    }
-  }
+  for (const auto& item : driverInfo.getAggregateCacheInfo())
+    printCacheInfoItem(out, item.first, item.second);
 
   return out;
 }
+
+}  // namespace Observation
+}  // namespace Engine
+}  // namespace SmartMet

@@ -25,6 +25,9 @@ struct EngineParameters
 
   void readDataQualityConfig(Spine::ConfigBase &cfg);
   void readStationTypeConfig(Spine::ConfigBase &cfg);
+  void readExternalProducerConfig(const std::string &stationtype,
+                                   std::string databaseTableName,
+                                   const std::vector<uint> &producerIdVector);
   bool isParameter(const std::string &alias, const std::string &stationType) const;
   bool isParameterVariant(const std::string &name) const;
   std::string getParameterIdAsString(const std::string &alias,
