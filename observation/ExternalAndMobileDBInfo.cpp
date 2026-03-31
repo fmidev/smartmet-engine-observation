@@ -1,5 +1,6 @@
 #include "ExternalAndMobileDBInfo.h"
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <macgyver/StringConversion.h>
 #include <iostream>
 
@@ -55,6 +56,20 @@ void add_where_conditions(std::string &sqlStmt,
     const std::string globe = "POLYGON ((-180 -90,-180 90,180 90,180 -90,-180 -90))";
     if (wktAreaFilter != globe)
     {
+      // Validate WKT against a whitelist of characters that are valid in WKT geometry strings.
+      // Valid WKT contains only: geometry type keywords (letters), coordinate digits, decimal
+      // points, minus signs, spaces, parentheses, and commas. No valid WKT can contain single
+      // quotes, semicolons, backslashes, or SQL comment sequences, so any such character is
+      // unambiguously an injection attempt. This approach works for both PostgreSQL and SQLite
+      // without requiring a database connection for escaping.
+      const auto is_valid_wkt_char = [](unsigned char c) {
+        return std::isalnum(c) || c == ' ' || c == '(' || c == ')' ||
+               c == ',' || c == '.' || c == '-' || c == '+' ||
+               c == '\n' || c == '\r' || c == '\t';
+      };
+      if (!std::all_of(wktAreaFilter.begin(), wktAreaFilter.end(), is_valid_wkt_char))
+        throw Fmi::Exception(BCP, "WKT area filter contains disallowed characters");
+
       sqlStmt += " AND ST_Contains(ST_GeomFromText('";
       sqlStmt += wktAreaFilter;
       sqlStmt += ("', 4326), " +
@@ -110,6 +125,14 @@ std::string ExternalAndMobileDBInfo::sqlSelect(const std::vector<int> &measurand
       std::string requested_stations;
       for (auto const &s : station_ids)
       {
+        // Station codes (e.g. ICAO codes like "EFHK") are alphanumeric identifiers.
+        // Reject anything outside that set before embedding in SQL.
+        const auto is_valid_station_code_char = [](unsigned char c) {
+          return std::isalnum(c) || c == '_' || c == '-';
+        };
+        if (!std::all_of(s.begin(), s.end(), is_valid_station_code_char))
+          throw Fmi::Exception(BCP, "Station code contains disallowed characters: " + s);
+
         if (!requested_stations.empty())
           requested_stations += ", ";
         requested_stations += ("'" + s + "'");
