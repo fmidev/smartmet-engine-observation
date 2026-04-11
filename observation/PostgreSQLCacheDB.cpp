@@ -183,6 +183,67 @@ void PostgreSQLCacheDB::createTables(const std::set<std::string> &tables)
  */
 // ----------------------------------------------------------------------
 
+std::set<int> PostgreSQLCacheDB::stationsWithObservations(const std::vector<int> &fmisids,
+                                                          const std::string &measurand_ids,
+                                                          const Fmi::DateTime &starttime,
+                                                          const Fmi::DateTime &endtime,
+                                                          const std::string &tablename)
+{
+  std::set<int> result;
+
+  try
+  {
+    if (fmisids.empty() || measurand_ids.empty())
+      return result;
+
+    std::string fmisid_list;
+    for (const auto &id : fmisids)
+    {
+      if (!fmisid_list.empty())
+        fmisid_list += ',';
+      fmisid_list += Fmi::to_string(id);
+    }
+
+    std::string sql;
+    if (tablename == "weather_data_qc")
+    {
+      sql = fmt::format(
+          "SELECT DISTINCT fmisid FROM weather_data_qc "
+          "WHERE fmisid IN ({}) AND parameter IN ({}) "
+          "AND obstime >= '{}' AND obstime <= '{}'",
+          fmisid_list,
+          measurand_ids,
+          Fmi::to_iso_extended_string(starttime),
+          Fmi::to_iso_extended_string(endtime));
+    }
+    else
+    {
+      sql = fmt::format(
+          "SELECT DISTINCT fmisid FROM observation_data "
+          "WHERE fmisid IN ({}) AND measurand_id IN ({}) "
+          "AND data_time >= '{}' AND data_time <= '{}'",
+          fmisid_list,
+          measurand_ids,
+          Fmi::to_iso_extended_string(starttime),
+          Fmi::to_iso_extended_string(endtime));
+    }
+
+    pqxx::result res = itsDB.executeNonTransaction(sql);
+
+    for (const auto &row : res)
+    {
+      int fmisid = row[0].as<int>();
+      result.insert(fmisid);
+    }
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Checking stations with observations failed!");
+  }
+
+  return result;
+}
+
 void PostgreSQLCacheDB::shutdown()
 {
   std::cout << "  -- Shutdown requested (PostgreSQLCacheDB)\n";

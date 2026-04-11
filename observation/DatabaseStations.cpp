@@ -1,7 +1,9 @@
 #include "DatabaseStations.h"
+#include "DatabaseDriverInfo.h"
 #include "StationtypeConfig.h"
 #include "Utils.h"
 #include <fmt/format.h>
+#include <macgyver/StringConversion.h>
 
 namespace SmartMet
 {
@@ -56,6 +58,73 @@ Spine::Stations findNearestStations(const StationInfo &info,
                              starttime,
                              endtime);
 }
+// Build a comma-separated list of measurand IDs for the requested observation parameters.
+// Returns an empty string if there are no observation parameters in the request.
+// For weather_data_qc tables the IDs are single-quoted strings, otherwise plain integers.
+
+std::string buildMeasurandIdList(const ParameterMapPtr &parameterMap,
+                                 const std::vector<Spine::Parameter> &parameters,
+                                 const std::string &stationtype,
+                                 bool isWeatherDataQC)
+{
+  std::string result;
+  std::set<std::string> seen;
+
+  for (const auto &p : parameters)
+  {
+    if (!not_special(p))
+      continue;
+
+    std::string name = Fmi::ascii_tolower_copy(p.name());
+
+    // Strip possible sensor number suffix (e.g., "KELI_1" → "KELI")
+    auto pos = name.find_last_of('_');
+    if (pos != std::string::npos)
+    {
+      auto suffix = name.substr(pos + 1);
+      bool is_sensor = !suffix.empty() && std::all_of(suffix.begin(), suffix.end(), ::isdigit);
+      if (is_sensor)
+        name = name.substr(0, pos);
+    }
+
+    auto mid = parameterMap->getParameter(name, stationtype);
+    if (mid.empty())
+      continue;
+
+    if (!seen.insert(mid).second)
+      continue;  // duplicate
+
+    if (!result.empty())
+      result += ',';
+
+    if (isWeatherDataQC)
+      result += "'" + mid + "'";
+    else
+      result += mid;
+  }
+
+  return result;
+}
+
+// Resolve the cache table name for a given stationtype.
+// Returns "observation_data" or "weather_data_qc", or empty if not applicable.
+
+std::string resolveCacheTableName(const StationtypeConfig &stc, const std::string &stationtype)
+{
+  try
+  {
+    auto tablename = stc.getDatabaseTableNameByStationtype(stationtype);
+    if (tablename == "observation_data_r1")
+      return OBSERVATION_DATA_TABLE;
+    if (tablename == "weather_data_qc")
+      return WEATHER_DATA_QC_TABLE;
+  }
+  catch (...)
+  {
+  }
+  return {};
+}
+
 }  // namespace
 
 void DatabaseStations::getStationsByArea(Spine::Stations &stations,
@@ -225,17 +294,84 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
         StationtypeConfig::GroupCodeSetType stationgroup_codes;
         getStationGroups(stationgroup_codes, settings.stationtype, settings.stationgroups);
 
-        auto stations = findNearestStations(*info,
-                                            nss.longitude,
-                                            nss.latitude,
-                                            nss.maxdistance,
-                                            nss.numberofstations,
-                                            stationgroup_codes,
-                                            settings.starttime,
-                                            settings.endtime);
+        // Resolve cache table name and measurand IDs to decide whether to filter
+        // stations by data availability. This avoids returning stations that are
+        // nearby but have no data for the requested parameters (e.g. a buoy station
+        // when temperature and precipitation are requested).
 
-        if (!stations.empty())
+        auto cacheTableName = resolveCacheTableName(
+            itsObservationEngineParameters->stationtypeConfig, settings.stationtype);
+
+        bool isWeatherDataQC = (cacheTableName == WEATHER_DATA_QC_TABLE);
+
+        auto measurandIds = buildMeasurandIdList(
+            itsObservationEngineParameters->parameterMap,
+            settings.parameters,
+            settings.stationtype,
+            isWeatherDataQC);
+
+        // Get the cache for checking data availability
+        std::shared_ptr<ObservationCache> cache;
+        if (!measurandIds.empty() && !cacheTableName.empty())
+          cache = itsObservationEngineParameters->observationCacheProxy->getCacheByTableName(
+              cacheTableName);
+
+        if (cache)
         {
+          // Fetch a few extra candidates so that stations which lack the requested
+          // parameters can be skipped without reducing the result count.  The number
+          // of extra candidates is configurable (nearestStationExtraCandidates, default 3).
+
+          int extra = itsObservationEngineParameters->nearestStationExtraCandidates;
+
+          auto candidates = findNearestStations(*info,
+                                                nss.longitude,
+                                                nss.latitude,
+                                                nss.maxdistance,
+                                                nss.numberofstations + extra,
+                                                stationgroup_codes,
+                                                settings.starttime,
+                                                settings.endtime);
+
+          if (!candidates.empty())
+          {
+            // Lightweight SQL check: which candidate stations actually have data?
+            std::vector<int> candidate_fmisids;
+            candidate_fmisids.reserve(candidates.size());
+            for (const auto &s : candidates)
+              candidate_fmisids.push_back(s.fmisid);
+
+            auto valid = cache->stationsWithObservations(
+                candidate_fmisids, measurandIds, settings.starttime, settings.endtime,
+                cacheTableName);
+
+            // Pick the first numberofstations that have data (candidates are distance-sorted)
+            int added = 0;
+            for (const auto &s : candidates)
+            {
+              if (valid.find(s.fmisid) != valid.end())
+              {
+                result.emplace_back(nssTag, s.fmisid, s.stationDirection, s.distance);
+                if (++added >= nss.numberofstations)
+                  break;
+              }
+            }
+          }
+        }
+        else
+        {
+          // No filtering possible: no observation parameters or no cache available.
+          // Fall back to the original behaviour.
+
+          auto stations = findNearestStations(*info,
+                                              nss.longitude,
+                                              nss.latitude,
+                                              nss.maxdistance,
+                                              nss.numberofstations,
+                                              stationgroup_codes,
+                                              settings.starttime,
+                                              settings.endtime);
+
           for (Spine::Station &s : stations)
             result.emplace_back(nssTag, s.fmisid, s.stationDirection, s.distance);
         }

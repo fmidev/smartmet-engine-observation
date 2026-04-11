@@ -64,6 +64,17 @@ Fmi::DateTime ObservationCache::getLatestDataUpdateTime(const std::string& /*tab
   return Fmi::DateTime::NOT_A_DATE_TIME;
 }
 
+std::set<int> ObservationCache::stationsWithObservations(
+    const std::vector<int> & fmisids,
+    const std::string & /*measurand_ids*/,
+    const Fmi::DateTime & /*starttime*/,
+    const Fmi::DateTime & /*endtime*/,
+    const std::string & /*tablename*/) const
+{
+  // Default: no filtering, return all input fmisids
+  return {fmisids.begin(), fmisids.end()};
+}
+
 ObservationCache::~ObservationCache() = default;
 
 }  // namespace Observation

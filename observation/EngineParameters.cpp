@@ -92,6 +92,9 @@ EngineParameters::EngineParameters(Spine::ConfigBase &cfg)
 
     cacheDB = cfg.get_optional_config_param<std::string>("cacheDB", "spatialite");
 
+    nearestStationExtraCandidates =
+        cfg.get_optional_config_param<int>("nearestStationExtraCandidates", 3);
+
     parameterMap = createParameterMapping(cfg);
     readStationTypeConfig(cfg);
     readDataQualityConfig(cfg);

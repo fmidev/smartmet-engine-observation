@@ -135,6 +135,17 @@ class ObservationCache
                                                 const std::string &producer_ids,
                                                 const std::string &measurand_ids) const;
 
+  // Return the subset of input fmisids which have observation data for at least one of the
+  // given measurand_ids in the given time range. Used to filter nearest station candidates
+  // so that stations without relevant observations do not consume result slots.
+  // Default implementation returns all input fmisids (no filtering).
+  virtual std::set<int> stationsWithObservations(
+      const std::vector<int> &fmisids,
+      const std::string &measurand_ids,
+      const Fmi::DateTime &starttime,
+      const Fmi::DateTime &endtime,
+      const std::string &tablename) const;
+
  protected:
   ObservationCache(const CacheInfoItem &ci);
 

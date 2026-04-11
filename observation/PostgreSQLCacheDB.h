@@ -327,6 +327,23 @@ class PostgreSQLCacheDB : public CommonPostgreSQLFunctions
                                          const ParameterMapPtr &parameterMap,
                                          const Fmi::TimeZones &timezones);
 
+  /**
+   * @brief Find which of the given stations have observation data for the given
+   *        measurand IDs in the given time range. Used for filtering nearest station
+   *        candidates so that stations without relevant data do not consume result slots.
+   * @param fmisids Candidate station IDs
+   * @param measurand_ids Comma-separated measurand IDs
+   * @param starttime Start of the time range
+   * @param endtime End of the time range
+   * @param tablename Cache table name ("observation_data" or "weather_data_qc")
+   * @return Set of fmisids that have at least one observation row
+   */
+  std::set<int> stationsWithObservations(const std::vector<int> &fmisids,
+                                         const std::string &measurand_ids,
+                                         const Fmi::DateTime &starttime,
+                                         const Fmi::DateTime &endtime,
+                                         const std::string &tablename);
+
   void shutdown();
 
   /**

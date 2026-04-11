@@ -52,6 +52,11 @@ struct EngineParameters
 
   ParameterMapPtr parameterMap;
 
+  // How many extra candidate stations to fetch from the spatial index when filtering
+  // nearest station results by observation data availability. The engine fetches
+  // N + this value candidates and returns at most N that have data. Default is 3.
+  int nearestStationExtraCandidates = 3;
+
   std::string cacheDB;
   std::string dbDriverFile;
   DatabaseDriverInfo databaseDriverInfo;

@@ -1141,6 +1141,26 @@ void PostgreSQLCache::getMovingStations(Spine::Stations & /*stations*/,
 {
 }
 
+std::set<int> PostgreSQLCache::stationsWithObservations(const std::vector<int> &fmisids,
+                                                        const std::string &measurand_ids,
+                                                        const Fmi::DateTime &starttime,
+                                                        const Fmi::DateTime &endtime,
+                                                        const std::string &tablename) const
+{
+  try
+  {
+    if (!itsConnectionPool)
+      return {fmisids.begin(), fmisids.end()};
+
+    PoolType::Ptr db = itsConnectionPool->get();
+    return db->stationsWithObservations(fmisids, measurand_ids, starttime, endtime, tablename);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Checking stations with observations from cache failed!");
+  }
+}
+
 void PostgreSQLCache::hit(const std::string &name) const
 {
   Spine::WriteLock lock(itsCacheStatisticsMutex);

@@ -118,6 +118,12 @@ class PostgreSQLCache : public ObservationCache
                          const Settings &settings,
                          const std::string &wkt) const override;
 
+  std::set<int> stationsWithObservations(const std::vector<int> &fmisids,
+                                         const std::string &measurand_ids,
+                                         const Fmi::DateTime &starttime,
+                                         const Fmi::DateTime &endtime,
+                                         const std::string &tablename) const override;
+
  private:
   using PoolType =
       Fmi::Pool<Fmi::PoolInitType::Parallel, PostgreSQLCacheDB, PostgreSQLCacheParameters>;
