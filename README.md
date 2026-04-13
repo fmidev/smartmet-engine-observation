@@ -13,6 +13,12 @@ The observation engine provides access to weather station observation data for S
 - In-memory observation cache for high-throughput access
 - Used by [smartmet-plugin-timeseries](https://github.com/fmidev/smartmet-plugin-timeseries) and [smartmet-plugin-wfs](https://github.com/fmidev/smartmet-plugin-wfs)
 
+## Documentation
+
+- [Configuring Observation Engine](docs/Configuring-Observation-Engine.md)
+- [Configuring Observation Parameters](docs/Configuring-Observation-Parameters.md)
+- [How to Add Weather Stations](docs/How-To-Add-Weather-Stations.md)
+
 ## License
 
 MIT — see [LICENSE](LICENSE)
