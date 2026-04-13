@@ -7,6 +7,7 @@
 #include "Settings.h"
 #include "StationtypeConfig.h"
 
+#include <mutex>
 #include <string>
 
 namespace SmartMet
@@ -129,6 +130,12 @@ class PostgreSQLCache : public ObservationCache
       Fmi::Pool<Fmi::PoolInitType::Parallel, PostgreSQLCacheDB, PostgreSQLCacheParameters>;
 
   std::unique_ptr<PoolType> itsConnectionPool;
+  // Protects one-time initialization of itsConnectionPool. The cache may be
+  // shared between several database drivers that initialize in parallel
+  // (see DatabaseDriverProxy::init), so the check-and-create pattern in
+  // initializeConnectionPool must be serialized to avoid replacing (and
+  // destroying) a pool that is already in use.
+  mutable std::mutex itsInitMutex;
 
   Fmi::TimeZones itsTimeZones;
 
