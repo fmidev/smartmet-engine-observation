@@ -31,6 +31,13 @@ void PostgreSQLCache::initializeConnectionPool()
 {
   try
   {
+    // The cache may be shared by several database drivers that are initialized
+    // in parallel (see DatabaseDriverProxy::init). Without serialization the
+    // null check below would race and two threads could both create a pool,
+    // with the second assignment destroying the first pool while items from
+    // it are still in use.
+    std::lock_guard<std::mutex> initLock(itsInitMutex);
+
     // Check if already initialized (one cache can be shared by multiple database drivers)
     if (itsConnectionPool)
       return;

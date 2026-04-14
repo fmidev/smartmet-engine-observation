@@ -32,6 +32,13 @@ void SpatiaLiteCache::initializeConnectionPool()
 {
   try
   {
+    // The cache may be shared by several database drivers that are initialized
+    // in parallel (see DatabaseDriverProxy::init). Without serialization the
+    // null check below would race and two threads could both create a pool,
+    // with the second assignment destroying the first pool while items from
+    // it are still in use.
+    std::lock_guard<std::mutex> initLock(itsInitMutex);
+
     // Check if already initialized (one cache can be shared by multiple database drivers)
     if (itsConnectionPool)
     {
@@ -146,6 +153,14 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
 {
   try
   {
+    // Serialize against concurrent initialization for the same shared cache
+    // instance (see initializeConnectionPool for the rationale).
+    std::lock_guard<std::mutex> initLock(itsInitMutex);
+
+    // The cache may be shared by multiple database drivers; only initialize once.
+    if (itsCachesInitialized)
+      return;
+
     auto now = Fmi::SecondClock::universal_time();
 
     const std::set<std::string> &cacheTables = itsCacheInfo.tables;
@@ -178,6 +193,8 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
     }
 
     logMessage("[Observation Engine] SpatiaLite memory cache ready.", itsParameters.quiet);
+
+    itsCachesInitialized = true;
   }
   catch (...)
   {
