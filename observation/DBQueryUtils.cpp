@@ -349,8 +349,9 @@ SpecialParamEntry buildSpecialParamEntry(const std::string &name,
   else if (boost::algorithm::starts_with(name, "windcompass"))
   {
     entry.kind = windCompassKind(name);
-    if (!isQCTable)
-      entry.mid1 = Fmi::stoi(parameterMap->getParameter("winddirection", stationtype));
+    const auto sparam = parameterMap->getParameter("winddirection", stationtype);
+    entry.mid1 = isQCTable ? parameterMap->getRoadAndForeignIds().stringToInteger(sparam, stationtype)
+                           : Fmi::stoi(sparam);
   }
   else if (name == "feelslike")
   {
