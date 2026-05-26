@@ -155,14 +155,12 @@ class SpatiaLiteCache : public ObservationCache
       Fmi::Pool<Fmi::PoolInitType::Sequential, SpatiaLite, std::string, SpatiaLiteCacheParameters>;
 
   std::unique_ptr<PoolType> itsConnectionPool;
-  // Protects one-time initialization of itsConnectionPool and the memory
-  // caches below. The cache may be shared between several database drivers
-  // that initialize in parallel (see DatabaseDriverProxy::init), so the
-  // check-and-create pattern in initializeConnectionPool / initializeCaches
-  // must be serialized to avoid replacing (and destroying) a pool that is
-  // already in use.
+  // Protects one-time initialization of itsConnectionPool and the per-sub-cache
+  // creation in initializeCaches. The cache may be shared between several
+  // database drivers that initialize in parallel (see DatabaseDriverProxy::init),
+  // so the check-and-create patterns must be serialized to avoid replacing (and
+  // destroying) a pool / memory cache that is already in use.
   mutable std::mutex itsInitMutex;
-  bool itsCachesInitialized = false;
   Fmi::TimeZones itsTimeZones;
 
   SpatiaLiteCacheParameters itsParameters;

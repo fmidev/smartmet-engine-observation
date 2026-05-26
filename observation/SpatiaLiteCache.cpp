@@ -157,15 +157,17 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
     // instance (see initializeConnectionPool for the rationale).
     std::lock_guard<std::mutex> initLock(itsInitMutex);
 
-    // The cache may be shared by multiple database drivers; only initialize once.
-    if (itsCachesInitialized)
-      return;
+    // The cache may be shared by multiple database drivers, each of which calls
+    // initializeCaches with its own durations. Gate each sub-cache on whether it
+    // already exists so the driver that actually carries a non-zero duration
+    // gets to create it, regardless of init order.
 
     auto now = Fmi::SecondClock::universal_time();
 
     const std::set<std::string> &cacheTables = itsCacheInfo.tables;
 
-    if (cacheTables.find(FLASH_DATA_TABLE) != cacheTables.end() && flashMemoryCacheDuration > 0)
+    if (!itsFlashMemoryCache && flashMemoryCacheDuration > 0 &&
+        cacheTables.find(FLASH_DATA_TABLE) != cacheTables.end())
     {
       logMessage("[Observation Engine] Initializing SpatiaLite flash memory cache",
                  itsParameters.quiet);
@@ -174,7 +176,8 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
       auto flashdata = itsConnectionPool->get()->readFlashCacheData(now - timetokeep_memory);
       itsFlashMemoryCache->fill(flashdata);
     }
-    if (cacheTables.find(OBSERVATION_DATA_TABLE) != cacheTables.end() && finMemoryCacheDuration > 0)
+    if (!itsObservationMemoryCache && finMemoryCacheDuration > 0 &&
+        cacheTables.find(OBSERVATION_DATA_TABLE) != cacheTables.end())
     {
       logMessage("[Observation Engine] Initializing SpatiaLite observation memory cache",
                  itsParameters.quiet);
@@ -183,7 +186,8 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
       itsConnectionPool->get()->initObservationMemoryCache(now - timetokeep_memory,
                                                            itsObservationMemoryCache);
     }
-    if (cacheTables.find(WEATHER_DATA_QC_TABLE) != cacheTables.end() && extMemoryCacheDuration > 0)
+    if (!itsExtMemoryCache && extMemoryCacheDuration > 0 &&
+        cacheTables.find(WEATHER_DATA_QC_TABLE) != cacheTables.end())
     {
       logMessage("[Observation Engine] Initializing SpatiaLite EXT observation memory cache",
                  itsParameters.quiet);
@@ -193,8 +197,6 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
     }
 
     logMessage("[Observation Engine] SpatiaLite memory cache ready.", itsParameters.quiet);
-
-    itsCachesInitialized = true;
   }
   catch (...)
   {

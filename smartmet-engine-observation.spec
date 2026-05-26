@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.4.13
+Version: 26.5.26
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -173,6 +173,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue May 26 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.5.26-1.fmi
+- Restore FlashMemoryCache initialization when several drivers share a SpatiaLite cache
+
 * Mon Apr 13 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.4.13-1.fmi
 - Filter nearest station candidates by data availability to reduce number of requested stations
 - Fixed SQL injection vulnerabilities
