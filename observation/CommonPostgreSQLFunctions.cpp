@@ -123,30 +123,36 @@ TS::Value parseFlashFieldValue(const pqxx::field &fld, const std::string &data_t
   if (data_type == "numeric" || data_type == "decimal" || data_type == "float4" ||
       data_type == "float8" || data_type == "_float4" || data_type == "_float8")
     return as_double(fld);
-  if (data_type == "int2" || data_type == "int4" || data_type == "int8" ||
-      data_type == "_int2" || data_type == "_int4" || data_type == "_int8")
+  if (data_type == "int2" || data_type == "int4" || data_type == "int8" || data_type == "_int2" ||
+      data_type == "_int4" || data_type == "_int8")
     return as_int(fld);
   return {};
 }
 
 // Build the base SELECT clause for getFlashData (cache vs. direct DB).
 std::string buildFlashBaseSQL(bool isCacheDB,
-                               const std::string &param,
-                               const std::string &starttime,
-                               const std::string &endtime)
+                              const std::string &param,
+                              const std::string &starttime,
+                              const std::string &endtime)
 {
+  std::string separator;
+  if (!param.empty())
+    separator = ", ";
+
   if (isCacheDB)
+  {
     return "SELECT EXTRACT(EPOCH FROM date_trunc('seconds', stroke_time)) AS stroke_time, "
            "stroke_time_fraction, flash_id, X(stroke_location) AS longitude, "
-           "Y(stroke_location) AS latitude, " +
-           param +
+           "Y(stroke_location) AS latitude" +
+           separator + param +
            " FROM flash_data flash "
            "WHERE flash.stroke_time >= '" +
            starttime + "' AND flash.stroke_time <= '" + endtime + "' ";
+  }
   return "SELECT EXTRACT(EPOCH FROM date_trunc('seconds', stroke_time)), nseconds, "
          "flash_id, ST_X(stroke_location) AS longitude, "
-         "ST_Y(stroke_location) AS latitude, " +
-         param +
+         "ST_Y(stroke_location) AS latitude" +
+         separator + param +
          " FROM flashdata flash "
          "WHERE flash.stroke_time >= '" +
          starttime + "' AND flash.stroke_time <= '" + endtime + "' ";
@@ -170,16 +176,15 @@ void appendFlashLocationFilters(std::string &sql,
     if (tloc.loc->type == Spine::Location::BoundingBox && boundingBox.empty())
     {
       Spine::BoundingBox bbox(tloc.loc->name);
-      sql += " AND ST_Within(flash.stroke_location, ST_MakeEnvelope(" +
-             Fmi::to_string(bbox.xMin) + ", " + Fmi::to_string(bbox.yMin) + ", " +
-             Fmi::to_string(bbox.xMax) + ", " + Fmi::to_string(bbox.yMax) + ", 4326)) ";
+      sql += " AND ST_Within(flash.stroke_location, ST_MakeEnvelope(" + Fmi::to_string(bbox.xMin) +
+             ", " + Fmi::to_string(bbox.yMin) + ", " + Fmi::to_string(bbox.xMax) + ", " +
+             Fmi::to_string(bbox.yMax) + ", 4326)) ";
     }
   }
   if (!boundingBox.empty())
     sql += " AND ST_Within(flash.stroke_location, ST_MakeEnvelope(" +
-           Fmi::to_string(boundingBox.at("minx")) + ", " +
-           Fmi::to_string(boundingBox.at("miny")) + ", " +
-           Fmi::to_string(boundingBox.at("maxx")) + ", " +
+           Fmi::to_string(boundingBox.at("minx")) + ", " + Fmi::to_string(boundingBox.at("miny")) +
+           ", " + Fmi::to_string(boundingBox.at("maxx")) + ", " +
            Fmi::to_string(boundingBox.at("maxy")) + ", 4326)) ";
 }
 
@@ -219,12 +224,18 @@ MagnetometerRowData parseMagnetometerRow(const pqxx::row &row)
   d.magnetometer_id = row[1].as<std::string>();
   d.level = as_int(row[2]);
   d.data_time = Fmi::date_time::from_time_t(row[3].as<time_t>());
-  if (!row[4].is_null()) d.magneto_x = as_double(row[4]);
-  if (!row[5].is_null()) d.magneto_y = as_double(row[5]);
-  if (!row[6].is_null()) d.magneto_z = as_double(row[6]);
-  if (!row[7].is_null()) d.magneto_t = as_double(row[7]);
-  if (!row[8].is_null()) d.magneto_f = as_double(row[8]);
-  if (!row[9].is_null()) d.data_quality = as_int(row[9]);
+  if (!row[4].is_null())
+    d.magneto_x = as_double(row[4]);
+  if (!row[5].is_null())
+    d.magneto_y = as_double(row[5]);
+  if (!row[6].is_null())
+    d.magneto_z = as_double(row[6]);
+  if (!row[7].is_null())
+    d.magneto_t = as_double(row[7]);
+  if (!row[8].is_null())
+    d.magneto_f = as_double(row[8]);
+  if (!row[9].is_null())
+    d.data_quality = as_int(row[9]);
   return d;
 }
 
@@ -241,10 +252,22 @@ MagnetometerParamNames getMagnetometerParamNames(int level, const ParameterMapPt
   std::string t_id = "MISSING", f_id = "MISSING";
   switch (level)
   {
-    case 10:  x_id = "667"; y_id = "669"; z_id = "671"; break;
-    case 60:  x_id = "668"; y_id = "670"; z_id = "672"; t_id = "144"; break;
-    case 110: f_id = "673"; break;
-    default:  break;
+    case 10:
+      x_id = "667";
+      y_id = "669";
+      z_id = "671";
+      break;
+    case 60:
+      x_id = "668";
+      y_id = "670";
+      z_id = "672";
+      t_id = "144";
+      break;
+    case 110:
+      f_id = "673";
+      break;
+    default:
+      break;
   }
   return {paramMap->getParameterName(x_id, MAGNETO_PRODUCER),
           paramMap->getParameterName(y_id, MAGNETO_PRODUCER),
@@ -255,13 +278,14 @@ MagnetometerParamNames getMagnetometerParamNames(int level, const ParameterMapPt
 
 // Emit all timed values for one magnetometer row into the per-fmisid result vector.
 void emitMagnetometerValues(TS::TimeSeriesVector &result,
-                             const std::map<std::string, int> &positions,
-                             const Fmi::LocalDateTime &localtime,
-                             const MagnetometerRowData &row,
-                             const MagnetometerParamNames &names,
-                             const Spine::Station &s)
+                            const std::map<std::string, int> &positions,
+                            const Fmi::LocalDateTime &localtime,
+                            const MagnetometerRowData &row,
+                            const MagnetometerParamNames &names,
+                            const Spine::Station &s)
 {
-  auto emit = [&](const std::string &name, const TS::Value &value) {
+  auto emit = [&](const std::string &name, const TS::Value &value)
+  {
     auto it = positions.find(name);
     if (it != positions.end())
       result[it->second].push_back(TS::TimedValue(localtime, value));
@@ -376,8 +400,13 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getObservationDataForMovingSt
       fmisid_to_station[station.fmisid] = station;
     }
 
-    return buildTimeSeriesFromObservations(
-        observations, settings, settings.stationtype, fmisid_to_station, qmap, timeSeriesOptions, timezones);
+    return buildTimeSeriesFromObservations(observations,
+                                           settings,
+                                           settings.stationtype,
+                                           fmisid_to_station,
+                                           qmap,
+                                           timeSeriesOptions,
+                                           timezones);
   }
   catch (...)
   {
@@ -468,14 +497,22 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataOfMovingStations
     const std::string qualityClause =
         settings.dataFilter.getSqlClause("data_quality", "data.data_quality");
 
-    const std::string sqlStmt =
-        itsIsCacheDatabase
-            ? buildMovingStationsCacheSQL(
-                  starttime, endtime, measurand_ids, fmisids, producerIds, sensorCondition,
-                  qualityClause, wktString)
-            : buildMovingStationsDirectSQL(
-                  starttime, endtime, measurand_ids, fmisids, producerIds, sensorCondition,
-                  qualityClause, wktString);
+    const std::string sqlStmt = itsIsCacheDatabase ? buildMovingStationsCacheSQL(starttime,
+                                                                                 endtime,
+                                                                                 measurand_ids,
+                                                                                 fmisids,
+                                                                                 producerIds,
+                                                                                 sensorCondition,
+                                                                                 qualityClause,
+                                                                                 wktString)
+                                                   : buildMovingStationsDirectSQL(starttime,
+                                                                                  endtime,
+                                                                                  measurand_ids,
+                                                                                  fmisids,
+                                                                                  producerIds,
+                                                                                  sensorCondition,
+                                                                                  qualityClause,
+                                                                                  wktString);
 
     if (itsDebug)
       std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt << '\n';
@@ -659,9 +696,12 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
     std::string endtimeString = Fmi::to_iso_extended_string(settings.endtime);
     boost::replace_all(endtimeString, ",", ".");
 
-    const std::string sqlStmt = buildFlashSQL(itsIsCacheDatabase, param, starttimeString,
-                                               endtimeString, settings.taggedLocations,
-                                               settings.boundingBox);
+    const std::string sqlStmt = buildFlashSQL(itsIsCacheDatabase,
+                                              param,
+                                              starttimeString,
+                                              endtimeString,
+                                              settings.taggedLocations,
+                                              settings.boundingBox);
 
     if (itsDebug)
       std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt << '\n';
@@ -700,7 +740,8 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
         if (p.first == "latitude")
           timeSeriesColumns->at(p.second).push_back(TS::TimedValue(localtime, TS::Value{latitude}));
         if (p.first == "longitude")
-          timeSeriesColumns->at(p.second).push_back(TS::TimedValue(localtime, TS::Value{longitude}));
+          timeSeriesColumns->at(p.second).push_back(
+              TS::TimedValue(localtime, TS::Value{longitude}));
       }
 
       n_elements += timeSeriesColumns->size();
