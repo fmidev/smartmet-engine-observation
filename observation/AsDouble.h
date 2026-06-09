@@ -9,23 +9,40 @@ namespace Engine
 {
 namespace Observation
 {
-// PQXX version 5 uses stringstreams which take locks on the global locale with gcc implementation
-inline double as_double(const pqxx::field& obj)
+template <typename FieldType>
+inline double as_double(const FieldType& obj)
+try
 {
-#if PQXX_VERSION_MAJOR > 5
-  return obj.as<double>();
-#else
-  return Fmi::stod(obj.as<std::string>());
-#endif
+  return obj.template as<double>();
+}
+catch (...)
+{
+  auto err = Fmi::Exception::Trace(BCP, "Failed to convert field to double: ");
+  if (obj.is_null())
+    err.addDetail("Field is null");
+  else
+  {
+    err.addDetail("Field value: '" + obj.template as<std::string>() + "'");
+  }
+  throw err;
 }
 
-inline int as_int(const pqxx::field& obj)
+template <typename FieldType>
+inline int as_int(const FieldType& obj)
+try
 {
-#if PQXX_VERSION_MAJOR > 5
-  return obj.as<int>();
-#else
-  return Fmi::stoi(obj.as<std::string>());
-#endif
+  return obj.template as<int>();
+}
+catch (...)
+{
+  auto err = Fmi::Exception::Trace(BCP, "Failed to convert field to int: ");
+  if (obj.is_null())
+    err.addDetail("Field is null");
+  else
+  {
+    err.addDetail("Field value: '" + obj.template as<std::string>() + "'");
+  }
+  throw err;
 }
 
 }  // namespace Observation

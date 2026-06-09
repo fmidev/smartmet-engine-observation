@@ -94,12 +94,15 @@ std::string buildMovingStationsDirectSQL(const std::string &starttime,
 }
 
 // Parse a single row from readObservationDataOfMovingStationsFromDB result sets.
-LocationDataItem parseMovingStationObservation(const pqxx::row &row)
+// The row type is templated to accept both pqxx::row (libpqxx <= 7) and the pqxx::row_ref proxy
+// returned when iterating a result in libpqxx 8.
+template <typename Row>
+LocationDataItem parseMovingStationObservation(const Row &row)
 {
   LocationDataItem obs;
   obs.data.fmisid = as_int(row[0]);
   obs.data.sensor_no = as_int(row[1]);
-  obs.data.data_time = Fmi::date_time::from_time_t(row[2].as<time_t>());
+  obs.data.data_time = Fmi::date_time::from_time_t(row[2].template as<time_t>());
   obs.data.measurand_id = as_int(row[3]);
   if (!row[4].is_null())
     obs.data.data_value = as_double(row[4]);
@@ -116,10 +119,13 @@ LocationDataItem parseMovingStationObservation(const pqxx::row &row)
 // ── getFlashData helpers ──────────────────────────────────────────────────────
 
 // Convert a pqxx field to a TS::Value based on its PostgreSQL data type string.
-TS::Value parseFlashFieldValue(const pqxx::field &fld, const std::string &data_type)
+// The field type is templated to accept both pqxx::field (libpqxx <= 7) and the pqxx::field_ref
+// proxy returned when indexing a row in libpqxx 8.
+template <typename Field>
+TS::Value parseFlashFieldValue(const Field &fld, const std::string &data_type)
 {
   if (data_type == "text")
-    return fld.as<std::string>();
+    return fld.template as<std::string>();
   if (data_type == "numeric" || data_type == "decimal" || data_type == "float4" ||
       data_type == "float8" || data_type == "_float4" || data_type == "_float8")
     return as_double(fld);
@@ -217,13 +223,16 @@ struct MagnetometerRowData
 };
 
 // Parse one magnetometer_data result row; nullable fields become TS::None().
-MagnetometerRowData parseMagnetometerRow(const pqxx::row &row)
+// The row type is templated to accept both pqxx::row (libpqxx <= 7) and the pqxx::row_ref proxy
+// returned when iterating a result in libpqxx 8.
+template <typename Row>
+MagnetometerRowData parseMagnetometerRow(const Row &row)
 {
   MagnetometerRowData d;
   d.fmisid = as_int(row[0]);
-  d.magnetometer_id = row[1].as<std::string>();
+  d.magnetometer_id = row[1].template as<std::string>();
   d.level = as_int(row[2]);
-  d.data_time = Fmi::date_time::from_time_t(row[3].as<time_t>());
+  d.data_time = Fmi::date_time::from_time_t(row[3].template as<time_t>());
   if (!row[4].is_null())
     d.magneto_x = as_double(row[4]);
   if (!row[5].is_null())
@@ -726,7 +735,7 @@ TS::TimeSeriesVectorPtr CommonPostgreSQLFunctions::getFlashData(const Settings &
       // Rest of the parameters in requested order
       for (int i = 5; i != int(row.size()); ++i)
       {
-        pqxx::field fld = row[i];
+        auto fld = row[i];
         result[fld.name()] = parseFlashFieldValue(fld, itsPostgreDataTypes.at(fld.type()));
       }
 

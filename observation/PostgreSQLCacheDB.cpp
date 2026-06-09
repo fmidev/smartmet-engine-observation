@@ -357,7 +357,8 @@ void PostgreSQLCacheDB::createFlashDataTable()
 
     if (!result_set.empty())
     {
-      pqxx::result::const_iterator row = result_set.begin();
+      // Dereference the iterator to a row: libpqxx 8 no longer lets an iterator be indexed as a row
+      const auto &row = *result_set.begin();
       if (!row[0].is_null() && !row[0].as<bool>())
       {
         itsDB.executeNonTransaction("ALTER TABLE flash_data ADD COLUMN data_source INTEGER");
@@ -531,7 +532,8 @@ size_t PostgreSQLCacheDB::selectCount(const std::string &queryString)
 
     if (!result_set.empty())
     {
-      pqxx::result::const_iterator row = result_set.begin();
+      // Dereference the iterator to a row: libpqxx 8 no longer lets an iterator be indexed as a row
+      const auto &row = *result_set.begin();
       if (!row[0].is_null())
         count = row[0].as<size_t>();
     }
@@ -555,7 +557,8 @@ Fmi::DateTime PostgreSQLCacheDB::getTime(const std::string &timeQuery) const
 
     if (!result_set.empty())
     {
-      pqxx::result::const_iterator row = result_set.begin();
+      // Dereference the iterator to a row: libpqxx 8 no longer lets an iterator be indexed as a row
+      const auto &row = *result_set.begin();
       if (!row[0].is_null())
       {
         auto value = as_double(row[0]);
@@ -2107,7 +2110,8 @@ TODO FlashCounts PostgreSQLCacheDB::getFlashCount(const Fmi::DateTime &starttime
     pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
     if (!result_set.empty())
     {
-      pqxx::result::const_iterator row = result_set.begin();
+      // Dereference the iterator to a row: libpqxx 8 no longer lets an iterator be indexed as a row
+      const auto &row = *result_set.begin();
       flashcounts.flashcount = as_int(row[0]);
       flashcounts.strokecount = as_int(row[1]);
       flashcounts.iccount = as_int(row[2]);
