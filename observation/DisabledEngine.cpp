@@ -18,39 +18,34 @@ namespace Observation
 {
 DisabledEngine::DisabledEngine() = default;
 
-TS::TimeSeriesVectorPtr DisabledEngine::values(Settings &settings)
+TS::TimeSeriesVectorPtr DisabledEngine::values(Settings& settings)
 {
-  (void)settings;
-  REPORT_DISABLED;
+  return {};
 }
 
-TS::TimeSeriesVectorPtr DisabledEngine::values(Settings &settings,
-                                               const TS::TimeSeriesGeneratorOptions &timeSeriesOptions)
+TS::TimeSeriesVectorPtr DisabledEngine::values(
+    Settings& settings, const TS::TimeSeriesGeneratorOptions& timeSeriesOptions)
 {
-  (void)settings;
-  (void)timeSeriesOptions;
-  REPORT_DISABLED;
+  return {};
 }
 
-void DisabledEngine::makeQuery(QueryBase *qb)
+void DisabledEngine::makeQuery(QueryBase* qb)
 {
   (void)qb;
   REPORT_DISABLED;
 }
 
-FlashCounts DisabledEngine::getFlashCount(const Fmi::DateTime & /*starttime */,
-                                          const Fmi::DateTime & /* endtime */,
-                                          const Spine::TaggedLocationList & /*locations */)
+FlashCounts DisabledEngine::getFlashCount(const Fmi::DateTime& /*starttime */,
+                                          const Fmi::DateTime& /* endtime */,
+                                          const Spine::TaggedLocationList& /*locations */)
 {
-  REPORT_DISABLED;
+  return {};
 }
 
 std::shared_ptr<std::vector<ObservableProperty>> DisabledEngine::observablePropertyQuery(
-    std::vector<std::string> &parameters, const std::string &language)
+    std::vector<std::string>& parameters, const std::string& language)
 {
-  (void)parameters;
-  (void)language;
-  REPORT_DISABLED;
+  return {};
 }
 
 bool DisabledEngine::ready() const
@@ -58,95 +53,93 @@ bool DisabledEngine::ready() const
   return true;
 }
 
-Geonames::Engine *DisabledEngine::getGeonames() const
+Geonames::Engine* DisabledEngine::getGeonames() const
 {
-  REPORT_DISABLED;
+  return nullptr;
 }
 
 std::shared_ptr<DBRegistry> DisabledEngine::dbRegistry() const
 {
-  REPORT_DISABLED;
+  return {};
 }
 
 void DisabledEngine::reloadStations() {}
 
-void DisabledEngine::getStations(Spine::Stations & /*stations*/, const Settings & /*settings*/)
+void DisabledEngine::getStations(Spine::Stations& /*stations*/, const Settings& /*settings*/) {}
+
+void DisabledEngine::getStationsByArea(Spine::Stations& /*stations*/,
+                                       const Settings& /*settings*/,
+                                       const std::string& /*areaWkt*/)
+{
+}
+
+void DisabledEngine::getStationsByBoundingBox(Spine::Stations& /*stations*/,
+                                              const Settings& /*settings*/)
+{
+}
+
+bool DisabledEngine::isParameter(const std::string& /*alias*/,
+                                 const std::string& /*stationType*/) const
+{
+  return false;
+}
+
+bool DisabledEngine::isParameterVariant(const std::string& /*name*/) const
+{
+  return false;
+}
+
+uint64_t DisabledEngine::getParameterId(const std::string& /*alias*/,
+                                        const std::string& /*stationType*/) const
 {
   REPORT_DISABLED;
 }
 
-void DisabledEngine::getStationsByArea(Spine::Stations & /*stations*/,
-                                       const Settings & /*settings*/,
-                                       const std::string & /*areaWkt*/)
-{
-  REPORT_DISABLED;
-}
-
-void DisabledEngine::getStationsByBoundingBox(Spine::Stations & /*stations*/, const Settings & /*settings*/)
-{
-  REPORT_DISABLED;
-}
-
-bool DisabledEngine::isParameter(const std::string & /*alias*/, const std::string & /*stationType*/) const
-{
-  REPORT_DISABLED;
-}
-
-bool DisabledEngine::isParameterVariant(const std::string & /*name*/) const
-{
-  REPORT_DISABLED;
-}
-
-uint64_t DisabledEngine::getParameterId(const std::string & /*alias*/,
-                                        const std::string & /*stationType*/) const
-{
-  REPORT_DISABLED;
-}
-
-std::string DisabledEngine::getParameterIdAsString(const std::string & /*alias*/,
-                                                   const std::string & /*stationType*/) const
+std::string DisabledEngine::getParameterIdAsString(const std::string& /*alias*/,
+                                                   const std::string& /*stationType*/) const
 {
   REPORT_DISABLED;
 }
 
 std::set<std::string> DisabledEngine::getValidStationTypes() const
 {
-  REPORT_DISABLED;
+  return {};
 }
 
-ContentTable DisabledEngine::getProducerInfo(const std::optional<std::string> & /*producer*/) const
+ContentTable DisabledEngine::getProducerInfo(const std::optional<std::string>& /*producer*/) const
 {
-  REPORT_DISABLED;
+  return {};
 }
 
-ContentTable DisabledEngine::getParameterInfo(const std::optional<std::string> & /*producer*/) const
+ContentTable DisabledEngine::getParameterInfo(const std::optional<std::string>& /*producer*/) const
 {
-  REPORT_DISABLED;
+  return {};
 }
 
-ContentTable DisabledEngine::getStationInfo(const StationOptions & /*options*/) const
+ContentTable DisabledEngine::getStationInfo(const StationOptions& /*options*/) const
 {
-  REPORT_DISABLED;
+  return {};
 }
 
-MetaData DisabledEngine::metaData(const std::string & /*producer*/, const Settings & /*settings*/) const
+MetaData DisabledEngine::metaData(const std::string& /*producer*/,
+                                  const Settings& /*settings*/) const
 {
-  REPORT_DISABLED;
+  return {};
 }
 
-Spine::TaggedFMISIDList DisabledEngine::translateToFMISID(const Settings & /*settings*/,
-                                                          const StationSettings & /*stationSettings*/) const
+Spine::TaggedFMISIDList DisabledEngine::translateToFMISID(
+    const Settings& /*settings*/, const StationSettings& /*stationSettings*/) const
 {
-  REPORT_DISABLED;
+  return {};
 }
 
-const ProducerMeasurandInfo &DisabledEngine::getMeasurandInfo() const
+const ProducerMeasurandInfo& DisabledEngine::getMeasurandInfo() const
 {
-  REPORT_DISABLED;
+  return {};
 }
 
-Fmi::DateTime DisabledEngine::getLatestDataUpdateTime(const std::string & /* producer */,
-                                                      const Fmi::DateTime & /* from */) const
+Fmi::DateTime DisabledEngine::getLatestDataUpdateTime(const std::string& /* producer */,
+                                                      const Fmi::DateTime& /* from */) const
 {
   REPORT_DISABLED;
 }
