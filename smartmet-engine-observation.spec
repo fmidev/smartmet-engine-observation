@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.6.17
+Version: 26.6.24
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -33,14 +33,14 @@ BuildRequires: gdal312-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 26.4.13
+BuildRequires: smartmet-engine-geonames-devel >= 26.4.28
 BuildRequires: smartmet-library-locus-devel >= 26.4.13
-BuildRequires: smartmet-library-macgyver-devel >= 26.4.13
-BuildRequires: smartmet-library-spine-devel >= 26.4.13
-BuildRequires: smartmet-library-timeseries-devel >= 26.4.13
+BuildRequires: smartmet-library-macgyver-devel >= 26.6.15
+BuildRequires: smartmet-library-spine-devel >= 26.6.24
+BuildRequires: smartmet-library-timeseries-devel >= 26.5.5
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
-BuildRequires: smartmet-utils-devel >= 26.2.4
+BuildRequires: smartmet-utils-devel >= 26.6.17
 BuildRequires: zlib-devel
 Requires: %{smartmet_boost}-iostreams
 Requires: %{smartmet_boost}-locale
@@ -50,12 +50,12 @@ Requires: %{smartmet_boost}-thread
 Requires: %{smartmet_fmt}
 Requires: gdal312-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 26.4.13
+Requires: smartmet-engine-geonames >= 26.4.28
 Requires: smartmet-library-locus >= 26.4.13
-Requires: smartmet-library-macgyver >= 26.4.13
-Requires: smartmet-library-spine >= 26.4.13
-Requires: smartmet-library-timeseries >= 26.4.13
-Requires: smartmet-server >= 26.4.13
+Requires: smartmet-library-macgyver >= 26.6.15
+Requires: smartmet-library-spine >= 26.6.24
+Requires: smartmet-library-timeseries >= 26.5.5
+Requires: smartmet-server >= 26.6.24
 Requires: unixODBC
 
 %if 0%{?rhel} && 0%{rhel} == 8
@@ -113,7 +113,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: smartmet-library-timeseries
 #TestRequires: smartmet-library-timeseries-devel
 #TestRequires: smartmet-library-spine
-#TestRequires: smartmet-test-data >= 26.4.1
+#TestRequires: smartmet-test-data >= 26.6.16
 
 Requires: libspatialite50
 BuildRequires: libspatialite50-devel
@@ -139,7 +139,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 26.4.13
+Requires: smartmet-library-spine-devel >= 26.6.24
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -173,6 +173,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Jun 24 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.6.24-1.fmi
+- Mass rebuild
+
 * Wed Jun 17 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.6.17-1.fmi
 - Fixed DisabledEngine to return empty results instead of throwing
 
