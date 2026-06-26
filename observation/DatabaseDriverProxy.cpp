@@ -119,7 +119,7 @@ void DatabaseDriverProxy::init(Engine *obsengine)
     if (itsOracleDriver && itsPostgreSQLMobileDataDriver)
     {
       // Let's initialize Oracle-driver first and fetch fmi_iot stations
-      init_tasks.add("Initialize Oracle-driver and fetch fmi_iot stations",
+      init_tasks.add("ini-oracle",
                      [this, obsengine]()
                      {
                        itsOracleDriver->init(obsengine);
@@ -139,7 +139,7 @@ void DatabaseDriverProxy::init(Engine *obsengine)
       // Do not init Oracle twice in case the previous if-block was executed
       if (!(oracleDriverInitialized && dbdriver == itsOracleDriver))
       {
-        init_tasks.add("Init driver " + dbdriver->name(),
+        init_tasks.add("ini-drv-" + dbdriver->name(),
                        [&dbdriver, obsengine]() { dbdriver->init(obsengine); });
       }
     }

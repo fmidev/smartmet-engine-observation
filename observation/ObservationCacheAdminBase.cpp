@@ -2,6 +2,7 @@
 #include "Utils.h"
 #include <macgyver/AnsiEscapeCodes.h>
 #include <macgyver/Join.h>
+#include <macgyver/ThreadName.h>
 #include <spine/Convenience.h>
 #include <spine/Reactor.h>
 
@@ -150,7 +151,7 @@ void ObservationCacheAdminBase::init()
       {
         std::cout << Spine::log_time_str() << driverName()
                   << " Stations info missing, loading from database! \n";
-        itsBackgroundTasks->add("Load station data", [this]() { loadStations(); });
+        itsBackgroundTasks->add("ini-stations", [this]() { loadStations(); });
       }
     }
 
@@ -184,7 +185,7 @@ void ObservationCacheAdminBase::startInitialCacheUpdates(
     // Oracle reads can be parallelized. The writes will be done in practice serially,
     // even though the threads will give each other some timeslices.
     if (itsParameters.finCacheUpdateInterval > 0)
-      itsBackgroundTasks->add("Init observation cache", [this]() { updateObservationCache(); });
+      itsBackgroundTasks->add("ini-obscache", [this]() { updateObservationCache(); });
   }
 
   if (weatherDataQCCache)
@@ -192,7 +193,7 @@ void ObservationCacheAdminBase::startInitialCacheUpdates(
     weatherDataQCCache->cleanWeatherDataQCCache(Fmi::Hours(itsParameters.extCacheDuration),
                                                 Fmi::Hours(itsParameters.extMemoryCacheDuration));
     if (itsParameters.extCacheUpdateInterval > 0)
-      itsBackgroundTasks->add("Init weather data QC cache",
+      itsBackgroundTasks->add("ini-wdqc",
                               [this]() { updateWeatherDataQCCache(); });
   }
 
@@ -201,42 +202,42 @@ void ObservationCacheAdminBase::startInitialCacheUpdates(
     flashCache->cleanFlashDataCache(Fmi::Hours(itsParameters.flashCacheDuration),
                                     Fmi::Hours(itsParameters.flashMemoryCacheDuration));
     if (itsParameters.flashCacheUpdateInterval > 0)
-      itsBackgroundTasks->add("Init flash cache", [this]() { updateFlashCache(); });
+      itsBackgroundTasks->add("ini-flash", [this]() { updateFlashCache(); });
   }
 
   if (netatmoCache)
   {
     netatmoCache->cleanNetAtmoCache(Fmi::Hours(itsParameters.netAtmoCacheDuration));
     if (itsParameters.netAtmoCacheUpdateInterval > 0)
-      itsBackgroundTasks->add("Init Netatmo cache", [this]() { updateNetAtmoCache(); });
+      itsBackgroundTasks->add("ini-netatmo", [this]() { updateNetAtmoCache(); });
   }
 
   if (roadcloudCache)
   {
     roadcloudCache->cleanRoadCloudCache(Fmi::Hours(itsParameters.roadCloudCacheDuration));
     if (itsParameters.roadCloudCacheUpdateInterval > 0)
-      itsBackgroundTasks->add("Init roadcloud cache", [this]() { updateRoadCloudCache(); });
+      itsBackgroundTasks->add("ini-roadcloud", [this]() { updateRoadCloudCache(); });
   }
 
   if (fmiIoTCache)
   {
     fmiIoTCache->cleanFmiIoTCache(Fmi::Hours(itsParameters.fmiIoTCacheDuration));
     if (itsParameters.fmiIoTCacheUpdateInterval > 0)
-      itsBackgroundTasks->add("Init fmi_iot cache", [this]() { updateFmiIoTCache(); });
+      itsBackgroundTasks->add("ini-fmi_iot", [this]() { updateFmiIoTCache(); });
   }
 
   if (tapsiQcCache)
   {
     tapsiQcCache->cleanTapsiQcCache(Fmi::Hours(itsParameters.tapsiQcCacheDuration));
     if (itsParameters.tapsiQcCacheUpdateInterval > 0)
-      itsBackgroundTasks->add("Init tapsi_qc cache", [this]() { updateTapsiQcCache(); });
+      itsBackgroundTasks->add("ini-tapsi_qc", [this]() { updateTapsiQcCache(); });
   }
 
   if (magnetometerCache)
   {
     magnetometerCache->cleanMagnetometerCache(Fmi::Hours(itsParameters.magnetometerCacheDuration));
     if (itsParameters.magnetometerCacheUpdateInterval > 0)
-      itsBackgroundTasks->add("Init magnetometer cache",
+      itsBackgroundTasks->add("ini-magnetom",
                               [this]() { updateMagnetometerCache(); });
   }
 }
@@ -250,7 +251,7 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
 
     if (itsParameters.loadStations)
     {
-      itsBackgroundTasks->add("station cache update loop", [this]() { updateStationsCacheLoop(); });
+      itsBackgroundTasks->add("upd-stations", [this]() { updateStationsCacheLoop(); });
     }
 
     // Updates are disabled for example in regression tests and sometimes when
@@ -273,51 +274,51 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
     if (tables.find(OBSERVATION_DATA_TABLE) != tables.end() &&
         itsParameters.finCacheUpdateInterval > 0)
     {
-      itsBackgroundTasks->add("observation cache update loop",
+      itsBackgroundTasks->add("upd-obscache",
                               [this]() { updateObservationCacheLoop(); });
     }
 
     if (tables.find(WEATHER_DATA_QC_TABLE) != tables.end() &&
         itsParameters.extCacheUpdateInterval > 0)
     {
-      itsBackgroundTasks->add("weather data QC cache update loop",
+      itsBackgroundTasks->add("upd-wdqc",
                               [this]() { updateWeatherDataQCCacheLoop(); });
     }
 
     if (tables.find(FLASH_DATA_TABLE) != tables.end() && itsParameters.flashCacheUpdateInterval > 0)
     {
-      itsBackgroundTasks->add("flash data cache update loop", [this]() { updateFlashCacheLoop(); });
+      itsBackgroundTasks->add("upd-flash", [this]() { updateFlashCacheLoop(); });
     }
 
     if (tables.find(NETATMO_DATA_TABLE) != tables.end() &&
         itsParameters.netAtmoCacheUpdateInterval > 0)
     {
-      itsBackgroundTasks->add("netatmo cache update loop", [this]() { updateNetAtmoCacheLoop(); });
+      itsBackgroundTasks->add("upd-netatmo", [this]() { updateNetAtmoCacheLoop(); });
     }
 
     if (tables.find(ROADCLOUD_DATA_TABLE) != tables.end() &&
         itsParameters.roadCloudCacheUpdateInterval > 0)
     {
-      itsBackgroundTasks->add("road cloud cache update loop",
+      itsBackgroundTasks->add("upd-roadcloud",
                               [this]() { updateRoadCloudCacheLoop(); });
     }
 
     if (tables.find(FMI_IOT_DATA_TABLE) != tables.end() &&
         itsParameters.fmiIoTCacheUpdateInterval > 0)
     {
-      itsBackgroundTasks->add("fmi_iot cache update loop", [this]() { updateFmiIoTCacheLoop(); });
+      itsBackgroundTasks->add("upd-fmi_iot", [this]() { updateFmiIoTCacheLoop(); });
     }
 
     if (tables.find(TAPSI_QC_DATA_TABLE) != tables.end() &&
         itsParameters.tapsiQcCacheUpdateInterval > 0)
     {
-      itsBackgroundTasks->add("tapsi_qc cache update loop", [this]() { updateTapsiQcCacheLoop(); });
+      itsBackgroundTasks->add("upd-tapsi_qc", [this]() { updateTapsiQcCacheLoop(); });
     }
 
     if (tables.find(MAGNETOMETER_DATA_TABLE) != tables.end() &&
         itsParameters.magnetometerCacheUpdateInterval > 0)
     {
-      itsBackgroundTasks->add("magnetometer cache update loop",
+      itsBackgroundTasks->add("upd-magnetom",
                               [this]() { updateMagnetometerCacheLoop(); });
     }
   }
@@ -1728,7 +1729,12 @@ void ObservationCacheAdminBase::reloadStations()
   if (itsParameters.loadStations)
   {
     // FIXME: tun in background
-    boost::thread stationsReloadThread([this]() { loadStations(); });
+    boost::thread stationsReloadThread(
+        [this]()
+        {
+          Fmi::set_thread_name("upd-stations");
+          loadStations();
+        });
     stationsReloadThread.join();
   }
 }
