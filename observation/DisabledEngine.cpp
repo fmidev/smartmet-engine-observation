@@ -135,7 +135,8 @@ Spine::TaggedFMISIDList DisabledEngine::translateToFMISID(
 
 const ProducerMeasurandInfo& DisabledEngine::getMeasurandInfo() const
 {
-  return {};
+  static ProducerMeasurandInfo empty{};
+  return empty;
 }
 
 Fmi::DateTime DisabledEngine::getLatestDataUpdateTime(const std::string& /* producer */,
