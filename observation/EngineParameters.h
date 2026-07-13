@@ -21,25 +21,31 @@ namespace Observation
 class QueryResultBase;
 struct EngineParameters
 {
-  explicit EngineParameters(Spine::ConfigBase &cfg);
+  explicit EngineParameters(Spine::ConfigBase& cfg);
 
-  void readDataQualityConfig(Spine::ConfigBase &cfg);
-  void readStationTypeConfig(Spine::ConfigBase &cfg);
-  void readExternalProducerConfig(const std::string &stationtype,
-                                   std::string databaseTableName,
-                                   const std::vector<uint> &producerIdVector);
-  bool isParameter(const std::string &alias, const std::string &stationType) const;
-  bool isParameterVariant(const std::string &name) const;
-  std::string getParameterIdAsString(const std::string &alias,
-                                     const std::string &stationType) const;
-  uint64_t getParameterId(const std::string &alias, const std::string &stationType) const;
-  bool isExternalOrMobileProducer(const std::string &stationType) const;
-  std::set<std::string> getProducerParameters(const std::string &stationType) const;
+  void readDataQualityConfig(Spine::ConfigBase& cfg);
+  void readStationTypeConfig(Spine::ConfigBase& cfg);
+  void readExternalProducerConfig(const std::string& stationtype,
+                                  std::string databaseTableName,
+                                  const std::vector<uint>& producerIdVector);
+  bool isParameter(const std::string& alias, const std::string& stationType) const;
+  bool isParameterVariant(const std::string& name) const;
+  std::string getParameterIdAsString(const std::string& alias,
+                                     const std::string& stationType) const;
+  uint64_t getParameterId(const std::string& alias, const std::string& stationType) const;
+  bool isExternalOrMobileProducer(const std::string& stationType) const;
+  std::set<std::string> getProducerParameters(const std::string& stationType) const;
 
   // Cache size settings
 
   std::size_t queryResultBaseCacheSize = 100;
   std::size_t spatiaLitePoolSize = 0;
+
+  // Sizes (max number of entries) of the targeted lookup caches in
+  // DatabaseStations, used to speed up repeated station resolution across
+  // parallel time steps (nearest-station candidate lists and geoid lookups).
+  std::size_t nearestStationsCacheSize = 10000;
+  std::size_t geoIdCacheSize = 10000;
 
   std::string serializedStationsFile;
   std::string dbRegistryFolderPath;
@@ -70,7 +76,7 @@ struct EngineParameters
   bool quiet;
 
   std::shared_ptr<ObservationCacheProxy> observationCacheProxy;
-  Geonames::Engine *geonames = nullptr;
+  Geonames::Engine* geonames = nullptr;
 };
 
 using EngineParametersPtr = std::shared_ptr<EngineParameters>;

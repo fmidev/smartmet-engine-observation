@@ -19,6 +19,86 @@ Fmi::TimeZones timezones;
 
 SmartMet::Engine::Observation::StationInfo stationinfo(stationFile);
 
+namespace
+{
+// Compare two station lists by (fmisid, distance) in order
+bool same_stations(const SmartMet::Spine::Stations& a, const SmartMet::Spine::Stations& b)
+{
+  if (a.size() != b.size())
+    return false;
+  for (std::size_t i = 0; i < a.size(); ++i)
+    if (a[i].fmisid != b[i].fmisid || a[i].distance != b[i].distance)
+      return false;
+  return true;
+}
+}  // namespace
+
+TEST_CASE("Cached nearest-station candidate lists")
+{
+  // The nearest-station search is split into a time- and group-independent
+  // geometric candidate query (nearestCandidates) plus a per-request time/group
+  // filter (findNearestStations(candidates, ...)). This verifies that the split
+  // reproduces the direct search exactly, and that ONE cached candidate list can
+  // be reused across different time ranges -- the premise of the DatabaseStations
+  // cache.
+
+  std::set<std::string> aws{"AWS"};
+
+  SECTION("Split search equals direct search")
+  {
+    double lat = 60.17522999999999;
+    double lon = 24.94459;
+    double maxdistance = 50000;
+    int n = 5;
+
+    auto direct =
+        stationinfo.findNearestStations(lon, lat, maxdistance, n, aws, starttime, endtime);
+
+    auto candidates = stationinfo.nearestCandidates(lon, lat, maxdistance);
+    auto viaCandidates =
+        stationinfo.findNearestStations(candidates, lon, lat, n, aws, starttime, endtime);
+
+    REQUIRE(direct.size() == 5);
+    REQUIRE(same_stations(direct, viaCandidates));
+  }
+
+  SECTION("One candidate list reused across different time ranges (moving station)")
+  {
+    // At this location the nearest AWS station (Helsinki-Vantaan lentoasema)
+    // physically moved between 2020 and 2021, so the correct result differs by
+    // time range even though the geometry (and thus the candidate list) is the
+    // same. Reusing a single cached candidate list must still give the correct,
+    // time-specific answer for each range.
+    double lon = 25.0;
+    double lat = 60.3;
+    double maxdistance = 5000;
+    int n = 1;
+
+    Fmi::DateTime t2020a(Fmi::DateTime::from_string("2020-01-01 00:00:00"));
+    Fmi::DateTime t2020b(Fmi::DateTime::from_string("2020-02-01 00:00:00"));
+    Fmi::DateTime t2021a(Fmi::DateTime::from_string("2021-01-01 00:00:00"));
+    Fmi::DateTime t2021b(Fmi::DateTime::from_string("2021-02-01 00:00:00"));
+
+    auto direct2020 =
+        stationinfo.findNearestStations(lon, lat, maxdistance, n, aws, t2020a, t2020b);
+    auto direct2021 =
+        stationinfo.findNearestStations(lon, lat, maxdistance, n, aws, t2021a, t2021b);
+
+    // Single shared candidate list, as the DatabaseStations cache would hold
+    auto candidates = stationinfo.nearestCandidates(lon, lat, maxdistance);
+    auto cached2020 = stationinfo.findNearestStations(candidates, lon, lat, n, aws, t2020a, t2020b);
+    auto cached2021 = stationinfo.findNearestStations(candidates, lon, lat, n, aws, t2021a, t2021b);
+
+    REQUIRE(direct2020.size() == 1);
+    REQUIRE(direct2021.size() == 1);
+    REQUIRE(same_stations(direct2020, cached2020));
+    REQUIRE(same_stations(direct2021, cached2021));
+
+    // The two time ranges genuinely differ (different longitude after the move)
+    REQUIRE(cached2020.back().longitude != cached2021.back().longitude);
+  }
+}
+
 TEST_CASE("Test station and data searches")
 {
   SECTION("Search Stations using AWS group")
@@ -78,14 +158,14 @@ TEST_CASE("Test station and data searches")
 
     SECTION("Old station location")
     {
-      auto stations = stationinfo.findNearestStations(
-          25.0,
-          60.3,
-          5000,
-          1,
-          stationgroup_codes,
-          Fmi::DateTime::from_string("2020-01-01 00:00:00"),
-          Fmi::DateTime::from_string("2020-02-01 00:00:00"));
+      auto stations =
+          stationinfo.findNearestStations(25.0,
+                                          60.3,
+                                          5000,
+                                          1,
+                                          stationgroup_codes,
+                                          Fmi::DateTime::from_string("2020-01-01 00:00:00"),
+                                          Fmi::DateTime::from_string("2020-02-01 00:00:00"));
       REQUIRE(stations.size() == 1);
       REQUIRE(stations.back().formal_name_fi == "Vantaa Helsinki-Vantaan lentoasema");
       REQUIRE(to_iso_extended_string(stations.back().station_end) == "2020-09-24T00:00:00");
@@ -95,14 +175,14 @@ TEST_CASE("Test station and data searches")
 
     SECTION("New station location")
     {
-      auto stations = stationinfo.findNearestStations(
-          25.0,
-          60.3,
-          5000,
-          1,
-          stationgroup_codes,
-          Fmi::DateTime::from_string("2021-01-01 00:00:00"),
-          Fmi::DateTime::from_string("2021-02-01 00:00:00"));
+      auto stations =
+          stationinfo.findNearestStations(25.0,
+                                          60.3,
+                                          5000,
+                                          1,
+                                          stationgroup_codes,
+                                          Fmi::DateTime::from_string("2021-01-01 00:00:00"),
+                                          Fmi::DateTime::from_string("2021-02-01 00:00:00"));
       REQUIRE(stations.size() == 1);
       REQUIRE(stations.back().formal_name_fi == "Vantaa Helsinki-Vantaan lentoasema");
       REQUIRE(to_iso_extended_string(stations.back().station_end) == "9999-12-31T00:00:00");

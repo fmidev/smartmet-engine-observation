@@ -11,12 +11,12 @@ namespace Observation
 {
 namespace
 {
-ParameterMapPtr createParameterMapping(Spine::ConfigBase &cfg)
+ParameterMapPtr createParameterMapping(Spine::ConfigBase& cfg)
 {
   try
   {
     ParameterMapPtr ret;
-    auto *pm = new ParameterMap();
+    auto* pm = new ParameterMap();
 
     try
     {
@@ -29,7 +29,7 @@ ParameterMapPtr createParameterMapping(Spine::ConfigBase &cfg)
 
       // Phase 2: Parse parameter conversions
 
-      for (const std::string &paramname : param_names)
+      for (const std::string& paramname : param_names)
       {
         if (Fmi::ascii_tolower_copy(paramname).compare(0, 3, "qc_") == 0)
           throw Fmi::Exception(
@@ -37,7 +37,7 @@ ParameterMapPtr createParameterMapping(Spine::ConfigBase &cfg)
               "Observation error: Parameter aliases with 'qc_' prefix are not allowed. Fix the '" +
                   paramname + "' parameter.");
 
-        auto &param = cfg.get_mandatory_config_param<libconfig::Setting &>(paramname);
+        auto& param = cfg.get_mandatory_config_param<libconfig::Setting&>(paramname);
         cfg.assert_is_group(param);
 
         const std::string lower_parame_name = Fmi::ascii_tolower_copy(paramname);
@@ -46,7 +46,7 @@ ParameterMapPtr createParameterMapping(Spine::ConfigBase &cfg)
         for (int j = 0; j < param.getLength(); ++j)
         {
           std::string name = param[j].getName();
-          p.insert(std::make_pair(name, static_cast<const char *>(param[j])));
+          p.insert(std::make_pair(name, static_cast<const char*>(param[j])));
         }
 
         if (pm->find(lower_parame_name) != pm->end())
@@ -58,7 +58,7 @@ ParameterMapPtr createParameterMapping(Spine::ConfigBase &cfg)
         pm->addStationParameterMap(lower_parame_name, p);
       }
     }
-    catch (const libconfig::ConfigException &)
+    catch (const libconfig::ConfigException&)
     {
       cfg.handle_libconfig_exceptions("createParameterMapping");
     }
@@ -74,7 +74,7 @@ ParameterMapPtr createParameterMapping(Spine::ConfigBase &cfg)
 
 }  // anonymous namespace
 
-EngineParameters::EngineParameters(Spine::ConfigBase &cfg)
+EngineParameters::EngineParameters(Spine::ConfigBase& cfg)
 {
   try
   {
@@ -82,6 +82,10 @@ EngineParameters::EngineParameters(Spine::ConfigBase &cfg)
 
     queryResultBaseCacheSize =
         cfg.get_optional_config_param<size_t>("cache.queryResultBaseCacheSize", 1000);
+
+    nearestStationsCacheSize =
+        cfg.get_optional_config_param<size_t>("cache.nearestStationsCacheSize", 10000);
+    geoIdCacheSize = cfg.get_optional_config_param<size_t>("cache.geoIdCacheSize", 10000);
 
     serializedStationsFile = cfg.get_mandatory_path("serializedStationsFile");
     dbRegistryFolderPath = cfg.get_mandatory_path("dbRegistryFolderPath");
@@ -106,7 +110,7 @@ EngineParameters::EngineParameters(Spine::ConfigBase &cfg)
   }
 }
 
-void EngineParameters::readDataQualityConfig(Spine::ConfigBase &cfg)
+void EngineParameters::readDataQualityConfig(Spine::ConfigBase& cfg)
 {
   try
   {
@@ -117,7 +121,7 @@ void EngineParameters::readDataQualityConfig(Spine::ConfigBase &cfg)
     std::vector<std::string> stationtypes =
         cfg.get_mandatory_config_array<std::string>("stationtypes");
 
-    for (const auto &type : stationtypes)
+    for (const auto& type : stationtypes)
     {
       if (type.empty())
         continue;
@@ -132,19 +136,19 @@ void EngineParameters::readDataQualityConfig(Spine::ConfigBase &cfg)
   }
 }
 
-void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
+void EngineParameters::readStationTypeConfig(Spine::ConfigBase& cfg)
 {
   try
   {
-    libconfig::Config &config = cfg.get_config();
+    libconfig::Config& config = cfg.get_config();
 
     // Stationtype settings
     if (config.exists("stationtypelist"))
     {
-      libconfig::Setting &stationtypelist_settings = config.lookup("stationtypelist");
+      libconfig::Setting& stationtypelist_settings = config.lookup("stationtypelist");
       for (int i = 0; i < stationtypelist_settings.getLength(); i++)
       {
-        libconfig::Setting &stationtype_settings = stationtypelist_settings[i];
+        libconfig::Setting& stationtype_settings = stationtypelist_settings[i];
 
         if (!stationtype_settings.exists("stationtype"))
           throw Fmi::Exception(
@@ -208,7 +212,7 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase &cfg)
   }
 }
 
-bool EngineParameters::isParameter(const std::string &alias, const std::string &stationType) const
+bool EngineParameters::isParameter(const std::string& alias, const std::string& stationType) const
 {
   try
   {
@@ -220,7 +224,7 @@ bool EngineParameters::isParameter(const std::string &alias, const std::string &
   }
 }
 
-bool EngineParameters::isParameterVariant(const std::string &name) const
+bool EngineParameters::isParameterVariant(const std::string& name) const
 {
   try
   {
@@ -232,14 +236,14 @@ bool EngineParameters::isParameterVariant(const std::string &name) const
   }
 }
 
-void EngineParameters::readExternalProducerConfig(const std::string &stationtype,
-                                                   std::string databaseTableName,
-                                                   const std::vector<uint> &producerIdVector)
+void EngineParameters::readExternalProducerConfig(const std::string& stationtype,
+                                                  std::string databaseTableName,
+                                                  const std::vector<uint>& producerIdVector)
 {
   if (producerIdVector.empty())
     throw Fmi::Exception(BCP, "Invalid parameter value!")
-        .addDetail(fmt::format(
-            "One producer id must be defined for external and mobile producers ", stationtype));
+        .addDetail(fmt::format("One producer id must be defined for external and mobile producers ",
+                               stationtype));
 
   if (databaseTableName.empty())
     databaseTableName = "ext_obsdata";
@@ -248,26 +252,26 @@ void EngineParameters::readExternalProducerConfig(const std::string &stationtype
   Measurands measurands;
   for (auto iter = parameterMap->begin(); iter != parameterMap->end(); ++iter)
   {
-    const auto &parameter_name = iter->first;
-    for (const auto &it : iter->second)
+    const auto& parameter_name = iter->first;
+    for (const auto& it : iter->second)
     {
       if (stationtype != it.first)
         continue;
-      const auto &parameter_id = it.second;
+      const auto& parameter_id = it.second;
       // Only measurands added here (parameter_id is integer)
       if (std::string::npos != parameter_id.find_first_not_of("0123456789"))
         continue;
       measurands.insert(std::make_pair(parameter_name, Fmi::stoi(parameter_id)));
     }
   }
-  externalAndMobileProducerConfig.insert(std::make_pair(
-      stationtype,
-      ExternalAndMobileProducerConfigItem(
-          ProducerId(producerIdVector.front()), measurands, databaseTableName)));
+  externalAndMobileProducerConfig.insert(
+      std::make_pair(stationtype,
+                     ExternalAndMobileProducerConfigItem(
+                         ProducerId(producerIdVector.front()), measurands, databaseTableName)));
 }
 
-std::string EngineParameters::getParameterIdAsString(const std::string &alias,
-                                                     const std::string &stationType) const
+std::string EngineParameters::getParameterIdAsString(const std::string& alias,
+                                                     const std::string& stationType) const
 {
   try
   {
@@ -283,8 +287,8 @@ std::string EngineParameters::getParameterIdAsString(const std::string &alias,
   }
 }
 
-uint64_t EngineParameters::getParameterId(const std::string &alias,
-                                          const std::string &stationType) const
+uint64_t EngineParameters::getParameterId(const std::string& alias,
+                                          const std::string& stationType) const
 {
   try
   {
@@ -307,19 +311,19 @@ uint64_t EngineParameters::getParameterId(const std::string &alias,
   }
 }
 
-bool EngineParameters::isExternalOrMobileProducer(const std::string &stationType) const
+bool EngineParameters::isExternalOrMobileProducer(const std::string& stationType) const
 {
   return (externalAndMobileProducerConfig.find(stationType) !=
           externalAndMobileProducerConfig.end());
 }
 
-std::set<std::string> EngineParameters::getProducerParameters(const std::string &stationType) const
+std::set<std::string> EngineParameters::getProducerParameters(const std::string& stationType) const
 {
   std::set<std::string> ret;
 
   for (auto iter = parameterMap->begin(); iter != parameterMap->end(); iter++)
   {
-    for (const auto &item : iter->second)
+    for (const auto& item : iter->second)
     {
       if (item.first == stationType)
         ret.insert(Fmi::ascii_toupper_copy(iter->first));

@@ -13,8 +13,8 @@ namespace Observation
 {
 using namespace Utils;
 
-std::string DatabaseDriverBase::resolveCacheTableName(const std::string &producer,
-                                                      const StationtypeConfig &stationtypeConfig)
+std::string DatabaseDriverBase::resolveCacheTableName(const std::string& producer,
+                                                      const StationtypeConfig& stationtypeConfig)
 
 {
   try
@@ -46,8 +46,8 @@ std::string DatabaseDriverBase::resolveCacheTableName(const std::string &produce
   }
 }
 
-std::string DatabaseDriverBase::resolveDatabaseTableName(const std::string &producer,
-                                                         const StationtypeConfig &stationtypeConfig)
+std::string DatabaseDriverBase::resolveDatabaseTableName(const std::string& producer,
+                                                         const StationtypeConfig& stationtypeConfig)
 {
   std::string tablename;
 
@@ -82,11 +82,11 @@ std::string DatabaseDriverBase::resolveDatabaseTableName(const std::string &prod
 
 DatabaseDriverBase::~DatabaseDriverBase() = default;
 
-void DatabaseDriverBase::readConfig(Spine::ConfigBase &cfg, DatabaseDriverParameters &parameters)
+void DatabaseDriverBase::readConfig(Spine::ConfigBase& cfg, DatabaseDriverParameters& parameters)
 {
   try
   {
-    const DatabaseDriverInfoItem &driverInfo =
+    const DatabaseDriverInfoItem& driverInfo =
         parameters.params->databaseDriverInfo.getDatabaseDriverInfo(itsDriverName);
 
     itsTimer = driverInfo.getIntParameterValue("timer", itsTimer);
@@ -155,7 +155,7 @@ void DatabaseDriverBase::readConfig(Spine::ConfigBase &cfg, DatabaseDriverParame
   }
 }
 
-void DatabaseDriverBase::readMetaData(Spine::ConfigBase &cfg)
+void DatabaseDriverBase::readMetaData(Spine::ConfigBase& cfg)
 {
   // iterate stationtypes and find out metaparameters
   // metaparameter are defined in 'meta_data.bbox'group like 'meta_data.bbox.<producer>= value'
@@ -163,7 +163,7 @@ void DatabaseDriverBase::readMetaData(Spine::ConfigBase &cfg)
   std::vector<std::string> stationtypes =
       cfg.get_mandatory_config_array<std::string>("stationtypes");
 
-  for (const std::string &type : stationtypes)
+  for (const std::string& type : stationtypes)
   {
     if (type.empty())
       continue;
@@ -214,7 +214,7 @@ void DatabaseDriverBase::readMetaData(Spine::ConfigBase &cfg)
   }
 }
 
-MetaData DatabaseDriverBase::metaData(const std::string &producer, const Settings &settings)
+MetaData DatabaseDriverBase::metaData(const std::string& producer, const Settings& settings)
 {
   MetaData empty;
 
@@ -222,7 +222,7 @@ MetaData DatabaseDriverBase::metaData(const std::string &producer, const Setting
   {
     if (itsMetaData.find(producer) != itsMetaData.end())
     {
-      auto &ret = itsMetaData.at(producer);
+      auto& ret = itsMetaData.at(producer);
       if (!ret.fixedPeriodEndTime)
       {
         // update period end time
@@ -245,7 +245,7 @@ MetaData DatabaseDriverBase::metaData(const std::string &producer, const Setting
 }
 
 std::shared_ptr<ObservationCache> DatabaseDriverBase::resolveCache(
-    const std::string &producer, const EngineParametersPtr &parameters) const
+    const std::string& producer, const EngineParametersPtr& parameters) const
 {
   std::string tablename = resolveCacheTableName(producer, parameters->stationtypeConfig);
 
@@ -259,7 +259,7 @@ std::shared_ptr<ObservationCache> DatabaseDriverBase::resolveCache(
 }
 
 Spine::TaggedFMISIDList DatabaseDriverBase::translateToFMISID(
-    const Settings &settings, const StationSettings &stationSettings) const
+    const Settings& settings, const StationSettings& stationSettings) const
 {
   try
   {
@@ -271,9 +271,26 @@ Spine::TaggedFMISIDList DatabaseDriverBase::translateToFMISID(
   }
 }
 
-void DatabaseDriverBase::getStationsByArea(Spine::Stations &stations,
-                                           const Settings &settings,
-                                           const std::string &wkt) const
+Fmi::Cache::CacheStatistics DatabaseDriverBase::getCacheStats() const
+{
+  Fmi::Cache::CacheStatistics ret;
+
+  // Report the station-resolution caches held by this driver's DatabaseStations.
+  // The key is prefixed with the driver name so the per-driver instances do not
+  // collide when the proxy merges statistics from all drivers.
+  if (itsDatabaseStations)
+  {
+    auto stats = itsDatabaseStations->getCacheStats();
+    for (const auto& stat : stats)
+      ret.insert(std::make_pair("Observation::" + itsDriverName + "::" + stat.first, stat.second));
+  }
+
+  return ret;
+}
+
+void DatabaseDriverBase::getStationsByArea(Spine::Stations& stations,
+                                           const Settings& settings,
+                                           const std::string& wkt) const
 {
   try
   {
@@ -286,8 +303,8 @@ void DatabaseDriverBase::getStationsByArea(Spine::Stations &stations,
   }
 }
 
-void DatabaseDriverBase::getStationsByBoundingBox(Spine::Stations &stations,
-                                                  const Settings &settings) const
+void DatabaseDriverBase::getStationsByBoundingBox(Spine::Stations& stations,
+                                                  const Settings& settings) const
 {
   try
   {
@@ -300,7 +317,7 @@ void DatabaseDriverBase::getStationsByBoundingBox(Spine::Stations &stations,
   }
 }
 
-void DatabaseDriverBase::getStations(Spine::Stations &stations, const Settings &settings) const
+void DatabaseDriverBase::getStations(Spine::Stations& stations, const Settings& settings) const
 {
   try
   {
@@ -313,7 +330,7 @@ void DatabaseDriverBase::getStations(Spine::Stations &stations, const Settings &
   }
 }
 
-TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(Settings &settings) const
+TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(Settings& settings) const
 {
   try
   {
@@ -333,15 +350,15 @@ TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(Settings &setting
 }
 
 TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
-    Settings &settings, const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) const
+    Settings& settings, const TS::TimeSeriesGeneratorOptions& timeSeriesOptions) const
 {
   try
   {
     TS::TimeSeriesVectorPtr result = nullptr;
 
-    std::vector<const Spine::Parameter *> fmisidPlaceParams;
+    std::vector<const Spine::Parameter*> fmisidPlaceParams;
 
-    for (const auto &p : settings.parameters)
+    for (const auto& p : settings.parameters)
     {
       if (p.name() == "fmisid" || p.name() == "place")
         fmisidPlaceParams.push_back(&p);
@@ -356,9 +373,9 @@ TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
           timeSeriesOptions, itsTimeZones.time_zone_from_string(settings.timezone));
       TS::TimeSeries ts_fmisid;
       TS::TimeSeries ts_place;
-      for (const auto &tfmisid : settings.taggedFMISIDs)
+      for (const auto& tfmisid : settings.taggedFMISIDs)
       {
-        for (const auto &t : tlist)
+        for (const auto& t : tlist)
         {
           if (fmisidPlaceParams.size() == 2)
             ts_place.push_back(TS::TimedValue(t, tfmisid.tag));
@@ -390,14 +407,14 @@ TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
   }
 }
 
-void DatabaseDriverBase::parameterSanityCheck(const std::string &stationtype,
-                                              const std::vector<Spine::Parameter> &parameters,
-                                              const ParameterMap &parameterMap)
+void DatabaseDriverBase::parameterSanityCheck(const std::string& stationtype,
+                                              const std::vector<Spine::Parameter>& parameters,
+                                              const ParameterMap& parameterMap)
 {
   try
   {
     // Do sanity check for the parameters
-    for (const Spine::Parameter &p : parameters)
+    for (const Spine::Parameter& p : parameters)
     {
       if (not_special(p))
       {
@@ -416,7 +433,7 @@ void DatabaseDriverBase::parameterSanityCheck(const std::string &stationtype,
   }
 }
 
-void DatabaseDriverBase::updateProducers(const EngineParametersPtr &p, Settings &settings)
+void DatabaseDriverBase::updateProducers(const EngineParametersPtr& p, Settings& settings)
 {
   try
   {
@@ -439,9 +456,9 @@ void DatabaseDriverBase::updateProducers(const EngineParametersPtr &p, Settings 
 }
 
 Fmi::DateTime DatabaseDriverBase::getLatestDataUpdateTime(
-    const std::string & /* producer */,
-    const Fmi::DateTime & /* from */,
-    const MeasurandInfo & /* measurand_info */) const
+    const std::string& /* producer */,
+    const Fmi::DateTime& /* from */,
+    const MeasurandInfo& /* measurand_info */) const
 {
   try
   {
@@ -454,16 +471,16 @@ Fmi::DateTime DatabaseDriverBase::getLatestDataUpdateTime(
   }
 }
 
-void DatabaseDriverBase::getMeasurandAndProducerIds(const std::string &producer,
-                                                    const MeasurandInfo &minfo,
-                                                    const EngineParametersPtr &ep,
-                                                    std::string &producerIds,
-                                                    std::string &measurandIds) const
+void DatabaseDriverBase::getMeasurandAndProducerIds(const std::string& producer,
+                                                    const MeasurandInfo& minfo,
+                                                    const EngineParametersPtr& ep,
+                                                    std::string& producerIds,
+                                                    std::string& measurandIds) const
 {
   try
   {
-    const auto &pids = ep->stationtypeConfig.getProducerIdSetByStationtype(producer);
-    for (const auto &pid : pids)
+    const auto& pids = ep->stationtypeConfig.getProducerIdSetByStationtype(producer);
+    for (const auto& pid : pids)
     {
       if (!producerIds.empty())
         producerIds.append(",");
@@ -474,7 +491,7 @@ void DatabaseDriverBase::getMeasurandAndProducerIds(const std::string &producer,
     if (producer == FOREIGN_PRODUCER || producer == ROAD_PRODUCER)
     {
       auto producer_params = ep->getProducerParameters(producer);
-      for (const auto &p : producer_params)
+      for (const auto& p : producer_params)
       {
         measurand_info p_minfo;
         p_minfo.measurand_id = ("'" + p + "'");
@@ -486,11 +503,11 @@ void DatabaseDriverBase::getMeasurandAndProducerIds(const std::string &producer,
       actual_minfo = minfo;
     }
 
-    for (const auto &item : actual_minfo)
+    for (const auto& item : actual_minfo)
     {
-      const auto &mi = item.second;
+      const auto& mi = item.second;
       //		const auto& producers = mi.producers;
-      for (const auto &pid : pids)
+      for (const auto& pid : pids)
       {
         if (mi.producers.find(pid) != mi.producers.end())
         {

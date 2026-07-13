@@ -6,6 +6,8 @@
 #include <spine/Station.h>
 #include <map>
 #include <set>
+#include <utility>
+#include <vector>
 
 namespace SmartMet
 {
@@ -15,6 +17,13 @@ namespace Observation
 {
 // Index into a stations vector
 using StationID = unsigned int;
+
+// A time- and group-independent nearest-station candidate list. Each entry is
+// (chord distance, StationID), sorted by ascending distance. The StationID
+// values index into the stations vector of the StationInfo that produced the
+// list, so a cached list is valid only for that same StationInfo instance.
+using NearestCandidate = std::pair<double, StationID>;
+using NearestCandidateList = std::vector<NearestCandidate>;
 
 // Mapping from some identifier to stations
 using StationIndex = std::map<unsigned int, std::set<StationID>>;
@@ -48,6 +57,25 @@ class StationInfo
   Spine::Stations findNearestStations(double longitude,
                                       double latitude,
                                       double maxdistance,
+                                      int numberofstations,
+                                      const std::set<std::string>& groups,
+                                      const Fmi::DateTime& starttime,
+                                      const Fmi::DateTime& endtime) const;
+
+  // Time- and group-independent geometric query returning all stations within
+  // maxdistance (meters), sorted by ascending distance. This is the expensive
+  // part of a nearest-station search and is safe to cache and reuse across
+  // different time ranges, station groups and result counts.
+  NearestCandidateList nearestCandidates(double longitude,
+                                         double latitude,
+                                         double maxdistance) const;
+
+  // Filter a (possibly cached) candidate list by time range and station groups
+  // and return the numberofstations nearest matching stations. The candidate
+  // list must have been produced by nearestCandidates() on this same instance.
+  Spine::Stations findNearestStations(const NearestCandidateList& candidates,
+                                      double longitude,
+                                      double latitude,
                                       int numberofstations,
                                       const std::set<std::string>& groups,
                                       const Fmi::DateTime& starttime,

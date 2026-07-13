@@ -207,22 +207,63 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
                                                  const Fmi::DateTime& starttime,
                                                  const Fmi::DateTime& endtime) const
 {
-  if (numberofstations < 1)
-    throw Fmi::Exception(BCP, "Cannot search for less than 1 nearby stations");
+  // The geometric candidate search is the expensive part and is independent of
+  // the time range and station groups, so it is kept separate to enable caching.
+  auto candidates = nearestCandidates(longitude, latitude, maxdistance);
+  return findNearestStations(
+      candidates, longitude, latitude, numberofstations, groups, starttime, endtime);
+}
 
-  auto maxcount = static_cast<std::size_t>(numberofstations);
+// ----------------------------------------------------------------------
+/*!
+ * \brief Geometric nearest-station candidate search (time/group independent)
+ */
+// ----------------------------------------------------------------------
 
+NearestCandidateList StationInfo::nearestCandidates(double longitude,
+                                                    double latitude,
+                                                    double maxdistance) const
+{
   // Find all stations within the distance limit
   StationNearTreeLatLon searchpoint{longitude, latitude};
 
   auto candidates = stationtree.nearestones(
       searchpoint, StationNearTreeLatLon::ChordLength(maxdistance / 1000.0));
 
-  // Note: The candidates are stored in a multimap sorted by distance. However,
-  // since road weather stations may have identical coordinates, and NearTree
-  // buildup is not deterministic, the sorting is not stable for the stations
-  // at identical distances, and hence regression tests may fail. We'll use
-  // the station ID as an extra sorting criteria.
+  // The candidates are stored in a multimap sorted by ascending distance, so
+  // the resulting list retains that order.
+  NearestCandidateList result;
+  result.reserve(candidates.size());
+  for (const auto& candidate : candidates)
+    result.emplace_back(candidate.first, candidate.second.ID());
+
+  return result;
+}
+
+// ----------------------------------------------------------------------
+/*!
+ * \brief Filter a candidate list by time and groups, returning nearest stations
+ */
+// ----------------------------------------------------------------------
+
+Spine::Stations StationInfo::findNearestStations(const NearestCandidateList& candidates,
+                                                 double longitude,
+                                                 double latitude,
+                                                 int numberofstations,
+                                                 const std::set<std::string>& groups,
+                                                 const Fmi::DateTime& starttime,
+                                                 const Fmi::DateTime& endtime) const
+{
+  if (numberofstations < 1)
+    throw Fmi::Exception(BCP, "Cannot search for less than 1 nearby stations");
+
+  auto maxcount = static_cast<std::size_t>(numberofstations);
+
+  // Note: The candidates are sorted by distance. However, since road weather
+  // stations may have identical coordinates, and NearTree buildup is not
+  // deterministic, the sorting is not stable for the stations at identical
+  // distances, and hence regression tests may fail. We'll use the station ID
+  // as an extra sorting criteria.
 
   using StationDistance = std::pair<double, StationID>;  // distance first for sorting!
   std::vector<StationDistance> distances;
@@ -232,7 +273,7 @@ Spine::Stations StationInfo::findNearestStations(double longitude,
 
   for (const auto& candidate : candidates)
   {
-    StationID id = candidate.second.ID();
+    StationID id = candidate.second;
     const auto& station = stations.at(id);
 
     if (!timeok(station, starttime, endtime))

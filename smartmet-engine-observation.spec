@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.7.9
+Version: 26.7.13
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -173,6 +173,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Jul 13 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> 26.7.13-1.fmi
+- Added caches for nearest-station and geoid resolution to speed up parallel time step queries
+
 * Thu Jul  9 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.7.9-1.fmi
 - Bug fix: returning a reference to a temporary is not allowed
 

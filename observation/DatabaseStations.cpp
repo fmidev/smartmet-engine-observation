@@ -16,61 +16,24 @@ namespace
 using namespace Utils;
 
 // Sort based on fmisid
-bool sort_stations_function(const Spine::Station &s1, const Spine::Station &s2)
+bool sort_stations_function(const Spine::Station& s1, const Spine::Station& s2)
 {
   return (s1.fmisid < s2.fmisid);
 }
 
-/*!
- * \brief Find stations close to the given coordinate with filtering
- */
-
-Spine::Stations findNearestStations(const StationInfo &info,
-                                    double longitude,
-                                    double latitude,
-                                    double maxdistance,
-                                    int numberofstations,
-                                    const std::set<std::string> &stationgroup_codes,
-                                    const Fmi::DateTime &starttime,
-                                    const Fmi::DateTime &endtime)
-{
-  return info.findNearestStations(
-      longitude, latitude, maxdistance, numberofstations, stationgroup_codes, starttime, endtime);
-}
-/*!
- * \brief Find stations close to the given location with filtering
- */
-
-Spine::Stations findNearestStations(const StationInfo &info,
-                                    const Spine::LocationPtr &location,
-                                    double maxdistance,
-                                    int numberofstations,
-                                    const std::set<std::string> &stationgroup_codes,
-                                    const Fmi::DateTime &starttime,
-                                    const Fmi::DateTime &endtime)
-{
-  return findNearestStations(info,
-                             location->longitude,
-                             location->latitude,
-                             maxdistance,
-                             numberofstations,
-                             stationgroup_codes,
-                             starttime,
-                             endtime);
-}
 // Build a comma-separated list of measurand IDs for the requested observation parameters.
 // Returns an empty string if there are no observation parameters in the request.
 // For weather_data_qc tables the IDs are single-quoted strings, otherwise plain integers.
 
-std::string buildMeasurandIdList(const ParameterMapPtr &parameterMap,
-                                 const std::vector<Spine::Parameter> &parameters,
-                                 const std::string &stationtype,
+std::string buildMeasurandIdList(const ParameterMapPtr& parameterMap,
+                                 const std::vector<Spine::Parameter>& parameters,
+                                 const std::string& stationtype,
                                  bool isWeatherDataQC)
 {
   std::string result;
   std::set<std::string> seen;
 
-  for (const auto &p : parameters)
+  for (const auto& p : parameters)
   {
     if (!not_special(p))
       continue;
@@ -109,7 +72,7 @@ std::string buildMeasurandIdList(const ParameterMapPtr &parameterMap,
 // Resolve the cache table name for a given stationtype.
 // Returns "observation_data" or "weather_data_qc", or empty if not applicable.
 
-std::string resolveCacheTableName(const StationtypeConfig &stc, const std::string &stationtype)
+std::string resolveCacheTableName(const StationtypeConfig& stc, const std::string& stationtype)
 {
   try
   {
@@ -127,9 +90,56 @@ std::string resolveCacheTableName(const StationtypeConfig &stc, const std::strin
 
 }  // namespace
 
-void DatabaseStations::getStationsByArea(Spine::Stations &stations,
-                                         const Settings &settings,
-                                         const std::string &wkt) const
+Spine::Stations DatabaseStations::cachedFindNearestStations(
+    const std::shared_ptr<StationInfo>& info,
+    double longitude,
+    double latitude,
+    double maxdistance,
+    int numberofstations,
+    const std::set<std::string>& groups,
+    const Fmi::DateTime& starttime,
+    const Fmi::DateTime& endtime) const
+{
+  // The cached candidate lists hold StationID indices that are only valid for
+  // the StationInfo instance that produced them. Clear the cache if the station
+  // data has been swapped underneath us. Holding a shared_ptr to the instance
+  // also prevents its address from being reused while the cache refers to it.
+  {
+    std::lock_guard<std::mutex> lock(itsCacheMutex);
+    if (itsCacheStationInfo != info)
+    {
+      itsNearestCandidateCache.clear();
+      itsCacheStationInfo = info;
+    }
+  }
+
+  // The candidate list is independent of the time range, the station groups and
+  // the requested count, so it is keyed only on the search geometry.
+  auto key = fmt::format("{},{},{}", longitude, latitude, maxdistance);
+
+  auto cached = itsNearestCandidateCache.find(key);
+  if (cached)
+    return info->findNearestStations(
+        *cached, longitude, latitude, numberofstations, groups, starttime, endtime);
+
+  auto candidates = info->nearestCandidates(longitude, latitude, maxdistance);
+  itsNearestCandidateCache.insert(key, candidates);
+
+  return info->findNearestStations(
+      candidates, longitude, latitude, numberofstations, groups, starttime, endtime);
+}
+
+Fmi::Cache::CacheStatistics DatabaseStations::getCacheStats() const
+{
+  Fmi::Cache::CacheStatistics stats;
+  stats.insert(std::make_pair("nearest_station_cache", itsNearestCandidateCache.statistics()));
+  stats.insert(std::make_pair("geoid_cache", itsGeoIdCache.statistics()));
+  return stats;
+}
+
+void DatabaseStations::getStationsByArea(Spine::Stations& stations,
+                                         const Settings& settings,
+                                         const std::string& wkt) const
 {
   try
   {
@@ -150,9 +160,9 @@ void DatabaseStations::getStationsByArea(Spine::Stations &stations,
   }
 }
 
-void DatabaseStations::getStationsByBoundingBox(Spine::Stations &stations,
-                                                const Settings &settings,
-                                                const BoundingBoxSettings &bboxSettings) const
+void DatabaseStations::getStationsByBoundingBox(Spine::Stations& stations,
+                                                const Settings& settings,
+                                                const BoundingBoxSettings& bboxSettings) const
 {
   try
   {
@@ -171,7 +181,7 @@ void DatabaseStations::getStationsByBoundingBox(Spine::Stations &stations,
                                                      stationgroup_codes,
                                                      settings.starttime,
                                                      settings.endtime);
-      for (const auto &station : stationList)
+      for (const auto& station : stationList)
         stations.push_back(station);
 
       // Sort in ascending fmisid order
@@ -190,7 +200,7 @@ void DatabaseStations::getStationsByBoundingBox(Spine::Stations &stations,
 
 // Translates geoids to fmisid
 Spine::TaggedFMISIDList DatabaseStations::translateGeoIdsToFMISID(
-    const Settings &settings, const GeoIdSettings &geoidSettings) const
+    const Settings& settings, const GeoIdSettings& geoidSettings) const
 {
   Spine::TaggedFMISIDList ret;
 
@@ -208,9 +218,18 @@ Spine::TaggedFMISIDList DatabaseStations::translateGeoIdsToFMISID(
 
   for (int geoid : geoidSettings.geoids)
   {
-    auto places = itsGeonames->idSearch(opts, geoid);
+    // The geoid -> location resolution goes through the Locus library and does
+    // not depend on the observation time, so it is cached across time steps.
+    auto geoidKey = fmt::format("{}:{}", geoid, geoidSettings.language);
+    auto places = itsGeoIdCache.find(geoidKey);
+    if (!places)
+    {
+      auto resolved = itsGeonames->idSearch(opts, geoid);
+      itsGeoIdCache.insert(geoidKey, resolved);
+      places = resolved;
+    }
 
-    for (const auto &place : places)
+    for (const auto& place : *places)
     {
       // If the geoid refers to a station, do not search based on distance
       if (place->fmisid)
@@ -220,15 +239,16 @@ Spine::TaggedFMISIDList DatabaseStations::translateGeoIdsToFMISID(
       else
       {
         // Search nearest stations
-        auto stations = findNearestStations(*info,
-                                            place,
-                                            geoidSettings.maxdistance,
-                                            geoidSettings.numberofstations,
-                                            stationgroup_codes,
-                                            settings.starttime,
-                                            settings.endtime);
+        auto stations = cachedFindNearestStations(info,
+                                                  place->longitude,
+                                                  place->latitude,
+                                                  geoidSettings.maxdistance,
+                                                  geoidSettings.numberofstations,
+                                                  stationgroup_codes,
+                                                  settings.starttime,
+                                                  settings.endtime);
 
-        for (Spine::Station &s : stations)
+        for (Spine::Station& s : stations)
           ret.emplace_back(Fmi::to_string(geoid), s.fmisid);
       }
     }
@@ -238,7 +258,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateGeoIdsToFMISID(
 }
 
 Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
-    const Settings &settings, const StationSettings &stationSettings) const
+    const Settings& settings, const StationSettings& stationSettings) const
 {
   Spine::TaggedFMISIDList result;
 
@@ -271,7 +291,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
     Spine::Stations stations;
     getStationsByBoundingBox(stations, settings, stationSettings.bounding_box_settings);
     std::string bboxTag = DatabaseStations::getTag(stationSettings.bounding_box_settings);
-    for (const auto &s : stations)
+    for (const auto& s : stations)
       result.emplace_back(bboxTag, s.fmisid);
   }
 
@@ -304,11 +324,10 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
 
         bool isWeatherDataQC = (cacheTableName == WEATHER_DATA_QC_TABLE);
 
-        auto measurandIds = buildMeasurandIdList(
-            itsObservationEngineParameters->parameterMap,
-            settings.parameters,
-            settings.stationtype,
-            isWeatherDataQC);
+        auto measurandIds = buildMeasurandIdList(itsObservationEngineParameters->parameterMap,
+                                                 settings.parameters,
+                                                 settings.stationtype,
+                                                 isWeatherDataQC);
 
         // Get the cache for checking data availability
         std::shared_ptr<ObservationCache> cache;
@@ -324,30 +343,32 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
 
           int extra = itsObservationEngineParameters->nearestStationExtraCandidates;
 
-          auto candidates = findNearestStations(*info,
-                                                nss.longitude,
-                                                nss.latitude,
-                                                nss.maxdistance,
-                                                nss.numberofstations + extra,
-                                                stationgroup_codes,
-                                                settings.starttime,
-                                                settings.endtime);
+          auto candidates = cachedFindNearestStations(info,
+                                                      nss.longitude,
+                                                      nss.latitude,
+                                                      nss.maxdistance,
+                                                      nss.numberofstations + extra,
+                                                      stationgroup_codes,
+                                                      settings.starttime,
+                                                      settings.endtime);
 
           if (!candidates.empty())
           {
             // Lightweight SQL check: which candidate stations actually have data?
             std::vector<int> candidate_fmisids;
             candidate_fmisids.reserve(candidates.size());
-            for (const auto &s : candidates)
+            for (const auto& s : candidates)
               candidate_fmisids.push_back(s.fmisid);
 
-            auto valid = cache->stationsWithObservations(
-                candidate_fmisids, measurandIds, settings.starttime, settings.endtime,
-                cacheTableName);
+            auto valid = cache->stationsWithObservations(candidate_fmisids,
+                                                         measurandIds,
+                                                         settings.starttime,
+                                                         settings.endtime,
+                                                         cacheTableName);
 
             // Pick the first numberofstations that have data (candidates are distance-sorted)
             int added = 0;
-            for (const auto &s : candidates)
+            for (const auto& s : candidates)
             {
               if (valid.find(s.fmisid) != valid.end())
               {
@@ -363,16 +384,16 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
           // No filtering possible: no observation parameters or no cache available.
           // Fall back to the original behaviour.
 
-          auto stations = findNearestStations(*info,
-                                              nss.longitude,
-                                              nss.latitude,
-                                              nss.maxdistance,
-                                              nss.numberofstations,
-                                              stationgroup_codes,
-                                              settings.starttime,
-                                              settings.endtime);
+          auto stations = cachedFindNearestStations(info,
+                                                    nss.longitude,
+                                                    nss.latitude,
+                                                    nss.maxdistance,
+                                                    nss.numberofstations,
+                                                    stationgroup_codes,
+                                                    settings.starttime,
+                                                    settings.endtime);
 
-          for (Spine::Station &s : stations)
+          for (Spine::Station& s : stations)
             result.emplace_back(nssTag, s.fmisid, s.stationDirection, s.distance);
         }
       }
@@ -383,7 +404,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
 
   // Remove duplicates
   std::set<int> accepted_fmisids;
-  for (const auto &item : result)
+  for (const auto& item : result)
   {
     if (accepted_fmisids.find(item.fmisid) != accepted_fmisids.end())
       continue;
@@ -395,9 +416,9 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
   return ret;
 }
 
-void DatabaseStations::getStationGroups(std::set<std::string> &stationgroup_codes,
-                                        const std::string &stationtype,
-                                        const std::set<std::string> &stationgroups) const
+void DatabaseStations::getStationGroups(std::set<std::string>& stationgroup_codes,
+                                        const std::string& stationtype,
+                                        const std::set<std::string>& stationgroups) const
 {
   try
   {
@@ -408,7 +429,7 @@ void DatabaseStations::getStationGroups(std::set<std::string> &stationgroup_code
     if (stationgroups.empty())
       stationgroup_codes.insert(stationgroupCodeSet->begin(), stationgroupCodeSet->end());
     else
-      for (const auto &desired_group : stationgroups)
+      for (const auto& desired_group : stationgroups)
         if (stationgroupCodeSet->find(desired_group) != stationgroupCodeSet->end())
           stationgroup_codes.insert(desired_group);
   }
@@ -418,7 +439,7 @@ void DatabaseStations::getStationGroups(std::set<std::string> &stationgroup_code
   }
 }
 
-void DatabaseStations::getStations(Spine::Stations &stations, const Settings &settings) const
+void DatabaseStations::getStations(Spine::Stations& stations, const Settings& settings) const
 {
   try
   {
@@ -472,7 +493,7 @@ void DatabaseStations::getStations(Spine::Stations &stations, const Settings &se
   }
 }
 
-std::string DatabaseStations::getTag(const BoundingBoxSettings &bboxSettings)
+std::string DatabaseStations::getTag(const BoundingBoxSettings& bboxSettings)
 {
   return fmt::format("{},{},{},{}",
                      bboxSettings.at("minx"),
@@ -481,7 +502,7 @@ std::string DatabaseStations::getTag(const BoundingBoxSettings &bboxSettings)
                      bboxSettings.at("maxy"));
 }
 
-std::string DatabaseStations::getTag(const NearestStationSettings &nearestStationSettings)
+std::string DatabaseStations::getTag(const NearestStationSettings& nearestStationSettings)
 {
   return fmt::format("{},{},{},{}",
                      nearestStationSettings.longitude,
