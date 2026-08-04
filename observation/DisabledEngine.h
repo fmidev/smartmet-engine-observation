@@ -52,6 +52,7 @@ class DisabledEngine : public Engine
                                      const std::string &stationType = "unknown") const override;
 
   std::set<std::string> getValidStationTypes() const override;
+  bool isValidStationType(const std::string &stationType) const override;
 
   ContentTable getProducerInfo(const std::optional<std::string> &producer) const override;
 

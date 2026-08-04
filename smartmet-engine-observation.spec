@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.8.19
+Version: 26.8.24
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -173,6 +173,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Aug 24 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> 26.8.24-1.fmi
+- Collect the valid station types once at construction instead of rebuilding the set on every getValidStationTypes call, and added isValidStationType for testing a single producer
+
 * Wed Aug 19 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> 26.8.19-1.fmi
 - Flash queries no longer spend most of their time building throwaway objects for every stroke, which made WMS lightning layers slow during thunderstorms when the memory cache did not cover the requested interval
 - FlashMemoryCache now honours Settings::boundingBox like the disk cache does, so both caches return the same strokes and a bounding box actually restricts the search

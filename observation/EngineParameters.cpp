@@ -103,10 +103,48 @@ EngineParameters::EngineParameters(Spine::ConfigBase& cfg)
     readStationTypeConfig(cfg);
     readDataQualityConfig(cfg);
     databaseDriverInfo.readConfig(cfg);
+
+    collectValidStationTypes();
   }
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Configuration file read failed!");
+  }
+}
+
+// ----------------------------------------------------------------------
+/*!
+ * \brief Collect the station types mentioned in the configuration
+ *
+ * A station type may appear in any of the maps, and the union of them is needed
+ * both for listing the observation producers and for testing whether a producer
+ * refers to observations. Since the configuration is read only once, the set is
+ * collected here instead of on every query.
+ */
+// ----------------------------------------------------------------------
+
+void EngineParameters::collectValidStationTypes()
+{
+  try
+  {
+    for (const auto& mapEntry : stationtypeConfig.getGroupCodeSetMap())
+      validStationTypes.insert(mapEntry.first);
+
+    for (const auto& mapEntry : stationtypeConfig.getDatabaseTableNameMap())
+      validStationTypes.insert(mapEntry.first);
+
+    for (const auto& mapEntry : stationtypeConfig.getUseCommonQueryMethodMap())
+      validStationTypes.insert(mapEntry.first);
+
+    for (const auto& mapEntry : stationtypeConfig.getProducerIdSetMap())
+      validStationTypes.insert(mapEntry.first);
+
+    for (const auto& mapEntry : externalAndMobileProducerConfig)
+      validStationTypes.insert(mapEntry.first);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
 
