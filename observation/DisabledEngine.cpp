@@ -106,6 +106,11 @@ std::set<std::string> DisabledEngine::getValidStationTypes() const
   return {};
 }
 
+bool DisabledEngine::isValidStationType(const std::string& /* stationType */) const
+{
+  return false;
+}
+
 ContentTable DisabledEngine::getProducerInfo(const std::optional<std::string>& /*producer*/) const
 {
   return {};

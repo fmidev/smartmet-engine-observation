@@ -25,6 +25,7 @@ struct EngineParameters
 
   void readDataQualityConfig(Spine::ConfigBase& cfg);
   void readStationTypeConfig(Spine::ConfigBase& cfg);
+  void collectValidStationTypes();
   void readExternalProducerConfig(const std::string& stationtype,
                                   std::string databaseTableName,
                                   const std::vector<uint>& producerIdVector);
@@ -35,6 +36,15 @@ struct EngineParameters
   uint64_t getParameterId(const std::string& alias, const std::string& stationType) const;
   bool isExternalOrMobileProducer(const std::string& stationType) const;
   std::set<std::string> getProducerParameters(const std::string& stationType) const;
+
+  // All station types mentioned in the configuration. Collected once at construction: the
+  // configuration is read only once, while the plugins ask whether a producer is a station
+  // type once per layer or query.
+  const std::set<std::string>& getValidStationTypes() const { return validStationTypes; }
+  bool isValidStationType(const std::string& stationType) const
+  {
+    return validStationTypes.find(stationType) != validStationTypes.end();
+  }
 
   // Cache size settings
 
@@ -52,6 +62,7 @@ struct EngineParameters
   std::string spatiaLiteFile;
 
   std::map<std::string, std::string> dataQualityFilters;  // stationtype
+  std::set<std::string> validStationTypes;                // collected at construction
   StationtypeConfig stationtypeConfig;
   ExternalAndMobileProducerConfig externalAndMobileProducerConfig;
   ProducerGroups producerGroups;

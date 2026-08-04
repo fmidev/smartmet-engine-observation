@@ -104,6 +104,17 @@ class Engine : public SmartMet::Spine::SmartMetEngine
 
   virtual std::set<std::string> getValidStationTypes() const = 0;
 
+  /* \brief Test whether the given producer is a valid station type
+   *
+   * Equivalent to searching getValidStationTypes(), but without constructing
+   * the set. Plugins call this once per layer or query to decide whether a
+   * producer refers to observations instead of a model.
+   * \param[in] stationType Producer name to test
+   * \return True if the producer is a known station type
+   */
+
+  virtual bool isValidStationType(const std::string &stationType) const = 0;
+
   /* \brief Get detailed info of producer(s)
    * \param[in] producer If producer is given return info only of that producer, otherwise of all
    * producers \return Info of producer(s)

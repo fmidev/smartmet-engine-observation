@@ -528,34 +528,19 @@ std::set<std::string> EngineImpl::getValidStationTypes() const
 {
   try
   {
-    std::set<std::string> stationTypes;
+    return itsEngineParameters->getValidStationTypes();
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
 
-    for (auto const &mapEntry : itsEngineParameters->stationtypeConfig.getGroupCodeSetMap())
-    {
-      stationTypes.insert(mapEntry.first);
-    }
-
-    for (auto const &mapEntry : itsEngineParameters->stationtypeConfig.getDatabaseTableNameMap())
-    {
-      stationTypes.insert(mapEntry.first);
-    }
-
-    for (auto const &mapEntry : itsEngineParameters->stationtypeConfig.getUseCommonQueryMethodMap())
-    {
-      stationTypes.insert(mapEntry.first);
-    }
-
-    for (auto const &mapEntry : itsEngineParameters->stationtypeConfig.getProducerIdSetMap())
-    {
-      stationTypes.insert(mapEntry.first);
-    }
-
-    for (auto const &mapEntry : itsEngineParameters->externalAndMobileProducerConfig)
-    {
-      stationTypes.insert(mapEntry.first);
-    }
-
-    return stationTypes;
+bool EngineImpl::isValidStationType(const std::string &stationType) const
+{
+  try
+  {
+    return itsEngineParameters->isValidStationType(stationType);
   }
   catch (...)
   {

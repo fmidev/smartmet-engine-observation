@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.7.13
+Version: 26.8.4
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -173,6 +173,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Aug  4 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> 26.8.4-1.fmi
+- Collect the valid station types once at construction instead of rebuilding the set on every getValidStationTypes call, and added isValidStationType for testing a single producer
 * Mon Jul 13 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> 26.7.13-1.fmi
 - Added caches for nearest-station and geoid resolution to speed up parallel time step queries
 

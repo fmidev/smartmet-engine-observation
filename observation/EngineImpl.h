@@ -95,6 +95,7 @@ class EngineImpl : public Engine
    */
 
   std::set<std::string> getValidStationTypes() const override;
+  bool isValidStationType(const std::string &stationType) const override;
 
   /* \brief Get detailed info of producer(s)
    * \param[in] producer If producer is given return info only of that producer, otherwise of all
