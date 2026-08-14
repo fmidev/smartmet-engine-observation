@@ -302,7 +302,28 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
     {
       std::string nssTag = (nss.tag.empty() ? DatabaseStations::getTag(nss) : nss.tag);
 
+      StationtypeConfig::GroupCodeSetType stationgroup_codes;
+      getStationGroups(stationgroup_codes, settings.stationtype, settings.stationgroups);
+
+      // The location may carry the identifier of a station, in which case the caller has
+      // effectively named the station and there is no point in searching by distance. The
+      // station must however be usable for this request: the final station list is built by
+      // getStations() using StationInfo::findFmisidStations(), which drops stations outside
+      // the requested station groups and stations not in use during the requested period.
+      // Short circuiting to such a station would leave no stations at all, and the request
+      // would return nothing even though suitable stations are within maxdistance. The same
+      // day_start/day_end limits are used here as in getStations(), so that a station is
+      // accepted here exactly when it will also survive there.
+
+      bool named_station = false;
       if (nss.fmisid)
+        named_station = !info->findFmisidStations(std::vector<int>{*nss.fmisid},
+                                                  stationgroup_codes,
+                                                  day_start(settings.starttime),
+                                                  day_end(settings.endtime))
+                             .empty();
+
+      if (named_station)
       {
         // The geoid is a station, do not bother searching based on distance. We arbitrarily choose
         // direction 0.0 with distance 0.
@@ -311,9 +332,6 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
       }
       else
       {
-        StationtypeConfig::GroupCodeSetType stationgroup_codes;
-        getStationGroups(stationgroup_codes, settings.stationtype, settings.stationgroups);
-
         // Resolve cache table name and measurand IDs to decide whether to filter
         // stations by data availability. This avoids returning stations that are
         // nearby but have no data for the requested parameters (e.g. a buoy station
