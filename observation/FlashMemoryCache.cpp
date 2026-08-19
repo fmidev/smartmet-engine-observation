@@ -4,6 +4,7 @@
 #include <macgyver/Geometry.h>
 #include <spine/Value.h>
 #include <list>
+#include <map>
 #include <optional>
 
 namespace SmartMet
@@ -184,6 +185,44 @@ BBoxes parse_bboxes(const Spine::TaggedLocationList& tlocs)
       bboxes.emplace_back(std::nullopt);
   }
   return bboxes;
+}
+
+// Settings::boundingBox is a minx/miny/maxx/maxy map. The disk cache filters with it in SQL, so
+// the memory cache must do the same or the two caches would return different sets of strokes.
+
+struct SearchBox
+{
+  double minx = 0;
+  double miny = 0;
+  double maxx = 0;
+  double maxy = 0;
+
+  bool contains(const FlashDataItem& flash) const
+  {
+    return (flash.longitude >= minx && flash.longitude <= maxx && flash.latitude >= miny &&
+            flash.latitude <= maxy);
+  }
+};
+
+std::optional<SearchBox> parse_bounding_box(const std::map<std::string, double>& bbox)
+{
+  if (bbox.empty())
+    return std::nullopt;
+
+  auto minx = bbox.find("minx");
+  auto miny = bbox.find("miny");
+  auto maxx = bbox.find("maxx");
+  auto maxy = bbox.find("maxy");
+
+  if (minx == bbox.end() || miny == bbox.end() || maxx == bbox.end() || maxy == bbox.end())
+    return std::nullopt;
+
+  SearchBox box;
+  box.minx = minx->second;
+  box.miny = miny->second;
+  box.maxx = maxx->second;
+  box.maxy = maxy->second;
+  return box;
 }
 }  // namespace
 
@@ -369,9 +408,9 @@ TS::TimeSeriesVectorPtr FlashMemoryCache::getData(const Settings& settings,
 
     auto pos1 = std::lower_bound(cache->begin(), cache->end(), settings.starttime, lcmp);
 
-    // Nothing to do if there is nothing with a time lower than the starttime, or if there is
-    // nothing after it
-    if (pos1 == cache->end() || ++pos1 == cache->end())
+    // Nothing to do if there is nothing at or after the starttime. Note: pos1 must not be
+    // advanced, doing so would silently drop the first stroke of the requested interval.
+    if (pos1 == cache->end())
       return result;
 
     auto pos2 = std::upper_bound(cache->begin(), cache->end(), settings.endtime, ucmp);
@@ -408,16 +447,30 @@ TS::TimeSeriesVectorPtr FlashMemoryCache::getData(const Settings& settings,
     // Parse the bboxes only once instead of inside the below loop for every flash
     const auto bboxes = parse_bboxes(settings.taggedLocations);
 
+    // The bounding box is used by the disk cache SQL, so it must be honoured here too
+    const auto searchbox = parse_bounding_box(settings.boundingBox);
+
+    // Consecutive strokes usually share the stroke time, so cache the conversion
+    Fmi::DateTime last_stroke_time{Fmi::DateTime::NOT_A_DATE_TIME};
+    Fmi::LocalDateTime localtime;
+
     for (auto pos = pos1; pos < pos2; ++pos)
     {
       const auto& flash = *pos;
+
+      if (searchbox && !searchbox->contains(flash))
+        continue;
 
       if (!is_within_search_limits(flash, settings.taggedLocations, bboxes))
         continue;
 
       // Append to output
 
-      Fmi::LocalDateTime localtime(flash.stroke_time, localtz);
+      if (flash.stroke_time != last_stroke_time)
+      {
+        last_stroke_time = flash.stroke_time;
+        localtime = Fmi::LocalDateTime(flash.stroke_time, localtz);
+      }
 
       for (std::size_t i = 0; i < column_params.size(); i++)
       {
@@ -453,9 +506,9 @@ FlashCounts FlashMemoryCache::getFlashCount(const Fmi::DateTime& starttime,
 
     auto pos1 = std::lower_bound(cache->begin(), cache->end(), starttime, lcmp);
 
-    // Nothing to do if there is nothing with a time lower than the starttime, or if there is
-    // nothing after it
-    if (pos1 == cache->end() || ++pos1 == cache->end())
+    // Nothing to do if there is nothing at or after the starttime. Note: pos1 must not be
+    // advanced, doing so would silently drop the first stroke of the requested interval.
+    if (pos1 == cache->end())
       return result;
 
     auto pos2 = std::upper_bound(cache->begin(), cache->end(), endtime, ucmp);
