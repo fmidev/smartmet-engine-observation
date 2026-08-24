@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 26.8.24
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -173,6 +173,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Aug 24 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> 26.8.24-2.fmi
+- The nearest-station candidate and geoid lookup caches are now shared by all database drivers instead of being duplicated per driver, which cuts their memory use and improves the hit rate when a query is served by several drivers
+
 * Mon Aug 24 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> 26.8.24-1.fmi
 - Collect the valid station types once at construction instead of rebuilding the set on every getValidStationTypes call, and added isValidStationType for testing a single producer
 

@@ -378,6 +378,8 @@ void EngineImpl::unserializeStations()
   try
   {
     auto stationinfo = std::make_shared<StationInfo>();
+    stationinfo->setCandidateCacheSize(itsEngineParameters->nearestStationsCacheSize);
+
     if (std::filesystem::exists(path) && !std::filesystem::is_empty(path))
     {
       stationinfo->unserialize(itsEngineParameters->serializedStationsFile);
@@ -1015,6 +1017,14 @@ Fmi::Cache::CacheStatistics EngineImpl::getCacheStats() const
   // "query_result_cache" is used by wfs makeQuery function
   ret.insert(std::make_pair("Observation::query_result_cache",
                             itsEngineParameters->queryResultBaseCache.statistics()));
+
+  // Station resolution caches shared by all database drivers
+  auto info = itsEngineParameters->stationInfo.load();
+  if (info)
+    ret.insert(std::make_pair("Observation::nearest_station_cache", info->candidateCacheStats()));
+
+  ret.insert(
+      std::make_pair("Observation::geoid_cache", itsEngineParameters->geoIdCache.statistics()));
 
   // Get private caches from drivers (Oracle-driver has some)
   auto private_caches = itsDatabaseDriver->getCacheStats();

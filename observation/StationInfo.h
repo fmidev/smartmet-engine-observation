@@ -1,6 +1,7 @@
 #pragma once
 
 #include "StationGroups.h"
+#include <macgyver/Cache.h>
 #include <macgyver/NearTree.h>
 #include <macgyver/NearTreeLatLon.h>
 #include <spine/Station.h>
@@ -64,11 +65,18 @@ class StationInfo
 
   // Time- and group-independent geometric query returning all stations within
   // maxdistance (meters), sorted by ascending distance. This is the expensive
-  // part of a nearest-station search and is safe to cache and reuse across
-  // different time ranges, station groups and result counts.
+  // part of a nearest-station search and can be reused across different time
+  // ranges, station groups and result counts, so the results are cached below.
   NearestCandidateList nearestCandidates(double longitude,
                                          double latitude,
                                          double maxdistance) const;
+
+  // Maximum number of cached candidate lists. Set from the configuration when the
+  // station data is loaded, before the object is published to the drivers. If not
+  // set, the default size given below is used.
+  void setCandidateCacheSize(std::size_t size) { itsCandidateCache.resize(size); }
+
+  Fmi::Cache::CacheStats candidateCacheStats() const { return itsCandidateCache.statistics(); }
 
   // Filter a (possibly cached) candidate list by time range and station groups
   // and return the numberofstations nearest matching stations. The candidate
@@ -174,6 +182,13 @@ class StationInfo
   mutable NamedStationIndex wsistations;  // wsi --> indexes of stations
   mutable StationTree stationtree;        // search tree for nearest stations
   mutable GroupMembers members;           // group id --> indexes of stations
+
+  // (longitude,latitude,maxdistance) --> geometric nearest-station candidates.
+  // The cached StationID values index the stations vector of this object, so the
+  // cache is valid exactly as long as the object itself: a station reload builds
+  // a new StationInfo and the stale cache is discarded along with it. Since the
+  // engine holds only one StationInfo, all database drivers share this cache.
+  mutable Fmi::Cache::Cache<std::string, NearestCandidateList> itsCandidateCache{10000};
 
   mutable std::set<int> roadfmisids;     // all stations where isRoad=true
   mutable std::set<int> foreignfmisids;  // all stations where isForeign=true

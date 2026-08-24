@@ -273,19 +273,9 @@ Spine::TaggedFMISIDList DatabaseDriverBase::translateToFMISID(
 
 Fmi::Cache::CacheStatistics DatabaseDriverBase::getCacheStats() const
 {
-  Fmi::Cache::CacheStatistics ret;
-
-  // Report the station-resolution caches held by this driver's DatabaseStations.
-  // The key is prefixed with the driver name so the per-driver instances do not
-  // collide when the proxy merges statistics from all drivers.
-  if (itsDatabaseStations)
-  {
-    auto stats = itsDatabaseStations->getCacheStats();
-    for (const auto& stat : stats)
-      ret.insert(std::make_pair("Observation::" + itsDriverName + "::" + stat.first, stat.second));
-  }
-
-  return ret;
+  // The station resolution caches are shared by all drivers and are reported once by
+  // the engine itself. Drivers with private caches of their own override this method.
+  return {};
 }
 
 void DatabaseDriverBase::getStationsByArea(Spine::Stations& stations,

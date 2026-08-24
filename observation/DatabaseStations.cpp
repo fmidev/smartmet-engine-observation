@@ -90,53 +90,6 @@ std::string resolveCacheTableName(const StationtypeConfig& stc, const std::strin
 
 }  // namespace
 
-Spine::Stations DatabaseStations::cachedFindNearestStations(
-    const std::shared_ptr<StationInfo>& info,
-    double longitude,
-    double latitude,
-    double maxdistance,
-    int numberofstations,
-    const std::set<std::string>& groups,
-    const Fmi::DateTime& starttime,
-    const Fmi::DateTime& endtime) const
-{
-  // The cached candidate lists hold StationID indices that are only valid for
-  // the StationInfo instance that produced them. Clear the cache if the station
-  // data has been swapped underneath us. Holding a shared_ptr to the instance
-  // also prevents its address from being reused while the cache refers to it.
-  {
-    std::lock_guard<std::mutex> lock(itsCacheMutex);
-    if (itsCacheStationInfo != info)
-    {
-      itsNearestCandidateCache.clear();
-      itsCacheStationInfo = info;
-    }
-  }
-
-  // The candidate list is independent of the time range, the station groups and
-  // the requested count, so it is keyed only on the search geometry.
-  auto key = fmt::format("{},{},{}", longitude, latitude, maxdistance);
-
-  auto cached = itsNearestCandidateCache.find(key);
-  if (cached)
-    return info->findNearestStations(
-        *cached, longitude, latitude, numberofstations, groups, starttime, endtime);
-
-  auto candidates = info->nearestCandidates(longitude, latitude, maxdistance);
-  itsNearestCandidateCache.insert(key, candidates);
-
-  return info->findNearestStations(
-      candidates, longitude, latitude, numberofstations, groups, starttime, endtime);
-}
-
-Fmi::Cache::CacheStatistics DatabaseStations::getCacheStats() const
-{
-  Fmi::Cache::CacheStatistics stats;
-  stats.insert(std::make_pair("nearest_station_cache", itsNearestCandidateCache.statistics()));
-  stats.insert(std::make_pair("geoid_cache", itsGeoIdCache.statistics()));
-  return stats;
-}
-
 void DatabaseStations::getStationsByArea(Spine::Stations& stations,
                                          const Settings& settings,
                                          const std::string& wkt) const
@@ -216,16 +169,19 @@ Spine::TaggedFMISIDList DatabaseStations::translateGeoIdsToFMISID(
 
   auto info = itsObservationEngineParameters->stationInfo.load();
 
+  // The geoid -> location resolution goes through the Locus library and depends
+  // neither on the observation time nor on the database driver, so the results are
+  // cached engine wide and shared by all drivers.
+  auto& geoIdCache = itsObservationEngineParameters->geoIdCache;
+
   for (int geoid : geoidSettings.geoids)
   {
-    // The geoid -> location resolution goes through the Locus library and does
-    // not depend on the observation time, so it is cached across time steps.
     auto geoidKey = fmt::format("{}:{}", geoid, geoidSettings.language);
-    auto places = itsGeoIdCache.find(geoidKey);
+    auto places = geoIdCache.find(geoidKey);
     if (!places)
     {
       auto resolved = itsGeonames->idSearch(opts, geoid);
-      itsGeoIdCache.insert(geoidKey, resolved);
+      geoIdCache.insert(geoidKey, resolved);
       places = resolved;
     }
 
@@ -239,8 +195,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateGeoIdsToFMISID(
       else
       {
         // Search nearest stations
-        auto stations = cachedFindNearestStations(info,
-                                                  place->longitude,
+        auto stations = info->findNearestStations(place->longitude,
                                                   place->latitude,
                                                   geoidSettings.maxdistance,
                                                   geoidSettings.numberofstations,
@@ -361,8 +316,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
 
           int extra = itsObservationEngineParameters->nearestStationExtraCandidates;
 
-          auto candidates = cachedFindNearestStations(info,
-                                                      nss.longitude,
+          auto candidates = info->findNearestStations(nss.longitude,
                                                       nss.latitude,
                                                       nss.maxdistance,
                                                       nss.numberofstations + extra,
@@ -402,8 +356,7 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
           // No filtering possible: no observation parameters or no cache available.
           // Fall back to the original behaviour.
 
-          auto stations = cachedFindNearestStations(info,
-                                                    nss.longitude,
+          auto stations = info->findNearestStations(nss.longitude,
                                                     nss.latitude,
                                                     nss.maxdistance,
                                                     nss.numberofstations,

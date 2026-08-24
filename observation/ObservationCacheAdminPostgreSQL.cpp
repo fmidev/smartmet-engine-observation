@@ -165,6 +165,7 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
         itsParameters.quiet);
 
     auto newStationInfo = std::make_shared<StationInfo>();
+    newStationInfo->setCandidateCacheSize(itsParameters.params->nearestStationsCacheSize);
 
     // Get all the stations
     db->getStations(newStationInfo->stations);

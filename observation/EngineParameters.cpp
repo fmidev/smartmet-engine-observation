@@ -86,6 +86,7 @@ EngineParameters::EngineParameters(Spine::ConfigBase& cfg)
     nearestStationsCacheSize =
         cfg.get_optional_config_param<size_t>("cache.nearestStationsCacheSize", 10000);
     geoIdCacheSize = cfg.get_optional_config_param<size_t>("cache.geoIdCacheSize", 10000);
+    geoIdCache.resize(geoIdCacheSize);
 
     serializedStationsFile = cfg.get_mandatory_path("serializedStationsFile");
     dbRegistryFolderPath = cfg.get_mandatory_path("dbRegistryFolderPath");

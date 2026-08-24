@@ -224,6 +224,16 @@ NearestCandidateList StationInfo::nearestCandidates(double longitude,
                                                     double latitude,
                                                     double maxdistance) const
 {
+  // The candidate list depends only on the search geometry and on the station
+  // coordinates, not on the requested time range, station groups or station
+  // count, so the result is cached for the lifetime of this object.
+
+  auto key = fmt::format("{},{},{}", longitude, latitude, maxdistance);
+
+  auto cached = itsCandidateCache.find(key);
+  if (cached)
+    return *cached;
+
   // Find all stations within the distance limit
   StationNearTreeLatLon searchpoint{longitude, latitude};
 
@@ -236,6 +246,8 @@ NearestCandidateList StationInfo::nearestCandidates(double longitude,
   result.reserve(candidates.size());
   for (const auto& candidate : candidates)
     result.emplace_back(candidate.first, candidate.second.ID());
+
+  itsCandidateCache.insert(key, result);
 
   return result;
 }

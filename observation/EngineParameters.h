@@ -11,6 +11,7 @@
 #include "StationtypeConfig.h"
 #include <boost/smart_ptr/atomic_shared_ptr.hpp>
 #include <macgyver/Cache.h>
+#include <spine/Location.h>
 
 namespace SmartMet
 {
@@ -51,9 +52,9 @@ struct EngineParameters
   std::size_t queryResultBaseCacheSize = 100;
   std::size_t spatiaLitePoolSize = 0;
 
-  // Sizes (max number of entries) of the targeted lookup caches in
-  // DatabaseStations, used to speed up repeated station resolution across
-  // parallel time steps (nearest-station candidate lists and geoid lookups).
+  // Sizes (max number of entries) of the targeted lookup caches used to speed up
+  // repeated station resolution across parallel time steps. The nearest-station
+  // candidate lists are cached by StationInfo, the geoid lookups below.
   std::size_t nearestStationsCacheSize = 10000;
   std::size_t geoIdCacheSize = 10000;
 
@@ -83,6 +84,11 @@ struct EngineParameters
   // the shared pointer.
   mutable Fmi::AtomicSharedPtr<StationInfo> stationInfo;
   Fmi::Cache::Cache<std::string, std::shared_ptr<QueryResultBase>> queryResultBaseCache;
+
+  // (geoid,language) --> resolved locations (Locus idSearch results). Shared by all
+  // database drivers, since the resolution depends neither on the driver nor on the
+  // observation time.
+  mutable Fmi::Cache::Cache<std::string, Spine::LocationList> geoIdCache;
 
   bool quiet;
 

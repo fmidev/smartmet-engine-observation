@@ -39,8 +39,8 @@ TEST_CASE("Cached nearest-station candidate lists")
   // geometric candidate query (nearestCandidates) plus a per-request time/group
   // filter (findNearestStations(candidates, ...)). This verifies that the split
   // reproduces the direct search exactly, and that ONE cached candidate list can
-  // be reused across different time ranges -- the premise of the DatabaseStations
-  // cache.
+  // be reused across different time ranges -- the premise of the candidate cache
+  // held by StationInfo itself.
 
   std::set<std::string> aws{"AWS"};
 
@@ -60,6 +60,21 @@ TEST_CASE("Cached nearest-station candidate lists")
 
     REQUIRE(direct.size() == 5);
     REQUIRE(same_stations(direct, viaCandidates));
+  }
+
+  SECTION("Repeated searches are served from the candidate cache")
+  {
+    double lon = 24.94459;
+    double lat = 60.17522999999999;
+    double maxdistance = 50000;
+
+    auto first = stationinfo.nearestCandidates(lon, lat, maxdistance);
+    auto hits = stationinfo.candidateCacheStats().hits;
+    auto second = stationinfo.nearestCandidates(lon, lat, maxdistance);
+
+    REQUIRE(!first.empty());
+    REQUIRE(first == second);
+    REQUIRE(stationinfo.candidateCacheStats().hits == hits + 1);
   }
 
   SECTION("One candidate list reused across different time ranges (moving station)")
@@ -84,7 +99,7 @@ TEST_CASE("Cached nearest-station candidate lists")
     auto direct2021 =
         stationinfo.findNearestStations(lon, lat, maxdistance, n, aws, t2021a, t2021b);
 
-    // Single shared candidate list, as the DatabaseStations cache would hold
+    // Single shared candidate list, as the candidate cache would hold
     auto candidates = stationinfo.nearestCandidates(lon, lat, maxdistance);
     auto cached2020 = stationinfo.findNearestStations(candidates, lon, lat, n, aws, t2020a, t2020b);
     auto cached2021 = stationinfo.findNearestStations(candidates, lon, lat, n, aws, t2021a, t2021b);
