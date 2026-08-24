@@ -92,7 +92,11 @@ install:
 	if [[ ! -e $(vardir)/stations.txt ]]; then $(INSTALL_DATA) cnf/stations.txt $(vardir)/; fi
 	if [[ ! -e $(vardir)/stations.sqlite ]]; then $(INSTALL_DATA) cnf/stations.sqlite $(vardir)/; fi
 
-test:
+# The tests link the engine, so make sure it is up to date before running them.
+# Parts of the engine API are inline in the headers, so a test built against new
+# headers links against a stale observation.so without any missing symbol to
+# reveal the mismatch.
+test: all
 	@test -d test || echo "No test subdirectory, no tests defined"
 	@test ! -d test || ( $(MAKE) -C test test )
 

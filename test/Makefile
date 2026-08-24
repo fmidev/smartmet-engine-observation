@@ -34,5 +34,10 @@ test: $(PROG)
 	./$$prog; \
 	done
 
+# Build the engine when its sources are newer than the library, so that running
+# the tests directly from this directory cannot link a stale observation.so.
+../observation.so: $(wildcard ../observation/*.cpp ../observation/*.h)
+	$(MAKE) -C .. all
+
 $(PROG) : % : %.cpp ../observation.so /usr/share/smartmet/engines/geonames.so
 	$(CXX) $(CFLAGS) $(SOURCES) -o $@ $@.cpp $(INCLUDES) $(LIBS)
