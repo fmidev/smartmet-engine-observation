@@ -73,7 +73,10 @@ class StationInfo
 
   // Maximum number of cached candidate lists. Set from the configuration when the
   // station data is loaded, before the object is published to the drivers. If not
-  // set, the default size given below is used.
+  // set, this default is used. This is the single definition of the default; the
+  // configuration reader uses it too.
+  static constexpr std::size_t defaultCandidateCacheSize = 100000;
+
   void setCandidateCacheSize(std::size_t size) { itsCandidateCache.resize(size); }
 
   Fmi::Cache::CacheStats candidateCacheStats() const { return itsCandidateCache.statistics(); }
@@ -188,7 +191,8 @@ class StationInfo
   // cache is valid exactly as long as the object itself: a station reload builds
   // a new StationInfo and the stale cache is discarded along with it. Since the
   // engine holds only one StationInfo, all database drivers share this cache.
-  mutable Fmi::Cache::Cache<std::string, NearestCandidateList> itsCandidateCache{10000};
+  mutable Fmi::Cache::Cache<std::string, NearestCandidateList> itsCandidateCache{
+      defaultCandidateCacheSize};
 
   mutable std::set<int> roadfmisids;     // all stations where isRoad=true
   mutable std::set<int> foreignfmisids;  // all stations where isForeign=true

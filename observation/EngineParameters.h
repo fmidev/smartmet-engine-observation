@@ -49,13 +49,15 @@ struct EngineParameters
 
   // Cache size settings
 
-  std::size_t queryResultBaseCacheSize = 100;
+  // The member initializers below are the single definition of the defaults:
+  // the configuration reader falls back to the current member value.
+  std::size_t queryResultBaseCacheSize = 1000;
   std::size_t spatiaLitePoolSize = 0;
 
   // Sizes (max number of entries) of the targeted lookup caches used to speed up
   // repeated station resolution across parallel time steps. The nearest-station
   // candidate lists are cached by StationInfo, the geoid lookups below.
-  std::size_t nearestStationsCacheSize = 10000;
+  std::size_t nearestStationsCacheSize = StationInfo::defaultCandidateCacheSize;
   std::size_t geoIdCacheSize = 10000;
 
   std::string serializedStationsFile;

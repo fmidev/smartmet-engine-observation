@@ -80,12 +80,14 @@ EngineParameters::EngineParameters(Spine::ConfigBase& cfg)
   {
     quiet = cfg.get_optional_config_param<bool>("quiet", true);
 
+    // The defaults are the member initializers in EngineParameters.h
     queryResultBaseCacheSize =
-        cfg.get_optional_config_param<size_t>("cache.queryResultBaseCacheSize", 1000);
+        cfg.get_optional_config_param<size_t>("cache.queryResultBaseCacheSize",
+                                              queryResultBaseCacheSize);
 
-    nearestStationsCacheSize =
-        cfg.get_optional_config_param<size_t>("cache.nearestStationsCacheSize", 10000);
-    geoIdCacheSize = cfg.get_optional_config_param<size_t>("cache.geoIdCacheSize", 10000);
+    nearestStationsCacheSize = cfg.get_optional_config_param<size_t>(
+        "cache.nearestStationsCacheSize", nearestStationsCacheSize);
+    geoIdCacheSize = cfg.get_optional_config_param<size_t>("cache.geoIdCacheSize", geoIdCacheSize);
     geoIdCache.resize(geoIdCacheSize);
 
     serializedStationsFile = cfg.get_mandatory_path("serializedStationsFile");
@@ -97,8 +99,8 @@ EngineParameters::EngineParameters(Spine::ConfigBase& cfg)
 
     cacheDB = cfg.get_optional_config_param<std::string>("cacheDB", "spatialite");
 
-    nearestStationExtraCandidates =
-        cfg.get_optional_config_param<int>("nearestStationExtraCandidates", 3);
+    nearestStationExtraCandidates = cfg.get_optional_config_param<int>(
+        "nearestStationExtraCandidates", nearestStationExtraCandidates);
 
     parameterMap = createParameterMapping(cfg);
     readStationTypeConfig(cfg);
