@@ -128,6 +128,7 @@ BuildRequires: libxml2-devel
 #TestRequires: freexl-devel
 #TestRequires: proj97-devel
 #TestRequires: libxml2-devel
+#TestRequires: sqlite-devel >= 3.22.0
 
 Provides: %{SPECNAME}
 
