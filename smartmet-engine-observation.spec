@@ -108,8 +108,8 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: gdal312-devel
 #TestRequires: bzip2-devel
 #TestRequires: zlib-devel
-#TestRequires: smartmet-engine-geonames
-#TestRequires: smartmet-library-macgyver
+#TestRequires: smartmet-engine-geonames-devel
+#TestRequires: smartmet-library-macgyver-devel
 #TestRequires: smartmet-library-timeseries
 #TestRequires: smartmet-library-timeseries-devel
 #TestRequires: smartmet-library-spine
