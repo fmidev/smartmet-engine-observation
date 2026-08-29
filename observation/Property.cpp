@@ -80,6 +80,24 @@ struct TypeConv
   bool is_vector;
 };
 
+// Escape a request-controlled string so it can be safely embedded as an SQL
+// string literal. Doubling single quotes is the standard escape for both Oracle
+// and PostgreSQL (with standard conforming strings) and prevents SQL injection
+// via WFS stored-query string values.
+std::string escapeSqlStringLiteral(const std::string& value)
+{
+  std::string result;
+  result.reserve(value.size() + 2);
+  for (const char c : value)
+  {
+    if (c == '\'')
+      result += "''";
+    else
+      result += c;
+  }
+  return result;
+}
+
 template <typename ValueType>
 std::string value_vect2str(const std::any& value, const std::string& database, value2str_t conv)
 {
@@ -148,7 +166,7 @@ Fmi::TypeMap<TypeConv> create_value_to_string_converter()
   add_type<std::string>(
       conv,
       [](const std::any& value, const std::string&) -> std::string
-      { return "'" + std::any_cast<std::string>(value) + "'"; },
+      { return "'" + escapeSqlStringLiteral(std::any_cast<std::string>(value)) + "'"; },
       "string");
 
   add_type<Fmi::DateTime>(
