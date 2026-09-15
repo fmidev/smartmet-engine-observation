@@ -32,6 +32,9 @@ class ObservationCache
   ObservationCache &operator=(ObservationCache &&other) = delete;
 
   virtual void initializeConnectionPool() = 0;
+
+  // True if the cache database cannot be written to. Updating such a cache is impossible.
+  virtual bool isReadOnly() const { return false; }
   virtual void initializeCaches(int finCacheDuration,
                                 int finMemoryCacheDuration,
                                 int extCacheDuration,

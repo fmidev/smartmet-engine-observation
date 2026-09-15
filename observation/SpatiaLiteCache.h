@@ -34,6 +34,7 @@ class SpatiaLiteCache : public ObservationCache
   SpatiaLiteCache &operator=(SpatiaLiteCache &&other) = delete;
 
   void initializeConnectionPool() override;
+  bool isReadOnly() const override;
   void initializeCaches(int finCacheDuration,
                         int finMemoryCacheDuration,
                         int extCacheDuration,
@@ -155,6 +156,7 @@ class SpatiaLiteCache : public ObservationCache
       Fmi::Pool<Fmi::PoolInitType::Sequential, SpatiaLite, std::string, SpatiaLiteCacheParameters>;
 
   std::unique_ptr<PoolType> itsConnectionPool;
+  bool itsReadOnly = false;
   // Protects one-time initialization of itsConnectionPool and the per-sub-cache
   // creation in initializeCaches. The cache may be shared between several
   // database drivers that initialize in parallel (see DatabaseDriverProxy::init),

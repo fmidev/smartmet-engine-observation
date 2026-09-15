@@ -3,9 +3,11 @@
 #include "ObservationMemoryCache.h"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/make_shared.hpp>
+#include <macgyver/AnsiEscapeCodes.h>
 #include <macgyver/StringConversion.h>
 #include <spine/Convenience.h>
 #include <atomic>
+#include <iostream>
 
 namespace SmartMet
 {
@@ -59,6 +61,17 @@ void SpatiaLiteCache::initializeConnectionPool()
     // 2) locations
     // 3) observation_data
     PoolType::Ptr db = itsConnectionPool->get();
+
+    // A cache file which cannot be written to (for example due to wrong ownership after
+    // running the server as root) would otherwise silently ignore all cache updates.
+    itsReadOnly = db->isReadOnly();
+    if (itsReadOnly)
+      std::cerr << Spine::log_time_str() << ANSI_FG_RED
+                << " [Observation Engine] WARNING: SpatiaLite cache file "
+                << itsParameters.cacheFile
+                << " is not writable, the cache is opened read-only and cannot be updated"
+                << ANSI_FG_DEFAULT << '\n';
+
     const std::set<std::string> &cacheTables = itsCacheInfo.tables;
 
     db->createTables(cacheTables);
@@ -1098,6 +1111,11 @@ Fmi::DateTime SpatiaLiteCache::getLatestTapsiQcCreatedTime() const
 Fmi::DateTime SpatiaLiteCache::getLatestObservationModifiedTime() const
 {
   return itsConnectionPool->get()->getLatestObservationModifiedTime();
+}
+
+bool SpatiaLiteCache::isReadOnly() const
+{
+  return itsReadOnly;
 }
 
 Fmi::DateTime SpatiaLiteCache::getLatestObservationTime() const

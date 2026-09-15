@@ -40,6 +40,19 @@ namespace
 {
 const Fmi::DateTime ptime_epoch_start = from_time_t(0);
 
+// Throw if a sqlite3 result code indicates a failure. sqlite3pp::command::execute() and
+// sqlite3pp::transaction::commit() do not throw, they only return the result code.
+void check_sqlite_result(int rc, const char* errmsg)
+{
+  if (rc == SQLITE_OK || rc == SQLITE_ROW)
+    return;
+
+  Fmi::Exception ex(BCP, "SQLite command failed");
+  ex.addParameter("sqlite result code", Fmi::to_string(rc));
+  ex.addParameter("sqlite error", errmsg != nullptr ? errmsg : sqlite3_errstr(rc));
+  throw ex;
+}
+
 // should use std::time_t or long here, but sqlitepp does not support it. Luckily intel 64-bit int
 // is 8 bytes
 int to_epoch(const Fmi::DateTime &pt)
@@ -174,7 +187,8 @@ void bindAndExecuteMobileExternalItem(sqlite3pp::database &db,
     cmd.bind(":altitude", *item.altitude);
   else
     cmd.bind(":altitude");
-  cmd.execute();
+  auto rc = cmd.execute();
+  check_sqlite_result(rc, db.error_msg());
   cmd.reset();
 }
 }  // namespace
@@ -374,6 +388,18 @@ SpatiaLite::SpatiaLite(const std::string &spatialiteFile, const SpatiaLiteCacheP
   {
     throw Fmi::Exception::Trace(BCP, "Connecting database '" + spatialiteFile + "' failed!");
   }
+}
+
+void SpatiaLite::execute(sqlite3pp::command& cmd) const
+{
+  auto rc = cmd.execute();
+  check_sqlite_result(rc, itsDB.error_msg());
+}
+
+void SpatiaLite::commit(sqlite3pp::transaction& xct) const
+{
+  auto rc = xct.commit();
+  check_sqlite_result(rc, itsDB.error_msg());
 }
 
 SpatiaLite::~SpatiaLite()
@@ -697,8 +723,8 @@ void SpatiaLite::createRoadCloudDataTable()
                            "created INTEGER, "
                            "altitude REAL)");
 
-    cmd.execute();
-    xct.commit();
+    execute(cmd);
+    commit(xct);
 
     try
     {
@@ -759,8 +785,8 @@ void SpatiaLite::createNetAtmoDataTable()
                            "created INTEGER, "
                            "altitude REAL)");
 
-    cmd.execute();
-    xct.commit();
+    execute(cmd);
+    commit(xct);
 
     try
     {
@@ -821,8 +847,8 @@ void SpatiaLite::createFmiIoTDataTable()
                            "created INTEGER, "
                            "altitude REAL)");
 
-    cmd.execute();
-    xct.commit();
+    execute(cmd);
+    commit(xct);
 
     try
     {
@@ -883,8 +909,8 @@ void SpatiaLite::createTapsiQcDataTable()
                            "created INTEGER, "
                            "altitude REAL)");
 
-    cmd.execute();
-    xct.commit();
+    execute(cmd);
+    commit(xct);
 
     try
     {
@@ -943,8 +969,8 @@ void SpatiaLite::createMagnetometerDataTable()
                            "data_quality INTEGER NOT NULL, "
                            "modified_last INTEGER NOT NULL DEFAULT 0)");
 
-    cmd.execute();
-    xct.commit();
+    execute(cmd);
+    commit(xct);
 
     itsDB.execute(
         "CREATE INDEX IF NOT EXISTS magnetometer_data_data_time_idx ON "
@@ -1456,7 +1482,7 @@ void SpatiaLite::cleanDataCache(const Fmi::DateTime &newstarttime)
     sqlite3pp::command cmd(itsDB, "DELETE FROM observation_data WHERE data_time < :timestring");
 
     cmd.bind(":timestring", epoch_time);
-    cmd.execute();
+    execute(cmd);
   }
   catch (...)
   {
@@ -1478,7 +1504,7 @@ void SpatiaLite::cleanMovingLocationsCache(const Fmi::DateTime &newstarttime)
     sqlite3pp::command cmd(itsDB, "DELETE FROM moving_locations WHERE edate < :timestring");
 
     cmd.bind(":timestring", epoch_time);
-    cmd.execute();
+    execute(cmd);
   }
   catch (...)
   {
@@ -1501,7 +1527,7 @@ void SpatiaLite::cleanWeatherDataQCCache(const Fmi::DateTime &newstarttime)
     sqlite3pp::command cmd(itsDB, "DELETE FROM weather_data WHERE data_time < :timestring");
 
     cmd.bind(":timestring", epoch_time);
-    cmd.execute();
+    execute(cmd);
   }
   catch (...)
   {
@@ -1524,7 +1550,7 @@ void SpatiaLite::cleanFlashDataCache(const Fmi::DateTime &newstarttime)
     sqlite3pp::command cmd(itsDB, "DELETE FROM flash_data WHERE stroke_time < :timestring");
 
     cmd.bind(":timestring", epoch_time);
-    cmd.execute();
+    execute(cmd);
   }
   catch (...)
   {
@@ -1549,7 +1575,7 @@ void SpatiaLite::cleanRoadCloudCache(const Fmi::DateTime &newstarttime)
                            "DELETE FROM ext_obsdata_roadcloud WHERE data_time < :timestring");
 
     cmd.bind(":timestring", epoch_time);
-    cmd.execute();
+    execute(cmd);
   }
   catch (...)
   {
@@ -1578,7 +1604,7 @@ void SpatiaLite::cleanNetAtmoCache(const Fmi::DateTime &newstarttime)
     sqlite3pp::command cmd(itsDB, "DELETE FROM ext_obsdata_netatmo WHERE data_time < :timestring");
 
     cmd.bind(":timestring", epoch_time);
-    cmd.execute();
+    execute(cmd);
   }
   catch (...)
   {
@@ -1607,7 +1633,7 @@ void SpatiaLite::cleanFmiIoTCache(const Fmi::DateTime &newstarttime)
     sqlite3pp::command cmd(itsDB, "DELETE FROM ext_obsdata_fmi_iot WHERE data_time < :timestring");
 
     cmd.bind(":timestring", epoch_time);
-    cmd.execute();
+    execute(cmd);
   }
   catch (...)
   {
@@ -1636,7 +1662,7 @@ void SpatiaLite::cleanTapsiQcCache(const Fmi::DateTime &newstarttime)
     sqlite3pp::command cmd(itsDB, "DELETE FROM ext_obsdata_tapsi_qc WHERE data_time < :timestring");
 
     cmd.bind(":timestring", epoch_time);
-    cmd.execute();
+    execute(cmd);
   }
   catch (...)
   {
@@ -1835,10 +1861,10 @@ std::size_t SpatiaLite::fillDataCache(const std::string &tablename,
           for (std::size_t i = 0; i < valid_items.size(); i++)
           {
             bindDataItem(cmd, cacheData[valid_items[i]], data_times[i], modified_last_times[i]);
-            cmd.execute();
+            execute(cmd);
             cmd.reset();  // Must reset; previous values cannot be replaced
           }
-          xct.commit();
+          commit(xct);
         }
 
         // Update insert status, giving readers some time to obtain a read lock
@@ -1936,10 +1962,10 @@ std::size_t SpatiaLite::fillMovingLocationsCache(const MovingLocationItems &cach
             cmd.bind(":lon", data.lon);
             cmd.bind(":lat", data.lat);
             cmd.bind(":elev", data.elev);
-            cmd.execute();
+            execute(cmd);
             cmd.reset();
           }
-          xct.commit();
+          commit(xct);
           // lock is released
         }
 
@@ -2092,7 +2118,7 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &cacheData,
               std::string stroke_point = "POINT(" + Fmi::to_string("%.10g", data.longitude) + " " +
                                          Fmi::to_string("%.10g", data.latitude) + ")";
               cmd.bind(":stroke_point", stroke_point, sqlite3pp::nocopy);
-              cmd.execute();
+              execute(cmd);
               cmd.reset();
             }
             catch (const std::exception &e)
@@ -2102,7 +2128,7 @@ std::size_t SpatiaLite::fillFlashDataCache(const FlashDataItems &cacheData,
           }
 
           // Would it be possible to place the writelock here...????
-          xct.commit();
+          commit(xct);
           // lock is released
         }
 
@@ -2180,7 +2206,7 @@ std::size_t SpatiaLite::fillMobileExternalDataCache(const std::string &tableName
           std::cerr << "Problem updating " << tableName << " cache: " << e.what() << '\n';
         }
       }
-      xct.commit();
+      commit(xct);
       pos1 = pos2;
     }
 
@@ -2290,7 +2316,7 @@ std::size_t SpatiaLite::fillMagnetometerDataCache(const MagnetometerDataItems &m
         try
         {
           bindMagnetometerItem(cmd, item);
-          cmd.execute();
+          execute(cmd);
           cmd.reset();
         }
         catch (const std::exception &e)
@@ -2298,7 +2324,7 @@ std::size_t SpatiaLite::fillMagnetometerDataCache(const MagnetometerDataItems &m
           std::cerr << "Problem updating Magnetometer cache: " << e.what() << '\n';
         }
       }
-      xct.commit();
+      commit(xct);
       pos1 = pos2;
     }
 
@@ -2330,7 +2356,7 @@ void SpatiaLite::cleanMagnetometerCache(const Fmi::DateTime &newstarttime)
 
     sqlite3pp::command cmd(itsDB, sqlStmt.c_str());
 
-    cmd.execute();
+    execute(cmd);
   }
   catch (...)
   {

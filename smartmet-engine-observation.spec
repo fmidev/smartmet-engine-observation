@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.8.26
-Release: 2%{?dist}.fmi
+Version: 26.9.15
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -175,6 +175,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Sep 15 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> 26.9.15-1.fmi
+- Refuse to start if a SpatiaLite cache file is not writable while cache updates are enabled
+- Check SQLite result codes in all cache cleans and fills instead of ignoring failures silently
+- PostgreSQL driver: clamp cache update start times into the cache window like the Oracle driver
+- Fix reading of the updateExtraInterval setting
+
 * Wed Aug 26 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> 26.8.26-2.fmi
 - Increase the nearest station cache default size from 10,000 to 100,000
 - Define each configuration default in a single place only
