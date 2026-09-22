@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.9.19
+Version: 26.9.22
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -175,6 +175,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Sep 22 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.9.22-1.fmi
+- Never replace an explicitly named station (fmisid, wmo, lpnn, wsi) with a nearby one when it is unusable for the requested stationtype
+
 * Sat Sep 19 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.9.19-1.fmi
 - Repackaged due to Pool.h changes
 

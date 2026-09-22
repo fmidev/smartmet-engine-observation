@@ -240,6 +240,16 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
   result.insert(result.end(), geoids.begin(), geoids.end());
   result.insert(result.end(), wsis.begin(), wsis.end());
 
+  // Stations the caller named explicitly by an identifier (fmisid, wmo, lpnn, wsi). The
+  // caller typically also resolves these identifiers to locations and passes them as
+  // nearest station searches carrying the same fmisid. Such a search must never be
+  // allowed to substitute another station: if the named station is unusable for the
+  // request, the request must return nothing for it rather than a neighbour.
+
+  std::set<int> named_fmisids;
+  for (const auto& item : result)
+    named_fmisids.insert(item.fmisid);
+
   // Bounding box
   if (!stationSettings.bounding_box_settings.empty())
   {
@@ -255,20 +265,27 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
   {
     if (nss.numberofstations > 0)
     {
+      // The caller named this station explicitly (e.g. fmisid=100963). It is already in
+      // the result, and it must not be replaced by a nearby station even if it turns out
+      // to be unusable for the requested stationtype or time period.
+
+      if (nss.fmisid && named_fmisids.find(*nss.fmisid) != named_fmisids.end())
+        continue;
+
       std::string nssTag = (nss.tag.empty() ? DatabaseStations::getTag(nss) : nss.tag);
 
       StationtypeConfig::GroupCodeSetType stationgroup_codes;
       getStationGroups(stationgroup_codes, settings.stationtype, settings.stationgroups);
 
-      // The location may carry the identifier of a station, in which case the caller has
-      // effectively named the station and there is no point in searching by distance. The
-      // station must however be usable for this request: the final station list is built by
-      // getStations() using StationInfo::findFmisidStations(), which drops stations outside
-      // the requested station groups and stations not in use during the requested period.
-      // Short circuiting to such a station would leave no stations at all, and the request
-      // would return nothing even though suitable stations are within maxdistance. The same
-      // day_start/day_end limits are used here as in getStations(), so that a station is
-      // accepted here exactly when it will also survive there.
+      // The location may carry the identifier of a station (geonames stores fmisids as
+      // alternate names of places), in which case there is no point in searching by
+      // distance. The station must however be usable for this request: the final station
+      // list is built by getStations() using StationInfo::findFmisidStations(), which drops
+      // stations outside the requested station groups and stations not in use during the
+      // requested period. Short circuiting to such a station would leave no stations at
+      // all, and the request would return nothing even though suitable stations are within
+      // maxdistance. The same day_start/day_end limits are used here as in getStations(),
+      // so that a station is accepted here exactly when it will also survive there.
 
       bool named_station = false;
       if (nss.fmisid)
