@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.9.22
+Version: 26.9.23
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -35,8 +35,8 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 26.9.16
 BuildRequires: smartmet-library-locus-devel >= 26.4.13
-BuildRequires: smartmet-library-macgyver-devel >= 26.9.19
-BuildRequires: smartmet-library-spine-devel >= 26.9.16
+BuildRequires: smartmet-library-macgyver-devel >= 26.9.23
+BuildRequires: smartmet-library-spine-devel >= 26.9.23
 BuildRequires: smartmet-library-timeseries-devel >= 26.9.16
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
@@ -52,8 +52,8 @@ Requires: gdal312-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 26.9.16
 Requires: smartmet-library-locus >= 26.4.13
-Requires: smartmet-library-macgyver >= 26.9.19
-Requires: smartmet-library-spine >= 26.9.16
+Requires: smartmet-library-macgyver >= 26.9.23
+Requires: smartmet-library-spine >= 26.9.23
 Requires: smartmet-library-timeseries >= 26.9.16
 Requires: smartmet-server >= 26.9.2
 Requires: unixODBC
@@ -141,7 +141,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 26.9.16
+Requires: smartmet-library-spine-devel >= 26.9.23
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -175,6 +175,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Sep 23 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.9.23-1.fmi
+- Repackaged due to base library ABI changes
+
 * Tue Sep 22 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.9.22-1.fmi
 - Never replace an explicitly named station (fmisid, wmo, lpnn, wsi) with a nearby one when it is unusable for the requested stationtype
 
