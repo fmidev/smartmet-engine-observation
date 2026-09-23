@@ -3,6 +3,7 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
+#include <boost/numeric/conversion/cast.hpp>
 #include <boost/serialization/vector.hpp>
 #include <macgyver/Astronomy.h>
 #include <macgyver/Exception.h>
@@ -331,9 +332,12 @@ namespace
 // Cloudiness → symbol on 3-level scale {base, base+3, base+6}, or nullopt when > 9.
 std::optional<int> cloudSymbol3(int base, int cloudiness)
 {
-  if (cloudiness <= 5) return base;
-  if (cloudiness <= 7) return base + 3;
-  if (cloudiness <= 9) return base + 6;
+  if (cloudiness <= 5)
+    return base;
+  if (cloudiness <= 7)
+    return base + 3;
+  if (cloudiness <= 9)
+    return base + 6;
   return {};
 }
 
@@ -341,11 +345,16 @@ std::optional<int> cloudSymbol3(int base, int cloudiness)
 // top_symbol is 7 (wawa_group1) or 9 (wawa_group2).
 std::optional<int> cloudSymbol5(int cloudiness, int top_symbol)
 {
-  if (cloudiness <= 0) return 1;
-  if (cloudiness <= 1) return 2;
-  if (cloudiness <= 5) return 4;
-  if (cloudiness <= 7) return 6;
-  if (cloudiness <= 9) return top_symbol;
+  if (cloudiness <= 0)
+    return 1;
+  if (cloudiness <= 1)
+    return 2;
+  if (cloudiness <= 5)
+    return 4;
+  if (cloudiness <= 7)
+    return 6;
+  if (cloudiness <= 9)
+    return top_symbol;
   return {};
 }
 
@@ -376,25 +385,53 @@ WawaPattern wawaToSymbolPattern(int wawa, double temperature)
 
   switch (wawa)
   {
-    case 40: case 41: return {WawaPatternType::ThreeLevel, temperature <= 0 ? 51 : 31};
-    case 42:          return {WawaPatternType::ThreeLevel, temperature <= 0 ? 53 : 33};
-    case 60: case 61: return {WawaPatternType::ThreeLevel, 31};
-    case 62:          return {WawaPatternType::ThreeLevel, 32};
-    case 63:          return {WawaPatternType::ThreeLevel, 33};
-    case 67:          return {WawaPatternType::ThreeLevel, 41};
-    case 68:          return {WawaPatternType::ThreeLevel, 42};
-    case 70: case 71: case 74: case 85: return {WawaPatternType::ThreeLevel, 51};
-    case 72: case 75: case 86: return {WawaPatternType::ThreeLevel, 52};
-    case 73: case 76: case 87: return {WawaPatternType::ThreeLevel, 53};
-    case 77: case 78: return {WawaPatternType::Fixed, 57};
-    case 80:          return {WawaPatternType::ThreeLevel, temperature <= 0 ? 51 : 21};
-    case 89:          return {WawaPatternType::ThreeLevel, 61};
-    default: break;
+    case 40:
+    case 41:
+      return {WawaPatternType::ThreeLevel, temperature <= 0 ? 51 : 31};
+    case 42:
+      return {WawaPatternType::ThreeLevel, temperature <= 0 ? 53 : 33};
+    case 60:
+    case 61:
+      return {WawaPatternType::ThreeLevel, 31};
+    case 62:
+      return {WawaPatternType::ThreeLevel, 32};
+    case 63:
+      return {WawaPatternType::ThreeLevel, 33};
+    case 67:
+      return {WawaPatternType::ThreeLevel, 41};
+    case 68:
+      return {WawaPatternType::ThreeLevel, 42};
+    case 70:
+    case 71:
+    case 74:
+    case 85:
+      return {WawaPatternType::ThreeLevel, 51};
+    case 72:
+    case 75:
+    case 86:
+      return {WawaPatternType::ThreeLevel, 52};
+    case 73:
+    case 76:
+    case 87:
+      return {WawaPatternType::ThreeLevel, 53};
+    case 77:
+    case 78:
+      return {WawaPatternType::Fixed, 57};
+    case 80:
+      return {WawaPatternType::ThreeLevel, temperature <= 0 ? 51 : 21};
+    case 89:
+      return {WawaPatternType::ThreeLevel, 61};
+    default:
+      break;
   }
-  if (wawa >= 50 && wawa <= 53) return {WawaPatternType::Fixed, 11};
-  if (wawa >= 54 && wawa <= 56) return {WawaPatternType::Fixed, 14};
-  if (wawa >= 64 && wawa <= 66) return {WawaPatternType::Fixed, 17};
-  if (wawa >= 81 && wawa <= 84) return {WawaPatternType::ThreeLevel, 21};
+  if (wawa >= 50 && wawa <= 53)
+    return {WawaPatternType::Fixed, 11};
+  if (wawa >= 54 && wawa <= 56)
+    return {WawaPatternType::Fixed, 14};
+  if (wawa >= 64 && wawa <= 66)
+    return {WawaPatternType::Fixed, 17};
+  if (wawa >= 81 && wawa <= 84)
+    return {WawaPatternType::ThreeLevel, 21};
   return {WawaPatternType::None, 0};
 }
 
@@ -412,10 +449,18 @@ std::optional<int> calcSmartsymbolNumber(int wawa,
   std::optional<int> smartsymbol;
   switch (pattern.type)
   {
-    case WawaPatternType::ThreeLevel: smartsymbol = cloudSymbol3(pattern.base, cloudiness); break;
-    case WawaPatternType::FiveLevel:  smartsymbol = cloudSymbol5(cloudiness, pattern.base); break;
-    case WawaPatternType::Fixed:      if (cloudiness <= 9) smartsymbol = pattern.base; break;
-    default: break;
+    case WawaPatternType::ThreeLevel:
+      smartsymbol = cloudSymbol3(pattern.base, cloudiness);
+      break;
+    case WawaPatternType::FiveLevel:
+      smartsymbol = cloudSymbol5(cloudiness, pattern.base);
+      break;
+    case WawaPatternType::Fixed:
+      if (cloudiness <= 9)
+        smartsymbol = pattern.base;
+      break;
+    default:
+      break;
   }
 
   if (!smartsymbol)
