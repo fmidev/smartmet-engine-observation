@@ -2,6 +2,7 @@
 #include "AsDouble.h"
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
+#include <algorithm>
 
 namespace SmartMet
 {
@@ -9,6 +10,20 @@ namespace Engine
 {
 namespace Observation
 {
+namespace
+{
+// The language code is request controlled and is spliced into the SQL statement
+// below. Validate it strictly against an ISO-639 style pattern (^[a-z]{2,8}$) to
+// prevent SQL injection before it is used in a textual substitution.
+bool isValidLanguageCode(const std::string& language)
+{
+  if (language.size() < 2 || language.size() > 8)
+    return false;
+  return std::all_of(
+      language.begin(), language.end(), [](unsigned char c) { return c >= 'a' && c <= 'z'; });
+}
+}  // namespace
+
 QueryObservablePropertyPostgreSQL::~QueryObservablePropertyPostgreSQL() = default;
 
 std::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostgreSQL::executeQuery(
@@ -45,6 +60,11 @@ std::shared_ptr<std::vector<ObservableProperty> > QueryObservablePropertyPostgre
         "measurand_v1l measL ON ( measL.measurand_id = meas.measurand_id AND  measL.language_code "
         "= 'fi' ) LEFT OUTER JOIN base_phenomenon_v1L bpL ON ( bpL.base_phenomenon = "
         "bp.base_phenomenon AND bpL.language_code = 'fi' ) ORDER BY 1;";
+
+    // Reject anything that is not a plain language code, otherwise the
+    // substitution below would allow SQL injection via the request parameter.
+    if (!isValidLanguageCode(language))
+      throw Fmi::Exception(BCP, "Invalid language code").addParameter("language", language);
 
     boost::replace_all(sqlStmt, "fi", language);
 
