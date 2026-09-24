@@ -112,8 +112,8 @@ void DatabaseDriverBase::readConfig(Spine::ConfigBase& cfg, DatabaseDriverParame
         "magnetometerCacheUpdateInterval", parameters.magnetometerCacheUpdateInterval);
 
     // update 10 seconds before max(modified_last) for extra safety with Oracle views
-    parameters.updateExtraInterval = driverInfo.getIntParameterValue(
-        "parameters.finCacheUpdateInterval", parameters.finCacheUpdateInterval);
+    parameters.updateExtraInterval =
+        driverInfo.getIntParameterValue("updateExtraInterval", parameters.updateExtraInterval);
 
     if (!parameters.disableAllCacheUpdates)
     {

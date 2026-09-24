@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.8.29
+Version: 26.9.24
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -33,14 +33,14 @@ BuildRequires: gdal312-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 26.7.31
+BuildRequires: smartmet-engine-geonames-devel >= 26.9.16
 BuildRequires: smartmet-library-locus-devel >= 26.4.13
-BuildRequires: smartmet-library-macgyver-devel >= 26.8.19
-BuildRequires: smartmet-library-spine-devel >= 26.8.24
-BuildRequires: smartmet-library-timeseries-devel >= 26.5.5
+BuildRequires: smartmet-library-macgyver-devel >= 26.9.23
+BuildRequires: smartmet-library-spine-devel >= 26.9.23
+BuildRequires: smartmet-library-timeseries-devel >= 26.9.16
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
-BuildRequires: smartmet-utils-devel >= 26.7.14
+BuildRequires: smartmet-utils-devel >= 26.9.3
 BuildRequires: zlib-devel
 Requires: %{smartmet_boost}-iostreams
 Requires: %{smartmet_boost}-locale
@@ -50,12 +50,12 @@ Requires: %{smartmet_boost}-thread
 Requires: %{smartmet_fmt}
 Requires: gdal312-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 26.7.31
+Requires: smartmet-engine-geonames >= 26.9.16
 Requires: smartmet-library-locus >= 26.4.13
-Requires: smartmet-library-macgyver >= 26.8.19
-Requires: smartmet-library-spine >= 26.8.24
-Requires: smartmet-library-timeseries >= 26.5.5
-Requires: smartmet-server >= 26.8.21
+Requires: smartmet-library-macgyver >= 26.9.23
+Requires: smartmet-library-spine >= 26.9.23
+Requires: smartmet-library-timeseries >= 26.9.16
+Requires: smartmet-server >= 26.9.2
 Requires: unixODBC
 
 %if 0%{?rhel} && 0%{rhel} == 8
@@ -113,7 +113,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: smartmet-library-timeseries
 #TestRequires: smartmet-library-timeseries-devel
 #TestRequires: smartmet-library-spine
-#TestRequires: smartmet-test-data >= 26.7.27
+#TestRequires: smartmet-test-data >= 26.8.26
 
 Requires: libspatialite50
 BuildRequires: libspatialite50-devel
@@ -141,7 +141,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 26.8.24
+Requires: smartmet-library-spine-devel >= 26.9.23
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -175,9 +175,27 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Fri Aug 29 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> 26.8.29-1.fmi
+* Thu Sep 24 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> 26.9.24-1.fmi
 - Fixed SQL injection via the language parameter in observable property queries
 - Escape single quotes in string values rendered into WFS stored-query SQL
+
+* Wed Sep 23 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.9.23-1.fmi
+- Repackaged due to base library ABI changes
+
+* Tue Sep 22 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.9.22-1.fmi
+- Never replace an explicitly named station (fmisid, wmo, lpnn, wsi) with a nearby one when it is unusable for the requested stationtype
+
+* Sat Sep 19 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.9.19-1.fmi
+- Repackaged due to Pool.h changes
+
+* Wed Sep 16 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> 26.9.16-1.fmi
+- Repackaged due to Fmi::Cache::Cache locking changes
+
+* Tue Sep 15 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> 26.9.15-1.fmi
+- Refuse to start if a SpatiaLite cache file is not writable while cache updates are enabled
+- Check SQLite result codes in all cache cleans and fills instead of ignoring failures silently
+- PostgreSQL driver: clamp cache update start times into the cache window like the Oracle driver
+- Fix reading of the updateExtraInterval setting
 
 * Wed Aug 26 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> 26.8.26-2.fmi
 - Increase the nearest station cache default size from 10,000 to 100,000

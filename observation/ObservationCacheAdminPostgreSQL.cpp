@@ -224,40 +224,50 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
   }
 }
 
-std::pair<Fmi::DateTime, Fmi::DateTime> ObservationCacheAdminPostgreSQL::getLatestWeatherDataQCTime(
-    const std::shared_ptr<ObservationCache>& cache) const
+namespace
 {
-  auto min_last_time =
-      Fmi::SecondClock::universal_time() - Fmi::Hours(itsParameters.extCacheDuration);
+// Clamp the cache end times into the cache window [now - duration, now]. If the cache is
+// empty, or stale because the server was down longer than the cache duration and the cache
+// could not be cleaned, the update must start from the beginning of the window instead of
+// the stale cache end. Otherwise we would read a possibly huge amount of data from the
+// database only to delete it again from the cache immediately. The Oracle driver does the same.
+std::pair<Fmi::DateTime, Fmi::DateTime> clampToCacheWindow(Fmi::DateTime last_time,
+                                                           Fmi::DateTime last_modified_time,
+                                                           int cacheDurationHours)
+{
+  const auto now = Fmi::SecondClock::universal_time();
+  const auto min_last_time = now - Fmi::Hours(cacheDurationHours);
 
-  auto last_time = cache->getLatestWeatherDataQCTime();
-  auto last_modified_time = cache->getLatestWeatherDataQCModifiedTime();
-
-  if (last_time.is_not_a_date_time())
+  if (last_time.is_not_a_date_time() || last_time < min_last_time)
     last_time = min_last_time;
+  else if (last_time > now)
+    last_time = now;
 
   if (last_modified_time.is_not_a_date_time())
     last_modified_time = last_time;
+  else if (last_modified_time < min_last_time)
+    last_modified_time = min_last_time;
+  else if (last_modified_time > now)
+    last_modified_time = now;
 
   return {last_time, last_modified_time};
+}
+}  // namespace
+
+std::pair<Fmi::DateTime, Fmi::DateTime> ObservationCacheAdminPostgreSQL::getLatestWeatherDataQCTime(
+    const std::shared_ptr<ObservationCache>& cache) const
+{
+  return clampToCacheWindow(cache->getLatestWeatherDataQCTime(),
+                            cache->getLatestWeatherDataQCModifiedTime(),
+                            itsParameters.extCacheDuration);
 }
 
 std::pair<Fmi::DateTime, Fmi::DateTime> ObservationCacheAdminPostgreSQL::getLatestObservationTime(
     const std::shared_ptr<ObservationCache>& cache) const
 {
-  auto min_last_time =
-      Fmi::SecondClock::universal_time() - Fmi::Hours(itsParameters.finCacheDuration);
-
-  auto last_time = cache->getLatestObservationTime();
-  auto last_modified_time = cache->getLatestObservationModifiedTime();
-
-  if (last_time.is_not_a_date_time())
-    last_time = min_last_time;
-
-  if (last_modified_time.is_not_a_date_time())
-    last_modified_time = last_time;
-
-  return {last_time, last_modified_time};
+  return clampToCacheWindow(cache->getLatestObservationTime(),
+                            cache->getLatestObservationModifiedTime(),
+                            itsParameters.finCacheDuration);
 }
 
 std::map<std::string, Fmi::DateTime> ObservationCacheAdminPostgreSQL::getLatestFlashTime(
@@ -268,14 +278,9 @@ std::map<std::string, Fmi::DateTime> ObservationCacheAdminPostgreSQL::getLatestF
   auto min_last_time =
       (Fmi::SecondClock::universal_time() - Fmi::Hours(itsParameters.flashCacheDuration));
 
-  auto last_time = cache->getLatestFlashTime();
-  auto last_modified_time = cache->getLatestFlashModifiedTime();
-
-  if (last_time.is_not_a_date_time())
-    last_time = min_last_time;
-
-  if (last_modified_time.is_not_a_date_time())
-    last_modified_time = last_time;
+  auto [last_time, last_modified_time] = clampToCacheWindow(cache->getLatestFlashTime(),
+                                                            cache->getLatestFlashModifiedTime(),
+                                                            itsParameters.flashCacheDuration);
 
   ret["start_time"] = min_last_time;
   ret["last_stroke_time"] = last_time;

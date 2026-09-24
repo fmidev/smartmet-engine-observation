@@ -59,6 +59,9 @@ class SpatiaLite : public CommonDatabaseFunctions
 
   ~SpatiaLite() override;
 
+  // True if the cache file could not be opened for writing. All writes will then fail.
+  bool isReadOnly() const { return itsReadOnly; }
+
   /**
    * @brief Get the time of the last modified  observation in observation_data table
    * @retval Fmi::DateTime The time of the last modification
@@ -477,6 +480,12 @@ class SpatiaLite : public CommonDatabaseFunctions
   const ExternalAndMobileProducerConfig &itsExternalAndMobileProducerConfig;
 
   bool itsReadOnly = false;
+
+  // sqlite3pp never throws from command::execute() or transaction::commit(), it only
+  // returns the sqlite3 result code. These wrappers turn a failure into an exception so
+  // that for example a read-only or full cache database cannot be silently ignored.
+  void execute(sqlite3pp::command& cmd) const;
+  void commit(sqlite3pp::transaction& xct) const;
 
   Fmi::DateTime getLatestTimeFromTable(const std::string &tablename, const std::string &time_field);
   Fmi::DateTime getOldestTimeFromTable(const std::string &tablename, const std::string &time_field);
