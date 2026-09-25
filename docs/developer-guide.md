@@ -260,8 +260,6 @@ load; it calls the wrong method.
   cache begins goes to the database for all of it.
 * **Explicit stations are never replaced** (§7). An explicit `fmisid` with no data gives an
   empty result, by design.
-* **Unknown parameters are dropped silently** in `beforeQuery()` and come back as missing
-  columns, not as an error.
 * **Start-up waits for the caches.** The engine's initialisation includes one full cache
   update (§6); after a long downtime, with long cache durations or a slow database, that
   is the whole server's start-up time.
