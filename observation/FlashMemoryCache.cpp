@@ -438,6 +438,7 @@ TS::TimeSeriesVectorPtr FlashMemoryCache::getData(const Settings& settings,
 
     // Collect parameter enums
     std::vector<FlashParam> column_params;
+    column_params.reserve(column_names.size());
     for (const auto& name : column_names)
       column_params.push_back(parse_flash_param(name));
 
