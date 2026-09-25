@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The observation engine (`smartmet-engine-observation`) provides weather station observation data to the SmartMet Server. Plugins like `timeseries` and `wfs` use it to query station observations. It supports multiple database backends (PostgreSQL, Oracle via delfoi, SpatiaLite) with a multi-level caching architecture (disk cache + in-memory cache).
 
+Full developer documentation: `docs/developer-guide.md`.
+
 ## Build commands
 
 ```bash

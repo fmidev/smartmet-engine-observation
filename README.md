@@ -15,6 +15,7 @@ The observation engine provides access to weather station observation data for S
 
 ## Documentation
 
+- [Developer guide](docs/developer-guide.md) — request flow, driver routing, caches, stations, plugin API, binary compatibility
 - [Configuring Observation Engine](docs/Configuring-Observation-Engine.md)
 - [Configuring Observation Parameters](docs/Configuring-Observation-Parameters.md)
 - [How to Add Weather Stations](docs/How-To-Add-Weather-Stations.md)
