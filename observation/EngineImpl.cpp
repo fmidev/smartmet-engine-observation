@@ -639,6 +639,14 @@ Settings EngineImpl::beforeQuery(const Settings &settings,
 
       if (!isParameter(pname, settings.stationtype) && !TimeSeries::is_special_parameter(pname))
       {
+        // A parameter configured for some other station type gives a missing
+        // column, so that queries over several producers work. A name which is
+        // not configured for any station type is an error, not silently missing.
+        if (!isParameterVariant(pname))
+          throw Fmi::Exception(BCP, "Unknown observation parameter")
+              .addParameter("Parameter", p.name())
+              .addParameter("Station type", settings.stationtype)
+              .disableStackTrace();
         unknownParameterIndexes.push_back(i);
         continue;
       }
