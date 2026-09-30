@@ -25,7 +25,7 @@ namespace
 {
 const std::string globe = "POLYGON ((-180 -90,-180 90,180 90,180 -90,-180 -90))";
 
-bool between(const Fmi::DateTime &t, const Fmi::DateTime &t1, const Fmi::DateTime &t2)
+bool between(const Fmi::DateTime& t, const Fmi::DateTime& t1, const Fmi::DateTime& t2)
 {
   return (t >= t1 && t <= t2);
 }
@@ -42,16 +42,16 @@ using namespace Utils;
 PostgreSQLObsDB::~PostgreSQLObsDB() = default;
 
 PostgreSQLObsDB::PostgreSQLObsDB(
-    const Fmi::Database::PostgreSQLConnectionOptions &connectionOptions,
-    const StationtypeConfig &stc,
-    const ParameterMapPtr &pm)
+    const Fmi::Database::PostgreSQLConnectionOptions& connectionOptions,
+    const StationtypeConfig& stc,
+    const ParameterMapPtr& pm)
     : CommonPostgreSQLFunctions(connectionOptions, stc, pm)
 {
 }
 
-void PostgreSQLObsDB::get(const std::string & /* sqlStatement */,
-                          const std::shared_ptr<QueryResultBase> & /* qrb */,
-                          const Fmi::TimeZones & /* timezones */)
+void PostgreSQLObsDB::get(const std::string& /* sqlStatement */,
+                          const std::shared_ptr<QueryResultBase>& /* qrb */,
+                          const Fmi::TimeZones& /* timezones */)
 {
   try
   {
@@ -65,11 +65,11 @@ void PostgreSQLObsDB::get(const std::string & /* sqlStatement */,
   }
 }
 
-void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &producer,
-                                                        vector<MobileExternalDataItem> &cacheData,
-                                                        const Fmi::DateTime &lastTime,
-                                                        const Fmi::DateTime &lastCreatedTime,
-                                                        const Fmi::TimeZones & /* timezones */)
+void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string& producer,
+                                                        vector<MobileExternalDataItem>& cacheData,
+                                                        const Fmi::DateTime& lastTime,
+                                                        const Fmi::DateTime& lastCreatedTime,
+                                                        const Fmi::TimeZones& /* timezones */)
 {
   try
   {
@@ -80,7 +80,7 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
       std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     // Execute SQL statement
-    Fmi::Database::PostgreSQLConnection &conn = getConnection();
+    Fmi::Database::PostgreSQLConnection& conn = getConnection();
     pqxx::result result_set = conn.executeNonTransaction(sqlStmt);
 
     ResultSetRows rsrs =
@@ -135,10 +135,10 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string &produ
 }
 
 void PostgreSQLObsDB::readMovingStationsCacheDataFromPostgreSQL(
-    std::vector<MovingLocationItem> &cacheData,
-    const Fmi::DateTime &startTime,
-    const Fmi::DateTime & /* lastModifiedTime */,
-    const Fmi::TimeZones & /* timezones */)
+    std::vector<MovingLocationItem>& cacheData,
+    const Fmi::DateTime& startTime,
+    const Fmi::DateTime& /* lastModifiedTime */,
+    const Fmi::TimeZones& /* timezones */)
 {
   try
   {
@@ -173,9 +173,9 @@ void PostgreSQLObsDB::readMovingStationsCacheDataFromPostgreSQL(
   }
 }
 
-void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems &cacheData,
-                                                  const std::string &sqlStmt,
-                                                  const Fmi::TimeZones & /* timezones */)
+void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems& cacheData,
+                                                  const std::string& sqlStmt,
+                                                  const Fmi::TimeZones& /* timezones */)
 {
   try
   {
@@ -209,11 +209,11 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems &cacheData,
   }
 }
 
-void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems &cacheData,
-                                                  const Fmi::TimePeriod &dataPeriod,
-                                                  const std::string &fmisid,
-                                                  const std::string &measurandId,
-                                                  const Fmi::TimeZones &timezones)
+void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems& cacheData,
+                                                  const Fmi::TimePeriod& dataPeriod,
+                                                  const std::string& fmisid,
+                                                  const std::string& measurandId,
+                                                  const Fmi::TimeZones& timezones)
 {
   try
   {
@@ -239,10 +239,10 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems &cacheData,
   }
 }
 
-void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems &cacheData,
-                                                  const Fmi::DateTime & /* startTime */,
-                                                  const Fmi::DateTime &lastModifiedTime,
-                                                  const Fmi::TimeZones &timezones)
+void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems& cacheData,
+                                                  const Fmi::DateTime& /* startTime */,
+                                                  const Fmi::DateTime& lastModifiedTime,
+                                                  const Fmi::TimeZones& timezones)
 {
   try
   {
@@ -279,9 +279,9 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems &cacheData,
   }
 }
 
-void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem> &cacheData,
-                                                       const std::string &sqlStmt,
-                                                       const Fmi::TimeZones & /* timezones */)
+void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem>& cacheData,
+                                                       const std::string& sqlStmt,
+                                                       const Fmi::TimeZones& /* timezones */)
 {
   try
   {
@@ -331,9 +331,9 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem
   }
 }
 
-void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem> &cacheData,
-                                                       const Fmi::TimePeriod &dataPeriod,
-                                                       const Fmi::TimeZones &timezones)
+void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem>& cacheData,
+                                                       const Fmi::TimePeriod& dataPeriod,
+                                                       const Fmi::TimeZones& timezones)
 {
   try
   {
@@ -380,11 +380,11 @@ ORDER  BY stroke_time,
   }
 }
 
-void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem> &cacheData,
-                                                       const Fmi::DateTime & /* startTime */,
-                                                       const Fmi::DateTime & /* lastStrokeTime */,
-                                                       const Fmi::DateTime &lastModifiedTime,
-                                                       const Fmi::TimeZones &timezones)
+void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem>& cacheData,
+                                                       const Fmi::DateTime& /* startTime */,
+                                                       const Fmi::DateTime& /* lastStrokeTime */,
+                                                       const Fmi::DateTime& lastModifiedTime,
+                                                       const Fmi::TimeZones& timezones)
 {
   try
   {
@@ -432,7 +432,7 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem
 }
 
 void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
-    DataItems &cacheData, const std::string &sqlStmt, const Fmi::TimeZones & /* timezones */)
+    DataItems& cacheData, const std::string& sqlStmt, const Fmi::TimeZones& /* timezones */)
 {
   try
   {
@@ -466,11 +466,11 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
   }
 }
 
-void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheData,
-                                                               const Fmi::TimePeriod &dataPeriod,
-                                                               const std::string &fmisid,
-                                                               const std::string &measurandId,
-                                                               const Fmi::TimeZones &timezones)
+void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(DataItems& cacheData,
+                                                               const Fmi::TimePeriod& dataPeriod,
+                                                               const std::string& fmisid,
+                                                               const std::string& measurandId,
+                                                               const Fmi::TimeZones& timezones)
 {
   try
   {
@@ -498,10 +498,10 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(DataItems &cacheD
 }
 
 void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
-    DataItems &cacheData,
-    const Fmi::DateTime &lastTime,
-    const Fmi::DateTime &lastModifiedTime,
-    const Fmi::TimeZones &timezones)
+    DataItems& cacheData,
+    const Fmi::DateTime& lastTime,
+    const Fmi::DateTime& lastModifiedTime,
+    const Fmi::TimeZones& timezones)
 {
   try
   {
@@ -545,10 +545,10 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
 }
 
 void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
-    std::vector<MagnetometerDataItem> &cacheData,
-    const Fmi::DateTime &lastTime,
-    const Fmi::DateTime &lastModifiedTime,
-    const Fmi::TimeZones & /* timezones */)
+    std::vector<MagnetometerDataItem>& cacheData,
+    const Fmi::DateTime& lastTime,
+    const Fmi::DateTime& lastModifiedTime,
+    const Fmi::TimeZones& /* timezones */)
 {
   try
   {
@@ -628,8 +628,8 @@ void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
  * Set time interval for database query.
  */
 
-void PostgreSQLObsDB::setTimeInterval(const Fmi::DateTime &theStartTime,
-                                      const Fmi::DateTime &theEndTime,
+void PostgreSQLObsDB::setTimeInterval(const Fmi::DateTime& theStartTime,
+                                      const Fmi::DateTime& theEndTime,
                                       int theTimeStep)
 {
   try
@@ -645,11 +645,11 @@ void PostgreSQLObsDB::setTimeInterval(const Fmi::DateTime &theStartTime,
   }
 }
 
-void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
-                                             const StationInfo &stationInfo,
-                                             const std::set<std::string> &stationgroup_codes,
-                                             const TS::RequestLimits &requestLimits,
-                                             LocationDataItems &cacheData)
+void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string& sqlStmt,
+                                             const StationInfo& stationInfo,
+                                             const std::set<std::string>& stationgroup_codes,
+                                             const TS::RequestLimits& requestLimits,
+                                             LocationDataItems& cacheData)
 {
   try
   {
@@ -666,7 +666,7 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
       int int_parameter = itsParameterMap->getRoadAndForeignIds().stringToInteger(*parameter);
 
       // Get latitude, longitude, elevation from station info
-      const Spine::Station &s = stationInfo.getStation(*fmisid, stationgroup_codes, obstime);
+      const Spine::Station& s = stationInfo.getStation(*fmisid, stationgroup_codes, obstime);
 
       std::optional<double> latitude = s.latitude;
       std::optional<double> longitude = s.longitude;
@@ -713,9 +713,9 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string &sqlStmt,
   }
 }
 
-std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(const Settings &settings,
-                                                            const std::string &params,
-                                                            const std::string &station_ids) const
+std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(const Settings& settings,
+                                                            const std::string& params,
+                                                            const std::string& station_ids) const
 {
   try
   {
@@ -768,104 +768,182 @@ std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(const Settings &sett
   }
 }
 
-void PostgreSQLObsDB::getStations(Spine::Stations &stations) const
+void PostgreSQLObsDB::getStations(Spine::Stations& stations) const
 {
   try
   {
     // clang-format off
     string sqlStmt = R"SQL(SELECT DISTINCT
-       tg.group_name                  AS group_code,
-       t.target_id                    AS fmisid,
-       t.access_policy                AS access_policy_id,
-       t.target_status                AS station_status_id,
-       t.language_code                AS language_code,
-       t.target_formal_name           AS formal_name,
-       svname.target_formal_name      AS sv_formal_name,
-       enname.target_formal_name      AS en_formal_name,
-       t.target_category,
-       t.stationary,
-       First_value(lpnn.member_code)  over(PARTITION BY t.target_id ORDER BY lpnn.membership_start DESC) AS lpnn,
-       First_value(wmon.member_code)  over(PARTITION BY t.target_id ORDER BY wmon.membership_start DESC) AS wmon,
-       First_value(rws.member_code)   over(PARTITION BY t.target_id ORDER BY rws.membership_start DESC) AS rwsid,
-       First_value(wigos.member_code) over(PARTITION BY t.target_id ORDER BY wigos.membership_start DESC) AS wsi,
-       Min(tgm.valid_from)            over(PARTITION BY t.target_id, tg.group_name) AS valid_from,
-       Max(tgm.valid_to)              over(PARTITION BY t.target_id, tg.group_name) AS valid_to,
-       l.location_start,
-       l.location_end,
-       Round(St_x(geom) :: NUMERIC, 5) AS longitude,
-       Round(St_y(geom) :: NUMERIC, 5) AS latitude,
-       t.modified_last,
-       t.modified_by
-FROM   target_group_t1 tg
-       join target_group_member_t1 tgm         ON( tgm.target_group_id = tg.target_group_id )
-       join target_t1 t                        ON( t.target_id = tgm.target_id )
-       join location_t1 l                      ON( l.target_id = t.target_id )
-       left outer join network_member_t1 lpnn  ON( lpnn.target_id = t.target_id AND lpnn.network_id = 10 )
-       left outer join network_member_t1 wmon  ON( wmon.target_id = t.target_id AND wmon.network_id = 20 )
-       left outer join network_member_t1 rws   ON( rws.target_id = t.target_id AND rws.network_id = 30 )
-       left outer join network_member_t1 wigos ON( wigos.target_id = t.target_id AND wigos.network_id = 77 )
-       left outer join target_tl1 svname       ON( svname.language_code = 'sv' AND svname.target_id = t.target_id )
-       left outer join target_tl1 enname       ON( enname.language_code = 'en' AND enname.target_id = t.target_id )
-WHERE  tg.group_class_id IN( 1, 81 )
-       AND tg.group_name IN( 'STUKRAD', 'STUKAIR', 'RWSFIN', 'AIRQCOMM',
-                             'AIRQUAL', 'ASC', 'AVI', 'AWS',
-                             'BUOY', 'CLIM', 'COMM', 'EXTAIRQUAL',
-                             'EXTASC', 'EXTAVI', 'EXTAWS', 'EXTBUOY',
-                             'EXTFLASH', 'EXTFROST', 'EXTICE', 'EXTMAGNET',
-                             'EXTMAREO', 'EXTMAST', 'EXTRADACT', 'EXTRWS',
-                             'EXTRWYWS', 'EXTSNOW', 'EXTSOUNDING', 'EXTSYNOP',
-                             'EXTWATER', 'EXTWIND', 'FLASH', 'HTB',
-                             'ICE', 'MAGNET', 'MAREO', 'MAST',
-                             'PREC', 'RADACT', 'RADAR', 'RESEARCH',
-                             'RWS', 'SEA', 'SHIP', 'SOLAR',
-                             'SOUNDING', 'SYNOP', 'HELCOM' )
+    tg.group_name AS group_code,
+    t.target_id AS fmisid,
+    t.access_policy AS access_policy_id,
+    t.target_status AS station_status_id,
+    t.language_code AS language_code,
+    t.target_formal_name AS formal_name,
+    svname.target_formal_name AS sv_formal_name,
+    enname.target_formal_name AS en_formal_name,
+    t.target_category,
+    t.stationary,
+    FIRST_VALUE(lpnn.member_code) OVER (
+        PARTITION BY t.target_id
+        ORDER BY lpnn.membership_start DESC
+    ) AS lpnn,
+    FIRST_VALUE(wmon.member_code) OVER (
+        PARTITION BY t.target_id
+        ORDER BY wmon.membership_start DESC
+    ) AS wmon,
+    FIRST_VALUE(rws.member_code) OVER (
+        PARTITION BY t.target_id
+        ORDER BY rws.membership_start DESC
+    ) AS rwsid,
+    FIRST_VALUE(wigos.member_code) OVER (
+        PARTITION BY t.target_id
+        ORDER BY wigos.membership_start DESC
+    ) AS wsi,
+    MIN(tgm.valid_from) OVER (
+        PARTITION BY t.target_id, tg.group_name
+    ) AS valid_from,
+    MAX(tgm.valid_to) OVER (
+        PARTITION BY t.target_id, tg.group_name
+    ) AS valid_to,
+    l.location_start,
+    l.location_end,
+    ROUND(ST_X(geom)::NUMERIC, 5) AS longitude,
+    ROUND(ST_Y(geom)::NUMERIC, 5) AS latitude,
+    t.modified_last,
+    t.modified_by
+FROM target_group_t1 AS tg
+JOIN target_group_member_t1 AS tgm
+    ON tgm.target_group_id = tg.target_group_id
+JOIN target_t1 AS t
+    ON t.target_id = tgm.target_id
+JOIN location_t1 AS l
+    ON l.target_id = t.target_id
+LEFT JOIN network_member_t1 AS lpnn
+    ON lpnn.target_id = t.target_id
+    AND lpnn.network_id = 10
+LEFT JOIN network_member_t1 AS wmon
+    ON wmon.target_id = t.target_id
+    AND wmon.network_id = 20
+LEFT JOIN network_member_t1 AS rws
+    ON rws.target_id = t.target_id
+    AND rws.network_id = 30
+LEFT JOIN network_member_t1 AS wigos
+    ON wigos.target_id = t.target_id
+    AND wigos.network_id = 77
+LEFT JOIN target_tl1 AS svname
+    ON svname.language_code = 'sv'
+    AND svname.target_id = t.target_id
+LEFT JOIN target_tl1 AS enname
+    ON enname.language_code = 'en'
+    AND enname.target_id = t.target_id
+WHERE tg.group_class_id IN (1, 81)
+    AND tg.group_name IN (
+        'STUKRAD', 'STUKAIR', 'RWSFIN', 'AIRQCOMM',
+        'AIRQUAL', 'ASC', 'AVI', 'AWS',
+        'BUOY', 'CLIM', 'COMM', 'EXTAIRQUAL',
+        'EXTASC', 'EXTAVI', 'EXTAWS', 'EXTBUOY',
+        'EXTFLASH', 'EXTFROST', 'EXTICE', 'EXTMAGNET',
+        'EXTMAREO', 'EXTMAST', 'EXTRADACT', 'EXTRWS',
+        'EXTRWYWS', 'EXTSNOW', 'EXTSOUNDING', 'EXTSYNOP',
+        'EXTWATER', 'EXTWIND', 'FLASH', 'HTB',
+        'ICE', 'MAGNET', 'MAREO', 'MAST',
+        'PREC', 'RADACT', 'RADAR', 'RESEARCH',
+        'RWS', 'SEA', 'SHIP', 'SOLAR',
+        'SOUNDING', 'SYNOP', 'HELCOM'
+    )
+    AND EXISTS (
+        SELECT 1
+        FROM station_metadata_access_policy AS smap
+        WHERE smap.target_id = t.target_id
+            AND smap.open_data = 'Y'
+    )
 UNION ALL
 SELECT DISTINCT
-       tg.group_code,
-       t.target_id                    AS fmisid,
-       t.access_policy                AS access_policy_id,
-       t.target_status                AS station_status_id,
-       t.language_code                AS language_code,
-       t.target_formal_name           AS formal_name,
-       svname.target_formal_name      AS sv_formal_name,
-       enname.target_formal_name      AS en_formal_name,
-       t.target_category,
-       t.stationary,
-       First_value(lpnn.member_code)  over(PARTITION BY t.target_id ORDER BY lpnn.membership_start DESC) AS lpnn,
-       First_value(wmon.member_code)  over(PARTITION BY t.target_id ORDER BY wmon.membership_start DESC) AS wmon,
-       First_value(rws.member_code)   over(PARTITION BY t.target_id ORDER BY rws.membership_start DESC) AS rwsid,
-       First_value(wigos.member_code) over(PARTITION BY t.target_id ORDER BY wigos.membership_start DESC) AS wsi,
-       Min(tgm.membership_start)      over(PARTITION BY t.target_id, tg.group_code) AS valid_from,
-       Max(tgm.membership_end)        over(PARTITION BY t.target_id, tg.group_code) AS valid_to,
-       l.location_start,
-       l.location_end,
-       Round(St_x(geom) :: NUMERIC, 5) AS longitude,
-       Round(St_y(geom) :: NUMERIC, 5) AS latitude,
-       t.modified_last,
-       t.modified_by
-FROM   network_t1 tg
-       join network_member_t1 tgm              ON( tgm.network_id = tg.network_id )
-       join target_t1 t                        ON( t.target_id = tgm.target_id )
-       join location_t1 l                      ON( l.target_id = t.target_id )
-       left outer join network_member_t1 lpnn  ON( lpnn.target_id = t.target_id AND lpnn.network_id = 10 )
-       left outer join network_member_t1 wmon  ON( wmon.target_id = t.target_id AND wmon.network_id = 20 )
-       left outer join network_member_t1 rws   ON( rws.target_id = t.target_id AND rws.network_id = 30 )
-       left outer join network_member_t1 wigos ON( wigos.target_id = t.target_id AND wigos.network_id = 77 )
-       left outer join target_tl1 svname       ON( svname.language_code = 'sv' AND svname.target_id = t.target_id )
-       left outer join target_tl1 enname       ON( enname.language_code = 'en' AND enname.target_id = t.target_id )
-WHERE  tg.group_class_id IN( 1, 81 )
-       AND tg.group_code IN( 'STUKRAD', 'STUKAIR', 'RWSFIN', 'AIRQCOMM',
-                             'AIRQUAL', 'ASC', 'AVI', 'AWS',
-                             'BUOY', 'CLIM', 'COMM', 'EXTAIRQUAL',
-                             'EXTASC', 'EXTAVI', 'EXTAWS', 'EXTBUOY',
-                             'EXTFLASH', 'EXTFROST', 'EXTICE', 'EXTMAGNET',
-                             'EXTMAREO', 'EXTMAST', 'EXTRADACT', 'EXTRWS',
-                             'EXTRWYWS', 'EXTSNOW', 'EXTSOUNDING', 'EXTSYNOP',
-                             'EXTWATER', 'EXTWIND', 'FLASH', 'HTB',
-                             'ICE', 'MAGNET', 'MAREO', 'MAST',
-                             'PREC', 'RADACT', 'RADAR', 'RESEARCH',
-                             'RWS', 'SEA', 'SHIP', 'SOLAR',
-                             'SOUNDING', 'SYNOP', 'HELCOM');)SQL";
+    tg.group_code,
+    t.target_id AS fmisid,
+    t.access_policy AS access_policy_id,
+    t.target_status AS station_status_id,
+    t.language_code AS language_code,
+    t.target_formal_name AS formal_name,
+    svname.target_formal_name AS sv_formal_name,
+    enname.target_formal_name AS en_formal_name,
+    t.target_category,
+    t.stationary,
+    FIRST_VALUE(lpnn.member_code) OVER (
+        PARTITION BY t.target_id
+        ORDER BY lpnn.membership_start DESC
+    ) AS lpnn,
+    FIRST_VALUE(wmon.member_code) OVER (
+        PARTITION BY t.target_id
+        ORDER BY wmon.membership_start DESC
+    ) AS wmon,
+    FIRST_VALUE(rws.member_code) OVER (
+        PARTITION BY t.target_id
+        ORDER BY rws.membership_start DESC
+    ) AS rwsid,
+    FIRST_VALUE(wigos.member_code) OVER (
+        PARTITION BY t.target_id
+        ORDER BY wigos.membership_start DESC
+    ) AS wsi,
+    MIN(tgm.membership_start) OVER (
+        PARTITION BY t.target_id, tg.group_code
+    ) AS valid_from,
+    MAX(tgm.membership_end) OVER (
+        PARTITION BY t.target_id, tg.group_code
+    ) AS valid_to,
+    l.location_start,
+    l.location_end,
+    ROUND(ST_X(geom)::NUMERIC, 5) AS longitude,
+    ROUND(ST_Y(geom)::NUMERIC, 5) AS latitude,
+    t.modified_last,
+    t.modified_by
+FROM network_t1 AS tg
+JOIN network_member_t1 AS tgm
+    ON tgm.network_id = tg.network_id
+JOIN target_t1 AS t
+    ON t.target_id = tgm.target_id
+JOIN location_t1 AS l
+    ON l.target_id = t.target_id
+LEFT JOIN network_member_t1 AS lpnn
+    ON lpnn.target_id = t.target_id
+    AND lpnn.network_id = 10
+LEFT JOIN network_member_t1 AS wmon
+    ON wmon.target_id = t.target_id
+    AND wmon.network_id = 20
+LEFT JOIN network_member_t1 AS rws
+    ON rws.target_id = t.target_id
+    AND rws.network_id = 30
+LEFT JOIN network_member_t1 AS wigos
+    ON wigos.target_id = t.target_id
+    AND wigos.network_id = 77
+LEFT JOIN target_tl1 AS svname
+    ON svname.language_code = 'sv'
+    AND svname.target_id = t.target_id
+LEFT JOIN target_tl1 AS enname
+    ON enname.language_code = 'en'
+    AND enname.target_id = t.target_id
+WHERE tg.group_class_id IN (1, 81)
+    AND tg.group_code IN (
+        'STUKRAD', 'STUKAIR', 'RWSFIN', 'AIRQCOMM',
+        'AIRQUAL', 'ASC', 'AVI', 'AWS',
+        'BUOY', 'CLIM', 'COMM', 'EXTAIRQUAL',
+        'EXTASC', 'EXTAVI', 'EXTAWS', 'EXTBUOY',
+        'EXTFLASH', 'EXTFROST', 'EXTICE', 'EXTMAGNET',
+        'EXTMAREO', 'EXTMAST', 'EXTRADACT', 'EXTRWS',
+        'EXTRWYWS', 'EXTSNOW', 'EXTSOUNDING', 'EXTSYNOP',
+        'EXTWATER', 'EXTWIND', 'FLASH', 'HTB',
+        'ICE', 'MAGNET', 'MAREO', 'MAST',
+        'PREC', 'RADACT', 'RADAR', 'RESEARCH',
+        'RWS', 'SEA', 'SHIP', 'SOLAR',
+        'SOUNDING', 'SYNOP', 'HELCOM'
+    )
+    AND EXISTS (
+        SELECT 1
+        FROM station_metadata_access_policy AS smap
+        WHERE smap.target_id = t.target_id
+            AND smap.open_data = 'Y'
+    );)SQL";
     // clang-format on
 
     if (itsDebug)
@@ -947,7 +1025,7 @@ WHERE  tg.group_class_id IN( 1, 81 )
   }
 }
 
-void PostgreSQLObsDB::getStationGroups(StationGroups &sg) const
+void PostgreSQLObsDB::getStationGroups(StationGroups& sg) const
 {
   try
   {
@@ -987,7 +1065,7 @@ void PostgreSQLObsDB::getStationGroups(StationGroups &sg) const
       Fmi::DateTime endtime = Fmi::TimeParser::parse(row[3].as<std::string>());
       if (groups.find(group_id) != groups.end())
       {
-        const std::string &group_name = groups.at(group_id);
+        const std::string& group_name = groups.at(group_id);
         sg.addGroupPeriod(station_id, group_name, starttime, endtime);
       }
     }
@@ -998,7 +1076,7 @@ void PostgreSQLObsDB::getStationGroups(StationGroups &sg) const
   }
 }
 
-void PostgreSQLObsDB::getProducerGroups(ProducerGroups &pg) const
+void PostgreSQLObsDB::getProducerGroups(ProducerGroups& pg) const
 {
   try
   {
@@ -1026,9 +1104,9 @@ void PostgreSQLObsDB::getProducerGroups(ProducerGroups &pg) const
   }
 }
 
-void PostgreSQLObsDB::getMovingStations(Spine::Stations &stations,
-                                        const Settings &settings,
-                                        const std::string &wkt) const
+void PostgreSQLObsDB::getMovingStations(Spine::Stations& stations,
+                                        const Settings& settings,
+                                        const std::string& wkt) const
 {
   try
   {
@@ -1065,7 +1143,7 @@ AND tg.group_name IN( '{}')
 
     auto result_set = itsDB.executeNonTransaction(sqlStmt);
 
-    for (const auto &row : result_set)
+    for (const auto& row : result_set)
     {
       Spine::Station station;
       station.fmisid = row[0].as<int>();
@@ -1079,7 +1157,7 @@ AND tg.group_name IN( '{}')
 }
 
 MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
-    const EngineParametersPtr & /* engineParameters */) const
+    const EngineParametersPtr& /* engineParameters */) const
 {
   try
   {
@@ -1096,7 +1174,7 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
 
     auto result_set = itsDB.executeNonTransaction(sqlStmt);
     //    auto producers = engineParameters->producerGroups.getProducerGroups();
-    for (const auto &row : result_set)
+    for (const auto& row : result_set)
     {
       measurand_info mi;
       mi.measurand_id = Fmi::to_string(row[0].as<int>());
@@ -1128,14 +1206,14 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
       std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     result_set = itsDB.executeNonTransaction(sqlStmt);
-    for (const auto &row : result_set)
+    for (const auto& row : result_set)
     {
       int mid = row[0].as<int>();
       int producer_id = row[1].as<int>();
       auto measurand_id = Fmi::to_string(mid);
       if (ret.find(measurand_id) != ret.end())
       {
-        auto &minfo = ret.at(measurand_id);
+        auto& minfo = ret.at(measurand_id);
         minfo.producers.insert(producer_id);
       }
     }
@@ -1145,7 +1223,7 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
         "select measurand_id,language_code, measurand_label,measurand_name,measurand_long_name "
         "from measurand_v1l";
     result_set = itsDB.executeNonTransaction(sqlStmt);
-    for (const auto &row : result_set)
+    for (const auto& row : result_set)
     {
       auto measurand_id = Fmi::to_string(row[0].as<int>());
       if (ret.find(measurand_id) != ret.end())
@@ -1159,7 +1237,7 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
         if (!row[4].is_null())
           mt.measurand_desc = row[4].as<std::string>();
 
-        auto &m_info = ret.at(measurand_id);
+        auto& m_info = ret.at(measurand_id);
         m_info.translations[language_code] = mt;
       }
     }
@@ -1169,7 +1247,7 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
         "select measurand_code,measurand_name,unit_symbol,measurand_label,language_code from "
         "MEASURAND_T1";
     result_set = itsDB.executeNonTransaction(sqlStmt);
-    for (const auto &row : result_set)
+    for (const auto& row : result_set)
     {
       auto measurand_id = row[0].as<std::string>();
       boost::algorithm::to_lower(measurand_id);
@@ -1200,7 +1278,7 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
       }
       else
       {
-        auto &mi = ret.at(measurand_id);
+        auto& mi = ret.at(measurand_id);
         if (mi.translations.find(language_code) == mi.translations.end())
         {
           mi.translations[language_code] = mt;
@@ -1216,16 +1294,16 @@ MeasurandInfo PostgreSQLObsDB::getMeasurandInfo(
   }
 }
 
-Fmi::DateTime PostgreSQLObsDB::getLatestDataUpdateTime(const std::string &tablename,
-                                                       const Fmi::DateTime &from,
-                                                       const std::string &producer_ids,
-                                                       const std::string & /*measurand_ids */) const
+Fmi::DateTime PostgreSQLObsDB::getLatestDataUpdateTime(const std::string& tablename,
+                                                       const Fmi::DateTime& from,
+                                                       const std::string& producer_ids,
+                                                       const std::string& /*measurand_ids */) const
 {
   try
   {
     Fmi::DateTime ret = Fmi::DateTime::NOT_A_DATE_TIME;
 
-    const auto &starttime = from;
+    const auto& starttime = from;
     auto endtime = Utils::utc_second_clock();
     std::string sqlStmt;
     if (tablename == OBSERVATION_DATA_TABLE)
