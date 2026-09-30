@@ -1,4 +1,5 @@
 #include "SpatiaLiteDatabaseDriver.h"
+#include "Utils.h"
 #include "ObservationCache.h"
 #include "QueryResult.h"
 #include "StationInfo.h"
@@ -26,8 +27,7 @@ SpatiaLiteDatabaseDriver::SpatiaLiteDatabaseDriver(const std::string &name,
                                                    Spine::ConfigBase &cfg)
     : DatabaseDriverBase(name), itsParameters(name, p)
 {
-  if (setlocale(LC_NUMERIC, "en_US.utf8") == nullptr)
-    throw Fmi::Exception(BCP, "Spatialite database driver failed to set locale to en_US.utf8");
+  Utils::requireDecimalPoint();
 
   readConfig(cfg);
 }

@@ -1,4 +1,5 @@
 #include "PostgreSQLDatabaseDriverForFmiData.h"
+#include "Utils.h"
 #include "ObservationCache.h"
 #include "ObservationMemoryCache.h"
 #include "QueryObservablePropertyPostgreSQL.h"
@@ -74,9 +75,7 @@ PostgreSQLDatabaseDriverForFmiData::PostgreSQLDatabaseDriverForFmiData(const std
                                                                        Spine::ConfigBase &cfg)
     : PostgreSQLDatabaseDriver(name, p, cfg)
 {
-  if (setlocale(LC_NUMERIC, "en_US.utf8") == nullptr)
-    throw Fmi::Exception(
-        BCP, "PostgreSQL database driver for FMI data failed to set locale to en_US.utf8");
+  Utils::requireDecimalPoint();
 
   readConfig(cfg);
 }

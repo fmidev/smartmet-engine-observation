@@ -1,4 +1,5 @@
 #include "PostgreSQLDatabaseDriverForMobileData.h"
+#include "Utils.h"
 #include "ObservationCache.h"
 #include "QueryExternalAndMobileData.h"
 #include "QueryObservableProperty.h"
@@ -74,9 +75,7 @@ PostgreSQLDatabaseDriverForMobileData::PostgreSQLDatabaseDriverForMobileData(
     const std::string &name, const EngineParametersPtr &p, Spine::ConfigBase &cfg)
     : PostgreSQLDatabaseDriver(name, p, cfg)
 {
-  if (setlocale(LC_NUMERIC, "en_US.utf8") == nullptr)
-    throw Fmi::Exception(
-        BCP, "PostgreSQL database driver for mobile data failed to set locale to en_US.utf8");
+  Utils::requireDecimalPoint();
 
   readConfig(cfg);
 

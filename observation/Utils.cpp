@@ -1,4 +1,6 @@
 #include "Utils.h"
+#include <iostream>
+#include <clocale>
 #include "Keywords.h"
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -574,6 +576,20 @@ bool isParameterVariant(const std::string& name, const ParameterMap& parameterMa
   {
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
+}
+
+void requireDecimalPoint()
+{
+  const char* decimalPoint = std::localeconv()->decimal_point;
+  if (decimalPoint != nullptr && std::string(decimalPoint) == ".")
+    return;
+
+  // Servers older than the one setting LC_NUMERIC at startup: fall back to
+  // setting it here as before, although this is not thread safe
+  std::cerr << "Warning: LC_NUMERIC does not use a decimal point, setting it in the observation "
+               "engine. Upgrade the server, which sets it before starting any threads.\n";
+  if (std::setlocale(LC_NUMERIC, "C") == nullptr)
+    throw Fmi::Exception(BCP, "Observation engine failed to set LC_NUMERIC");
 }
 
 }  // namespace Utils
