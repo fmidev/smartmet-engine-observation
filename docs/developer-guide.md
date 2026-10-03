@@ -91,8 +91,10 @@ Engine (pure virtual API)              DisabledEngine (empty answers when not co
 
 `EngineImpl::values(settings)`:
 
-1. **Adjust the settings** (`beforeQuery()`): drop unknown parameters (remembering their
-   positions, so the result keeps the requested column order with missing columns), and
+1. **Adjust the settings** (`beforeQuery()`): a parameter which is not configured for any
+   station type is an error; one configured only for other station types is dropped
+   (remembering its position, so the result keeps the requested column order with a
+   missing column), and
    limit `stationgroups` to the groups the station type allows (a caller cannot add
    groups).
 2. **Choose the driver** (§5) by the station type's table and the requested period.
