@@ -150,6 +150,13 @@ bool isParameter(const std::string& name,
 
 bool isParameterVariant(const std::string& name, const ParameterMap& parameterMap);
 
+// Make sure LC_NUMERIC uses a decimal point, which the database value parsing
+// requires. The server sets LC_NUMERIC once at startup; the drivers used to
+// call setlocale() themselves, which changes the whole process while other
+// engines may be initializing in parallel. With older servers the locale is
+// still set here, with a warning.
+void requireDecimalPoint();
+
 }  // namespace Utils
 }  // namespace Observation
 }  // namespace Engine
