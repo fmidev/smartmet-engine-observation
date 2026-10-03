@@ -125,13 +125,13 @@ TEST_CASE("Station utilities")
     REQUIRE(station.stationDirection > 270);
     REQUIRE(station.stationDirection < 271);
 
-    // timeseries test open-several-stations: Kumpula -> Kaisaniemi is 196.2 degrees
+    // Kumpula -> Kaisaniemi: about 0.92 km west and 3.10 km south, rounded to 0.1 degrees
     station.requestedLon = 24.96131;
     station.requestedLat = 60.20307;
     station.longitude = 24.94459;
     station.latitude = 60.17523;
     calculateStationDirection(station);
-    REQUIRE(station.stationDirection == Approx(197.2).margin(1.0));
+    REQUIRE(station.stationDirection == Approx(196.6).margin(1e-9));
   }
 }
 
