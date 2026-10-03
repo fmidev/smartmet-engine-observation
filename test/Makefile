@@ -1,6 +1,6 @@
 PROG = $(patsubst %.cpp,%,$(wildcard *Test.cpp))
 
-REQUIRES = gdal sqlite3 spatialite
+REQUIRES = gdal sqlite3 spatialite configpp
 
 include $(shell echo $${PREFIX-/usr})/share/smartmet/devel/makefile.inc
 
@@ -30,9 +30,9 @@ clean:
 
 test: $(PROG)
 	@echo Running tests:
-	@for prog in $(PROG); do \
-	./$$prog; \
-	done
+	@ok=true; for prog in $(PROG); do \
+	./$$prog || ok=false; \
+	done; $$ok
 
 # Build the engine when its sources are newer than the library, so that running
 # the tests directly from this directory cannot link a stale observation.so.
