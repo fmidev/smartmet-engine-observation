@@ -1,6 +1,6 @@
 PROG = $(patsubst %.cpp,%,$(wildcard *Test.cpp))
 
-REQUIRES = gdal sqlite3 spatialite configpp
+REQUIRES = gdal sqlite3 spatialite configpp libpqxx
 
 include $(shell echo $${PREFIX-/usr})/share/smartmet/devel/makefile.inc
 

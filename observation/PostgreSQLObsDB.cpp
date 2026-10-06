@@ -159,8 +159,8 @@ void PostgreSQLObsDB::readMovingStationsCacheDataFromPostgreSQL(
 
       MovingLocationItem item;
       item.station_id = as_int(row[0]);
-      item.sdate = Fmi::date_time::from_time_t(row[1].as<time_t>());
-      item.edate = Fmi::date_time::from_time_t(row[2].as<time_t>());
+      item.sdate = Fmi::date_time::from_time_t(as_time_t(row[1]));
+      item.edate = Fmi::date_time::from_time_t(as_time_t(row[2]));
       item.lon = as_double(row[3]);
       item.lat = as_double(row[4]);
       item.elev = as_double(row[5]);
@@ -191,14 +191,14 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems& cacheData,
       item.measurand_id = as_int(row[2]);
       item.producer_id = as_int(row[3]);
       item.measurand_no = as_int(row[4]);
-      item.data_time = Fmi::date_time::from_time_t(row[5].as<time_t>());
+      item.data_time = Fmi::date_time::from_time_t(as_time_t(row[5]));
       if (!row[6].is_null())
         item.data_value = as_double(row[6]);
       if (!row[7].is_null())
         item.data_quality = as_int(row[7]);
       if (!row[8].is_null())
         item.data_source = as_int(row[8]);
-      item.modified_last = Fmi::date_time::from_time_t(row[9].as<time_t>());
+      item.modified_last = Fmi::date_time::from_time_t(as_time_t(row[9]));
 
       cacheData.emplace_back(item);
     }
@@ -293,8 +293,7 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem
 
       FlashDataItem item;
 
-      int epoch = as_int(row[0]);
-      item.stroke_time = epoch2ptime(epoch);
+      item.stroke_time = Fmi::date_time::from_time_t(as_time_t(row[0]));
       item.stroke_time_fraction = as_int(row[1]);
       item.flash_id = as_int(row[2]);
       item.multiplicity = as_int(row[3]);
@@ -314,10 +313,8 @@ void PostgreSQLObsDB::readFlashCacheDataFromPostgreSQL(std::vector<FlashDataItem
       item.stroke_status = as_int(row[17]);
       if (!row[18].is_null())
         item.data_source = as_int(row[18]);
-      int created = as_int(row[19]);
-      item.created = epoch2ptime(created);
-      int modified_last = as_int(row[20]);
-      item.modified_last = epoch2ptime(modified_last);
+      item.created = Fmi::date_time::from_time_t(as_time_t(row[19]));
+      item.modified_last = Fmi::date_time::from_time_t(as_time_t(row[20]));
       if (!row[21].is_null())
         item.modified_by = as_int(row[21]);
       item.longitude = as_double(row[22]);
@@ -448,14 +445,14 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(
       DataItem item;
 
       item.fmisid = as_int(row[0]);
-      item.data_time = Fmi::date_time::from_time_t(row[1].as<time_t>());
+      item.data_time = Fmi::date_time::from_time_t(as_time_t(row[1]));
       auto param = row[2].as<std::string>();
       item.measurand_id = itsParameterMap->getRoadAndForeignIds().stringToInteger(param);
       item.sensor_no = as_int(row[3]);
       if (!row[4].is_null())
         item.data_value = as_double(row[4]);
       item.data_quality = as_int(row[5]);
-      item.modified_last = Fmi::date_time::from_time_t(row[6].as<time_t>());
+      item.modified_last = Fmi::date_time::from_time_t(as_time_t(row[6]));
 
       cacheData.emplace_back(item);
     }
@@ -602,7 +599,7 @@ void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
       item.fmisid = as_int(row[0]);
       item.magnetometer = row[1].as<std::string>();
       item.level = as_int(row[2]);
-      item.data_time = Fmi::date_time::from_time_t(row[3].as<time_t>());
+      item.data_time = Fmi::date_time::from_time_t(as_time_t(row[3]));
       if (!row[4].is_null())
         item.x = as_double(row[4]);
       if (!row[5].is_null())
@@ -614,7 +611,7 @@ void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
       if (!row[8].is_null())
         item.f = as_double(row[8]);
       item.data_quality = as_int(row[9]);
-      item.modified_last = Fmi::date_time::from_time_t(row[10].as<time_t>());
+      item.modified_last = Fmi::date_time::from_time_t(as_time_t(row[10]));
       cacheData.emplace_back(item);
     }
   }
@@ -661,7 +658,7 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string& sqlStmt,
     {
       Fmi::AsyncTask::interruption_point();
       std::optional<int> fmisid = as_int(row[0]);
-      Fmi::DateTime obstime = Fmi::date_time::from_time_t(row[1].as<time_t>());
+      Fmi::DateTime obstime = Fmi::date_time::from_time_t(as_time_t(row[1]));
       std::optional<std::string> parameter = row[2].as<std::string>();
       int int_parameter = itsParameterMap->getRoadAndForeignIds().stringToInteger(*parameter);
 

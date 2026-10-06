@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.10.3
+Version: 26.10.6
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -175,6 +175,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Oct 06 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.6-1.fmi
+- Fixed reading EXTRACT(EPOCH) times from PostgreSQL 14 and newer, which return numeric instead of double precision
+
 * Sat Oct 03 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.3-1.fmi
 - Add tests for utilities, id mappings and station/producer groups
 - Do not change the process locale while engines initialize

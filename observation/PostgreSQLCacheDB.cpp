@@ -2236,7 +2236,7 @@ void PostgreSQLCacheDB::fetchWeatherDataQCData(const std::string &sqlStmt,
     for (auto row : result_set)
     {
       std::optional<int> fmisid = as_int(row[0]);
-      Fmi::DateTime obstime = Fmi::date_time::from_time_t(row[1].as<time_t>());
+      Fmi::DateTime obstime = Fmi::date_time::from_time_t(as_time_t(row[1]));
       std::optional<int> parameter = as_int(row[2]);
 
       // Get latitude, longitude, elevation from station info
