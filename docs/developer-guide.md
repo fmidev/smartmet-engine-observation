@@ -231,8 +231,9 @@ why its results can be cached.
 ## 9. The plugin API
 
 Plugins get the engine with `reactor->getEngine<Engine::Observation::Engine>("observation")`.
-If the engine is disabled in the server configuration, they get a `DisabledEngine` that
-returns empty results.
+If the engine has no configuration file name, or its configuration sets `disabled = true`,
+they get a `DisabledEngine` that returns empty results (`makeQuery()` throws). See
+[Disabling the engine](Configuring-Observation-Engine.md#disabling-the-engine).
 
 | Call | Purpose |
 |------|---------|

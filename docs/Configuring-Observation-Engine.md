@@ -15,6 +15,36 @@ engines:
 
 The location for engines configuration can be a relative or an absolute path. In the example the configuration is relative to the main configuration in a directory named `engines` in a file named `observation.conf`.
 
+## Disabling the engine
+
+The engine can be loaded in a dummy mode that needs no database, for plugins that look it
+up at startup but are not configured to use observations. The dummy (`DisabledEngine`)
+returns empty results for time series, station and flash queries, and throws for WFS
+registry queries (`makeQuery`). Dummy mode is enabled in either of two ways:
+
+1. Leave `configfile` out of the `observation` section, or set it to an empty string:
+
+   ```text
+   engines:
+   {
+     observation:
+     {
+       configfile = "";
+     };
+   };
+   ```
+
+2. Set the engine's own disable flag in its configuration file. No other settings are
+   read, so this line alone is enough:
+
+   ```text
+   disabled = true;
+   ```
+
+Setting `disabled = true` in the server's `engines.observation` section is different: the
+server then does not load `observation.so` at all, and plugins that require the engine fail
+at startup.
+
 ## Available Settings
 
 TODO: We need to explain the content of the configuration file
