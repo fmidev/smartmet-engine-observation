@@ -443,6 +443,27 @@ Geonames::Engine *EngineImpl::getGeonames() const
   return itsGeonames.get();
 }
 
+std::optional<std::uint64_t> EngineImpl::getFlashGeneration(const Fmi::DateTime &starttime,
+                                                           const Fmi::DateTime &endtime,
+                                                           double minlon,
+                                                           double minlat,
+                                                           double maxlon,
+                                                           double maxlat) const
+{
+  try
+  {
+    // Only the flash memory cache can answer, so the database drivers are not involved
+    auto cache = itsEngineParameters->observationCacheProxy->getCacheByTableName(FLASH_DATA_TABLE);
+    if (!cache)
+      return std::nullopt;
+    return cache->getFlashGeneration(starttime, endtime, minlon, minlat, maxlon, maxlat);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
 FlashCounts EngineImpl::getFlashCount(const Fmi::DateTime &starttime,
                                       const Fmi::DateTime &endtime,
                                       const Spine::TaggedLocationList &locations)

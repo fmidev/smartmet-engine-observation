@@ -29,6 +29,12 @@ class EngineImpl : public Engine
   FlashCounts getFlashCount(const Fmi::DateTime &starttime,
                             const Fmi::DateTime &endtime,
                             const Spine::TaggedLocationList &locations) override;
+  std::optional<std::uint64_t> getFlashGeneration(const Fmi::DateTime &starttime,
+                                                  const Fmi::DateTime &endtime,
+                                                  double minlon,
+                                                  double minlat,
+                                                  double maxlon,
+                                                  double maxlat) const override;
   std::shared_ptr<std::vector<ObservableProperty>> observablePropertyQuery(
       std::vector<std::string> &parameters, const std::string &language) override;
 

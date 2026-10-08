@@ -8,6 +8,8 @@
 #include "StationSettings.h"
 #include <spine/Table.h>
 #include <spine/TableFormatter.h>
+#include <cstdint>
+#include <optional>
 
 namespace SmartMet
 {
@@ -152,6 +154,27 @@ class Engine : public SmartMet::Spine::SmartMetEngine
    */
   virtual Fmi::DateTime getLatestDataUpdateTime(const std::string &producer,
                                                 const Fmi::DateTime &from) const = 0;
+
+  /* \brief Fingerprint of the flash data in a time window and bounding box
+   *
+   * Returns the id of the newest flash memory cache update which added strokes
+   * to the given closed time interval and lon/lat bounding box, zero if no
+   * strokes have been added there, and nullopt if the memory cache cannot answer
+   * (not enabled, not filled yet, or the window starts before the cache). The id
+   * changes exactly when strokes are added to the window and box, so it can be
+   * used as a cache key for products drawn from the flash data.
+   *
+   * Appended last so that the vtable slots of the older methods are unchanged.
+   */
+  virtual std::optional<std::uint64_t> getFlashGeneration(const Fmi::DateTime & /* starttime */,
+                                                          const Fmi::DateTime & /* endtime */,
+                                                          double /* minlon */,
+                                                          double /* minlat */,
+                                                          double /* maxlon */,
+                                                          double /* maxlat */) const
+  {
+    return std::nullopt;
+  }
 };
 
 }  // namespace Observation

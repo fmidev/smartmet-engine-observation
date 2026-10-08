@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <optional>
+
 #include "CacheInfoItem.h"
 #include "DataItem.h"
 #include "FlashDataItem.h"
@@ -148,6 +151,19 @@ class ObservationCache
       const Fmi::DateTime &starttime,
       const Fmi::DateTime &endtime,
       const std::string &tablename) const;
+
+  // Flash memory cache fingerprint, see Engine::getFlashGeneration. nullopt if the cache cannot
+  // answer. Last in the class so that the vtable slots of the older methods are unchanged
+  // for code compiled against the previous version of this header (smartmet-library-delfoi).
+  virtual std::optional<std::uint64_t> getFlashGeneration(const Fmi::DateTime & /* starttime */,
+                                                          const Fmi::DateTime & /* endtime */,
+                                                          double /* minlon */,
+                                                          double /* minlat */,
+                                                          double /* maxlon */,
+                                                          double /* maxlat */) const
+  {
+    return std::nullopt;
+  }
 
  protected:
   ObservationCache(const CacheInfoItem &ci);

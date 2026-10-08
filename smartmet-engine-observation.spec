@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.10.6
+Version: 26.10.8
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -175,6 +175,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Oct 08 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.8-1.fmi
+- New Engine::getFlashGeneration: fingerprint of the flash memory cache contents in a time window and bounding box (BRAINSTORM-3501)
+
 * Tue Oct 06 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.6-1.fmi
 - Fixed reading EXTRACT(EPOCH) times from PostgreSQL 14 and newer, which return numeric instead of double precision
 

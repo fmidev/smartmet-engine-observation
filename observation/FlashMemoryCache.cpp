@@ -320,6 +320,40 @@ std::size_t FlashMemoryCache::fill(const FlashDataItems& flashCacheData) const
       for (const auto& hash : new_hashes)
         itsHashValues.insert(hash);
 
+      // Record the time range and the bounding box of the new strokes. The log is
+      // updated before the data so that the fingerprint never lags behind the data.
+
+      Generation generation;
+      generation.id = ++itsLatestGeneration;
+      bool first = true;
+      for (auto new_item : new_items)
+      {
+        const auto& flash = flashCacheData[new_item];
+        if (first)
+        {
+          generation.mintime = generation.maxtime = flash.stroke_time;
+          generation.minlon = generation.maxlon = flash.longitude;
+          generation.minlat = generation.maxlat = flash.latitude;
+          first = false;
+        }
+        else
+        {
+          generation.mintime = std::min(generation.mintime, flash.stroke_time);
+          generation.maxtime = std::max(generation.maxtime, flash.stroke_time);
+          generation.minlon = std::min(generation.minlon, flash.longitude);
+          generation.maxlon = std::max(generation.maxlon, flash.longitude);
+          generation.minlat = std::min(generation.minlat, flash.latitude);
+          generation.maxlat = std::max(generation.maxlat, flash.latitude);
+        }
+      }
+
+      auto new_generations = std::make_shared<Generations>();
+      auto old_generations = itsGenerations.load();
+      if (old_generations)
+        *new_generations = *old_generations;
+      new_generations->push_back(generation);
+      itsGenerations.store(new_generations);
+
       // Replace old contents
       itsFlashData.store(new_cache);
     }
@@ -376,6 +410,17 @@ void FlashMemoryCache::clean(const Fmi::DateTime& newstarttime) const
     // And now a quick atomic update to the data too, if we deleted anything
     if (must_clean)
       itsFlashData.store(cache);
+
+    // Forget the generations whose strokes are all older than the new start time
+    auto generations = itsGenerations.load();
+    if (generations && !generations->empty() && generations->front().maxtime < newstarttime)
+    {
+      auto new_generations = std::make_shared<Generations>();
+      for (const auto& generation : *generations)
+        if (generation.maxtime >= newstarttime)
+          new_generations->push_back(generation);
+      itsGenerations.store(new_generations);
+    }
   }
   catch (...)
   {
@@ -539,6 +584,39 @@ FlashCounts FlashMemoryCache::getFlashCount(const Fmi::DateTime& starttime,
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "FlashMemoryCache::getFlashCount failed");
+  }
+}
+
+std::optional<std::uint64_t> FlashMemoryCache::latestGeneration(const Fmi::DateTime& starttime,
+                                                              const Fmi::DateTime& endtime,
+                                                              double minlon,
+                                                              double minlat,
+                                                              double maxlon,
+                                                              double maxlat) const
+{
+  try
+  {
+    // The cache cannot answer for a window starting before it
+    auto cachestart = itsStartTime.load();
+    if (!cachestart || cachestart->is_not_a_date_time() || starttime < *cachestart)
+      return std::nullopt;
+
+    auto generations = itsGenerations.load();
+    if (!generations)
+      return 0;
+
+    // Newest first. Closed interval overlap and inclusive bbox edges, like the data queries.
+    for (auto it = generations->rbegin(); it != generations->rend(); ++it)
+    {
+      if (it->mintime <= endtime && it->maxtime >= starttime && it->minlon <= maxlon &&
+          it->maxlon >= minlon && it->minlat <= maxlat && it->maxlat >= minlat)
+        return it->id;
+    }
+    return 0;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "FlashMemoryCache::latestGeneration failed");
   }
 }
 
