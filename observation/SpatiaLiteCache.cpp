@@ -538,6 +538,27 @@ bool SpatiaLiteCache::dataAvailableInCache(const Settings &settings) const
   }
 }
 
+std::optional<std::uint64_t> SpatiaLiteCache::getFlashGeneration(const Fmi::DateTime &starttime,
+                                                                const Fmi::DateTime &endtime,
+                                                                double minlon,
+                                                                double minlat,
+                                                                double maxlon,
+                                                                double maxlat) const
+{
+  try
+  {
+    // Only the memory cache keeps track of updates, the disk cache cannot answer
+    if (!itsFlashMemoryCache)
+      return std::nullopt;
+    return itsFlashMemoryCache->latestGeneration(
+        starttime, endtime, minlon, minlat, maxlon, maxlat);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Getting flash generation from cache failed!");
+  }
+}
+
 FlashCounts SpatiaLiteCache::getFlashCount(const Fmi::DateTime &starttime,
                                            const Fmi::DateTime &endtime,
                                            const Spine::TaggedLocationList &locations) const

@@ -52,6 +52,12 @@ class SpatiaLiteCache : public ObservationCache
   FlashCounts getFlashCount(const Fmi::DateTime &starttime,
                             const Fmi::DateTime &endtime,
                             const Spine::TaggedLocationList &locations) const override;
+  std::optional<std::uint64_t> getFlashGeneration(const Fmi::DateTime &starttime,
+                                                  const Fmi::DateTime &endtime,
+                                                  double minlon,
+                                                  double minlat,
+                                                  double maxlon,
+                                                  double maxlat) const override;
   Fmi::DateTime getLatestFlashModifiedTime() const override;
   Fmi::DateTime getLatestFlashTime() const override;
   std::size_t fillFlashDataCache(const FlashDataItems &flashCacheData) const override;
