@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.10.6
+Version: 26.10.9
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -175,6 +175,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Oct 09 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.9-1.fmi
+- Missing wind directions no longer go through an exception when computing wind compass values
+
 * Tue Oct 06 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.6-1.fmi
 - Fixed reading EXTRACT(EPOCH) times from PostgreSQL 14 and newer, which return numeric instead of double precision
 

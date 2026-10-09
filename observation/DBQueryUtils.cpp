@@ -850,8 +850,10 @@ void emitSpecialParam(const SpecialParamEntry &sp,
     {
       const auto mit = group_data.find(sp.mid1);
       const TS::Value val = (mit != group_data.end()) ? get_default_sensor_value(mit->second) : missing;
+      // Not "val == TS::None()": in C++20 that is rewritten as None() == val, which is false for
+      // every Value, so a missing direction went through std::get and the exception handler
       const TS::Value result =
-          (val == TS::None())
+          (!std::holds_alternative<double>(val))
               ? missing
               : TS::Value(windCompassString(sp.kind, std::get<double>(val), settings.missingtext));
       resultVector->at(pos).emplace_back(TS::TimedValue(ldt, result));
