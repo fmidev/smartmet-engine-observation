@@ -613,7 +613,10 @@ MetaData EngineImpl::metaData(const std::string &producer, const Settings &setti
     {
       for (const auto &producer_param : param.second)
       {
-        if (producer.empty() || (producer == producer_param.first))
+        // An empty mapping means the parameter is not available for the producer, querying
+        // it would fail
+        if ((producer.empty() || (producer == producer_param.first)) &&
+            !producer_param.second.empty())
         {
           ret.parameters.insert(param.first);
         }
