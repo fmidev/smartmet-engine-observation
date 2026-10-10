@@ -83,10 +83,15 @@ class DBQueryUtils
       AdditionalTimestepOption::RequestedAndDataTimesteps};
 
   // Adds the measurand IDs that computed special parameters (feelslike, windcompass, etc.)
-  // depend on, so they are fetched from the database. No-op for QC table (IDs are different).
+  // depend on, so they are fetched from the database.
   void addDependentMeasurandIds(QueryMapping &ret,
                                 const std::string &name,
                                 const std::string &stationtype) const;
+
+  // Same for QC tables, where the IDs are converted from the parameter names
+  void addDependentQCMeasurandIds(QueryMapping &ret,
+                                  const std::string &name,
+                                  const std::string &stationtype) const;
 
   // Processes a single regular (non-special) parameter in buildQueryMapping.
   void processRegularParam(const Spine::Parameter &p,

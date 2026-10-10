@@ -88,6 +88,21 @@ void logMessage(const std::string& message, bool quiet);
 
 // ----------------------------------------------------------------------
 /*!
+ * \brief Convert road weather station precipitation observations to a WMO 4677 ww code
+ *
+ * \param r Precipitation intensity (SADE): 0 dry, 1 slight, 2 moderate, 3 heavy,
+ *          4-6 slight/moderate/heavy snowfall
+ * \param rform Precipitation form (RST): 7 dry, 8 very light, 9 drizzle, 10 rain, 11 snow,
+ *          12 wet sleet, 13 sleet, 14 hail, 15 ice crystals, 16 snow grains,
+ *          17 snow pellets, 18 freezing drizzle, 19 freezing rain
+ * \return ww code, 0 for no precipitation, empty for unknown codes
+ */
+// ----------------------------------------------------------------------
+
+std::optional<int> calcRoadWW(int r, int rform);
+
+// ----------------------------------------------------------------------
+/*!
  * \brief Calculate the weather symbol using wawa code, temperature and cloudiness
  *
  * The logic is described in:

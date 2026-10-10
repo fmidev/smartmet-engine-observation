@@ -473,6 +473,71 @@ std::optional<int> calcSmartsymbolNumber(int wawa,
   return sp.dark() ? 100 + *smartsymbol : *smartsymbol;
 }
 
+std::optional<int> calcRoadWW(int r, int rform)
+{
+  // Road weather sensors cannot tell intermittent precipitation from continuous one,
+  // hence the continuous codes are used for drizzle, rain and snow.
+
+  if (r < 0 || r > 6)
+    return {};
+
+  // Intensity class: 0 none, 1 slight, 2 moderate, 3 heavy
+  const bool snowfall = (r >= 4);
+  const int intensity = (snowfall ? r - 3 : r);
+
+  // Pick code by intensity, an absent intensity is treated as slight
+  auto pick = [intensity](int slight, int moderate, int heavy)
+  {
+    if (intensity <= 1)
+      return slight;
+    return (intensity == 2 ? moderate : heavy);
+  };
+
+  // Forms which are reported regardless of the intensity
+  switch (rform)
+  {
+    case 12:  // wet sleet
+    case 13:  // sleet
+      return pick(68, 69, 69);
+    case 14:  // hail
+      return pick(89, 90, 90);
+    case 15:  // ice crystals
+      return 76;
+    case 16:  // snow grains
+      return 77;
+    case 17:  // snow pellets
+      return pick(87, 88, 88);
+    default:
+      break;
+  }
+
+  // Snowfall intensities override the remaining forms
+  if (snowfall)
+    return pick(71, 73, 75);
+
+  if (intensity == 0)
+    return 0;
+
+  switch (rform)
+  {
+    case 9:  // drizzle
+      return pick(51, 53, 55);
+    case 10:  // rain
+      return pick(61, 63, 65);
+    case 11:  // snow
+      return pick(71, 73, 75);
+    case 18:  // freezing drizzle
+      return pick(56, 57, 57);
+    case 19:  // freezing rain
+      return pick(66, 67, 67);
+    case 7:  // dry
+    case 8:  // very light, form unknown
+      return 0;
+    default:
+      return {};
+  }
+}
+
 TS::TimeSeriesVectorPtr initializeResultVector(const Settings& settings)
 {
   TS::TimeSeriesVectorPtr ret = std::make_shared<TS::TimeSeriesVector>();

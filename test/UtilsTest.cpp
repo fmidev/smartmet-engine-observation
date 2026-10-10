@@ -229,3 +229,73 @@ TEST_CASE("Road and foreign parameter ids")
       REQUIRE(ids.integerToString(ids.stringToInteger(name, "road"), "road") == name);
   }
 }
+
+TEST_CASE("Road weather precipitation to ww conversion")
+{
+  SECTION("Dry weather is ww 0")
+  {
+    REQUIRE(calcRoadWW(0, 7) == 0);
+    REQUIRE(calcRoadWW(0, 8) == 0);
+    REQUIRE(calcRoadWW(1, 7) == 0);
+    REQUIRE(calcRoadWW(1, 8) == 0);
+  }
+
+  SECTION("Drizzle, rain and snow use the continuous codes")
+  {
+    REQUIRE(calcRoadWW(1, 9) == 51);
+    REQUIRE(calcRoadWW(2, 9) == 53);
+    REQUIRE(calcRoadWW(3, 9) == 55);
+    REQUIRE(calcRoadWW(1, 10) == 61);
+    REQUIRE(calcRoadWW(2, 10) == 63);
+    REQUIRE(calcRoadWW(3, 10) == 65);
+    REQUIRE(calcRoadWW(1, 11) == 71);
+    REQUIRE(calcRoadWW(2, 11) == 73);
+    REQUIRE(calcRoadWW(3, 11) == 75);
+  }
+
+  SECTION("Freezing precipitation")
+  {
+    REQUIRE(calcRoadWW(1, 18) == 56);
+    REQUIRE(calcRoadWW(2, 18) == 57);
+    REQUIRE(calcRoadWW(3, 18) == 57);
+    REQUIRE(calcRoadWW(1, 19) == 66);
+    REQUIRE(calcRoadWW(2, 19) == 67);
+    REQUIRE(calcRoadWW(3, 19) == 67);
+  }
+
+  SECTION("Liquid forms without intensity are dry")
+  {
+    for (int rform : {9, 10, 11, 18, 19})
+      REQUIRE(calcRoadWW(0, rform) == 0);
+  }
+
+  SECTION("Sleet, hail and solid forms are reported even without intensity")
+  {
+    REQUIRE(calcRoadWW(0, 12) == 68);
+    REQUIRE(calcRoadWW(1, 12) == 68);
+    REQUIRE(calcRoadWW(2, 12) == 69);
+    REQUIRE(calcRoadWW(3, 13) == 69);
+    REQUIRE(calcRoadWW(0, 14) == 89);
+    REQUIRE(calcRoadWW(2, 14) == 90);
+    REQUIRE(calcRoadWW(0, 15) == 76);
+    REQUIRE(calcRoadWW(3, 16) == 77);
+    REQUIRE(calcRoadWW(1, 17) == 87);
+    REQUIRE(calcRoadWW(3, 17) == 88);
+  }
+
+  SECTION("Snowfall intensities override liquid forms")
+  {
+    REQUIRE(calcRoadWW(4, 7) == 71);
+    REQUIRE(calcRoadWW(5, 10) == 73);
+    REQUIRE(calcRoadWW(6, 19) == 75);
+    REQUIRE(calcRoadWW(5, 13) == 69);  // sleet still wins
+  }
+
+  SECTION("Unknown codes are missing")
+  {
+    REQUIRE_FALSE(calcRoadWW(-1, 10));
+    REQUIRE_FALSE(calcRoadWW(7, 10));
+    REQUIRE_FALSE(calcRoadWW(1, 0));
+    REQUIRE_FALSE(calcRoadWW(1, 20));
+  }
+}

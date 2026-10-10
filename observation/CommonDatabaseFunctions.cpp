@@ -55,6 +55,15 @@ void collectSpecialParamDependencies(const std::string &name,
     param_set.insert(paramMap->getParameter("totalcloudcover", stationtype));
     param_set.insert(paramMap->getParameter("temperature", stationtype));
   }
+  else if (name == "roadww")
+  {
+    for (const char *pname : {"prclst", "prst2"})
+    {
+      const auto dbname = paramMap->getParameter(pname, stationtype);
+      if (!dbname.empty())
+        param_set.insert(dbname);
+    }
+  }
   else if (name == "cloudceiling" || name == "cloudceilingft" || name == "cloudceilinghft")
   {
     param_set.insert(paramMap->getParameter("cla1_pt1m_acc", stationtype));

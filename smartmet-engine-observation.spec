@@ -36,8 +36,8 @@ BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 26.10.3
 BuildRequires: smartmet-library-locus-devel >= 26.10.3
 BuildRequires: smartmet-library-macgyver-devel >= 26.10.3
-BuildRequires: smartmet-library-spine-devel >= 26.10.3
-BuildRequires: smartmet-library-timeseries-devel >= 26.10.3
+BuildRequires: smartmet-library-spine-devel >= 26.10.10
+BuildRequires: smartmet-library-timeseries-devel >= 26.10.10
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
 BuildRequires: smartmet-utils-devel >= 26.9.3
@@ -53,8 +53,8 @@ Requires: libatomic
 Requires: smartmet-engine-geonames >= 26.10.3
 Requires: smartmet-library-locus >= 26.10.3
 Requires: smartmet-library-macgyver >= 26.10.3
-Requires: smartmet-library-spine >= 26.10.3
-Requires: smartmet-library-timeseries >= 26.10.3
+Requires: smartmet-library-spine >= 26.10.10
+Requires: smartmet-library-timeseries >= 26.10.10
 Requires: smartmet-server >= 26.9.29
 Requires: unixODBC
 
@@ -141,7 +141,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 26.10.3
+Requires: smartmet-library-spine-devel >= 26.10.10
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -179,8 +179,8 @@ rm -rf $RPM_BUILD_ROOT
 - Stations which are not fully open data (station_metadata_access_policy.open_data) are discarded only if the new setting disable_nonfree_stations is true, the default is false
 
 * Sat Oct 10 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.10-1.fmi
-- Use auto and return {} where clang-tidy suggests it, no functional changes
-- Use range-based for loops where clang-tidy suggests it, no functional changes
+- Added parameter roadww for road weather stations: precipitation intensity and form as a WMO 4677 ww code (BRAINSTORM-2786)
+- Dependent measurands of windcompass and roadww are fetched for QC tables too, previously the memory cache dropped them unless requested explicitly
 
 * Fri Oct 09 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.9-2.fmi
 - New Engine::getFlashGeneration: fingerprint of the flash memory cache contents in a time window and bounding box (BRAINSTORM-3501)

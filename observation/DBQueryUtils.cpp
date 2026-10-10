@@ -262,6 +262,7 @@ struct SpecialParamEntry
     WindCompass32,
     FeelsLike,
     SmartSymbol,
+    RoadWW,
     CloudCeiling,
     CloudCeilingFt,
     CloudCeilingHFt,
@@ -371,6 +372,16 @@ SpecialParamEntry buildSpecialParamEntry(const std::string &name,
       entry.mid1 = Fmi::stoi(parameterMap->getParameter("wawa", stationtype));
       entry.mid2 = Fmi::stoi(parameterMap->getParameter("totalcloudcover", stationtype));
       entry.mid3 = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
+    }
+  }
+  else if (name == "roadww")
+  {
+    // Available only for road weather stations, zero ids produce missing values otherwise
+    entry.kind = SpecialParamEntry::Kind::RoadWW;
+    if (stationtype == "road")
+    {
+      entry.mid1 = get_mid("prclst", stationtype, parameterMap);  // SADE
+      entry.mid2 = get_mid("prst2", stationtype, parameterMap);  // RST
     }
   }
   else if (name == "cloudceiling" || name == "cloudceilingft" || name == "cloudceilinghft")
@@ -901,6 +912,26 @@ void emitSpecialParam(const SpecialParamEntry &sp,
       }
       break;
     }
+    case SpecialParamEntry::Kind::RoadWW:
+    {
+      const auto rit = group_data.find(sp.mid1);  // precipitation intensity
+      const auto fit = group_data.find(sp.mid2);  // precipitation form
+      TS::Value result = missing;
+      if (rit != group_data.end() && fit != group_data.end())
+      {
+        const auto r = get_default_sensor_value(rit->second);
+        const auto rform = get_default_sensor_value(fit->second);
+        if (std::holds_alternative<double>(r) && std::holds_alternative<double>(rform))
+        {
+          const auto ww = calcRoadWW(static_cast<int>(std::lround(std::get<double>(r))),
+                                     static_cast<int>(std::lround(std::get<double>(rform))));
+          if (ww)
+            result = TS::Value(*ww);
+        }
+      }
+      resultVector->at(pos).emplace_back(TS::TimedValue(ldt, result));
+      break;
+    }
     case SpecialParamEntry::Kind::CloudCeiling:
     case SpecialParamEntry::Kind::CloudCeilingFt:
     case SpecialParamEntry::Kind::CloudCeilingHFt:
@@ -1019,6 +1050,29 @@ void DBQueryUtils::addDependentMeasurandIds(QueryMapping &ret,
   }
 }
 
+// Measurand ids in QC tables (road, foreign) are converted from parameter names. Only the
+// special parameters which are evaluated for QC tables need to be handled.
+void DBQueryUtils::addDependentQCMeasurandIds(QueryMapping &ret,
+                                              const std::string &name,
+                                              const std::string &stationtype) const
+{
+  auto push = [&](const char *pname)
+  {
+    const auto sparam = itsParameterMap->getParameter(pname, stationtype);
+    if (!sparam.empty())
+      ret.measurandIds.push_back(
+          itsParameterMap->getRoadAndForeignIds().stringToInteger(sparam, stationtype));
+  };
+
+  if (name.find("windcompass") != std::string::npos)
+    push("winddirection");
+  else if (name == "roadww" && stationtype == "road")
+  {
+    push("prclst");  // SADE
+    push("prst2");  // RST
+  }
+}
+
 void DBQueryUtils::processRegularParam(const Spine::Parameter &p,
                                        std::string name,  // by value: removePrefix mutates it
                                        const std::string &stationtype,
@@ -1086,6 +1140,8 @@ QueryMapping DBQueryUtils::buildQueryMapping(const Settings &settings,
       {
         if (!isWeatherDataQCTable)
           addDependentMeasurandIds(ret, name, stationtype);
+        else
+          addDependentQCMeasurandIds(ret, name, stationtype);
         ret.specialPositions[name] = pos;
       }
       pos++;
