@@ -2571,9 +2571,8 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMagnetometerData(
       {
         auto ts = ts_vector.at(i);
         std::map<Fmi::LocalDateTime, TS::TimedValue> data;
-        for (unsigned int j = 0; j < ts.size(); j++)
+        for (auto timed_value : ts)
         {
-          auto timed_value = ts.at(j);
           data.insert(std::make_pair(timed_value.time, timed_value));
         }
 

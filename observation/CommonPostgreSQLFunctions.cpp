@@ -328,8 +328,8 @@ void fillMagnetometerTimestepData(
     {
       const auto &ts = ts_vector.at(i);
       std::map<Fmi::LocalDateTime, TS::TimedValue> data;
-      for (unsigned int j = 0; j < ts.size(); j++)
-        data.insert({ts.at(j).time, ts.at(j)});
+      for (const auto& t : ts)
+        data.insert({t.time, t});
       for (const auto &timestep : valid_timesteps)
       {
         auto it = data.find(timestep);

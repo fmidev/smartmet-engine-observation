@@ -293,10 +293,10 @@ void EngineParameters::readExternalProducerConfig(const std::string& stationtype
 
   // Sort out measurands for mobile and external producers
   Measurands measurands;
-  for (auto iter = parameterMap->begin(); iter != parameterMap->end(); ++iter)
+  for (const auto& iter : *parameterMap)
   {
-    const auto& parameter_name = iter->first;
-    for (const auto& it : iter->second)
+    const auto& parameter_name = iter.first;
+    for (const auto& it : iter.second)
     {
       if (stationtype != it.first)
         continue;
@@ -364,12 +364,12 @@ std::set<std::string> EngineParameters::getProducerParameters(const std::string&
 {
   std::set<std::string> ret;
 
-  for (auto iter = parameterMap->begin(); iter != parameterMap->end(); iter++)
+  for (const auto& iter : *parameterMap)
   {
-    for (const auto& item : iter->second)
+    for (const auto& item : iter.second)
     {
       if (item.first == stationType)
-        ret.insert(Fmi::ascii_toupper_copy(iter->first));
+        ret.insert(Fmi::ascii_toupper_copy(iter.first));
     }
   }
 
