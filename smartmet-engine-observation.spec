@@ -178,7 +178,10 @@ rm -rf $RPM_BUILD_ROOT
 * Tue Oct 13 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.13-1.fmi
 - Stations which are not fully open data (station_metadata_access_policy.open_data) are discarded only if the new setting disable_nonfree_stations is true, the default is false
 
-* Fri Oct 09 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.9-3.fmi
+* Sat Oct 10 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.10-1.fmi
+- Use auto and return {} where clang-tidy suggests it, no functional changes
+
+* Fri Oct 09 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.9-2.fmi
 - New Engine::getFlashGeneration: fingerprint of the flash memory cache contents in a time window and bounding box (BRAINSTORM-3501)
 
 * Fri Oct 09 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.9-1.fmi

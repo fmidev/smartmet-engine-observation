@@ -2772,8 +2772,8 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
         int stroke_time = row.get<int>(0);
         // int stroke_time_fraction = row.get<int>(1);
         // int flash_id = row.get<int>(2);
-        double longitude = row.get<double>(3);
-        double latitude = row.get<double>(4);
+        auto longitude = row.get<double>(3);
+        auto latitude = row.get<double>(4);
 
         if (stroke_time != last_stroke_time)
         {
