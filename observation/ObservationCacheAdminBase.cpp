@@ -387,6 +387,7 @@ void ObservationCacheAdminBase::updateFlashFakeCache(std::shared_ptr<Observation
 int random_integer(int min, int max)
 {
   int range = max - min;
+  // NOLINTNEXTLINE(cert-msc50-cpp): rand() is not used for security here
   return ((rand() % range) + min);
 }
 
@@ -403,6 +404,7 @@ void ObservationCacheAdminBase::emulateFlashCacheUpdate(
 
   std::vector<FlashDataItem> cacheData;
 
+  // NOLINTNEXTLINE(cert-msc32-c,cert-msc51-cpp): the seed is not used for security
   std::srand(std::time(nullptr));
 
   auto total_count = 0;
