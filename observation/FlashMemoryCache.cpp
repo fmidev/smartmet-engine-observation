@@ -6,7 +6,6 @@
 #include <list>
 #include <map>
 #include <optional>
-#include <ranges>
 
 namespace SmartMet
 {
@@ -607,11 +606,11 @@ std::optional<std::uint64_t> FlashMemoryCache::latestGeneration(const Fmi::DateT
       return 0;
 
     // Newest first. Closed interval overlap and inclusive bbox edges, like the data queries.
-    for (auto& it : std::ranges::reverse_view(*generations))
+    for (auto it = generations->rbegin(); it != generations->rend(); ++it)
     {
-      if (it.mintime <= endtime && it.maxtime >= starttime && it.minlon <= maxlon &&
-          it.maxlon >= minlon && it.minlat <= maxlat && it.maxlat >= minlat)
-        return it.id;
+      if (it->mintime <= endtime && it->maxtime >= starttime && it->minlon <= maxlon &&
+          it->maxlon >= minlon && it->minlat <= maxlat && it->maxlat >= minlat)
+        return it->id;
     }
     return 0;
   }
