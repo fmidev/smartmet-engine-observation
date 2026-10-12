@@ -178,6 +178,10 @@ rm -rf $RPM_BUILD_ROOT
 * Tue Oct 13 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.13-1.fmi
 - Stations which are not fully open data (station_metadata_access_policy.open_data) are discarded only if the new setting disable_nonfree_stations is true, the default is false
 
+* Mon Oct 12 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.12-1.fmi
+- Driver initialization threads get short distinct names such as ini-pg-replica instead of
+  database identifiers truncated to the same ini-drv-postgre prefix
+
 * Sun Oct 11 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.11-1.fmi
 - Producer metadata no longer lists parameters whose mapping for the producer is empty
 - Added parameter roadww for road weather stations: precipitation intensity and form as a WMO 4677 ww code (BRAINSTORM-2786)

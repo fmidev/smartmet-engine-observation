@@ -6,6 +6,8 @@
 #include <macgyver/AnsiEscapeCodes.h>
 #include <macgyver/Exception.h>
 #include <spine/Convenience.h>
+#include <boost/algorithm/string/predicate.hpp>
+#include <set>
 
 extern "C"
 {
@@ -21,6 +23,67 @@ namespace Observation
 using driver_create_t = DatabaseDriverBase *(const std::string &,
                                              const EngineParametersPtr &,
                                              Spine::ConfigBase &);
+
+namespace
+{
+// Linux thread names are limited to 15 visible characters
+const std::size_t max_thread_name_length = 15;
+
+// Short thread name for initializing a driver. Driver names are of the form
+// <type>_<role...>_observations, which would be truncated to an identical
+// prefix for all drivers of the same type. Abbreviate the type and keep the
+// first role token instead: postgresql_magnetometer_fmi_observations -> ini-pg-magnetom
+
+std::string init_thread_name(const std::string &driver_name)
+{
+  std::string name = driver_name;
+
+  const std::string suffix = "_observations";
+  if (boost::algorithm::ends_with(name, suffix))
+    name.resize(name.size() - suffix.size());
+
+  static const std::pair<const char *, const char *> types[] = {
+      {"postgresql_", "pg-"}, {"oracle_", "ora-"}, {"spatialite_", "sl-"}};
+
+  std::string type;
+  for (const auto &t : types)
+  {
+    if (boost::algorithm::starts_with(name, t.first))
+    {
+      type = t.second;
+      name.erase(0, std::char_traits<char>::length(t.first));
+      break;
+    }
+  }
+
+  // Keep only the first role token
+  const auto pos = name.find('_');
+  if (pos != std::string::npos && pos > 0)
+    name.resize(pos);
+
+  name = "ini-" + type + name;
+  if (name.size() > max_thread_name_length)
+    name.resize(max_thread_name_length);
+  return name;
+}
+
+// Make the name unique among the names already used by replacing the tail with a counter
+
+std::string unique_thread_name(const std::string &name, std::set<std::string> &used)
+{
+  if (used.insert(name).second)
+    return name;
+
+  for (int i = 2;; i++)
+  {
+    const std::string tail = std::to_string(i);
+    std::string candidate = name.substr(0, max_thread_name_length - tail.size()) + tail;
+    if (used.insert(candidate).second)
+      return candidate;
+  }
+}
+
+}  // namespace
 
 DatabaseDriverProxy::DatabaseDriverProxy(const EngineParametersPtr &p, Spine::ConfigBase &cfg)
     : itsStationtypeConfig(p->stationtypeConfig)
@@ -134,12 +197,13 @@ void DatabaseDriverProxy::init(Engine *obsengine)
       oracleDriverInitialized = true;
     }
 
+    std::set<std::string> thread_names;
     for (const auto &dbdriver : itsDatabaseDriverSet)
     {
       // Do not init Oracle twice in case the previous if-block was executed
       if (!(oracleDriverInitialized && dbdriver == itsOracleDriver))
       {
-        init_tasks.add("ini-drv-" + dbdriver->name(),
+        init_tasks.add(unique_thread_name(init_thread_name(dbdriver->name()), thread_names),
                        [&dbdriver, obsengine]() { dbdriver->init(obsengine); });
       }
     }
