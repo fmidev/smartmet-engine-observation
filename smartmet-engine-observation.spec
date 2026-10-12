@@ -305,7 +305,7 @@ rm -rf $RPM_BUILD_ROOT
 * Tue Nov  4 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> - 25.11.4-2.fmi
 - Fixed sqlite cache to discard measurand id 9999 which indicates missing parameters
 
-* Tue Nov  3 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> 25.11.4-1
+* Tue Nov  4 2025 Mika Heiskanen <mika.heiskanen@fmi.fi> 25.11.4-1
 - Fixed memory cache to discard measurand id 9999 which indicates missing parameters
 
 * Thu Oct 30 2025 Andris Pavēnis <andris.pavenis@fmi.fi> 25.10.30-1.fmi
