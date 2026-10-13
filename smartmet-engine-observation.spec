@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.10.9
-Release: 3%{?dist}.fmi
+Version: 26.10.13
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -175,6 +175,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Oct 13 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.13-1.fmi
+- Stations which are not fully open data (station_metadata_access_policy.open_data) are discarded only if the new setting disable_nonfree_stations is true, the default is false
+
 * Fri Oct 09 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.9-3.fmi
 - New Engine::getFlashGeneration: fingerprint of the flash memory cache contents in a time window and bounding box (BRAINSTORM-3501)
 
