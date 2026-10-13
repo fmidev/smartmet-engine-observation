@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 26.10.13
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -36,7 +36,7 @@ BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 26.10.11
 BuildRequires: smartmet-library-locus-devel >= 26.10.3
 BuildRequires: smartmet-library-macgyver-devel >= 26.10.11
-BuildRequires: smartmet-library-spine-devel >= 26.10.11
+BuildRequires: smartmet-library-spine-devel >= 26.10.11-2
 BuildRequires: smartmet-library-timeseries-devel >= 26.10.11
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
@@ -53,7 +53,7 @@ Requires: libatomic
 Requires: smartmet-engine-geonames >= 26.10.11
 Requires: smartmet-library-locus >= 26.10.3
 Requires: smartmet-library-macgyver >= 26.10.11
-Requires: smartmet-library-spine >= 26.10.11
+Requires: smartmet-library-spine >= 26.10.11-2
 Requires: smartmet-library-timeseries >= 26.10.11
 Requires: smartmet-server >= 26.10.11
 Requires: unixODBC
@@ -141,7 +141,7 @@ Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 26.10.11
+Requires: smartmet-library-spine-devel >= 26.10.11-2
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -175,20 +175,18 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
-* Tue Oct 13 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.13-1.fmi
-- Stations which are not fully open data (station_metadata_access_policy.open_data) are discarded only if the new setting disable_nonfree_stations is true, the default is false
-
-* Mon Oct 12 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.12-1.fmi
-- Driver initialization threads get short distinct names such as ini-pg-replica instead of
-  database identifiers truncated to the same ini-drv-postgre prefix
-
-* Sun Oct 11 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.11-1.fmi
+* Tue Oct 13 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.13-2.fmi
 - Producer metadata no longer lists parameters whose mapping for the producer is empty
 - Added parameter roadww for road weather stations: precipitation intensity and form as a WMO 4677 ww code (BRAINSTORM-2786)
 - Dependent measurands of windcompass and roadww are fetched for QC tables too, previously the memory cache dropped them unless requested explicitly
-- Requires smartmet-library-spine >= 26.10.11 for RoadWW
+- Requires smartmet-library-spine >= 26.10.11-2 for RoadWW
 - Use auto and return {} where clang-tidy suggests it, no functional changes
 - Use range-based for loops where clang-tidy suggests it, no functional changes
+- Driver initialization threads get short distinct names such as ini-pg-replica instead of
+  database identifiers truncated to the same ini-drv-postgre prefix
+
+* Tue Oct 13 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.13-1.fmi
+- Stations which are not fully open data (station_metadata_access_policy.open_data) are discarded only if the new setting disable_nonfree_stations is true, the default is false
 
 * Fri Oct 09 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.9-3.fmi
 - New Engine::getFlashGeneration: fingerprint of the flash memory cache contents in a time window and bounding box (BRAINSTORM-3501)
