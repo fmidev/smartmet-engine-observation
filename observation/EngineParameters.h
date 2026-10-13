@@ -94,6 +94,9 @@ struct EngineParameters
 
   bool quiet;
 
+  // Load only fully open data stations (station_metadata_access_policy.open_data = Y)
+  bool disableNonfreeStations = false;
+
   std::shared_ptr<ObservationCacheProxy> observationCacheProxy;
   Geonames::Engine* geonames = nullptr;
 };

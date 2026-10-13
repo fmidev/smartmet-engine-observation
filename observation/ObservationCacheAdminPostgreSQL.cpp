@@ -168,7 +168,7 @@ void ObservationCacheAdminPostgreSQL::loadStations(const std::string& serialized
     newStationInfo->setCandidateCacheSize(itsParameters.params->nearestStationsCacheSize);
 
     // Get all the stations
-    db->getStations(newStationInfo->stations);
+    db->getStations(newStationInfo->stations, itsParameters.params->disableNonfreeStations);
 
     for (Spine::Station& station : newStationInfo->stations)
     {

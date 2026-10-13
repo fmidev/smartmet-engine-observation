@@ -765,10 +765,22 @@ std::string PostgreSQLObsDB::sqlSelectFromWeatherDataQCData(const Settings& sett
   }
 }
 
-void PostgreSQLObsDB::getStations(Spine::Stations& stations) const
+void PostgreSQLObsDB::getStations(Spine::Stations& stations, bool disableNonfreeStations) const
 {
   try
   {
+    // Optionally accept only stations which are fully open data, discarding also the
+    // stations which are free for use only inside FMI
+    std::string open_data_filter;
+    if (disableNonfreeStations)
+      open_data_filter = R"SQL(
+    AND EXISTS (
+        SELECT 1
+        FROM station_metadata_access_policy AS smap
+        WHERE smap.target_id = t.target_id
+            AND smap.open_data = 'Y'
+    ))SQL";
+
     // clang-format off
     string sqlStmt = R"SQL(SELECT DISTINCT
     tg.group_name AS group_code,
@@ -849,12 +861,7 @@ WHERE tg.group_class_id IN (1, 81)
         'RWS', 'SEA', 'SHIP', 'SOLAR',
         'SOUNDING', 'SYNOP', 'HELCOM'
     )
-    AND EXISTS (
-        SELECT 1
-        FROM station_metadata_access_policy AS smap
-        WHERE smap.target_id = t.target_id
-            AND smap.open_data = 'Y'
-    )
+)SQL" + open_data_filter + R"SQL(
 UNION ALL
 SELECT DISTINCT
     tg.group_code,
@@ -935,12 +942,7 @@ WHERE tg.group_class_id IN (1, 81)
         'RWS', 'SEA', 'SHIP', 'SOLAR',
         'SOUNDING', 'SYNOP', 'HELCOM'
     )
-    AND EXISTS (
-        SELECT 1
-        FROM station_metadata_access_policy AS smap
-        WHERE smap.target_id = t.target_id
-            AND smap.open_data = 'Y'
-    );)SQL";
+)SQL" + open_data_filter + ";";
     // clang-format on
 
     if (itsDebug)

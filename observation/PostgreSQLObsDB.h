@@ -116,7 +116,7 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
                                              const std::string &params,
                                              const std::string &station_ids) const override;
 
-  void getStations(Spine::Stations &stations) const;
+  void getStations(Spine::Stations &stations, bool disableNonfreeStations) const;
   void getStationGroups(StationGroups &sg) const;
   void getProducerGroups(ProducerGroups &pg) const;
 

@@ -85,6 +85,12 @@ TODO
 
 TODO
 
+### `disable_nonfree_stations`
+
+Optional boolean, default `false`. When `true`, stations loaded from PostgreSQL must have
+`open_data = 'Y'` in `station_metadata_access_policy`. Stations whose data may be used
+freely only inside FMI are then discarded. Enable this on open data servers only.
+
 ### `spatialiteFile`
 
 TODO

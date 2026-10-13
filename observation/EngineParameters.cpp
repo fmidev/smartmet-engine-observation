@@ -79,6 +79,8 @@ EngineParameters::EngineParameters(Spine::ConfigBase& cfg)
   try
   {
     quiet = cfg.get_optional_config_param<bool>("quiet", true);
+    disableNonfreeStations =
+        cfg.get_optional_config_param<bool>("disable_nonfree_stations", disableNonfreeStations);
 
     // The defaults are the member initializers in EngineParameters.h
     queryResultBaseCacheSize =
