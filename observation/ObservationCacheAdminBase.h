@@ -96,10 +96,10 @@ class ObservationCacheAdminBase
   bool itsStationsCurrentlyLoading{false};
 
  private:
-  void updateObservationFakeCache(std::shared_ptr<ObservationCache>& cache) const;
-  void updateWeatherDataQCFakeCache(std::shared_ptr<ObservationCache>& cache) const;
-  void updateFlashFakeCache(std::shared_ptr<ObservationCache>& cache) const;
-  void emulateFlashCacheUpdate(std::shared_ptr<ObservationCache>& cache) const;
+  void updateObservationFakeCache(const std::shared_ptr<ObservationCache>& cache) const;
+  void updateWeatherDataQCFakeCache(const std::shared_ptr<ObservationCache>& cache) const;
+  void updateFlashFakeCache(const std::shared_ptr<ObservationCache>& cache) const;
+  void emulateFlashCacheUpdate(const std::shared_ptr<ObservationCache>& cache) const;
 
   void startCacheUpdateThreads(const std::set<std::string>& tables);
   void startInitialCacheUpdates(std::shared_ptr<ObservationCache> observationCache,

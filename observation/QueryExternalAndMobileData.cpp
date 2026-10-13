@@ -37,7 +37,7 @@ class my_visitor : public boost::static_visitor<double>
 };
 
 TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(PostgreSQLObsDB &db,
-                                                                 Settings &settings,
+                                                                 const Settings& settings,
                                                                  const Fmi::TimeZones &timezones)
 {
   try
@@ -59,7 +59,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(PostgreSQLObsDB
 }
 
 TS::TimeSeriesVectorPtr QueryExternalAndMobileData::values(PostgreSQLObsDB &db,
-                                                           Settings &settings,
+                                                           const Settings& settings,
                                                            const Fmi::TimeZones &timezones)
 {
   try
@@ -74,7 +74,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::values(PostgreSQLObsDB &db,
 
 TS::TimeSeriesVectorPtr QueryExternalAndMobileData::values(
     PostgreSQLObsDB &db,
-    Settings &settings,
+    const Settings& settings,
     const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {
@@ -90,7 +90,7 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::values(
 
 TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
     PostgreSQLObsDB &db,
-    Settings &settings,
+    const Settings& settings,
     const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
     const Fmi::TimeZones &timezones)
 {

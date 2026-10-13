@@ -318,7 +318,7 @@ void fillMagnetometerTimestepData(
     const std::map<int, TS::TimeSeriesVectorPtr> &fmisid_results,
     const std::map<int, std::set<Fmi::LocalDateTime>> &valid_timesteps_per_fmisid,
     const std::set<int> &data_independent_positions,
-    TS::TimeSeriesVectorPtr &ret)
+    const TS::TimeSeriesVectorPtr& ret)
 {
   for (const auto &item : fmisid_results)
   {

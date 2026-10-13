@@ -27,7 +27,7 @@ class PostgreSQLDatabaseDriver : public DatabaseDriverBase
  protected:
   PostgreSQLDatabaseDriver(const std::string &name,
                            const EngineParametersPtr &p,
-                           Spine::ConfigBase &cfg);
+                           const Spine::ConfigBase& cfg);
 
   void initializeConnectionPool();
   void readConfig(Spine::ConfigBase &cfg);

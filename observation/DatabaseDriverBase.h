@@ -94,9 +94,9 @@ class DatabaseDriverBase
                                               const StationtypeConfig& stationtypeConfig);
   static std::string resolveCacheTableName(const std::string& producer,
                                            const StationtypeConfig& stationtypeConfig);
-  TS::TimeSeriesVectorPtr checkForEmptyQuery(Settings& settings) const;
+  TS::TimeSeriesVectorPtr checkForEmptyQuery(const Settings& settings) const;
   TS::TimeSeriesVectorPtr checkForEmptyQuery(
-      Settings& settings, const TS::TimeSeriesGeneratorOptions& timeSeriesOptions) const;
+      const Settings& settings, const TS::TimeSeriesGeneratorOptions& timeSeriesOptions) const;
 
   virtual Fmi::Cache::CacheStatistics getCacheStats() const;
 

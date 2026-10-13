@@ -13,7 +13,7 @@ using namespace Utils;
 
 PostgreSQLDatabaseDriver::PostgreSQLDatabaseDriver(const std::string &name,
                                                    const EngineParametersPtr &p,
-                                                   Spine::ConfigBase & /* cfg */)
+                                                   const Spine::ConfigBase& /* cfg */)
     : DatabaseDriverBase(name), itsParameters(name, p)
 {
 }

@@ -1908,7 +1908,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
 }
 
 void PostgreSQLCacheDB::addParameterToTimeSeries(
-    TS::TimeSeriesVectorPtr &timeSeriesColumns,
+    const TS::TimeSeriesVectorPtr& timeSeriesColumns,
     const std::pair<Fmi::LocalDateTime, std::map<std::string, TS::Value>> &dataItem,
     const std::map<std::string, int> &specialPositions,
     const std::map<std::string, std::string> &parameterNameMap,
@@ -2040,12 +2040,13 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
   }
 }
 
-void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(const std::string &paramname,
-                                                        TS::TimeSeriesVectorPtr &timeSeriesColumns,
-                                                        const Spine::Station &station,
-                                                        int pos,
-                                                        const std::string &stationtype,
-                                                        const Fmi::LocalDateTime &obstime)
+void PostgreSQLCacheDB::addSpecialParameterToTimeSeries(
+    const std::string& paramname,
+    const TS::TimeSeriesVectorPtr& timeSeriesColumns,
+    const Spine::Station& station,
+    int pos,
+    const std::string& stationtype,
+    const Fmi::LocalDateTime& obstime)
 {
   try
   {

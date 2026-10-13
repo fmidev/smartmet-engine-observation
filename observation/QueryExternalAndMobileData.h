@@ -21,11 +21,11 @@ class QueryExternalAndMobileData : public QueryBase
   QueryExternalAndMobileData() = delete;
 
   TS::TimeSeriesVectorPtr values(PostgreSQLObsDB &db,
-                                 Settings &settings,
+                                 const Settings& settings,
                                  const Fmi::TimeZones &timezones);
 
   TS::TimeSeriesVectorPtr values(PostgreSQLObsDB &db,
-                                 Settings &settings,
+                                 const Settings& settings,
                                  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
                                  const Fmi::TimeZones &timezones);
 
@@ -34,11 +34,11 @@ class QueryExternalAndMobileData : public QueryBase
   const std::shared_ptr<FmiIoTStations> &itsStations;
 
   TS::TimeSeriesVectorPtr executeQuery(PostgreSQLObsDB &db,
-                                       Settings &settings,
+                                       const Settings& settings,
                                        const Fmi::TimeZones &timezones);
 
   TS::TimeSeriesVectorPtr executeQuery(PostgreSQLObsDB &db,
-                                       Settings &settings,
+                                       const Settings& settings,
                                        const TS::TimeSeriesGeneratorOptions &timeSeriesOptions,
                                        const Fmi::TimeZones &timezones);
 };

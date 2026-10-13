@@ -320,7 +320,7 @@ void DatabaseDriverBase::getStations(Spine::Stations& stations, const Settings& 
   }
 }
 
-TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(Settings& settings) const
+TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(const Settings& settings) const
 {
   try
   {
@@ -340,7 +340,7 @@ TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(Settings& setting
 }
 
 TS::TimeSeriesVectorPtr DatabaseDriverBase::checkForEmptyQuery(
-    Settings& settings, const TS::TimeSeriesGeneratorOptions& timeSeriesOptions) const
+    const Settings& settings, const TS::TimeSeriesGeneratorOptions& timeSeriesOptions) const
 {
   try
   {

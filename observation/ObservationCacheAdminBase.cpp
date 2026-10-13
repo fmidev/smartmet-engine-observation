@@ -353,7 +353,8 @@ void ObservationCacheAdminBase::startCacheUpdateThreads(const std::set<std::stri
   }
 }
 
-void ObservationCacheAdminBase::updateFlashFakeCache(std::shared_ptr<ObservationCache>& cache) const
+void ObservationCacheAdminBase::updateFlashFakeCache(
+    const std::shared_ptr<ObservationCache>& cache) const
 {
   std::vector<std::map<std::string, std::string>> settings =
       cache->getFakeCacheSettings(FLASH_DATA_TABLE);
@@ -392,7 +393,7 @@ int random_integer(int min, int max)
 }
 
 void ObservationCacheAdminBase::emulateFlashCacheUpdate(
-    std::shared_ptr<ObservationCache>& cache) const
+    const std::shared_ptr<ObservationCache>& cache) const
 {
   auto function_starttime = std::chrono::high_resolution_clock::now();
   std::map<std::string, Fmi::DateTime> last_times = getLatestFlashTime(cache);
@@ -565,7 +566,7 @@ void ObservationCacheAdminBase::updateFlashCache() const
 }
 
 void ObservationCacheAdminBase::updateObservationFakeCache(
-    std::shared_ptr<ObservationCache>& cache) const
+    const std::shared_ptr<ObservationCache>& cache) const
 {
   std::vector<std::map<std::string, std::string>> settings =
       cache->getFakeCacheSettings(OBSERVATION_DATA_TABLE);
@@ -735,7 +736,7 @@ void ObservationCacheAdminBase::fixWeatherDataQCProducers(DataItems& data) const
 }
 
 void ObservationCacheAdminBase::updateWeatherDataQCFakeCache(
-    std::shared_ptr<ObservationCache>& cache) const
+    const std::shared_ptr<ObservationCache>& cache) const
 {
   std::vector<std::map<std::string, std::string>> settings =
       cache->getFakeCacheSettings(WEATHER_DATA_QC_TABLE);

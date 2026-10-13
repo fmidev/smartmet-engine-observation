@@ -736,7 +736,7 @@ GroupData collectGroupData(std::vector<const LocationDataItem *>::const_iterator
 void emitRegularParams(const PrecomputedParams &procParams,
                        const GroupData &group_data,
                        const Fmi::LocalDateTime &ldt,
-                       TS::TimeSeriesVectorPtr &resultVector)
+                       const TS::TimeSeriesVectorPtr& resultVector)
 {
   for (const auto &rp : procParams.regular)
   {
@@ -826,7 +826,7 @@ void emitSpecialParam(const SpecialParamEntry &sp,
                       const SpecialParameters::Args &args,
                       const Settings &settings,
                       const Spine::Station &station,
-                      TS::TimeSeriesVectorPtr &resultVector)
+                      const TS::TimeSeriesVectorPtr& resultVector)
 {
   const int pos = sp.output_pos;
   const TS::Value missing = TS::None();
@@ -974,8 +974,8 @@ TS::TimeSeriesVectorPtr tryFinalizeStation(int fmisid,
                                            const Spine::Station *station,
                                            const std::string &stationtype,
                                            const Settings &settings,
-                                           TS::TimeSeriesVectorPtr &resultVector,
-                                           TS::TimeSeriesVectorPtr &timeSeriesColumns)
+                                           const TS::TimeSeriesVectorPtr& resultVector,
+                                           const TS::TimeSeriesVectorPtr& timeSeriesColumns)
 {
   if (!station)
     return nullptr;
@@ -1002,7 +1002,7 @@ void processObservationGroup(std::vector<const LocationDataItem *>::const_iterat
                              const Spine::Station &station,
                              const std::string &stationtype,
                              const Settings &settings,
-                             TS::TimeSeriesVectorPtr &resultVector)
+                             const TS::TimeSeriesVectorPtr& resultVector)
 {
   auto group_data = collectGroupData(it, end, grp_fmisid, grp_utctime, isWeatherDataQCTable);
   if (valid_timesteps.find(ldt) == valid_timesteps.end())

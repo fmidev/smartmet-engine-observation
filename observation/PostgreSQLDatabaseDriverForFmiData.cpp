@@ -25,7 +25,7 @@ namespace Observation
 {
 namespace
 {
-void setSettings(Settings &settings, PostgreSQLObsDB &db)
+void setSettings(const Settings& settings, PostgreSQLObsDB& db)
 {
   try
   {
