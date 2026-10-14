@@ -8,10 +8,13 @@ namespace Engine
 {
 namespace Observation
 {
+namespace
+{
 bool sort_function(const DatabaseDriverDays &first, const DatabaseDriverDays &second)
 {
   return (first.max_days < second.max_days);
 }
+}  // namespace
 
 void DatabaseDriverContainer::addDriver(const std::string &tablename,
                                         int max_days,

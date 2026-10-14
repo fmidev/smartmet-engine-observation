@@ -23,8 +23,10 @@ namespace Engine
 {
 namespace Observation
 {
+namespace
+{
 // Sort based on fmisid
-static bool sort_stations_function(const Spine::Station& s1, const Spine::Station& s2)
+bool sort_stations_function(const Spine::Station& s1, const Spine::Station& s2)
 {
   return (s1.fmisid < s2.fmisid);
 }
@@ -96,6 +98,7 @@ void createSerializedStationsDirectory(const std::string& filename)
         .addParameter("directory", directory.string());
   }
 }
+}  // namespace
 
 // ----------------------------------------------------------------------
 /*!
@@ -354,6 +357,8 @@ Spine::Stations StationInfo::findNearestStations(const NearestCandidateList& can
  */
 // ----------------------------------------------------------------------
 
+namespace
+{
 template <typename IDS, typename INDEX>
 Spine::Stations findStations(const Spine::Stations& stations, const IDS& ids, const INDEX& index)
 {
@@ -413,6 +418,7 @@ Spine::Stations findStations(const Spine::Stations& stations,
   }
   return result;
 }
+}  // namespace
 
 // ----------------------------------------------------------------------
 /*!
@@ -791,6 +797,8 @@ bool StationInfo::belongsToGroup(unsigned int fmisid, const std::set<std::string
  */
 // ----------------------------------------------------------------------
 
+namespace
+{
 std::vector<StationID> searchStations(
     const Spine::Stations& stations, double minx, double miny, double maxx, double maxy)
 {
@@ -828,6 +836,7 @@ std::vector<StationID> searchStations(
 
   return result;
 }
+}  // namespace
 
 // ----------------------------------------------------------------------
 /*!

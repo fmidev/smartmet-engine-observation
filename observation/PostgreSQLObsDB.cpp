@@ -35,7 +35,10 @@ bool between(const Fmi::DateTime& t, const Fmi::DateTime& t1, const Fmi::DateTim
 // No locking is used, we assume different threads are so out of sync so
 // that an atomic will do here.
 
+namespace
+{
 std::atomic<bool> bigFlashRequestReported{false};
+}  // namespace
 
 using namespace Utils;
 

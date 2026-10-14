@@ -201,7 +201,7 @@ void DatabaseDriverProxy::init(Engine *obsengine)
     for (const auto &dbdriver : itsDatabaseDriverSet)
     {
       // Do not init Oracle twice in case the previous if-block was executed
-      if (!(oracleDriverInitialized && dbdriver == itsOracleDriver))
+      if (!oracleDriverInitialized || dbdriver != itsOracleDriver)
       {
         init_tasks.add(unique_thread_name(init_thread_name(dbdriver->name()), thread_names),
                        [&dbdriver, obsengine]() { dbdriver->init(obsengine); });

@@ -85,6 +85,8 @@ std::string trimCommasFromEnd(const std::string& what)
  * If the name is not found in parameter map, return the given name.
  */
 
+namespace
+{
 std::string translateParameter(const std::string& paramname,
                                const std::string& stationType,
                                const ParameterMap& parameterMap)
@@ -103,6 +105,7 @@ std::string translateParameter(const std::string& paramname,
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
+}  // namespace
 
 // Calculates station direction in degrees from given coordinates
 void calculateStationDirection(Spine::Station& station)

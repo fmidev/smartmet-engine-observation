@@ -385,12 +385,15 @@ void ObservationCacheAdminBase::updateFlashFakeCache(
   }
 }
 
+namespace
+{
 int random_integer(int min, int max)
 {
   int range = max - min;
   // NOLINTNEXTLINE(cert-msc50-cpp): rand() is not used for security here
   return ((rand() % range) + min);
 }
+}  // namespace
 
 void ObservationCacheAdminBase::emulateFlashCacheUpdate(
     const std::shared_ptr<ObservationCache>& cache) const

@@ -3,6 +3,7 @@
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TypeName.h>
+#include <algorithm>
 #include <iostream>
 #include <limits>
 #include <utility>
@@ -168,10 +169,8 @@ std::pair<double, double> QueryResult::minMax(const ValueVectorType::const_itera
       for (; it != endIt; ++it)
       {
         auto val = std::any_cast<double>(*it);
-        if (val < min)
-          min = val;
-        if (val > max)
-          max = val;
+        min = std::min(val, min);
+        max = std::max(val, max);
       }
     }
 

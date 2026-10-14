@@ -18,13 +18,13 @@ namespace Observation
 {
 DisabledEngine::DisabledEngine() = default;
 
-TS::TimeSeriesVectorPtr DisabledEngine::values(Settings& settings)
+TS::TimeSeriesVectorPtr DisabledEngine::values(Settings& /*settings*/)
 {
   return {};
 }
 
 TS::TimeSeriesVectorPtr DisabledEngine::values(
-    Settings& settings, const TS::TimeSeriesGeneratorOptions& timeSeriesOptions)
+    Settings& /*settings*/, const TS::TimeSeriesGeneratorOptions& /*timeSeriesOptions*/)
 {
   return {};
 }
@@ -43,7 +43,7 @@ FlashCounts DisabledEngine::getFlashCount(const Fmi::DateTime& /*starttime */,
 }
 
 std::shared_ptr<std::vector<ObservableProperty>> DisabledEngine::observablePropertyQuery(
-    std::vector<std::string>& parameters, const std::string& language)
+    std::vector<std::string>& /*parameters*/, const std::string& /*language*/)
 {
   return {};
 }

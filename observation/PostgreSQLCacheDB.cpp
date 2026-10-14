@@ -22,11 +22,14 @@
 
 using namespace std;
 
+namespace
+{
 template <typename Container, typename Key>
 bool exists(const Container &container, const Key &key)
 {
   return (container.find(key) != container.end());
 }
+}  // namespace
 
 template <typename Clock, typename Duration>
 std::ostream &operator<<(std::ostream &stream,

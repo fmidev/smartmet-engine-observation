@@ -13,7 +13,10 @@ namespace Engine
 {
 namespace Observation
 {
-static StationtypeConfig::ProducerIdSetType empty_producer_id_set;
+namespace
+{
+StationtypeConfig::ProducerIdSetType empty_producer_id_set;
+}  // namespace
 
 StationtypeConfig::StationtypeConfig() = default;
 
