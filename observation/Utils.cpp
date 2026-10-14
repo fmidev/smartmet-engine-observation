@@ -85,8 +85,6 @@ std::string trimCommasFromEnd(const std::string& what)
  * If the name is not found in parameter map, return the given name.
  */
 
-namespace
-{
 std::string translateParameter(const std::string& paramname,
                                const std::string& stationType,
                                const ParameterMap& parameterMap)
@@ -105,7 +103,6 @@ std::string translateParameter(const std::string& paramname,
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
   }
 }
-}  // namespace
 
 // Calculates station direction in degrees from given coordinates
 void calculateStationDirection(Spine::Station& station)
@@ -658,6 +655,40 @@ void requireDecimalPoint()
                "engine. Upgrade the server, which sets it before starting any threads.\n";
   if (std::setlocale(LC_NUMERIC, "C") == nullptr)
     throw Fmi::Exception(BCP, "Observation engine failed to set LC_NUMERIC");
+}
+
+// Map a magnetometer level (10 / 60 / 110) to parameter names via the parameter map.
+MagnetometerParamNames getMagnetometerParamNames(int level, const ParameterMapPtr& paramMap)
+{
+  std::string x_id = "MISSING";
+  std::string y_id = "MISSING";
+  std::string z_id = "MISSING";
+  std::string t_id = "MISSING";
+  std::string f_id = "MISSING";
+  switch (level)
+  {
+    case 10:
+      x_id = "667";
+      y_id = "669";
+      z_id = "671";
+      break;
+    case 60:
+      x_id = "668";
+      y_id = "670";
+      z_id = "672";
+      t_id = "144";
+      break;
+    case 110:
+      f_id = "673";
+      break;
+    default:
+      break;
+  }
+  return {paramMap->getParameterName(x_id, MAGNETO_PRODUCER),
+          paramMap->getParameterName(y_id, MAGNETO_PRODUCER),
+          paramMap->getParameterName(z_id, MAGNETO_PRODUCER),
+          paramMap->getParameterName(t_id, MAGNETO_PRODUCER),
+          paramMap->getParameterName(f_id, MAGNETO_PRODUCER)};
 }
 
 }  // namespace Utils

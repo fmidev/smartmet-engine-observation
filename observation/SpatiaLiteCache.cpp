@@ -692,8 +692,8 @@ void SpatiaLiteCache::cleanFlashDataCache(const Fmi::TimeDuration &timetokeep,
   }
 }
 
-bool SpatiaLiteCache::roadCloudIntervalIsCached(const Fmi::DateTime &starttime,
-                                                const Fmi::DateTime &) const
+bool SpatiaLiteCache::roadCloudIntervalIsCached(const Fmi::DateTime& starttime,
+                                                const Fmi::DateTime& /*endtime*/) const
 {
   try
   {
@@ -803,8 +803,8 @@ TS::TimeSeriesVectorPtr SpatiaLiteCache::roadCloudValuesFromSpatiaLite(
   }
 }
 
-bool SpatiaLiteCache::netAtmoIntervalIsCached(const Fmi::DateTime &starttime,
-                                              const Fmi::DateTime &) const
+bool SpatiaLiteCache::netAtmoIntervalIsCached(const Fmi::DateTime& starttime,
+                                              const Fmi::DateTime& /*endtime*/) const
 {
   try
   {
@@ -911,8 +911,8 @@ Fmi::DateTime SpatiaLiteCache::getLatestNetAtmoCreatedTime() const
   return itsConnectionPool->get()->getLatestNetAtmoCreatedTime();
 }
 
-bool SpatiaLiteCache::fmiIoTIntervalIsCached(const Fmi::DateTime &starttime,
-                                             const Fmi::DateTime &) const
+bool SpatiaLiteCache::fmiIoTIntervalIsCached(const Fmi::DateTime& starttime,
+                                             const Fmi::DateTime& /*endtime*/) const
 {
   try
   {
@@ -1020,8 +1020,8 @@ Fmi::DateTime SpatiaLiteCache::getLatestFmiIoTCreatedTime() const
   return itsConnectionPool->get()->getLatestFmiIoTCreatedTime();
 }
 
-bool SpatiaLiteCache::tapsiQcIntervalIsCached(const Fmi::DateTime &starttime,
-                                              const Fmi::DateTime &) const
+bool SpatiaLiteCache::tapsiQcIntervalIsCached(const Fmi::DateTime& starttime,
+                                              const Fmi::DateTime& /*endtime*/) const
 {
   try
   {

@@ -15,7 +15,7 @@ struct ObservableProperty;
 class DummyDatabaseDriver : public DatabaseDriverBase
 {
  public:
-  DummyDatabaseDriver(const std::string &name, const EngineParametersPtr &)
+  DummyDatabaseDriver(const std::string& name, const EngineParametersPtr& /*unused*/)
       : DatabaseDriverBase(name)
   {
   }
@@ -29,7 +29,7 @@ class DummyDatabaseDriver : public DatabaseDriverBase
   void getMovingStationsByArea(Spine::Stations &stations,
                                const Settings &settings,
                                const std::string &wkt) const override;
-  void makeQuery(QueryBase *) override {}
+  void makeQuery(QueryBase* /*qb*/) override {}
   FlashCounts getFlashCount(const Fmi::DateTime &starttime,
                             const Fmi::DateTime &endtime,
                             const Spine::TaggedLocationList &locations) const override;
@@ -47,7 +47,7 @@ class DummyDatabaseDriver : public DatabaseDriverBase
   }
 
   void shutdown() override {}
-  MetaData metaData(const std::string&, const MetaData&) const { return {}; }
+  MetaData metaData(const std::string& /*unused*/, const MetaData& /*unused*/) const { return {}; }
   std::string id() const override { return "dummy"; }
   std::string name() const { return "dummy"; }
 };

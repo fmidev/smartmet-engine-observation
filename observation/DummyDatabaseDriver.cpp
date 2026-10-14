@@ -16,8 +16,8 @@ TS::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings & /* settings */)
   return std::make_shared<TS::TimeSeriesVector>();
 }
 
-TS::TimeSeriesVectorPtr DummyDatabaseDriver::values(Settings & /* settings */,
-                                                    const TS::TimeSeriesGeneratorOptions &)
+TS::TimeSeriesVectorPtr DummyDatabaseDriver::values(
+    Settings& /* settings */, const TS::TimeSeriesGeneratorOptions& /*timeSeriesOptions*/)
 {
   return std::make_shared<TS::TimeSeriesVector>();
 }
@@ -34,15 +34,15 @@ void DummyDatabaseDriver::getMovingStationsByArea(Spine::Stations & /*stations*/
 {
 }
 
-FlashCounts DummyDatabaseDriver::getFlashCount(const Fmi::DateTime &,
-                                               const Fmi::DateTime &,
-                                               const Spine::TaggedLocationList &) const
+FlashCounts DummyDatabaseDriver::getFlashCount(const Fmi::DateTime& /*unused*/,
+                                               const Fmi::DateTime& /*unused*/,
+                                               const Spine::TaggedLocationList& /*unused*/) const
 {
   return {};
 }
 
 std::shared_ptr<std::vector<ObservableProperty>> DummyDatabaseDriver::observablePropertyQuery(
-    std::vector<std::string> &, const std::string &)
+    std::vector<std::string>& /*parameters*/, const std::string& /*language*/)
 {
   return std::make_shared<std::vector<ObservableProperty>>();
 }

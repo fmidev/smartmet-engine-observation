@@ -2480,16 +2480,12 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMagnetometerData(
       auto &timesteps = fmisid_timesteps[fmisid];
       const Spine::Station &s = stationInfo.getStation(fmisid, settings.stationgroups, data_time);
 
-      auto x_parameter_name = itsParameterMap->getParameterName(
-          (level == 10 ? "667" : (level == 60 ? "668" : "MISSING")), MAGNETO_PRODUCER);
-      auto y_parameter_name = itsParameterMap->getParameterName(
-          (level == 10 ? "669" : (level == 60 ? "670" : "MISSING")), MAGNETO_PRODUCER);
-      auto z_parameter_name = itsParameterMap->getParameterName(
-          (level == 10 ? "671" : (level == 60 ? "672" : "MISSING")), MAGNETO_PRODUCER);
-      auto t_parameter_name =
-          itsParameterMap->getParameterName((level == 60 ? "144" : "MISSING"), MAGNETO_PRODUCER);
-      auto f_parameter_name =
-          itsParameterMap->getParameterName((level == 110 ? "673" : "MISSING"), MAGNETO_PRODUCER);
+      const auto names = getMagnetometerParamNames(level, itsParameterMap);
+      const auto &x_parameter_name = names.x;
+      const auto &y_parameter_name = names.y;
+      const auto &z_parameter_name = names.z;
+      const auto &t_parameter_name = names.t;
+      const auto &f_parameter_name = names.f;
 
       if (timeseriesPositions.find(x_parameter_name) != timeseriesPositions.end())
         result[timeseriesPositions.at(x_parameter_name)].push_back(

@@ -248,43 +248,6 @@ MagnetometerRowData parseMagnetometerRow(const Row &row)
   return d;
 }
 
-// Measurement parameter names for a given magnetometer level.
-struct MagnetometerParamNames
-{
-  std::string x, y, z, t, f;
-};
-
-// Map a magnetometer level (10 / 60 / 110) to parameter names via the parameter map.
-MagnetometerParamNames getMagnetometerParamNames(int level, const ParameterMapPtr &paramMap)
-{
-  std::string x_id = "MISSING", y_id = "MISSING", z_id = "MISSING";
-  std::string t_id = "MISSING", f_id = "MISSING";
-  switch (level)
-  {
-    case 10:
-      x_id = "667";
-      y_id = "669";
-      z_id = "671";
-      break;
-    case 60:
-      x_id = "668";
-      y_id = "670";
-      z_id = "672";
-      t_id = "144";
-      break;
-    case 110:
-      f_id = "673";
-      break;
-    default:
-      break;
-  }
-  return {paramMap->getParameterName(x_id, MAGNETO_PRODUCER),
-          paramMap->getParameterName(y_id, MAGNETO_PRODUCER),
-          paramMap->getParameterName(z_id, MAGNETO_PRODUCER),
-          paramMap->getParameterName(t_id, MAGNETO_PRODUCER),
-          paramMap->getParameterName(f_id, MAGNETO_PRODUCER)};
-}
-
 // Emit all timed values for one magnetometer row into the per-fmisid result vector.
 void emitMagnetometerValues(TS::TimeSeriesVector &result,
                             const std::map<std::string, int> &positions,

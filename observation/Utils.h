@@ -47,7 +47,7 @@ std::string trimCommasFromEnd(const std::string& what);
 
 std::string translateParameter(const std::string& paramname,
                                const std::string& stationType,
-                               ParameterMap& parameterMap);
+                               const ParameterMap& parameterMap);
 
 void calculateStationDirection(Spine::Station& station);
 double deg2rad(double deg);
@@ -171,6 +171,15 @@ bool isParameterVariant(const std::string& name, const ParameterMap& parameterMa
 // engines may be initializing in parallel. With older servers the locale is
 // still set here, with a warning.
 void requireDecimalPoint();
+
+// Measurement parameter names for a given magnetometer level.
+struct MagnetometerParamNames
+{
+  std::string x, y, z, t, f;
+};
+
+// Map a magnetometer level (10 / 60 / 110) to parameter names via the parameter map.
+MagnetometerParamNames getMagnetometerParamNames(int level, const ParameterMapPtr& paramMap);
 
 }  // namespace Utils
 }  // namespace Observation

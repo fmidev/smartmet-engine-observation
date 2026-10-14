@@ -65,7 +65,7 @@ class ObservationCacheAdminSpatiaLite : public ObservationCacheAdminBase
   std::pair<Fmi::DateTime, Fmi::DateTime> getLatestObservationTime(
       const std::shared_ptr<ObservationCache>& cache) const override;
   std::map<std::string, Fmi::DateTime> getLatestFlashTime(
-      const std::shared_ptr<ObservationCache>&) const override;
+      const std::shared_ptr<ObservationCache>& /*unused*/) const override;
 
   void loadStations(const std::string& serializedStationsFile) override {}
 };

@@ -692,8 +692,8 @@ void PostgreSQLCache::cleanWeatherDataQCCache(
   }
 }
 
-bool PostgreSQLCache::roadCloudIntervalIsCached(const Fmi::DateTime &starttime,
-                                                const Fmi::DateTime &) const
+bool PostgreSQLCache::roadCloudIntervalIsCached(const Fmi::DateTime& starttime,
+                                                const Fmi::DateTime& /*endtime*/) const
 {
   try
   {
@@ -784,8 +784,8 @@ void PostgreSQLCache::cleanRoadCloudCache(const Fmi::TimeDuration &timetokeep) c
   }
 }
 
-bool PostgreSQLCache::netAtmoIntervalIsCached(const Fmi::DateTime &starttime,
-                                              const Fmi::DateTime &) const
+bool PostgreSQLCache::netAtmoIntervalIsCached(const Fmi::DateTime& starttime,
+                                              const Fmi::DateTime& /*endtime*/) const
 {
   try
   {
@@ -876,8 +876,8 @@ void PostgreSQLCache::cleanNetAtmoCache(const Fmi::TimeDuration &timetokeep) con
   }
 }
 
-bool PostgreSQLCache::fmiIoTIntervalIsCached(const Fmi::DateTime &starttime,
-                                             const Fmi::DateTime &) const
+bool PostgreSQLCache::fmiIoTIntervalIsCached(const Fmi::DateTime& starttime,
+                                             const Fmi::DateTime& /*endtime*/) const
 {
   try
   {
@@ -966,8 +966,8 @@ void PostgreSQLCache::cleanFmiIoTCache(const Fmi::TimeDuration &timetokeep) cons
   }
 }
 
-bool PostgreSQLCache::tapsiQcIntervalIsCached(const Fmi::DateTime &starttime,
-                                              const Fmi::DateTime &) const
+bool PostgreSQLCache::tapsiQcIntervalIsCached(const Fmi::DateTime& starttime,
+                                              const Fmi::DateTime& /*endtime*/) const
 {
   try
   {
