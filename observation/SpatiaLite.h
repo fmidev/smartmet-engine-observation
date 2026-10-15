@@ -474,7 +474,7 @@ class SpatiaLite : public CommonDatabaseFunctions
   // Private members
   sqlite3pp::database itsDB;
   std::string srid;
-  std::size_t itsConnectionId;
+  std::size_t itsConnectionId = 0;
   std::size_t itsMaxInsertSize;
   void *cache;
   const ExternalAndMobileProducerConfig &itsExternalAndMobileProducerConfig;

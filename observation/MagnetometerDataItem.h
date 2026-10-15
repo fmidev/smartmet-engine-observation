@@ -13,9 +13,9 @@ namespace Observation
 class MagnetometerDataItem
 {
  public:
-  int fmisid;
+  int fmisid = 0;
   std::string magnetometer;
-  int level;
+  int level = 0;
   Fmi::DateTime data_time;
   std::optional<double> x;
   std::optional<double> y;

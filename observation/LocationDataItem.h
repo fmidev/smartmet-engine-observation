@@ -13,9 +13,9 @@ class LocationDataItem
 {
  public:
   DataItem data;
-  double longitude;
-  double latitude;
-  double elevation;
+  double longitude = 0.0;
+  double latitude = 0.0;
+  double elevation = 0.0;
   std::string stationtype;
 };
 

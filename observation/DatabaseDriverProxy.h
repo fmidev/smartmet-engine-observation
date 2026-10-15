@@ -20,6 +20,8 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
  public:
   DatabaseDriverProxy(const EngineParametersPtr &p, Spine::ConfigBase &cfg);
   ~DatabaseDriverProxy() override;
+  DatabaseDriverProxy(const DatabaseDriverProxy&) = delete;
+  DatabaseDriverProxy& operator=(const DatabaseDriverProxy&) = delete;
 
   void init(Engine *obsengine) override;
   TS::TimeSeriesVectorPtr values(Settings &settings) override;

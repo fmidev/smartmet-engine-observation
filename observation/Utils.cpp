@@ -645,6 +645,7 @@ bool isParameterVariant(const std::string& name, const ParameterMap& parameterMa
 
 void requireDecimalPoint()
 {
+  // NOLINTNEXTLINE(concurrency-mt-unsafe): read only; nobody changes the locale after startup
   const char* decimalPoint = std::localeconv()->decimal_point;
   if (decimalPoint != nullptr && std::string(decimalPoint) == ".")
     return;
@@ -653,6 +654,7 @@ void requireDecimalPoint()
   // setting it here as before, although this is not thread safe
   std::cerr << "Warning: LC_NUMERIC does not use a decimal point, setting it in the observation "
                "engine. Upgrade the server, which sets it before starting any threads.\n";
+  // NOLINTNEXTLINE(concurrency-mt-unsafe): fallback for old servers only, see the comment above
   if (std::setlocale(LC_NUMERIC, "C") == nullptr)
     throw Fmi::Exception(BCP, "Observation engine failed to set LC_NUMERIC");
 }

@@ -38,6 +38,7 @@ class QueryResult : public QueryResultBase
   QueryResult() = delete;
   QueryResult(QueryResult&& other) = delete;
   QueryResult& operator=(const QueryResult& other) = delete;
+  QueryResult& operator=(QueryResult&& other) = delete;
   QueryResult& operator=(QueryResult& other) = delete;
 
   ValueVectorType::const_iterator begin(const std::string& valueVectorName);

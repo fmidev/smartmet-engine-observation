@@ -25,6 +25,10 @@ class ExternalAndMobileProducerConfigItem
   }
 
   ExternalAndMobileProducerConfigItem(ExternalAndMobileProducerConfigItem&& other) = default;
+  ExternalAndMobileProducerConfigItem(const ExternalAndMobileProducerConfigItem& other) = delete;
+  ExternalAndMobileProducerConfigItem& operator=(const ExternalAndMobileProducerConfigItem& other) = delete;
+  ExternalAndMobileProducerConfigItem& operator=(ExternalAndMobileProducerConfigItem&& other) = delete;
+  ~ExternalAndMobileProducerConfigItem() = default;
 
   const ProducerId& producerId() const { return itsProducerId; }
   const Measurands& measurands() const { return itsMeasurands; }

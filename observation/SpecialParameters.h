@@ -95,7 +95,7 @@ class SpecialParameters
   using parameter_handler_t = std::function<TS::Value(const Args&)>;
 
   std::map<std::string, parameter_handler_t> handler_map;
-  Geonames::Engine* itsGeonames;
+  Geonames::Engine* itsGeonames = nullptr;
 
   std::unique_ptr<Fmi::TimeFormatter> tf;
   Fmi::TimeZonePtr utc_tz;

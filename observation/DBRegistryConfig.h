@@ -90,6 +90,7 @@ class NamesAllowed
 
   NamesAllowed& operator=(const NamesAllowed& names) = delete;
   NamesAllowed(const NamesAllowed& names) = delete;
+  ~NamesAllowed() = default;
 
   /**
    * @brief Add a name.

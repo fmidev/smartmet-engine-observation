@@ -176,9 +176,8 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
       {
         std::string name = p.name();
         Fmi::ascii_tolower(name);
-        bool dataQualityField = removePrefix(name, "qc_");
-        if (!dataQualityField)
-          dataQualityField = (p.getSensorParameter() == "qc");
+        // Data quality fields (qc_*) are looked up by the name of their parameter
+        removePrefix(name, "qc_");
 
         std::string shortname = parseParameterName(name);
 

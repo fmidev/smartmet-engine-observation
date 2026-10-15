@@ -428,7 +428,7 @@ PrecomputedParams buildPrecomputedParams(const QueryMapping &qmap,
   // Regular parameters
   for (const auto &item : qmap.parameterNameIdMap)
   {
-    RegularParamEntry entry;
+    RegularParamEntry entry{};
     entry.output_pos = qmap.timeseriesPositionsString.at(item.first);
     entry.measurand_id = item.second;
     entry.sensor_no = -1;

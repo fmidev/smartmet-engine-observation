@@ -77,7 +77,7 @@ struct TypeConv
 {
   value2str_t convert;
   std::string name;
-  bool is_vector;
+  bool is_vector = false;
 };
 
 // Escape a request-controlled string so it can be safely embedded as an SQL

@@ -92,6 +92,7 @@ struct MetaData
   MetaData &operator=(const MetaData &md) = default;
   MetaData(MetaData &&md) = default;
   MetaData &operator=(MetaData &&md) = default;
+  ~MetaData() = default;
 
   void update(int stationId,
               const Fmi::DateTime &minTime,

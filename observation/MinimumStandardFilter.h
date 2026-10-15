@@ -32,6 +32,7 @@ class MinimumStandardFilter : public FEConformanceClassBase
   explicit MinimumStandardFilter();
 
   MinimumStandardFilter(const MinimumStandardFilter& other) = delete;
+  ~MinimumStandardFilter() override = default;
   MinimumStandardFilter operator=(const MinimumStandardFilter& other) = delete;
 
   std::shared_ptr<const PropertyIsBaseType> getNewOperationInstance(

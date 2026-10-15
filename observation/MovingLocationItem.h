@@ -17,9 +17,9 @@ class MovingLocationItem
   int station_id = 0;
   Fmi::DateTime sdate;
   Fmi::DateTime edate;
-  double lon;
-  double lat;
-  double elev;
+  double lon = 0.0;
+  double lat = 0.0;
+  double elev = 0.0;
 
   std::size_t hash_value() const;
 };
