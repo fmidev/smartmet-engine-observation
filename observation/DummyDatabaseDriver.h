@@ -47,7 +47,6 @@ class DummyDatabaseDriver : public DatabaseDriverBase
   }
 
   void shutdown() override {}
-  MetaData metaData(const std::string& /*unused*/, const MetaData& /*unused*/) const { return {}; }
   std::string id() const override { return "dummy"; }
   std::string name() const { return "dummy"; }
 };
