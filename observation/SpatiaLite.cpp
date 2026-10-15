@@ -252,7 +252,7 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
     std::set<int> fmisids;
     std::set<Fmi::DateTime> obstimes;
 
-    for (const auto &row : qry)
+    for (const auto row : qry)
     {
       LocationDataItem obs;
       time_t epoch_time = row.get<int>(2);
@@ -3103,7 +3103,7 @@ LocationDataItems SpatiaLite::readObservationDataOfMovingStationsFromDB(
 
     sqlite3pp::query qry(itsDB, sqlStmt.c_str());
 
-    for (const auto &row : qry)
+    for (const auto row : qry)
     {
       if (row.column_type(4) == SQLITE_NULL)  // data_value
         continue;
@@ -3152,7 +3152,7 @@ void SpatiaLite::initObservationMemoryCache(
 
     DataItems observations;
 
-    for (const auto &row : qry)
+    for (const auto row : qry)
     {
       if (row.column_type(2) == SQLITE_NULL)  // data_value
         continue;
@@ -3202,7 +3202,7 @@ void SpatiaLite::initExtMemoryCache(const Fmi::DateTime &starttime,
 
     DataItems observations;
 
-    for (const auto &row : qry)
+    for (const auto row : qry)
     {
       if (row.column_type(2) == SQLITE_NULL)  // data_value
         continue;
@@ -3247,7 +3247,7 @@ void SpatiaLite::fetchWeatherDataQCData(const std::string &sqlStmt,
 
     std::set<int> fmisids;
     std::set<Fmi::DateTime> obstimes;
-    for (const auto &row : qry)
+    for (const auto row : qry)
     {
       int fmisid = row.get<int>(0);
       unsigned int obstime_db = row.get<int>(1);
@@ -3389,7 +3389,7 @@ void SpatiaLite::getMovingStations(Spine::Stations &stations,
 
     DataItems observations;
 
-    for (const auto &row : qry)
+    for (const auto row : qry)
     {
       Spine::Station station;
       station.fmisid = row.get<int>(0);
@@ -3442,7 +3442,7 @@ Fmi::DateTime SpatiaLite::getLatestDataUpdateTime(const std::string &tablename,
     {
       sqlite3pp::query qry(itsDB, sqlStmt.c_str());
 
-      for (const auto &row : qry)
+      for (const auto row : qry)
       {
         if (row.column_type(0) != SQLITE_NULL)
         {
