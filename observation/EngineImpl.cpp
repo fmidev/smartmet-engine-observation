@@ -4,6 +4,7 @@
 #include "ObservationCacheFactory.h"
 #include "SpecialParameters.h"
 #include "StationOptions.h"
+#include "Utils.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/make_shared.hpp>
 #include <fmt/format.h>
@@ -229,6 +230,8 @@ void EngineImpl::init()
     }
 
     SpecialParameters::setGeonames(getGeonames());
+    Utils::setParameterTranslations(
+        std::make_shared<Spine::ParameterTranslations>(cfg.get_config()));
     itsDatabaseDriver->getProducerGroups(itsEngineParameters->producerGroups);
     itsEngineParameters->producerGroups.replaceProducerIds("observations_fmi", "fmi");
 

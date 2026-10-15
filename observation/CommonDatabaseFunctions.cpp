@@ -49,7 +49,7 @@ void collectSpecialParamDependencies(const std::string &name,
     param_set.insert(paramMap->getParameter("windspeedms", stationtype));
     param_set.insert(paramMap->getParameter("relativehumidity", stationtype));
   }
-  else if (name == "smartsymbol")
+  else if (name == "smartsymbol" || name == "smartsymboltext")
   {
     param_set.insert(paramMap->getParameter("wawa", stationtype));
     param_set.insert(paramMap->getParameter("totalcloudcover", stationtype));

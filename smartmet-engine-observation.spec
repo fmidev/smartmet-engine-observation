@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.10.13
+Version: 26.10.15
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -37,7 +37,7 @@ BuildRequires: smartmet-engine-geonames-devel >= 26.10.3
 BuildRequires: smartmet-library-locus-devel >= 26.10.3
 BuildRequires: smartmet-library-macgyver-devel >= 26.10.3
 BuildRequires: smartmet-library-spine-devel >= 26.10.3
-BuildRequires: smartmet-library-timeseries-devel >= 26.10.3
+BuildRequires: smartmet-library-timeseries-devel >= 26.10.15
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
 BuildRequires: smartmet-utils-devel >= 26.9.3
@@ -54,7 +54,7 @@ Requires: smartmet-engine-geonames >= 26.10.3
 Requires: smartmet-library-locus >= 26.10.3
 Requires: smartmet-library-macgyver >= 26.10.3
 Requires: smartmet-library-spine >= 26.10.3
-Requires: smartmet-library-timeseries >= 26.10.3
+Requires: smartmet-library-timeseries >= 26.10.15
 Requires: smartmet-server >= 26.9.29
 Requires: unixODBC
 
@@ -175,6 +175,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Oct 15 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.15-1.fmi
+- Added smartsymboltext for observations, translated using parameter_translations in the engine configuration
+- Check the calculated smartsymbol value in PostgreSQLCacheDB before using it
+
 * Tue Oct 13 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.13-1.fmi
 - Stations which are not fully open data (station_metadata_access_policy.open_data) are discarded only if the new setting disable_nonfree_stations is true, the default is false
 

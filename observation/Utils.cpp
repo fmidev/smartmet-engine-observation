@@ -8,6 +8,7 @@
 #include <boost/numeric/conversion/cast.hpp>
 #include <boost/serialization/vector.hpp>
 #include <macgyver/Astronomy.h>
+#include <macgyver/AtomicSharedPtr.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TypeName.h>
@@ -471,6 +472,31 @@ std::optional<int> calcSmartsymbolNumber(int wawa,
   // Add day/night information
   Fmi::Astronomy::solar_position_t sp = Fmi::Astronomy::solar_position(ldt, lon, lat);
   return sp.dark() ? 100 + *smartsymbol : *smartsymbol;
+}
+
+namespace
+{
+Fmi::AtomicSharedPtr<Spine::ParameterTranslations> parameter_translations{
+    std::make_shared<Spine::ParameterTranslations>()};
+}  // namespace
+
+void setParameterTranslations(const std::shared_ptr<Spine::ParameterTranslations>& translations)
+{
+  parameter_translations.store(translations ? translations
+                                            : std::make_shared<Spine::ParameterTranslations>());
+}
+
+std::optional<std::string> smartSymbolText(int smartsymbol, const std::string& language)
+{
+  try
+  {
+    auto translations = parameter_translations.load();
+    return translations->getTranslation("SmartSymbolText", smartsymbol % 100, language);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
 TS::TimeSeriesVectorPtr initializeResultVector(const Settings& settings)

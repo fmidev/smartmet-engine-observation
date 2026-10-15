@@ -9,9 +9,11 @@
 #include <macgyver/LocalDateTime.h>
 #include <spine/ConfigBase.h>
 #include <spine/Parameter.h>
+#include <spine/ParameterTranslations.h>
 #include <spine/Station.h>
 #include <timeseries/TimeSeriesInclude.h>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -101,6 +103,25 @@ std::optional<int> calcSmartsymbolNumber(int wawa,
                                          const Fmi::LocalDateTime& ldt,
                                          double lat,
                                          double lon);
+
+// ----------------------------------------------------------------------
+/*!
+ * \brief Set the parameter translations used for textual observation parameters
+ */
+// ----------------------------------------------------------------------
+
+void setParameterTranslations(const std::shared_ptr<Spine::ParameterTranslations>& translations);
+
+// ----------------------------------------------------------------------
+/*!
+ * \brief Translate a SmartSymbol number to text
+ *
+ * Night symbols (100+) are translated as the respective day symbols just like
+ * the querydata engine does for forecasts.
+ */
+// ----------------------------------------------------------------------
+
+std::optional<std::string> smartSymbolText(int smartsymbol, const std::string& language);
 
 // ----------------------------------------------------------------------
 /*!
