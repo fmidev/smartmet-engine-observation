@@ -262,6 +262,7 @@ struct SpecialParamEntry
     WindCompass32,
     FeelsLike,
     SmartSymbol,
+    SmartSymbolText,
     RoadWW,
     CloudCeiling,
     CloudCeilingFt,
@@ -364,9 +365,10 @@ SpecialParamEntry buildSpecialParamEntry(const std::string &name,
       entry.mid3 = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
     }
   }
-  else if (name == "smartsymbol")
+  else if (name == "smartsymbol" || name == "smartsymboltext")
   {
-    entry.kind = SpecialParamEntry::Kind::SmartSymbol;
+    entry.kind = (name == "smartsymbol" ? SpecialParamEntry::Kind::SmartSymbol
+                                        : SpecialParamEntry::Kind::SmartSymbolText);
     if (!isQCTable)
     {
       entry.mid1 = Fmi::stoi(parameterMap->getParameter("wawa", stationtype));
@@ -890,6 +892,7 @@ void emitSpecialParam(const SpecialParamEntry &sp,
       break;
     }
     case SpecialParamEntry::Kind::SmartSymbol:
+    case SpecialParamEntry::Kind::SmartSymbolText:
     {
       const auto wit = group_data.find(sp.mid1);  // wawa
       const auto cit = group_data.find(sp.mid2);  // totalcloudcover
@@ -907,8 +910,14 @@ void emitSpecialParam(const SpecialParamEntry &sp,
             calcSmartsymbolNumber(wawa, totalcc, temp, ldt, station.latitude, station.longitude);
         if (!value)
           resultVector->at(pos).emplace_back(TS::TimedValue(ldt, missing));
-        else
+        else if (sp.kind == SpecialParamEntry::Kind::SmartSymbol)
           resultVector->at(pos).emplace_back(TS::TimedValue(ldt, TS::Value(*value)));
+        else
+        {
+          const auto text = smartSymbolText(*value, settings.language);
+          resultVector->at(pos).emplace_back(
+              TS::TimedValue(ldt, text ? TS::Value(*text) : missing));
+        }
       }
       break;
     }

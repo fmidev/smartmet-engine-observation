@@ -191,6 +191,52 @@ TEST_CASE("Smartsymbol from wawa, cloudiness and temperature")
   }
 }
 
+TEST_CASE("Smartsymbol text")
+{
+  libconfig::Config config;
+  config.readString(
+      "language = \"en\";\n"
+      "parameter_translations:\n"
+      "{\n"
+      "  SmartSymbolText:\n"
+      "  (\n"
+      "    { value = 1; en = \"clear\"; fi = \"selkeaa\"; },\n"
+      "    { value = 37; en = \"heavy rain\"; fi = \"rankkaa sadetta\"; }\n"
+      "  );\n"
+      "};\n");
+
+  setParameterTranslations(std::make_shared<SmartMet::Spine::ParameterTranslations>(config));
+
+  SECTION("Day symbols are translated")
+  {
+    REQUIRE(smartSymbolText(1, "fi") == std::string("selkeaa"));
+    REQUIRE(smartSymbolText(1, "en") == std::string("clear"));
+    REQUIRE(smartSymbolText(37, "fi") == std::string("rankkaa sadetta"));
+  }
+
+  SECTION("Night symbols are translated as day symbols")
+  {
+    REQUIRE(smartSymbolText(101, "fi") == std::string("selkeaa"));
+    REQUIRE(smartSymbolText(137, "en") == std::string("heavy rain"));
+  }
+
+  SECTION("Unknown language falls back to the default language")
+  {
+    REQUIRE(smartSymbolText(1, "sv") == std::string("clear"));
+  }
+
+  SECTION("Unknown symbols have no translation")
+  {
+    REQUIRE_FALSE(smartSymbolText(2, "fi").has_value());
+  }
+
+  SECTION("Without translations nothing is translated")
+  {
+    setParameterTranslations(nullptr);
+    REQUIRE_FALSE(smartSymbolText(1, "fi").has_value());
+  }
+}
+
 TEST_CASE("Road and foreign parameter ids")
 {
   RoadAndForeignIds ids;

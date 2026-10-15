@@ -1992,7 +1992,7 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
           timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, feelslike));
         }
       }
-      else if (special.first.find("smartsymbol") != std::string::npos)
+      else if (special.first == "smartsymbol")
       {
         std::string wawapos = parameterMap->getParameter("wawa", stationtype);
         std::string totalcloudcoverpos = parameterMap->getParameter("totalcloudcover", stationtype);
@@ -2014,11 +2014,11 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdouble-promotion"
 #endif
-          TS::Value smartsymbol =
-              TS::Value(*calcSmartsymbolNumber(wawa, totalcloudcover, temp, obstime, lat, lon));
+          const auto symbol = calcSmartsymbolNumber(wawa, totalcloudcover, temp, obstime, lat, lon);
 #ifdef __llvm__
 #pragma clang diagnostic pop
 #endif
+          const TS::Value smartsymbol = (symbol ? TS::Value(*symbol) : TS::Value(TS::None()));
           timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, smartsymbol));
         }
       }
