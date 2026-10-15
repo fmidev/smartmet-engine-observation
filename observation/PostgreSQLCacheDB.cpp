@@ -22,15 +22,6 @@
 
 using namespace std;
 
-namespace
-{
-template <typename Container, typename Key>
-bool exists(const Container &container, const Key &key)
-{
-  return (container.find(key) != container.end());
-}
-}  // namespace
-
 template <typename Clock, typename Duration>
 std::ostream &operator<<(std::ostream &stream,
                          const std::chrono::time_point<Clock, Duration> &time_point)
@@ -56,8 +47,6 @@ namespace SmartMet
 
 namespace
 {
-Spine::MutexType stations_write_mutex;
-Spine::MutexType locations_write_mutex;
 Spine::MutexType observation_data_write_mutex;
 Spine::MutexType weather_data_qc_write_mutex;
 Spine::MutexType flash_data_write_mutex;

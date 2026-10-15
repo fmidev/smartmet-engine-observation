@@ -298,7 +298,7 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
         }
         else if (!(*first).has_value())
         {
-          *first++;
+          ++first;
           *oFirst++ = "";
         }
         else
@@ -311,7 +311,7 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
                 << (*first).type().name()
                 << "'. Conversion to string failed. Empty string is used insted of the data.\n";
           }
-          *first++;
+          ++first;
           *oFirst++ = "";
         }
       }
