@@ -102,14 +102,14 @@ class ObservationCacheAdminBase
   void emulateFlashCacheUpdate(const std::shared_ptr<ObservationCache>& cache) const;
 
   void startCacheUpdateThreads(const std::set<std::string>& tables);
-  void startInitialCacheUpdates(std::shared_ptr<ObservationCache> observationCache,
-                                std::shared_ptr<ObservationCache> weatherDataQCCache,
-                                std::shared_ptr<ObservationCache> flashCache,
-                                std::shared_ptr<ObservationCache> netatmoCache,
-                                std::shared_ptr<ObservationCache> roadcloudCache,
-                                std::shared_ptr<ObservationCache> fmiIoTCache,
-                                std::shared_ptr<ObservationCache> tapsiQcCache,
-                                std::shared_ptr<ObservationCache> magnetometerCache);
+  void startInitialCacheUpdates(const std::shared_ptr<ObservationCache>& observationCache,
+                                const std::shared_ptr<ObservationCache>& weatherDataQCCache,
+                                const std::shared_ptr<ObservationCache>& flashCache,
+                                const std::shared_ptr<ObservationCache>& netatmoCache,
+                                const std::shared_ptr<ObservationCache>& roadcloudCache,
+                                const std::shared_ptr<ObservationCache>& fmiIoTCache,
+                                const std::shared_ptr<ObservationCache>& tapsiQcCache,
+                                const std::shared_ptr<ObservationCache>& magnetometerCache);
 
   void loadStations();
   void updateFlashCache() const;

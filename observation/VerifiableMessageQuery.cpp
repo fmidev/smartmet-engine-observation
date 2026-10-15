@@ -9,10 +9,7 @@ namespace Engine
 {
 namespace Observation
 {
-VerifiableMessageQuery::VerifiableMessageQuery()
-{
-  m_returnOnlyLatest = false;
-}
+VerifiableMessageQuery::VerifiableMessageQuery() : m_returnOnlyLatest(false) {}
 
 VerifiableMessageQuery::~VerifiableMessageQuery() = default;
 
