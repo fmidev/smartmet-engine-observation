@@ -149,6 +149,15 @@ class Engine : public SmartMet::Spine::SmartMetEngine
    */
   virtual const ProducerMeasurandInfo &getMeasurandInfo() const = 0;
 
+  /* \brief Derived parameters which can be calculated for the station type
+   *
+   * A derived parameter (smartsymbol, feelslike, windcompass8 etc) is available
+   * only if all the parameters it is calculated from are configured for the
+   * station type.
+   */
+
+  std::vector<std::string> getDerivedParameters(const std::string &stationtype) const;
+
   /* \brief Get latest data update time of given producer
    * \return Time when data of a producer was last time updated
    */
