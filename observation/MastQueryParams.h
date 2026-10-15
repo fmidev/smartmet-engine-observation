@@ -127,19 +127,19 @@ class MastQueryParams : public QueryParamsBase
    * @brief Access to the operation map of this object.
    * @return Reference to the object or empty shared_ptr.
    */
-  const std::shared_ptr<OperationMapType> getOperationMap() const;
+  std::shared_ptr<OperationMapType> getOperationMap() const;
 
   /**
    * @brief Access to the order by map of this object.
    * @return Reference to the object or empty shared_ptr.
    */
-  const std::shared_ptr<OrderByVectorType> getOrderByVector() const;
+  std::shared_ptr<OrderByVectorType> getOrderByVector() const;
 
   /**
    * @brief Access to the join on tuple vector of this object.
    * @return Reference to the object or empty shared_ptr.
    */
-  const std::shared_ptr<JoinOnListTupleVectorType> getJoinOnListTupleVector() const;
+  std::shared_ptr<JoinOnListTupleVectorType> getJoinOnListTupleVector() const;
 
   /**
    * @brief Get the table name of primary DBRegistryConfig (constructor input config).

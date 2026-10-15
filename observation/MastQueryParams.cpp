@@ -270,7 +270,7 @@ void MastQueryParams::addOrderBy(const NameType& field, const NameType& ascDesc)
   }
 }
 
-const std::shared_ptr<MastQueryParams::OperationMapType> MastQueryParams::getOperationMap() const
+std::shared_ptr<MastQueryParams::OperationMapType> MastQueryParams::getOperationMap() const
 {
   try
   {
@@ -282,7 +282,7 @@ const std::shared_ptr<MastQueryParams::OperationMapType> MastQueryParams::getOpe
   }
 }
 
-const std::shared_ptr<MastQueryParams::OrderByVectorType> MastQueryParams::getOrderByVector() const
+std::shared_ptr<MastQueryParams::OrderByVectorType> MastQueryParams::getOrderByVector() const
 {
   try
   {
@@ -294,7 +294,7 @@ const std::shared_ptr<MastQueryParams::OrderByVectorType> MastQueryParams::getOr
   }
 }
 
-const std::shared_ptr<MastQueryParams::JoinOnListTupleVectorType>
+std::shared_ptr<MastQueryParams::JoinOnListTupleVectorType>
 MastQueryParams::getJoinOnListTupleVector() const
 {
   try

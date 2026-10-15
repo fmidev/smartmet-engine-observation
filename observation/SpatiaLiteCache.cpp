@@ -39,7 +39,7 @@ void SpatiaLiteCache::initializeConnectionPool()
     // null check below would race and two threads could both create a pool,
     // with the second assignment destroying the first pool while items from
     // it are still in use.
-    std::lock_guard<std::mutex> initLock(itsInitMutex);
+    std::scoped_lock initLock(itsInitMutex);
 
     // Check if already initialized (one cache can be shared by multiple database drivers)
     if (itsConnectionPool)
@@ -168,7 +168,7 @@ void SpatiaLiteCache::initializeCaches(int /* finCacheDuration */,
   {
     // Serialize against concurrent initialization for the same shared cache
     // instance (see initializeConnectionPool for the rationale).
-    std::lock_guard<std::mutex> initLock(itsInitMutex);
+    std::scoped_lock initLock(itsInitMutex);
 
     // The cache may be shared by multiple database drivers, each of which calls
     // initializeCaches with its own durations. Gate each sub-cache on whether it
