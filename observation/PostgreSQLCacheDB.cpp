@@ -1913,6 +1913,81 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
   }
 }
 
+namespace
+{
+// Wind compass direction of the observation
+TS::Value windCompassValue(const std::string &name,
+                           const std::map<std::string, TS::Value> &data,
+                           const std::string &winddirectionpos,
+                           const std::string &missingtext)
+{
+  if (data.count(winddirectionpos) == 0)
+    return TS::None();
+
+  std::string windCompass;
+  if (name == "windcompass8")
+    windCompass = windCompass8(std::get<double>(data.at(winddirectionpos)), missingtext);
+
+  else if (name == "windcompass16")
+    windCompass = windCompass16(std::get<double>(data.at(winddirectionpos)), missingtext);
+
+  else if (name == "windcompass32")
+    windCompass = windCompass32(std::get<double>(data.at(winddirectionpos)), missingtext);
+
+  return TS::Value(windCompass);
+}
+
+// Feels like - deduction. This ignores radiation, since it is measured using dedicated
+// stations
+TS::Value feelsLikeValue(const std::map<std::string, TS::Value> &data,
+                         const ParameterMapPtr &parameterMap,
+                         const std::string &stationtype)
+{
+  std::string windpos = parameterMap->getParameter("windspeedms", stationtype);
+  std::string rhpos = parameterMap->getParameter("relativehumidity", stationtype);
+  std::string temppos = parameterMap->getParameter("temperature", stationtype);
+
+  if (data.count(windpos) == 0 || data.count(rhpos) == 0 || data.count(temppos) == 0)
+    return TS::None();
+
+  auto temp = static_cast<float>(std::get<double>(data.at(temppos)));
+  auto rh = static_cast<float>(std::get<double>(data.at(rhpos)));
+  auto wind = static_cast<float>(std::get<double>(data.at(windpos)));
+
+  return TS::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
+}
+
+// Smart symbol of the observation
+TS::Value smartSymbolValue(const std::map<std::string, TS::Value> &data,
+                           const ParameterMapPtr &parameterMap,
+                           const std::string &stationtype,
+                           const Fmi::LocalDateTime &obstime,
+                           const Spine::Station &station)
+{
+  std::string wawapos = parameterMap->getParameter("wawa", stationtype);
+  std::string totalcloudcoverpos = parameterMap->getParameter("totalcloudcover", stationtype);
+  std::string temppos = parameterMap->getParameter("temperature", stationtype);
+  if (data.count(wawapos) == 0 || data.count(totalcloudcoverpos) == 0 ||
+      data.count(temppos) == 0)
+    return TS::None();
+
+  auto temp = static_cast<float>(std::get<double>(data.at(temppos)));
+  auto totalcloudcover = static_cast<int>(std::get<double>(data.at(totalcloudcoverpos)));
+  auto wawa = static_cast<int>(std::get<double>(data.at(wawapos)));
+  double lat = station.latitude;
+  double lon = station.longitude;
+#ifdef __llvm__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdouble-promotion"
+#endif
+  const auto symbol = calcSmartsymbolNumber(wawa, totalcloudcover, temp, obstime, lat, lon);
+#ifdef __llvm__
+#pragma clang diagnostic pop
+#endif
+  return (symbol ? TS::Value(*symbol) : TS::Value(TS::None()));
+}
+}  // namespace
+
 void PostgreSQLCacheDB::addParameterToTimeSeries(
     const TS::TimeSeriesVectorPtr& timeSeriesColumns,
     const std::pair<Fmi::LocalDateTime, std::map<std::string, TS::Value>> &dataItem,
@@ -1950,80 +2025,18 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
       {
         // Have to get wind direction first
         std::string winddirectionpos = parameterMap->getParameter("winddirection", stationtype);
-        if (dataItem.second.count(winddirectionpos) == 0)
-        {
-          TS::Value missing = TS::None();
-          timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, missing));
-        }
-        else
-        {
-          std::string windCompass;
-          if (special.first == "windcompass8")
-            windCompass = windCompass8(std::get<double>(data.at(winddirectionpos)), missingtext);
-
-          else if (special.first == "windcompass16")
-            windCompass = windCompass16(std::get<double>(data.at(winddirectionpos)), missingtext);
-
-          else if (special.first == "windcompass32")
-            windCompass = windCompass32(std::get<double>(data.at(winddirectionpos)), missingtext);
-
-          TS::Value windCompassValue = TS::Value(windCompass);
-          timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, windCompassValue));
-        }
+        timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(
+            obstime, windCompassValue(special.first, data, winddirectionpos, missingtext)));
       }
       else if (special.first.find("feelslike") != std::string::npos)
       {
-        // Feels like - deduction. This ignores radiation, since it is measured
-        // using
-        // dedicated stations
-        std::string windpos = parameterMap->getParameter("windspeedms", stationtype);
-        std::string rhpos = parameterMap->getParameter("relativehumidity", stationtype);
-        std::string temppos = parameterMap->getParameter("temperature", stationtype);
-
-        if (data.count(windpos) == 0 || data.count(rhpos) == 0 || data.count(temppos) == 0)
-        {
-          TS::Value missing = TS::None();
-          timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, missing));
-        }
-        else
-        {
-          auto temp = static_cast<float>(std::get<double>(data.at(temppos)));
-          auto rh = static_cast<float>(std::get<double>(data.at(rhpos)));
-          auto wind = static_cast<float>(std::get<double>(data.at(windpos)));
-
-          auto feelslike = TS::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
-          timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, feelslike));
-        }
+        timeSeriesColumns->at(pos).emplace_back(
+            TS::TimedValue(obstime, feelsLikeValue(data, parameterMap, stationtype)));
       }
       else if (special.first == "smartsymbol")
       {
-        std::string wawapos = parameterMap->getParameter("wawa", stationtype);
-        std::string totalcloudcoverpos = parameterMap->getParameter("totalcloudcover", stationtype);
-        std::string temppos = parameterMap->getParameter("temperature", stationtype);
-        if (data.count(wawapos) == 0 || data.count(totalcloudcoverpos) == 0 ||
-            data.count(temppos) == 0)
-        {
-          TS::Value missing = TS::None();
-          timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, missing));
-        }
-        else
-        {
-          auto temp = static_cast<float>(std::get<double>(data.at(temppos)));
-          auto totalcloudcover = static_cast<int>(std::get<double>(data.at(totalcloudcoverpos)));
-          auto wawa = static_cast<int>(std::get<double>(data.at(wawapos)));
-          double lat = station.latitude;
-          double lon = station.longitude;
-#ifdef __llvm__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdouble-promotion"
-#endif
-          const auto symbol = calcSmartsymbolNumber(wawa, totalcloudcover, temp, obstime, lat, lon);
-#ifdef __llvm__
-#pragma clang diagnostic pop
-#endif
-          const TS::Value smartsymbol = (symbol ? TS::Value(*symbol) : TS::Value(TS::None()));
-          timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(obstime, smartsymbol));
-        }
+        timeSeriesColumns->at(pos).emplace_back(TS::TimedValue(
+            obstime, smartSymbolValue(data, parameterMap, stationtype, obstime, station)));
       }
 
       else
