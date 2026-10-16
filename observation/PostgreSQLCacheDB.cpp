@@ -964,6 +964,92 @@ void PostgreSQLCacheDB::cleanTapsiQcCache(const Fmi::DateTime &newstarttime)
   }
 }
 
+namespace
+{
+// Collect the indexes and hashes of the items not inserted yet, at most maxInsertSize items
+// starting from pos1. Returns the position after the last inspected item.
+template <typename Items, typename InsertCache>
+std::size_t collectNewItems(const Items &cacheData,
+                            std::size_t pos1,
+                            std::size_t maxInsertSize,
+                            InsertCache &insertCache,
+                            std::vector<std::size_t> &new_items,
+                            std::vector<std::size_t> &new_hashes)
+{
+  new_items.reserve(maxInsertSize);
+  new_hashes.reserve(maxInsertSize);
+
+  std::size_t pos2 = 0;
+  for (pos2 = pos1; new_hashes.size() < maxInsertSize && pos2 < cacheData.size(); ++pos2)
+  {
+    const auto &item = cacheData[pos2];
+
+    auto hash = item.hash_value();
+
+    if (!insertCache.exists(hash))
+    {
+      new_items.push_back(pos2);
+      new_hashes.push_back(hash);
+    }
+  }
+  return pos2;
+}
+
+// Insert the items with INSERT statements of at most maxInsertSize rows. Items with a key
+// already seen are inserted by later statements, since a single INSERT ... ON CONFLICT
+// statement cannot update the same row twice. Empty statements are not executed.
+template <typename Transaction, typename Items, typename KeyFunction, typename ValuesFunction>
+void insertItems(Transaction &transaction,
+                 const Items &cacheData,
+                 std::vector<std::size_t> itemsToUpdate,
+                 std::size_t maxInsertSize,
+                 const std::string &sqlHead,
+                 const std::string &sqlTail,
+                 KeyFunction makeKey,
+                 ValuesFunction makeValues)
+{
+  while (!itemsToUpdate.empty())
+  {
+    const auto &last_item = cacheData[itemsToUpdate.back()];
+    std::vector<std::string> values_vector;
+    std::set<std::string> key_set;  // to check duplicates
+    std::vector<std::size_t> duplicates;
+
+    for (const auto i : itemsToUpdate)
+    {
+      const auto &item = cacheData[i];
+      std::string key = makeKey(item);
+      if (key_set.find(key) != key_set.end())
+      {
+        duplicates.push_back(i);
+      }
+      else
+      {
+        key_set.insert(key);
+        values_vector.push_back(makeValues(item));
+      }
+
+      if (!values_vector.empty() &&
+          ((values_vector.size() % maxInsertSize == 0) || &item == &last_item))
+      {
+        std::string sqlStmt = sqlHead;
+
+        for (const auto &v : values_vector)
+        {
+          sqlStmt += v;
+          if (&v != &values_vector.back())
+            sqlStmt += ",";
+        }
+        sqlStmt += sqlTail;
+        transaction->execute(sqlStmt);
+        values_vector.clear();
+      }
+    }
+    itemsToUpdate = duplicates;
+  }
+}
+}  // namespace
+
 std::size_t PostgreSQLCacheDB::fillDataCache(const DataItems &cacheData)
 {
   try
@@ -988,97 +1074,56 @@ std::size_t PostgreSQLCacheDB::fillDataCache(const DataItems &cacheData)
       // Collect new items before taking a lock - we might avoid one completely
       std::vector<std::size_t> new_items;
       std::vector<std::size_t> new_hashes;
-      new_items.reserve(itsMaxInsertSize);
-      new_hashes.reserve(itsMaxInsertSize);
 
-      std::size_t pos2 = 0;
-      for (pos2 = pos1; new_hashes.size() < itsMaxInsertSize && pos2 < cacheData.size(); ++pos2)
-      {
-        const auto &item = cacheData[pos2];
-
-        auto hash = item.hash_value();
-
-        if (!itsDataInsertCache.exists(hash))
-        {
-          new_items.push_back(pos2);
-          new_hashes.push_back(hash);
-        }
-      }
+      std::size_t pos2 = collectNewItems(
+          cacheData, pos1, itsMaxInsertSize, itsDataInsertCache, new_items, new_hashes);
 
       // Now insert the new items
 
       if (!new_items.empty())
       {
         Spine::WriteLock lock(observation_data_write_mutex);
-        std::vector<std::size_t> observationsToUpdate = new_items;
-
-        while (!observationsToUpdate.empty())
-        {
-          const auto &last_item = cacheData[observationsToUpdate.back()];
-          std::vector<std::string> values_vector;
-          std::set<std::string> key_set;  // to check duplicates
-          std::vector<std::size_t> duplicateObservations;
-
-          for (const auto i : observationsToUpdate)
-          {
-            const auto &item = cacheData[i];
-            // data_time, modified_last, fmisid, measurand_id, producer_id, measurand_no
-            std::string key = Fmi::to_iso_string(item.data_time);
-            //            key += Fmi::to_iso_string(item.modified_last);
-            key += Fmi::to_string(item.fmisid);
-            key += Fmi::to_string(item.sensor_no);
-            key += Fmi::to_string(item.measurand_id);
-            key += Fmi::to_string(item.producer_id);
-            key += Fmi::to_string(item.measurand_no);
-            if (key_set.find(key) != key_set.end())
-            {
-              duplicateObservations.push_back(i);
-            }
-            else
-            {
-              key_set.insert(key);
-              std::string values = "(";
-              values += Fmi::to_string(item.fmisid) + ",";
-              values += Fmi::to_string(item.sensor_no) + ",";
-              values += ("'" + Fmi::to_iso_string(item.data_time) + "',");
-              values += ("'" + Fmi::to_iso_string(item.modified_last) + "',");
-              values += Fmi::to_string(item.measurand_id) + ",";
-              values += Fmi::to_string(item.producer_id) + ",";
-              values += Fmi::to_string(item.measurand_no) + ",";
-              values += item.get_value() + ",";
-              values += Fmi::to_string(item.data_quality) + ",";
-              values += item.get_data_source() + ")";
-
-              values_vector.push_back(values);
-            }
-
-            if ((values_vector.size() % itsMaxInsertSize == 0) || &item == &last_item)
-            {
-              std::string sqlStmt =
-                  "INSERT INTO observation_data "
-                  "(fmisid, sensor_no, data_time, modified_last, measurand_id, producer_id, "
-                  "measurand_no, "
-                  "data_value, data_quality, data_source) VALUES ";
-
-              for (const auto &v : values_vector)
-              {
-                sqlStmt += v;
-                if (&v != &values_vector.back())
-                  sqlStmt += ",";
-              }
-              sqlStmt +=
-                  " ON CONFLICT(data_time, fmisid, sensor_no, measurand_id, producer_id, "
-                  "measurand_no) DO "
-                  "UPDATE SET "
-                  "(data_value, modified_last, data_quality, data_source) = "
-                  "(EXCLUDED.data_value, EXCLUDED.modified_last, EXCLUDED.data_quality, "
-                  "EXCLUDED.data_source)\n";
-              transaction->execute(sqlStmt);
-              values_vector.clear();
-            }
-          }
-          observationsToUpdate = duplicateObservations;
-        }
+        insertItems(transaction,
+                    cacheData,
+                    new_items,
+                    itsMaxInsertSize,
+                    "INSERT INTO observation_data "
+                    "(fmisid, sensor_no, data_time, modified_last, measurand_id, producer_id, "
+                    "measurand_no, "
+                    "data_value, data_quality, data_source) VALUES ",
+                    " ON CONFLICT(data_time, fmisid, sensor_no, measurand_id, producer_id, "
+                    "measurand_no) DO "
+                    "UPDATE SET "
+                    "(data_value, modified_last, data_quality, data_source) = "
+                    "(EXCLUDED.data_value, EXCLUDED.modified_last, EXCLUDED.data_quality, "
+                    "EXCLUDED.data_source)\n",
+                    [](const auto &item)
+                    {
+                      // data_time, modified_last, fmisid, measurand_id, producer_id, measurand_no
+                      std::string key = Fmi::to_iso_string(item.data_time);
+                      //            key += Fmi::to_iso_string(item.modified_last);
+                      key += Fmi::to_string(item.fmisid);
+                      key += Fmi::to_string(item.sensor_no);
+                      key += Fmi::to_string(item.measurand_id);
+                      key += Fmi::to_string(item.producer_id);
+                      key += Fmi::to_string(item.measurand_no);
+                      return key;
+                    },
+                    [](const auto &item)
+                    {
+                      std::string values = "(";
+                      values += Fmi::to_string(item.fmisid) + ",";
+                      values += Fmi::to_string(item.sensor_no) + ",";
+                      values += ("'" + Fmi::to_iso_string(item.data_time) + "',");
+                      values += ("'" + Fmi::to_iso_string(item.modified_last) + "',");
+                      values += Fmi::to_string(item.measurand_id) + ",";
+                      values += Fmi::to_string(item.producer_id) + ",";
+                      values += Fmi::to_string(item.measurand_no) + ",";
+                      values += item.get_value() + ",";
+                      values += Fmi::to_string(item.data_quality) + ",";
+                      values += item.get_data_source() + ")";
+                      return values;
+                    });
       }
 
       // We insert the new hashes only when the transaction has completed so that
@@ -1141,85 +1186,48 @@ std::size_t PostgreSQLCacheDB::fillWeatherDataQCCache(const DataItems &cacheData
       // Collect new items before taking a lock - we might avoid one completely
       std::vector<std::size_t> new_items;
       std::vector<std::size_t> new_hashes;
-      new_items.reserve(itsMaxInsertSize);
-      new_hashes.reserve(itsMaxInsertSize);
 
-      std::size_t pos2 = 0;
-      for (pos2 = pos1; new_hashes.size() < itsMaxInsertSize && pos2 < cacheData.size(); ++pos2)
-      {
-        const auto &item = cacheData[pos2];
+      std::size_t pos2 = collectNewItems(
+          cacheData, pos1, itsMaxInsertSize, itsWeatherQCInsertCache, new_items, new_hashes);
 
-        auto hash = item.hash_value();
-
-        if (!itsWeatherQCInsertCache.exists(hash))
-        {
-          new_items.push_back(pos2);
-          new_hashes.push_back(hash);
-        }
-      }
+      // Now insert the new items
 
       if (!new_items.empty())
       {
         Spine::WriteLock lock(weather_data_qc_write_mutex);
-        std::vector<std::size_t> weatherDataToUpdate = new_items;
-        while (!weatherDataToUpdate.empty())
-        {
-          const auto &last_item = cacheData[weatherDataToUpdate.back()];
-          std::vector<std::string> values_vector;
-          std::set<std::string> key_set;  // to check duplicates
-          std::vector<std::size_t> duplicateWeatherData;
-
-          for (const auto i : weatherDataToUpdate)
-          {
-            const auto &item = cacheData[i];
-            // obstime, fmisid, parameter, sensor_no
-            std::string key = Fmi::to_iso_string(item.data_time);
-            key += Fmi::to_string(item.fmisid);
-            key += Fmi::to_string(item.measurand_id);
-            key += Fmi::to_string(item.sensor_no);
-            if (key_set.find(key) != key_set.end())
-            {
-              duplicateWeatherData.push_back(i);
-            }
-            else
-            {
-              key_set.insert(key);
-              std::string values = "(";
-              values += Fmi::to_string(item.fmisid) + ",";
-              values += ("'" + Fmi::to_iso_string(item.data_time) + "',");
-              values += Fmi::to_string(item.measurand_id) + ",";
-              values += Fmi::to_string(item.sensor_no) + ",";
-              if (item.data_value)
-                values += Fmi::to_string(*item.data_value) + ",";
-              else
-                values += "NULL,";
-              values += Fmi::to_string(item.data_quality) + ")";
-              values_vector.push_back(values);
-            }
-
-            if ((values_vector.size() % itsMaxInsertSize == 0) || &item == &last_item)
-            {
-              std::string sqlStmt =
-                  "INSERT INTO weather_data_qc "
-                  "(fmisid, obstime, parameter, sensor_no, value, flag) VALUES ";
-
-              for (const auto &v : values_vector)
-              {
-                sqlStmt += v;
-                if (&v != &values_vector.back())
-                  sqlStmt += ",";
-              }
-              sqlStmt +=
-                  " ON CONFLICT(fmisid, obstime, parameter, sensor_no) DO "
-                  "UPDATE SET "
-                  "(value, flag) = "
-                  "(EXCLUDED.value, EXCLUDED.flag)";
-              transaction->execute(sqlStmt);
-              values_vector.clear();
-            }
-          }
-          weatherDataToUpdate = duplicateWeatherData;
-        }
+        insertItems(transaction,
+                    cacheData,
+                    new_items,
+                    itsMaxInsertSize,
+                    "INSERT INTO weather_data_qc "
+                    "(fmisid, obstime, parameter, sensor_no, value, flag) VALUES ",
+                    " ON CONFLICT(fmisid, obstime, parameter, sensor_no) DO "
+                    "UPDATE SET "
+                    "(value, flag) = "
+                    "(EXCLUDED.value, EXCLUDED.flag)",
+                    [](const auto &item)
+                    {
+                      // obstime, fmisid, parameter, sensor_no
+                      std::string key = Fmi::to_iso_string(item.data_time);
+                      key += Fmi::to_string(item.fmisid);
+                      key += Fmi::to_string(item.measurand_id);
+                      key += Fmi::to_string(item.sensor_no);
+                      return key;
+                    },
+                    [](const auto &item)
+                    {
+                      std::string values = "(";
+                      values += Fmi::to_string(item.fmisid) + ",";
+                      values += ("'" + Fmi::to_iso_string(item.data_time) + "',");
+                      values += Fmi::to_string(item.measurand_id) + ",";
+                      values += Fmi::to_string(item.sensor_no) + ",";
+                      if (item.data_value)
+                        values += Fmi::to_string(*item.data_value) + ",";
+                      else
+                        values += "NULL,";
+                      values += Fmi::to_string(item.data_quality) + ")";
+                      return values;
+                    });
       }
 
       // We insert the new hashes only when the transaction has completed so that
