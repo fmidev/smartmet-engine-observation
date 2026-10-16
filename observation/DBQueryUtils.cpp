@@ -326,6 +326,33 @@ SpecialParamEntry resolveDataSourceEntry(const std::string &name,
   return entry;
 }
 
+// Measurand id of the wind direction used by the wind compass parameters
+int windDirectionMid(bool isQCTable,
+                     const ParameterMapPtr &parameterMap,
+                     const std::string &stationtype)
+{
+  const auto sparam = parameterMap->getParameter("winddirection", stationtype);
+  return isQCTable ? parameterMap->getRoadAndForeignIds().stringToInteger(sparam, stationtype)
+                   : Fmi::stoi(sparam);
+}
+
+// Measurand ids of the cloud layer amounts and base heights used by the cloud ceiling parameters
+void setCloudCeilingMids(SpecialParamEntry &entry,
+                         const ParameterMapPtr &parameterMap,
+                         const std::string &stationtype)
+{
+  entry.cla_mids[0] = get_mid("cla1_pt1m_acc", stationtype, parameterMap);
+  entry.cla_mids[1] = get_mid("cla2_pt1m_acc", stationtype, parameterMap);
+  entry.cla_mids[2] = get_mid("cla3_pt1m_acc", stationtype, parameterMap);
+  entry.cla_mids[3] = get_mid("cla4_pt1m_acc", stationtype, parameterMap);
+  entry.cla_mids[4] = get_mid("cla5_pt1m_acc", stationtype, parameterMap);
+  entry.clhb_mids[0] = get_mid("clhb1_pt1m_instant", stationtype, parameterMap);
+  entry.clhb_mids[1] = get_mid("clhb2_pt1m_instant", stationtype, parameterMap);
+  entry.clhb_mids[2] = get_mid("clhb3_pt1m_instant", stationtype, parameterMap);
+  entry.clhb_mids[3] = get_mid("clhb4_pt1m_instant", stationtype, parameterMap);
+  entry.clhb_mids[4] = get_mid("clh5_pt1m_instant", stationtype, parameterMap);
+}
+
 SpecialParamEntry buildSpecialParamEntry(const std::string &name,
                                          unsigned pos,
                                          bool isQCTable,
@@ -351,9 +378,7 @@ SpecialParamEntry buildSpecialParamEntry(const std::string &name,
   else if (boost::algorithm::starts_with(name, "windcompass"))
   {
     entry.kind = windCompassKind(name);
-    const auto sparam = parameterMap->getParameter("winddirection", stationtype);
-    entry.mid1 = isQCTable ? parameterMap->getRoadAndForeignIds().stringToInteger(sparam, stationtype)
-                           : Fmi::stoi(sparam);
+    entry.mid1 = windDirectionMid(isQCTable, parameterMap, stationtype);
   }
   else if (name == "feelslike")
   {
@@ -390,18 +415,7 @@ SpecialParamEntry buildSpecialParamEntry(const std::string &name,
   {
     entry.kind = cloudCeilingKind(name);
     if (!isQCTable)
-    {
-      entry.cla_mids[0] = get_mid("cla1_pt1m_acc", stationtype, parameterMap);
-      entry.cla_mids[1] = get_mid("cla2_pt1m_acc", stationtype, parameterMap);
-      entry.cla_mids[2] = get_mid("cla3_pt1m_acc", stationtype, parameterMap);
-      entry.cla_mids[3] = get_mid("cla4_pt1m_acc", stationtype, parameterMap);
-      entry.cla_mids[4] = get_mid("cla5_pt1m_acc", stationtype, parameterMap);
-      entry.clhb_mids[0] = get_mid("clhb1_pt1m_instant", stationtype, parameterMap);
-      entry.clhb_mids[1] = get_mid("clhb2_pt1m_instant", stationtype, parameterMap);
-      entry.clhb_mids[2] = get_mid("clhb3_pt1m_instant", stationtype, parameterMap);
-      entry.clhb_mids[3] = get_mid("clhb4_pt1m_instant", stationtype, parameterMap);
-      entry.clhb_mids[4] = get_mid("clh5_pt1m_instant", stationtype, parameterMap);
-    }
+      setCloudCeilingMids(entry, parameterMap, stationtype);
   }
   else if (is_data_source_field(name))
   {
