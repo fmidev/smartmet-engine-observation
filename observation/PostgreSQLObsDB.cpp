@@ -29,6 +29,75 @@ bool between(const Fmi::DateTime& t, const Fmi::DateTime& t1, const Fmi::DateTim
 {
   return (t >= t1 && t <= t2);
 }
+
+// Parse a station from a row of the station query. Returns false if the station is to be
+// skipped.
+bool parseStationRow(const pqxx::row& row, Spine::Station& s)
+{
+  s.type = row[0].as<std::string>();
+  s.fmisid = as_int(row[1]);
+  auto access_policy_id = as_int(row[2]);
+
+  // Skip private stations unless EXTRWYWS (runway stations)
+  if (access_policy_id != 0 && s.type != "EXTRWYWS")
+  {
+    // std::cerr << "PROTECTED station " << station_id << " " << formal_name_fi << " of
+    // type " << type << '\n';
+    return false;
+  }
+
+  s.lpnn = -1;
+  s.wmo = -1;
+  s.rwsid = -1;
+  s.geoid = -1;
+  s.distance = "-1";
+  s.stationDirection = -1;
+
+  // s.station_status_id = as_int(row[3]);
+  s.language_code = row[4].as<std::string>();
+  s.formal_name_fi = row[5].as<std::string>();
+  if (!row[6].is_null())
+    s.formal_name_sv = row[6].as<std::string>();
+  if (!row[7].is_null())
+    s.formal_name_en = row[7].as<std::string>();
+  // s.target_category = as_int(row[8]);
+  s.isStationary = ("Y" == row[9].as<std::string>());
+
+  if (!row[10].is_null())
+    s.lpnn = as_int(row[10]);
+  if (!row[11].is_null())
+    s.wmo = as_int(row[11]);
+
+  if (!row[12].is_null())
+    s.rwsid = as_int(row[12]);
+  if (!row[13].is_null())
+    s.wsi = row[13].as<std::string>();
+
+  auto valid_from = Fmi::TimeParser::parse(row[14].as<std::string>());
+  auto valid_to = Fmi::TimeParser::parse(row[15].as<std::string>());
+  auto location_start = Fmi::TimeParser::parse(row[16].as<std::string>());
+  auto location_end = Fmi::TimeParser::parse(row[17].as<std::string>());
+
+  // Make sure the location_start - location_end is sane for this station type
+
+  s.station_start = location_start;
+  s.station_end = location_end;
+
+  if (between(valid_from, location_start, location_end))
+    s.station_start = valid_from;
+  if (between(valid_to, location_start, location_end))
+    s.station_end = valid_to;
+  if (s.station_start > valid_to || s.station_end < valid_from)
+    return false;
+
+  if (!row[18].is_null())
+    s.longitude = as_double(row[18]);
+  if (!row[19].is_null())
+    s.latitude = as_double(row[19]);
+  s.modified_last = Fmi::TimeParser::parse(row[20].as<std::string>());
+  s.modified_by = as_int(row[21]);
+  return true;
+}
 }  // namespace
 
 // This is global so that different threads will not repeat the same task.
@@ -956,69 +1025,8 @@ WHERE tg.group_class_id IN (1, 81)
     for (auto row : result_set)
     {
       Spine::Station s;
-      s.type = row[0].as<std::string>();
-      s.fmisid = as_int(row[1]);
-      auto access_policy_id = as_int(row[2]);
-
-      // Skip private stations unless EXTRWYWS (runway stations)
-      if (access_policy_id != 0 && s.type != "EXTRWYWS")
-      {
-        // std::cerr << "PROTECTED station " << station_id << " " << formal_name_fi << " of
-        // type " << type << '\n';
-        continue;
-      }
-
-      s.lpnn = -1;
-      s.wmo = -1;
-      s.rwsid = -1;
-      s.geoid = -1;
-      s.distance = "-1";
-      s.stationDirection = -1;
-
-      // s.station_status_id = as_int(row[3]);
-      s.language_code = row[4].as<std::string>();
-      s.formal_name_fi = row[5].as<std::string>();
-      if (!row[6].is_null())
-        s.formal_name_sv = row[6].as<std::string>();
-      if (!row[7].is_null())
-        s.formal_name_en = row[7].as<std::string>();
-      // s.target_category = as_int(row[8]);
-      s.isStationary = ("Y" == row[9].as<std::string>());
-
-      if (!row[10].is_null())
-        s.lpnn = as_int(row[10]);
-      if (!row[11].is_null())
-        s.wmo = as_int(row[11]);
-
-      if (!row[12].is_null())
-        s.rwsid = as_int(row[12]);
-      if (!row[13].is_null())
-        s.wsi = row[13].as<std::string>();
-
-      auto valid_from = Fmi::TimeParser::parse(row[14].as<std::string>());
-      auto valid_to = Fmi::TimeParser::parse(row[15].as<std::string>());
-      auto location_start = Fmi::TimeParser::parse(row[16].as<std::string>());
-      auto location_end = Fmi::TimeParser::parse(row[17].as<std::string>());
-
-      // Make sure the location_start - location_end is sane for this station type
-
-      s.station_start = location_start;
-      s.station_end = location_end;
-
-      if (between(valid_from, location_start, location_end))
-        s.station_start = valid_from;
-      if (between(valid_to, location_start, location_end))
-        s.station_end = valid_to;
-      if (s.station_start > valid_to || s.station_end < valid_from)
-        continue;
-
-      if (!row[18].is_null())
-        s.longitude = as_double(row[18]);
-      if (!row[19].is_null())
-        s.latitude = as_double(row[19]);
-      s.modified_last = Fmi::TimeParser::parse(row[20].as<std::string>());
-      s.modified_by = as_int(row[21]);
-      stations.push_back(s);
+      if (parseStationRow(row, s))
+        stations.push_back(s);
     }
   }
   catch (...)
