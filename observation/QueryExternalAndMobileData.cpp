@@ -88,6 +88,128 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::values(
   }
 }
 
+namespace
+{
+// True for producers whose station coordinates come from the FmiIoT station list
+bool isIoTProducer(const std::string &stationtype)
+{
+  return (stationtype == FMI_IOT_PRODUCER) || (stationtype == TAPSI_QC_PRODUCER);
+}
+
+// Station coordinates of an FmiIoT or TapsiQc observation
+struct StationCoordinates
+{
+  std::optional<double> longitude;
+  std::optional<double> latitude;
+  std::optional<double> elevation;
+};
+
+// Build the SQL statement, or return nothing if no stations are in the requested area
+std::optional<std::string> buildSqlStatement(const Settings &settings,
+                                             const ExternalAndMobileDBInfo &dbInfo,
+                                             const std::vector<int> &measurandIds,
+                                             const FmiIoTStations &stations)
+{
+  if (!isIoTProducer(settings.stationtype))
+    return dbInfo.sqlSelect(measurandIds,
+                            settings.starttime,
+                            settings.endtime,
+                            settings.wktArea,
+                            settings.dataFilter);
+
+  std::vector<const FmiIoTStation *> validStations = stations.getStations(settings.wktArea);
+
+  if (!settings.wktArea.empty() && validStations.empty())
+    return {};
+
+  std::vector<std::string> station_ids;
+  for (const auto &item : validStations)
+  {
+    if (settings.stationtype_specifier == "itmf")
+    {
+      if (item->target_group_id == 1201)
+        station_ids.push_back(item->station_id);
+      continue;
+    }
+
+    station_ids.push_back(item->station_id);
+  }
+
+  return dbInfo.sqlSelect(
+      measurandIds, settings.starttime, settings.endtime, station_ids, settings.dataFilter);
+}
+
+// Coordinates of the station of an FmiIoT or TapsiQc observation, if the station is active
+StationCoordinates stationCoordinates(const Settings &settings,
+                                      ResultSetRow &rsr,
+                                      const Fmi::LocalDateTime &obstime,
+                                      const FmiIoTStations &stations)
+{
+  StationCoordinates coords;
+  if (isIoTProducer(settings.stationtype))
+  {
+    std::string station_code = *(std::get_if<std::string>(&rsr["station_code"]));
+
+    if (stations.isActive(station_code, obstime.utc_time()))
+    {
+      const FmiIoTStation &s = stations.getStation(station_code, obstime.utc_time());
+      coords.longitude = s.longitude;
+      coords.latitude = s.latitude;
+      if (s.elevation >= 0.0)
+        coords.elevation = s.elevation;
+    }
+  }
+  return coords;
+}
+
+// Value of a coordinate field of an FmiIoT or TapsiQc observation
+TS::Value coordinateValue(const std::string &fieldname, const StationCoordinates &coords)
+{
+  TS::Value value;
+  if (fieldname == "longitude" && coords.longitude)
+  {
+    value = *coords.longitude;
+  }
+  else if (fieldname == "latitude" && coords.latitude)
+  {
+    value = *coords.latitude;
+  }
+  // BUG ??? elevation is configurable (null op test), altitude is not
+  else if ((fieldname == "altitude" || fieldname == "elevation") && coords.elevation)
+  {
+    value = *coords.elevation;
+  }
+  return value;
+}
+
+// Name of the result set column holding the given query field
+std::string resultFieldname(const std::string &queryfield,
+                            PostgreSQLObsDB &db,
+                            const ExternalAndMobileProducerConfigItem &producerConfig,
+                            const ExternalAndMobileDBInfo &dbInfo)
+{
+  const Measurands &measurands = producerConfig.measurands();
+  std::string fieldname = queryfield;
+  if (measurands.find(fieldname) == measurands.end())
+  {
+    const auto iter = db.getParameterMap()->find(fieldname);
+    if (iter != db.getParameterMap()->end())
+    {
+      std::string producer = producerConfig.producerId().name();
+      if (iter->second.find(producer) != iter->second.end())
+      {
+        fieldname = iter->second.at(producer);
+      }
+    }
+  }
+  else
+  {
+    fieldname = dbInfo.measurandFieldname(measurands.at(fieldname));
+  }
+  return fieldname;
+}
+}  // namespace
+
 TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
     PostgreSQLObsDB &db,
     const Settings& settings,
@@ -113,38 +235,10 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
       }
     }
 
-    std::string sqlStmt;
-    if ((settings.stationtype == FMI_IOT_PRODUCER) || (settings.stationtype == TAPSI_QC_PRODUCER))
-    {
-      std::vector<const FmiIoTStation *> validStations = itsStations->getStations(settings.wktArea);
-
-      if (!settings.wktArea.empty() && validStations.empty())
-        return ret;
-
-      std::vector<std::string> station_ids;
-      for (const auto &item : validStations)
-      {
-        if (settings.stationtype_specifier == "itmf")
-        {
-          if (item->target_group_id == 1201)
-            station_ids.push_back(item->station_id);
-          continue;
-        }
-
-        station_ids.push_back(item->station_id);
-      }
-
-      sqlStmt = dbInfo.sqlSelect(
-          measurandIds, settings.starttime, settings.endtime, station_ids, settings.dataFilter);
-    }
-    else
-    {
-      sqlStmt = dbInfo.sqlSelect(measurandIds,
-                                 settings.starttime,
-                                 settings.endtime,
-                                 settings.wktArea,
-                                 settings.dataFilter);
-    }
+    auto sqlStatement = buildSqlStatement(settings, dbInfo, measurandIds, *itsStations);
+    if (!sqlStatement)
+      return ret;
+    const std::string &sqlStmt = *sqlStatement;
 
     if (settings.debug_options)
       std::cout << "PostgreSQL: " << sqlStmt << '\n';
@@ -174,25 +268,10 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
       // FIXME: may dereference nullptr
       Fmi::LocalDateTime obstime = *(std::get_if<Fmi::LocalDateTime>(&rsr["data_time"]));
 
-      std::optional<double> longitudeValue;
-      std::optional<double> latitudeValue;
-      std::optional<double> elevationValue;
-      if ((settings.stationtype == FMI_IOT_PRODUCER) || (settings.stationtype == TAPSI_QC_PRODUCER))
-      {
-        std::string station_code = *(std::get_if<std::string>(&rsr["station_code"]));
-
-        if (itsStations->isActive(station_code, obstime.utc_time()))
-        {
-          const FmiIoTStation &s = itsStations->getStation(station_code, obstime.utc_time());
-          longitudeValue = s.longitude;
-          latitudeValue = s.latitude;
-          if (s.elevation >= 0.0)
-            elevationValue = s.elevation;
-        }
-      }
+      const auto coords = stationCoordinates(settings, rsr, obstime, *itsStations);
 
       unsigned int index = 0;
-      for (auto fieldname : queryfields)
+      for (const auto &fieldname : queryfields)
       {
         if (fieldname == "created")
         {
@@ -200,54 +279,21 @@ TS::TimeSeriesVectorPtr QueryExternalAndMobileData::executeQuery(
           std::string fieldValue = db.getTimeFormatter()->format(dt);
           ret->at(index).emplace_back(TS::TimedValue(obstime, fieldValue));
         }
-        else if ((settings.stationtype == FMI_IOT_PRODUCER ||
-                  (settings.stationtype == TAPSI_QC_PRODUCER)) &&
+        else if (isIoTProducer(settings.stationtype) &&
                  (fieldname == "longitude" || fieldname == "latitude" || fieldname == "altitude"))
         {
-          TS::Value value;
-          if (fieldname == "longitude" && longitudeValue)
-          {
-            value = *longitudeValue;
-          }
-          else if (fieldname == "latitude" && latitudeValue)
-          {
-            value = *latitudeValue;
-          }
-          // BUG ??? elevation is configurable (null op test), altitude is not
-          else if ((fieldname == "altitude" || fieldname == "elevation") && elevationValue)
-          {
-            value = *elevationValue;
-          }
-          ret->at(index).emplace_back(TS::TimedValue(obstime, value));
+          ret->at(index).emplace_back(TS::TimedValue(obstime, coordinateValue(fieldname, coords)));
         }
         else
         {
-          TS::Value value;
-          if (measurands.find(fieldname) == measurands.end())
-          {
-            const auto iter = db.getParameterMap()->find(fieldname);
-            if (iter != db.getParameterMap()->end())
-            {
-              std::string producer = producerConfig.producerId().name();
-              if (iter->second.find(producer) != iter->second.end())
-              {
-                fieldname = iter->second.at(producer);
-              }
-            }
-          }
-          else
-          {
-            fieldname = dbInfo.measurandFieldname(measurands.at(fieldname));
-          }
-          value = rsr[fieldname];
-
+          TS::Value value = rsr[resultFieldname(fieldname, db, producerConfig, dbInfo)];
           ret->at(index).emplace_back(TS::TimedValue(obstime, value));
         }
         index++;
 
         n_elements += ret->size();
-        if (longitudeValue && latitudeValue)
-          locations.insert(Fmi::to_string(*longitudeValue) + Fmi::to_string(*latitudeValue));
+        if (coords.longitude && coords.latitude)
+          locations.insert(Fmi::to_string(*coords.longitude) + Fmi::to_string(*coords.latitude));
         obstimes.insert(obstime);
 
         check_request_limit(
