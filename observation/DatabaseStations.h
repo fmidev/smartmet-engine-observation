@@ -15,6 +15,8 @@ namespace Engine
 {
 namespace Observation
 {
+class ObservationCache;
+
 class DatabaseStations
 {
  public:
@@ -41,6 +43,20 @@ class DatabaseStations
  private:
   Spine::TaggedFMISIDList translateGeoIdsToFMISID(const Settings& settings,
                                                   const GeoIdSettings& geoidSettings) const;
+  void addNearestStations(Spine::TaggedFMISIDList& result,
+                          const Settings& settings,
+                          const NearestStationSettings& nss,
+                          const std::set<int>& named_fmisids,
+                          const StationInfo& info) const;
+  void addNearestStationsWithData(Spine::TaggedFMISIDList& result,
+                                  const Settings& settings,
+                                  const NearestStationSettings& nss,
+                                  const std::string& nssTag,
+                                  const std::set<std::string>& stationgroup_codes,
+                                  const StationInfo& info,
+                                  const ObservationCache& cache,
+                                  const std::string& measurandIds,
+                                  const std::string& cacheTableName) const;
   void getStationGroups(std::set<std::string>& stationgroup_codes,
                         const std::string& stationtype,
                         const std::set<std::string>& stationgroups) const;

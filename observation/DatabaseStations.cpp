@@ -88,6 +88,25 @@ std::string resolveCacheTableName(const StationtypeConfig& stc, const std::strin
   return {};
 }
 
+// Remove duplicate stations, keeping the first occurrence
+Spine::TaggedFMISIDList removeDuplicateFmisids(const Spine::TaggedFMISIDList& result)
+{
+  Spine::TaggedFMISIDList ret;
+
+  // Remove duplicates
+  std::set<int> accepted_fmisids;
+  for (const auto& item : result)
+  {
+    if (accepted_fmisids.find(item.fmisid) != accepted_fmisids.end())
+      continue;
+
+    ret.push_back(item);
+    accepted_fmisids.insert(item.fmisid);
+  }
+
+  return ret;
+}
+
 }  // namespace
 
 void DatabaseStations::getStationsByArea(Spine::Stations& stations,
@@ -212,6 +231,156 @@ Spine::TaggedFMISIDList DatabaseStations::translateGeoIdsToFMISID(
   return ret;
 }
 
+// Add the nearest stations of a nearest station search to the result
+void DatabaseStations::addNearestStations(Spine::TaggedFMISIDList& result,
+                                          const Settings& settings,
+                                          const NearestStationSettings& nss,
+                                          const std::set<int>& named_fmisids,
+                                          const StationInfo& info) const
+{
+  if (nss.numberofstations <= 0)
+    return;
+
+  // The caller named this station explicitly (e.g. fmisid=100963). It is already in
+  // the result, and it must not be replaced by a nearby station even if it turns out
+  // to be unusable for the requested stationtype or time period.
+
+  if (nss.fmisid && named_fmisids.find(*nss.fmisid) != named_fmisids.end())
+    return;
+
+  std::string nssTag = (nss.tag.empty() ? DatabaseStations::getTag(nss) : nss.tag);
+
+  StationtypeConfig::GroupCodeSetType stationgroup_codes;
+  getStationGroups(stationgroup_codes, settings.stationtype, settings.stationgroups);
+
+  // The location may carry the identifier of a station (geonames stores fmisids as
+  // alternate names of places), in which case there is no point in searching by
+  // distance. The station must however be usable for this request: the final station
+  // list is built by getStations() using StationInfo::findFmisidStations(), which drops
+  // stations outside the requested station groups and stations not in use during the
+  // requested period. Short circuiting to such a station would leave no stations at
+  // all, and the request would return nothing even though suitable stations are within
+  // maxdistance. The same day_start/day_end limits are used here as in getStations(),
+  // so that a station is accepted here exactly when it will also survive there.
+
+  bool named_station = false;
+  if (nss.fmisid)
+    named_station = !info.findFmisidStations(std::vector<int>{*nss.fmisid},
+                                             stationgroup_codes,
+                                             day_start(settings.starttime),
+                                             day_end(settings.endtime))
+                         .empty();
+
+  if (named_station)
+  {
+    // The geoid is a station, do not bother searching based on distance. We arbitrarily choose
+    // direction 0.0 with distance 0.
+
+    result.emplace_back(nssTag, *nss.fmisid, 0.0, "0");
+    return;
+  }
+
+  // Resolve cache table name and measurand IDs to decide whether to filter
+  // stations by data availability. This avoids returning stations that are
+  // nearby but have no data for the requested parameters (e.g. a buoy station
+  // when temperature and precipitation are requested).
+
+  auto cacheTableName =
+      resolveCacheTableName(itsObservationEngineParameters->stationtypeConfig, settings.stationtype);
+
+  bool isWeatherDataQC = (cacheTableName == WEATHER_DATA_QC_TABLE);
+
+  auto measurandIds = buildMeasurandIdList(itsObservationEngineParameters->parameterMap,
+                                           settings.parameters,
+                                           settings.stationtype,
+                                           isWeatherDataQC);
+
+  // Get the cache for checking data availability
+  std::shared_ptr<ObservationCache> cache;
+  if (!measurandIds.empty() && !cacheTableName.empty())
+    cache = itsObservationEngineParameters->observationCacheProxy->getCacheByTableName(
+        cacheTableName);
+
+  if (cache)
+  {
+    addNearestStationsWithData(result,
+                               settings,
+                               nss,
+                               nssTag,
+                               stationgroup_codes,
+                               info,
+                               *cache,
+                               measurandIds,
+                               cacheTableName);
+    return;
+  }
+
+  // No filtering possible: no observation parameters or no cache available.
+  // Fall back to the original behaviour.
+
+  auto stations = info.findNearestStations(nss.longitude,
+                                           nss.latitude,
+                                           nss.maxdistance,
+                                           nss.numberofstations,
+                                           stationgroup_codes,
+                                           settings.starttime,
+                                           settings.endtime);
+
+  for (Spine::Station& s : stations)
+    result.emplace_back(nssTag, s.fmisid, s.stationDirection, s.distance);
+}
+
+// Add the nearest stations which have data for the requested parameters
+void DatabaseStations::addNearestStationsWithData(
+    Spine::TaggedFMISIDList& result,
+    const Settings& settings,
+    const NearestStationSettings& nss,
+    const std::string& nssTag,
+    const std::set<std::string>& stationgroup_codes,
+    const StationInfo& info,
+    const ObservationCache& cache,
+    const std::string& measurandIds,
+    const std::string& cacheTableName) const
+{
+  // Fetch a few extra candidates so that stations which lack the requested
+  // parameters can be skipped without reducing the result count.  The number
+  // of extra candidates is configurable (nearestStationExtraCandidates, default 3).
+
+  int extra = itsObservationEngineParameters->nearestStationExtraCandidates;
+
+  auto candidates = info.findNearestStations(nss.longitude,
+                                             nss.latitude,
+                                             nss.maxdistance,
+                                             nss.numberofstations + extra,
+                                             stationgroup_codes,
+                                             settings.starttime,
+                                             settings.endtime);
+
+  if (candidates.empty())
+    return;
+
+  // Lightweight SQL check: which candidate stations actually have data?
+  std::vector<int> candidate_fmisids;
+  candidate_fmisids.reserve(candidates.size());
+  for (const auto& s : candidates)
+    candidate_fmisids.push_back(s.fmisid);
+
+  auto valid = cache.stationsWithObservations(
+      candidate_fmisids, measurandIds, settings.starttime, settings.endtime, cacheTableName);
+
+  // Pick the first numberofstations that have data (candidates are distance-sorted)
+  int added = 0;
+  for (const auto& s : candidates)
+  {
+    if (valid.find(s.fmisid) != valid.end())
+    {
+      result.emplace_back(nssTag, s.fmisid, s.stationDirection, s.distance);
+      if (++added >= nss.numberofstations)
+        break;
+    }
+  }
+}
+
 Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
     const Settings& settings, const StationSettings& stationSettings) const
 {
@@ -261,147 +430,10 @@ Spine::TaggedFMISIDList DatabaseStations::translateToFMISID(
   }
 
   // Find FMISIDs of nearest stations
-  for (auto nss : stationSettings.nearest_station_settings)
-  {
-    if (nss.numberofstations > 0)
-    {
-      // The caller named this station explicitly (e.g. fmisid=100963). It is already in
-      // the result, and it must not be replaced by a nearby station even if it turns out
-      // to be unusable for the requested stationtype or time period.
+  for (const auto& nss : stationSettings.nearest_station_settings)
+    addNearestStations(result, settings, nss, named_fmisids, *info);
 
-      if (nss.fmisid && named_fmisids.find(*nss.fmisid) != named_fmisids.end())
-        continue;
-
-      std::string nssTag = (nss.tag.empty() ? DatabaseStations::getTag(nss) : nss.tag);
-
-      StationtypeConfig::GroupCodeSetType stationgroup_codes;
-      getStationGroups(stationgroup_codes, settings.stationtype, settings.stationgroups);
-
-      // The location may carry the identifier of a station (geonames stores fmisids as
-      // alternate names of places), in which case there is no point in searching by
-      // distance. The station must however be usable for this request: the final station
-      // list is built by getStations() using StationInfo::findFmisidStations(), which drops
-      // stations outside the requested station groups and stations not in use during the
-      // requested period. Short circuiting to such a station would leave no stations at
-      // all, and the request would return nothing even though suitable stations are within
-      // maxdistance. The same day_start/day_end limits are used here as in getStations(),
-      // so that a station is accepted here exactly when it will also survive there.
-
-      bool named_station = false;
-      if (nss.fmisid)
-        named_station = !info->findFmisidStations(std::vector<int>{*nss.fmisid},
-                                                  stationgroup_codes,
-                                                  day_start(settings.starttime),
-                                                  day_end(settings.endtime))
-                             .empty();
-
-      if (named_station)
-      {
-        // The geoid is a station, do not bother searching based on distance. We arbitrarily choose
-        // direction 0.0 with distance 0.
-
-        result.emplace_back(nssTag, *nss.fmisid, 0.0, "0");
-      }
-      else
-      {
-        // Resolve cache table name and measurand IDs to decide whether to filter
-        // stations by data availability. This avoids returning stations that are
-        // nearby but have no data for the requested parameters (e.g. a buoy station
-        // when temperature and precipitation are requested).
-
-        auto cacheTableName = resolveCacheTableName(
-            itsObservationEngineParameters->stationtypeConfig, settings.stationtype);
-
-        bool isWeatherDataQC = (cacheTableName == WEATHER_DATA_QC_TABLE);
-
-        auto measurandIds = buildMeasurandIdList(itsObservationEngineParameters->parameterMap,
-                                                 settings.parameters,
-                                                 settings.stationtype,
-                                                 isWeatherDataQC);
-
-        // Get the cache for checking data availability
-        std::shared_ptr<ObservationCache> cache;
-        if (!measurandIds.empty() && !cacheTableName.empty())
-          cache = itsObservationEngineParameters->observationCacheProxy->getCacheByTableName(
-              cacheTableName);
-
-        if (cache)
-        {
-          // Fetch a few extra candidates so that stations which lack the requested
-          // parameters can be skipped without reducing the result count.  The number
-          // of extra candidates is configurable (nearestStationExtraCandidates, default 3).
-
-          int extra = itsObservationEngineParameters->nearestStationExtraCandidates;
-
-          auto candidates = info->findNearestStations(nss.longitude,
-                                                      nss.latitude,
-                                                      nss.maxdistance,
-                                                      nss.numberofstations + extra,
-                                                      stationgroup_codes,
-                                                      settings.starttime,
-                                                      settings.endtime);
-
-          if (!candidates.empty())
-          {
-            // Lightweight SQL check: which candidate stations actually have data?
-            std::vector<int> candidate_fmisids;
-            candidate_fmisids.reserve(candidates.size());
-            for (const auto& s : candidates)
-              candidate_fmisids.push_back(s.fmisid);
-
-            auto valid = cache->stationsWithObservations(candidate_fmisids,
-                                                         measurandIds,
-                                                         settings.starttime,
-                                                         settings.endtime,
-                                                         cacheTableName);
-
-            // Pick the first numberofstations that have data (candidates are distance-sorted)
-            int added = 0;
-            for (const auto& s : candidates)
-            {
-              if (valid.find(s.fmisid) != valid.end())
-              {
-                result.emplace_back(nssTag, s.fmisid, s.stationDirection, s.distance);
-                if (++added >= nss.numberofstations)
-                  break;
-              }
-            }
-          }
-        }
-        else
-        {
-          // No filtering possible: no observation parameters or no cache available.
-          // Fall back to the original behaviour.
-
-          auto stations = info->findNearestStations(nss.longitude,
-                                                    nss.latitude,
-                                                    nss.maxdistance,
-                                                    nss.numberofstations,
-                                                    stationgroup_codes,
-                                                    settings.starttime,
-                                                    settings.endtime);
-
-          for (Spine::Station& s : stations)
-            result.emplace_back(nssTag, s.fmisid, s.stationDirection, s.distance);
-        }
-      }
-    }
-  }
-
-  Spine::TaggedFMISIDList ret;
-
-  // Remove duplicates
-  std::set<int> accepted_fmisids;
-  for (const auto& item : result)
-  {
-    if (accepted_fmisids.find(item.fmisid) != accepted_fmisids.end())
-      continue;
-
-    ret.push_back(item);
-    accepted_fmisids.insert(item.fmisid);
-  }
-
-  return ret;
+  return removeDuplicateFmisids(result);
 }
 
 void DatabaseStations::getStationGroups(std::set<std::string>& stationgroup_codes,
