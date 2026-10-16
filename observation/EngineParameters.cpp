@@ -179,6 +179,51 @@ void EngineParameters::readDataQualityConfig(Spine::ConfigBase& cfg)
   }
 }
 
+namespace
+{
+// Mobile and external producers are configured separately
+bool isExternalProducer(const std::string& stationtype)
+{
+  return (stationtype == "roadcloud" || stationtype == "teconer" || stationtype == "netatmo" ||
+          stationtype == "fmi_iot" || stationtype == "tapsi_qc");
+}
+}  // namespace
+
+// Read the station groups and query settings of a regular station type
+void EngineParameters::readStationTypeGroups(Spine::ConfigBase& cfg,
+                                             libconfig::Setting& stationtype_settings,
+                                             const std::string& stationtype,
+                                             const std::string& databaseTableName,
+                                             const std::vector<uint>& producerIdVector)
+{
+  auto useCommonQueryMethod = false;
+  std::vector<std::string> stationgroupCodeVector;
+
+  stationtype_settings.lookupValue("useCommonQueryMethod", useCommonQueryMethod);
+
+  if (stationtype_settings.exists("stationGroups"))
+    stationgroupCodeVector =
+        cfg.get_mandatory_config_array<std::string>(stationtype_settings, "stationGroups");
+  else
+    stationgroupCodeVector.emplace_back("VOID_AND_MISSING");
+
+  if (databaseTableName.empty() && useCommonQueryMethod)
+  {
+    throw Fmi::Exception(BCP, "Invalid parameter value!")
+        .addDetail(fmt::format("databaseTableName parameter definition is required for the "
+                               "stationtype '{}' if the useCommonQueryMethod value is true.",
+                               stationtype));
+  }
+
+  stationtypeConfig.addStationtype(stationtype, stationgroupCodeVector);
+  stationtypeConfig.setUseCommonQueryMethod(stationtype, useCommonQueryMethod);
+
+  if (!producerIdVector.empty())
+    stationtypeConfig.setProducerIds(stationtype, producerIdVector);
+  if (!databaseTableName.empty())
+    stationtypeConfig.setDatabaseTableName(stationtype, databaseTableName);
+}
+
 void EngineParameters::readStationTypeConfig(Spine::ConfigBase& cfg)
 {
   try
@@ -209,39 +254,14 @@ void EngineParameters::readStationTypeConfig(Spine::ConfigBase& cfg)
               cfg.get_mandatory_config_array<uint>(stationtype_settings, "producerIds");
 
         // Mobile and external producers
-        if (stationtype == "roadcloud" || stationtype == "teconer" || stationtype == "netatmo" ||
-            stationtype == "fmi_iot" || stationtype == "tapsi_qc")
+        if (isExternalProducer(stationtype))
         {
           readExternalProducerConfig(stationtype, databaseTableName, producerIdVector);
           continue;
         }
 
-        auto useCommonQueryMethod = false;
-        std::vector<std::string> stationgroupCodeVector;
-
-        stationtype_settings.lookupValue("useCommonQueryMethod", useCommonQueryMethod);
-
-        if (stationtype_settings.exists("stationGroups"))
-          stationgroupCodeVector =
-              cfg.get_mandatory_config_array<std::string>(stationtype_settings, "stationGroups");
-        else
-          stationgroupCodeVector.emplace_back("VOID_AND_MISSING");
-
-        if (databaseTableName.empty() && useCommonQueryMethod)
-        {
-          throw Fmi::Exception(BCP, "Invalid parameter value!")
-              .addDetail(fmt::format("databaseTableName parameter definition is required for the "
-                                     "stationtype '{}' if the useCommonQueryMethod value is true.",
-                                     stationtype));
-        }
-
-        stationtypeConfig.addStationtype(stationtype, stationgroupCodeVector);
-        stationtypeConfig.setUseCommonQueryMethod(stationtype, useCommonQueryMethod);
-
-        if (!producerIdVector.empty())
-          stationtypeConfig.setProducerIds(stationtype, producerIdVector);
-        if (!databaseTableName.empty())
-          stationtypeConfig.setDatabaseTableName(stationtype, databaseTableName);
+        readStationTypeGroups(
+            cfg, stationtype_settings, stationtype, databaseTableName, producerIdVector);
       }
     }
     else

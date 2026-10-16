@@ -26,6 +26,11 @@ struct EngineParameters
 
   void readDataQualityConfig(Spine::ConfigBase& cfg);
   void readStationTypeConfig(Spine::ConfigBase& cfg);
+  void readStationTypeGroups(Spine::ConfigBase& cfg,
+                             libconfig::Setting& stationtype_settings,
+                             const std::string& stationtype,
+                             const std::string& databaseTableName,
+                             const std::vector<uint>& producerIdVector);
   void collectValidStationTypes();
   void readExternalProducerConfig(const std::string& stationtype,
                                   std::string databaseTableName,
