@@ -174,6 +174,97 @@ void bindAndExecuteMobileExternalItem(sqlite3pp::database &db,
   cmd.reset();
 }
 
+// Select the database columns of the requested flash parameters, and collect the result
+// positions of the data and special parameters. Returns the comma separated column list.
+std::string flashQueryParameters(const Settings &settings,
+                                 const ParameterMap &parameterMap,
+                                 const std::string &stationtype,
+                                 map<string, int> &timeseriesPositions,
+                                 map<string, int> &specialPositions,
+                                 map<string, int> &databaseColumns)
+{
+  string param;
+  unsigned int param_pos = 0;
+  int column_pos = 5;  // stroke_time, stroke_time_fraction, flash_id, longitude, latitude first
+  for (const Spine::Parameter &p : settings.parameters)
+  {
+    std::string name = p.name();
+    boost::to_lower(name, std::locale::classic());
+    if (not_special(p))
+    {
+      if (!parameterMap.getParameter(name, stationtype).empty())
+      {
+        std::string pname = parameterMap.getParameter(name, stationtype);
+        boost::to_lower(pname, std::locale::classic());
+        timeseriesPositions[pname] = param_pos;
+        databaseColumns[pname] = column_pos++;
+        param += pname + ",";
+      }
+    }
+    else
+    {
+      specialPositions[name] = param_pos;
+    }
+    param_pos++;
+  }
+  return param;
+}
+
+// Location conditions of the flash data query
+std::string flashLocationConditions(const Settings &settings)
+{
+  std::string conditions;
+
+  if (!settings.taggedLocations.empty())
+  {
+    for (const auto &tloc : settings.taggedLocations)
+    {
+      if (tloc.loc->type == Spine::Location::CoordinatePoint)
+      {
+        std::string lon = Fmi::to_string(tloc.loc->longitude);
+        std::string lat = Fmi::to_string(tloc.loc->latitude);
+        // tloc.loc->radius in kilometers and PtDistWithin uses meters
+        std::string radius = Fmi::to_string(tloc.loc->radius * 1000);
+        conditions += " AND PtDistWithin((SELECT GeomFromText('POINT(" + lon + " " + lat +
+                      ")', 4326)), flash.stroke_location, " + radius + ") = 1 ";
+      }
+      if (tloc.loc->type == Spine::Location::BoundingBox && settings.boundingBox.empty())
+      {
+        std::string bboxString = tloc.loc->name;
+        Spine::BoundingBox bbox(bboxString);
+
+        conditions += "AND MbrWithin(flash.stroke_location, BuildMbr(" +
+                      Fmi::to_string(bbox.xMin) + ", " + Fmi::to_string(bbox.yMin) + ", " +
+                      Fmi::to_string(bbox.xMax) + ", " + Fmi::to_string(bbox.yMax) + ")) ";
+      }
+    }
+  }
+  if (!settings.boundingBox.empty())
+  {
+    conditions += "AND MbrWithin(flash.stroke_location, BuildMbr(" +
+                  Fmi::to_string(settings.boundingBox.at("minx")) + ", " +
+                  Fmi::to_string(settings.boundingBox.at("miny")) + ", " +
+                  Fmi::to_string(settings.boundingBox.at("maxx")) + ", " +
+                  Fmi::to_string(settings.boundingBox.at("maxy")) + ")) ";
+  }
+
+  return conditions;
+}
+
+// Value of a column of a SQLite query
+TS::Value sqliteColumnValue(sqlite3pp::query::rows &row, int i)
+{
+  int data_type = row.column_type(i);
+  TS::Value temp;
+  if (data_type == SQLITE_TEXT)
+    temp = row.get<std::string>(i);
+  else if (data_type == SQLITE_FLOAT)
+    temp = row.get<double>(i);
+  else if (data_type == SQLITE_INTEGER)
+    temp = row.get<int>(i);
+  return temp;
+}
+
 // Value of a column of the mobile and external data cache query
 TS::Value mobileColumnValue(sqlite3pp::query::rows &row,
                             int i,
@@ -2627,31 +2718,12 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
     // matches the previous name keyed lookup of the row values.
     map<string, int> databaseColumns;
 
-    string param;
-    unsigned int param_pos = 0;
-    int column_pos = 5;  // stroke_time, stroke_time_fraction, flash_id, longitude, latitude first
-    for (const Spine::Parameter &p : settings.parameters)
-    {
-      std::string name = p.name();
-      boost::to_lower(name, std::locale::classic());
-      if (not_special(p))
-      {
-        if (!itsParameterMap->getParameter(name, stationtype).empty())
-        {
-          std::string pname = itsParameterMap->getParameter(name, stationtype);
-          boost::to_lower(pname, std::locale::classic());
-          timeseriesPositions[pname] = param_pos;
-          databaseColumns[pname] = column_pos++;
-          param += pname + ",";
-        }
-      }
-      else
-      {
-        specialPositions[name] = param_pos;
-      }
-      param_pos++;
-    }
-
+    string param = flashQueryParameters(settings,
+                                        *itsParameterMap,
+                                        stationtype,
+                                        timeseriesPositions,
+                                        specialPositions,
+                                        databaseColumns);
     param = trimCommasFromEnd(param);
 
     auto starttimeString = Fmi::to_string(to_epoch(settings.starttime));
@@ -2671,38 +2743,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
         "WHERE flash.stroke_time >= " +
         starttimeString + " AND flash.stroke_time <= " + endtimeString + " ";
 
-    if (!settings.taggedLocations.empty())
-    {
-      for (const auto &tloc : settings.taggedLocations)
-      {
-        if (tloc.loc->type == Spine::Location::CoordinatePoint)
-        {
-          std::string lon = Fmi::to_string(tloc.loc->longitude);
-          std::string lat = Fmi::to_string(tloc.loc->latitude);
-          // tloc.loc->radius in kilometers and PtDistWithin uses meters
-          std::string radius = Fmi::to_string(tloc.loc->radius * 1000);
-          query += " AND PtDistWithin((SELECT GeomFromText('POINT(" + lon + " " + lat +
-                   ")', 4326)), flash.stroke_location, " + radius + ") = 1 ";
-        }
-        if (tloc.loc->type == Spine::Location::BoundingBox && settings.boundingBox.empty())
-        {
-          std::string bboxString = tloc.loc->name;
-          Spine::BoundingBox bbox(bboxString);
-
-          query += "AND MbrWithin(flash.stroke_location, BuildMbr(" + Fmi::to_string(bbox.xMin) +
-                   ", " + Fmi::to_string(bbox.yMin) + ", " + Fmi::to_string(bbox.xMax) + ", " +
-                   Fmi::to_string(bbox.yMax) + ")) ";
-        }
-      }
-    }
-    if (!settings.boundingBox.empty())
-    {
-      query += "AND MbrWithin(flash.stroke_location, BuildMbr(" +
-               Fmi::to_string(settings.boundingBox.at("minx")) + ", " +
-               Fmi::to_string(settings.boundingBox.at("miny")) + ", " +
-               Fmi::to_string(settings.boundingBox.at("maxx")) + ", " +
-               Fmi::to_string(settings.boundingBox.at("maxy")) + ")) ";
-    }
+    query += flashLocationConditions(settings);
 
     query += "ORDER BY flash.stroke_time ASC, flash.stroke_time_fraction ASC;";
 
@@ -2774,14 +2815,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getFlashData(const Settings &settings,
         for (const auto &column : valueColumns)
         {
           const int i = column.second;
-          int data_type = row.column_type(i);
-          TS::Value temp;
-          if (data_type == SQLITE_TEXT)
-            temp = row.get<std::string>(i);
-          else if (data_type == SQLITE_FLOAT)
-            temp = row.get<double>(i);
-          else if (data_type == SQLITE_INTEGER)
-            temp = row.get<int>(i);
+          TS::Value temp = sqliteColumnValue(row, i);
           timeSeriesColumns->at(column.first).emplace_back(TS::TimedValue(localtime, temp));
         }
 
