@@ -165,6 +165,19 @@ void ObservationCacheAdminBase::init()
   }
 }
 
+// Throw if updates are enabled but the cache cannot be written to
+void ObservationCacheAdminBase::requireWritableCache(
+    const std::shared_ptr<ObservationCache>& cache, const std::string& table) const
+{
+  if (cache && cache->isReadOnly() && !cache->isFakeCache(table))
+    throw Fmi::Exception(BCP,
+                         "Observation cache '" + cache->name() + "' for table '" + table +
+                             "' is read-only but cache updates are enabled for driver '" +
+                             itsParameters.driverName +
+                             "'. Fix the cache file permissions or set "
+                             "disableAllCacheUpdates = true");
+}
+
 void ObservationCacheAdminBase::startInitialCacheUpdates(
     const std::shared_ptr<ObservationCache>& observationCache,
     const std::shared_ptr<ObservationCache>& weatherDataQCCache,
@@ -179,26 +192,14 @@ void ObservationCacheAdminBase::startInitialCacheUpdates(
   // owned by root after running the server manually) would otherwise make every clean and
   // fill below a silent no-op, and each startup would read the full period from the stale
   // cache end to now from the database. Fake caches are test fixtures and are left alone.
-  auto requireWritable =
-      [this](const std::shared_ptr<ObservationCache>& cache, const std::string& table)
-  {
-    if (cache && cache->isReadOnly() && !cache->isFakeCache(table))
-      throw Fmi::Exception(BCP,
-                           "Observation cache '" + cache->name() + "' for table '" + table +
-                               "' is read-only but cache updates are enabled for driver '" +
-                               itsParameters.driverName +
-                               "'. Fix the cache file permissions or set "
-                               "disableAllCacheUpdates = true");
-  };
-
-  requireWritable(observationCache, OBSERVATION_DATA_TABLE);
-  requireWritable(weatherDataQCCache, WEATHER_DATA_QC_TABLE);
-  requireWritable(flashCache, FLASH_DATA_TABLE);
-  requireWritable(netatmoCache, NETATMO_DATA_TABLE);
-  requireWritable(roadcloudCache, ROADCLOUD_DATA_TABLE);
-  requireWritable(fmiIoTCache, FMI_IOT_DATA_TABLE);
-  requireWritable(tapsiQcCache, TAPSI_QC_DATA_TABLE);
-  requireWritable(magnetometerCache, MAGNETOMETER_DATA_TABLE);
+  requireWritableCache(observationCache, OBSERVATION_DATA_TABLE);
+  requireWritableCache(weatherDataQCCache, WEATHER_DATA_QC_TABLE);
+  requireWritableCache(flashCache, FLASH_DATA_TABLE);
+  requireWritableCache(netatmoCache, NETATMO_DATA_TABLE);
+  requireWritableCache(roadcloudCache, ROADCLOUD_DATA_TABLE);
+  requireWritableCache(fmiIoTCache, FMI_IOT_DATA_TABLE);
+  requireWritableCache(tapsiQcCache, TAPSI_QC_DATA_TABLE);
+  requireWritableCache(magnetometerCache, MAGNETOMETER_DATA_TABLE);
 
   // First clean all caches once. If the server has been down for a long time, the sqlite
   // file will increase in size significantly if this is not done first. We will not start

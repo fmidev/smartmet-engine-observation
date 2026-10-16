@@ -111,6 +111,8 @@ class ObservationCacheAdminBase
                                 const std::shared_ptr<ObservationCache>& tapsiQcCache,
                                 const std::shared_ptr<ObservationCache>& magnetometerCache);
 
+  void requireWritableCache(const std::shared_ptr<ObservationCache>& cache,
+                            const std::string& table) const;
   void loadStations();
   void updateFlashCache() const;
   void updateObservationCache() const;
