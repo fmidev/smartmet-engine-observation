@@ -1810,6 +1810,35 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getTapsiQcData(const Settings &settin
   return getMobileAndExternalData(settings, parameterMap, timezones);
 }
 
+namespace
+{
+// The cache table field name of the query field of a mobile or external producer
+std::string cacheFieldname(std::string fieldname,
+                           const Engine::Observation::Measurands &measurands,
+                           const ParameterMapPtr &parameterMap,
+                           const ExternalAndMobileProducerConfigItem &producerConfig,
+                           const ExternalAndMobileDBInfo &dbInfo)
+{
+  if (measurands.find(fieldname) == measurands.end())
+  {
+    const auto iter = parameterMap->find(fieldname);
+    if (iter != parameterMap->end())
+    {
+      std::string producer = producerConfig.producerId().name();
+      if (iter->second.find(producer) != iter->second.end())
+      {
+        fieldname = iter->second.at(producer);
+      }
+    }
+  }
+  else
+  {
+    fieldname = dbInfo.measurandFieldname(measurands.at(fieldname));
+  }
+  return fieldname;
+}
+}  // namespace
+
 TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
     const Settings &settings, const ParameterMapPtr &parameterMap, const Fmi::TimeZones &timezones)
 {
@@ -1869,22 +1898,7 @@ TS::TimeSeriesVectorPtr PostgreSQLCacheDB::getMobileAndExternalData(
         }
         else
         {
-          if (measurands.find(fieldname) == measurands.end())
-          {
-            const auto iter = parameterMap->find(fieldname);
-            if (iter != parameterMap->end())
-            {
-              std::string producer = producerConfig.producerId().name();
-              if (iter->second.find(producer) != iter->second.end())
-              {
-                fieldname = iter->second.at(producer);
-              }
-            }
-          }
-          else
-          {
-            fieldname = dbInfo.measurandFieldname(measurands.at(fieldname));
-          }
+          fieldname = cacheFieldname(fieldname, measurands, parameterMap, producerConfig, dbInfo);
           ret->at(index).emplace_back(TS::TimedValue(obstime, rsr[fieldname]));
         }
         index++;
