@@ -995,6 +995,24 @@ std::size_t collectNewItems(const Items &cacheData,
   return pos2;
 }
 
+// SQL value of an optional number followed by a comma
+template <typename T>
+std::string sqlNumber(const T &value)
+{
+  if (value)
+    return Fmi::to_string(*value) + ",";
+  return "NULL,";
+}
+
+// SQL value of an optional string followed by a comma
+template <typename T>
+std::string sqlText(const T &value)
+{
+  if (value)
+    return "'" + *value + "',";
+  return "NULL,";
+}
+
 // Insert the items with INSERT statements of at most maxInsertSize rows. Items with a key
 // already seen are inserted by later statements, since a single INSERT ... ON CONFLICT
 // statement cannot update the same row twice. Empty statements are not executed.
@@ -1402,138 +1420,75 @@ std::size_t PostgreSQLCacheDB::fillRoadCloudCache(
       // Collect new items before taking a lock - we might avoid one completely
       std::vector<std::size_t> new_items;
       std::vector<std::size_t> new_hashes;
-      new_items.reserve(itsMaxInsertSize);
-      new_hashes.reserve(itsMaxInsertSize);
 
-      std::size_t pos2 = 0;
-      for (pos2 = pos1;
-           new_hashes.size() < itsMaxInsertSize && pos2 < mobileExternalCacheData.size();
-           ++pos2)
-      {
-        const auto &item = mobileExternalCacheData[pos2];
-
-        auto hash = item.hash_value();
-
-        if (!itsRoadCloudInsertCache.exists(hash))
-        {
-          new_items.push_back(pos2);
-          new_hashes.push_back(hash);
-        }
-      }
+      std::size_t pos2 = collectNewItems(mobileExternalCacheData,
+                                         pos1,
+                                         itsMaxInsertSize,
+                                         itsRoadCloudInsertCache,
+                                         new_items,
+                                         new_hashes);
 
       // Now insert the new items
+
       if (!new_items.empty())
       {
         Spine::WriteLock lock(roadcloud_data_write_mutex);
-        std::vector<std::size_t> mobileDataToUpdate = new_items;
+        insertItems(transaction,
+                    mobileExternalCacheData,
+                    new_items,
+                    itsMaxInsertSize,
+                    "INSERT INTO ext_obsdata_roadcloud "
+                    "(prod_id, station_id, dataset_id, data_level, mid, sensor_no, "
+                    "data_time, data_value, data_value_txt, data_quality, ctrl_status, "
+                    "created, altitude, geom) "
+                    "VALUES ",
+                    " ON CONFLICT(prod_id, mid, data_time, geom) DO "
+                    "UPDATE SET "
+                    "(station_id, dataset_id, data_level, sensor_no, data_value, data_value_txt, "
+                    "data_quality, ctrl_status, created, altitude) = "
+                    "(EXCLUDED.station_id, EXCLUDED.dataset_id, EXCLUDED.data_level, "
+                    "EXCLUDED.sensor_no, EXCLUDED.data_value, EXCLUDED.data_value_txt, "
+                    "EXCLUDED.data_quality, EXCLUDED.ctrl_status, EXCLUDED.created, "
+                    "EXCLUDED.altitude)",
+                    [&](const auto &item)
+                    {
+                      std::string data_time = Fmi::to_iso_string(item.data_time);
+                      boost::replace_all(data_time, ",", ".");
+                      std::string key = Fmi::to_string(item.prod_id);
+                      key += Fmi::to_string(item.mid);
+                      key += data_time;
+                      key += Fmi::to_string(item.longitude);
+                      key += Fmi::to_string(item.latitude);
+                      //  prod_id, mid, data_time, longitude, latitude
+                      return key;
+                    },
+                    [&](const auto &item)
+                    {
+                      std::string data_time = Fmi::to_iso_string(item.data_time);
+                      boost::replace_all(data_time, ",", ".");
+                      std::string obs_location =
+                          "ST_GeomFromText('POINT(" + Fmi::to_string("%.10g", item.longitude) +
+                          " " + Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
 
-        while (!mobileDataToUpdate.empty())
-        {
-          const auto &last_item = mobileExternalCacheData[mobileDataToUpdate.back()];
-          std::vector<std::string> values_vector;
-          std::set<std::string> key_set;  // to check duplicates
-          std::vector<std::size_t> duplicateMobileObs;
-
-          for (const auto i : mobileDataToUpdate)
-          {
-            const auto &item = mobileExternalCacheData[i];
-
-            std::string data_time = Fmi::to_iso_string(item.data_time);
-            boost::replace_all(data_time, ",", ".");
-            std::string key = Fmi::to_string(item.prod_id);
-            key += Fmi::to_string(item.mid);
-            key += data_time;
-            key += Fmi::to_string(item.longitude);
-            key += Fmi::to_string(item.latitude);
-            //  prod_id, mid, data_time, longitude, latitude
-            if (key_set.find(key) != key_set.end())
-            {
-              duplicateMobileObs.push_back(i);
-            }
-            else
-            {
-              key_set.insert(key);
-
-              std::string obs_location =
-                  "ST_GeomFromText('POINT(" + Fmi::to_string("%.10g", item.longitude) + " " +
-                  Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
-
-              std::string values = "(";
-              values += Fmi::to_string(item.prod_id) + ",";
-              if (item.station_id)
-                values += Fmi::to_string(*item.station_id) + ",";
-              else
-                values += "NULL,";
-              if (item.dataset_id)
-                values += "'" + *item.dataset_id + "',";
-              else
-                values += "NULL,";
-              if (item.data_level)
-                values += Fmi::to_string(*item.data_level) + ",";
-              else
-                values += "NULL,";
-              values += Fmi::to_string(item.mid) + ",";
-              if (item.sensor_no)
-                values += Fmi::to_string(*item.sensor_no) + ",";
-              else
-                values += "NULL,";
-              values += "'" + data_time + "',";
-              values += Fmi::to_string(item.data_value) + ",";
-              if (item.data_value_txt)
-                values += "'" + *item.data_value_txt + "',";
-              else
-                values += "NULL,";
-              if (item.data_quality)
-                values += Fmi::to_string(*item.data_quality) + ",";
-              else
-                values += "NULL,";
-              if (item.ctrl_status)
-                values += Fmi::to_string(*item.ctrl_status) + ",";
-              else
-                values += "NULL,";
-              std::string created = Fmi::to_iso_string(item.created);
-              boost::replace_all(created, ",", ".");
-              values += "'" + created + "',";
-              if (item.altitude)
-                values += Fmi::to_string(*item.altitude) + ",";
-              else
-                values += "NULL,";
-              values += obs_location + ")";
-              values_vector.push_back(values);
-            }
-
-            if ((values_vector.size() % itsMaxInsertSize == 0) || &item == &last_item)
-            {
-              std::string sqlStmt =
-                  "INSERT INTO ext_obsdata_roadcloud "
-                  "(prod_id, station_id, dataset_id, data_level, mid, sensor_no, "
-                  "data_time, data_value, data_value_txt, data_quality, ctrl_status, "
-                  "created, altitude, geom) "
-                  "VALUES ";
-
-              for (const auto &v : values_vector)
-              {
-                sqlStmt += v;
-                if (&v != &values_vector.back())
-                  sqlStmt += ",";
-              }
-
-              sqlStmt +=
-                  " ON CONFLICT(prod_id, mid, data_time, geom) DO "
-                  "UPDATE SET "
-                  "(station_id, dataset_id, data_level, sensor_no, data_value, data_value_txt, "
-                  "data_quality, ctrl_status, created, altitude) = "
-                  "(EXCLUDED.station_id, EXCLUDED.dataset_id, EXCLUDED.data_level, "
-                  "EXCLUDED.sensor_no, EXCLUDED.data_value, EXCLUDED.data_value_txt, "
-                  "EXCLUDED.data_quality, EXCLUDED.ctrl_status, EXCLUDED.created, "
-                  "EXCLUDED.altitude)";
-
-              transaction->execute(sqlStmt);
-              values_vector.clear();
-            }
-          }
-          mobileDataToUpdate = duplicateMobileObs;
-        }
+                      std::string values = "(";
+                      values += Fmi::to_string(item.prod_id) + ",";
+                      values += sqlNumber(item.station_id);
+                      values += sqlText(item.dataset_id);
+                      values += sqlNumber(item.data_level);
+                      values += Fmi::to_string(item.mid) + ",";
+                      values += sqlNumber(item.sensor_no);
+                      values += "'" + data_time + "',";
+                      values += Fmi::to_string(item.data_value) + ",";
+                      values += sqlText(item.data_value_txt);
+                      values += sqlNumber(item.data_quality);
+                      values += sqlNumber(item.ctrl_status);
+                      std::string created = Fmi::to_iso_string(item.created);
+                      boost::replace_all(created, ",", ".");
+                      values += "'" + created + "',";
+                      values += sqlNumber(item.altitude);
+                      values += obs_location + ")";
+                      return values;
+                    });
       }
 
       // We insert the new hashes only when the transaction has completed so that
@@ -1580,138 +1535,75 @@ std::size_t PostgreSQLCacheDB::fillNetAtmoCache(
       // Collect new items before taking a lock - we might avoid one completely
       std::vector<std::size_t> new_items;
       std::vector<std::size_t> new_hashes;
-      new_items.reserve(itsMaxInsertSize);
-      new_hashes.reserve(itsMaxInsertSize);
 
-      std::size_t pos2 = 0;
-      for (pos2 = pos1;
-           new_hashes.size() < itsMaxInsertSize && pos2 < mobileExternalCacheData.size();
-           ++pos2)
-      {
-        const auto &item = mobileExternalCacheData[pos2];
-
-        auto hash = item.hash_value();
-
-        if (!itsNetAtmoInsertCache.exists(hash))
-        {
-          new_items.push_back(pos2);
-          new_hashes.push_back(hash);
-        }
-      }
+      std::size_t pos2 = collectNewItems(mobileExternalCacheData,
+                                         pos1,
+                                         itsMaxInsertSize,
+                                         itsNetAtmoInsertCache,
+                                         new_items,
+                                         new_hashes);
 
       // Now insert the new items
+
       if (!new_items.empty())
       {
         Spine::WriteLock lock(netatmo_data_write_mutex);
-        std::vector<std::size_t> mobileDataToUpdate = new_items;
+        insertItems(transaction,
+                    mobileExternalCacheData,
+                    new_items,
+                    itsMaxInsertSize,
+                    "INSERT INTO ext_obsdata_netatmo "
+                    "(prod_id, station_id, dataset_id, data_level, mid, sensor_no, "
+                    "data_time, data_value, data_value_txt, data_quality, ctrl_status, "
+                    "created, altitude, geom) "
+                    "VALUES ",
+                    " ON CONFLICT(prod_id, mid, data_time, geom) DO "
+                    "UPDATE SET "
+                    "(station_id, dataset_id, data_level, sensor_no, data_value, data_value_txt, "
+                    "data_quality, ctrl_status, created, altitude) = "
+                    "(EXCLUDED.station_id, EXCLUDED.dataset_id, EXCLUDED.data_level, "
+                    "EXCLUDED.sensor_no, EXCLUDED.data_value, EXCLUDED.data_value_txt, "
+                    "EXCLUDED.data_quality, EXCLUDED.ctrl_status, EXCLUDED.created, "
+                    "EXCLUDED.altitude)",
+                    [&](const auto &item)
+                    {
+                      std::string data_time = Fmi::to_iso_string(item.data_time);
+                      boost::replace_all(data_time, ",", ".");
+                      std::string key = Fmi::to_string(item.prod_id);
+                      key += Fmi::to_string(item.mid);
+                      key += data_time;
+                      key += Fmi::to_string(item.longitude);
+                      key += Fmi::to_string(item.latitude);
+                      //  prod_id, mid, data_time, longitude, latitude
+                      return key;
+                    },
+                    [&](const auto &item)
+                    {
+                      std::string data_time = Fmi::to_iso_string(item.data_time);
+                      boost::replace_all(data_time, ",", ".");
+                      std::string obs_location =
+                          "ST_GeomFromText('POINT(" + Fmi::to_string("%.10g", item.longitude) +
+                          " " + Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
 
-        while (!mobileDataToUpdate.empty())
-        {
-          const auto &last_item = mobileExternalCacheData[mobileDataToUpdate.back()];
-          std::vector<std::string> values_vector;
-          std::set<std::string> key_set;  // to check duplicates
-          std::vector<std::size_t> duplicateMobileObs;
-
-          for (const auto i : mobileDataToUpdate)
-          {
-            const auto &item = mobileExternalCacheData[i];
-
-            std::string data_time = Fmi::to_iso_string(item.data_time);
-            boost::replace_all(data_time, ",", ".");
-            std::string key = Fmi::to_string(item.prod_id);
-            key += Fmi::to_string(item.mid);
-            key += data_time;
-            key += Fmi::to_string(item.longitude);
-            key += Fmi::to_string(item.latitude);
-            //  prod_id, mid, data_time, longitude, latitude
-            if (key_set.find(key) != key_set.end())
-            {
-              duplicateMobileObs.push_back(i);
-            }
-            else
-            {
-              key_set.insert(key);
-
-              std::string obs_location =
-                  "ST_GeomFromText('POINT(" + Fmi::to_string("%.10g", item.longitude) + " " +
-                  Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
-
-              std::string values = "(";
-              values += Fmi::to_string(item.prod_id) + ",";
-              if (item.station_id)
-                values += Fmi::to_string(*item.station_id) + ",";
-              else
-                values += "NULL,";
-              if (item.dataset_id)
-                values += "'" + *item.dataset_id + "',";
-              else
-                values += "NULL,";
-              if (item.data_level)
-                values += Fmi::to_string(*item.data_level) + ",";
-              else
-                values += "NULL,";
-              values += Fmi::to_string(item.mid) + ",";
-              if (item.sensor_no)
-                values += Fmi::to_string(*item.sensor_no) + ",";
-              else
-                values += "NULL,";
-              values += "'" + data_time + "',";
-              values += Fmi::to_string(item.data_value) + ",";
-              if (item.data_value_txt)
-                values += "'" + *item.data_value_txt + "',";
-              else
-                values += "NULL,";
-              if (item.data_quality)
-                values += Fmi::to_string(*item.data_quality) + ",";
-              else
-                values += "NULL,";
-              if (item.ctrl_status)
-                values += Fmi::to_string(*item.ctrl_status) + ",";
-              else
-                values += "NULL,";
-              std::string created = Fmi::to_iso_string(item.created);
-              boost::replace_all(created, ",", ".");
-              values += "'" + created + "',";
-              if (item.altitude)
-                values += Fmi::to_string(*item.altitude) + ",";
-              else
-                values += "NULL,";
-              values += obs_location + ")";
-              values_vector.push_back(values);
-            }
-
-            if ((values_vector.size() % itsMaxInsertSize == 0) || &item == &last_item)
-            {
-              std::string sqlStmt =
-                  "INSERT INTO ext_obsdata_netatmo "
-                  "(prod_id, station_id, dataset_id, data_level, mid, sensor_no, "
-                  "data_time, data_value, data_value_txt, data_quality, ctrl_status, "
-                  "created, altitude, geom) "
-                  "VALUES ";
-
-              for (const auto &v : values_vector)
-              {
-                sqlStmt += v;
-                if (&v != &values_vector.back())
-                  sqlStmt += ",";
-              }
-
-              sqlStmt +=
-                  " ON CONFLICT(prod_id, mid, data_time, geom) DO "
-                  "UPDATE SET "
-                  "(station_id, dataset_id, data_level, sensor_no, data_value, data_value_txt, "
-                  "data_quality, ctrl_status, created, altitude) = "
-                  "(EXCLUDED.station_id, EXCLUDED.dataset_id, EXCLUDED.data_level, "
-                  "EXCLUDED.sensor_no, EXCLUDED.data_value, EXCLUDED.data_value_txt, "
-                  "EXCLUDED.data_quality, EXCLUDED.ctrl_status, EXCLUDED.created, "
-                  "EXCLUDED.altitude)";
-
-              transaction->execute(sqlStmt);
-              values_vector.clear();
-            }
-          }
-          mobileDataToUpdate = duplicateMobileObs;
-        }
+                      std::string values = "(";
+                      values += Fmi::to_string(item.prod_id) + ",";
+                      values += sqlNumber(item.station_id);
+                      values += sqlText(item.dataset_id);
+                      values += sqlNumber(item.data_level);
+                      values += Fmi::to_string(item.mid) + ",";
+                      values += sqlNumber(item.sensor_no);
+                      values += "'" + data_time + "',";
+                      values += Fmi::to_string(item.data_value) + ",";
+                      values += sqlText(item.data_value_txt);
+                      values += sqlNumber(item.data_quality);
+                      values += sqlNumber(item.ctrl_status);
+                      std::string created = Fmi::to_iso_string(item.created);
+                      boost::replace_all(created, ",", ".");
+                      values += "'" + created + "',";
+                      values += sqlNumber(item.altitude);
+                      values += obs_location + ")";
+                      return values;
+                    });
       }
 
       // We insert the new hashes only when the transaction has completed so that
