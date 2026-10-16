@@ -30,6 +30,44 @@ bool between(const Fmi::DateTime& t, const Fmi::DateTime& t1, const Fmi::DateTim
   return (t >= t1 && t <= t2);
 }
 
+// Assign a result set row value to the target unless the value is missing
+template <typename T, typename Target>
+void assignIfSet(ResultSetRow& row, const char* name, Target& target)
+{
+  if (row[name] != TS::Value(TS::None()))
+    target = std::get<T>(row[name]);
+}
+
+// Parse a mobile or external data item from a result set row
+MobileExternalDataItem parseMobileExternalDataItem(ResultSetRow& rsr, const std::string& producer)
+{
+  MobileExternalDataItem dataItem;
+  dataItem.prod_id = std::get<int>(rsr["prod_id"]);
+  assignIfSet<int>(rsr, "station_id", dataItem.station_id);
+  assignIfSet<std::string>(rsr, "dataset_id", dataItem.dataset_id);
+  assignIfSet<int>(rsr, "data_level", dataItem.data_level);
+  dataItem.mid = std::get<int>(rsr["mid"]);
+  assignIfSet<int>(rsr, "sensor_no", dataItem.sensor_no);
+  dataItem.data_time = (std::get<Fmi::LocalDateTime>(rsr["data_time"]).utc_time());
+  dataItem.data_value = std::get<double>(rsr["data_value"]);
+  assignIfSet<std::string>(rsr, "data_value_txt", dataItem.data_value_txt);
+  assignIfSet<int>(rsr, "data_quality", dataItem.data_quality);
+  assignIfSet<int>(rsr, "ctrl_status", dataItem.ctrl_status);
+  dataItem.created = (std::get<Fmi::LocalDateTime>(rsr["created"]).utc_time());
+  if ((producer == FMI_IOT_PRODUCER) || (producer == TAPSI_QC_PRODUCER))
+  {
+    assignIfSet<std::string>(rsr, "station_code", dataItem.station_code);
+  }
+  else
+  {
+    assignIfSet<double>(rsr, "longitude", dataItem.longitude);
+    assignIfSet<double>(rsr, "latitude", dataItem.latitude);
+    assignIfSet<double>(rsr, "altitude", dataItem.altitude);
+  }
+
+  return dataItem;
+}
+
 // Parse a station from a row of the station query. Returns false if the station is to be
 // skipped.
 bool parseStationRow(const pqxx::row& row, Spine::Station& s)
@@ -158,46 +196,11 @@ void PostgreSQLObsDB::readMobileCacheDataFromPostgreSQL(const std::string& produ
     ResultSetRows rsrs =
         PostgreSQLCacheDB::getResultSetForMobileExternalData(result_set, conn.dataTypes());
 
-    TS::Value none = TS::None();
     for (auto rsr : rsrs)
     {
       Fmi::AsyncTask::interruption_point();
 
-      MobileExternalDataItem dataItem;
-      dataItem.prod_id = std::get<int>(rsr["prod_id"]);
-      if (rsr["station_id"] != none)
-        dataItem.station_id = std::get<int>(rsr["station_id"]);
-      if (rsr["dataset_id"] != none)
-        dataItem.dataset_id = std::get<std::string>(rsr["dataset_id"]);
-      if (rsr["data_level"] != none)
-        dataItem.data_level = std::get<int>(rsr["data_level"]);
-      dataItem.mid = std::get<int>(rsr["mid"]);
-      if (rsr["sensor_no"] != none)
-        dataItem.sensor_no = std::get<int>(rsr["sensor_no"]);
-      dataItem.data_time = (std::get<Fmi::LocalDateTime>(rsr["data_time"]).utc_time());
-      dataItem.data_value = std::get<double>(rsr["data_value"]);
-      if (rsr["data_value_txt"] != none)
-        dataItem.data_value_txt = std::get<std::string>(rsr["data_value_txt"]);
-      if (rsr["data_quality"] != none)
-        dataItem.data_quality = std::get<int>(rsr["data_quality"]);
-      if (rsr["ctrl_status"] != none)
-        dataItem.ctrl_status = std::get<int>(rsr["ctrl_status"]);
-      dataItem.created = (std::get<Fmi::LocalDateTime>(rsr["created"]).utc_time());
-      if ((producer == FMI_IOT_PRODUCER) || (producer == TAPSI_QC_PRODUCER))
-      {
-        if (rsr["station_code"] != none)
-          dataItem.station_code = std::get<std::string>(rsr["station_code"]);
-      }
-      else
-      {
-        if (rsr["longitude"] != none)
-          dataItem.longitude = std::get<double>(rsr["longitude"]);
-        if (rsr["latitude"] != none)
-          dataItem.latitude = std::get<double>(rsr["latitude"]);
-        if (rsr["altitude"] != none)
-          dataItem.altitude = std::get<double>(rsr["altitude"]);
-      }
-      cacheData.push_back(dataItem);
+      cacheData.push_back(parseMobileExternalDataItem(rsr, producer));
     }
   }
   catch (...)
