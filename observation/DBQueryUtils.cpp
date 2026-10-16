@@ -834,6 +834,88 @@ TS::Value dataQualityValue(const SpecialParamEntry &sp,
   return val;
 }
 
+// Default sensor value of a measurand, missing if the measurand is not available
+TS::Value measurandValue(const GroupData &group_data, int measurand_id)
+{
+  const auto mit = group_data.find(measurand_id);
+  return (mit != group_data.end()) ? get_default_sensor_value(mit->second) : TS::None();
+}
+
+// Wind compass direction
+TS::Value windCompassValue(const SpecialParamEntry &sp,
+                           const GroupData &group_data,
+                           const Settings &settings)
+{
+  const TS::Value val = measurandValue(group_data, sp.mid1);
+  // Not "val == TS::None()": in C++20 that is rewritten as None() == val, which is false for
+  // every Value, so a missing direction went through std::get and the exception handler
+  if (!std::holds_alternative<double>(val))
+    return TS::None();
+  return TS::Value(windCompassString(sp.kind, std::get<double>(val), settings.missingtext));
+}
+
+// Feels like temperature
+TS::Value feelsLikeValue(const SpecialParamEntry &sp, const GroupData &group_data)
+{
+  const auto wit = group_data.find(sp.mid1);  // windspeedms
+  const auto rit = group_data.find(sp.mid2);  // relativehumidity
+  const auto tit = group_data.find(sp.mid3);  // temperature
+  if (wit == group_data.end() || rit == group_data.end() || tit == group_data.end())
+    return TS::None();
+
+  const float wind = std::get<double>(get_default_sensor_value(wit->second));
+  const float rh = std::get<double>(get_default_sensor_value(rit->second));
+  const float temp = std::get<double>(get_default_sensor_value(tit->second));
+  return TS::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing));
+}
+
+// Smart symbol number or text
+TS::Value smartSymbolValue(const SpecialParamEntry &sp,
+                           const Fmi::LocalDateTime &ldt,
+                           const GroupData &group_data,
+                           const Settings &settings,
+                           const Spine::Station &station)
+{
+  const auto wit = group_data.find(sp.mid1);  // wawa
+  const auto cit = group_data.find(sp.mid2);  // totalcloudcover
+  const auto tit = group_data.find(sp.mid3);  // temperature
+  if (wit == group_data.end() || cit == group_data.end() || tit == group_data.end())
+    return TS::None();
+
+  const int wawa = static_cast<int>(std::get<double>(get_default_sensor_value(wit->second)));
+  const int totalcc = static_cast<int>(std::get<double>(get_default_sensor_value(cit->second)));
+  const float temp = std::get<double>(get_default_sensor_value(tit->second));
+  const auto value =
+      calcSmartsymbolNumber(wawa, totalcc, temp, ldt, station.latitude, station.longitude);
+  if (!value)
+    return TS::None();
+  if (sp.kind == SpecialParamEntry::Kind::SmartSymbol)
+    return TS::Value(*value);
+
+  const auto text = smartSymbolText(*value, settings.language);
+  return (text ? TS::Value(*text) : TS::Value(TS::None()));
+}
+
+// Road weather WW code from precipitation intensity and form
+TS::Value roadWWValue(const SpecialParamEntry &sp, const GroupData &group_data)
+{
+  const auto rit = group_data.find(sp.mid1);  // precipitation intensity
+  const auto fit = group_data.find(sp.mid2);  // precipitation form
+  if (rit == group_data.end() || fit == group_data.end())
+    return TS::None();
+
+  const auto r = get_default_sensor_value(rit->second);
+  const auto rform = get_default_sensor_value(fit->second);
+  if (!std::holds_alternative<double>(r) || !std::holds_alternative<double>(rform))
+    return TS::None();
+
+  const auto ww = calcRoadWW(static_cast<int>(std::lround(std::get<double>(r))),
+                             static_cast<int>(std::lround(std::get<double>(rform))));
+  if (ww)
+    return TS::Value(*ww);
+  return TS::None();
+}
+
 // Emit a single special parameter entry (one switch-case dispatch + try/catch).
 void emitSpecialParam(const SpecialParamEntry &sp,
                       const Fmi::LocalDateTime &ldt,
@@ -851,110 +933,34 @@ void emitSpecialParam(const SpecialParamEntry &sp,
     switch (sp.kind)
     {
     case SpecialParamEntry::Kind::Longitude:
-    {
-      const auto mit = group_data.find(LONGITUDE_MEASURAND_ID);
-      const TS::Value val = (mit != group_data.end()) ? get_default_sensor_value(mit->second) : missing;
-      resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
+      resultVector->at(pos).emplace_back(
+          TS::TimedValue(ldt, measurandValue(group_data, LONGITUDE_MEASURAND_ID)));
       break;
-    }
     case SpecialParamEntry::Kind::Latitude:
-    {
-      const auto mit = group_data.find(LATITUDE_MEASURAND_ID);
-      const TS::Value val = (mit != group_data.end()) ? get_default_sensor_value(mit->second) : missing;
-      resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
+      resultVector->at(pos).emplace_back(
+          TS::TimedValue(ldt, measurandValue(group_data, LATITUDE_MEASURAND_ID)));
       break;
-    }
     case SpecialParamEntry::Kind::Elevation:
-    {
-      const auto mit = group_data.find(ELEVATION_MEASURAND_ID);
-      const TS::Value val = (mit != group_data.end()) ? get_default_sensor_value(mit->second) : missing;
-      resultVector->at(pos).emplace_back(TS::TimedValue(ldt, val));
+      resultVector->at(pos).emplace_back(
+          TS::TimedValue(ldt, measurandValue(group_data, ELEVATION_MEASURAND_ID)));
       break;
-    }
     case SpecialParamEntry::Kind::WindCompass8:
     case SpecialParamEntry::Kind::WindCompass16:
     case SpecialParamEntry::Kind::WindCompass32:
-    {
-      const auto mit = group_data.find(sp.mid1);
-      const TS::Value val = (mit != group_data.end()) ? get_default_sensor_value(mit->second) : missing;
-      // Not "val == TS::None()": in C++20 that is rewritten as None() == val, which is false for
-      // every Value, so a missing direction went through std::get and the exception handler
-      const TS::Value result =
-          (!std::holds_alternative<double>(val))
-              ? missing
-              : TS::Value(windCompassString(sp.kind, std::get<double>(val), settings.missingtext));
-      resultVector->at(pos).emplace_back(TS::TimedValue(ldt, result));
+      resultVector->at(pos).emplace_back(
+          TS::TimedValue(ldt, windCompassValue(sp, group_data, settings)));
       break;
-    }
     case SpecialParamEntry::Kind::FeelsLike:
-    {
-      const auto wit = group_data.find(sp.mid1);  // windspeedms
-      const auto rit = group_data.find(sp.mid2);  // relativehumidity
-      const auto tit = group_data.find(sp.mid3);  // temperature
-      if (wit == group_data.end() || rit == group_data.end() || tit == group_data.end())
-      {
-        resultVector->at(pos).emplace_back(TS::TimedValue(ldt, missing));
-      }
-      else
-      {
-        const float wind = std::get<double>(get_default_sensor_value(wit->second));
-        const float rh = std::get<double>(get_default_sensor_value(rit->second));
-        const float temp = std::get<double>(get_default_sensor_value(tit->second));
-        resultVector->at(pos).emplace_back(
-            TS::TimedValue(ldt, TS::Value(FmiFeelsLikeTemperature(wind, rh, temp, kFloatMissing))));
-      }
+      resultVector->at(pos).emplace_back(TS::TimedValue(ldt, feelsLikeValue(sp, group_data)));
       break;
-    }
     case SpecialParamEntry::Kind::SmartSymbol:
     case SpecialParamEntry::Kind::SmartSymbolText:
-    {
-      const auto wit = group_data.find(sp.mid1);  // wawa
-      const auto cit = group_data.find(sp.mid2);  // totalcloudcover
-      const auto tit = group_data.find(sp.mid3);  // temperature
-      if (wit == group_data.end() || cit == group_data.end() || tit == group_data.end())
-      {
-        resultVector->at(pos).emplace_back(TS::TimedValue(ldt, missing));
-      }
-      else
-      {
-        const int wawa = static_cast<int>(std::get<double>(get_default_sensor_value(wit->second)));
-        const int totalcc = static_cast<int>(std::get<double>(get_default_sensor_value(cit->second)));
-        const float temp = std::get<double>(get_default_sensor_value(tit->second));
-        const auto value =
-            calcSmartsymbolNumber(wawa, totalcc, temp, ldt, station.latitude, station.longitude);
-        if (!value)
-          resultVector->at(pos).emplace_back(TS::TimedValue(ldt, missing));
-        else if (sp.kind == SpecialParamEntry::Kind::SmartSymbol)
-          resultVector->at(pos).emplace_back(TS::TimedValue(ldt, TS::Value(*value)));
-        else
-        {
-          const auto text = smartSymbolText(*value, settings.language);
-          resultVector->at(pos).emplace_back(
-              TS::TimedValue(ldt, text ? TS::Value(*text) : missing));
-        }
-      }
+      resultVector->at(pos).emplace_back(
+          TS::TimedValue(ldt, smartSymbolValue(sp, ldt, group_data, settings, station)));
       break;
-    }
     case SpecialParamEntry::Kind::RoadWW:
-    {
-      const auto rit = group_data.find(sp.mid1);  // precipitation intensity
-      const auto fit = group_data.find(sp.mid2);  // precipitation form
-      TS::Value result = missing;
-      if (rit != group_data.end() && fit != group_data.end())
-      {
-        const auto r = get_default_sensor_value(rit->second);
-        const auto rform = get_default_sensor_value(fit->second);
-        if (std::holds_alternative<double>(r) && std::holds_alternative<double>(rform))
-        {
-          const auto ww = calcRoadWW(static_cast<int>(std::lround(std::get<double>(r))),
-                                     static_cast<int>(std::lround(std::get<double>(rform))));
-          if (ww)
-            result = TS::Value(*ww);
-        }
-      }
-      resultVector->at(pos).emplace_back(TS::TimedValue(ldt, result));
+      resultVector->at(pos).emplace_back(TS::TimedValue(ldt, roadWWValue(sp, group_data)));
       break;
-    }
     case SpecialParamEntry::Kind::CloudCeiling:
     case SpecialParamEntry::Kind::CloudCeilingFt:
     case SpecialParamEntry::Kind::CloudCeilingHFt:
