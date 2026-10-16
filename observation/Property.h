@@ -96,7 +96,7 @@ class IsEqualTo : public Base
   ~IsEqualTo() override;
   IsEqualTo() = default;
   IsEqualTo(const IsEqualTo&) = default;
-  IsEqualTo& operator=(const IsEqualTo&) = default;
+  IsEqualTo& operator=(const IsEqualTo&) = delete;
   std::shared_ptr<Base> get(const NameType& property, const std::any& toWhat) override
   {
     std::shared_ptr<IsEqualTo> obj(new IsEqualTo);
@@ -111,7 +111,7 @@ class IsNotEqualTo : public Base
   ~IsNotEqualTo() override;
   IsNotEqualTo() = default;
   IsNotEqualTo(const IsNotEqualTo&) = default;
-  IsNotEqualTo& operator=(const IsNotEqualTo&) = default;
+  IsNotEqualTo& operator=(const IsNotEqualTo&) = delete;
   std::shared_ptr<Base> get(const NameType& property, const std::any& toWhat) override
   {
     std::shared_ptr<IsNotEqualTo> obj(new IsNotEqualTo);
@@ -126,7 +126,7 @@ class IsLessThan : public Base
   ~IsLessThan() override;
   IsLessThan() = default;
   IsLessThan(const IsLessThan&) = default;
-  IsLessThan& operator=(const IsLessThan&) = default;
+  IsLessThan& operator=(const IsLessThan&) = delete;
   std::shared_ptr<Base> get(const NameType& property, const std::any& toWhat) override
   {
     std::shared_ptr<IsLessThan> obj(new IsLessThan);
@@ -141,7 +141,7 @@ class IsLessThanOrEqualTo : public Base
   ~IsLessThanOrEqualTo() override;
   IsLessThanOrEqualTo() = default;
   IsLessThanOrEqualTo(const IsLessThanOrEqualTo&) = default;
-  IsLessThanOrEqualTo& operator=(const IsLessThanOrEqualTo&) = default;
+  IsLessThanOrEqualTo& operator=(const IsLessThanOrEqualTo&) = delete;
   std::shared_ptr<Base> get(const NameType& property, const std::any& toWhat) override
   {
     std::shared_ptr<IsLessThanOrEqualTo> obj(new IsLessThanOrEqualTo);
@@ -156,7 +156,7 @@ class IsGreaterThan : public Base
   ~IsGreaterThan() override;
   IsGreaterThan() = default;
   IsGreaterThan(const IsGreaterThan&) = default;
-  IsGreaterThan& operator=(const IsGreaterThan&) = default;
+  IsGreaterThan& operator=(const IsGreaterThan&) = delete;
   std::shared_ptr<Base> get(const NameType& property, const std::any& toWhat) override
   {
     std::shared_ptr<IsGreaterThan> obj(new IsGreaterThan);
@@ -171,7 +171,7 @@ class IsGreaterThanOrEqualTo : public Base
   ~IsGreaterThanOrEqualTo() override;
   IsGreaterThanOrEqualTo() = default;
   IsGreaterThanOrEqualTo(const IsGreaterThanOrEqualTo&) = default;
-  IsGreaterThanOrEqualTo& operator=(const IsGreaterThanOrEqualTo&) = default;
+  IsGreaterThanOrEqualTo& operator=(const IsGreaterThanOrEqualTo&) = delete;
   std::shared_ptr<Base> get(const NameType& property, const std::any& toWhat) override
   {
     std::shared_ptr<IsGreaterThanOrEqualTo> obj(new IsGreaterThanOrEqualTo);
@@ -186,7 +186,7 @@ class IsNull : public Base
   ~IsNull() override;
   IsNull() = default;
   IsNull(const IsNull&) = default;
-  IsNull& operator=(const IsNull&) = default;
+  IsNull& operator=(const IsNull&) = delete;
   std::shared_ptr<Base> get(const NameType& property, const std::any& /* toWhat */) override
   {
     std::shared_ptr<IsNull> obj(new IsNull);
@@ -201,7 +201,7 @@ class IsNotNull : public Base
   ~IsNotNull() override;
   IsNotNull() = default;
   IsNotNull(const IsNotNull&) = default;
-  IsNotNull& operator=(const IsNotNull&) = default;
+  IsNotNull& operator=(const IsNotNull&) = delete;
   std::shared_ptr<Base> get(const NameType& property, const std::any& /* toWhat */) override
   {
     std::shared_ptr<IsNotNull> obj(new IsNotNull);
@@ -216,7 +216,7 @@ class IsNil : public Base
   ~IsNil() override;
   IsNil() = default;
   IsNil(const IsNil&) = default;
-  IsNil& operator=(const IsNil&) = default;
+  IsNil& operator=(const IsNil&) = delete;
   std::shared_ptr<Base> get(const NameType& property, const std::any& /* toWhat */) override
   {
     std::shared_ptr<IsNil> obj(new IsNil);
@@ -231,7 +231,7 @@ class IsLike : public Base
   ~IsLike() override;
   IsLike() = default;
   IsLike(const IsLike&) = default;
-  IsLike& operator=(const IsLike&) = default;
+  IsLike& operator=(const IsLike&) = delete;
   std::shared_ptr<Base> get(const NameType& property, const std::any& toWhat) override
   {
     std::shared_ptr<IsLike> obj(new IsLike);
@@ -254,7 +254,7 @@ class IsBetween : public Base
   ~IsBetween() override;
   IsBetween() = default;
   IsBetween(const IsBetween&) = default;
-  IsBetween& operator=(const IsBetween&) = default;
+  IsBetween& operator=(const IsBetween&) = delete;
   std::shared_ptr<Base> get(const NameType& property, const std::any& toWhat) override
   {
     std::shared_ptr<IsBetween> obj(new IsBetween);
@@ -270,7 +270,7 @@ class MinuteValueModuloIsEqualToZero : public Base
   ~MinuteValueModuloIsEqualToZero() override;
   MinuteValueModuloIsEqualToZero() = default;
   MinuteValueModuloIsEqualToZero(const MinuteValueModuloIsEqualToZero&) = default;
-  MinuteValueModuloIsEqualToZero& operator=(const MinuteValueModuloIsEqualToZero&) = default;
+  MinuteValueModuloIsEqualToZero& operator=(const MinuteValueModuloIsEqualToZero&) = delete;
   std::shared_ptr<Base> get(const NameType& property, const std::any& toWhat) override
   {
     std::shared_ptr<MinuteValueModuloIsEqualToZero> obj(new MinuteValueModuloIsEqualToZero);
@@ -292,7 +292,7 @@ class IsOneOf : public Base
   ~IsOneOf() override;
   IsOneOf() = default;
   IsOneOf(const IsOneOf&) = default;
-  IsOneOf& operator=(const IsOneOf&) = default;
+  IsOneOf& operator=(const IsOneOf&) = delete;
   std::shared_ptr<Base> get(const NameType& property, const std::any& toWhat) override
   {
     std::shared_ptr<IsOneOf> obj(new IsOneOf);
@@ -310,7 +310,7 @@ class IsNotOf : public Base
   ~IsNotOf() override;
   IsNotOf() = default;
   IsNotOf(const IsNotOf&) = default;
-  IsNotOf& operator=(const IsNotOf&) = default;
+  IsNotOf& operator=(const IsNotOf&) = delete;
   std::shared_ptr<Base> get(const NameType& property, const std::any& toWhat) override
   {
     std::shared_ptr<IsNotOf> obj(new IsNotOf);
