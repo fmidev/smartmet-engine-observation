@@ -867,14 +867,151 @@ ContentTable EngineImpl::getParameterInfo(const std::optional<std::string> &prod
   }
 }
 
-ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
+namespace
 {
-  struct StationGroup
-  {
-    std::vector<std::size_t> indexes;
-    std::vector<std::string> stationtypes;
-  };
+// Stations with similar metadata, as indexes into the station vector
+struct StationGroup
+{
+  std::vector<std::size_t> indexes;
+  std::vector<std::string> stationtypes;
+};
 
+// True if the station identifiers, names, area and bounding box match the options
+bool stationMatchesIdentifiers(const Spine::Station& s, const StationOptions& options)
+{
+  if (!options.wsi.empty() && options.wsi.count(s.wsi) == 0)
+    return false;
+  if (!options.lpnn.empty() && options.lpnn.count(s.lpnn) == 0)
+    return false;
+  if (!options.wmo.empty() && options.wmo.count(s.wmo) == 0)
+    return false;
+  if (!options.rwsid.empty() && options.rwsid.count(s.rwsid) == 0)
+    return false;
+  if (!options.type.empty() && !string_found(s.type, options.type))
+    return false;
+  if (!options.name.empty() && !string_found(s.formal_name_fi, options.name))
+    return false;
+  if (!options.iso2.empty() && !string_found(s.iso2, options.iso2))
+    return false;
+  if (!options.region.empty() && !string_found(s.region, options.region))
+    return false;
+
+  if (options.bbox != std::nullopt)
+  {
+    if (s.longitude < (*options.bbox).xMin || s.longitude > (*options.bbox).xMax ||
+        s.latitude < (*options.bbox).yMin || s.latitude > (*options.bbox).yMax)
+      return false;
+  }
+  return true;
+}
+
+// True if the station time period matches the requested period, or the current time if
+// no period was requested
+bool stationMatchesTimes(const Spine::Station& s,
+                         const StationOptions& options,
+                         const Fmi::DateTime& now)
+{
+  const bool has_start = !options.start_time.is_not_a_date_time();
+  const bool has_end = !options.end_time.is_not_a_date_time();
+
+  if (has_start && !has_end)
+    return !(s.station_end < options.start_time);
+  if (!has_start && has_end)
+    return !(s.station_start > options.end_time);
+  if (!has_start && !has_end)
+    return !(now < s.station_start || now > s.station_end);
+  return !(s.station_start > options.end_time || s.station_end < options.start_time);
+}
+
+// True if the stations have the same time period, coordinates and elevation
+bool sameStationMetadata(const Spine::Station& s1, const Spine::Station& s2)
+{
+  return (s1.station_start == s2.station_start && s1.station_end == s2.station_end &&
+          s1.longitude == s2.longitude && s1.latitude == s2.latitude &&
+          s1.elevation == s2.elevation);
+}
+
+// Group the stations accepted by the options by station starttime, endtime, coordinates and
+// elevation by storing the indexes into the all_locations vector
+std::vector<StationGroup> groupStations(const Spine::Stations& all_locations,
+                                        const StationOptions& options,
+                                        const Fmi::DateTime& now)
+{
+  std::vector<StationGroup> groups;
+
+  for (auto i = 0UL; i < all_locations.size(); i++)
+  {
+    const auto& s = all_locations[i];
+
+    // Check station against options and station time periods
+
+    if (!stationMatchesIdentifiers(s, options) || !stationMatchesTimes(s, options, now))
+      continue;
+
+    // Station accepted, assign it into a group with similar metadata
+
+    auto match = std::find_if(groups.begin(),
+                              groups.end(),
+                              [&](const StationGroup& group)
+                              {
+                                return std::any_of(
+                                    group.indexes.begin(),
+                                    group.indexes.end(),
+                                    [&](std::size_t pos)
+                                    { return sameStationMetadata(s, all_locations.at(pos)); });
+                              });
+
+    if (match != groups.end())
+    {
+      match->indexes.push_back(i);
+      match->stationtypes.push_back(s.type);
+    }
+    else
+    {
+      StationGroup group;
+      group.indexes.push_back(i);
+      group.stationtypes.push_back(s.type);
+      groups.push_back(group);
+    }
+  }
+  return groups;
+}
+
+// Print the information for the groups
+void addStationGroupRows(Spine::Table& resultTable,
+                         unsigned int& row,
+                         const Spine::Stations& all_locations,
+                         const std::vector<StationGroup>& groups,
+                         const Fmi::TimeFormatter& timeFormatter)
+{
+  for (const auto& group : groups)
+  {
+    const auto& s = all_locations.at(group.indexes.at(0));  // representative station
+    unsigned int column = 0;
+    auto grouplist = Fmi::join(group.stationtypes, ", ");
+    resultTable.set(column++, row, Fmi::to_string(row + 1));                // Row number
+    resultTable.set(column++, row, s.station_formal_name("fi"));            // Name
+    resultTable.set(column++, row, grouplist);                              // Type
+    resultTable.set(column++, row, Fmi::to_string(s.fmisid));               // FMISID
+    resultTable.set(column++, row, s.wsi);                                  // WIGOS ID
+    resultTable.set(column++, row, Fmi::to_string(s.wmo));                  // WMO
+    resultTable.set(column++, row, Fmi::to_string(s.lpnn));                 // LPNN
+    resultTable.set(column++, row, Fmi::to_string(s.rwsid));                // RWSID
+    resultTable.set(column++, row, Fmi::to_string(s.longitude));            // Longitude
+    resultTable.set(column++, row, Fmi::to_string(s.latitude));             // Latitude
+    resultTable.set(column++, row, Fmi::to_string(s.elevation));            // Elevation
+    resultTable.set(column++, row, timeFormatter.format(s.station_start));  // Start date
+    resultTable.set(column++, row, timeFormatter.format(s.station_end));    // End date
+    resultTable.set(column++, row, s.timezone);                             // Timezone
+    resultTable.set(column++, row, s.iso2);                                 // Country
+    resultTable.set(column++, row, s.region);                               // Region
+    row++;
+  }
+}
+}  // namespace
+
+ContentTable EngineImpl::getStationInfo(const StationOptions& options) const
+{
   try
   {
     std::unique_ptr<Spine::Table> resultTable(new Spine::Table);
@@ -898,25 +1035,6 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
 
     resultTable->setNames(headers);
 
-    const bool check_fmisid = !options.fmisid.empty();
-    const bool check_wsi = !options.wsi.empty();
-    const bool check_lpnn = !options.lpnn.empty();
-    const bool check_wmo = !options.wmo.empty();
-    const bool check_rwsid = !options.rwsid.empty();
-    const bool check_type = !options.type.empty();
-    const bool check_name = !options.name.empty();
-    const bool check_iso2 = !options.iso2.empty();
-    const bool check_region = !options.region.empty();
-    const bool check_bbox = (options.bbox != std::nullopt);
-    const bool only_starttime =
-        (!options.start_time.is_not_a_date_time() && options.end_time.is_not_a_date_time());
-    const bool only_endtime =
-        (options.start_time.is_not_a_date_time() && !options.end_time.is_not_a_date_time());
-    const bool neither_time =
-        (options.start_time.is_not_a_date_time() && options.end_time.is_not_a_date_time());
-    const bool both_times =
-        (!options.start_time.is_not_a_date_time() && !options.end_time.is_not_a_date_time());
-
     auto now = Fmi::SecondClock::universal_time();
 
     std::shared_ptr<Fmi::TimeFormatter> timeFormatter;
@@ -930,7 +1048,7 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
     for (const auto fmisid : fmisids)
     {
       // Check data against options
-      if (check_fmisid && options.fmisid.count(fmisid) == 0)
+      if (!options.fmisid.empty() && options.fmisid.count(fmisid) == 0)
         continue;
 
       // Get all variants of the fmisid
@@ -940,109 +1058,12 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
       if (all_locations.empty())  // safety check
         continue;
 
-      // Group stations by station starttime, endtime, coordinates and elevation by storing the
-      // indexes into the all_locations vector
-
-      std::vector<StationGroup> groups;
-
-      for (auto i = 0UL; i < all_locations.size(); i++)
-      {
-        const auto &s = all_locations[i];
-
-        // Check station against options
-
-        if (check_wsi && options.wsi.count(s.wsi) == 0)
-          continue;
-        if (check_lpnn && options.lpnn.count(s.lpnn) == 0)
-          continue;
-        if (check_wmo && options.wmo.count(s.wmo) == 0)
-          continue;
-        if (check_rwsid && options.rwsid.count(s.rwsid) == 0)
-          continue;
-        if (check_type && !string_found(s.type, options.type))
-          continue;
-        if (check_name && !string_found(s.formal_name_fi, options.name))
-          continue;
-        if (check_iso2 && !string_found(s.iso2, options.iso2))
-          continue;
-        if (check_region && !string_found(s.region, options.region))
-          continue;
-
-        if (check_bbox)
-        {
-          if (s.longitude < (*options.bbox).xMin || s.longitude > (*options.bbox).xMax ||
-              s.latitude < (*options.bbox).yMin || s.latitude > (*options.bbox).yMax)
-            continue;
-        }
-
-        // Check station time periods
-        if (only_starttime && s.station_end < options.start_time)
-          continue;
-        if (only_endtime && s.station_start > options.end_time)
-          continue;
-        if (neither_time && (now < s.station_start || now > s.station_end))
-          continue;
-        if (both_times &&
-            (s.station_start > options.end_time || s.station_end < options.start_time))
-          continue;
-
-        // Station accepted, assign it into a group with similar metadata
-
-        bool matched = false;
-        for (auto &group : groups)
-        {
-          for (auto pos : group.indexes)
-          {
-            const auto &station2 = all_locations.at(pos);
-            matched = (s.station_start == station2.station_start &&
-                       s.station_end == station2.station_end && s.longitude == station2.longitude &&
-                       s.latitude == station2.latitude && s.elevation == station2.elevation);
-            if (matched)
-            {
-              group.indexes.push_back(i);
-              group.stationtypes.push_back(s.type);
-              break;
-            }
-          }
-          if (matched)
-            break;
-        }
-        if (!matched)
-        {
-          StationGroup group;
-          group.indexes.push_back(i);
-          group.stationtypes.push_back(s.type);
-          groups.push_back(group);
-        }
-      }
+      auto groups = groupStations(all_locations, options, now);
 
       if (groups.empty())  // may happen when filtering stations
         continue;
 
-      // Print the information for the groups
-      for (const auto &group : groups)
-      {
-        const auto &s = all_locations.at(group.indexes.at(0));  // representative station
-        unsigned int column = 0;
-        auto grouplist = Fmi::join(group.stationtypes, ", ");
-        resultTable->set(column++, row, Fmi::to_string(row + 1));                 // Row number
-        resultTable->set(column++, row, s.station_formal_name("fi"));             // Name
-        resultTable->set(column++, row, grouplist);                               // Type
-        resultTable->set(column++, row, Fmi::to_string(s.fmisid));                // FMISID
-        resultTable->set(column++, row, s.wsi);                                   // WIGOS ID
-        resultTable->set(column++, row, Fmi::to_string(s.wmo));                   // WMO
-        resultTable->set(column++, row, Fmi::to_string(s.lpnn));                  // LPNN
-        resultTable->set(column++, row, Fmi::to_string(s.rwsid));                 // RWSID
-        resultTable->set(column++, row, Fmi::to_string(s.longitude));             // Longitude
-        resultTable->set(column++, row, Fmi::to_string(s.latitude));              // Latitude
-        resultTable->set(column++, row, Fmi::to_string(s.elevation));             // Elevation
-        resultTable->set(column++, row, timeFormatter->format(s.station_start));  // Start date
-        resultTable->set(column++, row, timeFormatter->format(s.station_end));    // End date
-        resultTable->set(column++, row, s.timezone);                              // Timezone
-        resultTable->set(column++, row, s.iso2);                                  // Country
-        resultTable->set(column++, row, s.region);                                // Region
-        row++;
-      }
+      addStationGroupRows(*resultTable, row, all_locations, groups, *timeFormatter);
     }
     return resultTable;
   }
