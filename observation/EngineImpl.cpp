@@ -88,6 +88,69 @@ bool stationHasRightType(const Spine::Station &station, const Settings &settings
 }
 #endif
 
+// Insert nullified time series for unknown parameters
+void insertUnknownParameters(TS::TimeSeriesVector &tsv,
+                             const std::vector<unsigned int> &unknownParameterIndexes)
+{
+  // Take copy of the first time series
+  TS::TimeSeries ts = tsv.at(0);
+  // Set values in all timestesps to TS::None()
+  for (auto &timedvalue : ts)
+    timedvalue.value = TS::None();
+  // Insert the nullified times series to time series vector
+  for (auto index : unknownParameterIndexes)
+    tsv.insert(tsv.begin() + index, ts);
+}
+
+// Find out FMISID column, -1 if there is none
+int fmisidIndex(const Settings &settings)
+{
+  for (unsigned int i = 0; i < settings.parameters.size(); i++)
+    if (settings.parameters[i].name() == "fmisid")
+      return i;
+  return -1;
+}
+
+// Copy the rows of a station from the original data structure to the result structure
+void copyStationRows(const TS::TimeSeriesVector &tsv,
+                     TS::TimeSeriesVector &result,
+                     unsigned int firstIndex,
+                     unsigned int numberOfRows,
+                     const std::string &fmisid,
+                     const Settings &settings)
+{
+  for (unsigned int i = 0; i < tsv.size(); i++)
+  {
+    const TS::TimeSeries &ts = tsv.at(i);
+
+    TS::TimeSeries &resultVector = result.at(i);
+
+    // Prevent referencing past the end of source data
+
+    if (firstIndex + numberOfRows > ts.size())
+    {
+      std::cout << "obsengine afterQuery: indexing error: fmisid=" << fmisid
+                << " firstIndex=" << firstIndex << " numberOfRows=" << numberOfRows
+                << " ts.size()=" << ts.size() << " settings=" << settings
+                << " resultVector=" << resultVector << " ts=" << ts << " i=" << i
+                << " tsvPtr->size()=" << tsv.size();
+
+      throw Fmi::Exception::Trace(BCP, "Internal error indexing data");
+    }
+
+    auto it_first = ts.begin();
+    for (unsigned int k = 0; k < firstIndex; k++)
+      it_first++;
+    auto it_last = it_first;
+    for (unsigned int k = 0; k < numberOfRows; k++)
+      it_last++;
+
+    //      resultVector.insert(resultVector.end(), ts.begin() + firstIndex, ts.begin() +
+    //      firstIndex + numberOfRows);
+    resultVector.insert(resultVector.end(), it_first, it_last);
+  }
+}
+
 void afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
                 const Settings &settings,
                 const std::vector<unsigned int> &unknownParameterIndexes)
@@ -98,26 +161,11 @@ void afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
       return;
 
     if (!unknownParameterIndexes.empty())
-    {
-      // Take copy of the first time series
-      TS::TimeSeries ts = tsvPtr->at(0);
-      // Set values in all timestesps to TS::None()
-      for (auto &timedvalue : ts)
-        timedvalue.value = TS::None();
-      // Insert the nullified times series to time series vector
-      for (auto index : unknownParameterIndexes)
-        tsvPtr->insert(tsvPtr->begin() + index, ts);
-    }
+      insertUnknownParameters(*tsvPtr, unknownParameterIndexes);
 
     // Arrange resultset in the right order
     // Find out FMISID column
-    int fmisid_index = -1;
-    for (unsigned int i = 0; i < settings.parameters.size(); i++)
-      if (settings.parameters[i].name() == "fmisid")
-      {
-        fmisid_index = i;
-        break;
-      }
+    int fmisid_index = fmisidIndex(settings);
 
     if (fmisid_index < 0 || settings.taggedFMISIDs.empty())
       return;
@@ -150,36 +198,7 @@ void afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
       unsigned int firstIndex = indexes.front();
       unsigned int numberOfRows = indexes.size();
 
-      for (unsigned int i = 0; i < tsvPtr->size(); i++)
-      {
-        const TS::TimeSeries &ts = tsvPtr->at(i);
-
-        TS::TimeSeries &resultVector = result->at(i);
-
-        // Prevent referencing past the end of source data
-
-        if (firstIndex + numberOfRows > ts.size())
-        {
-          std::cout << "obsengine afterQuery: indexing error: fmisid=" << fmisid
-                    << " firstIndex=" << firstIndex << " numberOfRows=" << numberOfRows
-                    << " ts.size()=" << ts.size() << " settings=" << settings
-                    << " resultVector=" << resultVector << " ts=" << ts << " i=" << i
-                    << " tsvPtr->size()=" << tsvPtr->size();
-
-          throw Fmi::Exception::Trace(BCP, "Internal error indexing data");
-        }
-
-        auto it_first = ts.begin();
-        for (unsigned int k = 0; k < firstIndex; k++)
-          it_first++;
-        auto it_last = it_first;
-        for (unsigned int k = 0; k < numberOfRows; k++)
-          it_last++;
-
-        //      resultVector.insert(resultVector.end(), ts.begin() + firstIndex, ts.begin() +
-        //      firstIndex + numberOfRows);
-        resultVector.insert(resultVector.end(), it_first, it_last);
-      }
+      copyStationRows(*tsvPtr, *result, firstIndex, numberOfRows, fmisid, settings);
     }
 
     tsvPtr = result;
