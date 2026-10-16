@@ -1275,127 +1275,85 @@ std::size_t PostgreSQLCacheDB::fillFlashDataCache(const FlashDataItems &flashCac
       // Collect new items before taking a lock - we might avoid one completely
       std::vector<std::size_t> new_items;
       std::vector<std::size_t> new_hashes;
-      new_items.reserve(itsMaxInsertSize);
-      new_hashes.reserve(itsMaxInsertSize);
 
-      std::size_t pos2 = 0;
-      for (pos2 = pos1; new_hashes.size() < itsMaxInsertSize && pos2 < flashCacheData.size();
-           ++pos2)
-      {
-        const auto &item = flashCacheData[pos2];
-
-        auto hash = item.hash_value();
-
-        if (!itsFlashInsertCache.exists(hash))
-        {
-          new_items.push_back(pos2);
-          new_hashes.push_back(hash);
-        }
-      }
+      std::size_t pos2 = collectNewItems(
+          flashCacheData, pos1, itsMaxInsertSize, itsFlashInsertCache, new_items, new_hashes);
 
       // Now insert the new items
+
       if (!new_items.empty())
       {
         Spine::WriteLock lock(flash_data_write_mutex);
-        std::vector<std::size_t> flashesToUpdate = new_items;
+        insertItems(transaction,
+                    flashCacheData,
+                    new_items,
+                    itsMaxInsertSize,
+                    "INSERT INTO flash_data "
+                    "(stroke_time, stroke_time_fraction, flash_id, multiplicity, "
+                    "peak_current, sensors, freedom_degree, ellipse_angle, "
+                    "ellipse_major, ellipse_minor, chi_square, rise_time, "
+                    "ptz_time, cloud_indicator, angle_indicator, signal_indicator, "
+                    "timing_indicator, stroke_status, data_source, created, modified_last, "
+                    "stroke_location) "
+                    "VALUES ",
+                    " ON CONFLICT(stroke_time, stroke_time_fraction, flash_id) DO "
+                    "UPDATE SET "
+                    "(multiplicity, peak_current, sensors, freedom_degree, ellipse_angle, "
+                    "ellipse_major, ellipse_minor, chi_square, rise_time, "
+                    "ptz_time, cloud_indicator, angle_indicator, signal_indicator, "
+                    "timing_indicator, stroke_status, data_source, created, modified_last, "
+                    "stroke_location) = "
+                    "(EXCLUDED.multiplicity, EXCLUDED.peak_current, EXCLUDED.sensors, "
+                    "EXCLUDED.freedom_degree, EXCLUDED.ellipse_angle, EXCLUDED.ellipse_major, "
+                    "EXCLUDED.ellipse_minor, EXCLUDED.chi_square, EXCLUDED.rise_time, "
+                    "EXCLUDED.ptz_time, EXCLUDED.cloud_indicator, EXCLUDED.angle_indicator, "
+                    "EXCLUDED.signal_indicator, EXCLUDED.timing_indicator, "
+                    "EXCLUDED.stroke_status, "
+                    "EXCLUDED.data_source, EXCLUDED.created, EXCLUDED.modified_last, "
+                    "EXCLUDED.stroke_location)",
+                    [&](const auto &item)
+                    {
+                      std::string stroke_time = Fmi::to_iso_string(item.stroke_time);
+                      std::string key = stroke_time;
+                      key += Fmi::to_string(item.stroke_time_fraction);
+                      key += Fmi::to_string(item.flash_id);
+                      // stroke_time, stroke_time_fraction, flash_id
+                      return key;
+                    },
+                    [&](const auto &item)
+                    {
+                      std::string stroke_time = Fmi::to_iso_string(item.stroke_time);
+                      std::string created_time = Fmi::to_iso_string(item.created);
+                      std::string modified_last_time = Fmi::to_iso_string(item.modified_last);
+                      std::string stroke_location =
+                          "ST_GeomFromText('POINT(" + Fmi::to_string("%.10g", item.longitude) +
+                          " " + Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
 
-        while (!flashesToUpdate.empty())
-        {
-          const auto &last_item = flashCacheData[flashesToUpdate.back()];
-          std::vector<std::string> values_vector;
-          std::set<std::string> key_set;  // to check duplicates
-          std::vector<std::size_t> duplicateFlashes;
-
-          for (const auto i : flashesToUpdate)
-          {
-            const auto &item = flashCacheData[i];
-            std::string stroke_time = Fmi::to_iso_string(item.stroke_time);
-            std::string created_time = Fmi::to_iso_string(item.created);
-            std::string modified_last_time = Fmi::to_iso_string(item.modified_last);
-            std::string key = stroke_time;
-            key += Fmi::to_string(item.stroke_time_fraction);
-            key += Fmi::to_string(item.flash_id);
-            // stroke_time, stroke_time_fraction, flash_id
-            if (key_set.find(key) != key_set.end())
-            {
-              duplicateFlashes.push_back(i);
-            }
-            else
-            {
-              key_set.insert(key);
-
-              std::string stroke_location =
-                  "ST_GeomFromText('POINT(" + Fmi::to_string("%.10g", item.longitude) + " " +
-                  Fmi::to_string("%.10g", item.latitude) + ")', " + srid + ")";
-
-              std::string values = "(";
-              values += ("'" + stroke_time + "',");
-              values += Fmi::to_string(item.stroke_time_fraction) + ",";
-              values += Fmi::to_string(item.flash_id) + ",";
-              values += Fmi::to_string(item.multiplicity) + ",";
-              values += Fmi::to_string(item.peak_current) + ",";
-              values += Fmi::to_string(item.sensors) + ",";
-              values += Fmi::to_string(item.freedom_degree) + ",";
-              values += Fmi::to_string(item.ellipse_angle) + ",";
-              values += Fmi::to_string(item.ellipse_major) + ",";
-              values += Fmi::to_string(item.ellipse_minor) + ",";
-              values += Fmi::to_string(item.chi_square) + ",";
-              values += Fmi::to_string(item.rise_time) + ",";
-              values += Fmi::to_string(item.ptz_time) + ",";
-              values += Fmi::to_string(item.cloud_indicator) + ",";
-              values += Fmi::to_string(item.angle_indicator) + ",";
-              values += Fmi::to_string(item.signal_indicator) + ",";
-              values += Fmi::to_string(item.timing_indicator) + ",";
-              values += Fmi::to_string(item.stroke_status) + ",";
-              values += Fmi::to_string(item.data_source) + ",";
-              values += ("'" + created_time + "',");
-              values += ("'" + modified_last_time + "',");
-              values += stroke_location + ")";
-              values_vector.push_back(values);
-            }
-
-            if ((values_vector.size() % itsMaxInsertSize == 0) || &item == &last_item)
-            {
-              std::string sqlStmt =
-                  "INSERT INTO flash_data "
-                  "(stroke_time, stroke_time_fraction, flash_id, multiplicity, "
-                  "peak_current, sensors, freedom_degree, ellipse_angle, "
-                  "ellipse_major, ellipse_minor, chi_square, rise_time, "
-                  "ptz_time, cloud_indicator, angle_indicator, signal_indicator, "
-                  "timing_indicator, stroke_status, data_source, created, modified_last, "
-                  "stroke_location) "
-                  "VALUES ";
-
-              for (const auto &v : values_vector)
-              {
-                sqlStmt += v;
-                if (&v != &values_vector.back())
-                  sqlStmt += ",";
-              }
-
-              sqlStmt +=
-                  " ON CONFLICT(stroke_time, stroke_time_fraction, flash_id) DO "
-                  "UPDATE SET "
-                  "(multiplicity, peak_current, sensors, freedom_degree, ellipse_angle, "
-                  "ellipse_major, ellipse_minor, chi_square, rise_time, "
-                  "ptz_time, cloud_indicator, angle_indicator, signal_indicator, "
-                  "timing_indicator, stroke_status, data_source, created, modified_last, "
-                  "stroke_location) = "
-                  "(EXCLUDED.multiplicity, EXCLUDED.peak_current, EXCLUDED.sensors, "
-                  "EXCLUDED.freedom_degree, EXCLUDED.ellipse_angle, EXCLUDED.ellipse_major, "
-                  "EXCLUDED.ellipse_minor, EXCLUDED.chi_square, EXCLUDED.rise_time, "
-                  "EXCLUDED.ptz_time, EXCLUDED.cloud_indicator, EXCLUDED.angle_indicator, "
-                  "EXCLUDED.signal_indicator, EXCLUDED.timing_indicator, "
-                  "EXCLUDED.stroke_status, "
-                  "EXCLUDED.data_source, EXCLUDED.created, EXCLUDED.modified_last, "
-                  "EXCLUDED.stroke_location)";
-
-              transaction->execute(sqlStmt);
-              values_vector.clear();
-            }
-          }
-          flashesToUpdate = duplicateFlashes;
-        }
+                      std::string values = "(";
+                      values += ("'" + stroke_time + "',");
+                      values += Fmi::to_string(item.stroke_time_fraction) + ",";
+                      values += Fmi::to_string(item.flash_id) + ",";
+                      values += Fmi::to_string(item.multiplicity) + ",";
+                      values += Fmi::to_string(item.peak_current) + ",";
+                      values += Fmi::to_string(item.sensors) + ",";
+                      values += Fmi::to_string(item.freedom_degree) + ",";
+                      values += Fmi::to_string(item.ellipse_angle) + ",";
+                      values += Fmi::to_string(item.ellipse_major) + ",";
+                      values += Fmi::to_string(item.ellipse_minor) + ",";
+                      values += Fmi::to_string(item.chi_square) + ",";
+                      values += Fmi::to_string(item.rise_time) + ",";
+                      values += Fmi::to_string(item.ptz_time) + ",";
+                      values += Fmi::to_string(item.cloud_indicator) + ",";
+                      values += Fmi::to_string(item.angle_indicator) + ",";
+                      values += Fmi::to_string(item.signal_indicator) + ",";
+                      values += Fmi::to_string(item.timing_indicator) + ",";
+                      values += Fmi::to_string(item.stroke_status) + ",";
+                      values += Fmi::to_string(item.data_source) + ",";
+                      values += ("'" + created_time + "',");
+                      values += ("'" + modified_last_time + "',");
+                      values += stroke_location + ")";
+                      return values;
+                    });
       }
 
       // We insert the new hashes only when the transaction has completed so that
