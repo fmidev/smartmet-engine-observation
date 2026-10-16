@@ -285,26 +285,21 @@ TS::Value mobileColumnValue(sqlite3pp::query::rows &row,
   }
   else if (data_type == SQLITE_INTEGER)
   {
-    if (column_name != "prod_id" && column_name != "station_id" &&
-        column_name != "data_level" && column_name != "mid" && column_name != "sensor_no" &&
-        column_name != "data_quality" && column_name != "ctrl_status")
+    if (column_name == "data_time" || column_name == "created")
+    {
+      time_t data_time = row.get<int>(i);
+      Fmi::DateTime pt = Fmi::date_time::from_time_t(data_time);
+      Fmi::LocalDateTime ldt(pt, zone);
+      value = ldt;
+      if (column_name == "data_time")
+        timestep = ldt;
+    }
+    else if (column_name != "prod_id" && column_name != "station_id" &&
+             column_name != "data_level" && column_name != "mid" && column_name != "sensor_no" &&
+             column_name != "data_quality" && column_name != "ctrl_status")
       value = row.get<double>(i);
     else
-    {
-      if (column_name == "data_time" || column_name == "created")
-      {
-        time_t data_time = row.get<int>(i);
-        Fmi::DateTime pt = Fmi::date_time::from_time_t(data_time);
-        Fmi::LocalDateTime ldt(pt, zone);
-        value = ldt;
-        if (column_name == "data_time")
-          timestep = ldt;
-      }
-      else
-      {
-        value = row.get<int>(i);
-      }
-    }
+      value = row.get<int>(i);
   }
   return value;
 }
