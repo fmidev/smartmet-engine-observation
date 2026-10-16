@@ -173,6 +173,50 @@ void bindAndExecuteMobileExternalItem(sqlite3pp::database &db,
   check_sqlite_result(rc, db.error_msg());
   cmd.reset();
 }
+
+// Value of a column of the mobile and external data cache query
+TS::Value mobileColumnValue(sqlite3pp::query::rows &row,
+                            int i,
+                            const std::string &column_name,
+                            const Fmi::TimeZonePtr &zone,
+                            Fmi::LocalDateTime &timestep)
+{
+  int data_type = row.column_type(i);
+  TS::Value value = TS::None();
+  if (data_type == SQLITE_TEXT)
+  {
+    auto data_value = row.get<std::string>(i);
+    value = data_value;
+  }
+  else if (data_type == SQLITE_FLOAT)
+  {
+    value = row.get<double>(i);
+  }
+  else if (data_type == SQLITE_INTEGER)
+  {
+    if (column_name != "prod_id" && column_name != "station_id" &&
+        column_name != "data_level" && column_name != "mid" && column_name != "sensor_no" &&
+        column_name != "data_quality" && column_name != "ctrl_status")
+      value = row.get<double>(i);
+    else
+    {
+      if (column_name == "data_time" || column_name == "created")
+      {
+        time_t data_time = row.get<int>(i);
+        Fmi::DateTime pt = Fmi::date_time::from_time_t(data_time);
+        Fmi::LocalDateTime ldt(pt, zone);
+        value = ldt;
+        if (column_name == "data_time")
+          timestep = ldt;
+      }
+      else
+      {
+        value = row.get<int>(i);
+      }
+    }
+  }
+  return value;
+}
 }  // namespace
 
 // Results read from the sqlite database
@@ -1715,40 +1759,7 @@ TS::TimeSeriesVectorPtr SpatiaLite::getMobileAndExternalData(const Settings &set
       {
         std::string column_name = qry.column_name(i);
 
-        int data_type = row.column_type(i);
-        TS::Value value = TS::None();
-        if (data_type == SQLITE_TEXT)
-        {
-          auto data_value = row.get<std::string>(i);
-          value = data_value;
-        }
-        else if (data_type == SQLITE_FLOAT)
-        {
-          value = row.get<double>(i);
-        }
-        else if (data_type == SQLITE_INTEGER)
-        {
-          if (column_name != "prod_id" && column_name != "station_id" &&
-              column_name != "data_level" && column_name != "mid" && column_name != "sensor_no" &&
-              column_name != "data_quality" && column_name != "ctrl_status")
-            value = row.get<double>(i);
-          else
-          {
-            if (column_name == "data_time" || column_name == "created")
-            {
-              time_t data_time = row.get<int>(i);
-              Fmi::DateTime pt = Fmi::date_time::from_time_t(data_time);
-              Fmi::LocalDateTime ldt(pt, zone);
-              value = ldt;
-              if (column_name == "data_time")
-                timestep = ldt;
-            }
-            else
-            {
-              value = row.get<int>(i);
-            }
-          }
-        }
+        TS::Value value = mobileColumnValue(row, i, column_name, zone, timestep);
         result[column_name] = value;
       }
 
