@@ -75,7 +75,7 @@ class VerifiableMessageQuery : public QueryBase
   // If the param is set to "true", result will be orderd
   // by message time in descending order. Only the first
   // row from the result of each station will be returned.
-  bool m_returnOnlyLatest;
+  bool m_returnOnlyLatest{false};
 };
 
 }  // namespace Observation
