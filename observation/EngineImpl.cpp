@@ -1004,6 +1004,8 @@ ContentTable EngineImpl::getStationInfo(const StationOptions &options) const
               break;
             }
           }
+          if (matched)
+            break;
         }
         if (!matched)
         {
