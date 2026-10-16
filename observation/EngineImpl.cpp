@@ -1094,6 +1094,28 @@ std::set<uint> EngineImpl::getProducerIds(const std::string &producer) const
   }
 }
 
+// Add the measurands whose measurand or combined code is a parameter of the producer
+void EngineImpl::addMeasurands(MeasurandInfo &mi,
+                               const std::set<const measurand_info *> &measurands,
+                               const std::string &producer) const
+{
+  for (const auto &m : measurands)
+  {
+    if (isParameter(m->measurand_code, producer))
+    {
+      auto parameter_name = m->measurand_code;
+      boost::algorithm::to_lower(parameter_name);
+      mi[parameter_name] = *m;
+    }
+    if (isParameter(m->combined_code, producer))
+    {
+      auto parameter_name = m->combined_code;
+      boost::algorithm::to_lower(parameter_name);
+      mi[parameter_name] = *m;
+    }
+  }
+}
+
 void EngineImpl::initMeasurandInfo()
 {
   try
@@ -1123,21 +1145,7 @@ void EngineImpl::initMeasurandInfo()
         if (producer_id_measurands.find(id) != producer_id_measurands.end())
         {
           auto measurands = producer_id_measurands.at(id);
-          for (const auto &m : measurands)
-          {
-            if (isParameter(m->measurand_code, producer))
-            {
-              auto parameter_name = m->measurand_code;
-              boost::algorithm::to_lower(parameter_name);
-              mi[parameter_name] = *m;
-            }
-            if (isParameter(m->combined_code, producer))
-            {
-              auto parameter_name = m->combined_code;
-              boost::algorithm::to_lower(parameter_name);
-              mi[parameter_name] = *m;
-            }
-          }
+          addMeasurands(mi, measurands, producer);
         }
       }
       if (!mi.empty())

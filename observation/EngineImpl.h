@@ -166,6 +166,9 @@ class EngineImpl : public Engine
   std::set<uint> getProducerIds(const std::string &producer) const;
 
   void initMeasurandInfo();
+  void addMeasurands(MeasurandInfo &mi,
+                     const std::set<const measurand_info *> &measurands,
+                     const std::string &producer) const;
 
   std::string itsConfigFile;
 
