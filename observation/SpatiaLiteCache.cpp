@@ -1139,6 +1139,21 @@ bool SpatiaLiteCache::isReadOnly() const
   return itsReadOnly;
 }
 
+std::vector<SensorInfo> SpatiaLiteCache::getSensors(const SensorOptions &options,
+                                                    const std::set<int> &measurands,
+                                                    const std::set<int> &producers) const
+{
+  try
+  {
+    PoolType::Ptr db = itsConnectionPool->get();
+    return db->getSensors(options, measurands, producers);
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
 Fmi::DateTime SpatiaLiteCache::getLatestObservationTime() const
 {
   return itsConnectionPool->get()->getLatestObservationTime();

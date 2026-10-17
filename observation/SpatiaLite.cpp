@@ -1014,6 +1014,50 @@ size_t SpatiaLite::selectCount(const std::string &queryString)
   }
 }
 
+std::vector<SensorInfo> SpatiaLite::getSensors(const SensorOptions &options,
+                                               const std::set<int> &measurands,
+                                               const std::set<int> &producers)
+{
+  try
+  {
+    // Only integers of the validated options are written into the statement, the times are
+    // bound. measurand_no 1 marks the default sensor of a parameter.
+    std::string sql =
+        "SELECT fmisid, measurand_id, sensor_no, MAX(measurand_no = 1), MIN(data_time), "
+        "MAX(data_time), COUNT(*) FROM observation_data WHERE data_time BETWEEN :start AND :end";
+    if (!options.fmisids.empty())
+      sql += " AND fmisid IN (" + Fmi::join(options.fmisids) + ")";
+    if (!measurands.empty())
+      sql += " AND measurand_id IN (" + Fmi::join(measurands) + ")";
+    if (!producers.empty())
+      sql += " AND producer_id IN (" + Fmi::join(producers) + ")";
+    sql += " GROUP BY fmisid, measurand_id, sensor_no ORDER BY fmisid, measurand_id, sensor_no";
+
+    sqlite3pp::query qry(itsDB, sql.c_str());
+    qry.bind(":start", static_cast<long long>(to_epoch(options.starttime)));
+    qry.bind(":end", static_cast<long long>(to_epoch(options.endtime)));
+
+    std::vector<SensorInfo> out;
+    for (auto iter = qry.begin(); iter != qry.end(); ++iter)
+    {
+      SensorInfo s;
+      s.fmisid = (*iter).get<int>(0);
+      s.measurand_id = (*iter).get<int>(1);
+      s.sensor_no = (*iter).get<int>(2);
+      s.is_default = (*iter).get<int>(3) != 0;
+      s.first_data = Fmi::date_time::from_time_t((*iter).get<long long>(4));
+      s.last_data = Fmi::date_time::from_time_t((*iter).get<long long>(5));
+      s.values = static_cast<std::size_t>((*iter).get<long long>(6));
+      out.push_back(s);
+    }
+    return out;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Sensor query failed!");
+  }
+}
+
 Fmi::DateTime SpatiaLite::getLatestObservationTime()
 {
   try

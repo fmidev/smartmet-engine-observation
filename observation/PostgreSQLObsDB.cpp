@@ -9,6 +9,7 @@
 #include <gis/OGR.h>
 #include <macgyver/AsyncTask.h>
 #include <macgyver/Exception.h>
+#include <macgyver/Join.h>
 #include <spine/Convenience.h>
 
 // #define MYDEBUG 1
@@ -1155,6 +1156,97 @@ AND tg.group_name IN( '{}')
   catch (...)
   {
     throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+std::vector<SensorInfo> PostgreSQLObsDB::getSensorConfigurations(
+    const SensorOptions &options,
+    const std::set<int> &measurands,
+    const std::set<int> &producers) const
+{
+  try
+  {
+    // The configurations of the observations, as the view observation_data_r1 joins them with
+    // the data: the storages 462, 482 and 483, and the submeasurands of the first two. Only
+    // integers and times of the validated options are written into the statement.
+    const auto when = [](const Fmi::DateTime &t)
+    { return "'" + Fmi::to_iso_extended_string(t).replace(10, 1, " ") + "'"; };
+    const std::string start = when(options.starttime);
+    const std::string end = when(options.endtime);
+    std::string stations;
+    if (!options.fmisids.empty())
+      stations = " AND o.target_id IN (" + Fmi::join(options.fmisids) + ")";
+    std::string producerIds;
+    if (!producers.empty())
+      producerIds = " AND c.producer_id IN (" + Fmi::join(producers) + ")";
+    const auto columns = [](const std::string &measurand,
+                            const std::string &first,
+                            const std::string &last)
+    {
+      return "SELECT o.target_id, " + measurand + ", COALESCE(m.measurand_code, ''), c.sensor_no, " +
+             "c.measurand_no, EXTRACT(EPOCH FROM " + first + ")::bigint, EXTRACT(EPOCH FROM " + last +
+             ")::bigint, EXTRACT(EPOCH FROM o.earliest_data)::bigint, EXTRACT(EPOCH FROM "
+             "o.latest_data)::bigint, COALESCE(o.data_values, 0) ";
+    };
+
+    std::string sqlStmt =
+        columns("c.measurand_id", "c.configuration_start", "c.configuration_end") +
+        "FROM observation_v1 o JOIN observation_configuration_v1 c ON c.observation_id = "
+        "o.observation_id LEFT JOIN measurands_v1 m ON m.measurand_id = c.measurand_id "
+        "WHERE o.storage_id IN (462, 482, 483) AND c.access_policy = 0 AND c.configuration_start <= " +
+        end + " AND c.configuration_end >= " + start + stations + producerIds;
+    if (!measurands.empty())
+      sqlStmt += " AND c.measurand_id IN (" + Fmi::join(measurands) + ")";
+
+    const std::string first = "GREATEST(c.configuration_start, st.valid_from)";
+    const std::string last = "LEAST(c.configuration_end, st.valid_to)";
+    sqlStmt += " UNION ALL " + columns("st.submeasurand_id", first, last) +
+               "FROM observation_v1 o JOIN observation_configuration_v1 c ON c.observation_id = "
+               "o.observation_id JOIN value_submeasurands_v1 st ON st.measurand_id = c.measurand_id "
+               "AND st.producer_id = c.producer_id AND st.valid_from <= c.configuration_end AND "
+               "st.valid_to >= c.configuration_start LEFT JOIN measurands_v1 m ON m.measurand_id = "
+               "st.submeasurand_id WHERE o.storage_id IN (462, 482) AND c.access_policy = 0 AND " +
+               first + " <= " + end + " AND " + last + " >= " + start + stations + producerIds;
+    if (!measurands.empty())
+      sqlStmt += " AND st.submeasurand_id IN (" + Fmi::join(measurands) + ")";
+    sqlStmt += " ORDER BY 1, 2, 4, 6";
+
+    if (itsDebug)
+      std::cout << "PostgreSQL: " << sqlStmt << '\n';
+
+    // The configurations still valid end in the year 9999
+    const auto time = [](const pqxx::field &f)
+    {
+      if (f.is_null())
+        return Fmi::DateTime(Fmi::DateTime::NOT_A_DATE_TIME);
+      const auto epoch = f.as<long long>();
+      if (epoch >= 253370764800LL)  // 9999-01-01
+        return Fmi::DateTime(Fmi::DateTime::NOT_A_DATE_TIME);
+      return Fmi::date_time::from_time_t(epoch);
+    };
+
+    std::vector<SensorInfo> out;
+    auto result_set = itsDB.executeNonTransaction(sqlStmt);
+    for (const auto &row : result_set)
+    {
+      SensorInfo s;
+      s.fmisid = row[0].as<int>();
+      s.measurand_id = row[1].as<int>();
+      s.measurand_code = row[2].as<std::string>();
+      s.sensor_no = row[3].as<int>();
+      s.is_default = (!row[4].is_null() && row[4].as<int>() == 1);
+      s.configuration_start = time(row[5]);
+      s.configuration_end = time(row[6]);
+      s.first_data = time(row[7]);
+      s.last_data = time(row[8]);
+      s.values = static_cast<std::size_t>(row[9].as<long long>());
+      out.push_back(s);
+    }
+    return out;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Sensor configuration query failed!");
   }
 }
 

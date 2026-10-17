@@ -1,6 +1,7 @@
 #include "EngineImpl.h"
 #include "DBRegistry.h"
 #include "DatabaseDriverFactory.h"
+#include "DatabaseDriverProxy.h"
 #include "ObservationCacheFactory.h"
 #include "SpecialParameters.h"
 #include "StationOptions.h"
@@ -11,6 +12,7 @@
 #include <macgyver/Geometry.h>
 #include <macgyver/Join.h>
 #include <macgyver/StringConversion.h>
+#include <macgyver/TimeFormatter.h>
 #include <macgyver/TypeName.h>
 #include <spine/ConfigTools.h>
 #include <spine/Convenience.h>
@@ -270,6 +272,13 @@ void EngineImpl::init()
           std::bind(&EngineImpl::requestStationInfo, this, std::placeholders::_2),
           "Observation stations");
 
+      reactor->addAdminTableRequestHandler(
+          this,
+          "obssensors",
+          AdminRequestAccess::Public,
+          std::bind(&EngineImpl::requestSensorInfo, this, std::placeholders::_2),
+          "Observation sensors of the stations");
+
       reactor->addAdminBoolRequestHandler(
           this,
           "reloadstations",
@@ -351,6 +360,174 @@ std::unique_ptr<Spine::Table> EngineImpl::requestStationInfo(
   std::unique_ptr<Spine::Table> obsengineStationInfo = getStationInfo(options);
 
   return obsengineStationInfo;
+}
+
+// ----------------------------------------------------------------------
+/*!
+ * \brief The obssensors request: the sensors of the stations of a producer
+ *
+ * Options: producer (required), fmisid and param (comma separated lists, all when omitted),
+ * starttime and endtime (the current time when omitted), timeformat (sql by default).
+ */
+// ----------------------------------------------------------------------
+
+std::unique_ptr<Spine::Table> EngineImpl::requestSensorInfo(
+    const Spine::HTTP::Request &theRequest) const
+{
+  try
+  {
+    SensorOptions options;
+    options.producer = Spine::optional_string(theRequest.getParameter("producer"), "");
+    if (options.producer.empty())
+      throw Fmi::Exception(BCP, "The producer option is required");
+    parseIntOption(options.fmisids, Spine::optional_string(theRequest.getParameter("fmisid"), ""));
+    const std::string params = Spine::optional_string(theRequest.getParameter("param"), "");
+    if (!params.empty())
+    {
+      std::vector<std::string> parts;
+      boost::algorithm::split(parts, params, boost::algorithm::is_any_of(","));
+      for (const auto &p : parts)
+        if (!p.empty())
+          options.parameters.insert(p);
+    }
+    const std::string starttime = Spine::optional_string(theRequest.getParameter("starttime"), "");
+    const std::string endtime = Spine::optional_string(theRequest.getParameter("endtime"), "");
+    if (!starttime.empty())
+      options.starttime = Fmi::TimeParser::parse(starttime);
+    if (!endtime.empty())
+      options.endtime = Fmi::TimeParser::parse(endtime);
+    std::unique_ptr<Fmi::TimeFormatter> formatter(Fmi::TimeFormatter::create(
+        Spine::optional_string(theRequest.getParameter("timeformat"), "sql")));
+
+    const auto result = getSensors(options);
+
+    auto table = std::make_unique<Spine::Table>();
+    table->setNames({"FMISID",
+                     "Parameter",
+                     "MeasurandId",
+                     "MeasurandCode",
+                     "Sensor",
+                     "Default",
+                     "ConfigurationStart",
+                     "ConfigurationEnd",
+                     "FirstData",
+                     "LastData",
+                     "Values"});
+    const auto time = [&formatter](const Fmi::DateTime &t)
+    { return t.is_not_a_date_time() ? std::string() : formatter->format(t); };
+    unsigned int row = 0;
+    for (const auto &s : result.sensors)
+    {
+      unsigned int column = 0;
+      table->set(column++, row, Fmi::to_string(s.fmisid));
+      table->set(column++, row, Fmi::join(s.parameters, ","));
+      table->set(column++, row, Fmi::to_string(s.measurand_id));
+      table->set(column++, row, s.measurand_code);
+      table->set(column++, row, Fmi::to_string(s.sensor_no));
+      table->set(column++, row, s.is_default ? "yes" : "no");
+      table->set(column++, row, time(s.configuration_start));
+      table->set(column++, row, time(s.configuration_end));
+      table->set(column++, row, time(s.first_data));
+      table->set(column++, row, time(s.last_data));
+      table->set(column, row, s.values > 0 ? Fmi::to_string(s.values) : std::string());
+      row++;
+    }
+    if (!result.available)
+      throw Fmi::Exception(BCP, result.note);
+    return table;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Listing the observation sensors failed");
+  }
+}
+
+// ----------------------------------------------------------------------
+/*!
+ * \brief The sensors of the parameters of the stations of a producer
+ */
+// ----------------------------------------------------------------------
+
+SensorResult EngineImpl::getSensors(const SensorOptions &options) const
+{
+  try
+  {
+    if (!isValidStationType(options.producer))
+      throw Fmi::Exception(BCP, "Unknown producer").addParameter("producer", options.producer);
+
+    // The parameter names of each measurand of the producer
+    std::map<int, std::vector<std::string>> names;
+    for (const auto &param : *itsEngineParameters->parameterMap)
+      for (const auto &producer_param : param.second)
+        if (producer_param.first == options.producer)
+          if (auto id = Fmi::stoi_opt(producer_param.second))
+            names[*id].push_back(param.first);
+
+    // The measurands of the parameters asked
+    std::set<int> measurands;
+    for (const auto &name : options.parameters)
+    {
+      const auto id = Fmi::stoi_opt(
+          itsEngineParameters->parameterMap->getParameter(Fmi::ascii_tolower_copy(name),
+                                                          options.producer));
+      if (!id)
+        throw Fmi::Exception(BCP, "Unknown parameter '" + name + "' of producer '" + options.producer + "'")
+            .addParameter("parameter", name)
+            .addParameter("producer", options.producer);
+      measurands.insert(*id);
+    }
+
+    SensorOptions query = options;
+    const auto now = Fmi::SecondClock::universal_time();
+    if (query.starttime.is_not_a_date_time())
+      query.starttime = (query.endtime.is_not_a_date_time() ? now : query.endtime);
+    if (query.endtime.is_not_a_date_time())
+      query.endtime = std::max(now, query.starttime);
+    if (query.endtime < query.starttime)
+      throw Fmi::Exception(BCP, "The end time of the period is before its start time");
+
+    // The producers of the station type as data requests use them (updateProducers)
+    std::set<int> producers;
+    const auto &stationtypes = itsEngineParameters->stationtypeConfig;
+    if (stationtypes.getUseCommonQueryMethod(options.producer))
+    {
+      auto ids = stationtypes.getProducerIdSetByStationtype(options.producer);
+      if (ids.empty())
+        ids = itsEngineParameters->producerGroups.getProducerIds(
+            options.producer, query.starttime, query.endtime);
+      for (auto id : ids)
+        producers.insert(static_cast<int>(id));
+    }
+
+    const auto *proxy = dynamic_cast<const DatabaseDriverProxy *>(itsDatabaseDriver.get());
+    if (proxy == nullptr)
+    {
+      SensorResult result;
+      result.note = "The database driver cannot list sensors";
+      return result;
+    }
+
+    auto result = proxy->getSensors(query, measurands, producers);
+    // The parameter names of the producer, and the measurand codes when the source has none
+    const auto info = itsMeasurandInfo.find(options.producer);
+    for (auto &s : result.sensors)
+    {
+      auto pos = names.find(s.measurand_id);
+      if (pos != names.end())
+        s.parameters = pos->second;
+      if (s.measurand_code.empty() && info != itsMeasurandInfo.end())
+      {
+        auto m = info->second.find(Fmi::to_string(s.measurand_id));
+        if (m != info->second.end())
+          s.measurand_code = m->second.measurand_code;
+      }
+    }
+    return result;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
 }
 
 bool EngineImpl::requestReloadStations(const Spine::HTTP::Request & /* theRequest */)

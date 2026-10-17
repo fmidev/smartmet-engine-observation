@@ -10,6 +10,7 @@
 #include "ParameterMap.h"
 #include "ProducerGroups.h"
 #include "QueryResultBase.h"
+#include "Sensors.h"
 #include "Settings.h"
 #include "StationGroups.h"
 #include "StationtypeConfig.h"
@@ -125,6 +126,12 @@ class PostgreSQLObsDB : public CommonPostgreSQLFunctions
                          const std::string &wkt) const;
 
   MeasurandInfo getMeasurandInfo(const EngineParametersPtr &engineParameters) const;
+
+  // The sensors of the observations (observation_data_r1) from the configurations of the
+  // observations, see Engine::getSensors
+  std::vector<SensorInfo> getSensorConfigurations(const SensorOptions &options,
+                                                  const std::set<int> &measurands,
+                                                  const std::set<int> &producers) const;
 
   Fmi::DateTime getLatestDataUpdateTime(const std::string &tablename,
                                         const Fmi::DateTime &from,

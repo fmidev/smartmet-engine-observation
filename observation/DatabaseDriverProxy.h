@@ -44,6 +44,13 @@ class DatabaseDriverProxy : public DatabaseDriverInterface
   void getStationsByBoundingBox(Spine::Stations &stations, const Settings &settings) const override;
 
   DatabaseDriverBase *resolveDatabaseDriver(const Settings &settings) const;
+
+  // The sensors of a producer (Engine::getSensors) from the driver of the producer: the
+  // measurand ids of the parameters asked (all when empty) and the producer ids of the station
+  // type. Not virtual: the drivers that can list sensors are known here.
+  SensorResult getSensors(const SensorOptions &options,
+                          const std::set<int> &measurands,
+                          const std::set<int> &producers) const;
   DatabaseDriverBase *resolveDatabaseDriverByProducer(const std::string &producer) const;
   DatabaseDriverBase *resolveDatabaseDriverByTable(const std::string &table) const;
 

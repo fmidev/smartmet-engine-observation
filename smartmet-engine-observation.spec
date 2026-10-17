@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.10.16
-Release: 2%{?dist}.fmi
+Version: 26.10.17
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -175,6 +175,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Sat Oct 17 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.17-1.fmi
+- Added Engine::getSensors listing the sensors of the stations per parameter: sensor numbers, the default sensor, configuration and data periods. The PostgreSQL FMI driver reads the observation metadata, the SpatiaLite cache the cached observations, other sources answer that the sensors are not available
+- Added the public admin/info request obssensors (producer, fmisid, param, starttime, endtime)
+- The new virtual method is appended last in Engine, so binaries built against older headers keep working
+
 * Fri Oct 16 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.16-2.fmi
 - Copy assignments that are implicitly deleted are declared deleted instead of defaulted
 
