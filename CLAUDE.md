@@ -36,7 +36,7 @@ pkg-config: `gdal`, `configpp`, `sqlite3`, `spatialite`. Links against: `smartme
 
 `Engine` (abstract) has two implementations:
 - **`EngineImpl`** — the real engine: loads config, initializes caches and database drivers, processes queries
-- **`DisabledEngine`** — null object that returns empty results when the engine is disabled in server config
+- **`DisabledEngine`** — null object that returns empty results when the engine has no configuration file or its configuration sets `disabled = true`
 
 The factory `Engine::create()` decides which to instantiate. The engine is loaded dynamically by SmartMet Server via the `engine_class_creator()` C entry point in `Engine.cpp`.
 
@@ -57,7 +57,7 @@ Thread safety relies on `Fmi::AtomicSharedPtr` for lock-free station info update
 
 ### Station management
 
-`StationInfo` is the central station registry — loaded from a serialized file (`stations.txt`), with spatial indexing via NearTree for geographic nearest-station queries. Lookup methods exist for FMISID, WMO, LPNN, RWSID, and WSI identifiers.
+`StationInfo` is the central station registry — loaded from a serialized file (`stations.txt`), with spatial indexing via NearTree for geographic nearest-station queries. Lookup methods exist for FMISID, WMO, LPNN, RWSID, and WSI identifiers. There is only one `StationInfo`, so its nearest-station candidate cache is shared by all database drivers; the geoid and query result caches are likewise shared through `EngineParameters`.
 
 ### Query flow
 
@@ -69,11 +69,11 @@ Thread safety relies on `Fmi::AtomicSharedPtr` for lock-free station info update
 
 ### Configuration
 
-libconfig format. Main config defines: database connection, station types, parameter aliases (mapping human names to DB fields), cache settings, and DB registry path. The `cnf/db_registry/` directory contains 20 `.conf` files that define schemas for database tables (observations, radiosoundings, stations, measurands, etc.).
+libconfig format. Main config defines: database connection, station types, parameter aliases (mapping human names to DB fields), cache settings, and DB registry path. The `cnf/db_registry/` directory contains 21 `.conf` files that define schemas for database tables (observations, radiosoundings, stations, measurands, etc.).
 
 ## Source layout
 
-All source (155 files) lives in `observation/`. Key groupings:
+All source (156 files) lives in `observation/`. Key groupings:
 - **Engine core**: `Engine.h/cpp`, `EngineImpl.h/cpp`, `DisabledEngine.h/cpp`
 - **DB drivers**: `DatabaseDriverInterface.h`, `DatabaseDriverBase.*`, `PostgreSQLDatabaseDriver.*`, `SpatiaLiteDatabaseDriver.*`, `DummyDatabaseDriver.*`, `DatabaseDriverProxy.*`, `DatabaseDriverFactory.*`
 - **Cache**: `ObservationCache.h`, `PostgreSQLCache.*`, `SpatiaLiteCache.*`, `ObservationMemoryCache.*`, `FlashMemoryCache.*`, `DummyCache.*`

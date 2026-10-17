@@ -143,8 +143,12 @@ database_driver_info:
   days.
 * **`caches`** lists the caches this driver owns and fills, as
   `cache-name:table,table,…`; empty means no cache.
-* Per-driver parameters (update intervals, cache durations, pool sizes) may be added to
-  each group and override the engine-wide values (`DatabaseDriverBase` reads them).
+* The settings of each driver and cache are not in these groups but in
+  `database_info.connect_info.<name>` (the database connection, or the `spatialiteFile`
+  of a SpatiaLite cache) and `database_info.common_info.<name>` (update intervals, cache
+  durations, pool sizes, SQLite settings), read by `DatabaseDriverInfo`. The top-level
+  `quiet` is the default of each driver's `quiet`. See
+  [Configuring-Observation-Engine.md](Configuring-Observation-Engine.md).
 
 **Routing** (`DatabaseDriverContainer::resolveDriver(table, start, end)`): the drivers for
 the table are sorted by their day limit, and the first one whose window
@@ -158,9 +162,12 @@ table.
 ## 6. Caches
 
 Each cache-owning driver runs **update threads** (`ObservationCacheAdminBase`), one per
-data kind, every `finUpdateInterval` (FMI observations), `extUpdateInterval` (mobile and
-external), `flashUpdateInterval` (lightning), and the corresponding station and
-magnetometer intervals. An update:
+data kind, every `finCacheUpdateInterval` seconds (FMI observations),
+`extCacheUpdateInterval` (road and foreign stations), `flashCacheUpdateInterval`
+(lightning), the `roadCloud`, `netAtmo`, `fmiIoT` and `tapsiQc` intervals of the mobile
+driver, and `magnetometerCacheUpdateInterval` and `stationsCacheUpdateInterval`. An
+interval of 0 disables the updates of that kind. These are driver settings in
+`database_info.common_info.<driver>`. An update:
 
 1. asks the cache for its latest data time and modification time, and subtracts
    `updateExtraInterval` to catch rows that arrived late;
@@ -174,15 +181,18 @@ At start, the driver's `init()` runs one update of every cache in parallel
 (`startInitialCacheUpdates()`), loads the stations from the database if the stations file
 was missing, **waits for all of it**, and only then starts the periodic update threads. The
 engine's `init()`, and so every plugin waiting in `getEngine()`, waits with it.
-`cache.disableUpdates` (or `disableAllCacheUpdates`) stops the updates, which is useful
-with a prepared test cache. A cache file that is read-only while updates are enabled is
+`disableAllCacheUpdates` (a driver setting) stops the updates, which is useful with a
+prepared test cache. A cache file that is read-only while updates are enabled is
 refused at start. "Fake cache" settings let a cache emulate data periods for
 tests.
 
 The **memory caches** (`ObservationMemoryCache`, `FlashMemoryCache`) sit in front of the
-disk cache for the most recent hours. The **station resolution caches** (nearest-station
-candidates, sized by `nearestStationsCacheSize`) are shared by all drivers through
-`EngineParameters`; `cache.locationCacheSize` sizes the caches' own location lookups.
+disk cache for the most recent hours. The **station resolution caches** are shared by all
+drivers: the nearest-station candidates are cached in the single `StationInfo`
+(`cache.nearestStationsCacheSize`, default 100000), and the places resolved from geoids in
+`EngineParameters` (`cache.geoIdCacheSize`, default 10000). The PostgreSQL drivers also
+share a cache of query results in `EngineParameters` (`cache.queryResultBaseCacheSize`,
+default 1000).
 
 ## 7. Stations
 
@@ -215,10 +225,13 @@ why its results can be cached.
 
 ## 8. Station types, parameters and the DB registry
 
-* **`stationtypes`** lists the valid station types; **`oracle_stationtypelist`** (used by
-  all drivers despite its name) configures each: `stationGroups`, `producerIds`,
-  `databaseTableName`, `cached`, and `useCommonQueryMethod` (query the generic
-  `observation_data`-style table instead of a type-specific one).
+* **`stationtypes`** lists the valid station types; **`stationtypelist`** (used by all
+  drivers) configures each in a group with `stationtype`, `stationGroups`, `producerIds`,
+  `databaseTableName`, and `useCommonQueryMethod` (query the generic
+  `observation_data`-style table instead of a type-specific one). The mobile and external
+  station types (`roadcloud`, `teconer`, `netatmo`, `fmi_iot`, `tapsi_qc`) need exactly
+  their producer id here. Whether a station type is served from a cache depends on the
+  `caches` of the drivers (§5).
 * **`parameters`** maps each parameter name to a measurand per station type (see
   Configuring-Observation-Parameters.md). `isParameter()`, `getParameterId()` and
   `isParameterVariant()` answer from this map.

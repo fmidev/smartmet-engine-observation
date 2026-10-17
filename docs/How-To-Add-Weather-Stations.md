@@ -37,7 +37,7 @@ This example defines two station types. These names alone are not enough for the
 
 ## Meta Data for Station Types
 
-The `metadata` directive can contain additional information and/or limits to describe station types.
+The `meta_data` directive can contain additional information and/or limits to describe station types.
 
 ```
 meta_data:
@@ -62,74 +62,56 @@ meta_data:
 
 Example has defined the area where the stations are located with bounding box coordinates with `bbox` for station type `foreign`, and a default value for others.
 
-Defined `timestep` for station type named `foreign`, and a default value.
+Defined `timestep` (minutes) for station type named `foreign`, and a default value.
 
 The first available point in time for station types observations with `first_observation`.
+A `last_observation` time may be given the same way; the default is the current time.
+The defaults are the whole world, 1 minute and 1900-01-01.
 
-## Oracle Table Definitions
+## Station Type Definitions
 
-For some reason, the station types are divided in two setting blocks, `oracle_stationtypelist` and `postgresql_stationtypelist`. The station types are listed here a second time, and are now defined as objects with special attributes.
+Each station type is defined once more in the `stationtypelist` list, now as a group with
+the settings which tell what is searched from the database.
 
-The `stationGroups` is an array containing names matching things in the database.
-The `producerIds` is another array containing numbers matching things in the database.
-Somehow these two define what is being searched from the database. It seems that same `stationGroup` can point to multiple `producerIds` in the database, but this is definitely not a requirement.
+The `stationGroups` is an array of the station group codes in the database. The stations
+of the station type are the members of these groups.
+The `producerIds` is an array of the producer ids of the data in the database. The same
+station group may hold data of several producers.
 
-In order to _add new weather stations available in smartmet-server_, add the stations' group name in the database to `stationGroups` array in the configuration file. But also add the identity of the weather station to `producresIds` array. 
+In order to _add new weather stations available in smartmet-server_, add the stations to
+one of the station groups in the database, or add their group to the `stationGroups`
+array of the station type. If their data is stored under a new producer, also add the
+producer id to the `producerIds` array.
 
 ```
-oracle_stationtypelist:
-{
-        local:
+stationtypelist:
+(
         {
+                stationtype = "local";
                 useCommonQueryMethod = true;
-                cached = true;
                 stationGroups = ["ASDF", "EXTASDF"];
                 producerIds = [1,13,17];
                 databaseTableName = "my_database_table";
-        };
-};
-```
-
-## PostgreSQL Table Definitions
-
-This may or may not contain `stationGroups` attribute `¯\_(ツ)_/¯`.
-
-```
-postgresql_stationtypelist:
-{
-        foreign:
+        },
         {
-                cached = true;
-                useCommonQueryMethod = true;
-                producerId = 1;
-        };
-};
+                stationtype = "foreign";
+                stationGroups = ["EXTSYNOP"];
+                producerIds = [1];
+                databaseTableName = "weather_data_qc";
+        }
+);
 ```
 
-## More Oracle Things 
+`useCommonQueryMethod = true` reads the data from a generic observation table such as
+`observation_data_r1`, and then `databaseTableName` is required. See
+[Configuring-Observation-Engine.md](Configuring-Observation-Engine.md#stationtypelist) for
+the details.
 
-The station types need to be defined _a third time_ (Say what? -ed.)
+The station registry is loaded from `serializedStationsFile`, and refreshed from the
+database by the driver which has `loadStations = true`. New stations become available
+once the registry has been refreshed (`stationsCacheUpdateInterval`), or immediately with
+the `reloadstations` admin request.
 
-Even more settings are needed for each station type. This `oracle_stationtype` is a thing.
-
-
-```
-oracle_stationtype:
-{
-        local = "-5";
-};
-```
-
-## More PostgreSQL Things
-
-Like the `oracle_stationtype`, the directive `postgresql_stationtype` is also a thing for defining station type settings a third time.
-
-```
-postgresql_stationtype:
-{
-        foreign = "1";
-};
-```
-
-Now you should have something somewhere. Perhaps you still need to map the available observation phenomena in the database to station types.
-
+Now you may still need to map the available observation phenomena in the database to the
+station types, see
+[Configuring-Observation-Parameters.md](Configuring-Observation-Parameters.md).

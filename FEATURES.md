@@ -77,7 +77,11 @@ multiple identifier types.
 - **`StationInfo`** — central station registry rebuilt from a
   serialized file (`stations.txt`).
 - **NearTree-backed nearest-station search.**
-- **`stations.sqlite`** — SpatiaLite index for spatial joins.
+- **Shared station resolution caches** — the nearest-station
+  candidates are cached in the single `StationInfo`
+  (`cache.nearestStationsCacheSize`) and the places of geoids in
+  `EngineParameters` (`cache.geoIdCacheSize`), so all database
+  drivers share them.
 - **`StationGroups`** — group station sets together (synoptic,
   road, ...).
 
@@ -159,7 +163,9 @@ libconfig file (`observation.conf`) with SmartMet extensions:
 - **Station types** — each station type's defaults, parameter
   aliases, and producer mappings.
 - **Parameter aliases** — human names ↔ measurand columns.
-- **Cache settings** — sizes, refresh intervals, disk paths.
+- **Cache settings** — shared cache sizes (`cache.*`), and per
+  driver and cache refresh intervals, durations, SQLite settings and
+  disk paths (`database_info.common_info` / `connect_info`).
 - **DB registry path** — directory of `*.conf` files describing
   table schemas.
 - **`cnf/db_registry/`** — 20+ schema descriptors for observations,
@@ -183,8 +189,14 @@ Under `docs/`:
 ## 15. Testing
 
 - **Catch2-based unit tests** under `test/`:
+  - `AsTimeTest.cpp`
+  - `FlashMemoryCacheTest.cpp`
+  - `GroupsTest.cpp`
   - `ObservationMemoryCacheTest.cpp`
+  - `PropertyTest.cpp`
+  - `SensorsTest.cpp`
   - `StationInfoTest.cpp`
+  - `UtilsTest.cpp`
 - **Test prerequisites**: `../observation.so` and
   `/usr/share/smartmet/engines/geonames.so` installed.
 - **Per-test run**:
