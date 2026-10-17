@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.10.16
-Release: 2%{?dist}.fmi
+Version: 26.10.17
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -50,12 +50,12 @@ Requires: %{smartmet_boost}-thread
 Requires: %{smartmet_fmt}
 Requires: gdal312-libs
 Requires: libatomic
-Requires: smartmet-engine-geonames >= 26.10.16
+Requires: smartmet-engine-geonames >= 26.10.17
 Requires: smartmet-library-locus >= 26.10.16
-Requires: smartmet-library-macgyver >= 26.10.16
-Requires: smartmet-library-spine >= 26.10.16
+Requires: smartmet-library-macgyver >= 26.10.17
+Requires: smartmet-library-spine >= 26.10.17
 Requires: smartmet-library-timeseries >= 26.10.16
-Requires: smartmet-server >= 26.10.16
+Requires: smartmet-server >= 26.10.17
 Requires: unixODBC
 
 %if 0%{?rhel} && 0%{rhel} == 8
@@ -175,6 +175,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Sat Oct 17 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.17-1.fmi
+- SpatiaLite::getMobileAndExternalData: convert integer data_time and created columns to times
+- EngineImpl::getStationInfo: stop grouping a station after the first matching group
+- Split functions with a cognitive complexity above 25 into smaller helpers, no functional changes
+- ABI change: new or changed members in installed headers, dependent packages must be rebuilt
+
 * Fri Oct 16 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.16-2.fmi
 - Copy assignments that are implicitly deleted are declared deleted instead of defaulted
 
