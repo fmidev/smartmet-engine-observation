@@ -244,12 +244,38 @@ they get a `DisabledEngine` that returns empty results (`makeQuery()` throws). S
 | `isParameter()`, `isParameterVariant()`, `getParameterId()`, `getValidStationTypes()`, `isValidStationType()` | Parameter and station type checks. |
 | `getProducerInfo()`, `getParameterInfo()`, `getStationInfo()`, `metaData()`, `getMeasurandInfo()`, `getLatestDataUpdateTime()` | Metadata and admin tables. |
 | `reloadStations()`, `ready()`, `getGeonames()`, `dbRegistry()` | Maintenance and accessors. |
+| `getSensors(SensorOptions)` | The sensors of stations per parameter (`Sensors.h`), see below. |
+
+**Sensors.** The sensor numbers of a parameter differ between stations, so
+`getSensors()` lists them per station, parameter and sensor: the sensor number, whether it
+is the default one (`measurand_no = 1`, the values of a parameter requested without a
+sensor number), the configuration period, the first and last data and the number of
+values. `SensorOptions` gives the producer, optional stations (`fmisids`), parameter names
+of the producer and the period (the current time by default); unknown parameters throw. The
+source of the producer decides how the sensors are found:
+
+* the PostgreSQL FMI driver (`observation_data_r1`) reads the metadata of the database
+  (`observation_v1`, `observation_configuration_v1` and `value_submeasurands_v1`, storages
+  462, 482 and 483 as in the view of the observations),
+* the SpatiaLite cache (`observation_data`) aggregates the cached observations of the period,
+* other sources (road and foreign stations in `weather_data_qc`, the Oracle drivers of
+  delfoi, `DisabledEngine`) answer `available = false` with a note.
+
+No part of the options reaches the databases unvalidated, and the call does not go through
+`makeQuery()`.
+
+**Admin and info requests.** The engine registers the table requests `obsproducers`,
+`obsparameters`, `stations` and `obssensors` as public (also available through `/info`),
+and `reloadstations`, which requires authentication. `obssensors` takes `producer`
+(required), `fmisid`, `param`, `starttime`, `endtime` and `timeformat`, for example
+`/info?what=obssensors&producer=observations_fmi&fmisid=100971&param=ta`.
 
 ## 10. Binary compatibility
 
-`Engine` is an abstract class of **pure virtual** methods, and plugins call through its
-vtable. Add new virtual methods **at the end** of `Engine`; never insert, reorder or
-remove them. Changing the layout of `Settings`, `QueryBase` or the other types plugins
+`Engine` is an abstract class of virtual methods, and plugins call through its vtable.
+Add new virtual methods **at the end** of `Engine`; never insert, reorder or remove them.
+A method added later, such as `getFlashGeneration()` or `getSensors()`, has a default body
+in `Engine` so that `DisabledEngine` and other implementations need not override it. Changing the layout of `Settings`, `QueryBase` or the other types plugins
 construct is also an ABI change. Release the engine and the plugins that use it together,
 and bump their `Requires:`. An old plugin calling a shifted vtable slot does not fail to
 load; it calls the wrong method.

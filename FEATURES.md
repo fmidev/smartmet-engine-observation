@@ -32,6 +32,14 @@ multiple identifier types.
   configured producers.
 - **`Engine::getMeasurandInfo()`** — map of producer-specific
   measurand metadata.
+- **`Engine::getSensors(SensorOptions)`** — the sensors of the stations
+  per parameter: sensor number, default sensor, configuration and data
+  periods and the number of values, from the PostgreSQL metadata or the
+  SpatiaLite cache; other sources answer that the sensors are not
+  available.
+- **Admin / info requests** — public `obsproducers`, `obsparameters`,
+  `stations` and `obssensors` (also through `/info`), and
+  `reloadstations` with authentication.
 
 ## 2. Two-mode engine
 
@@ -208,4 +216,4 @@ Under `docs/`:
 
 ---
 
-*Last updated: 2026-06-01.*
+*Last updated: 2026-10-17.*
