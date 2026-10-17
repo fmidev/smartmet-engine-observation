@@ -28,6 +28,11 @@ class SpatiaLiteDatabaseDriver : public DatabaseDriverBase
 
   TS::TimeSeriesVectorPtr values(Settings &settings) override;
 
+  // The sensors found in the cached observation data (not virtual, see Engine::getSensors)
+  SensorResult getSensors(const SensorOptions &options,
+                          const std::set<int> &measurands,
+                          const std::set<int> &producers) const;
+
   TS::TimeSeriesVectorPtr values(Settings &settings,
                                  const TS::TimeSeriesGeneratorOptions &timeSeriesOptions) override;
 

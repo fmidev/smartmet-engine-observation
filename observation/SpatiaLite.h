@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Sensors.h"
+
 #include "CommonDatabaseFunctions.h"
 #include "DataItem.h"
 #include "ExternalAndMobileProducerConfig.h"
@@ -75,6 +77,11 @@ class SpatiaLite : public CommonDatabaseFunctions
    */
 
   Fmi::DateTime getLatestObservationTime();
+
+  // The sensors found in the observation data (Engine::getSensors)
+  std::vector<SensorInfo> getSensors(const SensorOptions &options,
+                                     const std::set<int> &measurands,
+                                     const std::set<int> &producers);
 
   /**
    * @brief Get the maximum value of flash_id field

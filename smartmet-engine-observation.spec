@@ -176,6 +176,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 * Sat Oct 17 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.17-1.fmi
+- Added Engine::getSensors listing the sensors of the stations per parameter: sensor numbers, the default sensor, configuration and data periods. The PostgreSQL FMI driver reads the observation metadata, the SpatiaLite cache the cached observations, other sources answer that the sensors are not available
+- Added the public admin/info request obssensors (producer, fmisid, param, starttime, endtime)
 - SpatiaLite::getMobileAndExternalData: convert integer data_time and created columns to times
 - EngineImpl::getStationInfo: stop grouping a station after the first matching group
 - Split functions with a cognitive complexity above 25 into smaller helpers, no functional changes

@@ -65,6 +65,11 @@ class SpatiaLiteCache : public ObservationCache
                            const Fmi::TimeDuration &timetokeep_memory) const override;
   Fmi::DateTime getLatestObservationModifiedTime() const override;
   Fmi::DateTime getLatestObservationTime() const override;
+
+  // The sensors found in the cached observation data (not virtual, see Engine::getSensors)
+  std::vector<SensorInfo> getSensors(const SensorOptions &options,
+                                     const std::set<int> &measurands,
+                                     const std::set<int> &producers) const;
   std::size_t fillDataCache(const DataItems &cacheData) const override;
   std::size_t fillMovingLocationsCache(const MovingLocationItems &cacheData) const override;
   void cleanDataCache(const Fmi::TimeDuration &timetokeep,

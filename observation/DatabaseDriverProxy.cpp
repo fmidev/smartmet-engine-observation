@@ -494,6 +494,35 @@ DatabaseDriverBase *DatabaseDriverProxy::resolveDatabaseDriver(const Settings &s
   }
 }
 
+SensorResult DatabaseDriverProxy::getSensors(const SensorOptions &options,
+                                             const std::set<int> &measurands,
+                                             const std::set<int> &producers) const
+{
+  try
+  {
+    Settings settings;
+    settings.starttime = options.starttime;
+    settings.endtime = options.endtime;
+    settings.stationtype = options.producer;
+    auto *driver = resolveDatabaseDriver(settings);
+
+    if (const auto *pg = dynamic_cast<const PostgreSQLDatabaseDriverForFmiData *>(driver))
+      return pg->getSensors(options, measurands, producers);
+    if (const auto *sl = dynamic_cast<const SpatiaLiteDatabaseDriver *>(driver))
+      return sl->getSensors(options, measurands, producers);
+
+    // Other drivers (e.g. Oracle) do not list sensors
+    SensorResult result;
+    result.note = "The sensors of producer " + options.producer + " are not available from " +
+                  (driver ? driver->name() : std::string("its database"));
+    return result;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
 DatabaseDriverBase *DatabaseDriverProxy::resolveDatabaseDriverByProducer(
     const std::string &producer) const
 {

@@ -509,6 +509,34 @@ void PostgreSQLDatabaseDriverForFmiData::getProducerGroups(ProducerGroups &pg) c
   db->getProducerGroups(pg);
 }
 
+SensorResult PostgreSQLDatabaseDriverForFmiData::getSensors(const SensorOptions &options,
+                                                           const std::set<int> &measurands,
+                                                           const std::set<int> &producers) const
+{
+  try
+  {
+    SensorResult result;
+    const auto table = DatabaseDriverBase::resolveDatabaseTableName(
+        options.producer, itsParameters.params->stationtypeConfig);
+    if (table != "observation_data_r1")
+    {
+      // Road and foreign stations (weather_data_qc) have no configurations, their sensors are
+      // only in the data
+      result.note = "The sensors of producer " + options.producer + " are not listed yet";
+      return result;
+    }
+    std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);
+    result.available = true;
+    result.note = "From the configurations of the observations";
+    result.sensors = db->getSensorConfigurations(options, measurands, producers);
+    return result;
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
 MeasurandInfo PostgreSQLDatabaseDriverForFmiData::getMeasurandInfo() const
 {
   std::shared_ptr<PostgreSQLObsDB> db = itsPostgreSQLConnectionPool->getConnection(false);

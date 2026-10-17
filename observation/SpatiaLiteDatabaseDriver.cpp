@@ -1,4 +1,5 @@
 #include "SpatiaLiteDatabaseDriver.h"
+#include "SpatiaLiteCache.h"
 #include "Utils.h"
 #include "ObservationCache.h"
 #include "QueryResult.h"
@@ -57,6 +58,33 @@ void SpatiaLiteDatabaseDriver::makeQuery(QueryBase * /* qb */)
   try
   {
     // Not implemeted
+  }
+  catch (...)
+  {
+    throw Fmi::Exception::Trace(BCP, "Operation failed!");
+  }
+}
+
+SensorResult SpatiaLiteDatabaseDriver::getSensors(const SensorOptions &options,
+                                                  const std::set<int> &measurands,
+                                                  const std::set<int> &producers) const
+{
+  try
+  {
+    SensorResult result;
+    const auto table = DatabaseDriverBase::resolveCacheTableName(
+        options.producer, itsParameters.params->stationtypeConfig);
+    auto cache = resolveCache(options.producer, itsParameters.params);
+    const auto *spatialite = dynamic_cast<const SpatiaLiteCache *>(cache.get());
+    if (table != "observation_data" || spatialite == nullptr)
+    {
+      result.note = "The sensors of producer " + options.producer + " are not listed by the cache";
+      return result;
+    }
+    result.available = true;
+    result.note = "From the cached observations of the period";
+    result.sensors = spatialite->getSensors(options, measurands, producers);
+    return result;
   }
   catch (...)
   {

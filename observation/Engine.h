@@ -4,6 +4,7 @@
 #include "MeasurandInfo.h"
 #include "MetaData.h"
 #include "ObservableProperty.h"
+#include "Sensors.h"
 #include "StationOptions.h"
 #include "StationSettings.h"
 #include <spine/Table.h>
@@ -183,6 +184,22 @@ class Engine : public SmartMet::Spine::SmartMetEngine
                                                           double /* maxlat */) const
   {
     return std::nullopt;
+  }
+
+  /* \brief The sensors of the parameters of the stations of a producer
+   *
+   * Lists each sensor of a parameter at a station: the default one (whose values a parameter
+   * without a sensor number gives) and the others, with their configuration periods when the
+   * database has them, and the period and number of their values. Sources that cannot list
+   * sensors return a result that is not available.
+   *
+   * Appended last so that the vtable slots of the older methods are unchanged.
+   */
+  virtual SensorResult getSensors(const SensorOptions & /* options */) const
+  {
+    SensorResult result;
+    result.note = "The observation engine is disabled";
+    return result;
   }
 };
 

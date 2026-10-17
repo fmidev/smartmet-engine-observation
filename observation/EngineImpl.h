@@ -121,6 +121,8 @@ class EngineImpl : public Engine
    */
   ContentTable getStationInfo(const StationOptions &options) const override;
 
+  SensorResult getSensors(const SensorOptions &options) const override;
+
   MetaData metaData(const std::string &producer,
                     const Settings &settings = Settings()) const override;
 
@@ -157,6 +159,8 @@ class EngineImpl : public Engine
   std::unique_ptr<Spine::Table> requestParameterInfo(const Spine::HTTP::Request &theRequest) const;
 
   std::unique_ptr<Spine::Table> requestStationInfo(const Spine::HTTP::Request &theRequest) const;
+
+  std::unique_ptr<Spine::Table> requestSensorInfo(const Spine::HTTP::Request &theRequest) const;
 
   bool requestReloadStations(const Spine::HTTP::Request &theRequest);
 
