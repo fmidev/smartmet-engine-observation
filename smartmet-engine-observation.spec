@@ -182,6 +182,7 @@ rm -rf $RPM_BUILD_ROOT
 - EngineImpl::getStationInfo: stop grouping a station after the first matching group
 - Split functions with a cognitive complexity above 25 into smaller helpers, no functional changes
 - DatabaseDriverBase::readMetaData: fall back to meta_data.timestep.default when the station type has no timestep of its own (the key was misspelt, the default was always 1 minute)
+- SpatiaLiteCache: read cache_size and mmap_size as 64-bit values, values above 2 GB no longer throw
 - ABI change: new or changed members in installed headers, dependent packages must be rebuilt
 
 * Fri Oct 16 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.16-2.fmi

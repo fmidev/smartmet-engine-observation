@@ -1492,7 +1492,7 @@ void SpatiaLiteCache::readConfig(const Spine::ConfigBase & /* cfg */)
     itsMagnetometerInsertCache.resize(
         Fmi::stoi(itsCacheInfo.params.at("magnetometerInsertCacheSize")));
 
-    itsParameters.sqlite.cache_size = Fmi::stoi(itsCacheInfo.params.at("cache_size"));
+    itsParameters.sqlite.cache_size = Fmi::stol(itsCacheInfo.params.at("cache_size"));
     itsParameters.sqlite.threads = Fmi::stoi(itsCacheInfo.params.at("threads"));
     itsParameters.sqlite.timeout = Fmi::stoi(itsCacheInfo.params.at("timeout"));
     itsParameters.sqlite.shared_cache = (Fmi::stoi(itsCacheInfo.params.at("shared_cache")) == 1);
@@ -1502,7 +1502,7 @@ void SpatiaLiteCache::readConfig(const Spine::ConfigBase & /* cfg */)
     itsParameters.sqlite.journal_mode = itsCacheInfo.params.at("journal_mode");
     itsParameters.sqlite.temp_store = itsCacheInfo.params.at("temp_store");
     itsParameters.sqlite.auto_vacuum = itsCacheInfo.params.at("auto_vacuum");
-    itsParameters.sqlite.mmap_size = Fmi::stoi(itsCacheInfo.params.at("mmap_size"));
+    itsParameters.sqlite.mmap_size = Fmi::stol(itsCacheInfo.params.at("mmap_size"));
     itsParameters.sqlite.wal_autocheckpoint =
         Fmi::stoi(itsCacheInfo.params.at("wal_autocheckpoint"));
   }
