@@ -293,7 +293,6 @@ spatialite_common_cache:
 {
 	poolSize		= 50;		// connections
 	maxInsertSize		= 5000;		// rows per insert
-	locationCacheSize	= 10000;		// required but currently not used
 	dataInsertCacheSize	= 100000;	// insert caches avoid inserting the same rows again
 	weatherDataQCInsertCacheSize = 100000;
 	flashInsertCacheSize	= 100000;
@@ -316,6 +315,9 @@ The other insert cache sizes (`movingLocationsInsertCacheSize`,
 `tapsiQcInsertCacheSize`, `magnetometerInsertCacheSize`) are optional, as is `quiet`. A
 `fake_cache` group may define fixed data periods per table (`observation_data`,
 `weather_data_qc`, `flash_data`) for tests.
+
+`locationCacheSize` is ignored. Older engine versions require it in a SpatiaLite cache, so
+keep it in configurations that older engines may also read.
 
 ### `database_driver.poolSize`
 

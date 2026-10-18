@@ -101,8 +101,6 @@ void readPostgreSQLCommonInfo(Spine::ConfigBase& cfg,
   {
     params["maxInsertSize"] =
         Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".maxInsertSize", 0));
-    params["locationCacheSize"] =
-        Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".locationCacheSize", 0));
     params["dataInsertCacheSize"] =
         Fmi::to_string(cfg.get_optional_config_param<int>(common_key + ".dataInsertCacheSize", 0));
     params["movingLocationsInsertCacheSize"] = Fmi::to_string(
@@ -618,8 +616,6 @@ void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".poolSize"));
   params["maxInsertSize"] =
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".maxInsertSize"));
-  params["locationCacheSize"] =
-      Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".locationCacheSize"));
   params["dataInsertCacheSize"] =
       Fmi::to_string(cfg.get_mandatory_config_param<int>(common_key + ".dataInsertCacheSize"));
   params["movingLocationsInsertCacheSize"] = Fmi::to_string(

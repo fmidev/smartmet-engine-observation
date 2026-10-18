@@ -82,7 +82,6 @@ struct EngineParameters
   // N + this value candidates and returns at most N that have data. Default is 3.
   int nearestStationExtraCandidates = 3;
 
-  std::string cacheDB;
   std::string dbDriverFile;
   DatabaseDriverInfo databaseDriverInfo;
 

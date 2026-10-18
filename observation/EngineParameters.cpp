@@ -99,8 +99,6 @@ EngineParameters::EngineParameters(Spine::ConfigBase& cfg)
         "dbDriverFile", "");  // when  'dummy'-> create dummy drver, otherwise read driver info from
                               // configuration, if no driver configured create dummy driver
 
-    cacheDB = cfg.get_optional_config_param<std::string>("cacheDB", "spatialite");
-
     nearestStationExtraCandidates = cfg.get_optional_config_param<int>(
         "nearestStationExtraCandidates", nearestStationExtraCandidates);
 
