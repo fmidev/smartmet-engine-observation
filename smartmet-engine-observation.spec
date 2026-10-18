@@ -131,15 +131,12 @@ BuildRequires: libxml2-devel
 #TestRequires: sqlite-devel
 #TestRequires: sqlite3pp-devel
 
-Provides: %{SPECNAME}
-
 %description
 SmartMet engine for fetching observations from the climate database (cldb).
 
 %package -n %{SPECNAME}-devel
 Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
-Provides: %{SPECNAME}-devel
 Requires: %{SPECNAME} = %{version}-%{release}
 Requires: smartmet-library-spine-devel >= 26.10.16
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
@@ -176,6 +173,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 * Sat Oct 17 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.17-1.fmi
+- No unversioned Provides of the package name: it satisfied versioned conflicts such as the
+  Conflicts of smartmet-plugin-edr with observation engines older than 26.10.17
 - Added Engine::getSensors listing the sensors of the stations per parameter: sensor numbers, the default sensor, configuration and data periods. The PostgreSQL FMI driver reads the observation metadata, the SpatiaLite cache the cached observations, other sources answer that the sensors are not available
 - Added the public admin/info request obssensors (producer, fmisid, param, starttime, endtime)
 - SpatiaLite::getMobileAndExternalData: convert integer data_time and created columns to times
