@@ -202,7 +202,7 @@ void DatabaseDriverBase::readMetaData(Spine::ConfigBase& cfg)
     // timestep
     int timestep = cfg.get_optional_config_param<int>("meta_data.timestep." + type, -1);
     if (timestep == -1)
-      timestep = cfg.get_optional_config_param<int>("meta_data.timestep.default" + type,
+      timestep = cfg.get_optional_config_param<int>("meta_data.timestep.default",
                                                     1);  // default value 1 min
 
     Spine::BoundingBox bounding_box(bbox);

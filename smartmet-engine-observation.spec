@@ -181,6 +181,7 @@ rm -rf $RPM_BUILD_ROOT
 - SpatiaLite::getMobileAndExternalData: convert integer data_time and created columns to times
 - EngineImpl::getStationInfo: stop grouping a station after the first matching group
 - Split functions with a cognitive complexity above 25 into smaller helpers, no functional changes
+- DatabaseDriverBase::readMetaData: fall back to meta_data.timestep.default when the station type has no timestep of its own (the key was misspelt, the default was always 1 minute)
 - ABI change: new or changed members in installed headers, dependent packages must be rebuilt
 
 * Fri Oct 16 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.16-2.fmi
