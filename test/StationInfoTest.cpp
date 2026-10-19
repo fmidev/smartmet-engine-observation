@@ -168,7 +168,7 @@ TEST_CASE("Test station and data searches")
     SECTION("All AWS stations are searched")
     {
       auto stations = stationinfo.findStationsInGroup(stationgroup_codes, starttime, endtime);
-      REQUIRE(stations.size() == 173);
+      REQUIRE(stations.size() == 174);
     }
 
     SECTION("Old station location")
