@@ -31,7 +31,8 @@ clean:
 test: $(PROG)
 	@echo Running tests:
 	@ok=true; for prog in $(PROG); do \
-	./$$prog || ok=false; \
+	    echo Running $$prog; \
+	    ./$$prog || ok=false; \
 	done; $$ok
 
 # Build the engine when its sources are newer than the library, so that running
