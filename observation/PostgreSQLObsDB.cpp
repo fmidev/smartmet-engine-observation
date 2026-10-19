@@ -181,7 +181,7 @@ MobileExternalDataItem parseMobileExternalDataItem(ResultSetRow& rsr, const std:
 
 // Parse a station from a row of the station query. Returns false if the station is to be
 // skipped.
-bool parseStationRow(const pqxx::row& row, Spine::Station& s)
+bool parseStationRow(const pqxx::const_result_iterator::reference& row, Spine::Station& s)
 {
   s.type = row[0].as<std::string>();
   s.fmisid = as_int(row[1]);
@@ -1336,11 +1336,11 @@ std::vector<SensorInfo> PostgreSQLObsDB::getSensorConfigurations(
       std::cout << "PostgreSQL: " << sqlStmt << '\n';
 
     // The configurations still valid end in the year 9999
-    const auto time = [](const pqxx::field &f)
+    const auto time = [](const auto &f)
     {
       if (f.is_null())
         return Fmi::DateTime(Fmi::DateTime::NOT_A_DATE_TIME);
-      const auto epoch = f.as<long long>();
+      const auto epoch = f.template as<long long>();
       if (epoch >= 253370764800LL)  // 9999-01-01
         return Fmi::DateTime(Fmi::DateTime::NOT_A_DATE_TIME);
       return Fmi::date_time::from_time_t(epoch);
