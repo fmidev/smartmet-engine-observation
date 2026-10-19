@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.10.17
-Release: 2%{?dist}.fmi
+Version: 26.10.19
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -33,14 +33,14 @@ BuildRequires: gdal312-devel
 BuildRequires: libatomic
 BuildRequires: make
 BuildRequires: rpm-build
-BuildRequires: smartmet-engine-geonames-devel >= 26.10.16
-BuildRequires: smartmet-library-locus-devel >= 26.10.16
-BuildRequires: smartmet-library-macgyver-devel >= 26.10.16
-BuildRequires: smartmet-library-spine-devel >= 26.10.16
-BuildRequires: smartmet-library-timeseries-devel >= 26.10.16
+BuildRequires: smartmet-engine-geonames-devel >= 26.10.17
+BuildRequires: smartmet-library-locus-devel >= 26.10.17
+BuildRequires: smartmet-library-macgyver-devel >= 26.10.17
+BuildRequires: smartmet-library-spine-devel >= 26.10.17
+BuildRequires: smartmet-library-timeseries-devel >= 26.10.17
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
-BuildRequires: smartmet-utils-devel >= 26.9.3
+BuildRequires: smartmet-utils-devel >= 26.10.15
 BuildRequires: zlib-devel
 Requires: %{smartmet_boost}-iostreams
 Requires: %{smartmet_boost}-locale
@@ -51,10 +51,10 @@ Requires: %{smartmet_fmt}
 Requires: gdal312-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 26.10.17
-Requires: smartmet-library-locus >= 26.10.16
+Requires: smartmet-library-locus >= 26.10.17
 Requires: smartmet-library-macgyver >= 26.10.17
 Requires: smartmet-library-spine >= 26.10.17
-Requires: smartmet-library-timeseries >= 26.10.16
+Requires: smartmet-library-timeseries >= 26.10.17
 Requires: smartmet-server >= 26.10.17
 Requires: unixODBC
 
@@ -113,7 +113,7 @@ Obsoletes: smartmet-brainstorm-obsengine-debuginfo < 16.11.1
 #TestRequires: smartmet-library-timeseries
 #TestRequires: smartmet-library-timeseries-devel
 #TestRequires: smartmet-library-spine
-#TestRequires: smartmet-test-data >= 26.8.26
+#TestRequires: smartmet-test-data >= 26.10.19
 
 Requires: libspatialite50
 BuildRequires: libspatialite50-devel
@@ -138,7 +138,7 @@ SmartMet engine for fetching observations from the climate database (cldb).
 Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 26.10.16
+Requires: smartmet-library-spine-devel >= 26.10.17
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -172,6 +172,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Mon Oct 19 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.19-1.fmi
+- Updated RPM requirements
+
 * Mon Oct 19 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.17-2.fmi
 - Repackaged: simultaneous CI runs corrupted the 26.10.17-1 RPMs
 * Sat Oct 17 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.17-1.fmi
