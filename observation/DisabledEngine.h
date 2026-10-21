@@ -68,6 +68,8 @@ class DisabledEngine : public Engine
 
   const ProducerMeasurandInfo &getMeasurandInfo() const override;
 
+  std::vector<std::string> getDerivedParameters(const std::string &stationtype) const override;
+
   Fmi::DateTime getLatestDataUpdateTime(const std::string &producer,
                                         const Fmi::DateTime &from) const override;
 

@@ -136,6 +136,10 @@ class EngineImpl : public Engine
    */
   const ProducerMeasurandInfo &getMeasurandInfo() const override;
 
+  /* \brief Derived parameters which can be calculated for the station type
+   */
+  std::vector<std::string> getDerivedParameters(const std::string &stationtype) const override;
+
   /* \brief Get latest data update time of given producer
    * \return Time when data of a producer was last time updated
    */

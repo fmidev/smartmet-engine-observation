@@ -258,6 +258,7 @@ they get a `DisabledEngine` that returns empty results (`makeQuery()` throws). S
 | `getProducerInfo()`, `getParameterInfo()`, `getStationInfo()`, `metaData()`, `getMeasurandInfo()`, `getLatestDataUpdateTime()` | Metadata and admin tables. |
 | `reloadStations()`, `ready()`, `getGeonames()`, `dbRegistry()` | Maintenance and accessors. |
 | `getSensors(SensorOptions)` | The sensors of stations per parameter (`Sensors.h`), see below. |
+| `getDerivedParameters(stationtype)` | Derived parameters (`smartsymbol`, `feelslike`, `windcompass8` etc.) whose source parameters are configured for the station type. |
 
 **Sensors.** The sensor numbers of a parameter differ between stations, so
 `getSensors()` lists them per station, parameter and sensor: the sensor number, whether it
@@ -287,8 +288,21 @@ and `reloadstations`, which requires authentication. `obssensors` takes `produce
 
 `Engine` is an abstract class of virtual methods, and plugins call through its vtable.
 Add new virtual methods **at the end** of `Engine`; never insert, reorder or remove them.
-A method added later, such as `getFlashGeneration()` or `getSensors()`, has a default body
-in `Engine` so that `DisabledEngine` and other implementations need not override it. Changing the layout of `Settings`, `QueryBase` or the other types plugins
+A method added later, such as `getFlashGeneration()` or `getSensors()`, may have a default
+body in `Engine` so that `DisabledEngine` and other implementations need not override it;
+`getDerivedParameters()` is pure virtual, so both `EngineImpl` and `DisabledEngine`
+implement it.
+
+Every non-static member function of `Engine` must be either pure virtual or defined
+completely inside `Engine.h`. A plugin calls the engine through the vtable or through code
+compiled into the plugin itself, so it never needs a symbol from `observation.so`. A
+non-virtual method defined in `Engine.cpp` would leave the plugin with an undefined symbol,
+which resolves only if `observation.so` happens to be loaded before the plugin with its
+symbols visible, and which fails the plugin's own unresolved-symbol check. The exceptions
+are the static `create()` and the protected constructor: only code inside `observation.so`
+(`engine_class_creator()` and the derived classes) calls them.
+
+Changing the layout of `Settings`, `QueryBase` or the other types plugins
 construct is also an ABI change. Release the engine and the plugins that use it together,
 and bump their `Requires:`. An old plugin calling a shifted vtable slot does not fail to
 load; it calls the wrong method.

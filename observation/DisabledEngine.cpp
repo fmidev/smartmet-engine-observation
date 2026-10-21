@@ -144,6 +144,12 @@ const ProducerMeasurandInfo& DisabledEngine::getMeasurandInfo() const
   return empty;
 }
 
+std::vector<std::string> DisabledEngine::getDerivedParameters(
+    const std::string& /* stationtype */) const
+{
+  return {};
+}
+
 Fmi::DateTime DisabledEngine::getLatestDataUpdateTime(const std::string& /* producer */,
                                                       const Fmi::DateTime& /* from */) const
 {

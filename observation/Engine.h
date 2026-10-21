@@ -23,6 +23,18 @@ using ContentTable = std::unique_ptr<Spine::Table>;
 class DBRegistry;
 class QueryBase;
 
+/*
+ * Plugins use this class only through its vtable and the code in this header, so they need
+ * no symbols from observation.so:
+ *
+ *  - every non-static member function must be either pure virtual or defined completely in
+ *    this header (static create() and the protected constructor are used only inside
+ *    observation.so)
+ *  - new virtual methods are appended last so that the vtable slots of the older methods
+ *    are unchanged
+ *
+ * See docs/developer-guide.md, "Binary compatibility".
+ */
 class Engine : public SmartMet::Spine::SmartMetEngine
 {
  protected:
@@ -150,15 +162,6 @@ class Engine : public SmartMet::Spine::SmartMetEngine
    */
   virtual const ProducerMeasurandInfo &getMeasurandInfo() const = 0;
 
-  /* \brief Derived parameters which can be calculated for the station type
-   *
-   * A derived parameter (smartsymbol, feelslike, windcompass8 etc) is available
-   * only if all the parameters it is calculated from are configured for the
-   * station type.
-   */
-
-  std::vector<std::string> getDerivedParameters(const std::string &stationtype) const;
-
   /* \brief Get latest data update time of given producer
    * \return Time when data of a producer was last time updated
    */
@@ -201,6 +204,16 @@ class Engine : public SmartMet::Spine::SmartMetEngine
     result.note = "The observation engine is disabled";
     return result;
   }
+
+  /* \brief Derived parameters which can be calculated for the station type
+   *
+   * A derived parameter (smartsymbol, feelslike, windcompass8 etc) is available
+   * only if all the parameters it is calculated from are configured for the
+   * station type.
+   *
+   * Appended last so that the vtable slots of the older methods are unchanged.
+   */
+  virtual std::vector<std::string> getDerivedParameters(const std::string &stationtype) const = 0;
 };
 
 }  // namespace Observation
