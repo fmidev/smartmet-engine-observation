@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.10.19
+Version: 26.10.21
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -172,6 +172,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Wed Oct 21 2026 Andris Pavēnis <andris.pavenis@fmi.fi> 26.10.21-1.fmi
+- Make Engine::getDerivedParameters pure virtual in Engine class
+
 * Mon Oct 19 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.19-1.fmi
 - Updated RPM requirements
 
