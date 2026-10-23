@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.10.21
+Version: 26.10.23
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -35,7 +35,7 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 26.10.17
 BuildRequires: smartmet-library-locus-devel >= 26.10.17
-BuildRequires: smartmet-library-macgyver-devel >= 26.10.17
+BuildRequires: smartmet-library-macgyver-devel >= 26.10.23
 BuildRequires: smartmet-library-spine-devel >= 26.10.17
 BuildRequires: smartmet-library-timeseries-devel >= 26.10.17
 BuildRequires: sqlite3pp-devel >= 1.0.9
@@ -52,7 +52,7 @@ Requires: gdal312-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 26.10.17
 Requires: smartmet-library-locus >= 26.10.17
-Requires: smartmet-library-macgyver >= 26.10.17
+Requires: smartmet-library-macgyver >= 26.10.23
 Requires: smartmet-library-spine >= 26.10.17
 Requires: smartmet-library-timeseries >= 26.10.17
 Requires: smartmet-server >= 26.10.17
@@ -172,6 +172,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Oct 23 2026 Pertti Kinnia <pertti.kinnia@fmi.fi> - 26.10.23-1.fmi
+- Repackage due to macgyver ABI changes (PostgreSQLConnectionOptions)
+
 * Wed Oct 21 2026 Andris Pavēnis <andris.pavenis@fmi.fi> 26.10.21-1.fmi
 - Make Engine::getDerivedParameters pure virtual in Engine class
 
