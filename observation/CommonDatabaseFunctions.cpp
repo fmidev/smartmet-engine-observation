@@ -55,7 +55,7 @@ void collectSpecialParamDependencies(const std::string &name,
     param_set.insert(paramMap->getParameter("totalcloudcover", stationtype));
     param_set.insert(paramMap->getParameter("temperature", stationtype));
   }
-  else if (name == "roadww")
+  else if (name == "roadww" || name == "roadwawa")
   {
     for (const char *pname : {"prclst", "prst2"})
     {

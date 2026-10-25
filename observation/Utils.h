@@ -105,6 +105,19 @@ std::optional<int> calcRoadWW(int r, int rform);
 
 // ----------------------------------------------------------------------
 /*!
+ * \brief Convert road weather station precipitation observations to a WMO 4680 wawa code
+ *
+ * wawa is the code table of automatic stations, the same as most FMI stations report.
+ * The arguments are the same as for calcRoadWW.
+ *
+ * \return wawa code, 0 for no precipitation, empty for unknown codes
+ */
+// ----------------------------------------------------------------------
+
+std::optional<int> calcRoadWaWa(int r, int rform);
+
+// ----------------------------------------------------------------------
+/*!
  * \brief Calculate the weather symbol using wawa code, temperature and cloudiness
  *
  * The logic is described in:

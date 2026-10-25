@@ -1430,11 +1430,14 @@ std::vector<std::string> EngineImpl::getDerivedParameters(const std::string &sta
         ret.insert(ret.end(), derived.names.begin(), derived.names.end());
     }
 
-    // roadww is calculated only for road weather stations, from the precipitation
-    // intensity (prclst) and form (prst2)
+    // roadww and roadwawa are calculated only for road weather stations, from the
+    // precipitation intensity (prclst) and form (prst2)
     if (dbstationtype == "road" && !getParameterIdAsString("prclst", dbstationtype).empty() &&
         !getParameterIdAsString("prst2", dbstationtype).empty())
+    {
       ret.emplace_back("roadww");
+      ret.emplace_back("roadwawa");
+    }
 
     return ret;
   }

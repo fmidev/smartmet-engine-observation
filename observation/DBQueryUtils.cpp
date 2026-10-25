@@ -264,6 +264,7 @@ struct SpecialParamEntry
     SmartSymbol,
     SmartSymbolText,
     RoadWW,
+    RoadWaWa,
     CloudCeiling,
     CloudCeilingFt,
     CloudCeilingHFt,
@@ -401,10 +402,11 @@ SpecialParamEntry buildSpecialParamEntry(const std::string &name,
       entry.mid3 = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
     }
   }
-  else if (name == "roadww")
+  else if (name == "roadww" || name == "roadwawa")
   {
     // Available only for road weather stations, zero ids produce missing values otherwise
-    entry.kind = SpecialParamEntry::Kind::RoadWW;
+    entry.kind = (name == "roadww" ? SpecialParamEntry::Kind::RoadWW
+                                   : SpecialParamEntry::Kind::RoadWaWa);
     if (stationtype == "road")
     {
       entry.mid1 = get_mid("prclst", stationtype, parameterMap);  // SADE
@@ -896,8 +898,10 @@ TS::Value smartSymbolValue(const SpecialParamEntry &sp,
   return (text ? TS::Value(*text) : TS::Value(TS::None()));
 }
 
-// Road weather WW code from precipitation intensity and form
-TS::Value roadWWValue(const SpecialParamEntry &sp, const GroupData &group_data)
+// Road weather WW or WaWa code from precipitation intensity and form
+TS::Value roadPrecipitationValue(const SpecialParamEntry &sp,
+                                 const GroupData &group_data,
+                                 std::optional<int> (*theConversion)(int, int))
 {
   const auto rit = group_data.find(sp.mid1);  // precipitation intensity
   const auto fit = group_data.find(sp.mid2);  // precipitation form
@@ -909,10 +913,10 @@ TS::Value roadWWValue(const SpecialParamEntry &sp, const GroupData &group_data)
   if (!std::holds_alternative<double>(r) || !std::holds_alternative<double>(rform))
     return TS::None();
 
-  const auto ww = calcRoadWW(static_cast<int>(std::lround(std::get<double>(r))),
-                             static_cast<int>(std::lround(std::get<double>(rform))));
-  if (ww)
-    return TS::Value(*ww);
+  const auto code = theConversion(static_cast<int>(std::lround(std::get<double>(r))),
+                                  static_cast<int>(std::lround(std::get<double>(rform))));
+  if (code)
+    return TS::Value(*code);
   return TS::None();
 }
 
@@ -959,7 +963,12 @@ void emitSpecialParam(const SpecialParamEntry &sp,
           TS::TimedValue(ldt, smartSymbolValue(sp, ldt, group_data, settings, station)));
       break;
     case SpecialParamEntry::Kind::RoadWW:
-      resultVector->at(pos).emplace_back(TS::TimedValue(ldt, roadWWValue(sp, group_data)));
+      resultVector->at(pos).emplace_back(
+          TS::TimedValue(ldt, roadPrecipitationValue(sp, group_data, calcRoadWW)));
+      break;
+    case SpecialParamEntry::Kind::RoadWaWa:
+      resultVector->at(pos).emplace_back(
+          TS::TimedValue(ldt, roadPrecipitationValue(sp, group_data, calcRoadWaWa)));
       break;
     case SpecialParamEntry::Kind::CloudCeiling:
     case SpecialParamEntry::Kind::CloudCeilingFt:
@@ -1095,7 +1104,7 @@ void DBQueryUtils::addDependentQCMeasurandIds(QueryMapping &ret,
 
   if (name.find("windcompass") != std::string::npos)
     push("winddirection");
-  else if (name == "roadww" && stationtype == "road")
+  else if ((name == "roadww" || name == "roadwawa") && stationtype == "road")
   {
     push("prclst");  // SADE
     push("prst2");  // RST

@@ -345,3 +345,72 @@ TEST_CASE("Road weather precipitation to ww conversion")
     REQUIRE_FALSE(calcRoadWW(1, 20));
   }
 }
+
+TEST_CASE("Road weather precipitation to wawa conversion")
+{
+  SECTION("Dry weather is wawa 0")
+  {
+    REQUIRE(calcRoadWaWa(0, 7) == 0);
+    REQUIRE(calcRoadWaWa(0, 8) == 0);
+    REQUIRE(calcRoadWaWa(1, 7) == 0);
+  }
+
+  SECTION("Very light precipitation of unknown form is reported")
+  {
+    REQUIRE(calcRoadWaWa(1, 8) == 41);
+    REQUIRE(calcRoadWaWa(2, 8) == 41);
+    REQUIRE(calcRoadWaWa(3, 8) == 42);
+  }
+
+  SECTION("Drizzle, rain and snow")
+  {
+    REQUIRE(calcRoadWaWa(1, 9) == 51);
+    REQUIRE(calcRoadWaWa(2, 9) == 52);
+    REQUIRE(calcRoadWaWa(3, 9) == 53);
+    REQUIRE(calcRoadWaWa(1, 10) == 61);
+    REQUIRE(calcRoadWaWa(2, 10) == 62);
+    REQUIRE(calcRoadWaWa(3, 10) == 63);
+    REQUIRE(calcRoadWaWa(1, 11) == 71);
+    REQUIRE(calcRoadWaWa(2, 11) == 72);
+    REQUIRE(calcRoadWaWa(3, 11) == 73);
+  }
+
+  SECTION("Freezing precipitation")
+  {
+    REQUIRE(calcRoadWaWa(1, 18) == 54);
+    REQUIRE(calcRoadWaWa(2, 18) == 55);
+    REQUIRE(calcRoadWaWa(3, 18) == 56);
+    REQUIRE(calcRoadWaWa(1, 19) == 64);
+    REQUIRE(calcRoadWaWa(2, 19) == 65);
+    REQUIRE(calcRoadWaWa(3, 19) == 66);
+  }
+
+  SECTION("Sleet, hail and solid forms are reported even without intensity")
+  {
+    REQUIRE(calcRoadWaWa(0, 12) == 67);
+    REQUIRE(calcRoadWaWa(2, 13) == 68);
+    REQUIRE(calcRoadWaWa(0, 14) == 89);
+    REQUIRE(calcRoadWaWa(3, 14) == 89);
+    REQUIRE(calcRoadWaWa(0, 15) == 78);
+    REQUIRE(calcRoadWaWa(3, 16) == 77);
+    REQUIRE(calcRoadWaWa(1, 17) == 74);
+    REQUIRE(calcRoadWaWa(2, 17) == 75);
+    REQUIRE(calcRoadWaWa(3, 17) == 76);
+  }
+
+  SECTION("Snowfall intensities override liquid forms")
+  {
+    REQUIRE(calcRoadWaWa(4, 7) == 71);
+    REQUIRE(calcRoadWaWa(5, 10) == 72);
+    REQUIRE(calcRoadWaWa(6, 19) == 73);
+    REQUIRE(calcRoadWaWa(5, 13) == 68);  // sleet still wins
+  }
+
+  SECTION("Unknown codes are missing")
+  {
+    REQUIRE_FALSE(calcRoadWaWa(-1, 10));
+    REQUIRE_FALSE(calcRoadWaWa(7, 10));
+    REQUIRE_FALSE(calcRoadWaWa(1, 0));
+    REQUIRE_FALSE(calcRoadWaWa(1, 20));
+  }
+}

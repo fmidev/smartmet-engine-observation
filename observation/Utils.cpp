@@ -13,6 +13,7 @@
 #include <macgyver/StringConversion.h>
 #include <macgyver/TypeName.h>
 #include <spine/Convenience.h>
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <unordered_set>
@@ -474,11 +475,58 @@ std::optional<int> calcSmartsymbolNumber(int wawa,
   return sp.dark() ? 100 + *smartsymbol : *smartsymbol;
 }
 
-std::optional<int> calcRoadWW(int r, int rform)
+namespace
 {
-  // Road weather sensors cannot tell intermittent precipitation from continuous one,
-  // hence the continuous codes are used for drizzle, rain and snow.
+// WMO codes for the slight, moderate and heavy intensities of a precipitation form
+using IntensityCodes = std::array<int, 3>;
 
+// The codes of the road weather station precipitation forms in one WMO code table
+struct RoadPrecipitationCodes
+{
+  IntensityCodes sleet;
+  IntensityCodes hail;
+  IntensityCodes ice_crystals;
+  IntensityCodes snow_grains;
+  IntensityCodes snow_pellets;
+  IntensityCodes snow;
+  IntensityCodes drizzle;
+  IntensityCodes rain;
+  IntensityCodes freezing_drizzle;
+  IntensityCodes freezing_rain;
+  IntensityCodes unknown_form;  // very light precipitation of unknown form
+};
+
+// WMO 4677 ww. Road weather sensors cannot tell intermittent precipitation from continuous
+// one, hence the continuous codes are used for drizzle, rain and snow. The table has no
+// code for precipitation of unknown form.
+const RoadPrecipitationCodes ww_codes{{68, 69, 69},
+                                      {89, 90, 90},
+                                      {76, 76, 76},
+                                      {77, 77, 77},
+                                      {87, 88, 88},
+                                      {71, 73, 75},
+                                      {51, 53, 55},
+                                      {61, 63, 65},
+                                      {56, 57, 57},
+                                      {66, 67, 67},
+                                      {0, 0, 0}};
+
+// WMO 4680 wawa, the table for automatic stations. It has no code for snow pellets, the
+// ice pellet codes are the nearest ones.
+const RoadPrecipitationCodes wawa_codes{{67, 68, 68},
+                                        {89, 89, 89},
+                                        {78, 78, 78},
+                                        {77, 77, 77},
+                                        {74, 75, 76},
+                                        {71, 72, 73},
+                                        {51, 52, 53},
+                                        {61, 62, 63},
+                                        {54, 55, 56},
+                                        {64, 65, 66},
+                                        {41, 41, 42}};
+
+std::optional<int> calcRoadPrecipitationCode(int r, int rform, const RoadPrecipitationCodes& codes)
+{
   if (r < 0 || r > 6)
     return {};
 
@@ -487,11 +535,11 @@ std::optional<int> calcRoadWW(int r, int rform)
   const int intensity = (snowfall ? r - 3 : r);
 
   // Pick code by intensity, an absent intensity is treated as slight
-  auto pick = [intensity](int slight, int moderate, int heavy)
+  auto pick = [intensity](const IntensityCodes& theCodes)
   {
     if (intensity <= 1)
-      return slight;
-    return (intensity == 2 ? moderate : heavy);
+      return theCodes[0];
+    return (intensity == 2 ? theCodes[1] : theCodes[2]);
   };
 
   // Forms which are reported regardless of the intensity
@@ -499,22 +547,22 @@ std::optional<int> calcRoadWW(int r, int rform)
   {
     case 12:  // wet sleet
     case 13:  // sleet
-      return pick(68, 69, 69);
+      return pick(codes.sleet);
     case 14:  // hail
-      return pick(89, 90, 90);
+      return pick(codes.hail);
     case 15:  // ice crystals
-      return 76;
+      return pick(codes.ice_crystals);
     case 16:  // snow grains
-      return 77;
+      return pick(codes.snow_grains);
     case 17:  // snow pellets
-      return pick(87, 88, 88);
+      return pick(codes.snow_pellets);
     default:
       break;
   }
 
   // Snowfall intensities override the remaining forms
   if (snowfall)
-    return pick(71, 73, 75);
+    return pick(codes.snow);
 
   if (intensity == 0)
     return 0;
@@ -522,21 +570,33 @@ std::optional<int> calcRoadWW(int r, int rform)
   switch (rform)
   {
     case 9:  // drizzle
-      return pick(51, 53, 55);
+      return pick(codes.drizzle);
     case 10:  // rain
-      return pick(61, 63, 65);
+      return pick(codes.rain);
     case 11:  // snow
-      return pick(71, 73, 75);
+      return pick(codes.snow);
     case 18:  // freezing drizzle
-      return pick(56, 57, 57);
+      return pick(codes.freezing_drizzle);
     case 19:  // freezing rain
-      return pick(66, 67, 67);
+      return pick(codes.freezing_rain);
     case 7:  // dry
-    case 8:  // very light, form unknown
       return 0;
+    case 8:  // very light, form unknown
+      return pick(codes.unknown_form);
     default:
       return {};
   }
+}
+}  // namespace
+
+std::optional<int> calcRoadWW(int r, int rform)
+{
+  return calcRoadPrecipitationCode(r, rform, ww_codes);
+}
+
+std::optional<int> calcRoadWaWa(int r, int rform)
+{
+  return calcRoadPrecipitationCode(r, rform, wawa_codes);
 }
 
 namespace

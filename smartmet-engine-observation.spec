@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.10.23
+Version: 26.10.25
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -36,8 +36,8 @@ BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 26.10.17
 BuildRequires: smartmet-library-locus-devel >= 26.10.17
 BuildRequires: smartmet-library-macgyver-devel >= 26.10.23
-BuildRequires: smartmet-library-spine-devel >= 26.10.17
-BuildRequires: smartmet-library-timeseries-devel >= 26.10.17
+BuildRequires: smartmet-library-spine-devel >= 26.10.25-2
+BuildRequires: smartmet-library-timeseries-devel >= 26.10.25
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
 BuildRequires: smartmet-utils-devel >= 26.10.15
@@ -53,8 +53,8 @@ Requires: libatomic
 Requires: smartmet-engine-geonames >= 26.10.17
 Requires: smartmet-library-locus >= 26.10.17
 Requires: smartmet-library-macgyver >= 26.10.23
-Requires: smartmet-library-spine >= 26.10.17
-Requires: smartmet-library-timeseries >= 26.10.17
+Requires: smartmet-library-spine >= 26.10.25-2
+Requires: smartmet-library-timeseries >= 26.10.25
 Requires: smartmet-server >= 26.10.17
 Requires: unixODBC
 
@@ -138,7 +138,7 @@ SmartMet engine for fetching observations from the climate database (cldb).
 Summary: SmartMet %{SPECNAME} development headers
 Group: SmartMet/Development
 Requires: %{SPECNAME} = %{version}-%{release}
-Requires: smartmet-library-spine-devel >= 26.10.17
+Requires: smartmet-library-spine-devel >= 26.10.25-2
 Obsoletes: smartmet-brainstorm-obsengine-devel < 16.11.1
 %description -n %{SPECNAME}-devel
 SmartMet %{SPECNAME} development headers.
@@ -172,6 +172,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Sun Oct 25 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.25-1.fmi
+- New parameter roadwawa gives the road weather station precipitation as a WMO 4680 wawa code, the code table of automatic stations which most FMI stations report, so that road and FMI stations can share symbols (BRAINSTORM-2786)
+
 * Fri Oct 23 2026 Pertti Kinnia <pertti.kinnia@fmi.fi> - 26.10.23-1.fmi
 - Repackage due to macgyver ABI changes (PostgreSQLConnectionOptions)
 
