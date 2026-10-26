@@ -6,6 +6,8 @@
 #include <timeseries/ParameterTools.h>
 
 #include <timeseries/TimeSeriesOutput.h>
+#include <array>
+#include <optional>
 #include <unordered_map>
 
 namespace SmartMet
@@ -337,6 +339,17 @@ int windDirectionMid(bool isQCTable,
                    : Fmi::stoi(sparam);
 }
 
+// The measurand ids of the three parameters a derived parameter is calculated from
+void setMids(SpecialParamEntry& entry,
+             const std::array<const char*, 3>& names,
+             const ParameterMapPtr& parameterMap,
+             const std::string& stationtype)
+{
+  entry.mid1 = Fmi::stoi(parameterMap->getParameter(names[0], stationtype));
+  entry.mid2 = Fmi::stoi(parameterMap->getParameter(names[1], stationtype));
+  entry.mid3 = Fmi::stoi(parameterMap->getParameter(names[2], stationtype));
+}
+
 // Measurand ids of the cloud layer amounts and base heights used by the cloud ceiling parameters
 void setCloudCeilingMids(SpecialParamEntry &entry,
                          const ParameterMapPtr &parameterMap,
@@ -354,29 +367,27 @@ void setCloudCeilingMids(SpecialParamEntry &entry,
   entry.clhb_mids[4] = get_mid("clh5_pt1m_instant", stationtype, parameterMap);
 }
 
-SpecialParamEntry buildSpecialParamEntry(const std::string &name,
-                                         unsigned pos,
-                                         bool isQCTable,
-                                         const ParameterMapPtr &parameterMap,
-                                         const std::string &stationtype,
-                                         const QueryMapping &qmap)
+// The kinds of the location parameters, which need no measurands
+std::optional<SpecialParamEntry::Kind> locationKind(const std::string& name)
 {
-  SpecialParamEntry entry;
-  entry.output_pos = static_cast<int>(pos);
-
   if (name == "longitude" || name == "lon")
-  {
-    entry.kind = SpecialParamEntry::Kind::Longitude;
-  }
-  else if (name == "latitude" || name == "lat")
-  {
-    entry.kind = SpecialParamEntry::Kind::Latitude;
-  }
-  else if (boost::algorithm::starts_with(name, "elevation"))
-  {
-    entry.kind = SpecialParamEntry::Kind::Elevation;
-  }
-  else if (boost::algorithm::starts_with(name, "windcompass"))
+    return SpecialParamEntry::Kind::Longitude;
+  if (name == "latitude" || name == "lat")
+    return SpecialParamEntry::Kind::Latitude;
+  if (boost::algorithm::starts_with(name, "elevation"))
+    return SpecialParamEntry::Kind::Elevation;
+  return {};
+}
+
+// The kind and the measurands of a parameter derived from other measurands, false if the
+// parameter is not one of them
+bool setDerivedParameter(SpecialParamEntry& entry,
+                         const std::string& name,
+                         bool isQCTable,
+                         const ParameterMapPtr& parameterMap,
+                         const std::string& stationtype)
+{
+  if (boost::algorithm::starts_with(name, "windcompass"))
   {
     entry.kind = windCompassKind(name);
     entry.mid1 = windDirectionMid(isQCTable, parameterMap, stationtype);
@@ -385,22 +396,14 @@ SpecialParamEntry buildSpecialParamEntry(const std::string &name,
   {
     entry.kind = SpecialParamEntry::Kind::FeelsLike;
     if (!isQCTable)
-    {
-      entry.mid1 = Fmi::stoi(parameterMap->getParameter("windspeedms", stationtype));
-      entry.mid2 = Fmi::stoi(parameterMap->getParameter("relativehumidity", stationtype));
-      entry.mid3 = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
-    }
+      setMids(entry, {"windspeedms", "relativehumidity", "temperature"}, parameterMap, stationtype);
   }
   else if (name == "smartsymbol" || name == "smartsymboltext")
   {
     entry.kind = (name == "smartsymbol" ? SpecialParamEntry::Kind::SmartSymbol
                                         : SpecialParamEntry::Kind::SmartSymbolText);
     if (!isQCTable)
-    {
-      entry.mid1 = Fmi::stoi(parameterMap->getParameter("wawa", stationtype));
-      entry.mid2 = Fmi::stoi(parameterMap->getParameter("totalcloudcover", stationtype));
-      entry.mid3 = Fmi::stoi(parameterMap->getParameter("temperature", stationtype));
-    }
+      setMids(entry, {"wawa", "totalcloudcover", "temperature"}, parameterMap, stationtype);
   }
   else if (name == "roadww" || name == "roadwawa")
   {
@@ -419,20 +422,38 @@ SpecialParamEntry buildSpecialParamEntry(const std::string &name,
     if (!isQCTable)
       setCloudCeilingMids(entry, parameterMap, stationtype);
   }
-  else if (is_data_source_field(name))
+  else
+    return false;
+  return true;
+}
+
+SpecialParamEntry buildSpecialParamEntry(const std::string& name,
+                                         unsigned pos,
+                                         bool isQCTable,
+                                         const ParameterMapPtr& parameterMap,
+                                         const std::string& stationtype,
+                                         const QueryMapping& qmap)
+{
+  SpecialParamEntry entry;
+  entry.output_pos = static_cast<int>(pos);
+
+  if (auto kind = locationKind(name))
   {
-    return resolveDataSourceEntry(name, pos, qmap);
+    entry.kind = *kind;
+    return entry;
   }
-  else if (is_data_quality_field(name))
+  if (setDerivedParameter(entry, name, isQCTable, parameterMap, stationtype))
+    return entry;
+  if (is_data_source_field(name))
+    return resolveDataSourceEntry(name, pos, qmap);
+  if (is_data_quality_field(name))
   {
     entry.kind = SpecialParamEntry::Kind::DataQuality;
     entry.sensor_number = name.substr(name.rfind('_') + 1);
+    return entry;
   }
-  else
-  {
-    entry.kind = SpecialParamEntry::Kind::Other;
-    entry.name = name;
-  }
+  entry.kind = SpecialParamEntry::Kind::Other;
+  entry.name = name;
   return entry;
 }
 

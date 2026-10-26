@@ -212,6 +212,78 @@ void afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
   }
 }
 
+// The parameter names of each measurand of the producer
+std::map<int, std::vector<std::string>> measurandNames(const ParameterMap& parameterMap,
+                                                       const std::string& producer)
+{
+  std::map<int, std::vector<std::string>> names;
+  for (const auto& param : parameterMap)
+    for (const auto& producer_param : param.second)
+      if (producer_param.first == producer)
+        if (auto id = Fmi::stoi_opt(producer_param.second))
+          names[*id].push_back(param.first);
+  return names;
+}
+
+// The measurands of the parameters asked
+std::set<int> parameterMeasurands(const ParameterMap& parameterMap, const SensorOptions& options)
+{
+  std::set<int> measurands;
+  for (const auto& name : options.parameters)
+  {
+    const auto id =
+        Fmi::stoi_opt(parameterMap.getParameter(Fmi::ascii_tolower_copy(name), options.producer));
+    if (!id)
+      throw Fmi::Exception(
+          BCP, "Unknown parameter '" + name + "' of producer '" + options.producer + "'")
+          .addParameter("parameter", name)
+          .addParameter("producer", options.producer);
+    measurands.insert(*id);
+  }
+  return measurands;
+}
+
+// The period of the query: by default the current time, an open end extends to the current time
+SensorOptions sensorQuery(const SensorOptions& options)
+{
+  SensorOptions query = options;
+  const auto now = Fmi::SecondClock::universal_time();
+  if (query.starttime.is_not_a_date_time())
+    query.starttime = (query.endtime.is_not_a_date_time() ? now : query.endtime);
+  if (query.endtime.is_not_a_date_time())
+    query.endtime = std::max(now, query.starttime);
+  if (query.endtime < query.starttime)
+    throw Fmi::Exception(BCP, "The end time of the period is before its start time");
+  return query;
+}
+
+// The producers of the station type as data requests use them (updateProducers)
+std::set<int> sensorProducers(const EngineParameters& parameters, const SensorOptions& query)
+{
+  std::set<int> producers;
+  const auto& stationtypes = parameters.stationtypeConfig;
+  if (!stationtypes.getUseCommonQueryMethod(query.producer))
+    return producers;
+  auto ids = stationtypes.getProducerIdSetByStationtype(query.producer);
+  if (ids.empty())
+    ids = parameters.producerGroups.getProducerIds(query.producer, query.starttime, query.endtime);
+  for (auto id : ids)
+    producers.insert(static_cast<int>(id));
+  return producers;
+}
+
+// The measurand code of a sensor when the source has none
+std::string measurandCode(const ProducerMeasurandInfo& info,
+                          const std::string& producer,
+                          int measurand_id)
+{
+  const auto pos = info.find(producer);
+  if (pos == info.end())
+    return {};
+  auto m = pos->second.find(Fmi::to_string(measurand_id));
+  return (m != pos->second.end() ? m->second.measurand_code : std::string());
+}
+
 }  // namespace
 
 EngineImpl::EngineImpl(std::string configfile)
@@ -475,49 +547,11 @@ SensorResult EngineImpl::getSensors(const SensorOptions &options) const
     if (!isValidStationType(options.producer))
       throw Fmi::Exception(BCP, "Unknown producer").addParameter("producer", options.producer);
 
-    // The parameter names of each measurand of the producer
-    std::map<int, std::vector<std::string>> names;
-    for (const auto &param : *itsEngineParameters->parameterMap)
-      for (const auto &producer_param : param.second)
-        if (producer_param.first == options.producer)
-          if (auto id = Fmi::stoi_opt(producer_param.second))
-            names[*id].push_back(param.first);
-
-    // The measurands of the parameters asked
-    std::set<int> measurands;
-    for (const auto &name : options.parameters)
-    {
-      const auto id = Fmi::stoi_opt(
-          itsEngineParameters->parameterMap->getParameter(Fmi::ascii_tolower_copy(name),
-                                                          options.producer));
-      if (!id)
-        throw Fmi::Exception(BCP, "Unknown parameter '" + name + "' of producer '" + options.producer + "'")
-            .addParameter("parameter", name)
-            .addParameter("producer", options.producer);
-      measurands.insert(*id);
-    }
-
-    SensorOptions query = options;
-    const auto now = Fmi::SecondClock::universal_time();
-    if (query.starttime.is_not_a_date_time())
-      query.starttime = (query.endtime.is_not_a_date_time() ? now : query.endtime);
-    if (query.endtime.is_not_a_date_time())
-      query.endtime = std::max(now, query.starttime);
-    if (query.endtime < query.starttime)
-      throw Fmi::Exception(BCP, "The end time of the period is before its start time");
-
-    // The producers of the station type as data requests use them (updateProducers)
-    std::set<int> producers;
-    const auto &stationtypes = itsEngineParameters->stationtypeConfig;
-    if (stationtypes.getUseCommonQueryMethod(options.producer))
-    {
-      auto ids = stationtypes.getProducerIdSetByStationtype(options.producer);
-      if (ids.empty())
-        ids = itsEngineParameters->producerGroups.getProducerIds(
-            options.producer, query.starttime, query.endtime);
-      for (auto id : ids)
-        producers.insert(static_cast<int>(id));
-    }
+    const auto& parameterMap = *itsEngineParameters->parameterMap;
+    const auto names = measurandNames(parameterMap, options.producer);
+    const auto measurands = parameterMeasurands(parameterMap, options);
+    const auto query = sensorQuery(options);
+    const auto producers = sensorProducers(*itsEngineParameters, query);
 
     const auto *proxy = dynamic_cast<const DatabaseDriverProxy *>(itsDatabaseDriver.get());
     if (proxy == nullptr)
@@ -529,18 +563,13 @@ SensorResult EngineImpl::getSensors(const SensorOptions &options) const
 
     auto result = proxy->getSensors(query, measurands, producers);
     // The parameter names of the producer, and the measurand codes when the source has none
-    const auto info = itsMeasurandInfo.find(options.producer);
     for (auto &s : result.sensors)
     {
       auto pos = names.find(s.measurand_id);
       if (pos != names.end())
         s.parameters = pos->second;
-      if (s.measurand_code.empty() && info != itsMeasurandInfo.end())
-      {
-        auto m = info->second.find(Fmi::to_string(s.measurand_id));
-        if (m != info->second.end())
-          s.measurand_code = m->second.measurand_code;
-      }
+      if (s.measurand_code.empty())
+        s.measurand_code = measurandCode(itsMeasurandInfo, options.producer, s.measurand_id);
     }
     return result;
   }
