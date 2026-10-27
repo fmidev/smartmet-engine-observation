@@ -3,7 +3,9 @@
 #include "StationInfo.h"
 #include <boost/atomic.hpp>
 #include <boost/make_shared.hpp>
+#include <macgyver/AsyncTask.h>
 #include <macgyver/Exception.h>
+#include <algorithm>
 
 namespace SmartMet
 {
@@ -107,7 +109,7 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
 {
   try
   {
-    // The update is sorted first by fmisid and by time, but can contain duplicates.
+    // The update is normally sorted by fmisid and time, but can contain duplicates.
     // We discard all observations currently in the cache based on the hash value.
     // If some observation has changed, its hash value has changed, and it will
     // pass into the modification phase.
@@ -133,6 +135,14 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
 
     if (!new_items.empty())
     {
+      // Each station is copied and sorted once per group of its observations, so unordered
+      // observations must be grouped by station first. Otherwise nearly every observation of a
+      // large update would copy and sort all the data of its station, which takes hours.
+      const auto by_station = [&cacheData](std::size_t a, std::size_t b)
+      { return cacheData[a].fmisid < cacheData[b].fmisid; };
+      if (!std::is_sorted(new_items.begin(), new_items.end(), by_station))
+        std::stable_sort(new_items.begin(), new_items.end(), by_station);
+
       // Make a new cache
       auto new_cache = std::make_shared<Observations>();
 
@@ -150,6 +160,8 @@ std::size_t ObservationMemoryCache::fill(const DataItems& cacheData) const
 
       for (std::size_t i = 0; i < new_items.size();)
       {
+        Fmi::AsyncTask::interruption_point();
+
         const auto& data = cacheData[new_items[i]];
 
         // Seek the end of the update for this station

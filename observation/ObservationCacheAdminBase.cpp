@@ -5,6 +5,8 @@
 #include <macgyver/ThreadName.h>
 #include <spine/Convenience.h>
 #include <spine/Reactor.h>
+#include <algorithm>
+#include <tuple>
 
 namespace SmartMet
 {
@@ -13,6 +15,25 @@ namespace Engine
 namespace Observation
 {
 using namespace Utils;
+
+namespace
+{
+// Large requests are not sorted by the database, since sorting may need temporary tables or
+// even disk there. Sorting by station and time here groups the data for the memory cache, the
+// producer lookup and the inserts, and the order matches the cache table primary keys. A newer
+// version of the same observation is placed last, since the cache database keeps the last one
+// inserted.
+void sortByStationAndTime(DataItems& data)
+{
+  const auto cmp = [](const DataItem& a, const DataItem& b)
+  {
+    return std::tie(a.fmisid, a.data_time, a.modified_last) <
+           std::tie(b.fmisid, b.data_time, b.modified_last);
+  };
+  if (!std::is_sorted(data.begin(), data.end(), cmp))
+    std::stable_sort(data.begin(), data.end(), cmp);
+}
+}  // namespace
 
 ObservationCacheAdminBase::ObservationCacheAdminBase(const DatabaseDriverParameters& parameters,
                                                      Engine::Geonames::Engine* geonames,
@@ -762,6 +783,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCFakeCache(
               << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - begin1).count()
               << " ms\n";
 
+    sortByStationAndTime(cacheData);
     fixWeatherDataQCProducers(cacheData);
 
     auto begin2 = std::chrono::high_resolution_clock::now();
@@ -824,6 +846,7 @@ void ObservationCacheAdminBase::updateWeatherDataQCCache() const
         }
       }
 
+      sortByStationAndTime(cacheData);
       fixWeatherDataQCProducers(cacheData);
 
       auto end = std::chrono::high_resolution_clock::now();

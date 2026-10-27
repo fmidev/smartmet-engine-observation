@@ -73,6 +73,63 @@ TEST_CASE("Test modified_last")
   }
 }
 
+TEST_CASE("Test unordered fill")
+{
+  SECTION("Observations of interleaved stations in no particular order")
+  {
+    // A modified_last search of the EXT data is not sorted by station or time
+    Fmi::DateTime t = Fmi::DateTime::from_string("2020-01-01 00:00:00");
+    const std::vector<int> fmisids = {101004, 100971};
+    const int hours = 24;
+
+    SmartMet::Engine::Observation::ObservationMemoryCache cache;
+    SmartMet::Engine::Observation::DataItems items;
+    for (int h = hours - 1; h >= 0; h -= 2)
+      for (int fmisid : fmisids)
+        for (int hour : {h, h - 1})
+        {
+          SmartMet::Engine::Observation::DataItem item;
+          item.data_time = t + Fmi::Hours(hour);
+          item.modified_last = item.data_time;
+          item.data_value = hour;
+          item.fmisid = fmisid;
+          item.producer_id = 1;
+          items.push_back(item);
+        }
+
+    REQUIRE(cache.fill(items) == items.size());
+
+    SmartMet::Engine::Observation::Settings settings;
+    settings.starttime = t;
+    settings.endtime = t + Fmi::Hours(hours);
+    settings.starttimeGiven = true;
+    settings.producer_ids.insert(1);
+
+    SmartMet::Engine::Observation::QueryMapping qmap;
+    for (int i = 0; i < 10; i++)
+    {
+      qmap.sensorNumberToMeasurandIds[i] = std::set<int>{i};
+      qmap.measurandIds.push_back(i);
+    }
+
+    std::set<std::string> groups;
+    for (int fmisid : fmisids)
+    {
+      SmartMet::Spine::Station station;
+      station.fmisid = fmisid;
+      SmartMet::Spine::Stations stations{station};
+
+      auto obs = cache.read_observations(stations, settings, stationinfo, groups, qmap);
+      REQUIRE(obs.size() == static_cast<std::size_t>(hours));
+      for (std::size_t i = 0; i < obs.size(); i++)
+      {
+        REQUIRE(obs[i].data.fmisid == fmisid);
+        REQUIRE(obs[i].data.data_time == t + Fmi::Hours(static_cast<int>(i)));
+      }
+    }
+  }
+}
+
 TEST_CASE("Test observation memory cache in parallel (TSAN)")
 {
   SECTION("Insert and find in parallel")
