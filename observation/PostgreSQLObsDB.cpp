@@ -332,7 +332,7 @@ void PostgreSQLObsDB::readMovingStationsCacheDataFromPostgreSQL(
         "SELECT station_id, EXTRACT(EPOCH FROM date_trunc('seconds', sdate)), EXTRACT(EPOCH FROM "
         "date_trunc('seconds', edate)), lon, lat, elev "
         "FROM moving_locations_v1 data WHERE edate >= '" +
-        Fmi::to_iso_extended_string(startTime) + "' ORDER BY station_id ASC, sdate ASC";
+        Fmi::to_iso_extended_string(startTime) + "'";
 
     if (itsDebug)
       std::cout << "PostgreSQL: " << sqlStmt << '\n';
@@ -415,7 +415,6 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems& cacheData,
       sqlStmt += (" AND measurand_id IN (" + measurandId + ")");
     if (!fmisid.empty())
       sqlStmt += (" AND station_id IN (" + fmisid + ")");
-    sqlStmt += " ORDER BY station_id ASC, data_time ASC";
 
     return readCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
   }
@@ -443,7 +442,7 @@ void PostgreSQLObsDB::readCacheDataFromPostgreSQL(DataItems& cacheData,
         "modified_last)) as modified_last "
         "FROM observation_data_r1 data WHERE "
         "data.modified_last >= '" +
-        Fmi::to_iso_extended_string(lastModifiedTime) + "' ORDER BY station_id ASC, data_time ASC";
+        Fmi::to_iso_extended_string(lastModifiedTime) + "'";
 
     if (big_request)
     {
@@ -669,7 +668,6 @@ void PostgreSQLObsDB::readWeatherDataQCCacheDataFromPostgreSQL(DataItems& cacheD
       sqlStmt += (" AND parameter IN (" + measurandId + ")");
     if (!fmisid.empty())
       sqlStmt += (" AND fmisid IN (" + fmisid + ")");
-    sqlStmt += " ORDER BY fmisid ASC, obstime ASC";
 
     readWeatherDataQCCacheDataFromPostgreSQL(cacheData, sqlStmt, timezones);
     return;

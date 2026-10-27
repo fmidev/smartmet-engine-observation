@@ -33,6 +33,15 @@ void sortByStationAndTime(DataItems& data)
   if (!std::is_sorted(data.begin(), data.end(), cmp))
     std::stable_sort(data.begin(), data.end(), cmp);
 }
+
+// Moving station locations in the order of the cache table primary key
+void sortByStationAndTime(std::vector<MovingLocationItem>& data)
+{
+  const auto cmp = [](const MovingLocationItem& a, const MovingLocationItem& b)
+  { return std::tie(a.station_id, a.sdate) < std::tie(b.station_id, b.sdate); };
+  if (!std::is_sorted(data.begin(), data.end(), cmp))
+    std::stable_sort(data.begin(), data.end(), cmp);
+}
 }  // namespace
 
 ObservationCacheAdminBase::ObservationCacheAdminBase(const DatabaseDriverParameters& parameters,
@@ -697,6 +706,9 @@ void ObservationCacheAdminBase::updateObservationCache() const
 
     if (Spine::Reactor::isShuttingDown())
       return;
+
+    sortByStationAndTime(cacheData);
+    sortByStationAndTime(cacheDataMovingLocations);
 
     {
       auto begin = std::chrono::high_resolution_clock::now();

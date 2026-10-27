@@ -176,6 +176,8 @@ rm -rf $RPM_BUILD_ROOT
 - EXT cache updates are sorted by station and time in the server before the memory cache
   and the cache database are filled: an unordered large update made the startup copy and
   sort the station data for nearly every observation
+- Cache update reads are no longer sorted in PostgreSQL, which sorted large updates on disk:
+  the FIN and moving station updates are sorted in the server like the EXT updates
 
 * Mon Oct 26 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.26-1.fmi
 - The sensor listing and the precomputed special parameters split into smaller functions
