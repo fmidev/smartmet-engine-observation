@@ -4,7 +4,7 @@ INCDIR = smartmet//engines/$(SUBNAME)
 
 REQUIRES = gdal configpp sqlite3 spatialite
 
-include $(shell echo $${PREFIX-/usr})/share/smartmet/devel/makefile.inc
+include $(or $(PREFIX),$(shell smartbuildcfg --prefix))/share/smartmet/devel/makefile.inc
 
 ifeq ($(origin localstatedir), undefined)
   vardir = /var/smartmet/observation

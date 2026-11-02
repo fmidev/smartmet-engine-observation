@@ -2,7 +2,7 @@ PROG = $(patsubst %.cpp,%,$(wildcard *Test.cpp))
 
 REQUIRES = gdal sqlite3 spatialite configpp libpqxx
 
-include $(shell echo $${PREFIX-/usr})/share/smartmet/devel/makefile.inc
+include $(or $(PREFIX),$(shell smartbuildcfg --prefix))/share/smartmet/devel/makefile.inc
 
 SOURCES = /usr/share/smartmet/engines/geonames.so \
 	../observation.so
