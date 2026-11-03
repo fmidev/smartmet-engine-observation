@@ -114,43 +114,53 @@ int fmisidIndex(const Settings &settings)
   return -1;
 }
 
-// Copy the rows of a station from the original data structure to the result structure
-void copyStationRows(const TS::TimeSeriesVector &tsv,
+// The rows of a station in the original data structure
+struct StationRows
+{
+  std::string fmisid;
+  unsigned int firstIndex = 0;
+  unsigned int numberOfRows = 0;
+};
+
+// Copy the rows of the stations from the original data structure to the result structure in
+// the given order. Each original column is released once it has been copied, so that the data
+// is not held twice.
+void copyStationRows(TS::TimeSeriesVector &tsv,
                      TS::TimeSeriesVector &result,
-                     unsigned int firstIndex,
-                     unsigned int numberOfRows,
-                     const std::string &fmisid,
+                     const std::vector<StationRows> &stations,
                      const Settings &settings)
 {
+  std::size_t rows = 0;
+  for (const auto &station : stations)
+    rows += station.numberOfRows;
+
   for (unsigned int i = 0; i < tsv.size(); i++)
   {
-    const TS::TimeSeries &ts = tsv.at(i);
+    TS::TimeSeries &ts = tsv.at(i);
 
     TS::TimeSeries &resultVector = result.at(i);
+    resultVector.reserve(rows);
 
-    // Prevent referencing past the end of source data
-
-    if (firstIndex + numberOfRows > ts.size())
+    for (const auto &station : stations)
     {
-      std::cout << "obsengine afterQuery: indexing error: fmisid=" << fmisid
-                << " firstIndex=" << firstIndex << " numberOfRows=" << numberOfRows
-                << " ts.size()=" << ts.size() << " settings=" << settings
-                << " resultVector=" << resultVector << " ts=" << ts << " i=" << i
-                << " tsvPtr->size()=" << tsv.size();
+      // Prevent referencing past the end of source data
 
-      throw Fmi::Exception::Trace(BCP, "Internal error indexing data");
+      if (station.firstIndex + station.numberOfRows > ts.size())
+      {
+        std::cout << "obsengine afterQuery: indexing error: fmisid=" << station.fmisid
+                  << " firstIndex=" << station.firstIndex
+                  << " numberOfRows=" << station.numberOfRows << " ts.size()=" << ts.size()
+                  << " settings=" << settings << " resultVector=" << resultVector
+                  << " ts=" << ts << " i=" << i << " tsvPtr->size()=" << tsv.size();
+
+        throw Fmi::Exception::Trace(BCP, "Internal error indexing data");
+      }
+
+      const auto first = ts.begin() + station.firstIndex;
+      resultVector.insert(resultVector.end(), first, first + station.numberOfRows);
     }
 
-    auto it_first = ts.begin();
-    for (unsigned int k = 0; k < firstIndex; k++)
-      it_first++;
-    auto it_last = it_first;
-    for (unsigned int k = 0; k < numberOfRows; k++)
-      it_last++;
-
-    //      resultVector.insert(resultVector.end(), ts.begin() + firstIndex, ts.begin() +
-    //      firstIndex + numberOfRows);
-    resultVector.insert(resultVector.end(), it_first, it_last);
+    ts = TS::TimeSeries();
   }
 }
 
@@ -183,13 +193,8 @@ void afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
       fmisid_mapped_indexes[fmisid].push_back(i);
     }
 
-    // Create and initialize data structure for results
-    TS::TimeSeriesVectorPtr result = std::make_shared<TS::TimeSeriesVector>();
-    for (unsigned int i = 0; i < tsvPtr->size(); i++)
-      result->emplace_back();
-
     // FMISIDs are in right order in settings.taggedFMISIDs list
-    // Iterate the list and copy data from original data structure to result structure
+    std::vector<StationRows> stations;
     for (const auto &id : settings.taggedFMISIDs)
     {
       std::string fmisid = Fmi::to_string(id.fmisid);
@@ -200,9 +205,12 @@ void afterQuery(TS::TimeSeriesVectorPtr &tsvPtr,
         continue;
       unsigned int firstIndex = indexes.front();
       unsigned int numberOfRows = indexes.size();
-
-      copyStationRows(*tsvPtr, *result, firstIndex, numberOfRows, fmisid, settings);
+      stations.push_back(StationRows{fmisid, firstIndex, numberOfRows});
     }
+
+    // Copy data from original data structure to result structure
+    auto result = std::make_shared<TS::TimeSeriesVector>(tsvPtr->size());
+    copyStationRows(*tsvPtr, *result, stations, settings);
 
     tsvPtr = result;
   }
