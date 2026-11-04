@@ -2,6 +2,7 @@
 #include "DBRegistry.h"
 #include "DatabaseDriverFactory.h"
 #include "DatabaseDriverProxy.h"
+#include "MeasurandPeriods.h"
 #include "ObservationCacheFactory.h"
 #include "SpecialParameters.h"
 #include "StationOptions.h"
@@ -1378,6 +1379,9 @@ void EngineImpl::initMeasurandInfo()
   try
   {
     auto m_info = itsDatabaseDriver->getMeasurandInfo();
+
+    // Nominal data intervals for estimating the sizes of the database queries
+    MeasurandPeriods::set(m_info);
 
     // producer_id -> measurands
     std::map<uint, std::set<const measurand_info *>> producer_id_measurands;

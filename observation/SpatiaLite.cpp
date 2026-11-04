@@ -2,6 +2,7 @@
 #include "DataWithQuality.h"
 #include "ExternalAndMobileDBInfo.h"
 #include "Keywords.h"
+#include "MeasurandPeriods.h"
 #include "ObservationMemoryCache.h"
 #include "QueryMapping.h"
 #include "SpatiaLiteCacheParameters.h"
@@ -483,6 +484,11 @@ LocationDataItems SpatiaLite::readObservationDataFromDB(
 
     if (station_ids.empty())
       return ret;
+
+    // Reject requests which would read too many rows before running the query. The period
+    // includes the aggregation intervals, and all raw values are read regardless of the
+    // requested timestep.
+    MeasurandPeriods::check_request_limits(settings, qmap.measurandIds, station_ids.size());
 
     auto measurandsql = Fmi::join(qmap.measurandIds);
     auto stationsql = Fmi::join(station_ids);

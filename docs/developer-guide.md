@@ -115,6 +115,17 @@ WKT area, bounding box), `parameters`, `stationtype` and `stationgroups`, `start
 `numberofstations` (1) and `maxdistance` (50 km), `dataFilter`, `timezone`,
 `useDataCache` (true), `preventDatabaseQuery`, and the request limits.
 
+The request limits are checked while the rows are read: `maxlocations`, `maxtimes` and
+`maxelements` against the distinct stations, distinct observation times and rows read
+from the database. For `observation_data` the number of rows is also estimated before the
+query (`MeasurandPeriods`): the period from `starttime` to `endtime`, which the plugins
+widen by the aggregation intervals, divided by the nominal interval of each measurand
+(`aggregate_period` in `measurands_v1`, for example PT1M for TA_PT1M_AVG), times the
+number of stations. A request whose estimate exceeds `maxelements` is rejected without
+running the query. The SQL does not filter by the time step, so aggregated and subsampled
+requests read every raw value. PostgreSQL results estimated larger than 100000 rows, or
+of unknown size, are streamed so that an exceeded limit cancels the query.
+
 ## 5. Database drivers and table routing
 
 Drivers are declared in `database_driver_info`:

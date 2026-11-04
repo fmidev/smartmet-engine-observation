@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 26.11.6
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -172,6 +172,14 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Nov  6 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.11.6-2.fmi
+- Requests are rejected before the database query if the number of rows estimated from the
+  period, the stations and the nominal intervals of the measurands (aggregate_period, for
+  example PT1M for TA_PT1M_AVG) exceeds request_limits.maxelements: aggregated multi-year
+  requests of one-minute parameters were read completely before any limit was checked
+- Large observation_data results are streamed from PostgreSQL, so that an exceeded request
+  limit cancels the query instead of being detected after the whole result is in memory
+
 * Fri Nov 6 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.11.6-1.fmi
 - Include the headers used directly instead of relying on transitive includes
 - Rebuilt against the new macgyver AsyncTaskGroup ABI

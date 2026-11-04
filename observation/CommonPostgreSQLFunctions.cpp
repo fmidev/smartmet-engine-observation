@@ -2,6 +2,7 @@
 #include "AsDouble.h"
 #include "DatabaseDriverInfo.h"
 #include "Keywords.h"
+#include "MeasurandPeriods.h"
 #include "Utils.h"
 #include <gis/OGR.h>
 #include <macgyver/Exception.h>
@@ -9,6 +10,8 @@
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeFormatter.h>
 #include <spine/Value.h>
+#include <cmath>
+#include <optional>
 #include <thread>
 
 namespace SmartMet
@@ -17,6 +20,12 @@ namespace Engine
 {
 namespace Observation
 {
+namespace
+{
+// Results estimated to be larger than this are streamed from the database
+const std::size_t stream_threshold = 100000;
+}  // namespace
+
 const std::string globe = "POLYGON ((-180 -90,-180 90,180 90,180 -90,-180 -90))";
 
 using namespace Utils;
@@ -463,6 +472,11 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataOfMovingStations
       throw Fmi::Exception::Trace(
           BCP, "Fetching data from PostgreSQL database failed, no fmisids or area given!");
 
+    // The number of stations is known only when fmisids are given
+    if (!settings.taggedFMISIDs.empty())
+      MeasurandPeriods::check_request_limits(
+          settings, qmap.measurandIds, settings.taggedFMISIDs.size());
+
     const std::string starttime = Fmi::to_iso_extended_string(settings.starttime);
     const std::string endtime = Fmi::to_iso_extended_string(settings.endtime);
     const std::string sensorCondition = getSensorQueryCondition(qmap.sensorNumberToMeasurandIds);
@@ -525,6 +539,11 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
     if (station_ids.empty())
       return ret;
 
+    // Reject requests which would read too many rows before running the query. The period
+    // includes the aggregation intervals, and all raw values are read regardless of the
+    // requested timestep.
+    MeasurandPeriods::check_request_limits(settings, qmap.measurandIds, station_ids.size());
+
     // Generate comma separated values
     std::string stationsql = Fmi::join(station_ids);
 
@@ -576,23 +595,11 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
     if (itsDebug)
       std::cout << (itsIsCacheDatabase ? "PostgreSQL(cache): " : "PostgreSQL: ") << sqlStmt << '\n';
 
-    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-
     std::set<Fmi::DateTime> obstimes;
     std::set<int> fmisids;
-    for (auto row : result_set)
+
+    auto add_observation = [&](LocationDataItem &obs)
     {
-      LocationDataItem obs;
-      obs.data.fmisid = as_int(row[0]);
-      obs.data.sensor_no = as_int(row[1]);
-      obs.data.data_time = Fmi::date_time::from_time_t(as_time_t(row[2]));
-      obs.data.measurand_id = as_int(row[3]);
-      if (!row[4].is_null())
-        obs.data.data_value = as_double(row[4]);
-      if (!row[5].is_null())
-        obs.data.data_quality = as_int(row[5]);
-      if (!row[6].is_null())
-        obs.data.data_source = as_int(row[6]);
       try
       {
         // Get latitude, longitude, elevation from station info. Databases may contain data values
@@ -618,6 +625,60 @@ LocationDataItems CommonPostgreSQLFunctions::readObservationDataFromDB(
       check_request_limit(
           settings.requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
       check_request_limit(settings.requestLimits, ret.size(), TS::RequestLimitMember::ELEMENTS);
+    };
+
+    // Large or unknown results are streamed, so that the request limits and cancellation are
+    // checked while the rows arrive and the query is cancelled at the first exceeded limit,
+    // instead of only after the whole result has been loaded into memory. Streaming is slower
+    // for small results, which are the common case.
+
+    const auto estimate =
+        MeasurandPeriods::estimate_rows(settings, qmap.measurandIds, station_ids.size());
+
+    if (estimate == 0 || estimate > stream_threshold)
+    {
+      itsDB.stream(sqlStmt,
+                   [&](int fmisid,
+                       int sensor_no,
+                       double epoch,
+                       int measurand_id,
+                       std::optional<double> data_value,
+                       std::optional<int> data_quality,
+                       std::optional<int> data_source)
+                   {
+                     LocationDataItem obs;
+                     obs.data.fmisid = fmisid;
+                     obs.data.sensor_no = sensor_no;
+                     obs.data.data_time = Fmi::date_time::from_time_t(
+                         static_cast<std::time_t>(std::floor(epoch)));
+                     obs.data.measurand_id = measurand_id;
+                     if (data_value)
+                       obs.data.data_value = *data_value;
+                     if (data_quality)
+                       obs.data.data_quality = *data_quality;
+                     if (data_source)
+                       obs.data.data_source = *data_source;
+                     add_observation(obs);
+                   });
+    }
+    else
+    {
+      pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
+      for (auto row : result_set)
+      {
+        LocationDataItem obs;
+        obs.data.fmisid = as_int(row[0]);
+        obs.data.sensor_no = as_int(row[1]);
+        obs.data.data_time = Fmi::date_time::from_time_t(as_time_t(row[2]));
+        obs.data.measurand_id = as_int(row[3]);
+        if (!row[4].is_null())
+          obs.data.data_value = as_double(row[4]);
+        if (!row[5].is_null())
+          obs.data.data_quality = as_int(row[5]);
+        if (!row[6].is_null())
+          obs.data.data_source = as_int(row[6]);
+        add_observation(obs);
+      }
     }
 
     return ret;
