@@ -834,58 +834,47 @@ void PostgreSQLObsDB::fetchWeatherDataQCData(const std::string& sqlStmt,
 {
   try
   {
-    pqxx::result result_set = itsDB.executeNonTransaction(sqlStmt);
-
     std::set<int> fmisids;
     std::set<Fmi::DateTime> obstimes;
-    for (auto row : result_set)
-    {
-      Fmi::AsyncTask::interruption_point();
-      std::optional<int> fmisid = as_int(row[0]);
-      Fmi::DateTime obstime = Fmi::date_time::from_time_t(as_time_t(row[1]));
-      std::optional<std::string> parameter = row[2].as<std::string>();
-      int int_parameter = itsParameterMap->getRoadAndForeignIds().stringToInteger(*parameter);
 
-      // Get latitude, longitude, elevation from station info
-      const Spine::Station& s = stationInfo.getStation(*fmisid, stationgroup_codes, obstime);
+    // Streamed so that the request limits and cancellation are checked while the rows are read,
+    // instead of only after the whole result set has been loaded into memory.
+    itsDB.stream(
+        sqlStmt,
+        [&](int fmisid,
+            double epoch,
+            const std::string& parameter,
+            std::optional<double> data_value,
+            std::optional<int> sensor_no,
+            std::optional<int> data_quality)
+        {
+          const Fmi::DateTime obstime =
+              Fmi::date_time::from_time_t(static_cast<std::time_t>(std::floor(epoch)));
+          int int_parameter = itsParameterMap->getRoadAndForeignIds().stringToInteger(parameter);
 
-      std::optional<double> latitude = s.latitude;
-      std::optional<double> longitude = s.longitude;
-      std::optional<double> elevation = s.elevation;
-      std::optional<std::string> stationtype = s.type;
+          // Get latitude, longitude, elevation from station info
+          const Spine::Station& s = stationInfo.getStation(fmisid, stationgroup_codes, obstime);
 
-      std::optional<double> data_value;
-      std::optional<int> data_quality;
-      std::optional<int> sensor_no;
-      if (!row[3].is_null())
-        data_value = as_double(row[3]);
-      if (!row[4].is_null())
-        sensor_no = as_int(row[4]);
-      if (!row[5].is_null())
-        data_quality = as_int(row[5]);
+          DataItem item{obstime,
+                        obstime,
+                        data_value,
+                        fmisid,
+                        sensor_no.value_or(0),
+                        int_parameter,
+                        0,
+                        0,
+                        data_quality.value_or(0),
+                        -1};
+          cacheData.push_back(
+              LocationDataItem{item, s.longitude, s.latitude, s.elevation, s.type});
 
-      DataItem item{obstime,
-                    obstime,
-                    data_value,
-                    *fmisid,
-                    *sensor_no,
-                    int_parameter,
-                    0,
-                    0,
-                    *data_quality,
-                    -1};
-      LocationDataItem loc_item{
-          item, *longitude, *latitude, *elevation, stationtype ? *stationtype : "TODO"};
-      cacheData.push_back(loc_item);
+          fmisids.insert(fmisid);
+          obstimes.insert(obstime);
 
-      if (fmisid)
-        fmisids.insert(*fmisid);
-      obstimes.insert(obstime);
-
-      check_request_limit(requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
-      check_request_limit(requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
-      check_request_limit(requestLimits, cacheData.size(), TS::RequestLimitMember::ELEMENTS);
-    }
+          check_request_limit(requestLimits, obstimes.size(), TS::RequestLimitMember::TIMESTEPS);
+          check_request_limit(requestLimits, fmisids.size(), TS::RequestLimitMember::LOCATIONS);
+          check_request_limit(requestLimits, cacheData.size(), TS::RequestLimitMember::ELEMENTS);
+        });
   }
   catch (...)
   {
