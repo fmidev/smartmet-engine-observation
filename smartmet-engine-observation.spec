@@ -35,9 +35,9 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 26.10.17
 BuildRequires: smartmet-library-locus-devel >= 26.10.17
-BuildRequires: smartmet-library-macgyver-devel >= 26.10.23
-BuildRequires: smartmet-library-spine-devel >= 26.10.25-2
-BuildRequires: smartmet-library-timeseries-devel >= 26.10.25
+BuildRequires: smartmet-library-macgyver-devel >= 26.11.3
+BuildRequires: smartmet-library-spine-devel >= 26.11.4
+BuildRequires: smartmet-library-timeseries-devel >= 26.11.4
 BuildRequires: sqlite3pp-devel >= 1.0.9
 BuildRequires: curl-devel >= 7.61.0
 BuildRequires: smartmet-utils-devel >= 26.10.15
@@ -52,9 +52,9 @@ Requires: gdal312-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 26.10.17
 Requires: smartmet-library-locus >= 26.10.17
-Requires: smartmet-library-macgyver >= 26.10.23
-Requires: smartmet-library-spine >= 26.10.25-2
-Requires: smartmet-library-timeseries >= 26.10.25
+Requires: smartmet-library-macgyver >= 26.11.3
+Requires: smartmet-library-spine >= 26.11.4
+Requires: smartmet-library-timeseries >= 26.11.4
 Requires: smartmet-server >= 26.10.17
 Requires: unixODBC
 
