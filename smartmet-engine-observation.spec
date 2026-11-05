@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.10.27
+Version: 26.11.5
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -172,6 +172,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Thu Nov  5 2026 Andris Pavēnis <andris.pavenis@fmi.fi> - 26.11.5-1.fmi
+- memory use optimizations (avoid unnecessary copying TimeSeries objects)
+- use SQL response streaming for several queries to reduce memory usage
+
 * Tue Oct 27 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.10.27-1.fmi
 - EXT cache updates are sorted by station and time in the server before the memory cache
   and the cache database are filled: an unordered large update made the startup copy and
