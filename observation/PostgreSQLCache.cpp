@@ -1,6 +1,7 @@
 #include "PostgreSQLCache.h"
 #include "DBQueryUtils.h"
 #include "ObservationMemoryCache.h"
+#include <spine/Thread.h>
 #include <boost/make_shared.hpp>
 #include <macgyver/StringConversion.h>
 

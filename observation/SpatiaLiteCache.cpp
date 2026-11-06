@@ -1,6 +1,7 @@
 #include "SpatiaLiteCache.h"
 #include "FlashMemoryCache.h"
 #include "ObservationMemoryCache.h"
+#include <spine/Thread.h>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/make_shared.hpp>
 #include <macgyver/AnsiEscapeCodes.h>

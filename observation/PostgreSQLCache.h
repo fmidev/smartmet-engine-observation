@@ -7,6 +7,7 @@
 #include "Settings.h"
 #include "StationtypeConfig.h"
 
+#include <spine/Thread.h>
 #include <mutex>
 #include <string>
 

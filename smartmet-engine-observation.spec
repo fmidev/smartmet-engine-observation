@@ -3,7 +3,7 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.11.5
+Version: 26.11.6
 Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
@@ -35,7 +35,7 @@ BuildRequires: make
 BuildRequires: rpm-build
 BuildRequires: smartmet-engine-geonames-devel >= 26.10.17
 BuildRequires: smartmet-library-locus-devel >= 26.10.17
-BuildRequires: smartmet-library-macgyver-devel >= 26.11.3
+BuildRequires: smartmet-library-macgyver-devel >= 26.11.6
 BuildRequires: smartmet-library-spine-devel >= 26.11.4
 BuildRequires: smartmet-library-timeseries-devel >= 26.11.4
 BuildRequires: sqlite3pp-devel >= 1.0.9
@@ -52,7 +52,7 @@ Requires: gdal312-libs
 Requires: libatomic
 Requires: smartmet-engine-geonames >= 26.10.17
 Requires: smartmet-library-locus >= 26.10.17
-Requires: smartmet-library-macgyver >= 26.11.3
+Requires: smartmet-library-macgyver >= 26.11.6
 Requires: smartmet-library-spine >= 26.11.4
 Requires: smartmet-library-timeseries >= 26.11.4
 Requires: smartmet-server >= 26.10.17
@@ -172,6 +172,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Nov 6 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.11.6-1.fmi
+- Include the headers used directly instead of relying on transitive includes
+- Rebuilt against the new macgyver AsyncTaskGroup ABI
+
 * Thu Nov  5 2026 Andris Pavēnis <andris.pavenis@fmi.fi> - 26.11.5-1.fmi
 - memory use optimizations (avoid unnecessary copying TimeSeries objects)
 - use SQL response streaming for several queries to reduce memory usage

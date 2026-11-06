@@ -1,5 +1,6 @@
 #include "ObservationCacheAdminBase.h"
 #include "Utils.h"
+#include <macgyver/AsyncTask.h>
 #include <macgyver/AnsiEscapeCodes.h>
 #include <macgyver/Join.h>
 #include <macgyver/ThreadName.h>

@@ -7,6 +7,7 @@
 #include "SpatiaLite.h"
 #include "SpatiaLiteCacheParameters.h"
 #include "StationtypeConfig.h"
+#include <spine/Thread.h>
 #include <mutex>
 #include <string>
 

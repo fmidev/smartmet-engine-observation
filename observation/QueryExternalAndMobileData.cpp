@@ -1,6 +1,7 @@
 #include "QueryExternalAndMobileData.h"
 #include "ExternalAndMobileDBInfo.h"
 #include "PostgreSQLCacheDB.h"
+#include <boost/variant/static_visitor.hpp>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
 #include <timeseries/TimeSeriesInclude.h>
 
