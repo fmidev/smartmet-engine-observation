@@ -3,8 +3,8 @@
 %define SPECNAME smartmet-engine-%{DIRNAME}
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
-Version: 26.11.6
-Release: 2%{?dist}.fmi
+Version: 26.11.10
+Release: 1%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -172,6 +172,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Tue Nov 10 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.11.10-1.fmi
+- Parameters not configured for any station type give missing values again instead of an
+  error, since the name may be valid for another data source (newbase or Radon). The
+  timeseries and EDR plugins validate the names
+
 * Fri Nov  6 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.11.6-2.fmi
 - Requests are rejected before the database query if the number of rows estimated from the
   period, the stations and the nominal intervals of the measurands (aggregate_period, for
