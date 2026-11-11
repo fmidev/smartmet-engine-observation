@@ -60,10 +60,10 @@ class DBRegistryConfig
 
   /**
    * @brief Get method name of a field if defined.
-   * @param fielName A field name which method to search.
+   * @param fieldName A field name which method to search.
    * @return Method name or empty return value.
    */
-  NameType getMethod(const DBRegistryConfig::NameType& fielName) const;
+  NameType getMethod(const DBRegistryConfig::NameType& fieldName) const;
 
  private:
   NameType m_name;

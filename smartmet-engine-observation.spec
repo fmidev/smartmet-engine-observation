@@ -173,7 +173,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 * Wed Nov 11 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.11.11-1.fmi
-- Fixed typos in messages and comments
+- Fixed typos in messages, comments and identifiers
 
 * Tue Nov 10 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.11.10-1.fmi
 - Parameters not configured for any station type give missing values again instead of an
