@@ -105,7 +105,7 @@ RoadAndForeignIds::RoadAndForeignIds()
                    {"VIS", 54},
                    {"VSAA", 199}}
 {
-  // Actual ids for parametrs can be found on wiki pages
+  // Actual ids for parameters can be found on wiki pages
   // https://wiki.fmi.fi/pages/viewpage.action?pageId=37040091
   // https://wiki.fmi.fi/pages/viewpage.action?spaceKey=Manuals&title=Ulkomaiden+SYNOP-havainnot+havaintotietokannassa
   // Ari Aaltonen: Seuraavia tiesääsuureita ei löydy kannasta: LUMIS, VALO, VIRTA, DIPAINE, PRT, 12,

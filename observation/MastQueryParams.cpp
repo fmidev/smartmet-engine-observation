@@ -153,7 +153,7 @@ void MastQueryParams::addOperation(const std::string& groupName,
 {
   try
   {
-    // Is the conformance class creted.
+    // Is the conformance class created.
     if (not m_conformanceClass)
       throw Fmi::Exception(BCP, "Operation processing failed!")
           .addDetail(

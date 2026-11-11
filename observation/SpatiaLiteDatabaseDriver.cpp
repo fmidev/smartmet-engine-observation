@@ -57,7 +57,7 @@ void SpatiaLiteDatabaseDriver::makeQuery(QueryBase * /* qb */)
 {
   try
   {
-    // Not implemeted
+    // Not implemented
   }
   catch (...)
   {

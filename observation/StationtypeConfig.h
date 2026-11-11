@@ -79,7 +79,7 @@ class StationtypeConfig
   /**
    * @brief Get database table name by using a stationtype.
    * @param[in] stationtype Stationtype keyword to search database table name.
-   * @return String contaning database table name, empty string if no table name defined for
+   * @return String containing database table name, empty string if no table name defined for
    * stationtype
    */
   std::string getDatabaseTableNameByStationtype(const StationtypeType& stationtype) const;

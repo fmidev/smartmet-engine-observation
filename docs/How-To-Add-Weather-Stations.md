@@ -14,7 +14,7 @@ engines:
 	};
 ```
 
-In the example the observation.conf file is in `engines`-directory realative to the main configuration file.
+In the example the observation.conf file is in `engines`-directory relative to the main configuration file.
 
 
 ## Station types

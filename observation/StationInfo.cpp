@@ -457,7 +457,7 @@ Spine::Stations StationInfo::findFmisidStations(const Spine::TaggedFMISIDList& t
   for (auto& station : ret)
   {
     const Spine::TaggedFMISID* tfmisid = fmisidMap.at(station.fmisid);
-    // Chage to >= 0
+    // Change to >= 0
     if (tfmisid->direction > 0)
       station.stationDirection = tfmisid->direction;
     else
@@ -497,7 +497,7 @@ Spine::Stations StationInfo::findFmisidStations(const Spine::TaggedFMISIDList& t
   for (auto& station : ret)
   {
     const Spine::TaggedFMISID* tfmisid = fmisidMap.at(station.fmisid);
-    // Chage to >= 0
+    // Change to >= 0
     if (tfmisid->direction > 0)
       station.stationDirection = tfmisid->direction;
     else
@@ -683,7 +683,7 @@ Spine::Stations StationInfo::findStationsInsideArea(const std::set<std::string>&
     // Create area geometry from wkt-string
     std::shared_ptr<OGRGeometry> areaGeometry(Fmi::OGR::createFromWkt(wkt, 4326),
                                               &OGRGeometryFactory::destroyGeometry);
-    // Create spatial refernce to be used below
+    // Create spatial reference to be used below
     OGRSpatialReference srs;
     srs.importFromEPSGA(4326);
 

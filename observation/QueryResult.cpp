@@ -309,7 +309,7 @@ void QueryResult::getValueVectorData(const size_t& valueVectorId,
             std::cerr
                 << "warning: QueryResult::getValueVectorData : Unsupported data type '"
                 << (*first).type().name()
-                << "'. Conversion to string failed. Empty string is used insted of the data.\n";
+                << "'. Conversion to string failed. Empty string is used instead of the data.\n";
           }
           ++first;
           *oFirst++ = "";

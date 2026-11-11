@@ -26,7 +26,7 @@ class DBRegistry
 
   /**
    *  @brief Pointer to the configuration that match with the given tableName.
-   *  @return Pointer to the configuration will be returend if there is a match and otherwise NULL.
+   *  @return Pointer to the configuration will be returned if there is a match and otherwise NULL.
    */
   std::shared_ptr<DBRegistryConfig> dbRegistryConfig(const std::string& tableName) const;
 

@@ -739,7 +739,7 @@ void PostgreSQLObsDB::readMagnetometerCacheDataFromPostgreSQL(
     auto diff = now - starttime;
 
     // Sometimes lastModifiedTime is 1.1.1970 due to problems, disable huge updates (?? perhaps not
-    // possible fpr magnetometer data)
+    // possible for magnetometer data)
     if (diff > Fmi::Hours(366 * 24))
     {
       starttime = lastTime;

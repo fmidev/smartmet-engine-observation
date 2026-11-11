@@ -690,7 +690,7 @@ std::string DatabaseDriverInfoItem::getStringParameterValue(const std::string& n
   return params.at(name);
 }
 
-// Cache info stirng format is 'cachename:tablename1,tablename2,...'
+// Cache info string format is 'cachename:tablename1,tablename2,...'
 void DatabaseDriverInfoItem::parseCacheInfo(const std::set<std::string>& cacheinfostring)
 {
   for (const auto& c : cacheinfostring)

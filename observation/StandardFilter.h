@@ -44,7 +44,7 @@ class StandardFilter : public MinimumStandardFilter
  * Standard filter operations of FES and extra non standard operations.
  *
  * The class extends the standard filter operations of FES.
- * The followind filter operations are implemented:
+ * The following filter operations are implemented:
  * - PropertyMinuteValueModuloIsEqualToZero (Can be used as timestep to select certain value on
  * time.)
  */

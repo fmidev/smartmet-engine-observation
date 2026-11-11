@@ -58,7 +58,7 @@ class VerifiableMessageQuery : public QueryBase
   void setQueryParams(const VerifiableMessageQueryParams *qParams);
 
  private:
-  // SQL statement parts contructed in setQueryParams method
+  // SQL statement parts constructed in setQueryParams method
   // used lated in getSQLStatement method.
   std::vector<std::string> m_select;
   std::string m_from;
@@ -72,7 +72,7 @@ class VerifiableMessageQuery : public QueryBase
 
   std::shared_ptr<QueryResult> m_queryResult;
 
-  // If the param is set to "true", result will be orderd
+  // If the param is set to "true", result will be ordered
   // by message time in descending order. Only the first
   // row from the result of each station will be returned.
   bool m_returnOnlyLatest{false};

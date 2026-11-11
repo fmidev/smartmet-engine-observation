@@ -52,7 +52,7 @@ class MastQueryParams : public QueryParamsBase
                                            {4, "NATURAL JOIN"}};
 
   /**
-   * @brief Constructor with DB registy configuration.
+   * @brief Constructor with DB registry configuration.
    * @param dbrConfig A Pointer to the database table (or view) configuration.
    * @exception Obs_EngineException::OPERATION_PROCESSING_FAILED DB registry configuration is not
    * set.

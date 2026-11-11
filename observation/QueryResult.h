@@ -18,7 +18,7 @@ namespace Observation
 {
 /**
  *  @class QueryResult
- *  @brief The class implements a storege for series of values to store.
+ *  @brief The class implements a storage for series of values to store.
  *
  *         A value vector will allow values that are the same type as the first
  *         one in a valueVector. Between the value vectors, value type can vary.

@@ -21,7 +21,7 @@ namespace Engine
 namespace Observation
 {
 /**
- * Property::Base operation object storege.
+ * Property::Base operation object storage.
  */
 class OperationMap
 {
@@ -36,7 +36,7 @@ class OperationMap
    * @brief Add an operation.
    * @param name The operation (key) name.
    * @param opClass The operation class object (witch base class is Property::Base).
-   * @retval true The operation added succesfully.
+   * @retval true The operation added successfully.
    * @retval false The operation already added.
    */
   template <typename T>

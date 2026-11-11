@@ -70,7 +70,7 @@ class DatabaseDriverInterface
   DatabaseDriverInterface() = default;
 
  private:
-  // Pointer to dymanically loaded database driver
+  // Pointer to dynamically loaded database driver
   void *itsHandle = nullptr;
   friend class DatabaseDriverFactory;
 };

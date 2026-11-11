@@ -129,7 +129,7 @@ struct MetaData
   // loaded as level metadata. pressures (range) is default for soundings but could use
   // altitudes too
   //
-  // Later when updating metadata, the level type is taken from the first (minumum) level value
+  // Later when updating metadata, the level type is taken from the first (minimum) level value
 
   ObsLevelType levelType = ObsLevelType::None;
   const std::vector<ObservationLevel> &levels() const { return periodLevelMetaData.levels; }

@@ -1772,7 +1772,7 @@ void ObservationCacheAdminBase::addInfoToStations(Spine::Stations& stations,
     }
   }
 
-  // Update info of the remainig stations
+  // Update info of the remaining stations
   for (Spine::Station& station : stations)
   {
     if (Spine::Reactor::isShuttingDown())
@@ -1894,7 +1894,7 @@ void ObservationCacheAdminBase::addInfoToStation(Spine::Station& station,
       }
 
       // Next looking for a nearest station inside 50 meter radius.
-      // There might be multiple stations at the same positon so the possibility
+      // There might be multiple stations at the same position so the possibility
       // to get
       // a wrong geoid is big.
       if (places.empty())

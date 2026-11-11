@@ -21,7 +21,7 @@ namespace Observation
  *
  * The class is designed to relay parameters and
  * some additional guidance to VerifiableMessageQuery
- * class where those are used in SQL statement contruction.
+ * class where those are used in SQL statement construction.
  */
 class VerifiableMessageQueryParams : public QueryParamsBase
 {

@@ -80,7 +80,7 @@ class NamesAllowed
   using NameListType = std::list<NameType>;
 
   /**
-   *  @brief Contructor with input names and with optional case sensitivity selection.
+   *  @brief Constructor with input names and with optional case sensitivity selection.
    *  @param config Database table configuration.
    *  @param caseSensitiveNames Names are handled case sensitively (default) unless the param value
    * is false.

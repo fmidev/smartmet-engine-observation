@@ -55,7 +55,7 @@ class Settings
   Fmi::DateTime endtime = Fmi::SecondClock::universal_time();  // now
   Fmi::DateTime starttime = Fmi::SecondClock::universal_time() - Fmi::Hours(24);
 
-  // starttime...endtime may actuall be a time interval from which we actually only want the
+  // starttime...endtime may actually be a time interval from which we actually only want the
   // observation closest to a specific "wanted" time. The wanted time may actually be equal to the
   // end time if one wants the latest observation.
   std::optional<Fmi::DateTime> wantedtime;

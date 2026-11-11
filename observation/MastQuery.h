@@ -59,7 +59,7 @@ class MastQuery : public QueryBase
   void buildWhereClause(const MastQueryParams *qParams);
   void buildFromClause(const MastQueryParams *qParams);
 
-  // SQL statement parts contructed in setQueryParams method
+  // SQL statement parts constructed in setQueryParams method
   // used lated in getSQLStatement method.
   int m_selectSize = 0;
   std::string m_select;

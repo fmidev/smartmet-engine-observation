@@ -91,7 +91,7 @@ class SpatiaLite : public CommonDatabaseFunctions
   int getMaxFlashId();
 
   /**
-   * @brief Get the time of the latest modified flash obervation
+   * @brief Get the time of the latest modified flash observation
    * @retval Fmi::DateTime The time of the last modification
    */
 

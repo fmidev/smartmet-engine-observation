@@ -36,7 +36,7 @@ DatabaseDriverBase *DatabaseDriverContainer::resolveDriver(const std::string &ta
         return itsDatabaseDrivers.at("*").at(0).driver;
 
       throw Fmi::Exception::Trace(
-          BCP, "Error! No database driver found for reqested table: '" + tablename + "'");
+          BCP, "Error! No database driver found for requested table: '" + tablename + "'");
     }
 
     Fmi::TimePeriod requested_period(starttime, endtime);

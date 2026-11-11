@@ -1901,7 +1901,7 @@ void PostgreSQLCacheDB::addParameterToTimeSeries(
       {
         if (boost::algorithm::ends_with(special.first, "data_source"))
         {
-          // *data_source fields is hadled outside this function
+          // *data_source fields is handled outside this function
         }
         else
         {

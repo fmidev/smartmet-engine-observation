@@ -1446,7 +1446,7 @@ SpatiaLiteCache::SpatiaLiteCache(const std::string &name,
 {
   try
   {
-    // Create cache statistics objecs for each table
+    // Create cache statistics objects for each table
     for (const auto &tablename : itsCacheInfo.tables)
     {
       itsCacheStatistics.insert(std::make_pair(tablename, Fmi::Cache::CacheStats()));
