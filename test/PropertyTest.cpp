@@ -6,7 +6,6 @@
 #include <catch/catch.hpp>
 #endif
 
-#include "../observation/Property.h"
 #include "Property.h"
 #include <any>
 #include <memory>

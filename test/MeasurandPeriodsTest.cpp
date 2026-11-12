@@ -7,7 +7,6 @@
 #endif
 
 #include "../observation/MeasurandInfo.h"
-#include "../observation/MeasurandPeriods.h"
 #include "../observation/Settings.h"
 #include "MeasurandPeriods.h"
 #include <macgyver/TimeParser.h>

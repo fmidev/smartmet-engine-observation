@@ -1,10 +1,6 @@
 #define CATCH_CONFIG_MAIN
-#include "../observation/DataItem.h"
 #include "../observation/LocationDataItem.h"
-#include "../observation/ObservationMemoryCache.h"
-#include "../observation/QueryMapping.h"
 #include "../observation/Settings.h"
-#include "../observation/StationInfo.h"
 #include "DataItem.h"
 #include "ObservationMemoryCache.h"
 #include "QueryMapping.h"

@@ -6,7 +6,6 @@
 #include <catch/catch.hpp>
 #endif
 
-#include "../observation/AsDouble.h"
 #include "AsDouble.h"
 #include <macgyver/Exception.h>
 #include <ctime>

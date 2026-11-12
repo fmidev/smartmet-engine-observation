@@ -6,10 +6,7 @@
 #include <catch/catch.hpp>
 #endif
 
-#include "../observation/EngineParameters.h"
 #include "../observation/Sensors.h"
-#include "../observation/SpatiaLite.h"
-#include "../observation/SpatiaLiteCacheParameters.h"
 #include "EngineParameters.h"
 #include "SpatiaLite.h"
 #include "SpatiaLiteCacheParameters.h"

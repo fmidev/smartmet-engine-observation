@@ -6,9 +6,6 @@
 #include <catch/catch.hpp>
 #endif
 
-#include "../observation/ProducerGroups.h"
-#include "../observation/StationGroups.h"
-#include "../observation/StationtypeConfig.h"
 #include "ProducerGroups.h"
 #include "StationGroups.h"
 #include "StationtypeConfig.h"

@@ -6,7 +6,6 @@
 #include <catch/catch.hpp>
 #endif
 
-#include "../observation/StationInfo.h"
 #include "StationInfo.h"
 #include <macgyver/CacheStats.h>
 #include <macgyver/DateTime.h>

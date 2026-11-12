@@ -6,8 +6,6 @@
 #include <catch/catch.hpp>
 #endif
 
-#include "../observation/RoadAndForeignIds.h"
-#include "../observation/Utils.h"
 #include "RoadAndForeignIds.h"
 #include "Utils.h"
 #include <macgyver/DateTime.h>
