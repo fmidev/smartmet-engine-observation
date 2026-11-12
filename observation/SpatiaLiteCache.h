@@ -1,15 +1,41 @@
 #pragma once
 
+#include "DataItem.h"
 #include "EngineParameters.h"
+#include "FlashDataItem.h"
 #include "InsertStatus.h"
+#include "MagnetometerDataItem.h"
+#include "MobileExternalDataItem.h"
+#include "MovingLocationItem.h"
 #include "ObservationCache.h"
-#include "Settings.h"
+#include "Sensors.h"
 #include "SpatiaLite.h"
 #include "SpatiaLiteCacheParameters.h"
-#include "StationtypeConfig.h"
+#include <macgyver/CacheStats.h>
+#include <macgyver/DateTime.h>
+#include <macgyver/Pool.h>
+#include <macgyver/TimeZones.h>
+#include <spine/Location.h>
+#include <spine/Station.h>
 #include <spine/Thread.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesInclude.h>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
 #include <mutex>
+#include <set>
 #include <string>
+#include <vector>
+
+namespace SmartMet::Engine::Observation
+{
+class Settings;
+}  // namespace SmartMet::Engine::Observation
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {
@@ -17,8 +43,8 @@ namespace Engine
 {
 namespace Observation
 {
-class ObservationMemoryCache;
 class FlashMemoryCache;
+class ObservationMemoryCache;
 
 class SpatiaLiteCache : public ObservationCache
 {

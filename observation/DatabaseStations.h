@@ -1,13 +1,21 @@
 
 #pragma once
 
-#include "Engine.h"
-#include "StationInfo.h"
-#include <engines/geonames/Engine.h>
-#include <spine/Location.h>
-#include <memory>
+#include "EngineParameters.h"
+#include "StationSettings.h"
+#include <spine/Station.h>
 #include <set>
 #include <string>
+
+namespace SmartMet::Engine::Geonames
+{
+class Engine;
+}  // namespace SmartMet::Engine::Geonames
+namespace SmartMet::Engine::Observation
+{
+class Settings;
+class StationInfo;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

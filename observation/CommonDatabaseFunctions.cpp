@@ -1,14 +1,26 @@
 #include "CommonDatabaseFunctions.h"
 #include "ObservationMemoryCache.h"
+#include "Settings.h"
+#include "StationInfo.h"
 #include "Utils.h"
 #include <boost/algorithm/string.hpp>
-#include <boost/functional/hash.hpp>
+#include <macgyver/Exception.h>
 #include <macgyver/Join.h>
 #include <macgyver/StringConversion.h>
-#include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
-#include <timeseries/ParameterTools.h>
+#include <spine/Parameter.h>
 #include <timeseries/TimeSeriesInclude.h>
 #include <algorithm>
+#include <initializer_list>
+#include <iterator>
+#include <map>
+#include <optional>
+#include <utility>
+#include <vector>
+
+namespace Fmi
+{
+class TimeZones;
+}  // namespace Fmi
 
 namespace SmartMet
 {

@@ -1,11 +1,26 @@
 #pragma once
 
 #include "DatabaseDriverBase.h"
-#include "Engine.h"
-#include "ObservationCacheAdminSpatiaLite.h"
-#include <boost/smart_ptr/atomic_shared_ptr.hpp>
-#include <memory>
+#include "DatabaseDriverParameters.h"
+#include "EngineParameters.h"
+#include "Sensors.h"
+#include <macgyver/AtomicSharedPtr.h>
+#include <macgyver/DateTime.h>
+#include <spine/Location.h>
+#include <spine/Station.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesInclude.h>
+#include <set>
 #include <string>
+
+namespace SmartMet::Engine::Observation
+{
+class ObservationCacheAdminSpatiaLite;
+}  // namespace SmartMet::Engine::Observation
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {

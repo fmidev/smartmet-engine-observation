@@ -1,6 +1,11 @@
 #define CATCH_CONFIG_MAIN
+#include "../observation/FlashDataItem.h"
+#include "../observation/FlashMemoryCache.h"
 #include "FlashMemoryCache.h"
 #include <macgyver/DateTime.h>
+#include <cstdint>
+#include <optional>
+#include <string>
 
 #if __cplusplus >= 201402L
 #include <catch2/catch.hpp>

@@ -5,9 +5,12 @@
 #include <fmt/format.h>
 #include <macgyver/DateTime.h>
 #include <macgyver/Exception.h>
-#include <macgyver/StringConversion.h>
-#include <algorithm>
-#include <memory>
+#include <any>
+#include <cstddef>
+#include <cstdint>
+#include <string>
+#include <typeinfo>
+#include <utility>
 #include <vector>
 
 namespace SmartMet

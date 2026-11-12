@@ -2,6 +2,7 @@
 
 #include <macgyver/DateTime.h>
 #include <spine/Value.h>
+#include <string>
 
 namespace SmartMet
 {

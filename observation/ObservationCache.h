@@ -1,21 +1,31 @@
 #pragma once
 
-#include <cstdint>
-#include <optional>
-
-#include "CacheInfoItem.h"
 #include "DataItem.h"
 #include "FlashDataItem.h"
-#include "Keywords.h"
 #include "MagnetometerDataItem.h"
 #include "MobileExternalDataItem.h"
 #include "MovingLocationItem.h"
-#include "Settings.h"
 #include "Utils.h"
 #include <macgyver/CacheStats.h>
+#include <macgyver/DateTime.h>
+#include <spine/Location.h>
 #include <spine/Station.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesGeneratorOptions.h>
 #include <timeseries/TimeSeriesInclude.h>
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <optional>
+#include <set>
 #include <string>
+#include <vector>
+
+namespace SmartMet::Engine::Observation
+{
+class Settings;
+struct CacheInfoItem;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

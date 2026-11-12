@@ -1,10 +1,36 @@
 #pragma once
 
-#include "DatabaseDriverParameters.h"
-#include "ObservationCacheProxy.h"
-#include <engines/geonames/Engine.h>
-#include <macgyver/AsyncTaskGroup.h>
+#include "DataItem.h"
+#include "ObservationCache.h"
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <macgyver/DateTime.h>
 #include <macgyver/TimeZones.h>
+#include <spine/Station.h>
+#include <atomic>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace Fmi
+{
+class AsyncTaskGroup;
+}  // namespace Fmi
+namespace SmartMet::Engine::Geonames
+{
+class Engine;
+}  // namespace SmartMet::Engine::Geonames
+namespace SmartMet::Engine::Observation
+{
+class FlashDataItem;
+class MagnetometerDataItem;
+class MobileExternalDataItem;
+class MovingLocationItem;
+class ObservationCacheProxy;
+struct DatabaseDriverParameters;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

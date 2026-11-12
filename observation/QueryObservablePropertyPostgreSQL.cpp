@@ -1,8 +1,15 @@
 #include "QueryObservablePropertyPostgreSQL.h"
 #include "AsDouble.h"
+#include "PostgreSQLObsDB.h"
+#include <boost/algorithm/string/replace.hpp>
 #include <macgyver/Exception.h>
+#include <macgyver/PostgreSQLConnection.h>
 #include <macgyver/StringConversion.h>
 #include <algorithm>
+#include <iostream>
+#include <map>
+#include <pqxx/pqxx>
+#include <utility>
 
 namespace SmartMet
 {

@@ -1,8 +1,8 @@
 #pragma once
 #include "ExternalAndMobileProducerId.h"
-#include <macgyver/Exception.h>
-#include <macgyver/StringConversion.h>
 #include <map>
+#include <string>
+#include <utility>
 
 namespace SmartMet
 {

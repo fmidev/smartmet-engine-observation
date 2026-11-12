@@ -1,19 +1,42 @@
 #include "PostgreSQLDatabaseDriverForFmiData.h"
-#include "Utils.h"
+#include "DBQueryUtils.h"
+#include "DatabaseDriverBase.h"
+#include "DatabaseDriverInfo.h"
+#include "DatabaseStations.h"
+#include "Keywords.h"
 #include "ObservationCache.h"
 #include "ObservationMemoryCache.h"
+#include "PostgreSQLDriverParameters.h"
+#include "PostgreSQLObsDB.h"
+#include "PostgreSQLObsDBConnectionPool.h"
+#include "QueryBase.h"
 #include "QueryObservablePropertyPostgreSQL.h"
 #include "QueryResult.h"
-#include "StationInfo.h"
+#include "QueryResultBase.h"
+#include "Settings.h"
 #include "StationtypeConfig.h"
-#include <boost/make_shared.hpp>
+#include "Utils.h"
+#include <macgyver/AtomicSharedPtr.h>
+#include <macgyver/Cache.h>
 #include <macgyver/DateTime.h>
-#include <spine/Convenience.h>
+#include <macgyver/Exception.h>
 #include <spine/Reactor.h>
+#include <timeseries/DataFilter.h>
+#include <timeseries/TimeSeriesGeneratorOptions.h>
 #include <atomic>
-#include <chrono>
-#include <clocale>
-#include <numeric>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <optional>
+#include <sstream>
+#include <typeinfo>
+#include <utility>
+#include <vector>
+
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 // #define MYDEBUG 1
 

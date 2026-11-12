@@ -1,22 +1,28 @@
 #include "Utils.h"
-#include <iostream>
-#include <clocale>
 #include "Keywords.h"
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
+#include "Settings.h"
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/numeric/conversion/cast.hpp>
-#include <boost/serialization/vector.hpp>
 #include <macgyver/Astronomy.h>
 #include <macgyver/AtomicSharedPtr.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
-#include <macgyver/TypeName.h>
 #include <spine/Convenience.h>
+#include <spine/Parameter.h>
+#include <spine/ParameterTranslations.h>
+#include <timeseries/TimeSeriesTypes.h>
+#include <algorithm>
 #include <array>
-#include <filesystem>
-#include <fstream>
+#include <clocale>
+#include <cmath>
+#include <ctime>
+#include <iostream>
+#include <iterator>
+#include <map>
 #include <unordered_set>
+#include <utility>
+#include <variant>
+#include <vector>
 
 namespace SmartMet
 {

@@ -1,11 +1,8 @@
 #include "StationtypeConfig.h"
-#include <boost/algorithm/string.hpp>
-#include <boost/make_shared.hpp>
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
-#include <iostream>
-#include <sstream>
+#include <utility>
 
 namespace SmartMet
 {

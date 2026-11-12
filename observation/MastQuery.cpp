@@ -1,8 +1,15 @@
 #include "MastQuery.h"
+#include "MastQueryParams.h"
+#include "Property.h"
+#include "QueryResult.h"
 #include <macgyver/Exception.h>
+#include <list>
+#include <map>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 namespace SmartMet
 {

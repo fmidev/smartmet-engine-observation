@@ -1,9 +1,18 @@
 #pragma once
 
+#include "DataItem.h"
 #include "EngineParameters.h"
+#include "FlashDataItem.h"
+#include "MagnetometerDataItem.h"
+#include "MobileExternalDataItem.h"
+#include "MovingLocationItem.h"
 #include "ObservationCache.h"
-#include "Settings.h"
-
+#include <macgyver/DateTime.h>
+#include <spine/Location.h>
+#include <spine/Station.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesInclude.h>
+#include <cstddef>
 #include <string>
 
 namespace SmartMet

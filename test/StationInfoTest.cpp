@@ -6,9 +6,17 @@
 #include <catch/catch.hpp>
 #endif
 
+#include "../observation/StationInfo.h"
 #include "StationInfo.h"
+#include <macgyver/CacheStats.h>
+#include <macgyver/DateTime.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeZones.h>
+#include <spine/Station.h>
+#include <cstddef>
+#include <set>
+#include <string>
+#include <vector>
 
 std::string stationFile = "/usr/share/smartmet/test/data/sqlite/stations.txt";
 

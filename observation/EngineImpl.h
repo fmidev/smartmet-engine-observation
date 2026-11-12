@@ -3,9 +3,35 @@
 #include "DatabaseDriverInterface.h"
 #include "Engine.h"
 #include "EngineParameters.h"
-#include "ObservationCache.h"
-#include "StationOptions.h"
+#include "MeasurandInfo.h"
+#include "Settings.h"
+#include <macgyver/CacheStats.h>
+#include <macgyver/DateTime.h>
+#include <spine/Location.h>
+#include <spine/Station.h>
 #include <spine/Table.h>
+#include <sys/types.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesInclude.h>
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <vector>
+
+namespace SmartMet::Engine::Geonames
+{
+class Engine;
+}  // namespace SmartMet::Engine::Geonames
+namespace SmartMet::Engine::Observation
+{
+class DBRegistry;
+}  // namespace SmartMet::Engine::Observation
+namespace SmartMet::Spine::HTTP
+{
+class Request;
+}  // namespace SmartMet::Spine::HTTP
 
 namespace SmartMet
 {

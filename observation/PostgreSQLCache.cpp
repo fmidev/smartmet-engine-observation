@@ -1,12 +1,29 @@
 #include "PostgreSQLCache.h"
+#include "CacheInfoItem.h"
+#include "CommonDatabaseFunctions.h"
 #include "DBQueryUtils.h"
+#include "DatabaseDriverInfo.h"
+#include "ExternalAndMobileProducerId.h"
+#include "Keywords.h"
 #include "ObservationMemoryCache.h"
-#include <spine/Thread.h>
-#include <boost/make_shared.hpp>
+#include "Settings.h"
+#include "StationInfo.h"
+#include "Utils.h"
+#include <macgyver/AtomicSharedPtr.h>
+#include <macgyver/Exception.h>
+#include <macgyver/PostgreSQLConnection.h>
 #include <macgyver/StringConversion.h>
-
-#include <atomic>
+#include <spine/Thread.h>
+#include <map>
 #include <memory>
+#include <set>
+#include <utility>
+#include <vector>
+
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {

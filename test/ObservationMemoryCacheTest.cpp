@@ -1,11 +1,27 @@
 #define CATCH_CONFIG_MAIN
+#include "../observation/DataItem.h"
+#include "../observation/LocationDataItem.h"
+#include "../observation/ObservationMemoryCache.h"
+#include "../observation/QueryMapping.h"
+#include "../observation/Settings.h"
+#include "../observation/StationInfo.h"
 #include "DataItem.h"
 #include "ObservationMemoryCache.h"
 #include "QueryMapping.h"
 #include "StationInfo.h"
 #include <macgyver/DateTime.h>
+#include <spine/Station.h>
 #include <atomic>
+#include <cstddef>
+#include <initializer_list>
+#include <iostream>
+#include <map>
+#include <optional>
+#include <set>
+#include <string>
 #include <thread>
+#include <unistd.h>
+#include <vector>
 
 #if __cplusplus >= 201402L
 #include <catch2/catch.hpp>

@@ -1,15 +1,18 @@
 #pragma once
 
-#include "Settings.h"
-#include <optional>
+#include <macgyver/LocalDateTime.h>
 // #include <macgyver/Astronomy.h>
+#include "Settings.h"
 #include <macgyver/TimeFormatter.h>
-#include <macgyver/TimeZoneFactory.h>
 #include <spine/Location.h>
 #include <spine/Station.h>
+#include <timeseries/TimeSeries.h>
 #include <timeseries/TimeSeriesInclude.h>
 #include <functional>
+#include <map>
 #include <memory>
+#include <optional>
+#include <string>
 
 namespace SmartMet
 {

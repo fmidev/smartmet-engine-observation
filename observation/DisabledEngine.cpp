@@ -1,5 +1,11 @@
 #include "DisabledEngine.h"
+#include "MetaData.h"
+#include "Utils.h"
 #include <macgyver/Exception.h>
+#include <macgyver/TypeName.h>
+#include <memory>
+#include <set>
+#include <vector>
 
 #ifdef DEBUG_ENGINE_DISABLING
 #define DISABLE_STACKTRACE

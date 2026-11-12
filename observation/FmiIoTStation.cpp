@@ -1,6 +1,8 @@
 #include "FmiIoTStation.h"
 #include <gis/OGR.h>
 #include <macgyver/StringConversion.h>
+#include <memory>
+#include <ogr_geometry.h>
 
 namespace SmartMet
 {

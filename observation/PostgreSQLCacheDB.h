@@ -2,15 +2,40 @@
 
 #include "CommonPostgreSQLFunctions.h"
 #include "DataItem.h"
-#include "ExternalAndMobileDBInfo.h"
 #include "ExternalAndMobileProducerConfig.h"
 #include "FlashDataItem.h"
 #include "InsertStatus.h"
+#include "LocationDataItem.h"
 #include "MobileExternalDataItem.h"
 #include "MovingLocationItem.h"
-#include "Utils.h"
-#include <macgyver/PostgreSQLConnection.h>
+#include "ParameterMap.h"
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <macgyver/DateTime.h>
+#include <macgyver/LocalDateTime.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesInclude.h>
+#include <cstddef>
+#include <map>
+#include <set>
 #include <string>
+#include <vector>
+
+namespace Fmi
+{
+class TimeZones;
+}  // namespace Fmi
+namespace SmartMet::Engine::Observation
+{
+class Settings;
+}  // namespace SmartMet::Engine::Observation
+namespace SmartMet::Spine
+{
+class Station;
+}  // namespace SmartMet::Spine
+namespace pqxx
+{
+class result;
+}  // namespace pqxx
 
 namespace SmartMet
 {

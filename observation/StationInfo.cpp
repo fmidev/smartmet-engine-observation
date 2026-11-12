@@ -7,15 +7,21 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
-#include <boost/serialization/map.hpp>
-#include <boost/serialization/set.hpp>
-#include <boost/serialization/vector.hpp>
+#include <boost/serialization/map.hpp>     // IWYU pragma: keep
+#include <boost/serialization/set.hpp>     // IWYU pragma: keep
+#include <boost/serialization/vector.hpp>  // IWYU pragma: keep
 #include <fmt/format.h>
 #include <gis/OGR.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
+#include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
+#include <list>
+#include <memory>
+#include <ogr_geometry.h>
+#include <optional>
 
 namespace SmartMet
 {

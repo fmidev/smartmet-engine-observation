@@ -1,7 +1,17 @@
 #pragma once
 
 #include "CacheInfoItem.h"
-#include <spine/ConfigBase.h>
+#include <iosfwd>
+#include <map>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {

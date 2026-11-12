@@ -3,20 +3,24 @@
 #define PI 3.14159265358979323846
 
 #include "ParameterMap.h"
-#include "Settings.h"
-#include <boost/algorithm/string.hpp>
-#include <boost/utility.hpp>
+#include <macgyver/DateTime.h>
 #include <macgyver/LocalDateTime.h>
-#include <spine/ConfigBase.h>
-#include <spine/Parameter.h>
-#include <spine/ParameterTranslations.h>
 #include <spine/Station.h>
+#include <timeseries/TimeSeries.h>
 #include <timeseries/TimeSeriesInclude.h>
-#include <map>
 #include <memory>
 #include <optional>
 #include <string>
-#include <vector>
+
+namespace SmartMet::Engine::Observation
+{
+class Settings;
+}  // namespace SmartMet::Engine::Observation
+namespace SmartMet::Spine
+{
+class Parameter;
+class ParameterTranslations;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {

@@ -1,14 +1,32 @@
 #include "SpatiaLiteCache.h"
+#include "CacheInfoItem.h"
+#include "CommonDatabaseFunctions.h"
+#include "DBQueryUtils.h"
+#include "DatabaseDriverInfo.h"
+#include "ExternalAndMobileProducerId.h"
 #include "FlashMemoryCache.h"
+#include "Keywords.h"
 #include "ObservationMemoryCache.h"
-#include <spine/Thread.h>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/make_shared.hpp>
+#include "Settings.h"
+#include "SpatiaLiteOptions.h"
+#include "StationInfo.h"
+#include "Utils.h"
 #include <macgyver/AnsiEscapeCodes.h>
+#include <macgyver/AtomicSharedPtr.h>
+#include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <spine/Convenience.h>
-#include <atomic>
+#include <spine/Thread.h>
+#include <timeseries/TimeSeriesGeneratorOptions.h>
 #include <iostream>
+#include <map>
+#include <optional>
+#include <utility>
+
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {

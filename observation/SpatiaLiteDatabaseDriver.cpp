@@ -1,19 +1,27 @@
 #include "SpatiaLiteDatabaseDriver.h"
-#include "SpatiaLiteCache.h"
-#include "Utils.h"
+#include "DatabaseStations.h"
+#include "Engine.h"
+#include "Keywords.h"
 #include "ObservationCache.h"
-#include "QueryResult.h"
-#include "StationInfo.h"
+#include "ObservationCacheAdminSpatiaLite.h"
+#include "Settings.h"
+#include "SpatiaLiteCache.h"
 #include "StationtypeConfig.h"
-#include <boost/make_shared.hpp>
+#include "Utils.h"
 #include <macgyver/DateTime.h>
-#include <spine/Convenience.h>
+#include <macgyver/Exception.h>
 #include <spine/Reactor.h>
+#include <timeseries/DataFilter.h>
 #include <timeseries/TimeSeriesInclude.h>
-#include <atomic>
-#include <chrono>
-#include <clocale>
-#include <numeric>
+#include <map>
+#include <memory>
+#include <utility>
+#include <vector>
+
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 // #define MYDEBUG 1
 

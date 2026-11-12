@@ -1,7 +1,12 @@
 #include "EngineParameters.h"
+#include "ExternalAndMobileProducerId.h"
+#include "Utils.h"
 #include <fmt/format.h>
+#include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <spine/ConfigBase.h>
+#include <libconfig.h++>
+#include <utility>
 
 namespace SmartMet
 {

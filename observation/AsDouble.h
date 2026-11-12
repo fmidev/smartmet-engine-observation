@@ -1,9 +1,9 @@
 #pragma once
 
+#include <macgyver/Exception.h>
 #include <cmath>
 #include <ctime>
-#include <macgyver/StringConversion.h>
-#include <pqxx/pqxx>
+#include <string>
 
 namespace SmartMet
 {

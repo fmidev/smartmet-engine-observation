@@ -6,9 +6,13 @@
 #include <catch/catch.hpp>
 #endif
 
+#include "../observation/AsDouble.h"
 #include "AsDouble.h"
 #include <macgyver/Exception.h>
+#include <ctime>
 #include <optional>
+#include <pqxx/pqxx>
+#include <stdexcept>
 #include <string>
 
 using namespace SmartMet::Engine::Observation;

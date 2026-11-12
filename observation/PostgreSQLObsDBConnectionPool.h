@@ -1,8 +1,17 @@
 #pragma once
 
+#include "ParameterMap.h"
 #include "PostgreSQLObsDB.h"
 #include <macgyver/PostgreSQLConnection.h>
 #include <spine/Thread.h>
+#include <cstddef>
+#include <memory>
+#include <vector>
+
+namespace SmartMet::Engine::Observation
+{
+class StationtypeConfig;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

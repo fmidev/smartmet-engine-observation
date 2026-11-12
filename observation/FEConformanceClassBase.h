@@ -6,13 +6,13 @@
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
-#include <spine/ConfigBase.h>
+#include <macgyver/TypeName.h>
 #include <any>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
+#include <utility>
 
 namespace SmartMet
 {

@@ -1,10 +1,30 @@
 #pragma once
 
-#include "DatabaseDriverBase.h"
 #include "DatabaseDriverContainer.h"
 #include "DatabaseDriverInterface.h"
-#include "Engine.h"
+#include "EngineParameters.h"
+#include "MeasurandInfo.h"
+#include "Sensors.h"
 #include <macgyver/AsyncTaskGroup.h>
+#include <macgyver/CacheStats.h>
+#include <macgyver/DateTime.h>
+#include <spine/Location.h>
+#include <spine/Station.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesInclude.h>
+#include <set>
+#include <string>
+
+namespace SmartMet::Engine::Observation
+{
+class DatabaseDriverBase;
+class Settings;
+class StationtypeConfig;
+}  // namespace SmartMet::Engine::Observation
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {
@@ -13,7 +33,6 @@ namespace Engine
 namespace Observation
 {
 class PostgreSQLDatabaseDriverForMobileData;
-class OracleDatabaseDriver;
 
 class DatabaseDriverProxy : public DatabaseDriverInterface
 {

@@ -2,6 +2,10 @@
 
 #include "EngineParameters.h"
 #include <spine/Value.h>
+#include <cstddef>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SmartMet
 {

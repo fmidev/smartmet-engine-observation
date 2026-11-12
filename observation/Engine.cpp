@@ -1,20 +1,11 @@
 #include "Engine.h"
 #include "DisabledEngine.h"
-#include "DBRegistry.h"
-#include "DatabaseDriverFactory.h"
 #include "EngineImpl.h"
-#include "ObservationCacheFactory.h"
-#include "SpecialParameters.h"
-#include <boost/algorithm/string.hpp>
-#include <boost/make_shared.hpp>
 #include <macgyver/AnsiEscapeCodes.h>
-#include <macgyver/Geometry.h>
-#include <macgyver/TypeName.h>
+#include <macgyver/Exception.h>
+#include <spine/ConfigBase.h>
 #include <spine/Convenience.h>
-#include <spine/Reactor.h>
-#include <timeseries/ParameterTools.h>
-#include <timeseries/TimeSeriesInclude.h>
-#include <algorithm>
+#include <iostream>
 
 namespace SmartMet
 {

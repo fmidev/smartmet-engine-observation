@@ -1,6 +1,7 @@
 #include "ObservationCache.h"
-#include <macgyver/StringConversion.h>
-#include <macgyver/TimeParser.h>
+#include "CacheInfoItem.h"
+#include <boost/algorithm/string.hpp>
+#include <macgyver/Exception.h>
 
 namespace SmartMet
 {

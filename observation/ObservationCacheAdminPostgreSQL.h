@@ -1,9 +1,22 @@
 
 #pragma once
 
+#include "DataItem.h"
 #include "ObservationCacheAdminBase.h"
-#include "PostgreSQLDriverParameters.h"
-#include "PostgreSQLObsDBConnectionPool.h"
+#include <macgyver/DateTime.h>
+#include <atomic>
+#include <memory>
+#include <string>
+
+namespace SmartMet::Engine::Geonames
+{
+class Engine;
+}  // namespace SmartMet::Engine::Geonames
+namespace SmartMet::Engine::Observation
+{
+class PostgreSQLObsDBConnectionPool;
+struct PostgreSQLDriverParameters;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

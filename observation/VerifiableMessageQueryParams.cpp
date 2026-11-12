@@ -1,5 +1,6 @@
 #include "VerifiableMessageQueryParams.h"
 #include <macgyver/Exception.h>
+#include <utility>
 
 namespace SmartMet
 {

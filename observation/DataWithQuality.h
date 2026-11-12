@@ -1,5 +1,6 @@
 #pragma once
 
+#include <timeseries/TimeSeries.h>
 #include <timeseries/TimeSeriesInclude.h>
 #include <map>
 

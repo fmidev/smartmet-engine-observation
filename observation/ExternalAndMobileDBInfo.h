@@ -1,12 +1,18 @@
 #pragma once
 
-#include "ExternalAndMobileProducerConfig.h"
 #include <macgyver/DateTime.h>
 #include <timeseries/TimeSeriesInclude.h>
-#include <map>
-#include <set>
 #include <string>
 #include <vector>
+
+namespace SmartMet::Engine::Observation
+{
+class ExternalAndMobileProducerConfigItem;
+}  // namespace SmartMet::Engine::Observation
+namespace SmartMet::TimeSeries
+{
+class DataFilter;
+}  // namespace SmartMet::TimeSeries
 
 namespace SmartMet
 {

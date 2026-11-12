@@ -1,19 +1,43 @@
 #include "PostgreSQLCacheDB.h"
 #include "AsDouble.h"
+#include "DatabaseDriverInfo.h"
 #include "ExternalAndMobileDBInfo.h"
+#include "ExternalAndMobileProducerId.h"
 #include "PostgreSQLCacheParameters.h"
-#include "QueryMapping.h"
+#include "Settings.h"
+#include "StationInfo.h"
+#include "Utils.h"
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/thread.hpp>
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
+#include <macgyver/PostgreSQLConnection.h>
 #include <macgyver/StringConversion.h>
-#include <macgyver/TimeParser.h>
+#include <macgyver/TimeFormatter.h>
+#include <macgyver/TimeZones.h>
+#include <newbase/NFmiGlobals.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
+#include <spine/Parameter.h>
 #include <spine/Reactor.h>
+#include <spine/Station.h>
 #include <spine/Thread.h>
+#include <timeseries/DataFilter.h>
+#include <timeseries/RequestLimits.h>
+#include <timeseries/TimeSeriesGenerator.h>
+#include <timeseries/TimeSeriesGeneratorOptions.h>
 #include <timeseries/TimeSeriesInclude.h>
+#include <timeseries/TimeSeriesTypes.h>
 #include <chrono>
+#include <cmath>
+#include <cstdint>
+#include <ctime>
 #include <iostream>
+#include <memory>
+#include <optional>
+#include <pqxx/pqxx>
 #include <thread>
+#include <utility>
+#include <variant>
 
 #ifdef __llvm__
 #pragma clang diagnostic push

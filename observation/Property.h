@@ -1,9 +1,9 @@
 #pragma once
 
-#include <macgyver/DateTime.h>
 #include <any>
+#include <memory>
 #include <string>
-#include <vector>
+#include <typeinfo>
 
 namespace SmartMet
 {

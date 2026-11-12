@@ -1,9 +1,34 @@
 #include "QueryExternalAndMobileData.h"
 #include "ExternalAndMobileDBInfo.h"
+#include "ExternalAndMobileProducerId.h"
+#include "FmiIoTStation.h"
+#include "ParameterMap.h"
 #include "PostgreSQLCacheDB.h"
+#include "PostgreSQLObsDB.h"
+#include "Settings.h"
 #include <boost/variant/static_visitor.hpp>
-#include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
+#include <macgyver/Exception.h>
+#include <macgyver/LocalDateTime.h>
+#include <macgyver/PostgreSQLConnection.h>
+#include <macgyver/StringConversion.h>
+#include <macgyver/TimeFormatter.h>
+#include <macgyver/TimeZones.h>
+#include <newbase/NFmiGlobals.h>
+#include <spine/Parameter.h>
+#include <timeseries/RequestLimits.h>
+#include <timeseries/TimeSeriesGenerator.h>
 #include <timeseries/TimeSeriesInclude.h>
+#include <timeseries/TimeSeriesTypes.h>
+#include <cstddef>
+#include <iostream>
+#include <map>
+#include <optional>
+#include <pqxx/pqxx>
+#include <set>
+#include <string>
+#include <utility>
+#include <variant>
+#include <vector>
 
 namespace SmartMet
 {

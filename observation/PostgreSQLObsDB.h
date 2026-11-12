@@ -3,23 +3,37 @@
 #include "CommonPostgreSQLFunctions.h"
 #include "DataItem.h"
 #include "EngineParameters.h"
-#include "FlashDataItem.h"
-#include "MagnetometerDataItem.h"
-#include "MobileExternalDataItem.h"
-#include "MovingLocationItem.h"
+#include "LocationDataItem.h"
+#include "MeasurandInfo.h"
 #include "ParameterMap.h"
-#include "ProducerGroups.h"
-#include "QueryResultBase.h"
 #include "Sensors.h"
-#include "Settings.h"
-#include "StationGroups.h"
-#include "StationtypeConfig.h"
-#include <boost/atomic.hpp>
+#include <macgyver/DateTime.h>
 #include <macgyver/PostgreSQLConnection.h>
-#include <macgyver/TimeZones.h>
-#include <macgyver/ValueFormatter.h>
 #include <spine/Station.h>
+#include <timeseries/TimeSeries.h>
 #include <timeseries/TimeSeriesInclude.h>
+#include <memory>
+#include <optional>
+#include <set>
+#include <string>
+#include <vector>
+
+namespace Fmi
+{
+class TimeZones;
+}  // namespace Fmi
+namespace SmartMet::Engine::Observation
+{
+class FlashDataItem;
+class MagnetometerDataItem;
+class MobileExternalDataItem;
+class MovingLocationItem;
+class ProducerGroups;
+class QueryResultBase;
+class Settings;
+class StationGroups;
+class StationtypeConfig;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {
@@ -27,7 +41,6 @@ namespace Engine
 {
 namespace Observation
 {
-class PostgreSQLDatabaseDriver;
 
 class PostgreSQLObsDB : public CommonPostgreSQLFunctions
 {

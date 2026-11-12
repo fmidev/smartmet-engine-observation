@@ -1,15 +1,23 @@
 #pragma once
 
-#include "DataItem.h"
 #include "EngineParameters.h"
-#include "FlashDataItem.h"
-#include "MovingLocationItem.h"
-#include "Settings.h"
+#include "ExternalAndMobileProducerConfig.h"
+#include "ParameterMap.h"
 #include "SpatiaLiteOptions.h"
-#include "Utils.h"
-#include <spine/Station.h>
-#include <timeseries/TimeSeriesInclude.h>
+#include <macgyver/DateTime.h>
+#include <cstddef>
+#include <memory>
 #include <string>
+
+namespace Fmi
+{
+template <typename Type>
+class AtomicSharedPtr;
+}  // namespace Fmi
+namespace SmartMet::Engine::Observation
+{
+class DatabaseDriverInfo;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

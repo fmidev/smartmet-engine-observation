@@ -1,7 +1,7 @@
 #include "FlashDataItem.h"
 #include <macgyver/Exception.h>
 #include <macgyver/Hash.h>
-#include <macgyver/StringConversion.h>
+#include <string>
 
 namespace SmartMet
 {

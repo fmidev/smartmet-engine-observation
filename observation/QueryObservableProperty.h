@@ -1,6 +1,5 @@
 #pragma once
 
-#include "ObservableProperty.h"
 #include "ParameterMap.h"
 #include "QueryBase.h"
 #include <map>

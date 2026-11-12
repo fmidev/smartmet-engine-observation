@@ -1,6 +1,14 @@
 #pragma once
 
-#include "DatabaseDriverBase.h"
+#include <macgyver/DateTime.h>
+#include <map>
+#include <string>
+#include <vector>
+
+namespace SmartMet::Engine::Observation
+{
+class DatabaseDriverBase;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

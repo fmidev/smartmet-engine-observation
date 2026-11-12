@@ -1,4 +1,15 @@
 #include "ObservationCacheAdminSpatiaLite.h"
+#include <map>
+#include <utility>
+
+namespace SmartMet::Engine::Geonames
+{
+class Engine;
+}  // namespace SmartMet::Engine::Geonames
+namespace SmartMet::Engine::Observation
+{
+struct DatabaseDriverParameters;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

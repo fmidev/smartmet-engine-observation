@@ -1,16 +1,35 @@
 #pragma once
 
-#include "EngineParameters.h"
 #include "MeasurandInfo.h"
 #include "MetaData.h"
 #include "ObservableProperty.h"
 #include "Sensors.h"
-#include "StationOptions.h"
-#include "StationSettings.h"
+#include "Settings.h"
+#include "Utils.h"
+#include <macgyver/DateTime.h>
+#include <spine/Location.h>
+#include <spine/SmartMetEngine.h>
+#include <spine/Station.h>
 #include <spine/Table.h>
-#include <spine/TableFormatter.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesGeneratorOptions.h>
+#include <timeseries/TimeSeriesInclude.h>
 #include <cstdint>
+#include <memory>
 #include <optional>
+#include <set>
+#include <string>
+#include <vector>
+
+namespace SmartMet::Engine::Geonames
+{
+class Engine;
+}  // namespace SmartMet::Engine::Geonames
+namespace SmartMet::Engine::Observation
+{
+struct StationOptions;
+struct StationSettings;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

@@ -1,11 +1,13 @@
 #pragma once
 
 #include "MeasurandInfo.h"
-#include "Settings.h"
 #include <cstddef>
-#include <map>
-#include <set>
 #include <vector>
+
+namespace SmartMet::Engine::Observation
+{
+class Settings;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

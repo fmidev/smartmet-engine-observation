@@ -1,10 +1,14 @@
 #include "DBRegistryConfig.h"
-
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
-
+#include <spine/ConfigBase.h>
+#include <algorithm>
+#include <exception>
 #include <iostream>
+#include <libconfig.h++>
 #include <locale>
+#include <sstream>
+#include <vector>
 
 namespace SmartMet
 {

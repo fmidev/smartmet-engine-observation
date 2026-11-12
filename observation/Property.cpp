@@ -1,12 +1,16 @@
 #include "Property.h"
-#include <fmt/format.h>
+#include <macgyver/DateTime.h>
 #include <macgyver/Exception.h>
 #include <macgyver/Join.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TypeMap.h>
 #include <macgyver/TypeName.h>
+#include <algorithm>
+#include <cstdint>
 #include <functional>
-#include <tuple>
+#include <iterator>
+#include <type_traits>
+#include <vector>
 
 namespace SmartMet
 {

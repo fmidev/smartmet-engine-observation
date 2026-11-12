@@ -1,8 +1,31 @@
 #pragma once
 
 #include "CommonDatabaseFunctions.h"
+#include "LocationDataItem.h"
+#include "ParameterMap.h"
+#include <macgyver/DateTime.h>
 #include <macgyver/PostgreSQLConnection.h>
-#include <macgyver/TimeFormatter.h>
+#include <spine/Location.h>
+#include <spine/Station.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesInclude.h>
+#include <cstddef>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+
+namespace Fmi
+{
+class TimeFormatter;
+}  // namespace Fmi
+namespace SmartMet::Engine::Observation
+{
+class Settings;
+class StationInfo;
+class StationtypeConfig;
+struct QueryMapping;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

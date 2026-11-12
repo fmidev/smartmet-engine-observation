@@ -1,27 +1,50 @@
 #include "SpatiaLite.h"
-#include "DataWithQuality.h"
+#include "DBQueryUtils.h"
+#include "DatabaseDriverInfo.h"
 #include "ExternalAndMobileDBInfo.h"
+#include "InsertStatus.h"
 #include "Keywords.h"
 #include "MeasurandPeriods.h"
 #include "ObservationMemoryCache.h"
+#include "ParameterMap.h"
 #include "QueryMapping.h"
+#include "RoadAndForeignIds.h"
+#include "Settings.h"
 #include "SpatiaLiteCacheParameters.h"
+#include "SpatiaLiteOptions.h"
+#include "StationInfo.h"
+#include "Utils.h"
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
 #include <macgyver/Join.h>
+#include <macgyver/LocalDateTime.h>
 #include <macgyver/StringConversion.h>
-#include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
+#include <macgyver/TimeZones.h>
 #include <spine/Convenience.h>
+#include <spine/Parameter.h>
 #include <spine/Reactor.h>
 #include <spine/Thread.h>
 #include <spine/Value.h>
-#include <timeseries/ParameterTools.h>
+#include <timeseries/DataFilter.h>
+#include <timeseries/RequestLimits.h>
+#include <timeseries/TimeSeriesGenerator.h>
+#include <timeseries/TimeSeriesGeneratorOptions.h>
 #include <timeseries/TimeSeriesInclude.h>
-#include <chrono>
+#include <timeseries/TimeSeriesTypes.h>
+#include <algorithm>
+#include <ctime>
+#include <exception>
 #include <iostream>
-#include <ogr_geometry.h>
-
+#include <iterator>
+#include <limits>
+#include <list>
+#include <locale>
+#include <map>
+#include <numeric>
+#include <optional>
 #include <unistd.h>  // for access()
+#include <utility>
 
 #ifdef __llvm__
 #pragma clang diagnostic push

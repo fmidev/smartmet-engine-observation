@@ -12,8 +12,10 @@
  * Based on: https://stackoverflow.com/a/14503492/8896005
  */
 
+#include <cstddef>
 #include <list>
 #include <unordered_map>
+#include <utility>
 
 namespace SmartMet
 {

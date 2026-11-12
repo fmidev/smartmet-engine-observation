@@ -1,11 +1,14 @@
 #include "ObservationMemoryCache.h"
 #include "QueryMapping.h"
+#include "Settings.h"
 #include "StationInfo.h"
-#include <boost/atomic.hpp>
-#include <boost/make_shared.hpp>
 #include <macgyver/AsyncTask.h>
 #include <macgyver/Exception.h>
+#include <timeseries/DataFilter.h>
 #include <algorithm>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace SmartMet
 {

@@ -1,15 +1,27 @@
 #pragma once
 
 #include "FlashDataItem.h"
-#include "Settings.h"
-#include "SpatiaLite.h"
+#include "ParameterMap.h"
+#include "Utils.h"
 #include <macgyver/AtomicSharedPtr.h>
-#include <macgyver/TimeZones.h>
+#include <macgyver/DateTime.h>
+#include <spine/Location.h>
+#include <timeseries/TimeSeries.h>
 #include <timeseries/TimeSeriesInclude.h>
+#include <cstddef>
 #include <cstdint>
-#include <memory>
 #include <optional>
 #include <unordered_set>
+#include <vector>
+
+namespace Fmi
+{
+class TimeZones;
+}  // namespace Fmi
+namespace SmartMet::Engine::Observation
+{
+class Settings;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {
@@ -17,7 +29,6 @@ namespace Engine
 {
 namespace Observation
 {
-class SpatiaLite;
 
 // RAM cache for lightning data. Intended for speeding up the
 // retrieval of the most recent observations.

@@ -1,4 +1,5 @@
 #include "ObservationCacheProxy.h"
+#include <utility>
 
 namespace SmartMet
 {

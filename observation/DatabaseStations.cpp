@@ -1,9 +1,29 @@
 #include "DatabaseStations.h"
 #include "DatabaseDriverInfo.h"
+#include "ExternalAndMobileProducerId.h"
+#include "ObservationCache.h"
+#include "ObservationCacheProxy.h"
+#include "ParameterMap.h"
+#include "Settings.h"
+#include "StationInfo.h"
 #include "StationtypeConfig.h"
 #include "Utils.h"
+#include <engines/geonames/Engine.h>
 #include <fmt/format.h>
+#include <locus/QueryOptions.h>
+#include <macgyver/AtomicSharedPtr.h>
+#include <macgyver/Cache.h>
+#include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
+#include <spine/Location.h>
+#include <spine/Parameter.h>
+#include <algorithm>
+#include <cctype>
+#include <list>
+#include <memory>
+#include <optional>
+#include <utility>
+#include <vector>
 
 namespace SmartMet
 {

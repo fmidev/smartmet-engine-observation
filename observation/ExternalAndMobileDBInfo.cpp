@@ -1,8 +1,12 @@
 #include "ExternalAndMobileDBInfo.h"
-#include <boost/algorithm/string/predicate.hpp>
+#include "ExternalAndMobileProducerConfig.h"
+#include "ExternalAndMobileProducerId.h"
 #include <boost/algorithm/string/replace.hpp>
+#include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
-#include <iostream>
+#include <timeseries/DataFilter.h>
+#include <algorithm>
+#include <cctype>
 
 namespace SmartMet
 {

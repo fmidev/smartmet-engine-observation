@@ -1,7 +1,6 @@
 #include "MobileExternalDataItem.h"
 #include <macgyver/Exception.h>
 #include <macgyver/Hash.h>
-#include <macgyver/StringConversion.h>
 
 namespace SmartMet
 {

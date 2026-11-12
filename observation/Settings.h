@@ -1,15 +1,21 @@
 #pragma once
 
 #include <macgyver/DateTime.h>
-#include <macgyver/ValueFormatter.h>
 #include <spine/Location.h>
 #include <spine/Parameter.h>
 #include <spine/Station.h>
+#include <sys/types.h>
+#include <timeseries/DataFilter.h>
+#include <timeseries/RequestLimits.h>
 #include <timeseries/TimeSeriesInclude.h>
+#include <cstdint>
 #include <locale>
+#include <map>
 #include <optional>
 #include <ostream>
 #include <set>
+#include <string>
+#include <vector>
 
 namespace SmartMet
 {

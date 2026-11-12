@@ -1,7 +1,8 @@
 #include "DummyDatabaseDriver.h"
 #include "ObservableProperty.h"
 #include "Utils.h"
-#include <spine/Table.h>
+#include <memory>
+#include <vector>
 
 namespace SmartMet
 {

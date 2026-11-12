@@ -1,6 +1,8 @@
 #include "QueryObservableProperty.h"
 #include <macgyver/Exception.h>
-#include <macgyver/StringConversion.h>
+#include <algorithm>
+#include <exception>
+#include <utility>
 
 namespace SmartMet
 {

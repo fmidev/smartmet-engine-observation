@@ -1,12 +1,14 @@
 #pragma once
 
-#include "MastQueryParams.h"
 #include "QueryBase.h"
-#include "QueryParamsBase.h"
-#include "QueryResult.h"
-#include <map>
+#include <memory>
 #include <string>
-#include <vector>
+
+namespace SmartMet::Engine::Observation
+{
+class MastQueryParams;
+class QueryResult;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

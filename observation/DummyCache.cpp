@@ -1,4 +1,6 @@
 #include "DummyCache.h"
+#include "DatabaseDriverInfo.h"
+#include "Utils.h"
 
 namespace SmartMet
 {

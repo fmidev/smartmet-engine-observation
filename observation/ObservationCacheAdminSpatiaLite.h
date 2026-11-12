@@ -1,6 +1,19 @@
 #pragma once
 
+#include "DataItem.h"
 #include "ObservationCacheAdminBase.h"
+#include <macgyver/DateTime.h>
+#include <atomic>
+#include <string>
+
+namespace SmartMet::Engine::Geonames
+{
+class Engine;
+}  // namespace SmartMet::Engine::Geonames
+namespace SmartMet::Engine::Observation
+{
+struct DatabaseDriverParameters;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

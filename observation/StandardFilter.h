@@ -1,7 +1,12 @@
 #pragma once
 
+#include "FEConformanceClassBase.h"
 #include "MinimumStandardFilter.h"
+#include "Property.h"
+#include <fmt/format.h>
 #include <macgyver/Exception.h>
+#include <memory>
+#include <string>
 
 namespace SmartMet
 {

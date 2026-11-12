@@ -1,12 +1,16 @@
 #pragma once
 
-#include <boost/algorithm/string.hpp>
-#include <boost/make_shared.hpp>
 #include <macgyver/StringConversion.h>
-#include <spine/ConfigBase.h>
 #include <list>
 #include <map>
 #include <memory>
+#include <string>
+#include <utility>
+
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {

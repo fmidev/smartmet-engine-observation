@@ -1,7 +1,26 @@
 #include "ObservationCacheAdminPostgreSQL.h"
+#include "DatabaseDriverParameters.h"
+#include "EngineParameters.h"
+#include "ExternalAndMobileProducerId.h"
+#include "FmiIoTStation.h"
+#include "MobileExternalDataItem.h"
+#include "ObservationCache.h"
+#include "PostgreSQLDriverParameters.h"
 #include "PostgreSQLObsDB.h"
+#include "PostgreSQLObsDBConnectionPool.h"
+#include "StationInfo.h"
 #include "Utils.h"
+#include <engines/geonames/Engine.h>
+#include <macgyver/AtomicSharedPtr.h>
+#include <macgyver/Exception.h>
+#include <spine/Location.h>
 #include <spine/Reactor.h>
+#include <spine/Station.h>
+#include <iostream>
+#include <map>
+#include <optional>
+#include <utility>
+#include <vector>
 
 namespace SmartMet
 {

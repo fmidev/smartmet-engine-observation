@@ -4,8 +4,12 @@
 #include <macgyver/AnsiEscapeCodes.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
+#include <spine/ConfigBase.h>
 #include <spine/Convenience.h>
+#include <climits>
+#include <cstddef>
 #include <iostream>
+#include <libconfig.h++>
 
 namespace SmartMet
 {

@@ -1,6 +1,15 @@
 #pragma once
 
 #include "Engine.h"
+#include "MeasurandInfo.h"
+#include "Settings.h"
+#include <macgyver/DateTime.h>
+#include <spine/Location.h>
+#include <spine/Station.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesInclude.h>
+#include <cstdint>
+#include <string>
 
 namespace SmartMet
 {

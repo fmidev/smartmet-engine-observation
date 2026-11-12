@@ -6,11 +6,20 @@
 #include <catch/catch.hpp>
 #endif
 
+#include "../observation/EngineParameters.h"
+#include "../observation/Sensors.h"
+#include "../observation/SpatiaLite.h"
+#include "../observation/SpatiaLiteCacheParameters.h"
 #include "EngineParameters.h"
 #include "SpatiaLite.h"
 #include "SpatiaLiteCacheParameters.h"
+#include <macgyver/DateTime.h>
+#include <macgyver/StringConversion.h>
 #include <spine/ConfigBase.h>
 #include <memory>
+#include <set>
+#include <string>
+#include <vector>
 
 using namespace SmartMet::Engine::Observation;
 

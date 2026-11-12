@@ -1,7 +1,23 @@
 #include "ObservationCacheFactory.h"
+#include "CacheInfoItem.h"
+#include "DatabaseDriverInfo.h"
 #include "DummyCache.h"
 #include "PostgreSQLCache.h"
 #include "SpatiaLiteCache.h"
+#include <boost/algorithm/string/predicate.hpp>
+#include <map>
+#include <set>
+#include <string>
+#include <utility>
+
+namespace SmartMet::Engine::Observation
+{
+class ObservationCache;
+}  // namespace SmartMet::Engine::Observation
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {

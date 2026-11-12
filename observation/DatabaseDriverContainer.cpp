@@ -1,6 +1,13 @@
 #include "DatabaseDriverContainer.h"
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
+#include <algorithm>
+#include <climits>
+
+namespace SmartMet::Engine::Observation
+{
+class DatabaseDriverBase;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

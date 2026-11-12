@@ -1,9 +1,30 @@
 #include "DatabaseDriverBase.h"
+#include "DatabaseDriverInfo.h"
+#include "DatabaseDriverParameters.h"
+#include "DatabaseStations.h"
+#include "ExternalAndMobileProducerId.h"
+#include "Keywords.h"
+#include "ObservationCacheProxy.h"
+#include "ProducerGroups.h"
+#include "Settings.h"
+#include "StationtypeConfig.h"
 #include "Utils.h"
+#include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeParser.h>
-#include <spine/Convenience.h>
+#include <spine/ConfigBase.h>
+#include <spine/Parameter.h>
+#include <spine/Value.h>
+#include <timeseries/TimeSeriesGenerator.h>
 #include <timeseries/TimeSeriesInclude.h>
+#include <list>
+#include <optional>
+
+namespace SmartMet::Engine::Observation
+{
+class ParameterMap;
+struct StationSettings;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

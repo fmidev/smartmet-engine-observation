@@ -2,18 +2,26 @@
 
 #include "MeasurandInfo.h"
 #include "MetaData.h"
-#include "ProducerGroups.h"
-#include "QueryBase.h"
-#include "QueryResultBase.h"
-#include "Settings.h"
-#include "StationGroups.h"
-#include "StationSettings.h"
 #include "Utils.h"
-#include <boost/atomic.hpp>
-#include <boost/thread/condition.hpp>
 #include <macgyver/CacheStats.h>
+#include <macgyver/DateTime.h>
+#include <spine/Location.h>
 #include <spine/Station.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesGeneratorOptions.h>
 #include <timeseries/TimeSeriesInclude.h>
+#include <memory>
+#include <string>
+#include <vector>
+
+namespace SmartMet::Engine::Observation
+{
+class ProducerGroups;
+class QueryBase;
+class Settings;
+class StationGroups;
+struct StationSettings;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

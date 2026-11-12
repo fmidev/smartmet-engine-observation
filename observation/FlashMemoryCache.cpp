@@ -1,11 +1,22 @@
 #include "FlashMemoryCache.h"
 #include "Keywords.h"
+#include "Settings.h"
 #include "Utils.h"
+#include <boost/algorithm/string/case_conv.hpp>
+#include <macgyver/Exception.h>
 #include <macgyver/Geometry.h>
+#include <macgyver/LocalDateTime.h>
+#include <macgyver/TimeZones.h>
+#include <spine/Parameter.h>
 #include <spine/Value.h>
+#include <algorithm>
 #include <list>
+#include <locale>
 #include <map>
+#include <memory>
 #include <optional>
+#include <string>
+#include <utility>
 
 namespace SmartMet
 {

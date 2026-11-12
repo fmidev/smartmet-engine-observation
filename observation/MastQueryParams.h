@@ -1,11 +1,16 @@
 #pragma once
 
 #include "DBRegistryConfig.h"
-#include "MinimumStandardFilter.h"
+#include "FEConformanceClassBase.h"
 #include "QueryParamsBase.h"
-#include "StandardFilter.h"
+#include <any>
+#include <list>
+#include <map>
+#include <memory>
 #include <string>
 #include <tuple>
+#include <utility>
+#include <variant>
 #include <vector>
 
 namespace SmartMet

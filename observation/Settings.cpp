@@ -1,4 +1,7 @@
 #include "Settings.h"
+#include <iostream>
+#include <list>
+#include <utility>
 
 namespace SmartMet
 {

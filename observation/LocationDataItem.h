@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DataItem.h"
+#include <string>
 #include <vector>
 
 namespace SmartMet

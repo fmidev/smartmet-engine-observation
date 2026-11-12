@@ -1,5 +1,12 @@
 #include "VerifiableMessageQuery.h"
+#include "QueryResult.h"
+#include "VerifiableMessageQueryParams.h"
 #include <macgyver/Exception.h>
+#include <algorithm>
+#include <cstddef>
+#include <iostream>
+#include <iterator>
+#include <list>
 #include <memory>
 #include <string>
 

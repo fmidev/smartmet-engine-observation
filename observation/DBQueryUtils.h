@@ -3,10 +3,32 @@
 #include "LocationDataItem.h"
 #include "ParameterMap.h"
 #include "QueryMapping.h"
-#include "Settings.h"
-#include "StationInfo.h"
-#include <macgyver/TimeZones.h>
+#include <macgyver/LocalDateTime.h>
+#include <spine/Station.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesGeneratorOptions.h>
 #include <timeseries/TimeSeriesInclude.h>
+#include <map>
+#include <set>
+#include <string>
+
+namespace Fmi
+{
+class TimeZones;
+}  // namespace Fmi
+namespace SmartMet::Engine::Observation
+{
+class Settings;
+class StationInfo;
+}  // namespace SmartMet::Engine::Observation
+namespace SmartMet::Spine
+{
+class Parameter;
+}  // namespace SmartMet::Spine
+namespace SmartMet::TimeSeries
+{
+struct RequestLimits;
+}  // namespace SmartMet::TimeSeries
 
 namespace SmartMet
 {

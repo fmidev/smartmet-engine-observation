@@ -1,7 +1,26 @@
 #include "PostgreSQLDatabaseDriver.h"
 #include "DatabaseDriverInfo.h"
-#include <macgyver/TimeParser.h>
+#include "DatabaseStations.h"
+#include "Engine.h"
+#include "ObservationCacheAdminPostgreSQL.h"
+#include "Utils.h"
+#include <macgyver/Exception.h>
+#include <macgyver/PostgreSQLConnection.h>
+#include <macgyver/StringConversion.h>
 #include <spine/Reactor.h>
+#include <atomic>
+#include <map>
+#include <utility>
+#include <vector>
+
+namespace SmartMet::Engine::Geonames
+{
+class Engine;
+}  // namespace SmartMet::Engine::Geonames
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {

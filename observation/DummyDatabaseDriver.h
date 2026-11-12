@@ -2,6 +2,12 @@
 
 #include "DatabaseDriverBase.h"
 #include "EngineParameters.h"
+#include <macgyver/DateTime.h>
+#include <spine/Location.h>
+#include <spine/Station.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesInclude.h>
+#include <string>
 
 namespace SmartMet
 {
@@ -9,8 +15,6 @@ namespace Engine
 {
 namespace Observation
 {
-class Engine;
-struct ObservableProperty;
 
 class DummyDatabaseDriver : public DatabaseDriverBase
 {

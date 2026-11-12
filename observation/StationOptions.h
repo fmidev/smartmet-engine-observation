@@ -4,6 +4,7 @@
 #include <spine/Value.h>
 #include <optional>
 #include <set>
+#include <string>
 
 namespace SmartMet
 {

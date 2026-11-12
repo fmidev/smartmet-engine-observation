@@ -1,6 +1,10 @@
 #include "MastQueryParams.h"
+#include "Property.h"
+#include "StandardFilter.h"
+#include <fmt/format.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
+#include <iostream>
 
 namespace SmartMet
 {

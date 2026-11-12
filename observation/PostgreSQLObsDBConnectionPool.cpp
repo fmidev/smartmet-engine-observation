@@ -1,7 +1,19 @@
 #include "PostgreSQLObsDBConnectionPool.h"
+#include "EngineParameters.h"
 #include "PostgreSQLDriverParameters.h"
+#include <boost/thread.hpp>
 #include <fmt/format.h>
 #include <macgyver/Exception.h>
+#include <macgyver/StringConversion.h>
+#include <sys/types.h>
+#include <exception>
+#include <iostream>
+#include <string>
+
+namespace SmartMet::Engine::Observation
+{
+class StationtypeConfig;
+}  // namespace SmartMet::Engine::Observation
 
 using namespace std;
 

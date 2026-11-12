@@ -1,19 +1,34 @@
 #include "PostgreSQLDatabaseDriverForMobileData.h"
-#include "Utils.h"
+#include "DatabaseDriverInfo.h"
 #include "ObservationCache.h"
+#include "PostgreSQLObsDB.h"
+#include "PostgreSQLObsDBConnectionPool.h"
+#include "QueryBase.h"
 #include "QueryExternalAndMobileData.h"
-#include "QueryObservableProperty.h"
 #include "QueryResult.h"
-#include "StationInfo.h"
-#include "StationtypeConfig.h"
-#include <boost/make_shared.hpp>
+#include "QueryResultBase.h"
+#include "Settings.h"
+#include "Utils.h"
+#include <macgyver/Cache.h>
 #include <macgyver/DateTime.h>
-#include <spine/Convenience.h>
+#include <macgyver/Exception.h>
+#include <macgyver/StringConversion.h>
 #include <spine/Reactor.h>
 #include <atomic>
-#include <chrono>
-#include <clocale>
+#include <iostream>
+#include <map>
 #include <numeric>
+#include <optional>
+#include <set>
+#include <sstream>
+#include <typeinfo>
+#include <utility>
+#include <vector>
+
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 // #define MYDEBUG 1
 

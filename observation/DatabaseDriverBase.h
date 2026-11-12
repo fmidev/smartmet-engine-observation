@@ -1,25 +1,46 @@
 #pragma once
 
-#include "DatabaseDriverParameters.h"
-#include "DatabaseStations.h"
-#include "Engine.h"
-#include "FmiIoTStation.h"
-#include "Keywords.h"
+#include "DatabaseStations.h"  // IWYU pragma: keep (unique_ptr member, implicit destructor)
+#include "EngineParameters.h"
+#include "MeasurandInfo.h"
 #include "MetaData.h"
 #include "ObservableProperty.h"
 #include "ObservationCache.h"
-#include "ProducerGroups.h"
-#include "QueryBase.h"
-#include "QueryResultBase.h"
-#include "Settings.h"
-#include "StationGroups.h"
-#include "StationSettings.h"
 #include "Utils.h"
-#include <boost/atomic.hpp>
-#include <boost/thread/condition.hpp>
+#include <macgyver/CacheStats.h>
 #include <macgyver/DateTime.h>
+#include <macgyver/TimeZones.h>
+#include <spine/Location.h>
 #include <spine/Station.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesGeneratorOptions.h>
 #include <timeseries/TimeSeriesInclude.h>
+#include <atomic>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace SmartMet::Engine::Observation
+{
+class Engine;
+class FmiIoTStations;
+class ParameterMap;
+class ProducerGroups;
+class QueryBase;
+class Settings;
+class StationGroups;
+class StationtypeConfig;
+struct DatabaseDriverParameters;
+struct StationSettings;
+}  // namespace SmartMet::Engine::Observation
+namespace SmartMet::Spine
+{
+class ConfigBase;
+class Parameter;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {

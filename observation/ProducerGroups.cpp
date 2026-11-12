@@ -2,6 +2,7 @@
 #include <macgyver/DateTime.h>
 #include <macgyver/StringConversion.h>
 #include <set>
+#include <utility>
 
 namespace SmartMet
 {

@@ -1,13 +1,16 @@
 #include "SpecialParameters.h"
 #include <engines/geonames/Engine.h>
-#include <locus/Query.h>
-#include <macgyver/Astronomy.h>
-#include <macgyver/CharsetTools.h>
+#include <locus/QueryOptions.h>
+#include <macgyver/DateTime.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
+#include <macgyver/TimeZoneFactory.h>
 #include <macgyver/ValueFormatter.h>
 #include <timeseries/ParameterKeywords.h>
-#include <timeseries/ParameterTools.h>
+#include <timeseries/TimeSeriesTypes.h>
+#include <cassert>
+#include <list>
+#include <utility>
 
 using namespace SmartMet;
 using Engine::Observation::SpecialParameters;

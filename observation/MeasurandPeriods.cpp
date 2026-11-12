@@ -1,13 +1,18 @@
 #include "MeasurandPeriods.h"
+#include "Settings.h"
 #include <fmt/format.h>
 #include <macgyver/AtomicSharedPtr.h>
+#include <macgyver/DateTime.h>
 #include <macgyver/Exception.h>
 #include <macgyver/StringConversion.h>
 #include <macgyver/TimeParser.h>
+#include <timeseries/RequestLimits.h>
 #include <algorithm>
 #include <limits>
 #include <memory>
+#include <string>
 #include <unordered_map>
+#include <utility>
 
 namespace SmartMet
 {

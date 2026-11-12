@@ -2,6 +2,8 @@
 #include <macgyver/Exception.h>
 #include <macgyver/Hash.h>
 #include <macgyver/StringConversion.h>
+#include <ostream>
+#include <string>
 
 namespace SmartMet
 {

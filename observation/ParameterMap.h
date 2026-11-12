@@ -1,11 +1,9 @@
 #pragma once
 
+#include "RoadAndForeignIds.h"
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
-
-#include "RoadAndForeignIds.h"
 
 namespace SmartMet
 {

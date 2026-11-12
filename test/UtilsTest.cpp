@@ -6,10 +6,22 @@
 #include <catch/catch.hpp>
 #endif
 
+#include "../observation/RoadAndForeignIds.h"
+#include "../observation/Utils.h"
 #include "RoadAndForeignIds.h"
 #include "Utils.h"
 #include <macgyver/DateTime.h>
+#include <macgyver/LocalDateTime.h>
 #include <macgyver/TimeZones.h>
+#include <spine/ParameterTranslations.h>
+#include <spine/Station.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesTypes.h>
+#include <initializer_list>
+#include <libconfig.h++>
+#include <memory>
+#include <optional>
+#include <string>
 
 using namespace SmartMet::Engine::Observation;
 using namespace SmartMet::Engine::Observation::Utils;

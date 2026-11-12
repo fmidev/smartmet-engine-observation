@@ -1,9 +1,22 @@
 #pragma once
 
 #include "ExternalAndMobileProducerConfig.h"
-#include "FmiIoTStation.h"
-#include "PostgreSQLObsDB.h"
 #include "QueryBase.h"
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesGeneratorOptions.h>
+#include <timeseries/TimeSeriesInclude.h>
+#include <memory>
+
+namespace Fmi
+{
+class TimeZones;
+}  // namespace Fmi
+namespace SmartMet::Engine::Observation
+{
+class FmiIoTStations;
+class PostgreSQLObsDB;
+class Settings;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

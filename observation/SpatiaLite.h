@@ -1,22 +1,41 @@
 #pragma once
 
-#include "Sensors.h"
-
 #include "CommonDatabaseFunctions.h"
 #include "DataItem.h"
 #include "ExternalAndMobileProducerConfig.h"
 #include "FlashDataItem.h"
-#include "InsertStatus.h"
+#include "LocationDataItem.h"
 #include "MagnetometerDataItem.h"
 #include "MobileExternalDataItem.h"
 #include "MovingLocationItem.h"
-#include "Utils.h"
+#include "Sensors.h"
+
+namespace Fmi
+{
+class TimeZones;
+}  // namespace Fmi
+namespace SmartMet::Engine::Observation
+{
+class InsertStatus;
+class Settings;
+class StationInfo;
+}  // namespace SmartMet::Engine::Observation
 
 #ifdef __llvm__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 #endif
+#include <macgyver/DateTime.h>
+#include <spine/Location.h>
+#include <spine/Station.h>
 #include <sqlite3pp/sqlite3pp.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesInclude.h>
+#include <cstddef>
+#include <memory>
+#include <set>
+#include <string>
+#include <vector>
 #ifdef __llvm__
 #pragma clang diagnostic pop
 #endif
@@ -24,15 +43,10 @@
 // clang-format off
 namespace sqlite_api
 {
-#include <sqlite3.h>
-#include <spatialite.h>
+#include <sqlite3.h>     // IWYU pragma: keep
+#include <spatialite.h>  // IWYU pragma: keep
 }
 // clang-format on
-
-namespace Fmi
-{
-class DateTimeParser;
-}
 
 #define DATABASE_VERSION "2"
 
@@ -42,10 +56,9 @@ namespace Engine
 {
 namespace Observation
 {
-struct SpatiaLiteCacheParameters;
 class ObservationMemoryCache;
-
 struct QueryMapping;
+struct SpatiaLiteCacheParameters;
 
 // class SpatiaLite : public CommonDatabaseFunctions
 class SpatiaLite : public CommonDatabaseFunctions

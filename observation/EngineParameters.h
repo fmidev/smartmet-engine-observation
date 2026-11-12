@@ -1,17 +1,39 @@
 #pragma once
 
-#include <engines/geonames/Engine.h>
-
 #include "DatabaseDriverInfo.h"
 #include "ExternalAndMobileProducerConfig.h"
-#include "ObservationCache.h"
-#include "ObservationCacheProxy.h"
+#include "ParameterMap.h"
 #include "ProducerGroups.h"
 #include "StationInfo.h"
 #include "StationtypeConfig.h"
-#include <boost/smart_ptr/atomic_shared_ptr.hpp>
+#include <macgyver/AtomicSharedPtr.h>
 #include <macgyver/Cache.h>
 #include <spine/Location.h>
+#include <sys/types.h>
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <vector>
+
+namespace SmartMet::Engine::Geonames
+{
+class Engine;
+}  // namespace SmartMet::Engine::Geonames
+namespace SmartMet::Engine::Observation
+{
+class ObservationCacheProxy;
+}  // namespace SmartMet::Engine::Observation
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
+namespace libconfig
+{
+class Setting;
+}  // namespace libconfig
 
 namespace SmartMet
 {
@@ -20,6 +42,7 @@ namespace Engine
 namespace Observation
 {
 class QueryResultBase;
+
 struct EngineParameters
 {
   explicit EngineParameters(Spine::ConfigBase& cfg);

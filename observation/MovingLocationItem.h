@@ -1,8 +1,8 @@
 #pragma once
 
 #include <macgyver/DateTime.h>
-#include <macgyver/StringConversion.h>
-#include <optional>
+#include <cstddef>
+#include <iosfwd>
 #include <vector>
 
 namespace SmartMet

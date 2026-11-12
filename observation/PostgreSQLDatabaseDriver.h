@@ -1,14 +1,26 @@
 #pragma once
 
 #include "DatabaseDriverBase.h"
-#include "Engine.h"
-#include "ObservationCacheAdminPostgreSQL.h"
+#include "EngineParameters.h"
 #include "PostgreSQLDriverParameters.h"
-#include "PostgreSQLObsDB.h"
 #include "PostgreSQLObsDBConnectionPool.h"
-#include <boost/smart_ptr/atomic_shared_ptr.hpp>
+#include <macgyver/AtomicSharedPtr.h>
 #include <memory>
 #include <string>
+
+namespace SmartMet::Engine::Geonames
+{
+class Engine;
+}  // namespace SmartMet::Engine::Geonames
+namespace SmartMet::Engine::Observation
+{
+class Engine;
+class ObservationCacheAdminPostgreSQL;
+}  // namespace SmartMet::Engine::Observation
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {

@@ -1,8 +1,13 @@
 #pragma once
 
 #include "EngineParameters.h"
-#include "ObservationCache.h"
 #include "ObservationCacheProxy.h"
+#include <memory>
+
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {

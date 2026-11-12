@@ -1,6 +1,16 @@
 #include "DatabaseDriverFactory.h"
 #include "DatabaseDriverProxy.h"
-#include "DummyDatabaseDriver.h"
+#include <macgyver/Exception.h>
+#include <string>
+
+namespace SmartMet::Engine::Observation
+{
+class DatabaseDriverInterface;
+}  // namespace SmartMet::Engine::Observation
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {

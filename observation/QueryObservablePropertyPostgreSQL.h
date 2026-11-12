@@ -1,7 +1,16 @@
 #pragma once
 
-#include "PostgreSQLObsDB.h"
+#include "ObservableProperty.h"
+#include "ParameterMap.h"
 #include "QueryObservableProperty.h"
+#include <memory>
+#include <string>
+#include <vector>
+
+namespace SmartMet::Engine::Observation
+{
+class PostgreSQLObsDB;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {

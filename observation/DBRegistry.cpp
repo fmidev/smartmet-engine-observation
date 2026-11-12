@@ -2,11 +2,10 @@
 #include <boost/algorithm/string.hpp>
 #include <macgyver/Exception.h>
 #include <spine/ConfigBase.h>
-#include <spine/Convenience.h>
 #include <exception>
 #include <filesystem>
 #include <iostream>
-#include <sstream>
+#include <utility>
 
 namespace SmartMet
 {

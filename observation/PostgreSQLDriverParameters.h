@@ -1,9 +1,13 @@
 #pragma once
 
 #include "DatabaseDriverParameters.h"
+#include "EngineParameters.h"
+#include "ExternalAndMobileProducerConfig.h"
 #include "FmiIoTStation.h"
-#include <boost/make_shared.hpp>
 #include <macgyver/PostgreSQLConnection.h>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace SmartMet
 {
@@ -11,7 +15,6 @@ namespace Engine
 {
 namespace Observation
 {
-class FmiIoTStations;
 
 struct PostgreSQLDriverParameters : public DatabaseDriverParameters
 {

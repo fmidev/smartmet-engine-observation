@@ -1,13 +1,35 @@
 #include "DatabaseDriverProxy.h"
+#include "DatabaseDriverBase.h"
+#include "DatabaseDriverInfo.h"
 #include "DummyDatabaseDriver.h"
+#include "Keywords.h"
+#include "MetaData.h"
 #include "PostgreSQLDatabaseDriverForFmiData.h"
 #include "PostgreSQLDatabaseDriverForMobileData.h"
+#include "Settings.h"
 #include "SpatiaLiteDatabaseDriver.h"
+#include "StationSettings.h"
+#include "Utils.h"
+#include <boost/algorithm/string/predicate.hpp>
 #include <macgyver/AnsiEscapeCodes.h>
 #include <macgyver/Exception.h>
+#include <macgyver/StringConversion.h>
+#include <spine/ConfigBase.h>
 #include <spine/Convenience.h>
-#include <boost/algorithm/string/predicate.hpp>
+#include <climits>
+#include <cstddef>
+#include <functional>
+#include <iostream>
+#include <map>
+#include <memory>
 #include <set>
+#include <utility>
+#include <vector>
+
+namespace SmartMet::Engine::Observation
+{
+class FmiIoTStations;
+}  // namespace SmartMet::Engine::Observation
 
 extern "C"
 {

@@ -1,14 +1,33 @@
 #include "DBQueryUtils.h"
+#include "DataItem.h"
 #include "DataWithQuality.h"
+#include "RoadAndForeignIds.h"
+#include "Settings.h"
 #include "SpecialParameters.h"
+#include "StationInfo.h"
 #include "Utils.h"
+#include <boost/algorithm/string/predicate.hpp>
+#include <macgyver/DateTime.h>
+#include <macgyver/Exception.h>
+#include <macgyver/StringConversion.h>
+#include <macgyver/TimeZones.h>
+#include <newbase/NFmiGlobals.h>
 #include <newbase/NFmiMetMath.h>  //For FeelsLike calculation
-#include <timeseries/ParameterTools.h>
-
-#include <timeseries/TimeSeriesOutput.h>
+#include <spine/Parameter.h>
+#include <timeseries/RequestLimits.h>
+#include <timeseries/TimeSeriesGenerator.h>
+#include <timeseries/TimeSeriesTypes.h>
+#include <algorithm>
 #include <array>
+#include <cmath>
+#include <initializer_list>
+#include <list>
+#include <memory>
 #include <optional>
 #include <unordered_map>
+#include <utility>
+#include <variant>
+#include <vector>
 
 namespace SmartMet
 {

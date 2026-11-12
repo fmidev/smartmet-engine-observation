@@ -1,10 +1,21 @@
 #pragma once
 
-#include "Engine.h"
+#include "EngineParameters.h"
+#include "MeasurandInfo.h"
 #include "PostgreSQLDatabaseDriver.h"
-#include "PostgreSQLObsDB.h"
-#include <memory>
+#include "Sensors.h"
+#include <macgyver/DateTime.h>
+#include <spine/Location.h>
+#include <spine/Station.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesInclude.h>
+#include <set>
 #include <string>
+
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {

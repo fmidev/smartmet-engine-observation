@@ -4,8 +4,11 @@
 #include <macgyver/StringConversion.h>
 #include <macgyver/TypeName.h>
 #include <algorithm>
+#include <exception>
 #include <iostream>
+#include <iterator>
 #include <limits>
+#include <memory>
 #include <utility>
 
 namespace SmartMet

@@ -1,5 +1,8 @@
 #include "MinimumStandardFilter.h"
+#include "Property.h"
 #include <macgyver/Exception.h>
+#include <memory>
+#include <string>
 
 namespace SmartMet
 {

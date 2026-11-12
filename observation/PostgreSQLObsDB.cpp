@@ -1,16 +1,49 @@
 #include "PostgreSQLObsDB.h"
 #include "AsDouble.h"
+#include "DatabaseDriverInfo.h"
 #include "ExternalAndMobileDBInfo.h"
-#include "Keywords.h"
+#include "ExternalAndMobileProducerId.h"
+#include "FlashDataItem.h"
+#include "MagnetometerDataItem.h"
+#include "MobileExternalDataItem.h"
+#include "MovingLocationItem.h"
 #include "PostgreSQLCacheDB.h"
+#include "ProducerGroups.h"
+#include "RoadAndForeignIds.h"
+#include "Settings.h"
+#include "StationGroups.h"
+#include "StationInfo.h"
 #include "Utils.h"
-#include <boost/functional/hash.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 #include <fmt/format.h>
-#include <gis/OGR.h>
 #include <macgyver/AsyncTask.h>
 #include <macgyver/Exception.h>
 #include <macgyver/Join.h>
+#include <macgyver/LocalDateTime.h>
+#include <macgyver/StringConversion.h>
+#include <macgyver/TimeParser.h>
 #include <spine/Convenience.h>
+#include <timeseries/DataFilter.h>
+#include <timeseries/RequestLimits.h>
+#include <timeseries/TimeSeriesTypes.h>
+#include <atomic>
+#include <cmath>
+#include <ctime>
+#include <iostream>
+#include <map>
+#include <pqxx/pqxx>
+#include <utility>
+#include <variant>
+
+namespace Fmi
+{
+class TimeZones;
+}  // namespace Fmi
+namespace SmartMet::Engine::Observation
+{
+class QueryResultBase;
+class StationtypeConfig;
+}  // namespace SmartMet::Engine::Observation
 
 // #define MYDEBUG 1
 

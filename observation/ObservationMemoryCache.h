@@ -2,14 +2,19 @@
 
 #include "DataItem.h"
 #include "LocationDataItem.h"
-#include "ParameterMap.h"
-#include "Settings.h"
 #include <macgyver/AtomicSharedPtr.h>
-#include <macgyver/TimeZones.h>
+#include <macgyver/DateTime.h>
 #include <spine/Station.h>
-#include <timeseries/TimeSeriesInclude.h>
+#include <cstddef>
 #include <map>
+#include <set>
+#include <string>
 #include <unordered_set>
+
+namespace SmartMet::Engine::Observation
+{
+class Settings;
+}  // namespace SmartMet::Engine::Observation
 
 namespace SmartMet
 {
@@ -17,8 +22,8 @@ namespace Engine
 {
 namespace Observation
 {
-struct QueryMapping;
 class StationInfo;
+struct QueryMapping;
 
 class ObservationMemoryCache
 {

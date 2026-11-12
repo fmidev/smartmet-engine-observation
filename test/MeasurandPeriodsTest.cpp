@@ -6,9 +6,15 @@
 #include <catch/catch.hpp>
 #endif
 
+#include "../observation/MeasurandInfo.h"
+#include "../observation/MeasurandPeriods.h"
+#include "../observation/Settings.h"
 #include "MeasurandPeriods.h"
-#include <macgyver/Exception.h>
 #include <macgyver/TimeParser.h>
+#include <timeseries/RequestLimits.h>
+#include <cstddef>
+#include <string>
+#include <vector>
 
 using namespace SmartMet::Engine::Observation;
 

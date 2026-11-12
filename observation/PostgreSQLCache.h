@@ -1,15 +1,36 @@
 #pragma once
 
+#include "DataItem.h"
 #include "EngineParameters.h"
+#include "FlashDataItem.h"
+#include "MagnetometerDataItem.h"
+#include "MobileExternalDataItem.h"
+#include "MovingLocationItem.h"
 #include "ObservationCache.h"
 #include "PostgreSQLCacheDB.h"
 #include "PostgreSQLCacheParameters.h"
-#include "Settings.h"
-#include "StationtypeConfig.h"
-
+#include <macgyver/CacheStats.h>
+#include <macgyver/DateTime.h>
+#include <macgyver/Pool.h>
+#include <macgyver/TimeZones.h>
+#include <spine/Location.h>
+#include <spine/Station.h>
 #include <spine/Thread.h>
+#include <timeseries/TimeSeries.h>
+#include <timeseries/TimeSeriesInclude.h>
+#include <cstddef>
+#include <memory>
 #include <mutex>
 #include <string>
+
+namespace SmartMet::Engine::Observation
+{
+class Settings;
+}  // namespace SmartMet::Engine::Observation
+namespace SmartMet::Spine
+{
+class ConfigBase;
+}  // namespace SmartMet::Spine
 
 namespace SmartMet
 {
