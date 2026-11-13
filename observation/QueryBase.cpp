@@ -1,5 +1,4 @@
 #include "QueryBase.h"
-#include <version>
 
 namespace SmartMet
 {
