@@ -144,6 +144,52 @@ stationtypelist:
 * `useCommonQueryMethod` (default `false`) queries the generic `observation_data` style
   table instead of a station type specific one.
 
+#### How a station type selects its stations and data
+
+A station type applies two independent restrictions:
+
+1. **Stations** are the members of the station groups listed in `stationGroups`. The list
+   is fixed in the configuration, so attaching a new station group to a station type
+   requires a configuration change and a restart. Adding a station to, or removing it
+   from, an existing group in the database needs no configuration change: it takes effect
+   when the station registry is refreshed (`stationsCacheUpdateInterval`, the
+   `reloadstations` admin request, or a restart).
+
+2. **Producers** restrict the data of those stations by the producer id of the
+   observations. The restriction applies to station types with
+   `useCommonQueryMethod = true`:
+
+   * If `producerIds` is set, it is used as such.
+   * Otherwise the producer ids are taken from the producer groups of the database, view
+     `producer_group_members_v1`, rows with `group_in_use = 1` and `namespace = 'cldb'`.
+     The group is matched to the station type **by name**: `group_name` must be exactly
+     the same as `stationtype`, including the letter case. A producer id is used if its
+     membership period (`membership_valid_from` ... `membership_valid_to`) intersects the
+     time interval of the request. Ending a membership thus removes the data only from
+     the end time onwards, older data is still returned.
+   * If neither gives any producer ids (no group with the name of the station type, the
+     group is not in use, or no membership covers the requested interval), **the data is
+     not restricted by producer at all**: the data of all producers is returned for the
+     stations of the station type.
+
+   The deprecated station type `fmi` uses the members of the producer group
+   `observations_fmi`.
+
+The producer groups are read from the database only when the engine starts. A change to
+the producer groups (members, membership periods, `group_in_use`) takes effect when the
+server is restarted; `reloadstations` does not reload them.
+
+The `obsproducers` admin request lists the station groups of each station type. Its
+`ProducerId` column shows the `producerIds` of the configuration only, not the producer
+ids read from the producer groups of the database.
+
+| Change | Takes effect |
+|---|---|
+| Station added to or removed from an existing station group | station registry refresh or restart |
+| New station group for a station type, or a new station type | configuration change and restart |
+| `producerIds` changed | configuration change and restart |
+| Producer group membership or `group_in_use` changed in the database | restart |
+
 The mobile and external station types (`roadcloud`, `teconer`, `netatmo`, `fmi_iot` and
 `tapsi_qc`) take only `producerIds`, which must hold the producer id, and an optional
 `databaseTableName` (default `ext_obsdata`).

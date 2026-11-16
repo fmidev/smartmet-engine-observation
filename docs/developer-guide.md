@@ -241,7 +241,11 @@ why its results can be cached.
   `databaseTableName`, and `useCommonQueryMethod` (query the generic
   `observation_data`-style table instead of a type-specific one). The mobile and external
   station types (`roadcloud`, `teconer`, `netatmo`, `fmi_iot`, `tapsi_qc`) need exactly
-  their producer id here. Whether a station type is served from a cache depends on the
+  their producer id here. Without `producerIds` a common query method station type takes
+  its producer ids from the same named producer group of the database
+  (`ProducerGroups`, read once in `EngineImpl::init()`, applied by
+  `DatabaseDriverBase::updateProducers()`); with no ids the data is not filtered by
+  producer. Whether a station type is served from a cache depends on the
   `caches` of the drivers (§5).
 * **`parameters`** maps each parameter name to a measurand per station type (see
   Configuring-Observation-Parameters.md). `isParameter()`, `getParameterId()` and

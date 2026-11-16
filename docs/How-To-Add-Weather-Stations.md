@@ -83,6 +83,13 @@ one of the station groups in the database, or add their group to the `stationGro
 array of the station type. If their data is stored under a new producer, also add the
 producer id to the `producerIds` array.
 
+If `producerIds` is not set for a station type which uses `useCommonQueryMethod`, the
+producer ids are read at startup from the producer group of the database which has the
+same name as the station type, and if there is no such group in use, the data is not
+restricted by producer. A new producer is then added to the producer group in the
+database, and the server must be restarted. See
+[How a station type selects its stations and data](Configuring-Observation-Engine.md#how-a-station-type-selects-its-stations-and-data).
+
 ```
 stationtypelist:
 (
