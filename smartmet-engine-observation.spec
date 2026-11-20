@@ -4,7 +4,7 @@
 Summary: SmartMet Observation Engine
 Name: %{SPECNAME}
 Version: 26.11.20
-Release: 1%{?dist}.fmi
+Release: 2%{?dist}.fmi
 License: FMI
 Group: SmartMet/Engines
 URL: https://github.com/fmidev/smartmet-engine-observation
@@ -172,6 +172,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/smartmet/engines/%{DIRNAME}
 
 %changelog
+* Fri Nov 20 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.11.20-2.fmi
+- Road and other weather_data_qc queries no longer fail with "No available parameters found
+  for weather data query" when none of the requested data parameters is available for the
+  station type, for example stationname together with a parameter not measured by road
+  stations. The result is empty as for the other station types
+
 * Fri Nov 20 2026 Mika Heiskanen <mika.heiskanen@fmi.fi> - 26.11.20-1.fmi
 - SpatiaLite drivers now read their cache durations and update intervals. A SpatiaLite
   driver with cache updates enabled used zero durations, so the initial clean emptied
