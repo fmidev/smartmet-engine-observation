@@ -1259,24 +1259,25 @@ void PostgreSQLObsDB::getMovingStations(Spine::Stations& stations,
 
     // 1 = station groups, 81 = station type
 
+    // moving_locations_v1 computes edate with a window function over all moving stations. A
+    // join with the group tables is not pushed below the window function, but = ANY(ARRAY(...))
+    // is evaluated first as an init plan and its station list is. Without it the window function
+    // processes the whole table (millions of rows, tens of seconds).
+
     // clang-format off
-    std::string sqlStmt = fmt::format(R"SQL(SELECT distinct m.station_id
+    std::string sqlStmt = fmt::format(R"SQL(SELECT DISTINCT m.station_id
 FROM moving_locations_v1 m
-JOIN target_group_member_t1 tgm on (tgm.target_id = m.station_id )
-JOIN target_group_t1 tg on (tg.target_group_id = tgm.target_group_id )
-WHERE
-(
-    ( sdate BETWEEN '{}'  AND '{}' ) OR
-    ( edate BETWEEN '{}'  AND '{}' ) OR
-    ( sdate <= '{}'  AND edate >= '{}' )
- )
-AND tg.group_class_id IN( 1, 81 )
-AND tg.group_name IN( '{}')
+WHERE m.station_id = ANY(ARRAY(
+    SELECT tgm.target_id
+    FROM target_group_member_t1 tgm
+    JOIN target_group_t1 tg ON (tg.target_group_id = tgm.target_group_id)
+    WHERE tg.group_class_id IN (1, 81)
+    AND tg.group_name IN ('{}')))
+AND m.sdate <= '{}' AND m.edate >= '{}'
 )SQL",
-    sdate, edate,
-    sdate, edate,
-    sdate, edate,
-    Fmi::ascii_toupper_copy(settings.stationtype));
+    Fmi::ascii_toupper_copy(settings.stationtype),
+    edate,
+    sdate);
     // clang-format on
 
     if (wkt != globe)

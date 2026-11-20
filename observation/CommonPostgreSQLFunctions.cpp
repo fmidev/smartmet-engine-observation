@@ -101,13 +101,25 @@ std::string buildMovingStationsDirectSQL(const std::string &starttime,
                                          const std::string &qualityClause,
                                          const std::string &wktString)
 {
+  // moving_locations_v1 computes edate with a window function over all moving stations. The
+  // planner cannot derive the station and time restrictions on m from those on data, and without
+  // them every query runs the window function over the whole table (millions of rows, seconds).
+  // A restriction on m.station_id is pushed below the window function, the time overlap
+  // condition then discards locations before the merge join.
+  std::string locationCondition =
+      " AND m.sdate <= '" + endtime + "' AND m.edate >= '" + starttime + "'";
+  if (!fmisids.empty())
+    locationCondition += " AND m.station_id IN (" + fmisids + ")";
+
   std::string sql =
       "SELECT data.station_id AS fmisid, data.sensor_no AS sensor_no, EXTRACT(EPOCH FROM "
       "date_trunc('seconds', data.data_time)) AS obstime, "
       "data.measurand_id, data.data_value, data.data_quality, data.data_source, m.lon, m.lat, "
       "m.elev "
       "FROM observation_data_r1 data JOIN moving_locations_v1 m ON (m.station_id = "
-      "data.station_id and data.data_time between m.sdate and m.edate) WHERE "
+      "data.station_id and data.data_time between m.sdate and m.edate" +
+      locationCondition +
+      ") WHERE "
       "data.data_time >= '" +
       starttime + "' AND data.data_time <= '" + endtime + "' AND data.measurand_id IN (" +
       measurand_ids + ")";
