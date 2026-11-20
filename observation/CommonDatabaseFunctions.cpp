@@ -5,13 +5,11 @@
 #include "Utils.h"
 #include <boost/algorithm/string.hpp>
 #include <macgyver/Exception.h>
-#include <macgyver/Join.h>
 #include <macgyver/StringConversion.h>
 #include <spine/Parameter.h>
 #include <timeseries/TimeSeriesInclude.h>
 #include <algorithm>
 #include <initializer_list>
-#include <iterator>
 #include <map>
 #include <optional>
 #include <utility>
@@ -217,18 +215,11 @@ TS::TimeSeriesVectorPtr CommonDatabaseFunctions::getWeatherDataQCData(
 
     std::string params = getWeatherDataQCParams(param_set);
 
+    // Nothing to read from the database: all requested data parameters are unavailable for
+    // the station type (the engine gives them columns of missing values) or only special
+    // parameters were requested. Return an empty result as the other observation tables do.
     if (params.empty())
-    {
-      std::vector<std::string> param_names;
-      std::transform(settings.parameters.begin(),
-                     settings.parameters.end(),
-                     std::back_inserter(param_names),
-                     [](const Spine::Parameter &p) { return p.name(); });
-      Fmi::Exception error(BCP, "No available parameters found for weather data query");
-      error.addParameter("Stationtype", stationtype);
-      error.addParameter("Requested parameters", Fmi::join(param_names, ", "));
-      throw error;
-    }
+      return initializeResultVector(settings);
 
     auto qmap = buildQueryMapping(settings, stationtype, true);
 
