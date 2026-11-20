@@ -593,6 +593,24 @@ void DatabaseDriverInfo::readSpatiaLiteCommonInfo(Spine::ConfigBase& cfg,
         Fmi::to_string(cfg.get_optional_config_param<bool>(common_key + ".timer", false));
     params["disableAllCacheUpdates"] = Fmi::to_string(
         cfg.get_optional_config_param<bool>(common_key + ".disableAllCacheUpdates", false));
+
+    // Without these a SpatiaLite driver with updates enabled would use zero durations, and the
+    // initial cache clean would empty the cache and skip creating the memory caches.
+    for (const auto* key : {"finCacheUpdateInterval",
+                            "extCacheUpdateInterval",
+                            "flashCacheUpdateInterval",
+                            "stationsCacheUpdateInterval",
+                            "finCacheDuration",
+                            "finMemoryCacheDuration",
+                            "extCacheDuration",
+                            "extMemoryCacheDuration",
+                            "flashCacheDuration",
+                            "flashMemoryCacheDuration",
+                            "finCacheUpdateSize",
+                            "extCacheUpdateSize"})
+      params[key] = Fmi::to_string(cfg.get_optional_config_param<int>(common_key + "." + key, 0));
+    params["updateExtraInterval"] = Fmi::to_string(
+        cfg.get_optional_config_param<std::size_t>(common_key + ".updateExtraInterval", 10));
     return;
   }
 
